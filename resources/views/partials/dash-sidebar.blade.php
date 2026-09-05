@@ -11,8 +11,8 @@
     <div class="dash-sidebar-header">
         <a href="{{ route('dashboard.' . $role) }}" class="brand"
             style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-            <img id="dashLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}"
-                data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo"
+            <img id="dashLogo" src="/img/logo-dark.png" data-dark="/img/logo-dark.png"
+                data-light="/img/logo-light.png" alt="SAE Logo"
                 style="height: 36px; max-width: 140px; object-fit: contain;">
         </a>
         <span class="badge badge-primary"

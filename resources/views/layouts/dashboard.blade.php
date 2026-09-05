@@ -7,21 +7,15 @@
     <title>@yield('title', 'Dashboard — SAE')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
-    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
-
-    <!-- Google Fonts: Plus Jakarta Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link rel="icon" type="image/png" href="/img/logo-icon.png">
+    <link rel="shortcut icon" type="image/png" href="/img/logo-icon.png">
 
     <!-- FontAwesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- Global App & Dashboard Stylesheets -->
-    <link rel="stylesheet" href="{{ asset('css/sae.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    <link rel="stylesheet" href="/css/sae.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -56,8 +50,8 @@
     @include('partials.mobile-bottom-nav')
 
     <!-- Global & Dashboard JS Scripts -->
-    <script src="{{ asset('js/sae.js') }}"></script>
-    <script src="{{ asset('js/dashboard.js') }}"></script>
+    <script src="/js/sae.js"></script>
+    <script src="/js/dashboard.js"></script>
     @stack('scripts')
 </body>
 
