@@ -1,79 +1,75 @@
-<!DOCTYPE html>
-<html lang="id">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Installer SAE - Smart Apps Education</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/sae.css') }}">
-</head>
+@section('title', 'Instalasi Sistem — SAE (Sistem Aplikasi Edukasi)')
 
-<body>
-    <div class="ambient-glow"></div>
-    <div class="ambient-glow-2"></div>
+@section('content')
+<div class="container" style="min-height: 85vh; display: flex; align-items: center; justify-content: center; padding: 40px 16px;">
+    <div style="width: 100%; max-width: 480px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 36px 30px; box-shadow: var(--card-shadow); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -50px; right: -50px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
 
-    <div class="installer-wrapper">
-        <div class="installer-card">
-            <div class="text-center mb-4">
-                <div
-                    style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.15); border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                    <i class="fas fa-database text-primary" style="font-size: 1.75rem;"></i>
+        <div style="text-align: center; margin-bottom: 24px;">
+            <img src="{{ asset('img/logo-icon.png') }}" alt="SAE Logo" style="height: 52px; margin-bottom: 12px; filter: drop-shadow(0 4px 12px rgba(99,102,241,0.3));">
+            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px;">Installer Sistem SAE</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Inisialisasi Database & Pengaturan Awal</p>
+        </div>
+
+        @if(session('error'))
+            <div style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 20px;">
+                <i class="fas fa-triangle-exclamation"></i> {{ session('error') }}
+            </div>
+        @endif
+
+        <form action="{{ route('install.process') }}" method="POST">
+            @csrf
+            <input type="hidden" name="db_host" value="{{ old('db_host', '127.0.0.1') }}">
+            <input type="hidden" name="db_port" value="{{ old('db_port', '3306') }}">
+
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                    <i class="fas fa-database text-primary"></i> Nama Database
+                </label>
+                <div class="input-group" style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px; display: flex; align-items: center;">
+                    <input type="text" name="db_name" required value="{{ old('db_name', 'db_sae') }}" placeholder="contoh: db_sae" style="flex: 1; border: none; background: transparent; padding: 10px 14px; color: var(--text-color); font-size: 0.9rem; outline: none;">
                 </div>
-                <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem;">Installer Sistem SAE</h2>
-                <p class="text-muted" style="font-size: 0.85rem;">Hubungkan database server untuk instalasi baru</p>
             </div>
 
-            @if (session('error'))
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>{{ session('error') }}</span>
+            <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                    <i class="fas fa-user text-primary"></i> Username Database
+                </label>
+                <div class="input-group" style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px; display: flex; align-items: center;">
+                    <input type="text" name="db_user" required value="{{ old('db_user', 'root') }}" placeholder="contoh: root" style="flex: 1; border: none; background: transparent; padding: 10px 14px; color: var(--text-color); font-size: 0.9rem; outline: none;">
                 </div>
-            @endif
+            </div>
 
-            <form action="{{ route('install.process') }}" method="POST">
-                @csrf
-                <input type="hidden" name="db_host" value="{{ old('db_host', '127.0.0.1') }}">
-                <input type="hidden" name="db_port" value="{{ old('db_port', '3306') }}">
-
-                <div class="form-group">
-                    <label class="form-label"><i class="fas fa-database me-1"></i> Nama Database</label>
-                    <input type="text" name="db_name" class="input-control" value="{{ old('db_name', 'db_sae') }}"
-                        placeholder="contoh: db_sae" required autofocus>
+            <div style="margin-bottom: 22px;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                    <i class="fas fa-lock text-primary"></i> Password Database
+                </label>
+                <div class="input-group" style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px; display: flex; align-items: center;">
+                    <input type="password" name="db_pass" placeholder="Kosongkan jika tanpa password" style="flex: 1; border: none; background: transparent; padding: 10px 14px; color: var(--text-color); font-size: 0.9rem; outline: none;">
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <label class="form-label"><i class="fas fa-user me-1"></i> Username Database</label>
-                    <input type="text" name="db_user" class="input-control" value="{{ old('db_user', 'root') }}"
-                        placeholder="contoh: root" required>
+            <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 14px; margin-bottom: 22px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
+                <div style="font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                    <i class="fas fa-info-circle text-primary me-1"></i> Informasi Akun Bawaan:
                 </div>
+                <div>• <b>Admin:</b> admin@sae.id / <code style="color: var(--primary);">Admin543!</code></div>
+                <div>• <b>Guru:</b> gtk@sae.id / <code style="color: var(--primary);">Geteka543!</code></div>
+                <div>• <b>Siswa:</b> siswa@sae.id / <code style="color: var(--primary);">Siswa543!</code></div>
+            </div>
 
-                <div class="form-group mb-4">
-                    <label class="form-label"><i class="fas fa-key me-1"></i> Password Database</label>
-                    <input type="password" name="db_pass" class="input-control"
-                        placeholder="Kosongkan jika tanpa password">
-                </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 13px; font-weight: 700; font-size: 0.95rem; justify-content: center; box-shadow: 0 4px 16px rgba(99,102,241,0.35);">
+                <i class="fas fa-rocket me-2"></i> Mulai Instalasi Sistem
+            </button>
+        </form>
 
-                <div
-                    style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 12px; margin-bottom: 1.5rem; font-size: 0.78rem; color: var(--text-muted);">
-                    <div style="font-weight: 700; color: var(--text-main); margin-bottom: 4px;"><i
-                            class="fas fa-info-circle text-primary me-1"></i> Akun Bawaan Awal:</div>
-                    <div>• <b>Admin:</b> admin@sae.id / Admin543!</div>
-                    <div>• <b>Guru:</b> gtk@sae.id / Geteka543!</div>
-                    <div>• <b>Siswa:</b> siswa@sae.id / Siswa543!</div>
-                </div>
-
-                <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 0.85rem; font-size: 0.95rem;">
-                    <i class="fas fa-rocket me-2"></i> Mulai Instalasi & Migrasi
-                </button>
-            </form>
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="{{ route('home') }}" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: none;">
+                <i class="fas fa-arrow-left"></i> Kembali ke Beranda
+            </a>
         </div>
     </div>
-</body>
-
-</html>
+</div>
+@endsection
