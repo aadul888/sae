@@ -213,7 +213,7 @@
 @endsection
 
 @section('scripts')
-<script src="/vendor/chartjs/chart.umd.min.js"></script>
+<script src="{{ asset('vendor/chartjs/chart.umd.min.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const stats = @json($stats);
