@@ -1,7 +1,10 @@
 <header>
     <nav class="navbar">
-        <a href="{{ url('/') }}" class="nav-brand">
-            <img id="navLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}" data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo" class="nav-logo">
+        <a href="{{ url('/') }}" class="nav-brand" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <img id="navLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}" data-light="{{ asset('img/logo-light.png') }}" alt="SAE" class="nav-logo" onerror="this.style.display='none'; document.getElementById('navBrandText').style.display='flex';" style="height: 32px;">
+            <div id="navBrandText" style="display: none; align-items: center; gap: 6px; font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px; color: var(--text-color);">
+                <span style="background: linear-gradient(135deg, #3b82f6, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SAE</span>
+            </div>
         </a>
         <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation">
             <i class="fa-solid fa-bars"></i>
