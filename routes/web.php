@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DapodikController;
+use App\Http\Controllers\InstallController;
+use App\Http\Controllers\UpdateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +18,10 @@ use App\Http\Controllers\DashboardController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+// Installer Routes
+Route::get('/install', [InstallController::class, 'index'])->name('install.index');
+Route::post('/install', [InstallController::class, 'process'])->name('install.process');
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -31,6 +38,15 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
     Route::get('/guru', [DashboardController::class, 'guru'])->name('guru');
     Route::get('/siswa', [DashboardController::class, 'siswa'])->name('siswa');
+
+    // Tarik Data Dapodik
+    Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik');
+    Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey');
+
+    // Update Sistem
+    Route::get('/update', [UpdateController::class, 'index'])->name('update');
+    Route::get('/update/check', [UpdateController::class, 'check'])->name('update.check');
+    Route::post('/update/execute', [UpdateController::class, 'execute'])->name('update.execute');
 });
 
 // Admin shortcut redirect

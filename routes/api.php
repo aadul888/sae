@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\FeederReceiverController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +18,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Feeder Endpoint untuk Sync Data Dapodik dari sae-feeder
+Route::post('/receive-data', [FeederReceiverController::class, 'receive'])->name('api.receive-data');
+

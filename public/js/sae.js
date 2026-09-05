@@ -119,3 +119,226 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// Global UI Alert, Confirm & Toast Helper
+window.SAE = {
+    toast(message, type = "info", duration = 3000) {
+        let container = document.getElementById("saeToastContainer");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "saeToastContainer";
+            container.className = "sae-toast-container";
+            document.body.appendChild(container);
+        }
+
+        const icons = {
+            success: "fa-circle-check text-success",
+            danger: "fa-circle-xmark text-danger",
+            warning: "fa-triangle-exclamation text-warning",
+            info: "fa-circle-info text-primary",
+        };
+
+        const toast = document.createElement("div");
+        toast.className = "sae-toast";
+        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> <span>${message}</span>`;
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => toast.classList.add("show"));
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+
+    alert(message, title = "Informasi", type = "info") {
+        return new Promise((resolve) => {
+            const icons = {
+                success: "fa-circle-check",
+                danger: "fa-triangle-exclamation",
+                warning: "fa-triangle-exclamation",
+                info: "fa-circle-info",
+            };
+
+            const overlay = document.createElement("div");
+            overlay.className = "sae-dialog-overlay";
+            overlay.innerHTML = `
+                <div class="sae-dialog-box">
+                    <div class="sae-dialog-icon ${type}">
+                        <i class="fa-solid ${icons[type] || icons.info}"></i>
+                    </div>
+                    <div class="sae-dialog-title">${title}</div>
+                    <div class="sae-dialog-message">${message}</div>
+                    <div class="sae-dialog-actions">
+                        <button class="btn btn-primary sae-dialog-ok" style="padding: 8px 20px; font-size: 0.88rem;">OK</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add("active"));
+
+            const okBtn = overlay.querySelector(".sae-dialog-ok");
+            okBtn.focus();
+            okBtn.onclick = () => {
+                overlay.classList.remove("active");
+                setTimeout(() => {
+                    overlay.remove();
+                    resolve(true);
+                }, 200);
+            };
+        });
+    },
+
+    confirm(message, title = "Konfirmasi Tindakan", type = "warning") {
+        return new Promise((resolve) => {
+            const icons = {
+                success: "fa-circle-check",
+                danger: "fa-triangle-exclamation",
+                warning: "fa-triangle-exclamation",
+                info: "fa-circle-info",
+            };
+
+            const overlay = document.createElement("div");
+            overlay.className = "sae-dialog-overlay";
+            overlay.innerHTML = `
+                <div class="sae-dialog-box">
+                    <div class="sae-dialog-icon ${type}">
+                        <i class="fa-solid ${icons[type] || icons.warning}"></i>
+                    </div>
+                    <div class="sae-dialog-title">${title}</div>
+                    <div class="sae-dialog-message">${message}</div>
+                    <div class="sae-dialog-actions">
+                        <button class="btn btn-outline sae-dialog-cancel" style="padding: 8px 16px; font-size: 0.88rem;">Batal</button>
+                        <button class="btn btn-primary sae-dialog-ok" style="padding: 8px 18px; font-size: 0.88rem;">Lanjutkan</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => overlay.classList.add("active"));
+
+            const cancelBtn = overlay.querySelector(".sae-dialog-cancel");
+            const okBtn = overlay.querySelector(".sae-dialog-ok");
+            okBtn.focus();
+
+            const close = (res) => {
+                overlay.classList.remove("active");
+                setTimeout(() => {
+                    overlay.remove();
+                    resolve(res);
+                }, 200);
+            };
+
+            cancelBtn.onclick = () => close(false);
+            okBtn.onclick = () => close(true);
+        });
+    },
+
+    async copy(text, label = "Teks") {
+        if (!text) return false;
+        let success = false;
+
+        // 1. Coba Modern Clipboard API jika secure context
+        if (navigator.clipboard && window.isSecureContext) {
+            try {
+                await navigator.clipboard.writeText(text);
+                success = true;
+            } catch (err) {
+                success = false;
+            }
+        }
+
+        // 2. Fallback textarea + execCommand untuk HTTP / non-HTTPS domain
+        if (!success) {
+            try {
+                const tempTextArea = document.createElement("textarea");
+                tempTextArea.value = text;
+                tempTextArea.style.position = "fixed";
+                tempTextArea.style.left = "-9999px";
+                tempTextArea.style.top = "0";
+                tempTextArea.setAttribute("readonly", "");
+                document.body.appendChild(tempTextArea);
+                tempTextArea.focus();
+                tempTextArea.select();
+                tempTextArea.setSelectionRange(0, 99999);
+                success = document.execCommand("copy");
+                document.body.removeChild(tempTextArea);
+            } catch (err) {
+                success = false;
+            }
+        }
+
+        if (success) {
+            this.toast(`${label} berhasil disalin ke clipboard!`, "success");
+        } else {
+            this.toast("Gagal menyalin teks ke clipboard.", "danger");
+        }
+
+        return success;
+    },
+};
+
+// Global Automatic Listeners (Auto Flash Messages, Auto Confirm, Auto Copy)
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Auto Flash Messages dari Laravel Session
+    const flashEl = document.getElementById("saeFlashMessages");
+    if (flashEl) {
+        try {
+            const flashes = JSON.parse(flashEl.dataset.messages || "[]");
+            flashes.forEach((item) => {
+                window.SAE.toast(item.message, item.type || "info");
+            });
+        } catch (e) {}
+    }
+
+    // 2. Global Event Delegation untuk data-copy
+    document.addEventListener("click", (e) => {
+        const copyBtn = e.target.closest("[data-copy]");
+        if (!copyBtn) return;
+        e.preventDefault();
+
+        const targetSelector = copyBtn.getAttribute("data-copy");
+        const label = copyBtn.getAttribute("data-copy-label") || "Teks";
+        const targetEl = document.querySelector(targetSelector);
+        if (targetEl) {
+            const val = targetEl.value || targetEl.innerText;
+            window.SAE.copy(val, label);
+        }
+    });
+
+    // 3. Global Event Delegation untuk data-confirm pada form submit / link click
+    document.addEventListener("submit", async (e) => {
+        const form = e.target;
+        const confirmMsg = form.getAttribute("data-confirm");
+        if (!confirmMsg || form.dataset.confirmed === "true") return;
+
+        e.preventDefault();
+        const title =
+            form.getAttribute("data-confirm-title") || "Konfirmasi Tindakan";
+        const confirmed = await window.SAE.confirm(
+            confirmMsg,
+            title,
+            "warning",
+        );
+        if (confirmed) {
+            form.dataset.confirmed = "true";
+            form.submit();
+        }
+    });
+
+    document.addEventListener("click", async (e) => {
+        const link = e.target.closest("a[data-confirm]");
+        if (!link || link.dataset.confirmed === "true") return;
+
+        e.preventDefault();
+        const msg = link.getAttribute("data-confirm");
+        const title =
+            link.getAttribute("data-confirm-title") || "Konfirmasi Tindakan";
+        const confirmed = await window.SAE.confirm(msg, title, "warning");
+        if (confirmed) {
+            link.dataset.confirmed = "true";
+            window.location.href = link.href;
+        }
+    });
+});

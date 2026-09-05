@@ -12,8 +12,29 @@ class DashboardController extends Controller
         if (!$user) {
             return redirect()->route('login');
         }
-        if ($allowedRole && $user['role'] !== $allowedRole) {
-            return redirect()->route('dashboard.' . $user['role']);
+
+        $userRole = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+
+        if (!$userRole) {
+            // Attempt to resolve role from peran_id_str or default to admin/siswa
+            $peran = is_array($user) ? ($user['peran_id_str'] ?? '') : ($user->peran_id_str ?? '');
+            $peranLower = strtolower($peran);
+            if (str_contains($peranLower, 'admin')) {
+                $userRole = 'admin';
+            } elseif (str_contains($peranLower, 'guru') || str_contains($peranLower, 'pendidik') || str_contains($peranLower, 'ptk')) {
+                $userRole = 'guru';
+            } else {
+                $userRole = 'siswa';
+            }
+
+            if (is_array($user)) {
+                $user['role'] = $userRole;
+                session(['user' => $user]);
+            }
+        }
+
+        if ($allowedRole && $userRole !== $allowedRole) {
+            return redirect()->route('dashboard.' . $userRole);
         }
         return null;
     }
