@@ -2,7 +2,9 @@
     <nav class="navbar">
         <a href="{{ url('/') }}" class="nav-brand"
             style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
-            <img src="{{ asset('img/sae-logo.png') }}" alt="SAE Logo" style="height: 38px; width: auto; object-fit: contain;">
+            <img id="navLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}"
+                data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo"
+                style="height: 38px; width: auto; object-fit: contain;">
         </a>
         <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation">
             <i class="fa-solid fa-bars"></i>

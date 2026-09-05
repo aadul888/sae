@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Theme Switcher (Hanya elemen ID themeToggleBtn)
     const themeToggleBtns = document.querySelectorAll("#themeToggleBtn");
-    const logos = document.querySelectorAll("#navLogo, #dashLogo");
+    const logos = document.querySelectorAll("#navLogo, #dashLogo, #loginLogo, #installLogo");
     const htmlElement = document.documentElement;
 
     const applyTheme = (theme) => {
