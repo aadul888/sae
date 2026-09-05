@@ -12,8 +12,8 @@
             </div>
 
             <div style="text-align: center; margin-bottom: 24px;">
-                <img id="loginLogo" src="/img/logo-dark.png" data-dark="/img/logo-dark.png"
-                    data-light="/img/logo-light.png" alt="SAE Logo"
+                <img id="loginLogo" src="/img/logo-dark.png" data-dark="/img/logo-dark.png" data-light="/img/logo-light.png"
+                    alt="SAE Logo"
                     style="height: 48px; max-width: 180px; width: auto; object-fit: contain; margin-bottom: 12px;">
                 <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px;">Portal
                     Multi-User</h2>

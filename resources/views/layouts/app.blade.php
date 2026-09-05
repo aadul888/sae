@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
     <link rel="shortcut icon" href="/favicon.png">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/css/sae.css">
     @yield('styles')
 </head>

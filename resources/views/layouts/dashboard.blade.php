@@ -10,18 +10,16 @@
     <link rel="icon" type="image/png" href="/img/logo-icon.png">
     <link rel="shortcut icon" type="image/png" href="/img/logo-icon.png">
 
-    <!-- FontAwesome 6 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- FontAwesome 6 Local -->
+    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
 
     <!-- Global App & Dashboard Stylesheets -->
     <link rel="stylesheet" href="/css/sae.css">
     <link rel="stylesheet" href="/css/dashboard.css">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Local Chart.js & SweetAlert2 -->
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
+    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
 </head>
 
 <body>
