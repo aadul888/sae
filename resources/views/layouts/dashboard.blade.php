@@ -7,19 +7,19 @@
     <title>@yield('title', 'Dashboard — SAE')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/img/logo-icon.png">
-    <link rel="shortcut icon" type="image/png" href="/img/logo-icon.png">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
 
     <!-- FontAwesome 6 Local -->
-    <link rel="stylesheet" href="/vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 
     <!-- Global App & Dashboard Stylesheets -->
-    <link rel="stylesheet" href="/css/sae.css">
-    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="{{ asset('css/sae.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
     <!-- Local Chart.js & SweetAlert2 -->
-    <script src="/vendor/chartjs/chart.umd.min.js"></script>
-    <script src="/vendor/sweetalert2/sweetalert2.all.min.js"></script>
+    <script src="{{ asset('vendor/chartjs/chart.umd.min.js') }}"></script>
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
 </head>
 
 <body>
@@ -48,8 +48,8 @@
     @include('partials.mobile-bottom-nav')
 
     <!-- Global & Dashboard JS Scripts -->
-    <script src="/js/sae.js"></script>
-    <script src="/js/dashboard.js"></script>
+    <script src="{{ asset('js/sae.js') }}"></script>
+    <script src="{{ asset('js/dashboard.js') }}"></script>
     @stack('scripts')
 </body>
 
