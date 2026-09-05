@@ -37,33 +37,23 @@
 
             <form action="{{ route('install.process') }}" method="POST">
                 @csrf
-                <div class="row" style="display: flex; gap: 12px;">
-                    <div class="form-group" style="flex: 2;">
-                        <label class="form-label"><i class="fas fa-server me-1"></i> Host Database</label>
-                        <input type="text" name="db_host" class="input-control"
-                            value="{{ old('db_host', '127.0.0.1') }}" required>
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label class="form-label"><i class="fas fa-network-wired me-1"></i> Port</label>
-                        <input type="number" name="db_port" class="input-control" value="{{ old('db_port', '3306') }}"
-                            required>
-                    </div>
-                </div>
+                <input type="hidden" name="db_host" value="{{ old('db_host', '127.0.0.1') }}">
+                <input type="hidden" name="db_port" value="{{ old('db_port', '3306') }}">
 
                 <div class="form-group">
                     <label class="form-label"><i class="fas fa-database me-1"></i> Nama Database</label>
                     <input type="text" name="db_name" class="input-control" value="{{ old('db_name', 'db_sae') }}"
-                        placeholder="contoh: db_sae" required>
+                        placeholder="contoh: db_sae" required autofocus>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label"><i class="fas fa-user me-1"></i> Username DB</label>
+                    <label class="form-label"><i class="fas fa-user me-1"></i> Username Database</label>
                     <input type="text" name="db_user" class="input-control" value="{{ old('db_user', 'root') }}"
                         placeholder="contoh: root" required>
                 </div>
 
                 <div class="form-group mb-4">
-                    <label class="form-label"><i class="fas fa-key me-1"></i> Password DB</label>
+                    <label class="form-label"><i class="fas fa-key me-1"></i> Password Database</label>
                     <input type="password" name="db_pass" class="input-control"
                         placeholder="Kosongkan jika tanpa password">
                 </div>

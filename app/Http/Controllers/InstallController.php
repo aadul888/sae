@@ -24,14 +24,12 @@ class InstallController extends Controller
     public function process(Request $request)
     {
         $request->validate([
-            'db_host' => 'required',
-            'db_port' => 'required|numeric',
             'db_name' => 'required',
             'db_user' => 'required',
         ]);
 
-        $host = $request->input('db_host');
-        $port = $request->input('db_port');
+        $host = $request->input('db_host') ?: '127.0.0.1';
+        $port = $request->input('db_port') ?: '3306';
         $database = $request->input('db_name');
         $username = $request->input('db_user');
         $password = $request->input('db_pass') ?? '';
