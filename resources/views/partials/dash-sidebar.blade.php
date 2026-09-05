@@ -9,9 +9,12 @@
 <aside class="dash-sidebar" id="dashSidebar">
     <!-- Brand -->
     <div class="dash-sidebar-header">
-        <a href="{{ route('dashboard.' . $role) }}" class="brand">
+        <a href="{{ route('dashboard.' . $role) }}" class="brand" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
             <img id="dashLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}"
-                data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo">
+                data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo" onerror="this.style.display='none'; document.getElementById('dashBrandText').style.display='flex';" style="height: 36px;">
+            <div id="dashBrandText" style="display: none; align-items: center; gap: 4px; font-weight: 800; font-size: 1.25rem; color: var(--text-color);">
+                <span style="background: linear-gradient(135deg, #3b82f6, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SAE</span>
+            </div>
         </a>
         <span class="badge badge-primary"
             style="font-size: 0.68rem; padding: 2px 6px; font-family: monospace;">v{{ $appVersion ?? '1.0.1' }}</span>
