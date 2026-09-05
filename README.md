@@ -1,66 +1,115 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Aplikasi Edukasi (SAE)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Kemendikbudristek, Presensi RFID, dan Sistem Pembaruan Otomatis.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Instalasi Otomatis (Web Wizard):** Konfigurasi `.env`, migrasi database, dan akun admin instan via browser (`/install`).
+- **Sinkronisasi Dapodik:** Tarik dan sinkronisasi data Sekolah, GTK, Rombongan Belajar, dan Peserta Didik dengan skema UUID Dapodik murni.
+- **Manajemen Akun Otomatis:** Pembuatan akun siswa instan (Username & Password: NISN).
+- **Pembaruan Sistem Otomatis (Update Center):** Deteksi commit remote GitHub, eksekusi migrasi database, sinkronisasi file kode, dan flush cache sekali klik.
+- **Multi-Role Dashboard:** Akses terpisah untuk Administrator, Guru / Tendik, dan Siswa.
+- **Modern Responsive UI:** Dukungan mode Gelap / Terang (Dark/Light Mode), SweetAlert2 interaktif, dan navigasi mobile.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📋 Persyaratan Sistem
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP `>= 8.2` (Rekomendasi PHP 8.3)
+- Ekstensi PHP: `BCMath`, `Ctype`, `cURL`, `DOM`, `Fileinfo`, `JSON`, `Mbstring`, `OpenSSL`, `PDO`, `PDO_MySQL`, `Tokenizer`, `XML`, `Zip`
+- MySQL `>= 8.0` atau MariaDB `>= 10.4`
+- Composer `>= 2.2`
+- Git (opsional, direkomendasikan untuk fitur Update Center)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠️ Panduan Instalasi (Fresh Install)
 
-## Laravel Sponsors
+### Metode 1: Instalasi Cepat via Web Wizard (Rekomendasi Hosting & VPS)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. **Upload / Clone Project ke Server**
+   ```bash
+   git clone https://github.com/aadul888/sae.git
+   cd sae
+   composer install --no-dev --optimize-autoloader
+   ```
 
-### Premium Partners
+2. **Set Izin Folder (Permissions)**
+   Pastikan folder `storage` dan `bootstrap/cache` memiliki izin tulis (*writable*):
+   ```bash
+   chmod -R 775 storage bootstrap/cache
+   ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+3. **Buka Web Browser**
+   - Akses domain/IP server Anda (contoh: `https://sekolah-anda.sch.id` atau `http://localhost/sae/public`).
+   - Sistem akan otomatis mengarahkan ke halaman wizard: `http://domain-anda/install`.
 
-## Contributing
+4. **Lengkapi Form Instalasi**
+   - Masukkan informasi koneksi database (Host, Port, Nama Database, Username, Password).
+   - Masukkan nama instansi/sekolah dan akun Administrator.
+   - Klik **Pasang Sistem Sekarang**. Sistem akan membuat file `.env`, `APP_KEY`, skema database, dan akun admin.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+### Metode 2: Instalasi Manual via Terminal / CLI
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. **Clone dan Install Dependensi**
+   ```bash
+   git clone https://github.com/aadul888/sae.git
+   cd sae
+   composer install
+   ```
 
-## Security Vulnerabilities
+2. **Konfigurasi Environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   Sesuaikan konfigurasi database pada file `.env`:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=db_sae
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. **Migrasi Database & Seeder**
+   ```bash
+   php artisan migrate --force
+   php artisan db:seed
+   ```
 
-## License
+4. **Jalankan Aplikasi**
+   ```bash
+   php artisan serve
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 🔑 Akun Default Awal
+
+| Role | Username / Identifier | Password Default |
+| :--- | :--- | :--- |
+| **Administrator** | Dibuat saat wizard / `admin` | Sesuai saat instalasi / `password` |
+| **Guru / Tendik** | NUPTK / Email GTK | `123456` (dapat diubah) |
+| **Siswa** | NISN Siswa | NISN Siswa |
+
+---
+
+## 🔄 Pembaruan Sistem (Update Center)
+
+1. Masuk ke Dashboard sebagai **Administrator**.
+2. Buka menu **Update Sistem** (`/dashboard/update`).
+3. Klik **Periksa Pembaruan** untuk mengecek versi terbaru dari repositori GitHub.
+4. Jika pembaruan tersedia, klik tombol **Pasang Sekarang**. Sistem akan menarik perubahan kode, menjalankan skema migrasi database baru, dan membersihkan cache secara otomatis.
+
+---
+
+## 📄 Lisensi
+
+Sistem Aplikasi Edukasi (SAE) dilindungi hak cipta di bawah lisensi [MIT](LICENSE).
+
