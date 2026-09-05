@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DapodikController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\UpdateController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,6 +43,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Tarik Data Dapodik
     Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik');
     Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey');
+
+    // Manajemen Pengguna (3 Tab: Admin, Guru/Tendik, Siswa)
+    Route::resource('pengguna', UserController::class);
 
     // Update Sistem
     Route::get('/update', [UpdateController::class, 'index'])->name('update');

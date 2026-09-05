@@ -46,6 +46,10 @@
                 class="dash-nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}">
                 <i class="fas fa-gauge-high"></i> <span>Dashboard Utama</span>
             </a>
+            <a href="{{ route('dashboard.pengguna.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.pengguna*') ? 'active' : '' }}">
+                <i class="fas fa-users-gear"></i> <span>Manajemen Pengguna</span>
+            </a>
             <a href="#" class="dash-nav-link">
                 <i class="fas fa-users"></i> <span>Data Guru &amp; Tendik</span>
             </a>
