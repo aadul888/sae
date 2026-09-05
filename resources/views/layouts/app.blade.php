@@ -11,6 +11,7 @@
     <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
 
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
+    <script src="{{ asset('js/sae-logos.js') }}"></script>
     <script defer src="{{ asset('vendor/fontawesome/js/all.min.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('css/sae.css') }}">
     @yield('styles')

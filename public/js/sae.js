@@ -6,6 +6,13 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const htmlElement = document.documentElement;
 
+    const getLogoSrc = (mode, el) => {
+        if (window.__SAE_LOGOS__ && window.__SAE_LOGOS__[mode]) {
+            return window.__SAE_LOGOS__[mode];
+        }
+        return mode === "light" ? el.dataset.light : el.dataset.dark;
+    };
+
     const applyTheme = (theme) => {
         if (theme === "light") {
             htmlElement.setAttribute("data-theme", "light");
@@ -14,7 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>';
             });
             logos.forEach((logo) => {
-                if (logo.dataset.light) logo.src = logo.dataset.light;
+                const src = getLogoSrc("light", logo);
+                if (src) logo.src = src;
             });
         } else {
             htmlElement.removeAttribute("data-theme");
@@ -22,7 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.innerHTML = '<i class="fa-solid fa-moon"></i>';
             });
             logos.forEach((logo) => {
-                if (logo.dataset.dark) logo.src = logo.dataset.dark;
+                const src = getLogoSrc("dark", logo);
+                if (src) logo.src = src;
             });
         }
         localStorage.setItem("sae_theme", theme);
