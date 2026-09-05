@@ -29,11 +29,12 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 ### Metode 1: Instalasi Cepat via Web Wizard (Rekomendasi Hosting & VPS)
 
-1. **Upload / Clone Project ke Server**
+1. **Clone Langsung ke Root Direktori Web / Hosting**
+   Masuk ke folder root hosting Anda (misalnya `public_html` atau `/var/www/html`):
 
     ```bash
-    git clone https://github.com/aadul888/sae.git
-    cd sae
+    # Clone langsung ke folder saat ini (titik di ujung)
+    git clone https://github.com/aadul888/sae.git .
     composer install --no-dev --optimize-autoloader
     ```
 
@@ -45,23 +46,22 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
     ```
 
 3. **Buka Web Browser**
-    - Akses domain/IP server Anda (contoh: `https://sekolah-anda.sch.id` atau `http://localhost/sae/public`).
+    - Akses domain/IP server Anda (contoh: `https://sekolah-anda.sch.id` atau `http://localhost`).
     - Sistem akan otomatis mengarahkan ke halaman wizard: `http://domain-anda/install`.
 
 4. **Lengkapi Form Instalasi**
     - Masukkan informasi koneksi database (Host, Port, Nama Database, Username, Password).
     - Masukkan nama instansi/sekolah dan akun Administrator.
-    - Klik **Pasang Sistem Sekarang**. Sistem akan membuat file `.env`, `APP_KEY`, skema database, dan akun admin.
+    - Klik **Mulai Instalasi & Migrasi**. Sistem akan otomatis membuat database, file `.env`, `APP_KEY`, dan migrasi data awal.
 
 ---
 
 ### Metode 2: Instalasi Manual via Terminal / CLI
 
-1. **Clone dan Install Dependensi**
+1. **Clone Langsung ke Root Direktori dan Install Dependensi**
 
     ```bash
-    git clone https://github.com/aadul888/sae.git
-    cd sae
+    git clone https://github.com/aadul888/sae.git .
     composer install
     ```
 
