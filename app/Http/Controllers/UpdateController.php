@@ -20,6 +20,11 @@ class UpdateController extends Controller
      */
     public function index()
     {
+        $user = session('user');
+        if (!$user) return redirect()->route('login');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'siswa'));
+
         $status = $this->updateService->checkUpdate();
         return view('dashboard.update', compact('status'));
     }
@@ -29,6 +34,12 @@ class UpdateController extends Controller
      */
     public function check(): JsonResponse
     {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
         $status = $this->updateService->checkUpdate();
         return response()->json([
             'status' => 'success',
@@ -41,6 +52,12 @@ class UpdateController extends Controller
      */
     public function execute(): JsonResponse
     {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
         $result = $this->updateService->runUpdate();
         return response()->json([
             'status' => $result['success'] ? 'success' : 'error',

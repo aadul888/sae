@@ -33,7 +33,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout']);
 
-// Dashboard Multi-User Routes
+// Dashboard Multi-User Routes (Protected)
 Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
     Route::get('/guru', [DashboardController::class, 'guru'])->name('guru');
