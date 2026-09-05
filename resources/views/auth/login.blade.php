@@ -42,10 +42,10 @@
                         <i class="fas fa-user"></i> Username / NISN / NIP / Email
                     </label>
                     <div class="input-group"
-                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px; display: flex; align-items: center;">
+                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
                         <input type="text" name="username" id="usernameInput" required
                             placeholder="Masukkan ID pengguna..."
-                            style="flex: 1; border: none; background: transparent; padding: 10px 14px; color: var(--text-color); font-size: 0.9rem; outline: none;">
+                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px;">
                     </div>
                 </div>
 
@@ -55,11 +55,11 @@
                         <i class="fas fa-lock"></i> Password
                     </label>
                     <div class="input-group"
-                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4px; display: flex; align-items: center;">
+                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
                         <input type="password" name="password" id="passwordInput" required placeholder="••••••••"
-                            style="flex: 1; border: none; background: transparent; padding: 10px 14px; color: var(--text-color); font-size: 0.9rem; outline: none;">
+                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px 0 0 12px;">
                         <button type="button" onclick="togglePass()"
-                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 12px; cursor: pointer;">
+                            style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;">
                             <i class="fas fa-eye" id="eyeIcon"></i>
                         </button>
                     </div>
