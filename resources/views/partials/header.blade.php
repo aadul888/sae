@@ -2,13 +2,7 @@
     <nav class="navbar">
         <a href="{{ url('/') }}" class="nav-brand"
             style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
-            <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6, #6366f1); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);">
-                <i class="fa-solid fa-graduation-cap" style="color: #ffffff; font-size: 1.1rem;"></i>
-            </div>
-            <div style="display: flex; flex-direction: column;">
-                <span style="font-weight: 900; font-size: 1.25rem; line-height: 1; letter-spacing: -0.5px; background: linear-gradient(135deg, #60a5fa, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SAE</span>
-                <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">Smart Apps Education</span>
-            </div>
+            <img src="{{ asset('img/sae-logo.png') }}" alt="SAE Logo" style="height: 38px; width: auto; object-fit: contain;">
         </a>
         <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation">
             <i class="fa-solid fa-bars"></i>

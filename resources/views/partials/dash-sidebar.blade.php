@@ -11,17 +11,7 @@
     <div class="dash-sidebar-header">
         <a href="{{ route('dashboard.' . $role) }}" class="brand"
             style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-            <div
-                style="width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, #3b82f6, #6366f1); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.35);">
-                <i class="fa-solid fa-graduation-cap" style="color: #ffffff; font-size: 1rem;"></i>
-            </div>
-            <div style="display: flex; flex-direction: column;">
-                <span
-                    style="font-weight: 900; font-size: 1.15rem; line-height: 1; letter-spacing: -0.5px; background: linear-gradient(135deg, #60a5fa, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SAE</span>
-                <span
-                    style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">Smart
-                    Apps</span>
-            </div>
+            <img src="{{ asset('img/sae-logo.png') }}" alt="SAE Logo" style="height: 36px; width: auto; object-fit: contain;">
         </a>
         <span class="badge badge-primary"
             style="font-size: 0.68rem; padding: 2px 6px; font-family: monospace;">v{{ $appVersion ?? '1.0.1' }}</span>
