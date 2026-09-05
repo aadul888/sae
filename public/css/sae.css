@@ -50,6 +50,21 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.15s ease;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body,
+button,
+input,
+select,
+textarea {
     font-family:
         "Plus Jakarta Sans",
         system-ui,
@@ -60,14 +75,6 @@
         Helvetica,
         Arial,
         sans-serif;
-    transition:
-        background-color 0.2s ease,
-        border-color 0.2s ease,
-        color 0.15s ease;
-}
-
-html {
-    scroll-behavior: smooth;
 }
 
 body {
