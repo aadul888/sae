@@ -1,0 +1,21 @@
+{
+    "[php]": {
+        "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+        "editor.formatOnSave": true
+    },
+    "[blade]": {
+        "editor.defaultFormatter": "shufo.vscode-blade-formatter",
+        "editor.formatOnSave": true
+    },
+    "emmet.includeLanguages": {
+        "blade": "html"
+    },
+    "files.associations": {
+        "*.blade.php": "blade"
+    },
+    "intelephense.environment.phpVersion": "8.3.0",
+    "blade.format.enable": true,
+    "tailwindCSS.includeLanguages": {
+        "blade": "html"
+    }
+}
