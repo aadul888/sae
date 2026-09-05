@@ -8,7 +8,9 @@
         <div style="position: absolute; top: -50px; right: -50px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
 
         <div style="text-align: center; margin-bottom: 28px;">
-            <img src="{{ asset('img/logo-icon.png') }}" alt="SAE Logo" style="height: 52px; margin-bottom: 12px; filter: drop-shadow(0 4px 12px rgba(99,102,241,0.3));">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #3b82f6, #6366f1); display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); margin-bottom: 14px;">
+                <i class="fa-solid fa-graduation-cap" style="color: #ffffff; font-size: 1.75rem;"></i>
+            </div>
             <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px;">Portal Multi-User</h2>
             <p style="font-size: 0.85rem; color: var(--text-muted);">Sistem Aplikasi Edukasi (SAE)</p>
         </div>
