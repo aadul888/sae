@@ -99,11 +99,11 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 ## 🔑 Akun Default Setelah Instalasi
 
-| Role              | Username / Email             | Password Default        |
-| :---------------- | :--------------------------- | :---------------------- |
-| **Administrator** | `admin@sae.id` / `admin`     | `Admin543!`             |
-| **Guru / Tendik** | `gtk@sae.id` / NUPTK         | `Geteka543!` / `123456` |
-| **Siswa**         | `siswa@sae.id` / NISN        | `Siswa543!` / NISN      |
+| Role              | Username / Email         | Password Default        |
+| :---------------- | :----------------------- | :---------------------- |
+| **Administrator** | `admin@sae.id` / `admin` | `Admin543!`             |
+| **Guru / Tendik** | `gtk@sae.id` / NUPTK     | `Geteka543!` / `123456` |
+| **Siswa**         | `siswa@sae.id` / NISN    | `Siswa543!` / NISN      |
 
 > **Catatan:** Segera ganti password akun setelah berhasil login pertama kali.
 
@@ -112,6 +112,7 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 ## 🔁 Konfigurasi Ulang Sistem
 
 Jika ingin mengulang proses instalasi atau mengganti database server:
+
 1. Hapus file `.env` di root folder (`rm .env`).
 2. Akses kembali halaman installer melalui browser: `http://domain-anda/install`.
 3. Masukkan kredensial database baru dan klik tombol instalasi.
