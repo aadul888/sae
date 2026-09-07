@@ -225,12 +225,14 @@ class UpdateService
             if (Schema::hasTable('settings')) {
                 $commitShort = $newCommit ? substr($newCommit, 0, 7) : null;
                 $updateData = [
-                    'last_update_at' => now(),
                     'updated_at' => now(),
                 ];
 
                 if (Schema::hasColumn('settings', 'app_version')) {
                     $updateData['app_version'] = self::CURRENT_VERSION;
+                }
+                if (Schema::hasColumn('settings', 'last_update_at')) {
+                    $updateData['last_update_at'] = now();
                 }
                 if (Schema::hasColumn('settings', 'last_commit_hash')) {
                     $updateData['last_commit_hash'] = $newCommit ?: null;
@@ -267,9 +269,9 @@ class UpdateService
     protected function ensurePermissions(): void
     {
         if (DIRECTORY_SEPARATOR === '/') {
-            @shell_exec('chmod -R 775 ' . escapeshellarg(storage_path()) . ' ' . escapeshellarg(base_path('bootstrap/cache')) . ' 2>/dev/null');
+            @shell_exec('chmod -R 777 ' . escapeshellarg(storage_path()) . ' ' . escapeshellarg(base_path('bootstrap/cache')) . ' 2>/dev/null');
             if (is_dir(base_path('.git'))) {
-                @shell_exec('chmod -R 775 ' . escapeshellarg(base_path('.git')) . ' 2>/dev/null');
+                @shell_exec('chmod -R 777 ' . escapeshellarg(base_path('.git')) . ' 2>/dev/null');
             }
         }
     }

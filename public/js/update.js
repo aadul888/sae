@@ -26,9 +26,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function getCsrfToken() {
-        const meta = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+        const meta = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
         if (meta) return meta;
-        const cookie = document.cookie.split("; ").find((r) => r.startsWith("XSRF-TOKEN="));
+        const cookie = document.cookie
+            .split("; ")
+            .find((r) => r.startsWith("XSRF-TOKEN="));
         return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
     }
 
