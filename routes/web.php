@@ -70,6 +70,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Master Data — Rombel (Sumber: Rombongan Belajar & Peserta Didik)
     Route::get('/master-data/rombel', [\App\Http\Controllers\RombelController::class, 'index'])->name('rombel.index');
     Route::get('/master-data/rombel/{id}/siswa', [\App\Http\Controllers\RombelController::class, 'showSiswa'])->name('rombel.siswa');
+
+    // Manajemen Data — Siswa Aktif & Guru Aktif (Sumber: Peserta Didik & GTK Dapodik)
+    Route::get('/manajemen-data/siswa-aktif', [\App\Http\Controllers\SiswaAktifController::class, 'index'])->name('siswa-aktif.index');
+    Route::get('/manajemen-data/siswa-aktif/{id}', [\App\Http\Controllers\SiswaAktifController::class, 'show'])->name('siswa-aktif.show');
+    Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index');
+    Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show');
 });
 
 // Admin shortcut redirect

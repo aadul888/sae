@@ -49,25 +49,6 @@
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_pengguna'))
-                <a href="{{ route('dashboard.pengguna.index') }}"
-                    class="dash-nav-link {{ request()->routeIs('dashboard.pengguna*') ? 'active' : '' }}">
-                    <i class="fas fa-users-gear"></i> <span>Manajemen Pengguna</span>
-                </a>
-            @endif
-
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_guru'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-users"></i> <span>Data Guru &amp; Tendik</span>
-                </a>
-            @endif
-
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_siswa'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-user-graduate"></i> <span>Data Siswa &amp; Kelas</span>
-                </a>
-            @endif
-
             @if (\App\Models\RolePermission::canAccess($role, 'menu_rfid'))
                 <a href="#" class="dash-nav-link">
                     <i class="fas fa-id-card"></i> <span>RFID &amp; Presensi Realtime</span>
@@ -81,8 +62,31 @@
                 </a>
             @endif
 
+            {{-- Manajemen Data Submenu --}}
+            @if (
+                \App\Models\RolePermission::canAccess($role, 'menu_siswa_aktif') ||
+                    \App\Models\RolePermission::canAccess($role, 'menu_guru_aktif'))
+                <span class="nav-section-label">Manajemen Data</span>
+
+                @if (\App\Models\RolePermission::canAccess($role, 'menu_siswa_aktif'))
+                    <a href="{{ route('dashboard.siswa-aktif.index') }}"
+                        class="dash-nav-link {{ request()->routeIs('dashboard.siswa-aktif*') ? 'active' : '' }}">
+                        <i class="fas fa-user-graduate"></i> <span>Siswa Aktif</span>
+                    </a>
+                @endif
+
+                @if (\App\Models\RolePermission::canAccess($role, 'menu_guru_aktif'))
+                    <a href="{{ route('dashboard.guru-aktif.index') }}"
+                        class="dash-nav-link {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
+                        <i class="fas fa-chalkboard-user"></i> <span>Guru Aktif</span>
+                    </a>
+                @endif
+            @endif
+
             {{-- Master Data Submenu --}}
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian') || \App\Models\RolePermission::canAccess($role, 'menu_rombel'))
+            @if (
+                \App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian') ||
+                    \App\Models\RolePermission::canAccess($role, 'menu_rombel'))
                 <span class="nav-section-label">Master Data</span>
 
                 @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian'))
@@ -95,24 +99,31 @@
                 @if (\App\Models\RolePermission::canAccess($role, 'menu_rombel'))
                     <a href="{{ route('dashboard.rombel.index') }}"
                         class="dash-nav-link {{ request()->routeIs('dashboard.rombel*') ? 'active' : '' }}">
-                        <i class="fas fa-chalkboard-user"></i> <span>Rombel</span>
+                        <i class="fas fa-school"></i> <span>Rombel</span>
                     </a>
                 @endif
+            @endif
+
+            <span class="nav-section-label">Sistem</span>
+
+            @if (\App\Models\RolePermission::canAccess($role, 'menu_pengguna'))
+                <a href="{{ route('dashboard.pengguna.index') }}"
+                    class="dash-nav-link {{ request()->routeIs('dashboard.pengguna*') ? 'active' : '' }}">
+                    <i class="fas fa-users-gear"></i> <span>Manajemen Pengguna</span>
+                </a>
+            @endif
+
+            @if (\App\Models\RolePermission::canAccess($role, 'menu_hak_akses'))
+                <a href="{{ route('dashboard.hak-akses.index') }}"
+                    class="dash-nav-link {{ request()->routeIs('dashboard.hak-akses*') ? 'active' : '' }}">
+                    <i class="fas fa-shield-halved"></i> <span>Hak Akses &amp; Peran</span>
+                </a>
             @endif
 
             @if (\App\Models\RolePermission::canAccess($role, 'menu_update'))
                 <a href="{{ route('dashboard.update') }}"
                     class="dash-nav-link {{ request()->routeIs('dashboard.update*') ? 'active' : '' }}">
                     <i class="fas fa-arrows-rotate"></i> <span>Update Sistem</span>
-                </a>
-            @endif
-
-            <span class="nav-section-label">Konfigurasi</span>
-
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_hak_akses'))
-                <a href="{{ route('dashboard.hak-akses.index') }}"
-                    class="dash-nav-link {{ request()->routeIs('dashboard.hak-akses*') ? 'active' : '' }}">
-                    <i class="fas fa-shield-halved"></i> <span>Hak Akses &amp; Peran</span>
                 </a>
             @endif
 

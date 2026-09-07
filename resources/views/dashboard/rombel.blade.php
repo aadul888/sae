@@ -79,28 +79,34 @@
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                     <select id="perPageSelect" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
+                            </option>
                         @endforeach
                     </select>
                     <span>entri</span>
                 </div>
 
-                <select id="filterTingkat" class="form-control" style="width: auto; min-width: 140px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterTingkat" class="form-control"
+                    style="width: auto; min-width: 140px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
                     <option value="">Semua Tingkat</option>
                     @foreach ($filterTingkat as $tk)
-                        <option value="{{ $tk }}" {{ $tingkat === $tk ? 'selected' : '' }}>{{ $tk }}</option>
+                        <option value="{{ $tk }}" {{ $tingkat === $tk ? 'selected' : '' }}>{{ $tk }}
+                        </option>
                     @endforeach
                 </select>
 
-                <select id="filterJurusan" class="form-control" style="width: auto; min-width: 180px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterJurusan" class="form-control"
+                    style="width: auto; min-width: 180px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
                     <option value="">Semua Jurusan</option>
                     @foreach ($filterJurusan as $j)
-                        <option value="{{ $j }}" {{ $jurusan === $j ? 'selected' : '' }}>{{ $j }}</option>
+                        <option value="{{ $j }}" {{ $jurusan === $j ? 'selected' : '' }}>{{ $j }}
+                        </option>
                     @endforeach
                 </select>
 
                 @if ($q || $tingkat || $jurusan)
-                    <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline" style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
+                    <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline"
+                        style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
                         <i class="fas fa-undo me-1"></i> Reset
                     </a>
                 @endif
@@ -108,8 +114,10 @@
 
             <div class="live-search-wrap">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari nama rombel / wali / ruang..." value="{{ $q }}" autocomplete="off">
-                <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}" title="Hapus pencarian">
+                <input type="text" id="liveSearch" placeholder="Cari nama rombel / wali / ruang..."
+                    value="{{ $q }}" autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
+                    title="Hapus pencarian">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -139,7 +147,8 @@
                             <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                     @endforeach
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                    <th
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                         Aksi
                     </th>
                 </tr>
@@ -147,9 +156,11 @@
             <tbody>
                 @forelse ($list as $item)
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                        <td style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: 0.88rem;" data-label="Nama Rombel">
+                        <td style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: 0.88rem;"
+                            data-label="Nama Rombel">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
+                                <div
+                                    style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
                                     <i class="fas fa-chalkboard-user"></i>
                                 </div>
                                 <div>
@@ -167,13 +178,16 @@
                                 {{ $item->tingkat ?: '-' }}
                             </span>
                         </td>
-                        <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;" data-label="Kompetensi Keahlian">
+                        <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                            data-label="Kompetensi Keahlian">
                             {{ $item->jurusan ?: '-' }}
                         </td>
-                        <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-color);" data-label="Wali Kelas">
+                        <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-color);"
+                            data-label="Wali Kelas">
                             @if ($item->wali_kelas)
                                 <div style="display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-user-tie" style="color: var(--primary); opacity: 0.7; font-size: 0.76rem;"></i>
+                                    <i class="fas fa-user-tie"
+                                        style="color: var(--primary); opacity: 0.7; font-size: 0.76rem;"></i>
                                     <span>{{ $item->wali_kelas }}</span>
                                 </div>
                             @else
@@ -183,8 +197,10 @@
                         <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Ruang">
                             {{ $item->ruang ?: '-' }}
                         </td>
-                        <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;" data-label="Jml Siswa">
-                            <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
+                        <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
+                            data-label="Jml Siswa">
+                            <span class="badge"
+                                style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
                                 <i class="fas fa-user-graduate me-1"></i>
                                 {{ number_format($item->total_siswa, 0, ',', '.') }}
                             </span>
@@ -200,11 +216,13 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                        <td colspan="7"
+                            style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                             <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                             <div>Belum ada data rombongan belajar yang sesuai.</div>
                             <div style="font-size: 0.78rem; margin-top: 6px;">
-                                Silakan sinkronisasi data Dapodik terlebih dahulu melalui menu <strong>Tarik Data Dapodik</strong>.
+                                Silakan sinkronisasi data Dapodik terlebih dahulu melalui menu <strong>Tarik Data
+                                    Dapodik</strong>.
                             </div>
                         </td>
                     </tr>
@@ -219,7 +237,8 @@
             @if ($list->onFirstPage())
                 <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
             @else
-                <a href="{{ $list->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                <a href="{{ $list->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                        class="fas fa-chevron-left"></i></a>
             @endif
             @php
                 $cur = $list->currentPage();
@@ -234,7 +253,8 @@
                 @endif
             @endif
             @for ($i = $from; $i <= $to; $i++)
-                <a href="{{ $list->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                <a href="{{ $list->url($i) }}"
+                    class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
             @endfor
             @if ($to < $last)
                 @if ($to < $last - 1)
@@ -243,7 +263,8 @@
                 <a href="{{ $list->url($last) }}" class="page-btn">{{ $last }}</a>
             @endif
             @if ($list->hasMorePages())
-                <a href="{{ $list->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                <a href="{{ $list->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                        class="fas fa-chevron-right"></i></a>
             @else
                 <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
             @endif
@@ -282,11 +303,16 @@
                     style="width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); width: 40px; text-align: center;">No</th>
+                            <th
+                                style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); width: 40px; text-align: center;">
+                                No</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Siswa</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">NISN / NIPD</th>
-                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">L/P</th>
-                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Tempat, Tgl Lahir</th>
+                            <th
+                                style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">
+                                L/P</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Tempat, Tgl Lahir
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="siswaTableBody">
@@ -306,7 +332,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/rombel.js') }}?v={{ filemtime(public_path('js/rombel.js')) }}">
-        </script>
+        <script src="{{ asset('js/rombel.js') }}?v={{ filemtime(public_path('js/rombel.js')) }}"></script>
     @endpush
 @endsection

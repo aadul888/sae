@@ -29,7 +29,7 @@ window.openSiswaModal = async function (id, nama) {
                 headers: {
                     Accept: "application/json",
                 },
-            }
+            },
         );
         const json = await res.json();
 
@@ -40,14 +40,18 @@ window.openSiswaModal = async function (id, nama) {
             modalSubtitle.textContent = [
                 json.rombel.tingkat,
                 json.rombel.jurusan,
-                json.rombel.wali_kelas ? "Wali: " + json.rombel.wali_kelas : null,
+                json.rombel.wali_kelas
+                    ? "Wali: " + json.rombel.wali_kelas
+                    : null,
                 json.rombel.ruang ? "Ruang: " + json.rombel.ruang : null,
             ]
                 .filter(Boolean)
                 .join(" • ");
 
             if (json.data && json.data.length > 0) {
-                if (footerCount) footerCount.textContent = "Total: " + json.data.length + " Peserta Didik";
+                if (footerCount)
+                    footerCount.textContent =
+                        "Total: " + json.data.length + " Peserta Didik";
                 tableBody.innerHTML = json.data
                     .map(
                         (s, idx) => `
@@ -62,18 +66,19 @@ window.openSiswaModal = async function (id, nama) {
                             ${escapeHtml(s.nisn || s.nipd || "-")}
                         </td>
                         <td style="padding: 10px 14px; text-align: center;">
-                            <span class="badge ${s.jenis_kelamin === 'L' ? 'badge-primary' : 'badge-outline'}" style="font-size: 0.72rem; padding: 2px 7px;">
+                            <span class="badge ${s.jenis_kelamin === "L" ? "badge-primary" : "badge-outline"}" style="font-size: 0.72rem; padding: 2px 7px;">
                                 ${escapeHtml(s.jenis_kelamin || "-")}
                             </span>
                         </td>
                         <td style="padding: 10px 14px; color: var(--text-muted); font-size: 0.8rem;">
                             ${escapeHtml([s.tempat_lahir, s.tanggal_lahir].filter(Boolean).join(", ") || "-")}
                         </td>
-                    </tr>`
+                    </tr>`,
                     )
                     .join("");
             } else {
-                if (footerCount) footerCount.textContent = "Total: 0 Peserta Didik";
+                if (footerCount)
+                    footerCount.textContent = "Total: 0 Peserta Didik";
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="5" style="padding: 30px; text-align: center; color: var(--text-muted);">
@@ -166,7 +171,10 @@ document.addEventListener("DOMContentLoaded", function () {
         let timer = null;
         searchInput.addEventListener("input", function () {
             if (clearBtn) {
-                clearBtn.classList.toggle("visible", this.value.trim().length > 0);
+                clearBtn.classList.toggle(
+                    "visible",
+                    this.value.trim().length > 0,
+                );
             }
             clearTimeout(timer);
             timer = setTimeout(applyFilter, 500);

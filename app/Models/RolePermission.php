@@ -70,6 +70,18 @@ class RolePermission extends Model
                     'icon' => 'fa-cloud-arrow-down',
                     'roles' => ['admin'],
                 ],
+                'menu_siswa_aktif' => [
+                    'label' => 'Manajemen Data — Siswa Aktif',
+                    'desc' => 'Direktori data peserta didik aktif bersumber dari Dapodik',
+                    'icon' => 'fa-user-graduate',
+                    'roles' => ['admin', 'guru'],
+                ],
+                'menu_guru_aktif' => [
+                    'label' => 'Manajemen Data — Guru Aktif',
+                    'desc' => 'Direktori PTK / GTK guru dan staf kependidikan aktif',
+                    'icon' => 'fa-chalkboard-user',
+                    'roles' => ['admin', 'guru'],
+                ],
                 'menu_update' => [
                     'label' => 'Update Sistem',
                     'desc' => 'Deteksi dan eksekusi pembaruan source code & database',
