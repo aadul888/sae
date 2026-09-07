@@ -81,6 +81,16 @@
                 </a>
             @endif
 
+            {{-- Master Data Submenu --}}
+            @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian'))
+                <span class="nav-section-label">Master Data</span>
+
+                <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
+                    class="dash-nav-link {{ request()->routeIs('dashboard.kompetensi-keahlian*') ? 'active' : '' }}">
+                    <i class="fas fa-laptop-code"></i> <span>Kompetensi Keahlian</span>
+                </a>
+            @endif
+
             @if (\App\Models\RolePermission::canAccess($role, 'menu_update'))
                 <a href="{{ route('dashboard.update') }}"
                     class="dash-nav-link {{ request()->routeIs('dashboard.update*') ? 'active' : '' }}">

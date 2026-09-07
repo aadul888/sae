@@ -218,8 +218,18 @@ window.SAE = {
                 cancelButtonColor: "#64748b",
                 confirmButtonText: "Lanjutkan",
                 cancelButtonText: "Batal",
-                background: document.documentElement.getAttribute("data-theme") === "dark" || !document.documentElement.getAttribute("data-theme") ? "#1e293b" : "#ffffff",
-                color: document.documentElement.getAttribute("data-theme") === "dark" || !document.documentElement.getAttribute("data-theme") ? "#f8fafc" : "#1e293b",
+                background:
+                    document.documentElement.getAttribute("data-theme") ===
+                        "dark" ||
+                    !document.documentElement.getAttribute("data-theme")
+                        ? "#1e293b"
+                        : "#ffffff",
+                color:
+                    document.documentElement.getAttribute("data-theme") ===
+                        "dark" ||
+                    !document.documentElement.getAttribute("data-theme")
+                        ? "#f8fafc"
+                        : "#1e293b",
             }).then((res) => res.isConfirmed);
         }
 

@@ -94,6 +94,12 @@ class RolePermission extends Model
                     'icon' => 'fa-sliders',
                     'roles' => ['admin'],
                 ],
+                'menu_kompetensi_keahlian' => [
+                    'label' => 'Master Data — Kompetensi Keahlian',
+                    'desc' => 'Mengelola kode dan nama kompetensi keahlian sekolah',
+                    'icon' => 'fa-laptop-code',
+                    'roles' => ['admin'],
+                ],
 
                 // Menu Khusus Guru
                 'menu_presensi_mengajar' => [

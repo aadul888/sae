@@ -9,6 +9,7 @@ use App\Http\Controllers\InstallController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\KompetensiKeahlianController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,6 +62,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/hak-akses', [PermissionController::class, 'index'])->name('hak-akses.index');
     Route::post('/hak-akses/toggle', [PermissionController::class, 'toggle'])->name('hak-akses.toggle');
     Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset');
+
+    // Master Data — Kompetensi Keahlian
+    Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index');
+    Route::post('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'store'])->name('kompetensi-keahlian.store');
+    Route::put('/master-data/kompetensi-keahlian/{id}', [KompetensiKeahlianController::class, 'update'])->name('kompetensi-keahlian.update');
+    Route::delete('/master-data/kompetensi-keahlian/{id}', [KompetensiKeahlianController::class, 'destroy'])->name('kompetensi-keahlian.destroy');
 });
 
 // Admin shortcut redirect
