@@ -11,7 +11,7 @@ use ZipArchive;
 
 class UpdateService
 {
-    const CURRENT_VERSION = '1.0.1';
+    const CURRENT_VERSION = '1.0.2';
     const GITHUB_REPO = 'aadul888/sae';
 
     /**

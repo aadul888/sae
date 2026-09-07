@@ -8,6 +8,7 @@ use App\Http\Controllers\DapodikController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\UpdateController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\PermissionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/update', [UpdateController::class, 'index'])->name('update');
     Route::get('/update/check', [UpdateController::class, 'check'])->name('update.check');
     Route::post('/update/execute', [UpdateController::class, 'execute'])->name('update.execute');
+
+    // Pengaturan Hak Akses (Role & Permission)
+    Route::get('/hak-akses', [PermissionController::class, 'index'])->name('hak-akses.index');
+    Route::post('/hak-akses/toggle', [PermissionController::class, 'toggle'])->name('hak-akses.toggle');
+    Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset');
 });
 
 // Admin shortcut redirect
