@@ -17,8 +17,10 @@
     <script defer src="{{ asset('vendor/fontawesome/js/all.min.js') }}"></script>
 
     <!-- Global App & Dashboard Stylesheets with Cache Busting -->
-    <link rel="stylesheet" href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
-    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">
 
     <!-- Local Chart.js & SweetAlert2 -->
     <script src="{{ asset('vendor/chartjs/chart.umd.min.js') }}"></script>
@@ -50,8 +52,12 @@
         @include('partials.mobile-bottom-nav')
 
         <!-- Global & Dashboard JS Scripts with Cache Busting -->
-        <script src="{{ asset('js/sae.js') }}?v={{ file_exists(public_path('js/sae.js')) ? filemtime(public_path('js/sae.js')) : time() }}"></script>
-        <script src="{{ asset('js/dashboard.js') }}?v={{ file_exists(public_path('js/dashboard.js')) ? filemtime(public_path('js/dashboard.js')) : time() }}"></script>
+        <script
+            src="{{ asset('js/sae.js') }}?v={{ file_exists(public_path('js/sae.js')) ? filemtime(public_path('js/sae.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/dashboard.js') }}?v={{ file_exists(public_path('js/dashboard.js')) ? filemtime(public_path('js/dashboard.js')) : time() }}">
+        </script>
         @stack('scripts')
 </body>
 

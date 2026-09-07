@@ -64,9 +64,12 @@
 
             {{-- Manajemen Data (Collapsible) --}}
             @php
-                $isManajemenDataActive = request()->routeIs('dashboard.siswa-aktif*') || request()->routeIs('dashboard.guru-aktif*');
+                $isManajemenDataActive =
+                    request()->routeIs('dashboard.siswa-aktif*') || request()->routeIs('dashboard.guru-aktif*');
             @endphp
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_siswa_aktif') || \App\Models\RolePermission::canAccess($role, 'menu_guru_aktif'))
+            @if (
+                \App\Models\RolePermission::canAccess($role, 'menu_siswa_aktif') ||
+                    \App\Models\RolePermission::canAccess($role, 'menu_guru_aktif'))
                 <div class="dash-nav-group {{ $isManajemenDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
@@ -95,9 +98,12 @@
 
             {{-- Master Data (Collapsible) --}}
             @php
-                $isMasterDataActive = request()->routeIs('dashboard.kompetensi-keahlian*') || request()->routeIs('dashboard.rombel*');
+                $isMasterDataActive =
+                    request()->routeIs('dashboard.kompetensi-keahlian*') || request()->routeIs('dashboard.rombel*');
             @endphp
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian') || \App\Models\RolePermission::canAccess($role, 'menu_rombel'))
+            @if (
+                \App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian') ||
+                    \App\Models\RolePermission::canAccess($role, 'menu_rombel'))
                 <div class="dash-nav-group {{ $isMasterDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
@@ -128,7 +134,8 @@
 
             {{-- Konfigurasi & Pengaturan Sistem (Collapsible) --}}
             @php
-                $isSistemGroupActive = request()->routeIs('dashboard.pengguna*') || request()->routeIs('dashboard.hak-akses*');
+                $isSistemGroupActive =
+                    request()->routeIs('dashboard.pengguna*') || request()->routeIs('dashboard.hak-akses*');
             @endphp
             <div class="dash-nav-group {{ $isSistemGroupActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">

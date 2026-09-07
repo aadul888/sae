@@ -260,7 +260,7 @@
 }
 
 .dash-nav-submenu::before {
-    content: '';
+    content: "";
     position: absolute;
     left: 19px;
     top: 4px;
