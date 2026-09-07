@@ -16,6 +16,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const migrationList = document.getElementById("migrationList");
     const migUl = document.getElementById("migUl");
 
+    function appendLog(text, color = "#94a3b8") {
+        if (!logBox) return;
+        const line = document.createElement("div");
+        line.style.color = color;
+        line.style.marginBottom = "4px";
+        line.style.wordBreak = "break-all";
+        const time = new Date().toLocaleTimeString("id-ID");
+        line.textContent = `[${time}] ${text}`;
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
+    }
+
     function getThemeColors() {
         const isLight =
             document.documentElement.getAttribute("data-theme") === "light";
