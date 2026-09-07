@@ -322,7 +322,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("submit", async (e) => {
         const form = e.target;
         const confirmMsg = form.getAttribute("data-confirm");
-        if (!confirmMsg || form.dataset.confirmed === "true") return;
+        // Lewatkan jika ditangani handler khusus (misal pengguna.js: delete/reset)
+        if (!confirmMsg || form.dataset.confirmed === "true" || confirmMsg === "delete" || confirmMsg === "reset") return;
 
         e.preventDefault();
         const title =
