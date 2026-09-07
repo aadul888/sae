@@ -7,6 +7,7 @@
     min-height: 100vh;
     background-color: var(--bg-color);
     color: var(--text-color);
+    position: relative;
 }
 
 /* Sidebar */
@@ -21,9 +22,14 @@
     bottom: 0;
     left: 0;
     z-index: 1000;
-    transition: transform var(--transition-speed);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    transition: transform 0.2s ease;
+}
+
+@media (min-width: 769px) {
+    .dash-sidebar {
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
 }
 
 .dash-sidebar-header {
@@ -143,7 +149,6 @@
     text-decoration: none;
     font-size: 0.88rem;
     font-weight: 600;
-    transition: all var(--transition-speed);
 }
 
 .dash-nav-link i {
@@ -175,7 +180,6 @@
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    transition: margin-left var(--transition-speed);
 }
 
 /* Top Dashboard Header */
@@ -190,8 +194,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 28px;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+}
+
+@media (min-width: 769px) {
+    .dash-header {
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
 }
 
 .dash-header-left {
@@ -324,6 +333,11 @@
     justify-content: space-between;
     font-size: 0.8rem;
     color: var(--text-muted);
+    position: absolute;
+    bottom: 0;
+    left: 270px;
+    right: 0;
+    margin: 0;
 }
 
 /* Overlay for Mobile */
@@ -333,7 +347,6 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
     z-index: 950;
-    backdrop-filter: blur(4px);
 }
 
 /* ==========================================================================
@@ -348,8 +361,6 @@
     height: 68px;
     background: var(--navbar-mobile-bg);
     border-top: 1px solid var(--border-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     z-index: 1050;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     align-items: center;
@@ -472,6 +483,7 @@
     }
     .dash-main {
         margin-left: 0;
+        width: 100%;
     }
     .dash-toggle-btn {
         display: block;
@@ -571,5 +583,411 @@
         width: 32px;
         height: 32px;
         font-size: 0.85rem;
+    }
+}
+
+/* ==========================================================================
+   SAE - Data Table Utilitas (Sort, Search, Pagination, Modal, Aksi)
+   Global untuk semua modul dashboard. Awalan unik agar tidak bentrok.
+   ========================================================================== */
+
+/* Sortable table header */
+.sortable-th {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+.sortable-th:hover {
+    color: var(--primary, #4f6ef7) !important;
+}
+.sortable-th .sort-icon {
+    margin-left: 4px;
+    font-size: 0.68rem;
+    opacity: 0.35;
+    transition: opacity 0.15s ease;
+}
+.sortable-th.sorted .sort-icon {
+    opacity: 1;
+    color: var(--primary, #4f6ef7);
+}
+.sortable-th:not(.sorted):hover .sort-icon {
+    opacity: 0.7;
+}
+
+/* Data table toolbar: per-page + live search */
+.toolbar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.per-page-select {
+    padding: 7px 10px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+}
+.live-search-wrap {
+    position: relative;
+}
+.live-search-wrap input {
+    padding: 8px 14px 8px 36px;
+    font-size: 0.83rem;
+    width: 260px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    transition: border-color 0.2s ease;
+}
+.live-search-wrap input:focus {
+    border-color: var(--primary, #4f6ef7);
+    outline: none;
+}
+.live-search-wrap .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+.live-search-wrap .clear-search {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 50%;
+    display: none;
+    transition: color 0.15s ease;
+}
+.live-search-wrap .clear-search:hover {
+    color: #ef4444;
+}
+.live-search-wrap .clear-search.visible {
+    display: block;
+}
+
+/* Custom pagination */
+.custom-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px 18px;
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+.custom-pagination .page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.8rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.custom-pagination .page-btn:hover:not(.disabled):not(.current) {
+    background: var(--bg-hover);
+    border-color: var(--primary);
+}
+.custom-pagination .page-btn.current {
+    background: var(--primary, #4f6ef7);
+    color: #fff;
+    border-color: var(--primary);
+    font-weight: 700;
+}
+.custom-pagination .page-btn.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+.custom-pagination .page-info {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin: 0 6px;
+}
+
+/* Modal form grid */
+.modal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.modal-form-grid .full-width {
+    grid-column: 1 / -1;
+}
+.form-group-compact label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.form-group-compact input,
+.form-group-compact select {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 0.84rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-color);
+    transition: border-color 0.2s ease;
+}
+.form-group-compact input:focus,
+.form-group-compact select:focus {
+    border-color: var(--primary, #4f6ef7);
+    outline: none;
+}
+.form-group-compact .input-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* Table action buttons */
+.table-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+.table-actions .btn-icon {
+    padding: 5px 9px;
+    font-size: 0.78rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.table-actions .btn-icon:hover {
+    background: var(--bg-hover);
+}
+.table-actions .btn-icon.danger {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.table-actions .btn-icon.danger:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+.table-actions .btn-icon.reset {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+.table-actions .btn-icon.reset:hover {
+    background: rgba(245, 158, 11, 0.1);
+}
+
+/* ==========================================================================
+   SAE - Responsive: Semua Modul Dashboard (Tablet & Mobile)
+   ========================================================================== */
+
+/* Tablet (max 992px) */
+@media (max-width: 992px) {
+    .card {
+        padding: 18px 16px;
+    }
+    .card > .card-header,
+    .card > div:first-child {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .dash-grid-2 {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    /* Form: layar dua kolom jadi satu */
+    .modal-form-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+/* Mobile (max 768px) */
+@media (max-width: 768px) {
+    /* Tabel data: mode kartu (stack) */
+    .table-responsive-stack {
+        display: block;
+    }
+    .table-responsive-stack thead {
+        display: none;
+    }
+    .table-responsive-stack tbody,
+    .table-responsive-stack tbody tr {
+        display: block;
+        width: 100%;
+    }
+    .table-responsive-stack tbody tr {
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        background: var(--card-bg);
+    }
+    .table-responsive-stack tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 6px 0 !important;
+        border: none;
+        text-align: right;
+    }
+    .table-responsive-stack tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--text-muted);
+        text-align: left;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .table-responsive-stack tbody td:first-child {
+        font-weight: 700;
+    }
+    .table-responsive-stack .table-actions {
+        justify-content: flex-end;
+    }
+    /* Override overflow-x wrapper on mobile so stack mode works */
+    .table-responsive-stack > div[style*="overflow-x"] {
+        overflow: visible !important;
+    }
+
+    /* Toolbar: per-page + search tumpuk vertikal */
+    .toolbar-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .toolbar-row > div {
+        width: 100%;
+    }
+    .toolbar-row .per-page-select {
+        flex: 1;
+    }
+    .live-search-wrap {
+        width: 100%;
+    }
+    .live-search-wrap input {
+        width: 100%;
+    }
+
+    /* Tab navigasi: scroll horizontal */
+    .dash-tabs,
+    [style*="width: fit-content"] {
+        width: 100% !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .dash-tabs::-webkit-scrollbar,
+    [style*="width: fit-content"]::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Pagination: kompak */
+    .custom-pagination {
+        gap: 2px;
+        padding: 10px;
+    }
+    .custom-pagination .page-btn {
+        min-width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+    }
+
+    /* Modal: full layar di mobile */
+    .modal-backdrop {
+        padding: 12px;
+        align-items: flex-end;
+    }
+    .modal-backdrop .card {
+        max-width: 100% !important;
+        width: 100% !important;
+        border-radius: 18px 18px 0 0;
+        padding: 18px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Tombol aksi tabel: perbesar area sentuh */
+    .table-actions .btn-icon {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    /* Form grid dalan modal jadi satu kolom */
+    .modal-form-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    /* Update sistem: banner & log */
+    .update-banner,
+    #updateBanner {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    #updateBanner > div:last-child {
+        width: 100%;
+    }
+    #updateBanner .btn {
+        width: 100%;
+    }
+
+    /* Terminal log: tinggi maksimal untuk scroll */
+    .terminal-log {
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+
+    /* Konfigurasi Dapodik: input + tombol salin tumpuk */
+    .form-group > div[style*="display: flex"] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .form-group > div[style*="display: flex"] .btn {
+        width: 100%;
+    }
+}
+
+/* HP kecil (max 480px) */
+@media (max-width: 480px) {
+    .dash-stat-value {
+        font-size: 0.95rem;
+    }
+    .dash-stat-label {
+        font-size: 0.65rem;
+    }
+    .custom-pagination .page-info {
+        display: none;
+    }
+    .card,
+    .dash-banner {
+        border-radius: 12px;
     }
 }

@@ -40,19 +40,18 @@
 
                 @yield('content')
             </main>
-
-            <!-- Footer Khusus Dashboard -->
-            @include('partials.dash-footer')
         </div>
-    </div>
 
-    <!-- Mobile Bottom Navigation (5 Menu Utama) -->
-    @include('partials.mobile-bottom-nav')
+        <!-- Footer Khusus Dashboard -->
+        @include('partials.dash-footer')
 
-    <!-- Global & Dashboard JS Scripts -->
-    <script src="{{ asset('js/sae.js') }}"></script>
-    <script src="{{ asset('js/dashboard.js') }}"></script>
-    @stack('scripts')
+        <!-- Mobile Bottom Navigation (5 Menu Utama) -->
+        @include('partials.mobile-bottom-nav')
+
+        <!-- Global & Dashboard JS Scripts -->
+        <script src="{{ asset('js/sae.js') }}"></script>
+        <script src="{{ asset('js/dashboard.js') }}"></script>
+        @stack('scripts')
 </body>
 
 </html>

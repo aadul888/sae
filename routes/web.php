@@ -45,7 +45,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey');
 
     // Manajemen Pengguna (3 Tab: Admin, Guru/Tendik, Siswa)
-    Route::resource('pengguna', UserController::class);
+    Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');
+    Route::put('/pengguna/{pengguna}', [UserController::class, 'update'])->name('pengguna.update');
+    Route::delete('/pengguna/{pengguna}', [UserController::class, 'destroy'])->name('pengguna.destroy');
+    Route::post('/pengguna/{pengguna}/reset-password', [UserController::class, 'resetPassword'])->name('pengguna.resetPassword');
 
     // Update Sistem
     Route::get('/update', [UpdateController::class, 'index'])->name('update');
@@ -57,5 +60,3 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 Route::get('/admin', function () {
     return redirect()->route('dashboard.admin');
 });
-
-
