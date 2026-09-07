@@ -122,9 +122,20 @@ document.addEventListener("DOMContentLoaded", () => {
                             .querySelector('meta[name="csrf-token"]')
                             ?.getAttribute("content") || "",
                     "Content-Type": "application/json",
+                    "Accept": "application/json",
                 },
             });
-            const data = await res.json();
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                throw new Error(
+                    res.status === 419
+                        ? "Sesi kedaluwarsa (CSRF token mismatch). Silakan refresh halaman."
+                        : `Server mengembalikan respon HTML (HTTP ${res.status}). Cek error log server.`
+                );
+            }
             if (data.status === "success") {
                 data.data.logs.forEach((l) => appendLog(l, "#34d399"));
                 appendLog("Update sistem selesai dengan sukses!", "#4ade80");
