@@ -37,16 +37,22 @@ class UpdateService
         if ($hasGit) {
             try {
                 $basePath = base_path();
-                $gitBranch = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
+                $envPrefix = 'GIT_TERMINAL_PROMPT=0';
+                $gitCmd = 'git -C ' . escapeshellarg($basePath);
+
+                // Pastikan safe.directory terdaftar
+                @shell_exec($envPrefix . ' git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
+
+                $gitBranch = trim(@shell_exec($gitCmd . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
                 if (str_contains($gitBranch, ' ') || str_contains($gitBranch, 'fatal:')) {
                     $gitBranch = 'main';
                 }
-                @shell_exec('GIT_TERMINAL_PROMPT=0 git -C ' . escapeshellarg($basePath) . ' fetch origin ' . escapeshellarg($gitBranch) . ' 2>&1');
+                @shell_exec($envPrefix . ' ' . $gitCmd . ' fetch origin ' . escapeshellarg($gitBranch) . ' 2>&1');
 
-                $behindCount = (int) trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-list --count HEAD..origin/' . escapeshellarg($gitBranch) . ' 2>&1') ?: '0');
+                $behindCount = (int) trim(@shell_exec($gitCmd . ' rev-list --count HEAD..origin/' . escapeshellarg($gitBranch) . ' 2>&1') ?: '0');
                 if ($behindCount > 0) {
                     $updatesAvailable = true;
-                    $changesRaw = @shell_exec('git -C ' . escapeshellarg($basePath) . ' log HEAD..origin/' . escapeshellarg($gitBranch) . ' --oneline -n 10 2>&1');
+                    $changesRaw = @shell_exec($gitCmd . ' log HEAD..origin/' . escapeshellarg($gitBranch) . ' --oneline -n 10 2>&1');
                     if ($changesRaw) {
                         $changes = array_filter(explode("\n", trim($changesRaw)));
                     }
@@ -99,6 +105,7 @@ class UpdateService
     {
         if (is_dir(base_path('.git'))) {
             $basePath = base_path();
+            @shell_exec('GIT_TERMINAL_PROMPT=0 git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
             $cliHash = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse HEAD 2>&1') ?: '');
             if (preg_match('/^[a-f0-9]{40}$/i', $cliHash)) {
                 return $cliHash;
@@ -204,20 +211,36 @@ class UpdateService
         // 1. Sync file kode
         if (is_dir(base_path('.git'))) {
             $basePath = base_path();
-            $branch = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
+            $gitCmd = 'git -C ' . escapeshellarg($basePath);
+            $envPrefix = 'GIT_TERMINAL_PROMPT=0';
+
+            // 1a. Tambahkan safe.directory agar git tidak menolak operasi
+            @shell_exec($envPrefix . ' git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
+            $logs[] = "[SAFE DIR] Registered " . $basePath;
+
+            $branch = trim(@shell_exec($gitCmd . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
             if (str_contains($branch, ' ') || str_contains($branch, 'fatal:')) {
                 $branch = 'main';
             }
 
-            // Gunakan GIT_TERMINAL_PROMPT=0 agar tidak stuck jika prompt kredensial
-            $cmd = 'cd ' . escapeshellarg($basePath) . ' && GIT_TERMINAL_PROMPT=0 git pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1';
-            $pullOutput = @shell_exec($cmd);
+            // 1b. Reset file lokal yang termodifikasi (storage/.gitignore dll) agar tidak block pull
+            @shell_exec($envPrefix . ' ' . $gitCmd . ' checkout -- . 2>&1');
+            $logs[] = "[GIT RESET] Local changes reset sebelum pull.";
+
+            // 1c. Fetch dulu untuk memastikan remote refs up to date
+            $fetchOut = trim(@shell_exec($envPrefix . ' ' . $gitCmd . ' fetch origin ' . escapeshellarg($branch) . ' 2>&1') ?: '');
+            if ($fetchOut) {
+                $logs[] = "[GIT FETCH] " . $fetchOut;
+            }
+
+            // 1d. Pull dengan non-interactive
+            $pullOutput = @shell_exec($envPrefix . ' ' . $gitCmd . ' pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1');
             $pullText = trim($pullOutput ?: 'No output');
             $logs[] = "[GIT PULL ($branch)] " . $pullText;
 
             // Jika git pull gagal / conflict / permission denied, fallback unduh ZIP
-            if ($pullOutput === null || str_contains($pullText, 'fatal:') || str_contains($pullText, 'Permission denied') || str_contains($pullText, 'Could not resolve host')) {
-                $logs[] = "[FALLBACK] Git pull gagal atau dibatasi izin server, mencoba fallback deploy ZIP...";
+            if ($pullOutput === null || str_contains($pullText, 'fatal:') || str_contains($pullText, 'error:') || str_contains($pullText, 'Permission denied') || str_contains($pullText, 'Could not resolve host')) {
+                $logs[] = "[FALLBACK] Git pull gagal, mencoba fallback deploy ZIP...";
                 $zipResult = $this->deployFromGitHubZip($branch);
                 foreach ($zipResult['logs'] as $zl) {
                     $logs[] = $zl;
@@ -227,7 +250,7 @@ class UpdateService
                 }
             }
 
-            $newCommit = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse HEAD 2>&1') ?: '');
+            $newCommit = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
         } else {
             // Standalone / Non-Git mode: Unduh ZIP dari GitHub & timpa file
             $zipResult = $this->deployFromGitHubZip('main');
