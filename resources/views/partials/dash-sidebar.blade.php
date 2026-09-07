@@ -82,13 +82,22 @@
             @endif
 
             {{-- Master Data Submenu --}}
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian'))
+            @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian') || \App\Models\RolePermission::canAccess($role, 'menu_rombel'))
                 <span class="nav-section-label">Master Data</span>
 
-                <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
-                    class="dash-nav-link {{ request()->routeIs('dashboard.kompetensi-keahlian*') ? 'active' : '' }}">
-                    <i class="fas fa-laptop-code"></i> <span>Kompetensi Keahlian</span>
-                </a>
+                @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian'))
+                    <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
+                        class="dash-nav-link {{ request()->routeIs('dashboard.kompetensi-keahlian*') ? 'active' : '' }}">
+                        <i class="fas fa-laptop-code"></i> <span>Kompetensi Keahlian</span>
+                    </a>
+                @endif
+
+                @if (\App\Models\RolePermission::canAccess($role, 'menu_rombel'))
+                    <a href="{{ route('dashboard.rombel.index') }}"
+                        class="dash-nav-link {{ request()->routeIs('dashboard.rombel*') ? 'active' : '' }}">
+                        <i class="fas fa-chalkboard-user"></i> <span>Rombel</span>
+                    </a>
+                @endif
             @endif
 
             @if (\App\Models\RolePermission::canAccess($role, 'menu_update'))

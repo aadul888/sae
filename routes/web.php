@@ -66,6 +66,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index');
     Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel');
+
+    // Master Data — Rombel (Sumber: Rombongan Belajar & Peserta Didik)
+    Route::get('/master-data/rombel', [\App\Http\Controllers\RombelController::class, 'index'])->name('rombel.index');
+    Route::get('/master-data/rombel/{id}/siswa', [\App\Http\Controllers\RombelController::class, 'showSiswa'])->name('rombel.siswa');
 });
 
 // Admin shortcut redirect

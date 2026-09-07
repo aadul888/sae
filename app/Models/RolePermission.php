@@ -100,6 +100,12 @@ class RolePermission extends Model
                     'icon' => 'fa-laptop-code',
                     'roles' => ['admin'],
                 ],
+                'menu_rombel' => [
+                    'label' => 'Master Data — Rombel',
+                    'desc' => 'Daftar rombongan belajar dan rincian siswa kelas',
+                    'icon' => 'fa-chalkboard-user',
+                    'roles' => ['admin', 'guru'],
+                ],
 
                 // Menu Khusus Guru
                 'menu_presensi_mengajar' => [
