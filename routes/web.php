@@ -55,6 +55,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/update', [UpdateController::class, 'index'])->name('update');
     Route::get('/update/check', [UpdateController::class, 'check'])->name('update.check');
     Route::post('/update/execute', [UpdateController::class, 'execute'])->name('update.execute');
+    Route::get('/update/diagnose', [UpdateController::class, 'diagnose'])->name('update.diagnose');
 
     // Pengaturan Hak Akses (Role & Permission)
     Route::get('/hak-akses', [PermissionController::class, 'index'])->name('hak-akses.index');
