@@ -38,7 +38,7 @@ class UpdateService
             try {
                 $gitBranch = trim(@shell_exec('git rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
                 @shell_exec('git fetch origin ' . escapeshellarg($gitBranch) . ' 2>&1');
-                
+
                 $behindCount = (int) trim(@shell_exec('git rev-list --count HEAD..origin/' . escapeshellarg($gitBranch) . ' 2>&1') ?: '0');
                 if ($behindCount > 0) {
                     $updatesAvailable = true;
@@ -61,7 +61,7 @@ class UpdateService
                     $firstLine = explode("\n", trim($remoteData['message']))[0];
                     $changes[] = $remoteCommit . ' ' . $firstLine;
                 }
-                
+
                 if (empty($localCommit) || strpos(strtolower($remoteData['sha']), strtolower($localCommit)) !== 0) {
                     $updatesAvailable = true;
                     $behindCount = 1;
@@ -165,7 +165,7 @@ class UpdateService
 
             $ranMigrations = DB::table('migrations')->pluck('migration')->toArray();
             $migrationFiles = File::files(database_path('migrations'));
-            
+
             $pending = [];
             foreach ($migrationFiles as $file) {
                 $name = $file->getBasename('.php');
@@ -224,12 +224,19 @@ class UpdateService
         try {
             if (Schema::hasTable('settings')) {
                 $commitShort = $newCommit ? substr($newCommit, 0, 7) : null;
-                DB::table('settings')->where('id', 1)->update([
-                    'app_version' => self::CURRENT_VERSION,
+                $updateData = [
                     'last_update_at' => now(),
-                    'last_commit_hash' => $newCommit ?: null,
                     'updated_at' => now(),
-                ]);
+                ];
+
+                if (Schema::hasColumn('settings', 'app_version')) {
+                    $updateData['app_version'] = self::CURRENT_VERSION;
+                }
+                if (Schema::hasColumn('settings', 'last_commit_hash')) {
+                    $updateData['last_commit_hash'] = $newCommit ?: null;
+                }
+
+                DB::table('settings')->where('id', 1)->update($updateData);
                 $logs[] = "[VERSION] Versi " . self::CURRENT_VERSION . ($commitShort ? " ($commitShort)" : "") . " tersimpan.";
             }
         } catch (\Throwable $e) {
@@ -305,7 +312,7 @@ class UpdateService
             $allFiles = File::allFiles($inner);
             foreach ($allFiles as $file) {
                 $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($inner) + 1));
-                
+
                 $skip = false;
                 foreach ($excluded as $exc) {
                     if ($rel === $exc || str_starts_with($rel, $exc . '/')) {
