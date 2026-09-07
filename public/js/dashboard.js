@@ -1,5 +1,5 @@
 /**
- * SAE - Dashboard Script (Sidebar Mobile Toggle)
+ * SAE - Dashboard Script (Sidebar Mobile Toggle & Accordion Submenus)
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -18,4 +18,16 @@ document.addEventListener("DOMContentLoaded", () => {
             backdrop.classList.remove("open");
         });
     }
+
+    // Sidebar Submenu Accordion Handler
+    document.querySelectorAll(".dash-nav-toggle").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            const group = this.closest(".dash-nav-group");
+            if (group) {
+                const isOpen = group.classList.contains("open");
+                group.classList.toggle("open", !isOpen);
+            }
+        });
+    });
 });

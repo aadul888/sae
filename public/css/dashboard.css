@@ -124,14 +124,14 @@
 .dash-sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding: 12px 10px;
+    padding: 10px 10px 20px;
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
 .dash-sidebar-nav::-webkit-scrollbar {
-    width: 5px;
+    width: 4px;
 }
 
 .dash-sidebar-nav::-webkit-scrollbar-track {
@@ -144,33 +144,35 @@
 }
 
 .nav-section-label {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     color: var(--text-muted);
-    opacity: 0.75;
-    padding: 14px 10px 4px;
+    opacity: 0.6;
+    padding: 12px 10px 4px;
 }
 
 .dash-nav-link {
     display: flex;
     align-items: center;
-    gap: 11px;
-    padding: 8px 12px;
+    gap: 10px;
+    padding: 7px 11px;
     border-radius: 8px;
     color: var(--text-muted);
     text-decoration: none;
-    font-size: 0.84rem;
+    font-size: 0.83rem;
     font-weight: 600;
-    transition: all 0.18s ease;
+    transition: all 0.15s ease;
+    user-select: none;
 }
 
 .dash-nav-link i {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     width: 18px;
     text-align: center;
     opacity: 0.85;
+    flex-shrink: 0;
 }
 
 .dash-nav-link:hover {
@@ -180,11 +182,131 @@
 
 .dash-nav-link.active {
     background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-    color: #ffffff;
+    color: #ffffff !important;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .dash-nav-link.active i {
+    opacity: 1;
+    color: #ffffff !important;
+}
+
+/* Accordion Dropdown Submenu */
+.dash-nav-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2px;
+}
+
+.dash-nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 11px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.83rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: all 0.15s ease;
+}
+
+.dash-nav-toggle-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dash-nav-toggle-main i {
+    font-size: 0.92rem;
+    width: 18px;
+    text-align: center;
+    opacity: 0.85;
+    flex-shrink: 0;
+}
+
+.dash-nav-toggle .arrow-icon {
+    font-size: 0.72rem;
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.dash-nav-group.open .dash-nav-toggle .arrow-icon {
+    transform: rotate(90deg);
+}
+
+.dash-nav-toggle:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--text-color);
+}
+
+.dash-nav-group.active-group .dash-nav-toggle {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.dash-nav-submenu {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 20px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+    position: relative;
+}
+
+.dash-nav-submenu::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 4px;
+    bottom: 4px;
+    width: 1.5px;
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.dash-nav-group.open .dash-nav-submenu {
+    display: flex;
+}
+
+.dash-nav-sublink {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 6px 10px 6px 12px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.dash-nav-sublink i {
+    font-size: 0.8rem;
+    width: 14px;
+    text-align: center;
+    opacity: 0.75;
+}
+
+.dash-nav-sublink:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--text-color);
+}
+
+.dash-nav-sublink.active {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary) !important;
+    font-weight: 700;
+}
+
+.dash-nav-sublink.active i {
+    color: var(--primary) !important;
     opacity: 1;
 }
 
