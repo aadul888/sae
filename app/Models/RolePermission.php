@@ -115,8 +115,78 @@ class RolePermission extends Model
                 'menu_rombel' => [
                     'label' => 'Master Data — Rombel',
                     'desc' => 'Daftar rombongan belajar dan rincian siswa kelas',
-                    'icon' => 'fa-chalkboard-user',
+                    'icon' => 'fa-school',
                     'roles' => ['admin', 'guru'],
+                ],
+                'menu_pembelajaran' => [
+                    'label' => 'Master Data — Pembelajaran',
+                    'desc' => 'Mata pelajaran dan alokasi jam pembelajaran kurikulum',
+                    'icon' => 'fa-book-bookmark',
+                    'roles' => ['admin', 'guru'],
+                ],
+
+                // Manajemen Data
+                'menu_berkas_siswa' => [
+                    'label' => 'Manajemen Data — Berkas Siswa',
+                    'desc' => 'Pengelolaan dokumen ijazah, KK, akta lahir, dan berkas siswa',
+                    'icon' => 'fa-folder-open',
+                    'roles' => ['admin', 'guru'],
+                ],
+                'menu_perubahan_data' => [
+                    'label' => 'Manajemen Data — Perubahan Data Siswa',
+                    'desc' => 'Pengajuan dan verifikasi permohonan pembaruan biodata siswa',
+                    'icon' => 'fa-user-pen',
+                    'roles' => ['admin', 'guru', 'siswa'],
+                ],
+                'menu_siswa_tidak_aktif' => [
+                    'label' => 'Manajemen Data — Siswa Tidak Aktif',
+                    'desc' => 'Arsip data peserta didik mutasi keluar, DO, atau nonaktif',
+                    'icon' => 'fa-user-xmark',
+                    'roles' => ['admin'],
+                ],
+                'menu_guru_tidak_aktif' => [
+                    'label' => 'Manajemen Data — Guru Tidak Aktif',
+                    'desc' => 'Arsip data pendidik dan tenaga kependidikan purna/mutasi',
+                    'icon' => 'fa-user-slash',
+                    'roles' => ['admin'],
+                ],
+
+                // Layanan Digital
+                'menu_e_izin' => [
+                    'label' => 'Layanan Digital — E-Izin',
+                    'desc' => 'Pengajuan dan persetujuan izin/sakit siswa secara digital',
+                    'icon' => 'fa-file-signature',
+                    'roles' => ['admin', 'guru', 'siswa'],
+                ],
+                'menu_poin' => [
+                    'label' => 'Layanan Digital — Poin & Pelanggaran',
+                    'desc' => 'Pencatatan poin prestasi dan tata tertib pelanggaran siswa',
+                    'icon' => 'fa-star-half-stroke',
+                    'roles' => ['admin', 'guru'],
+                ],
+                'menu_agenda' => [
+                    'label' => 'Layanan Digital — Agenda Sekolah',
+                    'desc' => 'Jadwal kegiatan sekolah dan kalender akademik',
+                    'icon' => 'fa-calendar-days',
+                    'roles' => ['admin', 'guru', 'siswa'],
+                ],
+                'menu_buku_tamu' => [
+                    'label' => 'Layanan Digital — Buku Tamu',
+                    'desc' => 'Pencatatan kunjungan tamu dinas, wali murid, dan umum',
+                    'icon' => 'fa-address-book',
+                    'roles' => ['admin'],
+                ],
+                'menu_inventaris' => [
+                    'label' => 'Layanan Digital — Inventaris',
+                    'desc' => 'Pengelolaan sarana prasarana dan inventaris barang sekolah',
+                    'icon' => 'fa-boxes-stacked',
+                    'roles' => ['admin'],
+                ],
+                'menu_kelulusan' => [
+                    'label' => 'Layanan Digital — Kelulusan',
+                    'desc' => 'Pusat pengumuman kelulusan dan cetak SKL siswa',
+                    'icon' => 'fa-graduation-cap',
+                    'roles' => ['admin', 'guru', 'siswa'],
                 ],
 
                 // Menu Khusus Guru
