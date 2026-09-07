@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Sidebar Submenu Accordion Handler
+    // Sidebar Submenu Accordion Handler (Level 1 & Nested Level 2)
     document.querySelectorAll(".dash-nav-toggle").forEach((btn) => {
         btn.addEventListener("click", function (e) {
             e.preventDefault();
@@ -27,6 +27,18 @@ document.addEventListener("DOMContentLoaded", () => {
             if (group) {
                 const isOpen = group.classList.contains("open");
                 group.classList.toggle("open", !isOpen);
+            }
+        });
+    });
+
+    document.querySelectorAll(".dash-nav-nested-toggle").forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const nestedGroup = this.closest(".dash-nav-nested-group");
+            if (nestedGroup) {
+                const isOpen = nestedGroup.classList.contains("open");
+                nestedGroup.classList.toggle("open", !isOpen);
             }
         });
     });

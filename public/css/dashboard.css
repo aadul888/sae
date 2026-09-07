@@ -310,6 +310,111 @@
     opacity: 1;
 }
 
+/* Sub-submenu Level 2 (Nested Accordion) */
+.dash-nav-nested-group {
+    display: flex;
+    flex-direction: column;
+    margin: 1px 0;
+}
+
+.dash-nav-nested-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px 6px 12px;
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: all 0.15s ease;
+}
+
+.dash-nav-nested-toggle:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--text-color);
+}
+
+.dash-nav-nested-group.active-group .dash-nav-nested-toggle {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.dash-nav-nested-toggle .nested-arrow-icon {
+    font-size: 0.65rem;
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.dash-nav-nested-group.open .dash-nav-nested-toggle .nested-arrow-icon {
+    transform: rotate(90deg);
+}
+
+.dash-nav-nested-menu {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 20px;
+    margin-top: 1px;
+    margin-bottom: 3px;
+    position: relative;
+}
+
+.dash-nav-nested-menu::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 3px;
+    bottom: 3px;
+    width: 1.5px;
+    background: var(--border-color);
+    border-radius: 2px;
+}
+
+.dash-nav-nested-group.open .dash-nav-nested-menu {
+    display: flex;
+}
+
+.dash-nav-nested-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px 5px 12px;
+    border-radius: 5px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.77rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.dash-nav-nested-link i {
+    font-size: 0.72rem;
+    width: 12px;
+    text-align: center;
+    opacity: 0.75;
+}
+
+.dash-nav-nested-link:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: var(--text-color);
+}
+
+.dash-nav-nested-link.active {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--primary) !important;
+    font-weight: 700;
+}
+
+.dash-nav-nested-link.active i {
+    color: var(--primary) !important;
+    opacity: 1;
+}
+
 .dash-sidebar-footer {
     padding: 14px 16px;
     border-top: 1px solid var(--border-color);
