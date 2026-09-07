@@ -115,6 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
             '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
         appendLog("Memulai pembaruan sistem...", "#38bdf8");
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 menit timeout
+
         try {
             const token = getCsrfToken();
             const res = await fetch("/dashboard/update/execute", {
@@ -125,7 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Content-Type": "application/json",
                     Accept: "application/json",
                 },
+                signal: controller.signal,
             });
+            clearTimeout(timeoutId);
             const text = await res.text();
             let data;
             try {

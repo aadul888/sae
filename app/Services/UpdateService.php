@@ -189,16 +189,40 @@ class UpdateService
      */
     public function runUpdate(): array
     {
+        @set_time_limit(300);
+        @ini_set('max_execution_time', '300');
+
         $logs = [];
         $success = true;
         $newCommit = null;
 
         // 1. Sync file kode
         if (is_dir(base_path('.git'))) {
-            $branch = trim(@shell_exec('git rev-parse --abbrev-ref HEAD') ?: 'main');
-            $pullOutput = @shell_exec('git pull origin ' . escapeshellarg($branch) . ' 2>&1');
-            $logs[] = "[GIT PULL] " . trim($pullOutput ?: 'No output');
-            $newCommit = trim(@shell_exec('git rev-parse HEAD 2>&1') ?: '');
+            $basePath = base_path();
+            $branch = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
+            if (str_contains($branch, ' ') || str_contains($branch, 'fatal:')) {
+                $branch = 'main';
+            }
+
+            // Gunakan GIT_TERMINAL_PROMPT=0 agar tidak stuck jika prompt kredensial
+            $cmd = 'cd ' . escapeshellarg($basePath) . ' && GIT_TERMINAL_PROMPT=0 git pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1';
+            $pullOutput = @shell_exec($cmd);
+            $pullText = trim($pullOutput ?: 'No output');
+            $logs[] = "[GIT PULL ($branch)] " . $pullText;
+
+            // Jika git pull gagal / conflict / permission denied, fallback unduh ZIP
+            if ($pullOutput === null || str_contains($pullText, 'fatal:') || str_contains($pullText, 'Permission denied') || str_contains($pullText, 'Could not resolve host')) {
+                $logs[] = "[FALLBACK] Git pull gagal atau dibatasi izin server, mencoba fallback deploy ZIP...";
+                $zipResult = $this->deployFromGitHubZip($branch);
+                foreach ($zipResult['logs'] as $zl) {
+                    $logs[] = $zl;
+                }
+                if (!$zipResult['success']) {
+                    $success = false;
+                }
+            }
+
+            $newCommit = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse HEAD 2>&1') ?: '');
         } else {
             // Standalone / Non-Git mode: Unduh ZIP dari GitHub & timpa file
             $zipResult = $this->deployFromGitHubZip('main');
