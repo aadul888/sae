@@ -41,10 +41,10 @@
 
                 @yield('content')
             </main>
-        </div>
 
-        <!-- Footer Khusus Dashboard -->
-        @include('partials.dash-footer')
+            <!-- Footer Khusus Dashboard -->
+            @include('partials.dash-footer')
+        </div>
 
         <!-- Mobile Bottom Navigation (5 Menu Utama) -->
         @include('partials.mobile-bottom-nav')
