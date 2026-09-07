@@ -36,13 +36,17 @@ class UpdateService
         // 1. Cek dari Git CLI jika repositori lokal adalah git
         if ($hasGit) {
             try {
-                $gitBranch = trim(@shell_exec('git rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
-                @shell_exec('git fetch origin ' . escapeshellarg($gitBranch) . ' 2>&1');
+                $basePath = base_path();
+                $gitBranch = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse --abbrev-ref HEAD 2>&1') ?: 'main');
+                if (str_contains($gitBranch, ' ') || str_contains($gitBranch, 'fatal:')) {
+                    $gitBranch = 'main';
+                }
+                @shell_exec('GIT_TERMINAL_PROMPT=0 git -C ' . escapeshellarg($basePath) . ' fetch origin ' . escapeshellarg($gitBranch) . ' 2>&1');
 
-                $behindCount = (int) trim(@shell_exec('git rev-list --count HEAD..origin/' . escapeshellarg($gitBranch) . ' 2>&1') ?: '0');
+                $behindCount = (int) trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-list --count HEAD..origin/' . escapeshellarg($gitBranch) . ' 2>&1') ?: '0');
                 if ($behindCount > 0) {
                     $updatesAvailable = true;
-                    $changesRaw = @shell_exec('git log HEAD..origin/' . escapeshellarg($gitBranch) . ' --oneline -n 10 2>&1');
+                    $changesRaw = @shell_exec('git -C ' . escapeshellarg($basePath) . ' log HEAD..origin/' . escapeshellarg($gitBranch) . ' --oneline -n 10 2>&1');
                     if ($changesRaw) {
                         $changes = array_filter(explode("\n", trim($changesRaw)));
                     }
@@ -94,7 +98,8 @@ class UpdateService
     protected function getLocalCommit($setting = null): string
     {
         if (is_dir(base_path('.git'))) {
-            $cliHash = trim(@shell_exec('git rev-parse HEAD 2>&1') ?: '');
+            $basePath = base_path();
+            $cliHash = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse HEAD 2>&1') ?: '');
             if (preg_match('/^[a-f0-9]{40}$/i', $cliHash)) {
                 return $cliHash;
             }
