@@ -25,13 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    function appendLog(msg, color = "#38bdf8") {
-        const line = document.createElement("div");
-        line.style.color = color;
-        line.style.marginBottom = "4px";
-        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        logBox.appendChild(line);
-        logBox.scrollTop = logBox.scrollHeight;
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+        if (meta) return meta;
+        const cookie = document.cookie.split("; ").find((r) => r.startsWith("XSRF-TOKEN="));
+        return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
     }
 
     btnCheck.addEventListener("click", async () => {
@@ -114,15 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
         appendLog("Memulai pembaruan sistem...", "#38bdf8");
 
         try {
+            const token = getCsrfToken();
             const res = await fetch("/dashboard/update/execute", {
                 method: "POST",
                 headers: {
-                    "X-CSRF-TOKEN":
-                        document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute("content") || "",
+                    "X-CSRF-TOKEN": token,
+                    "X-XSRF-TOKEN": token,
                     "Content-Type": "application/json",
-                    "Accept": "application/json",
+                    Accept: "application/json",
                 },
             });
             const text = await res.text();
@@ -133,7 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(
                     res.status === 419
                         ? "Sesi kedaluwarsa (CSRF token mismatch). Silakan refresh halaman."
-                        : `Server mengembalikan respon HTML (HTTP ${res.status}). Cek error log server.`
+                        : `Server mengembalikan respon HTML (HTTP ${res.status}). Cek error log server.`,
                 );
             }
             if (data.status === "success") {
