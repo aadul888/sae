@@ -293,6 +293,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/kompetensi-keahlian.js') }}"></script>
+        <script src="{{ asset('js/kompetensi-keahlian.js') }}?v={{ filemtime(public_path('js/kompetensi-keahlian.js')) }}"></script>
     @endpush
 @endsection
