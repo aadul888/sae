@@ -186,7 +186,6 @@
             @endif
         </div>
     @endif
-    </div>
 
     {{-- Edit Modal --}}
     <div id="userModal" class="modal-backdrop"
