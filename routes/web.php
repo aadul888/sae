@@ -63,11 +63,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/hak-akses/toggle', [PermissionController::class, 'toggle'])->name('hak-akses.toggle');
     Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset');
 
-    // Master Data — Kompetensi Keahlian
+    // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index');
-    Route::post('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'store'])->name('kompetensi-keahlian.store');
-    Route::put('/master-data/kompetensi-keahlian/{id}', [KompetensiKeahlianController::class, 'update'])->name('kompetensi-keahlian.update');
-    Route::delete('/master-data/kompetensi-keahlian/{id}', [KompetensiKeahlianController::class, 'destroy'])->name('kompetensi-keahlian.destroy');
+    Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel');
 });
 
 // Admin shortcut redirect

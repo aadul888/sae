@@ -1,143 +1,53 @@
 /**
- * Master Data — Kompetensi Keahlian - Frontend JS
+ * Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar) - Frontend JS
  */
 document.addEventListener("DOMContentLoaded", function () {
-    const modal = document.getElementById("kkModal");
-    const form = document.getElementById("kkForm");
-    const title = document.getElementById("kkModalTitle");
-    const methodField = document.getElementById("kkMethodField");
+    const modal = document.getElementById("rombelModal");
+    const modalTitle = document.getElementById("rombelModalTitle");
+    const modalSubtitle = document.getElementById("rombelModalSubtitle");
+    const loading = document.getElementById("rombelLoading");
+    const tableWrapper = document.getElementById("rombelTableWrapper");
+    const tableBody = document.getElementById("rombelTableBody");
 
-    // --- Add Modal ---
-    window.openAddModal = function () {
-        title.textContent = "Tambah Kompetensi Keahlian";
-        form.action = "/dashboard/master-data/kompetensi-keahlian";
-        methodField.innerHTML = "";
-        document.getElementById("inputKode").value = "";
-        document.getElementById("inputNama").value = "";
-        document.getElementById("inputBidang").value = "";
-        document.getElementById("inputProgram").value = "";
-        document.getElementById("inputTahun").value = "";
-        document.getElementById("inputActive").checked = true;
+    window.openRombelModal = async function (kode, nama) {
+        modalTitle.textContent = nama || "Daftar Rombel";
+        modalSubtitle.textContent = "Kode Jurusan: " + kode;
+        tableBody.innerHTML = "";
+        loading.style.display = "block";
+        tableWrapper.style.display = "none";
         modal.style.display = "flex";
-    };
 
-    // --- Edit Modal ---
-    window.openEditModal = function (item) {
-        title.textContent = "Edit Kompetensi Keahlian";
-        form.action = "/dashboard/master-data/kompetensi-keahlian/" + item.id;
-        methodField.innerHTML =
-            '<input type="hidden" name="_method" value="PUT">';
-        document.getElementById("inputKode").value = item.kode || "";
-        document.getElementById("inputNama").value = item.nama || "";
-        document.getElementById("inputBidang").value =
-            item.bidang_keahlian || "";
-        document.getElementById("inputProgram").value =
-            item.program_keahlian || "";
-        document.getElementById("inputTahun").value = item.tahun_berlaku || "";
-        document.getElementById("inputActive").checked = !!item.is_active;
-        modal.style.display = "flex";
-    };
+        try {
+            const res = await fetch(
+                "/dashboard/master-data/kompetensi-keahlian/" +
+                    encodeURIComponent(kode) +
+                    "/rombel",
+                {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                },
+            );
+            const json = await res.json();
 
-    window.closeKKModal = function () {
-        modal.style.display = "none";
-    };
+            loading.style.display = "none";
+            tableWrapper.style.display = "block";
 
-    window.onclick = function (event) {
-        if (event.target === modal) closeKKModal();
-    };
-
-    // --- Live Search with Debounce ---
-    let debounceTimer;
-    const liveSearch = document.getElementById("liveSearch");
-    const clearSearch = document.getElementById("clearSearch");
-
-    if (liveSearch) {
-        liveSearch.addEventListener("input", function () {
-            clearSearch.classList.toggle("visible", this.value.length > 0);
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const url = new URL(window.location.href);
-                if (this.value) {
-                    url.searchParams.set("q", this.value);
-                } else {
-                    url.searchParams.delete("q");
-                }
-                url.searchParams.set("page", "1");
-                window.location.href = url.toString();
-            }, 400);
-        });
-    }
-
-    if (clearSearch) {
-        clearSearch.addEventListener("click", function () {
-            liveSearch.value = "";
-            clearSearch.classList.remove("visible");
-            const url = new URL(window.location.href);
-            url.searchParams.delete("q");
-            url.searchParams.set("page", "1");
-            window.location.href = url.toString();
-        });
-    }
-
-    // --- Per Page Select ---
-    const perPageSelect = document.getElementById("perPageSelect");
-    if (perPageSelect) {
-        perPageSelect.addEventListener("change", function () {
-            const url = new URL(window.location.href);
-            url.searchParams.set("perPage", this.value);
-            url.searchParams.set("page", "1");
-            window.location.href = url.toString();
-        });
-    }
-
-    // --- Sortable Headers ---
-    document.querySelectorAll(".sortable-th").forEach((th) => {
-        th.addEventListener("click", function () {
-            const sortKey = this.dataset.sort;
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get("sort");
-            const currentDir = url.searchParams.get("sort_dir");
-            if (currentSort === sortKey && currentDir === "asc") {
-                url.searchParams.set("sort_dir", "desc");
-            } else {
-                url.searchParams.set("sort", sortKey);
-                url.searchParams.set("sort_dir", "asc");
-            }
-            url.searchParams.set("page", "1");
-            window.location.href = url.toString();
-        });
-    });
-
-    // --- SweetAlert2 Delete Confirmations ---
-    document.querySelectorAll("form[data-action-type]").forEach((form) => {
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
-            const nama = this.dataset.name || "item ini";
-            const targetForm = this;
-
-            if (typeof Swal === "undefined") {
-                if (confirm(`Yakin ingin menghapus ${nama}?`)) {
-                    targetForm.submit();
-                }
-                return;
-            }
-
-            Swal.fire({
-                title: "Hapus Kompetensi Keahlian?",
-                html: `Yakin ingin menghapus <strong>${nama}</strong>?<br><small style="color:#ef4444;">Tindakan ini tidak dapat dibatalkan.</small>`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#ef4444",
-                cancelButtonColor: "#64748b",
-                confirmButtonText:
-                    '<i class="fas fa-trash me-1"></i> Ya, Hapus',
-                cancelButtonText: "Batal",
-                reverseButtons: true,
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    targetForm.submit();
-                }
-            });
-        });
-    });
-});
+            if (json.status === "success" && json.data && json.data.length > 0) {
+                tableBody.innerHTML = json.data
+                    .map(
+                        (r) => `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 10px 14px; font-weight: 700; color: var(--primary);">
+                            ${r.nama_rombel}
+                        </td>
+                        <td style="padding: 10px 14px; color: var(--text-color);">
+                            <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
+                                ${r.tingkat || "-"}
+                            </span>
+                        </td>
+                        <td style="padding: 10px 14px; color: var(--text-color);">
+                            ${r.wali_kelas || '<span style="color: var(--text-muted);">-</span>'}
+                        </td>
+                        <td style="padding: 10px 14px; color: var(--text-muted);">
+                            ${r.ruang || "-"}
