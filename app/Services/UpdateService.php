@@ -251,11 +251,27 @@ class UpdateService
             $logs[] = "[OPTIMIZE NOTICE] " . $e->getMessage();
         }
 
+        // 5. Normalisasi Permission storage & cache setelah update
+        $this->ensurePermissions();
+
         return [
             'success' => $success,
             'logs' => $logs,
             'timestamp' => now()->toDateTimeString(),
         ];
+    }
+
+    /**
+     * Pastikan permission storage dan bootstrap/cache tetap writable oleh web server
+     */
+    protected function ensurePermissions(): void
+    {
+        if (DIRECTORY_SEPARATOR === '/') {
+            @shell_exec('chmod -R 775 ' . escapeshellarg(storage_path()) . ' ' . escapeshellarg(base_path('bootstrap/cache')) . ' 2>/dev/null');
+            if (is_dir(base_path('.git'))) {
+                @shell_exec('chmod -R 775 ' . escapeshellarg(base_path('.git')) . ' 2>/dev/null');
+            }
+        }
     }
 
     /**
