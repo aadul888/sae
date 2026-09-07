@@ -202,6 +202,27 @@ window.SAE = {
     },
 
     confirm(message, title = "Konfirmasi Tindakan", type = "warning") {
+        if (typeof Swal !== "undefined") {
+            const swalIcons = {
+                success: "success",
+                danger: "error",
+                warning: "warning",
+                info: "info",
+            };
+            return Swal.fire({
+                title: title,
+                text: message,
+                icon: swalIcons[type] || "warning",
+                showCancelButton: true,
+                confirmButtonColor: type === "danger" ? "#ef4444" : "#4f46e5",
+                cancelButtonColor: "#64748b",
+                confirmButtonText: "Lanjutkan",
+                cancelButtonText: "Batal",
+                background: document.documentElement.getAttribute("data-theme") === "dark" || !document.documentElement.getAttribute("data-theme") ? "#1e293b" : "#ffffff",
+                color: document.documentElement.getAttribute("data-theme") === "dark" || !document.documentElement.getAttribute("data-theme") ? "#f8fafc" : "#1e293b",
+            }).then((res) => res.isConfirmed);
+        }
+
         return new Promise((resolve) => {
             const icons = {
                 success: "fa-circle-check",
@@ -323,7 +344,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const form = e.target;
         const confirmMsg = form.getAttribute("data-confirm");
         // Lewatkan jika ditangani handler khusus (misal pengguna.js: delete/reset)
-        if (!confirmMsg || form.dataset.confirmed === "true" || confirmMsg === "delete" || confirmMsg === "reset") return;
+        if (
+            !confirmMsg ||
+            form.dataset.confirmed === "true" ||
+            confirmMsg === "delete" ||
+            confirmMsg === "reset"
+        )
+            return;
 
         e.preventDefault();
         const title =

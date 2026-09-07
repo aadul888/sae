@@ -116,7 +116,7 @@
                                 </button>
                                 @if ($activeTab === 'siswa' && $item->peserta_didik_id)
                                     <form action="{{ route('dashboard.pengguna.resetPassword', $item->pengguna_id) }}"
-                                        method="POST" style="display: inline; margin: 0;" data-confirm="reset"
+                                        method="POST" style="display: inline; margin: 0;" data-action-type="reset"
                                         data-name="{{ $item->nama }}">
                                         @csrf
                                         <button type="submit" class="btn-icon reset" title="Reset Password ke NISN">
@@ -125,7 +125,7 @@
                                     </form>
                                 @endif
                                 <form action="{{ route('dashboard.pengguna.destroy', $item->pengguna_id) }}" method="POST"
-                                    style="display: inline; margin: 0;" data-confirm="delete"
+                                    style="display: inline; margin: 0;" data-action-type="delete"
                                     data-name="{{ $item->nama }}">
                                     @csrf
                                     @method('DELETE')

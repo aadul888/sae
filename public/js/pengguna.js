@@ -99,10 +99,10 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // --- SweetAlert2 Form Confirmations ---
-    document.querySelectorAll("form[data-confirm]").forEach((form) => {
+    document.querySelectorAll("form[data-action-type]").forEach((form) => {
         form.addEventListener("submit", function (e) {
             e.preventDefault();
-            const type = this.dataset.confirm;
+            const type = this.dataset.actionType;
             const nama = this.dataset.name || "item ini";
             const targetForm = this;
 
