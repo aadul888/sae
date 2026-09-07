@@ -101,8 +101,10 @@
 
             {{-- Manajemen Data (Collapsible) --}}
             @php
-                $isSiswaActive = request()->routeIs('dashboard.siswa-aktif*') || request()->routeIs('dashboard.siswa-tidak-aktif*');
-                $isGuruActive = request()->routeIs('dashboard.guru-aktif*') || request()->routeIs('dashboard.guru-tidak-aktif*');
+                $isSiswaActive =
+                    request()->routeIs('dashboard.siswa-aktif*') || request()->routeIs('dashboard.siswa-tidak-aktif*');
+                $isGuruActive =
+                    request()->routeIs('dashboard.guru-aktif*') || request()->routeIs('dashboard.guru-tidak-aktif*');
                 $isManajemenDataActive =
                     $isSiswaActive ||
                     $isGuruActive ||
@@ -129,7 +131,8 @@
                         <div class="dash-nav-nested-group {{ $isSiswaActive ? 'open active-group' : '' }}">
                             <button type="button" class="dash-nav-nested-toggle">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-user-graduate" style="width: 14px; text-align: center; opacity: 0.8;"></i>
+                                    <i class="fas fa-user-graduate"
+                                        style="width: 14px; text-align: center; opacity: 0.8;"></i>
                                     <span>Siswa</span>
                                 </div>
                                 <i class="fas fa-chevron-right nested-arrow-icon"></i>
@@ -155,7 +158,8 @@
                         <div class="dash-nav-nested-group {{ $isGuruActive ? 'open active-group' : '' }}">
                             <button type="button" class="dash-nav-nested-toggle">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-chalkboard-user" style="width: 14px; text-align: center; opacity: 0.8;"></i>
+                                    <i class="fas fa-chalkboard-user"
+                                        style="width: 14px; text-align: center; opacity: 0.8;"></i>
                                     <span>Guru</span>
                                 </div>
                                 <i class="fas fa-chevron-right nested-arrow-icon"></i>

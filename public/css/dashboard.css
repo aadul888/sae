@@ -723,10 +723,13 @@
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
     .dash-sidebar {
+        width: 270px;
         transform: translateX(-100%);
+        box-shadow: none;
     }
     .dash-sidebar.open {
         transform: translateX(0);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
     }
     .dash-main {
         margin-left: 0;
@@ -743,6 +746,7 @@
 @media (max-width: 768px) {
     .dash-header {
         padding: 0 16px;
+        height: 64px;
     }
     .dash-breadcrumb span {
         font-size: 0.85rem;
@@ -755,16 +759,17 @@
         padding: 14px 12px 96px; /* extra bottom padding for mobile bottom nav */
     }
     .dash-banner {
-        padding: 18px 16px;
+        padding: 16px 14px;
         flex-direction: column;
         align-items: stretch;
-        gap: 14px;
+        gap: 12px;
+        border-radius: 14px;
     }
     .dash-banner h2 {
-        font-size: 1.18rem !important;
+        font-size: 1.15rem !important;
     }
     .dash-banner p {
-        font-size: 0.8rem !important;
+        font-size: 0.78rem !important;
     }
     .dash-banner-actions {
         width: 100%;
@@ -776,39 +781,41 @@
         width: 100%;
         text-align: center;
         justify-content: center;
-        padding: 10px 14px !important;
+        padding: 9px 12px !important;
+        font-size: 0.82rem !important;
     }
     .dash-stat-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin-bottom: 20px;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px;
+        margin-bottom: 16px;
     }
     .dash-stat-card {
-        padding: 12px 14px;
+        padding: 12px;
         border-radius: 12px;
-        gap: 10px;
+        gap: 8px;
         flex-direction: column;
         align-items: flex-start;
     }
     .dash-stat-icon {
-        width: 38px;
-        height: 38px;
-        font-size: 1.05rem;
-        border-radius: 10px;
+        width: 34px;
+        height: 34px;
+        font-size: 0.95rem;
+        border-radius: 8px;
     }
     .dash-stat-value {
-        font-size: 1.15rem;
+        font-size: 1.1rem !important;
     }
     .dash-stat-label {
-        font-size: 0.7rem;
+        font-size: 0.68rem !important;
+        line-height: 1.2;
     }
     .dash-grid-2 {
         grid-template-columns: 1fr;
-        gap: 16px;
+        gap: 14px;
     }
     .card {
-        padding: 16px 14px;
-        border-radius: 14px;
+        padding: 14px 12px !important;
+        border-radius: 12px !important;
     }
     .dash-footer {
         display: none; /* replaced by bottom nav on mobile */
@@ -816,11 +823,20 @@
     .mobile-bottom-nav {
         display: flex;
     }
+
+    /* Modal Mobile Optimization */
+    .modal-backdrop .card {
+        width: 95% !important;
+        max-height: 90vh !important;
+        padding: 16px 14px !important;
+        border-radius: 12px !important;
+    }
 }
 
 @media (max-width: 480px) {
     .dash-stat-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 6px;
     }
     .dash-header-right {
         gap: 6px;
