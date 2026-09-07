@@ -27,10 +27,10 @@ class PermissionController extends Controller
 
         $permissionsConfig = RolePermission::getAvailablePermissions();
 
-        // Ambil data izin tersimpan dari database untuk role aktif
+        // Ambil seluruh data izin tersimpan dari database untuk role aktif
         $savedPermissions = RolePermission::where('role', $activeRole)
-            ->pluck('is_allowed', 'permission_key')
-            ->toArray();
+            ->get()
+            ->keyBy('permission_key');
 
         // Ringkasan hitungan untuk masing-masing role
         $counts = [
@@ -56,6 +56,7 @@ class PermissionController extends Controller
         $targetRole = $request->input('role');
         $permissionKey = $request->input('permission_key');
         $isAllowed = filter_var($request->input('is_allowed'), FILTER_VALIDATE_BOOLEAN);
+        $action = $request->input('action'); // null jika toggle akses menu keseluruhan, atau 'create','read','update','delete'
 
         if (!in_array($targetRole, ['admin', 'guru', 'siswa']) || empty($permissionKey)) {
             return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
@@ -69,10 +70,38 @@ class PermissionController extends Controller
             ], 422);
         }
 
-        RolePermission::updateOrCreate(
-            ['role' => $targetRole, 'permission_key' => $permissionKey],
-            ['is_allowed' => $isAllowed]
-        );
+        // Jika mengubah aksi CRUD spesifik
+        if ($action && in_array($action, ['create', 'read', 'update', 'delete'])) {
+            $column = 'can_' . $action;
+            $perm = RolePermission::firstOrCreate(
+                ['role' => $targetRole, 'permission_key' => $permissionKey],
+                ['is_allowed' => true, 'can_create' => false, 'can_read' => true, 'can_update' => false, 'can_delete' => false]
+            );
+            $perm->{$column} = $isAllowed;
+            $perm->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Izin ' . strtoupper($action) . ' berhasil diperbarui.',
+                'data' => [
+                    'role' => $targetRole,
+                    'permission_key' => $permissionKey,
+                    'action' => $action,
+                    'is_allowed' => $isAllowed,
+                ],
+            ]);
+        }
+
+        // Toggle akses menu keseluruhan
+        $perm = RolePermission::firstOrNew(['role' => $targetRole, 'permission_key' => $permissionKey]);
+        $perm->is_allowed = $isAllowed;
+        if (!$perm->exists) {
+            $perm->can_create = ($targetRole === 'admin');
+            $perm->can_read = true;
+            $perm->can_update = ($targetRole === 'admin');
+            $perm->can_delete = ($targetRole === 'admin');
+        }
+        $perm->save();
 
         return response()->json([
             'status' => 'success',
@@ -109,24 +138,65 @@ class PermissionController extends Controller
 
         if ($targetRole === 'admin') {
             $keys = [
-                'menu_dashboard', 'menu_pengguna', 'menu_guru', 'menu_siswa',
-                'menu_rfid', 'menu_dapodik', 'menu_update', 'menu_hak_akses',
-                'menu_pengumuman', 'menu_pengaturan',
-                'fitur_pengguna_edit', 'fitur_pengguna_hapus', 'fitur_pengguna_reset',
-                'fitur_dapodik_sync', 'fitur_system_update'
+                'menu_dashboard',
+                'menu_pengguna',
+                'menu_guru',
+                'menu_siswa',
+                'menu_rfid',
+                'menu_dapodik',
+                'menu_update',
+                'menu_hak_akses',
+                'menu_pengumuman',
+                'menu_pengaturan',
+                'fitur_pengguna_edit',
+                'fitur_pengguna_hapus',
+                'fitur_pengguna_reset',
+                'fitur_dapodik_sync',
+                'fitur_system_update'
             ];
             foreach ($keys as $k) {
-                $defaults[] = ['role' => 'admin', 'permission_key' => $k, 'is_allowed' => true, 'created_at' => $now, 'updated_at' => $now];
+                $defaults[] = [
+                    'role' => 'admin',
+                    'permission_key' => $k,
+                    'is_allowed' => true,
+                    'can_create' => true,
+                    'can_read' => true,
+                    'can_update' => true,
+                    'can_delete' => true,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
             }
         } elseif ($targetRole === 'guru') {
             $keys = ['menu_dashboard', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_siswa', 'menu_pengumuman'];
             foreach ($keys as $k) {
-                $defaults[] = ['role' => 'guru', 'permission_key' => $k, 'is_allowed' => true, 'created_at' => $now, 'updated_at' => $now];
+                $isCrud = in_array($k, ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_siswa']);
+                $defaults[] = [
+                    'role' => 'guru',
+                    'permission_key' => $k,
+                    'is_allowed' => true,
+                    'can_create' => $isCrud,
+                    'can_read' => true,
+                    'can_update' => $isCrud,
+                    'can_delete' => false,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
             }
         } else {
             $keys = ['menu_dashboard', 'menu_riwayat_rfid', 'menu_jadwal_pelajaran', 'menu_rapor', 'menu_validasi_berkas', 'menu_pengumuman'];
             foreach ($keys as $k) {
-                $defaults[] = ['role' => 'siswa', 'permission_key' => $k, 'is_allowed' => true, 'created_at' => $now, 'updated_at' => $now];
+                $defaults[] = [
+                    'role' => 'siswa',
+                    'permission_key' => $k,
+                    'is_allowed' => true,
+                    'can_create' => false,
+                    'can_read' => true,
+                    'can_update' => false,
+                    'can_delete' => false,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ];
             }
         }
 

@@ -13,10 +13,18 @@ class RolePermission extends Model
         'role',
         'permission_key',
         'is_allowed',
+        'can_create',
+        'can_read',
+        'can_update',
+        'can_delete',
     ];
 
     protected $casts = [
         'is_allowed' => 'boolean',
+        'can_create' => 'boolean',
+        'can_read' => 'boolean',
+        'can_update' => 'boolean',
+        'can_delete' => 'boolean',
     ];
 
     /**
@@ -191,6 +199,29 @@ class RolePermission extends Model
         }
 
         // Jika belum tercatat, default admin = true, role lain = false kecuali ada di defaults
+        return $role === 'admin';
+    }
+
+    /**
+     * Cek izin aksi CRUD spesifik (create, read, update, delete) untuk menu tertentu
+     */
+    public static function can(string $role, string $permissionKey, string $action): bool
+    {
+        if (!Schema::hasTable('role_permissions')) {
+            return $role === 'admin';
+        }
+
+        $actionCol = 'can_' . strtolower($action);
+        if (!in_array($actionCol, ['can_create', 'can_read', 'can_update', 'can_delete'])) {
+            return self::canAccess($role, $permissionKey);
+        }
+
+        $row = self::where('role', $role)->where('permission_key', $permissionKey)->first();
+        if ($row) {
+            // Menu harus aktif (is_allowed) dan kolom aksi terkait bernilai true
+            return (bool) ($row->is_allowed && $row->{$actionCol});
+        }
+
         return $role === 'admin';
     }
 }
