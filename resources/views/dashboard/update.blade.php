@@ -153,5 +153,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/update.js') }}"></script>
+    <script src="{{ asset('js/update.js') }}?v={{ filemtime(public_path('js/update.js')) }}"></script>
 @endpush
