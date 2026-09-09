@@ -86,8 +86,7 @@
                     <span>entri</span>
                 </div>
 
-                <select id="filterJenis" class="form-control"
-                    style="width: auto; min-width: 150px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterJenis" class="toolbar-filter-select">
                     <option value="">Semua Jenis PTK</option>
                     @foreach ($filterJenis as $j)
                         <option value="{{ $j }}" {{ $jenis === $j ? 'selected' : '' }}>{{ $j }}
@@ -95,8 +94,7 @@
                     @endforeach
                 </select>
 
-                <select id="filterStatus" class="form-control"
-                    style="width: auto; min-width: 160px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterStatus" class="toolbar-filter-select">
                     <option value="">Semua Status Kepegawaian</option>
                     @foreach ($filterStatus as $s)
                         <option value="{{ $s }}" {{ $status === $s ? 'selected' : '' }}>{{ $s }}
@@ -104,8 +102,7 @@
                     @endforeach
                 </select>
 
-                <select id="filterGender" class="form-control"
-                    style="width: auto; min-width: 120px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterGender" class="toolbar-filter-select" style="min-width: 120px;">
                     <option value="">Semua Gender</option>
                     <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
                     <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
@@ -324,6 +321,10 @@
                         <td id="gtkJkTtl">-</td>
                     </tr>
                     <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 8px 0; color: var(--text-muted);">Agama</td>
+                        <td id="gtkJkAgama">-</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
                         <td style="padding: 8px 0; color: var(--text-muted);">Status Kepegawaian</td>
                         <td id="gtkJkStatus">-</td>
                     </tr>
@@ -336,7 +337,11 @@
                         <td id="gtkJkMapel">-</td>
                     </tr>
                     <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">No. HP / WA</td>
+                        <td style="padding: 8px 0; color: var(--text-muted);">Status Induk / Tgl Tugas</td>
+                        <td id="gtkJkInduk">-</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 8px 0; color: var(--text-muted);">No. HP / Email</td>
                         <td id="gtkJkHp">-</td>
                     </tr>
                     <tr style="border-bottom: 1px solid var(--border-color);">
@@ -344,6 +349,34 @@
                         <td id="gtkJkAlamat">-</td>
                     </tr>
                 </table>
+
+                <div id="gtkBebanSection"
+                    style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.85rem;"><i
+                                class="fas fa-book-bookmark text-primary me-1"></i> Penugasan Mengajar
+                            (Pembelajaran)</span>
+                        <span id="gtkJmlJam" class="badge"
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 0.72rem; padding: 2px 7px;">0
+                            JP</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="table"
+                            style="width: 100%; border-collapse: collapse; font-size: 0.80rem; margin-bottom: 0;">
+                            <thead>
+                                <tr
+                                    style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 6px 10px; color: var(--text-muted);">Mata Pelajaran</th>
+                                    <th style="padding: 6px 10px; color: var(--text-muted);">Rombel</th>
+                                    <th style="padding: 6px 10px; color: var(--text-muted); text-align: center;">Jam/Mg
+                                    </th>
+                                    <th style="padding: 6px 10px; color: var(--text-muted);">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gtkBebanList"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div

@@ -38,22 +38,47 @@
         </a>
     </div>
 
-    <!-- Role Switcher (Mobile Dropdown) -->
+    <!-- Role Switcher (Mobile Custom Dropdown) -->
     <div class="dash-mobile-tab-select-wrap">
-        <div class="mobile-tab-select-inner">
-            <i class="fas {{ $activeRole === 'admin' ? 'fa-user-shield' : ($activeRole === 'guru' ? 'fa-chalkboard-user' : 'fa-user-graduate') }} text-primary me-2"></i>
-            <select class="dash-mobile-tab-select" onchange="window.location.href=this.value" aria-label="Pilih Peran Hak Akses">
-                <option value="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}" {{ $activeRole === 'admin' ? 'selected' : '' }}>
-                    Administrator ({{ $counts['admin'] }})
-                </option>
-                <option value="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}" {{ $activeRole === 'guru' ? 'selected' : '' }}>
-                    Guru &amp; Tendik ({{ $counts['guru'] }})
-                </option>
-                <option value="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}" {{ $activeRole === 'peserta_didik' ? 'selected' : '' }}>
-                    Peserta Didik ({{ $counts['peserta_didik'] ?? 0 }})
-                </option>
-            </select>
-            <i class="fas fa-chevron-down select-chevron"></i>
+        <div class="dash-custom-dropdown">
+            <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <div class="custom-dropdown-trigger-label">
+                    <i
+                        class="fas {{ $activeRole === 'admin' ? 'fa-user-shield' : ($activeRole === 'guru' ? 'fa-chalkboard-user' : 'fa-user-graduate') }} text-primary me-2"></i>
+                    <span>{{ $activeRole === 'admin' ? 'Administrator' : ($activeRole === 'guru' ? 'Guru & Tendik' : 'Peserta Didik') }}</span>
+                    <span class="badge badge-primary badge-sm ms-2">{{ $counts[$activeRole] ?? 0 }}</span>
+                </div>
+                <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+            </button>
+            <div class="custom-dropdown-menu" role="listbox">
+                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
+                    class="custom-dropdown-item {{ $activeRole === 'admin' ? 'active' : '' }}">
+                    <div class="dropdown-item-left">
+                        <i class="fas fa-user-shield text-primary me-2"></i>
+                        <span>Administrator</span>
+                    </div>
+                    <span
+                        class="badge {{ $activeRole === 'admin' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['admin'] }}</span>
+                </a>
+                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}"
+                    class="custom-dropdown-item {{ $activeRole === 'guru' ? 'active' : '' }}">
+                    <div class="dropdown-item-left">
+                        <i class="fas fa-chalkboard-user text-primary me-2"></i>
+                        <span>Guru &amp; Tendik</span>
+                    </div>
+                    <span
+                        class="badge {{ $activeRole === 'guru' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['guru'] }}</span>
+                </a>
+                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}"
+                    class="custom-dropdown-item {{ $activeRole === 'peserta_didik' ? 'active' : '' }}">
+                    <div class="dropdown-item-left">
+                        <i class="fas fa-user-graduate text-primary me-2"></i>
+                        <span>Peserta Didik</span>
+                    </div>
+                    <span
+                        class="badge {{ $activeRole === 'peserta_didik' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['peserta_didik'] ?? 0 }}</span>
+                </a>
+            </div>
         </div>
     </div>
 

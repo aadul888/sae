@@ -12,6 +12,25 @@ class RombelController extends Controller
 
     public function index(Request $request)
     {
+        $type = $request->get('type', 'reguler');
+        if ($type === 'matpel') {
+            return $this->matpel($request);
+        }
+        return $this->reguler($request);
+    }
+
+    public function reguler(Request $request)
+    {
+        return $this->renderRombel($request, 'reguler');
+    }
+
+    public function matpel(Request $request)
+    {
+        return $this->renderRombel($request, 'matpel');
+    }
+
+    private function renderRombel(Request $request, string $currentType)
+    {
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -31,6 +50,7 @@ class RombelController extends Controller
                 'summary' => ['rombel' => 0, 'peserta_didik' => 0, 'jurusan' => 0, 'wali' => 0],
                 'filterTingkat' => collect(),
                 'filterJurusan' => collect(),
+                'currentType' => $currentType,
                 'q' => $q,
                 'tingkat' => $tingkat,
                 'jurusan' => $jurusan,
@@ -40,8 +60,33 @@ class RombelController extends Controller
             ]);
         }
 
-        // Ambil daftar filter tingkat dan jurusan untuk dropdown filter
+        // Base Query untuk tipe rombel
+        $typeFilter = function ($query) use ($currentType) {
+            if ($currentType === 'matpel') {
+                $query->where(function ($q) {
+                    $q->where('rombongan_belajar.jenis_rombel', '16')
+                        ->orWhere('rombongan_belajar.jenis_rombel_str', 'LIKE', '%Pilihan%')
+                        ->orWhere('rombongan_belajar.jenis_rombel_str', 'LIKE', '%Matpel%')
+                        ->orWhere('rombongan_belajar.jenis_rombel_str', 'LIKE', '%Mata Pelajaran%');
+                });
+            } else {
+                $query->where(function ($q) {
+                    $q->where('rombongan_belajar.jenis_rombel', '1')
+                        ->orWhere('rombongan_belajar.jenis_rombel_str', 'LIKE', '%Kelas%')
+                        ->orWhere('rombongan_belajar.jenis_rombel_str', 'LIKE', '%Reguler%')
+                        ->orWhereNull('rombongan_belajar.jenis_rombel_str')
+                        ->orWhere('rombongan_belajar.jenis_rombel_str', '');
+                })->where(function ($q) {
+                    $q->where('rombongan_belajar.jenis_rombel', '!=', '16')
+                        ->where('rombongan_belajar.jenis_rombel_str', 'NOT LIKE', '%Pilihan%')
+                        ->where('rombongan_belajar.jenis_rombel_str', 'NOT LIKE', '%Matpel%');
+                });
+            }
+        };
+
+        // Filter dropdown scoped by current type
         $filterTingkat = DB::table('rombongan_belajar')
+            ->where($typeFilter)
             ->whereNotNull('tingkat_pendidikan_id_str')
             ->where('tingkat_pendidikan_id_str', '<>', '')
             ->distinct()
@@ -50,6 +95,7 @@ class RombelController extends Controller
             ->values();
 
         $filterJurusan = DB::table('rombongan_belajar')
+            ->where($typeFilter)
             ->whereNotNull('jurusan_id_str')
             ->where('jurusan_id_str', '<>', '')
             ->distinct()
@@ -57,7 +103,25 @@ class RombelController extends Controller
             ->sort()
             ->values();
 
+        // Hitung peserta didik per rombel dari tabel peserta_didik dan anggota_rombel
+        $pdCounts = Schema::hasTable('peserta_didik')
+            ? DB::table('peserta_didik')
+            ->whereNotNull('rombongan_belajar_id')
+            ->where('rombongan_belajar_id', '<>', '')
+            ->groupBy('rombongan_belajar_id')
+            ->pluck(DB::raw('COUNT(*) as total'), 'rombongan_belajar_id')
+            : collect();
+
+        $arCounts = Schema::hasTable('anggota_rombel')
+            ? DB::table('anggota_rombel')
+            ->whereNotNull('rombongan_belajar_id')
+            ->where('rombongan_belajar_id', '<>', '')
+            ->groupBy('rombongan_belajar_id')
+            ->pluck(DB::raw('COUNT(DISTINCT peserta_didik_id) as total'), 'rombongan_belajar_id')
+            : collect();
+
         $baseQuery = DB::table('rombongan_belajar')
+            ->where($typeFilter)
             ->select(
                 'rombongan_belajar.rombongan_belajar_id',
                 'rombongan_belajar.nama',
@@ -69,24 +133,6 @@ class RombelController extends Controller
                 'rombongan_belajar.id_ruang_str as ruang',
                 'rombongan_belajar.jenis_rombel_str as jenis_rombel'
             );
-
-        if (Schema::hasTable('peserta_didik')) {
-            $baseQuery->leftJoin('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
-                ->addSelect(DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_peserta_didik'))
-                ->groupBy(
-                    'rombongan_belajar.rombongan_belajar_id',
-                    'rombongan_belajar.nama',
-                    'rombongan_belajar.tingkat_pendidikan_id_str',
-                    'rombongan_belajar.jurusan_id_str',
-                    'rombongan_belajar.jurusan_id',
-                    'rombongan_belajar.kurikulum_id_str',
-                    'rombongan_belajar.ptk_id_str',
-                    'rombongan_belajar.id_ruang_str',
-                    'rombongan_belajar.jenis_rombel_str'
-                );
-        } else {
-            $baseQuery->addSelect(DB::raw('0 as total_peserta_didik'));
-        }
 
         // Global search
         if ($q !== '') {
@@ -106,7 +152,14 @@ class RombelController extends Controller
             $baseQuery->where('rombongan_belajar.jurusan_id_str', $jurusan);
         }
 
-        $allResults = $baseQuery->get();
+        $allResults = $baseQuery->get()->map(function ($item) use ($pdCounts, $arCounts) {
+            $id = $item->rombongan_belajar_id;
+            $c1 = (int) ($pdCounts[$id] ?? 0);
+            $c2 = (int) ($arCounts[$id] ?? 0);
+            $item->total_peserta_didik = max($c1, $c2);
+            return $item;
+        });
+
         $total = $allResults->count();
 
         // Summary metrics
@@ -141,6 +194,7 @@ class RombelController extends Controller
             'summary',
             'filterTingkat',
             'filterJurusan',
+            'currentType',
             'q',
             'tingkat',
             'jurusan',
@@ -151,9 +205,9 @@ class RombelController extends Controller
     }
 
     /**
-     * Detail peserta didik dalam suatu rombel via JSON untuk modal preview
+     * Detail peserta didik dan pembelajaran dalam suatu rombel via JSON untuk modal preview
      */
-    public function showPesertaDidik(Request $request, $id)
+    public function showPesertaDidik(Request $request, string|int $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
@@ -168,18 +222,53 @@ class RombelController extends Controller
 
         $pesertaDidik = collect();
         if (Schema::hasTable('peserta_didik')) {
-            $pesertaDidik = DB::table('peserta_didik')
+            $arStudentIds = Schema::hasTable('anggota_rombel')
+                ? DB::table('anggota_rombel')
                 ->where('rombongan_belajar_id', $id)
+                ->pluck('peserta_didik_id')
+                ->filter()
+                ->toArray()
+                : [];
+
+            $pdQuery = DB::table('peserta_didik')
+                ->where(function ($q) use ($id, $arStudentIds) {
+                    $q->where('peserta_didik.rombongan_belajar_id', $id);
+                    if (!empty($arStudentIds)) {
+                        $q->orWhereIn('peserta_didik.peserta_didik_id', $arStudentIds);
+                    }
+                })
                 ->select(
-                    'peserta_didik_id',
-                    'nama',
-                    'nisn',
-                    'nipd',
-                    'jenis_kelamin',
-                    'tempat_lahir',
-                    'tanggal_lahir'
+                    'peserta_didik.peserta_didik_id',
+                    'peserta_didik.nama',
+                    'peserta_didik.nisn',
+                    'peserta_didik.nipd',
+                    'peserta_didik.jenis_kelamin',
+                    'peserta_didik.tempat_lahir',
+                    'peserta_didik.tanggal_lahir',
+                    'peserta_didik.jenis_pendaftaran_id_str as jenis_pendaftaran'
                 )
-                ->orderBy('nama', 'asc')
+                ->distinct();
+
+            $pesertaDidik = $pdQuery->orderBy('peserta_didik.nama', 'asc')->get();
+        }
+
+        $pembelajaran = collect();
+        if (Schema::hasTable('pembelajaran')) {
+            $pembelajaran = DB::table('pembelajaran')
+                ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
+                ->where('pembelajaran.rombongan_belajar_id', $id)
+                ->select(
+                    'pembelajaran.pembelajaran_id',
+                    'pembelajaran.nama_mata_pelajaran',
+                    'pembelajaran.mata_pelajaran_id_str',
+                    'pembelajaran.jam_mengajar_per_minggu',
+                    'pembelajaran.status_di_kurikulum_str',
+                    'gtk.nama as nama_guru',
+                    'gtk.nuptk',
+                    'gtk.nip',
+                    'gtk.jenis_kelamin as guru_gender'
+                )
+                ->orderBy('pembelajaran.nama_mata_pelajaran', 'asc')
                 ->get();
         }
 
@@ -193,9 +282,13 @@ class RombelController extends Controller
                 'wali_kelas' => $rombel->ptk_id_str,
                 'ruang' => $rombel->id_ruang_str,
                 'kurikulum' => $rombel->kurikulum_id_str,
+                'jenis_rombel' => $rombel->jenis_rombel_str ?: ($rombel->jenis_rombel == '16' ? 'Mata Pelajaran Pilihan' : 'Kelas (Reguler)'),
                 'total_peserta_didik' => $pesertaDidik->count(),
+                'total_mapel' => $pembelajaran->count(),
+                'total_jam' => $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
             ],
             'data' => $pesertaDidik,
+            'pembelajaran' => $pembelajaran,
         ]);
     }
 }

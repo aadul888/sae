@@ -58,7 +58,7 @@ window.openRombelModal = async function (kode, nama) {
                         ${escapeHtml(r.kurikulum || "-")}
                     </td>
                     <td style="padding: 10px 14px; text-align: right; font-weight: 700; color: var(--primary);">
-                        ${Number(r.jumlah_peserta_didik || 0).toLocaleString("id-ID")}
+                        ${Number(r.total_peserta_didik ?? r.jumlah_peserta_didik ?? 0).toLocaleString("id-ID")}
                     </td>
                 </tr>`,
                 )

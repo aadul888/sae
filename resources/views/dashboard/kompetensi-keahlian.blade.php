@@ -265,17 +265,18 @@
                 <div>Memuat data rombel...</div>
             </div>
 
-            <div id="rombelTableWrapper" style="overflow-y: auto; flex: 1; display: none;">
+            <div id="rombelTableWrapper"
+                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color);">
                 <table class="table"
-                    style="width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
+                    style="min-width: 620px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Rombel</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Tingkat</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Wali Kelas</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Ruang</th>
-                            <th
-                                style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Kurikulum</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: right;">
                                 Jml Peserta Didik</th>
                         </tr>
                     </thead>

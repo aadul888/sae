@@ -19,7 +19,8 @@ window.openBiodataPesertaDidikModal = async function (id) {
 
     try {
         const res = await fetch(
-            "/dashboard/manajemen-data/peserta-didik-aktif/" + encodeURIComponent(id),
+            "/dashboard/manajemen-data/peserta-didik-aktif/" +
+                encodeURIComponent(id),
             {
                 headers: { Accept: "application/json" },
             },
@@ -56,12 +57,101 @@ window.openBiodataPesertaDidikModal = async function (id) {
                 "-";
             document.getElementById("bioAgama").textContent =
                 d.agama_id_str || "-";
-            document.getElementById("bioAyah").textContent = d.nama_ayah || "-";
-            document.getElementById("bioIbu").textContent = d.nama_ibu || "-";
+            document.getElementById("bioAnak").textContent = d.anak_keberapa
+                ? "Anak ke-" + d.anak_keberapa
+                : "-";
+
+            const tb = d.tinggi_badan ? d.tinggi_badan + " cm" : null;
+            const bb = d.berat_badan ? d.berat_badan + " kg" : null;
+            document.getElementById("bioFisik").textContent =
+                [tb, bb].filter(Boolean).join(" • ") || "Belum dicatat";
+
+            document.getElementById("bioKhusus").textContent =
+                d.kebutuhan_khusus || "Tidak Ada";
+
+            const pendaftaranStr = [
+                d.jenis_pendaftaran_id_str ||
+                    (json.anggota
+                        ? json.anggota.jenis_pendaftaran_id_str
+                        : null) ||
+                    "Siswa Baru",
+                d.sekolah_asal ? "Asal: " + d.sekolah_asal : null,
+            ]
+                .filter(Boolean)
+                .join(" • ");
+            document.getElementById("bioPendaftaran").textContent =
+                pendaftaranStr || "-";
+
+            document.getElementById("bioTglMasuk").textContent =
+                d.tanggal_masuk_sekolah || "-";
+
+            const regArr = [
+                d.registrasi_id ? "Reg: " + d.registrasi_id : null,
+                json.anggota && json.anggota.anggota_rombel_id
+                    ? "Anggota ID: " + json.anggota.anggota_rombel_id
+                    : d.anggota_rombel_id
+                      ? "Anggota ID: " + d.anggota_rombel_id
+                      : null,
+            ].filter(Boolean);
+            document.getElementById("bioRegId").textContent =
+                regArr.length > 0 ? regArr.join(" • ") : "-";
+
+            document.getElementById("bioAyah").textContent =
+                [d.nama_ayah, d.pekerjaan_ayah_id_str]
+                    .filter(Boolean)
+                    .join(" • Pekerjaan: ") || "-";
+            document.getElementById("bioIbu").textContent =
+                [d.nama_ibu, d.pekerjaan_ibu_id_str]
+                    .filter(Boolean)
+                    .join(" • Pekerjaan: ") || "-";
+            document.getElementById("bioWali").textContent =
+                [d.nama_wali, d.pekerjaan_wali_id_str]
+                    .filter(Boolean)
+                    .join(" • Pekerjaan: ") || "Tidak Ada (Ikut Orang Tua)";
+
+            const kontakArr = [
+                d.nomor_telepon_seluler
+                    ? "HP/WA: " + d.nomor_telepon_seluler
+                    : null,
+                d.nomor_telepon_rumah ? "Telp: " + d.nomor_telepon_rumah : null,
+                d.email ? "Email: " + d.email : null,
+            ].filter(Boolean);
             document.getElementById("bioHp").textContent =
-                d.nomor_telepon_seluler || d.nomor_telepon_rumah || "-";
+                kontakArr.length > 0 ? kontakArr.join(" • ") : "-";
+
             document.getElementById("bioAlamat").textContent =
                 d.alamat_jalan || "-";
+
+            // Render Mata Pelajaran di Kelas
+            const mapelSection = document.getElementById("bioMapelSection");
+            const mapelList = document.getElementById("bioMapelList");
+            const jmlMapel = document.getElementById("bioJmlMapel");
+            const pemList = json.pembelajaran || [];
+
+            if (mapelSection && mapelList) {
+                if (pemList.length > 0) {
+                    if (jmlMapel)
+                        jmlMapel.textContent =
+                            pemList.length +
+                            " Mapel (" +
+                            (json.total_jam || 0) +
+                            " JP)";
+                    mapelList.innerHTML = pemList
+                        .map(
+                            (p) => `
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 10px; font-weight: 600; color: var(--text-color);">${escapeHtml(p.nama_mata_pelajaran || p.mata_pelajaran_id_str || "-")}</td>
+                            <td style="padding: 6px 10px; color: var(--text-color); font-size: 0.78rem;">${escapeHtml(p.nama_guru || "Belum Ditugaskan")}</td>
+                            <td style="padding: 6px 10px; text-align: center; color: #f59e0b; font-weight: 700;">${escapeHtml(p.jam_mengajar_per_minggu || "0")} JP</td>
+                        </tr>
+                    `,
+                        )
+                        .join("");
+                    mapelSection.style.display = "block";
+                } else {
+                    mapelSection.style.display = "none";
+                }
+            }
         }
     } catch (e) {
         bioLoading.style.display = "none";
@@ -169,3 +259,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}

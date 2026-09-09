@@ -11,7 +11,12 @@
                 Selamat Datang, {{ session('user.name', 'Admin') }}! 👋
             </h2>
             <p style="color: var(--text-muted); font-size: 0.88rem;">
-                Pusat Kendali Administrasi &amp; Manajemen Data Satuan Pendidikan Terintegrasi.
+                @if (!empty($sekolah->nama))
+                    <strong>{{ $sekolah->nama }}</strong> (NPSN: {{ $sekolah->npsn ?? '-' }}) &bull; Pusat Kendali &amp;
+                    Manajemen Terintegrasi
+                @else
+                    Pusat Kendali Administrasi &amp; Manajemen Data Satuan Pendidikan Terintegrasi.
+                @endif
             </p>
         </div>
         <div class="dash-banner-actions">
@@ -25,7 +30,7 @@
     </div>
 
     <!-- Stats Counter -->
-    <div class="dash-stat-grid">
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                 <i class="fas fa-user-graduate"></i>
@@ -42,27 +47,47 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ $stats['total_guru'] }}</div>
-                <div class="dash-stat-label">Guru &amp; Pendidik</div>
+                <div class="dash-stat-label">Guru &amp; Pendidik ({{ $stats['total_tendik'] }} Tendik)</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
-                <i class="fas fa-id-card-clip"></i>
+                <i class="fas fa-school"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['presensi_today'] }}%</div>
-                <div class="dash-stat-label">Presensi Masuk Hari Ini</div>
+                <div class="dash-stat-value">{{ $stats['total_kelas'] }}</div>
+                <div class="dash-stat-label">Rombongan Belajar</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
-                <i class="fas fa-wifi"></i>
+                <i class="fas fa-book-bookmark"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['rfid_taps']) }}</div>
-                <div class="dash-stat-label">Total Tap RFID Hari Ini</div>
+                <div class="dash-stat-value">{{ number_format($stats['total_pembelajaran']) }}</div>
+                <div class="dash-stat-label">Total Pembelajaran</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(168,85,247,0.15); color: #a855f7;">
+                <i class="fas fa-users-gear"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_pengguna']) }}</div>
+                <div class="dash-stat-label">Akun Pengguna</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <i class="fas fa-id-card-clip"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['presensi_today'] }}%</div>
+                <div class="dash-stat-label">Presensi Masuk Hari Ini</div>
             </div>
         </div>
     </div>

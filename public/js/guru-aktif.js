@@ -55,6 +55,8 @@ window.openBiodataGuruModal = async function (id) {
             document.getElementById("gtkJkTtl").textContent =
                 [d.tempat_lahir, d.tanggal_lahir].filter(Boolean).join(", ") ||
                 "-";
+            document.getElementById("gtkJkAgama").textContent =
+                d.agama_id_str || "-";
             document.getElementById("gtkJkStatus").textContent =
                 [d.status_kepegawaian_id_str, d.pangkat_golongan_terakhir]
                     .filter(Boolean)
@@ -63,10 +65,53 @@ window.openBiodataGuruModal = async function (id) {
                 d.pendidikan_terakhir || "-";
             document.getElementById("gtkJkMapel").textContent =
                 d.bidang_studi_terakhir || "-";
+            document.getElementById("gtkJkInduk").textContent =
+                [
+                    d.ptk_induk === "1" ? "PTK Induk" : null,
+                    d.tanggal_surat_tugas
+                        ? "Tgl Tugas: " + d.tanggal_surat_tugas
+                        : null,
+                ]
+                    .filter(Boolean)
+                    .join(" • ") || "-";
             document.getElementById("gtkJkHp").textContent =
-                [d.no_hp, d.email].filter(Boolean).join(" • ") || "-";
+                [
+                    d.no_hp ? "HP: " + d.no_hp : null,
+                    d.email ? "Email: " + d.email : null,
+                ]
+                    .filter(Boolean)
+                    .join(" • ") || "-";
             document.getElementById("gtkJkAlamat").textContent =
                 d.alamat_jalan || "-";
+
+            // Render Pembelajaran / Beban Mengajar
+            const bebanSection = document.getElementById("gtkBebanSection");
+            const bebanList = document.getElementById("gtkBebanList");
+            const jmlJam = document.getElementById("gtkJmlJam");
+            const pemList = json.pembelajaran || [];
+
+            if (bebanSection && bebanList) {
+                if (pemList.length > 0) {
+                    if (jmlJam)
+                        jmlJam.textContent =
+                            (json.total_jam || 0) + " JP/Minggu";
+                    bebanList.innerHTML = pemList
+                        .map(
+                            (p) => `
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 10px; font-weight: 600; color: var(--text-color);">${escapeHtml(p.nama_mata_pelajaran || p.mata_pelajaran_id_str || "-")}</td>
+                            <td style="padding: 6px 10px; color: var(--text-color);">${escapeHtml(p.nama_rombel || "-")}</td>
+                            <td style="padding: 6px 10px; text-align: center; color: #f59e0b; font-weight: 700;">${escapeHtml(p.jam_mengajar_per_minggu || "0")} JP</td>
+                            <td style="padding: 6px 10px; color: var(--text-muted);">${escapeHtml(p.status_di_kurikulum_str || "Wajib")}</td>
+                        </tr>
+                    `,
+                        )
+                        .join("");
+                    bebanSection.style.display = "block";
+                } else {
+                    bebanSection.style.display = "none";
+                }
+            }
         }
     } catch (e) {
         gtkLoading.style.display = "none";
@@ -182,3 +227,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}

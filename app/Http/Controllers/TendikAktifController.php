@@ -149,12 +149,18 @@ class TendikAktifController extends Controller
     /**
      * Detail Tendik via JSON untuk modal
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, string|int $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        $gtk = DB::table('gtk')->where('ptk_id', $id)->first();
+        $gtk = DB::table('gtk')
+            ->where('ptk_id', $id)
+            ->orWhere('nuptk', $id)
+            ->orWhere('nip', $id)
+            ->orWhere('nik', $id)
+            ->first();
+
         if (!$gtk) {
             return response()->json(['status' => 'error', 'message' => 'Data Tendik tidak ditemukan'], 404);
         }

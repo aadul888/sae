@@ -172,19 +172,45 @@ class GuruAktifController extends Controller
     /**
      * Detail GTK via JSON untuk modal
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, string|int $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        $gtk = DB::table('gtk')->where('ptk_id', $id)->first();
+        $gtk = DB::table('gtk')
+            ->where('ptk_id', $id)
+            ->orWhere('nuptk', $id)
+            ->orWhere('nip', $id)
+            ->orWhere('nik', $id)
+            ->first();
+
         if (!$gtk) {
             return response()->json(['status' => 'error', 'message' => 'Data GTK tidak ditemukan'], 404);
+        }
+
+        $pembelajaran = collect();
+        if (Schema::hasTable('pembelajaran')) {
+            $pembelajaran = DB::table('pembelajaran')
+                ->leftJoin('rombongan_belajar', 'pembelajaran.rombongan_belajar_id', '=', 'rombongan_belajar.rombongan_belajar_id')
+                ->where('pembelajaran.ptk_id', $gtk->ptk_id)
+                ->select(
+                    'pembelajaran.pembelajaran_id',
+                    'pembelajaran.nama_mata_pelajaran',
+                    'pembelajaran.mata_pelajaran_id_str',
+                    'pembelajaran.jam_mengajar_per_minggu',
+                    'pembelajaran.status_di_kurikulum_str',
+                    'rombongan_belajar.nama as nama_rombel',
+                    'rombongan_belajar.tingkat_pendidikan_id_str as tingkat'
+                )
+                ->orderBy('rombongan_belajar.nama', 'asc')
+                ->get();
         }
 
         return response()->json([
             'status' => 'success',
             'data' => $gtk,
+            'pembelajaran' => $pembelajaran,
+            'total_jam' => $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
         ]);
     }
 }

@@ -1,16 +1,28 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Master Data — Rombel — SAE')
-@section('dash_title', 'Rombongan Belajar')
+@section('title',
+    ($currentType ?? 'reguler') === 'matpel'
+    ? 'Master Data — Rombel Matpel Pilihan — SAE'
+    : 'Master Data
+    — Rombel Kelas Reguler — SAE')
+@section('dash_title',
+    ($currentType ?? 'reguler') === 'matpel'
+    ? 'Rombel Mata Pelajaran Pilihan'
+    : 'Rombel Kelas
+    Reguler')
 
 @section('content')
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                <i class="fas fa-chalkboard-user text-primary me-2"></i> Master Data — Rombongan Belajar
+                <i
+                    class="fas {{ ($currentType ?? 'reguler') === 'matpel' ? 'fa-book-open' : 'fa-users-rectangle' }} text-primary me-2"></i>
+                Master Data — Rombel {{ ($currentType ?? 'reguler') === 'matpel' ? '(Matpel Pilihan)' : '(Kelas Reguler)' }}
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem;">
-                Data rombel / kelas disinkronkan otomatis dari tabel <strong>Rombongan Belajar</strong> (Dapodik).
+                {{ ($currentType ?? 'reguler') === 'matpel'
+                    ? 'Data rombongan belajar mata pelajaran pilihan disinkronkan otomatis dari tabel Rombongan Belajar (Dapodik).'
+                    : 'Data rombongan belajar kelas reguler disinkronkan otomatis dari tabel Rombongan Belajar (Dapodik).' }}
             </p>
         </div>
         <div class="dash-banner-actions">
@@ -24,13 +36,14 @@
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
-                <i class="fas fa-chalkboard-user"></i>
+                <i class="fas {{ ($currentType ?? 'reguler') === 'matpel' ? 'fa-book-open' : 'fa-chalkboard-user' }}"></i>
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
                     {{ $summary['rombel'] }}
                 </div>
-                <div class="dash-stat-label">Total Rombel</div>
+                <div class="dash-stat-label">Total Rombel
+                    {{ ($currentType ?? 'reguler') === 'matpel' ? 'Matpel' : 'Kelas' }}</div>
             </div>
         </div>
 
@@ -66,7 +79,8 @@
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
                     {{ $summary['wali'] }}
                 </div>
-                <div class="dash-stat-label">Wali Kelas Aktif</div>
+                <div class="dash-stat-label">
+                    {{ ($currentType ?? 'reguler') === 'matpel' ? 'Wali / Pembina' : 'Wali Kelas Aktif' }}</div>
             </div>
         </div>
     </div>
@@ -79,15 +93,15 @@
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                     <select id="perPageSelect" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
+                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                {{ $n }}
                             </option>
                         @endforeach
                     </select>
                     <span>entri</span>
                 </div>
 
-                <select id="filterTingkat" class="form-control"
-                    style="width: auto; min-width: 140px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterTingkat" class="toolbar-filter-select" style="min-width: 130px;">
                     <option value="">Semua Tingkat</option>
                     @foreach ($filterTingkat as $tk)
                         <option value="{{ $tk }}" {{ $tingkat === $tk ? 'selected' : '' }}>{{ $tk }}
@@ -95,8 +109,7 @@
                     @endforeach
                 </select>
 
-                <select id="filterJurusan" class="form-control"
-                    style="width: auto; min-width: 180px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterJurusan" class="toolbar-filter-select">
                     <option value="">Semua Jurusan</option>
                     @foreach ($filterJurusan as $j)
                         <option value="{{ $j }}" {{ $jurusan === $j ? 'selected' : '' }}>{{ $j }}
@@ -105,7 +118,7 @@
                 </select>
 
                 @if ($q || $tingkat || $jurusan)
-                    <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}" class="btn btn-outline"
                         style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
                         <i class="fas fa-undo me-1"></i> Reset
                     </a>
@@ -271,17 +284,17 @@
         </div>
     @endif
 
-    {{-- Detail Peserta Didik Modal --}}
+    {{-- Detail Peserta Didik & Pembelajaran Modal --}}
     <div id="pesertaDidikModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 760px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 860px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; margin: 0; border-radius: 14px; padding: 20px;">
             <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div>
                     <h3 id="pesertaDidikModalTitle"
                         style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
-                        Daftar Peserta Didik
+                        Rincian Rombongan Belajar
                     </h3>
                     <div id="pesertaDidikModalSubtitle"
                         style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
@@ -294,14 +307,43 @@
                 </button>
             </div>
 
-            <div id="pesertaDidikLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
-                <div>Memuat data peserta didik...</div>
+            <!-- Tab Buttons (Desktop) -->
+            <div class="rombel-tab-buttons">
+                <button type="button" id="tabBtnAnggota" class="btn btn-primary"
+                    style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px;"
+                    onclick="switchRombelModalTab('anggota')">
+                    <i class="fas fa-user-graduate me-1"></i> Anggota Peserta Didik <span id="badgeAnggotaCount"
+                        class="badge"
+                        style="background: rgba(255,255,255,0.2); font-size: 0.7rem; margin-left: 4px;">0</span>
+                </button>
+                <button type="button" id="tabBtnPembelajaran" class="btn btn-outline"
+                    style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px;"
+                    onclick="switchRombelModalTab('pembelajaran')">
+                    <i class="fas fa-book-bookmark me-1"></i> Mata Pelajaran &amp; Guru <span id="badgePembelajaranCount"
+                        class="badge"
+                        style="background: rgba(255,255,255,0.1); font-size: 0.7rem; margin-left: 4px;">0</span>
+                </button>
             </div>
 
-            <div id="pesertaDidikTableWrapper" style="overflow-y: auto; flex: 1; display: none;">
+            <!-- Tab Select Dropdown (Mobile Responsive) -->
+            <div class="rombel-tab-select-wrapper">
+                <select id="rombelTabDropdown" class="toolbar-filter-select"
+                    style="width: 100%; max-width: 100%; font-weight: 600;" onchange="switchRombelModalTab(this.value)">
+                    <option value="anggota">👥 Anggota Peserta Didik</option>
+                    <option value="pembelajaran">📚 Mata Pelajaran &amp; Guru</option>
+                </select>
+            </div>
+
+            <div id="pesertaDidikLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <div>Memuat rincian rombel...</div>
+            </div>
+
+            <!-- Tab 1: Peserta Didik -->
+            <div id="pesertaDidikTableWrapper"
+                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color);">
                 <table class="table"
-                    style="width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
+                    style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
@@ -313,11 +355,36 @@
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">
                                 L/P</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Pendaftaran</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Tempat, Tgl Lahir
                             </th>
                         </tr>
                     </thead>
                     <tbody id="pesertaDidikTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 2: Pembelajaran -->
+            <div id="pembelajaranTableWrapper"
+                style="overflow-x: auto; overflow-y: auto; flex: 1; display: none; width: 100%; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid var(--border-color);">
+                <table class="table"
+                    style="min-width: 600px; width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); width: 40px; text-align: center;">
+                                No</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Mata Pelajaran</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Guru Pengampu</th>
+                            <th
+                                style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">
+                                Jam / Mg</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Status Kurikulum
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="pembelajaranTableBody">
                     </tbody>
                 </table>
             </div>

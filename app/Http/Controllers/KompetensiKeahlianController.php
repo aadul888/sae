@@ -125,33 +125,45 @@ class KompetensiKeahlianController extends Controller
     /**
      * Detail rombel per kompetensi keahlian via JSON untuk preview modal
      */
-    public function showRombel(Request $request, $kode)
+    public function showRombel(Request $request, string|int $kode)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        $rombel = DB::table('rombongan_belajar')
-            ->leftJoin('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
-            ->where('rombongan_belajar.jurusan_id', $kode)
+        $baseRombel = DB::table('rombongan_belajar')
+            ->where('jurusan_id', $kode)
             ->select(
-                'rombongan_belajar.rombongan_belajar_id',
-                'rombongan_belajar.nama as nama_rombel',
-                'rombongan_belajar.tingkat_pendidikan_id_str as tingkat',
-                'rombongan_belajar.kurikulum_id_str as kurikulum',
-                'rombongan_belajar.ptk_id_str as wali_kelas',
-                'rombongan_belajar.id_ruang_str as ruang',
-                DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_peserta_didik')
+                'rombongan_belajar_id',
+                'nama as nama_rombel',
+                'tingkat_pendidikan_id_str as tingkat',
+                'kurikulum_id_str as kurikulum',
+                'ptk_id_str as wali_kelas',
+                'id_ruang_str as ruang',
+                'jenis_rombel_str as jenis_rombel'
             )
-            ->groupBy(
-                'rombongan_belajar.rombongan_belajar_id',
-                'rombongan_belajar.nama',
-                'rombongan_belajar.tingkat_pendidikan_id_str',
-                'rombongan_belajar.kurikulum_id_str',
-                'rombongan_belajar.ptk_id_str',
-                'rombongan_belajar.id_ruang_str'
-            )
-            ->orderBy('rombongan_belajar.nama', 'asc')
+            ->distinct()
+            ->orderBy('nama', 'asc')
             ->get();
+
+        // Calculate student counts per rombel
+        $pdCounts = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')
+            ->whereNotNull('rombongan_belajar_id')
+            ->groupBy('rombongan_belajar_id')
+            ->pluck(DB::raw('COUNT(DISTINCT peserta_didik_id)'), 'rombongan_belajar_id') : collect();
+
+        $arCounts = Schema::hasTable('anggota_rombel') ? DB::table('anggota_rombel')
+            ->whereNotNull('rombongan_belajar_id')
+            ->groupBy('rombongan_belajar_id')
+            ->pluck(DB::raw('COUNT(DISTINCT peserta_didik_id)'), 'rombongan_belajar_id') : collect();
+
+        foreach ($baseRombel as $r) {
+            $count = max(
+                (int) ($pdCounts[$r->rombongan_belajar_id] ?? 0),
+                (int) ($arCounts[$r->rombongan_belajar_id] ?? 0)
+            );
+            $r->total_peserta_didik = $count;
+            $r->jumlah_peserta_didik = $count;
+        }
 
         $jurusan = DB::table('rombongan_belajar')
             ->where('jurusan_id', $kode)
@@ -161,7 +173,7 @@ class KompetensiKeahlianController extends Controller
             'status' => 'success',
             'jurusan' => $jurusan,
             'kode' => $kode,
-            'data' => $rombel,
+            'data' => $baseRombel,
         ]);
     }
 }

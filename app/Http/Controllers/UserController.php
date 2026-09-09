@@ -58,14 +58,14 @@ class UserController extends Controller
                         $subPeran->where('peran_id_str', 'LIKE', '%ptk%')
                             ->orWhereNull('peran_id_str');
                     })->whereNotNull('ptk_id')
-                      ->whereIn('ptk_id', function ($sub) {
-                          $sub->select('ptk_id')->from('gtk')
-                              ->where(function ($gSub) {
-                                  $gSub->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
-                                      ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                                      ->orWhereNull('jenis_ptk_id_str');
-                              })->where('jenis_ptk_id_str', 'NOT LIKE', '%Tenaga Kependidikan%');
-                      });
+                        ->whereIn('ptk_id', function ($sub) {
+                            $sub->select('ptk_id')->from('gtk')
+                                ->where(function ($gSub) {
+                                    $gSub->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
+                                        ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                                        ->orWhereNull('jenis_ptk_id_str');
+                                })->where('jenis_ptk_id_str', 'NOT LIKE', '%Tenaga Kependidikan%');
+                        });
                 });
         })->where(function ($query) {
             $query->where('peran_id_str', 'NOT LIKE', '%admin%')
@@ -138,7 +138,7 @@ class UserController extends Controller
     /**
      * Update pengguna (modal edit)
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, string|int $id)
     {
         $user = User::findOrFail($id);
 
@@ -169,7 +169,7 @@ class UserController extends Controller
     /**
      * Hapus pengguna
      */
-    public function destroy($id)
+    public function destroy(string|int $id)
     {
         $user = User::findOrFail($id);
         $user->delete();
@@ -180,7 +180,7 @@ class UserController extends Controller
     /**
      * Reset password peserta didik ke NISN dari tabel peserta_didik
      */
-    public function resetPassword($id)
+    public function resetPassword(string|int $id)
     {
         $user = User::findOrFail($id);
 

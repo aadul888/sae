@@ -35,25 +35,56 @@
         </a>
     </div>
 
-    <!-- Mobile Dropdown Selector -->
+    <!-- Mobile Custom Dropdown Selector -->
     <div class="dash-mobile-tab-select-wrap">
-        <div class="mobile-tab-select-inner">
-            <i class="fas {{ $activeTab === 'admin' ? 'fa-user-shield' : ($activeTab === 'guru' ? 'fa-chalkboard-user' : ($activeTab === 'tendik' ? 'fa-id-badge' : 'fa-user-graduate')) }} text-primary me-2"></i>
-            <select class="dash-mobile-tab-select" onchange="window.location.href=this.value" aria-label="Pilih Kategori Pengguna">
-                <option value="{{ request()->fullUrlWithQuery(['tab' => 'admin']) }}" {{ $activeTab === 'admin' ? 'selected' : '' }}>
-                    Administrator ({{ $counts['admin'] }})
-                </option>
-                <option value="{{ request()->fullUrlWithQuery(['tab' => 'guru']) }}" {{ $activeTab === 'guru' ? 'selected' : '' }}>
-                    Guru ({{ $counts['guru'] }})
-                </option>
-                <option value="{{ request()->fullUrlWithQuery(['tab' => 'tendik']) }}" {{ $activeTab === 'tendik' ? 'selected' : '' }}>
-                    Tendik ({{ $counts['tendik'] }})
-                </option>
-                <option value="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}" {{ $activeTab === 'peserta_didik' ? 'selected' : '' }}>
-                    Peserta Didik ({{ $counts['peserta_didik'] }})
-                </option>
-            </select>
-            <i class="fas fa-chevron-down select-chevron"></i>
+        <div class="dash-custom-dropdown">
+            <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <div class="custom-dropdown-trigger-label">
+                    <i
+                        class="fas {{ $activeTab === 'admin' ? 'fa-user-shield' : ($activeTab === 'guru' ? 'fa-chalkboard-user' : ($activeTab === 'tendik' ? 'fa-id-badge' : 'fa-user-graduate')) }} text-primary me-2"></i>
+                    <span>{{ $activeTab === 'admin' ? 'Administrator' : ($activeTab === 'guru' ? 'Guru' : ($activeTab === 'tendik' ? 'Tendik' : 'Peserta Didik')) }}</span>
+                    <span class="badge badge-primary badge-sm ms-2">{{ $counts[$activeTab] ?? 0 }}</span>
+                </div>
+                <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+            </button>
+            <div class="custom-dropdown-menu" role="listbox">
+                <a href="{{ request()->fullUrlWithQuery(['tab' => 'admin']) }}"
+                    class="custom-dropdown-item {{ $activeTab === 'admin' ? 'active' : '' }}">
+                    <div class="dropdown-item-left">
+                        <i class="fas fa-user-shield text-primary me-2"></i>
+                        <span>Administrator</span>
+                    </div>
+                    <span
+                        class="badge {{ $activeTab === 'admin' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['admin'] }}</span>
+                </a>
+                <a href="{{ request()->fullUrlWithQuery(['tab' => 'guru']) }}"
+                    class="custom-dropdown-item {{ $activeTab === 'guru' ? 'active' : '' }}">
+                    <div class="dropdown-item-left">
+                        <i class="fas fa-chalkboard-user text-primary me-2"></i>
+                        <span>Guru</span>
+                    </div>
+                    <span
+                        class="badge {{ $activeTab === 'guru' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['guru'] }}</span>
+                </a>
+                <a href="{{ request()->fullUrlWithQuery(['tab' => 'tendik']) }}"
+                    class="custom-dropdown-item {{ $activeTab === 'tendik' ? 'active' : '' }}">
+                    <div class="dropdown-item-left">
+                        <i class="fas fa-id-badge text-primary me-2"></i>
+                        <span>Tendik</span>
+                    </div>
+                    <span
+                        class="badge {{ $activeTab === 'tendik' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['tendik'] }}</span>
+                </a>
+                <a href="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}"
+                    class="custom-dropdown-item {{ $activeTab === 'peserta_didik' ? 'active' : '' }}">
+                    <div class="dropdown-item-left">
+                        <i class="fas fa-user-graduate text-primary me-2"></i>
+                        <span>Peserta Didik</span>
+                    </div>
+                    <span
+                        class="badge {{ $activeTab === 'peserta_didik' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['peserta_didik'] }}</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -154,8 +185,8 @@
                                         </button>
                                     </form>
                                 @endif
-                                <form action="{{ route('dashboard.pengguna.destroy', $item->pengguna_id) }}" method="POST"
-                                    style="display: inline; margin: 0;" data-action-type="delete"
+                                <form action="{{ route('dashboard.pengguna.destroy', $item->pengguna_id) }}"
+                                    method="POST" style="display: inline; margin: 0;" data-action-type="delete"
                                     data-name="{{ $item->nama }}">
                                     @csrf
                                     @method('DELETE')

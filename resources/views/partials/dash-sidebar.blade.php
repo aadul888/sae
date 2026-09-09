@@ -85,15 +85,36 @@
                             </a>
                         @endif
 
+                        {{-- Nested Submenu: Rombel --}}
                         @if (\App\Models\RolePermission::canAccess($role, 'menu_rombel'))
-                            <a href="{{ route('dashboard.rombel.index') }}"
-                                class="dash-nav-sublink {{ request()->routeIs('dashboard.rombel*') ? 'active' : '' }}">
-                                <i class="fas fa-school"></i> <span>Rombel</span>
-                            </a>
+                            @php
+                                $isRombelActive = request()->routeIs('dashboard.rombel*');
+                            @endphp
+                            <div class="dash-nav-nested-group {{ $isRombelActive ? 'open active-group' : '' }}">
+                                <button type="button" class="dash-nav-nested-toggle">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-school"
+                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
+                                        <span>Rombel</span>
+                                    </div>
+                                    <i class="fas fa-chevron-right nested-arrow-icon"></i>
+                                </button>
+                                <div class="dash-nav-nested-menu">
+                                    <a href="{{ route('dashboard.rombel.reguler') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.rombel.reguler') || (request()->routeIs('dashboard.rombel.index') && ($currentType ?? 'reguler') === 'reguler') ? 'active' : '' }}">
+                                        <i class="fas fa-users-rectangle"></i> <span>Kelas (Reguler)</span>
+                                    </a>
+                                    <a href="{{ route('dashboard.rombel.matpel') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.rombel.matpel') || (request()->routeIs('dashboard.rombel.index') && ($currentType ?? '') === 'matpel') ? 'active' : '' }}">
+                                        <i class="fas fa-book-open"></i> <span>Matpel Pilihan</span>
+                                    </a>
+                                </div>
+                            </div>
                         @endif
 
                         @if (\App\Models\RolePermission::canAccess($role, 'menu_pembelajaran'))
-                            <a href="#" class="dash-nav-sublink">
+                            <a href="{{ route('dashboard.pembelajaran.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.pembelajaran*') ? 'active' : '' }}">
                                 <i class="fas fa-book-bookmark"></i> <span>Pembelajaran</span>
                             </a>
                         @endif
@@ -336,8 +357,9 @@
                     @endif
 
                     @if (\App\Models\RolePermission::canAccess($role, 'menu_pengaturan'))
-                        <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-gear"></i> <span>Identitas Sekolah</span>
+                        <a href="{{ route('dashboard.identitas-sekolah.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas-sekolah*') ? 'active' : '' }}">
+                            <i class="fas fa-school"></i> <span>Identitas Sekolah</span>
                         </a>
                     @endif
                 </div>

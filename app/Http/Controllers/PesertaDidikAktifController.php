@@ -65,6 +65,15 @@ class PesertaDidikAktifController extends Controller
                 'kurikulum_id_str as kurikulum',
                 'nama_ayah',
                 'nama_ibu',
+                'nama_wali',
+                'tinggi_badan',
+                'berat_badan',
+                'anak_keberapa',
+                'kebutuhan_khusus',
+                'sekolah_asal',
+                'tanggal_masuk_sekolah',
+                'jenis_pendaftaran_id_str as jenis_pendaftaran',
+                'email',
                 'alamat_jalan',
                 'nomor_telepon_seluler as no_hp'
             );
@@ -130,19 +139,55 @@ class PesertaDidikAktifController extends Controller
     /**
      * Detail peserta didik via JSON untuk modal
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, string|int $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        $pesertaDidik = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
+        $pesertaDidik = DB::table('peserta_didik')
+            ->where('peserta_didik_id', $id)
+            ->orWhere('nisn', $id)
+            ->orWhere('nipd', $id)
+            ->first();
+
         if (!$pesertaDidik) {
             return response()->json(['status' => 'error', 'message' => 'Peserta Didik tidak ditemukan'], 404);
+        }
+
+        $anggota = null;
+        if (Schema::hasTable('anggota_rombel')) {
+            $anggota = DB::table('anggota_rombel')
+                ->where('peserta_didik_id', $pesertaDidik->peserta_didik_id)
+                ->first();
+        }
+
+        $rombelId = $pesertaDidik->rombongan_belajar_id ?? ($anggota->rombongan_belajar_id ?? null);
+        $pembelajaran = collect();
+        if (!empty($rombelId) && Schema::hasTable('pembelajaran')) {
+            $pembelajaran = DB::table('pembelajaran')
+                ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
+                ->where('pembelajaran.rombongan_belajar_id', $rombelId)
+                ->select(
+                    'pembelajaran.pembelajaran_id',
+                    'pembelajaran.nama_mata_pelajaran',
+                    'pembelajaran.mata_pelajaran_id_str',
+                    'pembelajaran.jam_mengajar_per_minggu',
+                    'pembelajaran.status_di_kurikulum_str',
+                    'gtk.nama as nama_guru',
+                    'gtk.nuptk',
+                    'gtk.nip'
+                )
+                ->orderBy('pembelajaran.nama_mata_pelajaran', 'asc')
+                ->get();
         }
 
         return response()->json([
             'status' => 'success',
             'data' => $pesertaDidik,
+            'anggota' => $anggota,
+            'pembelajaran' => $pembelajaran,
+            'total_mapel' => $pembelajaran->count(),
+            'total_jam' => $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
         ]);
     }
 }

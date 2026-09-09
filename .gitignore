@@ -15,3 +15,5 @@ npm-debug.log
 yarn-error.log
 /.fleet
 /.idea
+/.vscode
+AI_AGENT_CONTEXT.md

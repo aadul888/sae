@@ -14,7 +14,7 @@ class FeederReceiverController extends Controller
     private function validateApiKey(Request $request): bool
     {
         $serverKey = DB::table('settings')->where('id', 1)->value('api_key') ?? 'sae_secret_live_key_2026';
-        
+
         $headerKey = $request->header('X-API-Key') ?? $request->header('x-api-key');
         if (!$headerKey && $request->hasHeader('Authorization')) {
             $auth = $request->header('Authorization');
@@ -127,7 +127,6 @@ class FeederReceiverController extends Controller
                 'details' => $details,
                 'message' => "Berhasil memproses {$count} data {$type} ke database SAE."
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -158,7 +157,7 @@ class FeederReceiverController extends Controller
         }
     }
 
-    private function processSekolah($data): int
+    private function processSekolah(array $data): int
     {
         $sekolah = $data[0] ?? $data;
         if (empty($sekolah['sekolah_id'])) {
@@ -567,6 +566,3 @@ class FeederReceiverController extends Controller
         return count($batchPengguna);
     }
 }
-
-
-

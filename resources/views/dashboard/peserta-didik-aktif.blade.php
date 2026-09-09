@@ -87,8 +87,7 @@
                     <span>entri</span>
                 </div>
 
-                <select id="filterRombel" class="form-control"
-                    style="width: auto; min-width: 150px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterRombel" class="toolbar-filter-select">
                     <option value="">Semua Rombel</option>
                     @foreach ($filterRombel as $r)
                         <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}
@@ -96,8 +95,7 @@
                     @endforeach
                 </select>
 
-                <select id="filterGender" class="form-control"
-                    style="width: auto; min-width: 130px; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg, rgba(255,255,255,0.05)); color: var(--text-color);">
+                <select id="filterGender" class="toolbar-filter-select" style="min-width: 120px;">
                     <option value="">Semua Gender</option>
                     <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
                     <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
@@ -268,7 +266,7 @@
     <div id="biodataModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
-            style="max-width: 640px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div>
@@ -288,44 +286,132 @@
             </div>
 
             <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted); width: 140px;">NISN / NIPD</td>
-                        <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">NIK</td>
-                        <td id="bioNik" style="font-family: monospace;">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">Jenis Kelamin</td>
-                        <td id="bioJk">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">Tempat, Tgl Lahir</td>
-                        <td id="bioTtl">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">Agama</td>
-                        <td id="bioAgama">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">Nama Ayah</td>
-                        <td id="bioAyah">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">Nama Ibu</td>
-                        <td id="bioIbu">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">No. HP / WA</td>
-                        <td id="bioHp">-</td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 8px 0; color: var(--text-muted);">Alamat</td>
-                        <td id="bioAlamat">-</td>
-                    </tr>
-                </table>
+                <div style="margin-bottom: 12px;">
+                    <div
+                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-user me-1"></i> Data Pribadi &amp; Fisik
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">NISN / NIPD</td>
+                            <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">-
+                            </td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">NIK</td>
+                            <td id="bioNik" style="font-family: monospace;">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Jenis Kelamin</td>
+                            <td id="bioJk">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Tempat, Tgl Lahir</td>
+                            <td id="bioTtl">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Agama</td>
+                            <td id="bioAgama">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Anak Keberapa</td>
+                            <td id="bioAnak">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Tinggi / Berat Badan</td>
+                            <td id="bioFisik" style="font-weight: 600; color: #10b981;">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Kebutuhan Khusus</td>
+                            <td id="bioKhusus">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                    <div
+                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-graduation-cap me-1"></i> Data Akademik &amp; Pendaftaran
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">Pendaftaran / Asal</td>
+                            <td id="bioPendaftaran">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Tanggal Masuk</td>
+                            <td id="bioTglMasuk">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">ID Registrasi / Anggota</td>
+                            <td id="bioRegId"
+                                style="font-family: monospace; font-size: 0.78rem; color: var(--text-muted);">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                    <div
+                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-users me-1"></i> Data Orang Tua &amp; Wali
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">Nama Ayah</td>
+                            <td id="bioAyah">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Nama Ibu</td>
+                            <td id="bioIbu">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Nama Wali</td>
+                            <td id="bioWali">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                    <div
+                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-address-book me-1"></i> Kontak &amp; Domisili
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">Kontak (HP/Email)</td>
+                            <td id="bioHp">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Alamat Jalan</td>
+                            <td id="bioAlamat">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div id="bioMapelSection"
+                    style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.85rem;"><i
+                                class="fas fa-book-open text-primary me-1"></i> Mata Pelajaran di Kelas</span>
+                        <span id="bioJmlMapel" class="badge"
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.72rem; padding: 2px 7px;">0
+                            Mapel</span>
+                    </div>
+                    <div style="overflow-x: auto; max-height: 180px;">
+                        <table class="table"
+                            style="width: 100%; border-collapse: collapse; font-size: 0.80rem; margin-bottom: 0;">
+                            <thead>
+                                <tr
+                                    style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 6px 10px; color: var(--text-muted);">Mata Pelajaran</th>
+                                    <th style="padding: 6px 10px; color: var(--text-muted);">Guru Pengampu</th>
+                                    <th style="padding: 6px 10px; color: var(--text-muted); text-align: center;">Jam</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bioMapelList"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div

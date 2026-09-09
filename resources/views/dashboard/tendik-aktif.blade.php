@@ -73,13 +73,13 @@
     </div>
 
     <!-- Filter & Search Toolbar -->
-    <div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
+    <div class="card" style="padding: 16px; margin-bottom: 20px;">
         <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1; min-width: 280px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                 <!-- Per Page -->
                 <div class="toolbar-entries">
-                    <span>Tampilkan</span>
-                    <select id="perPageSelect" class="form-select per-page-select">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
                             </option>
@@ -89,8 +89,7 @@
                 </div>
 
                 <!-- Filter Status Kepegawaian -->
-                <select id="filterStatus" class="form-select"
-                    style="padding: 6px 10px; font-size: 0.82rem; border-radius: 6px; width: auto; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); max-width: 220px;">
+                <select id="filterStatus" class="toolbar-filter-select">
                     <option value="">Semua Status Kepegawaian</option>
                     @foreach ($filterStatus as $st)
                         <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>{{ $st }}
@@ -99,8 +98,7 @@
                 </select>
 
                 <!-- Filter Gender -->
-                <select id="filterGender" class="form-select"
-                    style="padding: 6px 10px; font-size: 0.82rem; border-radius: 6px; width: auto; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);">
+                <select id="filterGender" class="toolbar-filter-select" style="min-width: 120px;">
                     <option value="">Semua Gender</option>
                     <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
                     <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
@@ -108,25 +106,20 @@
 
                 @if ($status || $gender || $q)
                     <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
-                        style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; color: var(--text-muted);">
-                        <i class="fas fa-times me-1"></i> Reset Filter
+                        style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
+                        <i class="fas fa-undo me-1"></i> Reset
                     </a>
                 @endif
             </div>
 
-            <!-- Live Search Box -->
-            <div style="position: relative; min-width: 260px;">
-                <i class="fas fa-search"
-                    style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
-                <input type="text" id="liveSearch" value="{{ $q }}"
-                    placeholder="Cari nama / NUPTK / NIP / tugas..."
-                    style="padding: 7px 32px 7px 34px; font-size: 0.82rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); width: 100%;">
-                @if ($q)
-                    <button type="button" id="clearSearch"
-                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                @endif
+            <div class="live-search-wrap">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="liveSearch" placeholder="Cari nama / NUPTK / NIP..." value="{{ $q }}"
+                    autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
+                    title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -260,38 +253,78 @@
         </table>
     </div>
 
-    <!-- Pagination -->
+    {{-- Pagination --}}
     @if ($list->hasPages())
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
-            <div style="font-size: 0.82rem; color: var(--text-muted);">
-                Menampilkan {{ $list->firstItem() ?? 0 }} - {{ $list->lastItem() ?? 0 }} dari {{ $total }} Tendik
-            </div>
-            <div>
-                {{ $list->appends(request()->query())->links() }}
-            </div>
+        <div class="custom-pagination">
+            @if ($list->onFirstPage())
+                <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+            @else
+                <a href="{{ $list->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                        class="fas fa-chevron-left"></i></a>
+            @endif
+            @php
+                $cur = $list->currentPage();
+                $last = $list->lastPage();
+                $from = max(1, $cur - 2);
+                $to = min($last, $cur + 2);
+            @endphp
+            @if ($from > 1)
+                <a href="{{ $list->url(1) }}" class="page-btn">1</a>
+                @if ($from > 2)
+                    <span class="page-info">&hellip;</span>
+                @endif
+            @endif
+            @for ($i = $from; $i <= $to; $i++)
+                <a href="{{ $list->url($i) }}"
+                    class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+            @endfor
+            @if ($to < $last)
+                @if ($to < $last - 1)
+                    <span class="page-info">&hellip;</span>
+                @endif
+                <a href="{{ $list->url($last) }}" class="page-btn">{{ $last }}</a>
+            @endif
+            @if ($list->hasMorePages())
+                <a href="{{ $list->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                        class="fas fa-chevron-right"></i></a>
+            @else
+                <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+            @endif
         </div>
     @endif
 
     <!-- Detail Tendik Modal -->
-    <div id="modalDetailTendik" class="modal-backdrop" style="display: none;">
-        <div class="modal-box" style="max-width: 650px; width: 92%;">
+    <div id="modalDetailTendik" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card"
+            style="max-width: 640px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
             <div
-                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-color);">
-                    <i class="fas fa-id-badge text-primary me-2"></i> Profil Tenaga Kependidikan
-                </h3>
-                <button type="button" class="btn-close-modal"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div>
+                    <h3 id="tendikModalTitle"
+                        style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                        Profil Tenaga Kependidikan
+                    </h3>
+                    <div id="tendikModalSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-
+                    </div>
+                </div>
+                <button type="button" class="btn-close-modal" onclick="closeTendikModal()"
                     style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div id="modalBodyTendik"
-                style="font-size: 0.85rem; color: var(--text-color); max-height: 70vh; overflow-y: auto;">
+            <div id="modalBodyTendik" style="font-size: 0.84rem; color: var(--text-color); overflow-y: auto; flex: 1;">
                 <div style="text-align: center; padding: 30px;">
                     <i class="fas fa-spinner fa-spin" style="font-size: 1.8rem; color: var(--primary);"></i>
                     <p style="margin-top: 10px; color: var(--text-muted);">Memuat data...</p>
                 </div>
+            </div>
+            <div
+                style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); text-align: right;">
+                <button type="button" class="btn btn-outline" style="padding: 7px 16px; font-size: 0.82rem;"
+                    onclick="closeTendikModal()">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
