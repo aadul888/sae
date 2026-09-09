@@ -27,14 +27,14 @@ class DapodikController extends Controller
 
         $sekolah = DB::table('sekolah')->first();
         $totalGtk = DB::table('gtk')->count();
-        $totalSiswa = DB::table('peserta_didik')->count();
+        $totalPesertaDidik = DB::table('peserta_didik')->count();
         $totalRombel = DB::table('rombongan_belajar')->count();
         
         $setting = DB::table('settings')->where('id', 1)->first();
         $apiKey = $setting->api_key ?? 'sae_secret_live_key_2026';
         $lastSync = $setting->last_sync ?? ($sekolah->updated_at ?? '-');
 
-        return view('dashboard.tarik-data', compact('sekolah', 'totalGtk', 'totalSiswa', 'totalRombel', 'apiKey', 'lastSync'));
+        return view('dashboard.tarik-data', compact('sekolah', 'totalGtk', 'totalPesertaDidik', 'totalRombel', 'apiKey', 'lastSync'));
     }
 
     public function generateApiKey()

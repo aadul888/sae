@@ -151,7 +151,7 @@ class RombelController extends Controller
     }
 
     /**
-     * Detail siswa dalam suatu rombel via JSON untuk modal preview
+     * Detail peserta didik dalam suatu rombel via JSON untuk modal preview
      */
     public function showPesertaDidik(Request $request, $id)
     {
@@ -166,9 +166,9 @@ class RombelController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Rombongan belajar tidak ditemukan'], 404);
         }
 
-        $siswa = collect();
+        $pesertaDidik = collect();
         if (Schema::hasTable('peserta_didik')) {
-            $siswa = DB::table('peserta_didik')
+            $pesertaDidik = DB::table('peserta_didik')
                 ->where('rombongan_belajar_id', $id)
                 ->select(
                     'peserta_didik_id',
@@ -193,9 +193,9 @@ class RombelController extends Controller
                 'wali_kelas' => $rombel->ptk_id_str,
                 'ruang' => $rombel->id_ruang_str,
                 'kurikulum' => $rombel->kurikulum_id_str,
-                'total_peserta_didik' => $siswa->count(),
+                'total_peserta_didik' => $pesertaDidik->count(),
             ],
-            'data' => $siswa,
+            'data' => $pesertaDidik,
         ]);
     }
 }

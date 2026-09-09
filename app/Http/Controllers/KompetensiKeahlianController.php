@@ -44,7 +44,7 @@ class KompetensiKeahlianController extends Controller
             )
             ->groupBy('rombongan_belajar.jurusan_id', 'rombongan_belajar.jurusan_id_str');
 
-        // Total siswa jika tabel peserta_didik tersedia
+        // Total peserta didik jika tabel peserta_didik tersedia
         if (Schema::hasTable('peserta_didik')) {
             $baseQuery->leftJoin('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
                 ->addSelect(DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_peserta_didik'));

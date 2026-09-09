@@ -8,9 +8,9 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 - **Instalasi Otomatis (Web Wizard):** Konfigurasi `.env`, migrasi database, dan akun admin instan via browser (`/install`).
 - **Sinkronisasi Dapodik:** Tarik dan sinkronisasi data Sekolah, GTK, Rombongan Belajar, dan Peserta Didik dengan skema UUID Dapodik murni.
-- **Manajemen Akun Otomatis:** Pembuatan akun siswa instan (Username & Password: NISN).
+- **Manajemen Akun Otomatis:** Pembuatan akun peserta didik instan (Username & Password: NISN).
 - **Pembaruan Sistem Otomatis (Update Center):** Deteksi commit remote GitHub, eksekusi migrasi database, sinkronisasi file kode, dan flush cache sekali klik.
-- **Multi-Role Dashboard:** Akses terpisah untuk Administrator, Guru / Tendik, dan Siswa.
+- **Multi-Role Dashboard:** Akses terpisah untuk Administrator, Guru, Tendik, dan Peserta Didik.
 - **Modern Responsive UI:** Dukungan mode Gelap / Terang (Dark/Light Mode), SweetAlert2 interaktif, dan navigasi mobile.
 
 ---
@@ -101,9 +101,9 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 | Role              | Username / Email         | Password Default        |
 | :---------------- | :----------------------- | :---------------------- |
-| **Administrator** | `admin@sae.id` / `admin` | `Admin543!`             |
-| **Guru / Tendik** | `gtk@sae.id` / NUPTK     | `Geteka543!` / `123456` |
-| **Siswa**         | `siswa@sae.id` / NISN    | `Siswa543!` / NISN      |
+| **Administrator**    | `admin@sae.id` / `admin`        | `Admin543!`             |
+| **Guru / Tendik**    | `gtk@sae.id` / NUPTK            | `Geteka543!` / `123456` |
+| **Peserta Didik**    | `pesertadidik@sae.id` / NISN    | `PesertaDidik543!` / NISN |
 
 > **Catatan:** Segera ganti password akun setelah berhasil login pertama kali.
 

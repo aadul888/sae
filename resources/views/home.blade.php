@@ -136,7 +136,7 @@
                     <ul class="service-list">
                         <li><i class="fas fa-check text-success me-2"></i> Kualitas Data Dapodik</li>
                         <li><i class="fas fa-check text-success me-2"></i> Sinkronisasi NISN &amp; NIK</li>
-                        <li><i class="fas fa-check text-success me-2"></i> Kelengkapan Berkas Murid</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Kelengkapan Berkas Peserta Didik</li>
                     </ul>
                 </div>
                 <span class="service-cta">Buka Monitoring <i class="fas fa-chevron-right"></i></span>
@@ -173,14 +173,14 @@
     <!-- Interactive Data Analytics -->
     <section id="statistik" class="analytics-card">
         <div class="analytics-head">
-            <h3 style="font-size: clamp(1.15rem, 3vw, 1.4rem); font-weight: 800; margin-bottom: 4px;">Statistik &amp; Demografi Siswa</h3>
+            <h3 style="font-size: clamp(1.15rem, 3vw, 1.4rem); font-weight: 800; margin-bottom: 4px;">Statistik &amp; Demografi Peserta Didik</h3>
             <p style="color: var(--text-muted); font-size: clamp(0.75rem, 2vw, 0.875rem);">Visualisasi perbandingan jurusan, tingkat kelas, dan rasio gender.</p>
         </div>
 
         <!-- Charts Container -->
         <div class="charts-row">
             <div class="chart-box">
-                <div class="chart-box-title"><i class="fas fa-chart-column me-2 text-primary"></i>Distribusi Siswa per Program Keahlian</div>
+                <div class="chart-box-title"><i class="fas fa-chart-column me-2 text-primary"></i>Distribusi Peserta Didik per Program Keahlian</div>
                 <div class="chart-container-inner">
                     <canvas id="barMajorChart"></canvas>
                 </div>
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: majorData.map(m => m.code || m.nama_jurusan),
                 datasets: [{
-                    label: 'Jumlah Siswa',
+                    label: 'Jumlah Peserta Didik',
                     data: majorData.map(m => m.total_peserta_didik),
                     backgroundColor: '#3b82f6',
                     borderRadius: 8,

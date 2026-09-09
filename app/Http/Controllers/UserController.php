@@ -12,7 +12,7 @@ class UserController extends Controller
     private const SORTABLE = ['nama', 'username', 'peran_id_str', 'no_hp'];
 
     /**
-     * Halaman manajemen pengguna (4 Tab: Admin, Guru, Tendik, Siswa)
+     * Halaman manajemen pengguna (4 Tab: Admin, Guru, Tendik, Peserta Didik)
      */
     public function index(Request $request)
     {

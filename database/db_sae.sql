@@ -396,12 +396,12 @@ CREATE TABLE `backup_pengguna` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Akun Default Bawaan (Admin, Guru, Siswa)
+-- Akun Default Bawaan (Admin, GTK, Peserta Didik)
 --
 INSERT INTO `pengguna` (`pengguna_id`, `sekolah_id`, `username`, `nama`, `peran_id_str`, `password`, `alamat`, `no_telepon`, `no_hp`, `ptk_id`, `peserta_didik_id`, `created_at`, `updated_at`) VALUES
 ('seed-admin-1', NULL, 'admin@sae.id', 'Administrator', 'Administrator', '$2y$10$bJHqW8gj8/sxtvKE6QaapeYgsQ81hKPubLG.DpmQH/OdTMl59Kk.6', NULL, NULL, NULL, NULL, NULL, NOW(), NOW()),
 ('seed-gtk-1', NULL, 'gtk@sae.id', 'Guru dan Tendik', 'PTK', '$2y$10$ukN4A7SdLXxrTiFFDqDUxukoaFTCbVvH05H4aRwzXaISz5haQiV3G', NULL, NULL, NULL, NULL, NULL, NOW(), NOW()),
-('seed-siswa-1', NULL, 'siswa@sae.id', 'Siswa', 'Peserta Didik', '$2y$10$8nvAOuy6tNLf/gv9GwJ5yuqsyNJ7j7d9RDPYfE47Mp506OYUl10kW', NULL, NULL, NULL, NULL, NULL, NOW(), NOW());
+('seed-pesertadidik-1', NULL, 'pesertadidik@sae.id', 'Peserta Didik', 'Peserta Didik', '$2y$10$8nvAOuy6tNLf/gv9GwJ5yuqsyNJ7j7d9RDPYfE47Mp506OYUl10kW', NULL, NULL, NULL, NULL, NULL, NOW(), NOW());
 
 -- --------------------------------------------------------
 -- 7. Tabel Relasi Ekstra Dapodik (Anggota Rombel & Pembelajaran)

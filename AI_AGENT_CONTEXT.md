@@ -39,12 +39,13 @@ Dokumen ini adalah ringkasan teknis definitif untuk AI Agent atau pengembang bar
 
 ### Web Routes (`routes/web.php`)
 
-- `/` (`home`): Portal publik pencarian kelulusan & info siswa (`HomeController@index`, `HomeController@checkNisn`).
-- `/login`, `/logout`: Autentikasi web admin/guru (`AuthController`).
+- `/` (`home`): Portal publik pencarian kelulusan & info peserta didik (`HomeController@index`, `HomeController@checkNisn`).
+- `/login`, `/logout`: Autentikasi web (`AuthController`).
 - `/install`: Wizard instalasi sistem (`InstallController`).
 - `/dashboard/admin`: Statistik ringkasan admin (`DashboardController@admin`).
 - `/dashboard/guru`: Data GTK/Guru (`DashboardController@guru`).
-- `/dashboard/siswa`: Data Peserta Didik (`DashboardController@siswa`).
+- `/dashboard/tendik`: Dashboard Administrasi Tenaga Kependidikan (`DashboardController@tendik`).
+- `/dashboard/peserta-didik`: Data Peserta Didik (`DashboardController@pesertaDidik`).
 - `/dashboard/pengguna`: Manajemen user (`UserController@index`, `update`, `destroy`, `resetPassword`).
     - JS: `public/js/pengguna.js`.
 - `/dashboard/tarik-data`: Sinkronisasi Dapodik via API key (`DapodikController`).
@@ -62,7 +63,7 @@ Dokumen ini adalah ringkasan teknis definitif untuk AI Agent atau pengembang bar
 
 ## 4. Skema Database Kunci
 
-- `users`: Kolom `id`, `name`, `username`, `email`, `password`, `role` (`admin`, `guru`, `siswa`), `created_at`, `updated_at`.
+- `users`: Kolom `id`, `name`, `username`, `email`, `password`, `role` (`admin`, `guru`, `tendik`, `peserta_didik`), `created_at`, `updated_at`.
 - `personal_access_tokens`: Tabel token Laravel Sanctum untuk mobile/API.
 - `dapodik_*`: Tabel cache/sinkronisasi dari Dapodik (sekolah, gtk, peserta_didik, rombel).
 - `settings`: Konfigurasi sistem, status kelulusan, dan versi rilis.

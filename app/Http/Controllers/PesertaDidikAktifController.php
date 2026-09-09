@@ -128,21 +128,21 @@ class PesertaDidikAktifController extends Controller
     }
 
     /**
-     * Detail siswa via JSON untuk modal
+     * Detail peserta didik via JSON untuk modal
      */
     public function show(Request $request, $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        $siswa = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
-        if (!$siswa) {
-            return response()->json(['status' => 'error', 'message' => 'Siswa tidak ditemukan'], 404);
+        $pesertaDidik = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
+        if (!$pesertaDidik) {
+            return response()->json(['status' => 'error', 'message' => 'Peserta Didik tidak ditemukan'], 404);
         }
 
         return response()->json([
             'status' => 'success',
-            'data' => $siswa,
+            'data' => $pesertaDidik,
         ]);
     }
 }
