@@ -78,8 +78,14 @@ class RolePermission extends Model
                 ],
                 'menu_guru_aktif' => [
                     'label' => 'Manajemen Data — Guru Aktif',
-                    'desc' => 'Direktori PTK / GTK guru dan staf kependidikan aktif',
+                    'desc' => 'Direktori pendidik dan guru aktif',
                     'icon' => 'fa-chalkboard-user',
+                    'roles' => ['admin', 'guru'],
+                ],
+                'menu_tendik_aktif' => [
+                    'label' => 'Manajemen Data — Tendik Aktif',
+                    'desc' => 'Direktori tenaga kependidikan (TU, laboran, pustakawan, staf) aktif',
+                    'icon' => 'fa-id-badge',
                     'roles' => ['admin', 'guru'],
                 ],
                 'menu_update' => [
@@ -146,8 +152,14 @@ class RolePermission extends Model
                 ],
                 'menu_guru_tidak_aktif' => [
                     'label' => 'Manajemen Data — Guru Tidak Aktif',
-                    'desc' => 'Arsip data pendidik dan tenaga kependidikan purna/mutasi',
+                    'desc' => 'Arsip data pendidik dan guru purna/mutasi',
                     'icon' => 'fa-user-slash',
+                    'roles' => ['admin'],
+                ],
+                'menu_tendik_tidak_aktif' => [
+                    'label' => 'Manajemen Data — Tendik Tidak Aktif',
+                    'desc' => 'Arsip data tenaga kependidikan purna/mutasi',
+                    'icon' => 'fa-id-badge',
                     'roles' => ['admin'],
                 ],
 

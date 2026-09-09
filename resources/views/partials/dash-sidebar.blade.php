@@ -105,19 +105,24 @@
                     request()->routeIs('dashboard.siswa-aktif*') || request()->routeIs('dashboard.siswa-tidak-aktif*');
                 $isGuruActive =
                     request()->routeIs('dashboard.guru-aktif*') || request()->routeIs('dashboard.guru-tidak-aktif*');
+                $isTendikActive =
+                    request()->routeIs('dashboard.tendik-aktif*') || request()->routeIs('dashboard.tendik-tidak-aktif*');
                 $isManajemenDataActive =
                     $isSiswaActive ||
                     $isGuruActive ||
+                    $isTendikActive ||
                     request()->routeIs('dashboard.berkas-siswa*') ||
                     request()->routeIs('dashboard.perubahan-data*');
             @endphp
             @if (
                 \App\Models\RolePermission::canAccess($role, 'menu_siswa_aktif') ||
                     \App\Models\RolePermission::canAccess($role, 'menu_guru_aktif') ||
+                    \App\Models\RolePermission::canAccess($role, 'menu_tendik_aktif') ||
                     \App\Models\RolePermission::canAccess($role, 'menu_berkas_siswa') ||
                     \App\Models\RolePermission::canAccess($role, 'menu_perubahan_data') ||
                     \App\Models\RolePermission::canAccess($role, 'menu_siswa_tidak_aktif') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_guru_tidak_aktif'))
+                    \App\Models\RolePermission::canAccess($role, 'menu_guru_tidak_aktif') ||
+                    \App\Models\RolePermission::canAccess($role, 'menu_tendik_tidak_aktif'))
                 <div class="dash-nav-group {{ $isManajemenDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
@@ -175,6 +180,33 @@
                                 @if (\App\Models\RolePermission::canAccess($role, 'menu_guru_tidak_aktif'))
                                     <a href="#"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-tidak-aktif*') ? 'active' : '' }}">
+                                        <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Nested Submenu: Tendik --}}
+                        <div class="dash-nav-nested-group {{ $isTendikActive ? 'open active-group' : '' }}">
+                            <button type="button" class="dash-nav-nested-toggle">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-id-badge"
+                                        style="width: 14px; text-align: center; opacity: 0.8;"></i>
+                                    <span>Tendik</span>
+                                </div>
+                                <i class="fas fa-chevron-right nested-arrow-icon"></i>
+                            </button>
+                            <div class="dash-nav-nested-menu">
+                                @if (\App\Models\RolePermission::canAccess($role, 'menu_tendik_aktif'))
+                                    <a href="{{ route('dashboard.tendik-aktif.index') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
+                                        <i class="fas fa-circle-check"></i> <span>Aktif</span>
+                                    </a>
+                                @endif
+
+                                @if (\App\Models\RolePermission::canAccess($role, 'menu_tendik_tidak_aktif'))
+                                    <a href="#"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-tidak-aktif*') ? 'active' : '' }}">
                                         <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
                                     </a>
                                 @endif

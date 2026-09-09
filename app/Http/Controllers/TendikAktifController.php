@@ -6,9 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class GuruAktifController extends Controller
+class TendikAktifController extends Controller
 {
-    private const SORTABLE = ['nama', 'nuptk', 'nip', 'jenis_kelamin', 'jenis_ptk_id_str', 'status_kepegawaian_id_str'];
+    private const SORTABLE = ['nama', 'nuptk', 'nip', 'jenis_kelamin', 'jabatan_ptk_id_str', 'status_kepegawaian_id_str'];
 
     public function index(Request $request)
     {
@@ -18,7 +18,6 @@ class GuruAktifController extends Controller
         if (!in_array($role, ['admin', 'guru'], true)) return redirect()->route('dashboard.' . ($role ?: 'siswa'));
 
         $q       = trim($request->get('q', ''));
-        $jenis   = trim($request->get('jenis', ''));
         $status  = trim($request->get('status', ''));
         $gender  = trim($request->get('gender', ''));
         $perPage = (int) $request->get('perPage', 15);
@@ -26,14 +25,12 @@ class GuruAktifController extends Controller
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
         if (!Schema::hasTable('gtk')) {
-            return view('dashboard.guru-aktif', [
+            return view('dashboard.tendik-aktif', [
                 'list' => collect(),
                 'total' => 0,
                 'summary' => ['total' => 0, 'laki' => 0, 'perempuan' => 0, 'pns' => 0, 'non_pns' => 0],
-                'filterJenis' => collect(),
                 'filterStatus' => collect(),
                 'q' => $q,
-                'jenis' => $jenis,
                 'status' => $status,
                 'gender' => $gender,
                 'perPage' => $perPage,
@@ -42,37 +39,23 @@ class GuruAktifController extends Controller
             ]);
         }
 
-        // Filter khusus Guru & Kepala Sekolah (mengecualikan Tenaga Kependidikan / Tendik murni)
-        $baseFilterGuru = function ($query) {
+        $baseFilterTendik = function ($query) {
             $query->where(function ($sub) {
-                $sub->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
-                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                    ->orWhereNull('jenis_ptk_id_str');
-            })->where(function ($sub) {
-                $sub->where('jenis_ptk_id_str', 'NOT LIKE', '%Tenaga Kependidikan%')
-                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Guru%');
-            });
+                $sub->where('jenis_ptk_id_str', 'LIKE', '%Tenaga Kependidikan%')
+                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Tendik%')
+                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Tata Usaha%')
+                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Laboran%')
+                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Pustakawan%')
+                    ->orWhere('jenis_ptk_id_str', 'NOT LIKE', '%Guru%');
+            })->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%');
         };
-
-        // Daftar jenis PTK & status kepegawaian untuk filter
-        $filterJenis = DB::table('gtk')
-            ->whereNotNull('jenis_ptk_id_str')
-            ->where('jenis_ptk_id_str', '<>', '')
-            ->where(function ($query) {
-                $query->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
-                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
-            })
-            ->distinct()
-            ->pluck('jenis_ptk_id_str')
-            ->sort()
-            ->values();
 
         $filterStatus = DB::table('gtk')
             ->whereNotNull('status_kepegawaian_id_str')
             ->where('status_kepegawaian_id_str', '<>', '')
             ->where(function ($query) {
-                $query->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
-                    ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
+                $query->where('jenis_ptk_id_str', 'LIKE', '%Tenaga Kependidikan%')
+                    ->orWhere('jenis_ptk_id_str', 'NOT LIKE', '%Guru%');
             })
             ->distinct()
             ->pluck('status_kepegawaian_id_str')
@@ -101,7 +84,7 @@ class GuruAktifController extends Controller
                 'alamat_jalan'
             );
 
-        $baseFilterGuru($baseQuery);
+        $baseFilterTendik($baseQuery);
 
         if ($q !== '') {
             $baseQuery->where(function ($sub) use ($q) {
@@ -109,13 +92,9 @@ class GuruAktifController extends Controller
                     ->orWhere('nuptk', 'LIKE', "%{$q}%")
                     ->orWhere('nip', 'LIKE', "%{$q}%")
                     ->orWhere('nik', 'LIKE', "%{$q}%")
-                    ->orWhere('jenis_ptk_id_str', 'LIKE', "%{$q}%")
+                    ->orWhere('jabatan_ptk_id_str', 'LIKE', "%{$q}%")
                     ->orWhere('status_kepegawaian_id_str', 'LIKE', "%{$q}%");
             });
-        }
-
-        if ($jenis !== '') {
-            $baseQuery->where('jenis_ptk_id_str', $jenis);
         }
 
         if ($status !== '') {
@@ -153,14 +132,12 @@ class GuruAktifController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('dashboard.guru-aktif', compact(
+        return view('dashboard.tendik-aktif', compact(
             'list',
             'total',
             'summary',
-            'filterJenis',
             'filterStatus',
             'q',
-            'jenis',
             'status',
             'gender',
             'perPage',
@@ -170,7 +147,7 @@ class GuruAktifController extends Controller
     }
 
     /**
-     * Detail GTK via JSON untuk modal
+     * Detail Tendik via JSON untuk modal
      */
     public function show(Request $request, $id)
     {
@@ -179,7 +156,7 @@ class GuruAktifController extends Controller
 
         $gtk = DB::table('gtk')->where('ptk_id', $id)->first();
         if (!$gtk) {
-            return response()->json(['status' => 'error', 'message' => 'Data GTK tidak ditemukan'], 404);
+            return response()->json(['status' => 'error', 'message' => 'Data Tendik tidak ditemukan'], 404);
         }
 
         return response()->json([

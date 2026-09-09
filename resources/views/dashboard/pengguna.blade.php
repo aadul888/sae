@@ -25,7 +25,12 @@
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'guru']) }}"
             class="btn {{ $activeTab === 'guru' ? 'btn-primary' : 'btn-outline' }}"
             style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
-            <i class="fas fa-chalkboard-user me-1"></i> Guru &amp; Tendik ({{ $counts['guru'] }})
+            <i class="fas fa-chalkboard-user me-1"></i> Guru ({{ $counts['guru'] }})
+        </a>
+        <a href="{{ request()->fullUrlWithQuery(['tab' => 'tendik']) }}"
+            class="btn {{ $activeTab === 'tendik' ? 'btn-primary' : 'btn-outline' }}"
+            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            <i class="fas fa-id-badge me-1"></i> Tendik ({{ $counts['tendik'] }})
         </a>
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'siswa']) }}"
             class="btn {{ $activeTab === 'siswa' ? 'btn-primary' : 'btn-outline' }}"
@@ -74,7 +79,14 @@
                 </tr>
             </thead>
             <tbody>
-                @php $list = $activeTab === 'admin' ? $admins : ($activeTab === 'guru' ? $gurus : $siswas); @endphp
+                @php
+                    $list = match($activeTab) {
+                        'admin' => $admins,
+                        'guru' => $gurus,
+                        'tendik' => $tendiks,
+                        default => $siswas,
+                    };
+                @endphp
                 @forelse ($list as $item)
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.86rem;"
@@ -83,7 +95,7 @@
                                 <div
                                     style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem;">
                                     <i
-                                        class="fas {{ $activeTab === 'admin' ? 'fa-user-shield' : ($activeTab === 'guru' ? 'fa-chalkboard-user' : 'fa-user-graduate') }}"></i>
+                                        class="fas {{ $activeTab === 'admin' ? 'fa-user-shield' : ($activeTab === 'guru' ? 'fa-chalkboard-user' : ($activeTab === 'tendik' ? 'fa-id-badge' : 'fa-user-graduate')) }}"></i>
                                 </div>
                                 <div>
                                     <div>{{ $item->nama ?: 'Tanpa Nama' }}</div>
@@ -100,9 +112,9 @@
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Peran">
                             <span
-                                class="badge {{ $activeTab === 'admin' ? 'badge-primary' : ($activeTab === 'guru' ? 'badge-accent' : 'badge-outline') }}"
+                                class="badge {{ $activeTab === 'admin' ? 'badge-primary' : ($activeTab === 'guru' ? 'badge-accent' : ($activeTab === 'tendik' ? 'badge-info' : 'badge-outline')) }}"
                                 style="font-size: 0.73rem; padding: 4px 8px; border-radius: 6px;">
-                                {{ $item->peran_id_str ?: ($activeTab === 'siswa' ? 'Peserta Didik' : 'Pengguna') }}
+                                {{ $item->peran_id_str ?: ($activeTab === 'siswa' ? 'Peserta Didik' : ($activeTab === 'tendik' ? 'Tenaga Kependidikan' : 'Pengguna')) }}
                             </span>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Kontak">
@@ -216,7 +228,8 @@
                         <label>Peran / Kategori</label>
                         <select name="peran_id_str" id="inputPeran" required>
                             <option value="Administrator">Administrator</option>
-                            <option value="Guru / Tenaga Kependidikan">Guru / Tenaga Kependidikan</option>
+                            <option value="Guru">Guru</option>
+                            <option value="Tenaga Kependidikan">Tenaga Kependidikan (Tendik)</option>
                             <option value="Peserta Didik">Peserta Didik</option>
                         </select>
                     </div>

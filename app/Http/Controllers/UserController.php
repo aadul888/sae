@@ -12,7 +12,7 @@ class UserController extends Controller
     private const SORTABLE = ['nama', 'username', 'peran_id_str', 'no_hp'];
 
     /**
-     * Halaman manajemen pengguna (3 Tab: Admin, Guru/Tendik, Siswa)
+     * Halaman manajemen pengguna (4 Tab: Admin, Guru, Tendik, Siswa)
      */
     public function index(Request $request)
     {
@@ -29,14 +29,51 @@ class UserController extends Controller
                 ->orWhere('peran_id_str', 'LIKE', '%yayasan%');
         });
 
-        $guruQuery = User::where(function ($query) {
-            $query->where('peran_id_str', 'LIKE', '%guru%')
-                ->orWhere('peran_id_str', 'LIKE', '%ptk%')
-                ->orWhere('peran_id_str', 'LIKE', '%tendik%')
-                ->orWhereNotNull('ptk_id');
+        // Query Tenaga Kependidikan (Tendik)
+        $tendikQuery = User::where(function ($query) {
+            $query->where('peran_id_str', 'LIKE', '%tendik%')
+                ->orWhere('peran_id_str', 'LIKE', '%tenaga kependidikan%')
+                ->orWhere('peran_id_str', 'LIKE', '%tata usaha%')
+                ->orWhere('peran_id_str', 'LIKE', '%laboran%')
+                ->orWhere('peran_id_str', 'LIKE', '%pustakawan%')
+                ->orWhere(function ($qGtk) {
+                    $qGtk->whereNotNull('ptk_id')
+                        ->whereIn('ptk_id', function ($sub) {
+                            $sub->select('ptk_id')->from('gtk')
+                                ->where('jenis_ptk_id_str', 'LIKE', '%Tenaga Kependidikan%')
+                                ->orWhere('jenis_ptk_id_str', 'NOT LIKE', '%Guru%');
+                        });
+                });
         })->where(function ($query) {
             $query->where('peran_id_str', 'NOT LIKE', '%admin%')
-                ->where('peran_id_str', 'NOT LIKE', '%operator%');
+                ->where('peran_id_str', 'NOT LIKE', '%operator%')
+                ->where('peran_id_str', 'NOT LIKE', '%siswa%')
+                ->where('peran_id_str', 'NOT LIKE', '%peserta didik%');
+        });
+
+        // Query Guru (murni pendidik, mengecualikan tendik)
+        $guruQuery = User::where(function ($query) {
+            $query->where('peran_id_str', 'LIKE', '%guru%')
+                ->orWhere(function ($qGtk) {
+                    $qGtk->where(function ($subPeran) {
+                        $subPeran->where('peran_id_str', 'LIKE', '%ptk%')
+                            ->orWhereNull('peran_id_str');
+                    })->whereNotNull('ptk_id')
+                      ->whereIn('ptk_id', function ($sub) {
+                          $sub->select('ptk_id')->from('gtk')
+                              ->where(function ($gSub) {
+                                  $gSub->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
+                                      ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                                      ->orWhereNull('jenis_ptk_id_str');
+                              })->where('jenis_ptk_id_str', 'NOT LIKE', '%Tenaga Kependidikan%');
+                      });
+                });
+        })->where(function ($query) {
+            $query->where('peran_id_str', 'NOT LIKE', '%admin%')
+                ->where('peran_id_str', 'NOT LIKE', '%operator%')
+                ->where('peran_id_str', 'NOT LIKE', '%tendik%')
+                ->where('peran_id_str', 'NOT LIKE', '%tenaga kependidikan%')
+                ->where('peran_id_str', 'NOT LIKE', '%tata usaha%');
         });
 
         $siswaQuery = User::where(function ($query) {
@@ -66,6 +103,7 @@ class UserController extends Controller
             };
             $applySearch($adminQuery);
             $applySearch($guruQuery);
+            $applySearch($tendikQuery);
             $applySearch($siswaQuery);
         }
 
@@ -73,19 +111,22 @@ class UserController extends Controller
             $query->orderBy($sort, $sortDir)->orderBy('nama', 'asc');
         };
 
-        $admins = tap($adminQuery, $orderFn)->paginate($perPage, ['*'], 'admin_page');
-        $gurus  = tap($guruQuery, $orderFn)->paginate($perPage, ['*'], 'guru_page');
-        $siswas = tap($siswaQuery, $orderFn)->paginate($perPage, ['*'], 'siswa_page');
+        $admins  = tap($adminQuery, $orderFn)->paginate($perPage, ['*'], 'admin_page');
+        $gurus   = tap($guruQuery, $orderFn)->paginate($perPage, ['*'], 'guru_page');
+        $tendiks = tap($tendikQuery, $orderFn)->paginate($perPage, ['*'], 'tendik_page');
+        $siswas  = tap($siswaQuery, $orderFn)->paginate($perPage, ['*'], 'siswa_page');
 
         $counts = [
-            'admin' => (clone $adminQuery)->count(),
-            'guru'  => (clone $guruQuery)->count(),
-            'siswa' => (clone $siswaQuery)->count(),
+            'admin'  => (clone $adminQuery)->count(),
+            'guru'   => (clone $guruQuery)->count(),
+            'tendik' => (clone $tendikQuery)->count(),
+            'siswa'  => (clone $siswaQuery)->count(),
         ];
 
         return view('dashboard.pengguna', compact(
             'admins',
             'gurus',
+            'tendiks',
             'siswas',
             'counts',
             'activeTab',

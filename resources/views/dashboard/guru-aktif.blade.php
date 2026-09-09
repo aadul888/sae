@@ -7,10 +7,10 @@
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                <i class="fas fa-chalkboard-user text-primary me-2"></i> Manajemen Data — Guru &amp; Tendik Aktif
+                <i class="fas fa-chalkboard-user text-primary me-2"></i> Manajemen Data — Guru Aktif
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem;">
-                Direktori Guru dan Tenaga Kependidikan aktif bersumber dari tabel <strong>GTK</strong> (Dapodik).
+                Direktori Guru &amp; Tenaga Pendidik aktif bersumber dari tabel <strong>GTK</strong> (Dapodik).
             </p>
         </div>
         <div class="dash-banner-actions">
@@ -30,7 +30,7 @@
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
                     {{ number_format($summary['total'], 0, ',', '.') }}
                 </div>
-                <div class="dash-stat-label">Total GTK Aktif</div>
+                <div class="dash-stat-label">Total Guru Aktif</div>
             </div>
         </div>
 
