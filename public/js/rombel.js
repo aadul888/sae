@@ -66,7 +66,7 @@ window.openPesertaDidikModal = async function (id, nama) {
                             ${escapeHtml(s.nisn || s.nipd || "-")}
                         </td>
                         <td style="padding: 10px 14px; text-align: center;">
-                            <span class="badge ${s.jenis_kelamin === "L" ? "badge-primary" : "badge-outline"}" style="font-size: 0.72rem; padding: 2px 7px;">
+                            <span class="badge ${s.jenis_kelamin === "L" ? "badge-primary" : "badge-danger"}" style="font-size: 0.72rem; padding: 2px 7px;">
                                 ${escapeHtml(s.jenis_kelamin || "-")}
                             </span>
                         </td>

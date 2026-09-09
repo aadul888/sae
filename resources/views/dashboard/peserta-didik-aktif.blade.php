@@ -182,7 +182,7 @@
                             @endif
                         </td>
                         <td style="padding: 14px 18px; text-align: center;" data-label="L/P">
-                            <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-outline' }}"
+                            <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
                                 style="font-size: 0.72rem; padding: 2px 7px;">
                                 {{ $item->jenis_kelamin ?: '-' }}
                             </span>
