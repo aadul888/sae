@@ -336,6 +336,7 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/peserta-didik-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-aktif.js')) }}"></script>
+        <script src="{{ asset('js/peserta-didik-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-aktif.js')) }}">
+        </script>
     @endpush
 @endsection

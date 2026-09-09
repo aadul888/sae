@@ -1,7 +1,6 @@
 @php
-    $user = session('user', ['role' => 'peserta_didik']);
-    $role = $user['role'] ?? 'pesertaDidik';
-    $currentRoute = request()->route()->getName();
+    $user = session('user');
+    $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
 @endphp
 
 <nav class="mobile-bottom-nav">

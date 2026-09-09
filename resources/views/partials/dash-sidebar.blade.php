@@ -3,7 +3,7 @@
     $userName = is_array($user)
         ? $user['name'] ?? ($user['nama'] ?? 'Pengguna')
         : $user->name ?? ($user->nama ?? 'Pengguna');
-    $role = is_array($user) ? $user['role'] ?? 'pesertaDidik' : $user->role ?? 'pesertaDidik';
+    $role = is_array($user) ? $user['role'] ?? 'peserta_didik' : $user->role ?? 'peserta_didik';
 @endphp
 
 <aside class="dash-sidebar" id="dashSidebar">

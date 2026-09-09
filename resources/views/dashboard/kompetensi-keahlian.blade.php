@@ -53,7 +53,7 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
-                    {{ number_format($summary['pesertaDidik'], 0, ',', '.') }}
+                    {{ number_format($summary['peserta_didik'] ?? 0, 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Peserta Didik</div>
             </div>
