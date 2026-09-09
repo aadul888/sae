@@ -40,6 +40,7 @@ Route::get('/logout', [AuthController::class, 'logout']);
 Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
     Route::get('/guru', [DashboardController::class, 'guru'])->name('guru');
+    Route::get('/tendik', [DashboardController::class, 'tendik'])->name('tendik');
     Route::get('/siswa', [DashboardController::class, 'siswa'])->name('siswa');
 
     // Tarik Data Dapodik

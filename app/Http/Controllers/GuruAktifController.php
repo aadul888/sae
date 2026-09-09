@@ -15,7 +15,7 @@ class GuruAktifController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!in_array($role, ['admin', 'guru'], true)) return redirect()->route('dashboard.' . ($role ?: 'siswa'));
+        if (!in_array($role, ['admin', 'guru', 'tendik'], true)) return redirect()->route('dashboard.' . ($role ?: 'siswa'));
 
         $q       = trim($request->get('q', ''));
         $jenis   = trim($request->get('jenis', ''));

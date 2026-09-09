@@ -21,6 +21,8 @@ class DashboardController extends Controller
             $peranLower = strtolower($peran);
             if (str_contains($peranLower, 'admin')) {
                 $userRole = 'admin';
+            } elseif (str_contains($peranLower, 'tendik') || str_contains($peranLower, 'tenaga kependidikan') || str_contains($peranLower, 'tata usaha')) {
+                $userRole = 'tendik';
             } elseif (str_contains($peranLower, 'guru') || str_contains($peranLower, 'pendidik') || str_contains($peranLower, 'ptk')) {
                 $userRole = 'guru';
             } else {
@@ -82,6 +84,29 @@ class DashboardController extends Controller
         ];
 
         return view('dashboard.guru', compact('stats', 'jadwal_hari_ini'));
+    }
+
+    public function tendik()
+    {
+        if ($res = $this->checkAuth('tendik')) return $res;
+
+        $stats = [
+            'total_surat_masuk'  => 14,
+            'total_surat_keluar' => 8,
+            'agenda_sekolah'     => 5,
+            'buku_tamu_hari_ini' => 12,
+            'presensi_masuk'     => '06:50 WIB',
+            'status_presensi'    => 'Hadir Tepat Waktu'
+        ];
+
+        $administrasi_tugas = [
+            ['nomor' => 'SRT/2026/09/012', 'kategori' => 'Surat Masuk', 'perihal' => 'Undangan Sosialisasi Kurikulum Dinas Pendidikan', 'pengirim' => 'Disdik Jabar', 'tgl' => '08 Sep 2026', 'status' => 'Sudah Didisposisi'],
+            ['nomor' => 'SRT/2026/09/011', 'kategori' => 'Surat Keluar', 'perihal' => 'Pemberitahuan Ujian Tengah Semester Ganjil', 'pengirim' => 'Bagian Kurikulum', 'tgl' => '07 Sep 2026', 'status' => 'Selesai Dicetak'],
+            ['nomor' => 'SRT/2026/09/010', 'kategori' => 'Surat Keterangan', 'perihal' => 'Keterangan Aktif Sekolah Siswa (NISN: 008123456)', 'pengirim' => 'Tata Usaha', 'tgl' => '07 Sep 2026', 'status' => 'Menunggu TTD'],
+            ['nomor' => 'INV/2026/09/004', 'kategori' => 'Inventaris TU', 'perihal' => 'Pengadaan Kertas & ATK Kantor Bulan September', 'pengirim' => 'Staf Sarpras', 'tgl' => '06 Sep 2026', 'status' => 'Proses Verifikasi'],
+        ];
+
+        return view('dashboard.tendik', compact('stats', 'administrasi_tugas'));
     }
 
     public function siswa()

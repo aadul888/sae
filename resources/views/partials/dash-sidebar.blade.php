@@ -377,6 +377,36 @@
                     <i class="fas fa-users-viewfinder"></i> <span>Presensi Kelas Siswa</span>
                 </a>
             @endif
+        @elseif($role === 'tendik')
+            @if (\App\Models\RolePermission::canAccess($role, 'menu_dashboard'))
+                <a href="{{ route('dashboard.tendik') }}"
+                    class="dash-nav-link {{ request()->routeIs('dashboard.tendik') ? 'active' : '' }}">
+                    <i class="fas fa-gauge-high"></i> <span>Dashboard Tendik</span>
+                </a>
+            @endif
+
+            <a href="{{ route('dashboard.tendik-aktif.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
+                <i class="fas fa-id-badge"></i> <span>Direktori Tendik</span>
+            </a>
+
+            <a href="{{ route('dashboard.guru-aktif.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
+                <i class="fas fa-chalkboard-user"></i> <span>Direktori Guru</span>
+            </a>
+
+            <a href="{{ route('dashboard.siswa-aktif.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.siswa-aktif*') ? 'active' : '' }}">
+                <i class="fas fa-user-graduate"></i> <span>Direktori Siswa</span>
+            </a>
+
+            <a href="#" class="dash-nav-link">
+                <i class="fas fa-file-invoice"></i> <span>Persuratan &amp; Dokumen</span>
+            </a>
+
+            <a href="#" class="dash-nav-link">
+                <i class="fas fa-address-book"></i> <span>Buku Tamu</span>
+            </a>
         @elseif($role === 'siswa')
             @if (\App\Models\RolePermission::canAccess($role, 'menu_dashboard'))
                 <a href="{{ route('dashboard.siswa') }}"

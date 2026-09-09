@@ -73,7 +73,20 @@ class User extends Authenticatable
         if (str_contains($peran, 'admin') || str_contains($peran, 'dinas') || str_contains($peran, 'yayasan') || str_contains($peran, 'operator')) {
             return 'admin';
         }
-        if (str_contains($peran, 'guru') || str_contains($peran, 'ptk') || str_contains($peran, 'tendik') || !empty($this->ptk_id)) {
+        if (str_contains($peran, 'tendik') || str_contains($peran, 'tenaga kependidikan') || str_contains($peran, 'tata usaha') || str_contains($peran, 'laboran') || str_contains($peran, 'pustakawan')) {
+            return 'tendik';
+        }
+        if (!empty($this->ptk_id)) {
+            // Cek jenis_ptk dari relasi tabel gtk
+            $gtk = \Illuminate\Support\Facades\DB::table('gtk')->where('ptk_id', $this->ptk_id)->select('jenis_ptk_id_str')->first();
+            if ($gtk && !empty($gtk->jenis_ptk_id_str)) {
+                $jPtk = strtolower($gtk->jenis_ptk_id_str);
+                if (str_contains($jPtk, 'tenaga kependidikan') || (!str_contains($jPtk, 'guru') && !str_contains($jPtk, 'kepala sekolah'))) {
+                    return 'tendik';
+                }
+            }
+        }
+        if (str_contains($peran, 'guru') || str_contains($peran, 'ptk') || !empty($this->ptk_id)) {
             return 'guru';
         }
         return 'siswa';
