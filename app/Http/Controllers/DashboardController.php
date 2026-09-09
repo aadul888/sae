@@ -16,7 +16,7 @@ class DashboardController extends Controller
         $userRole = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
 
         if (!$userRole) {
-            // Attempt to resolve role from peran_id_str or default to admin/siswa
+            // Attempt to resolve role from peran_id_str or default to admin/peserta_didik
             $peran = is_array($user) ? ($user['peran_id_str'] ?? '') : ($user->peran_id_str ?? '');
             $peranLower = strtolower($peran);
             if (str_contains($peranLower, 'admin')) {
@@ -26,7 +26,7 @@ class DashboardController extends Controller
             } elseif (str_contains($peranLower, 'guru') || str_contains($peranLower, 'pendidik') || str_contains($peranLower, 'ptk')) {
                 $userRole = 'guru';
             } else {
-                $userRole = 'siswa';
+                $userRole = 'peserta_didik';
             }
 
             if (is_array($user)) {

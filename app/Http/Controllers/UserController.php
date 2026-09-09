@@ -117,17 +117,17 @@ class UserController extends Controller
         $pesertaDidiks  = tap($pesertaDidikQuery, $orderFn)->paginate($perPage, ['*'], 'peserta_didik_page');
 
         $counts = [
-            'admin'  => (clone $adminQuery)->count(),
-            'guru'   => (clone $guruQuery)->count(),
-            'tendik' => (clone $tendikQuery)->count(),
-            'siswa'  => (clone $pesertaDidikQuery)->count(),
+            'admin'         => (clone $adminQuery)->count(),
+            'guru'          => (clone $guruQuery)->count(),
+            'tendik'        => (clone $tendikQuery)->count(),
+            'peserta_didik' => (clone $pesertaDidikQuery)->count(),
         ];
 
         return view('dashboard.pengguna', compact(
             'admins',
             'gurus',
             'tendiks',
-            'siswas',
+            'pesertaDidiks',
             'counts',
             'activeTab',
             'q',

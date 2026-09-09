@@ -36,7 +36,7 @@ class PermissionController extends Controller
         $counts = [
             'admin' => RolePermission::where('role', 'admin')->where('is_allowed', true)->count(),
             'guru' => RolePermission::where('role', 'guru')->where('is_allowed', true)->count(),
-            'peserta_didik' => RolePermission::where('role', 'siswa')->where('is_allowed', true)->count(),
+            'peserta_didik' => RolePermission::where('role', 'peserta_didik')->where('is_allowed', true)->count(),
         ];
 
         return view('dashboard.hak-akses', compact('activeRole', 'permissionsConfig', 'savedPermissions', 'counts'));

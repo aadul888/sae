@@ -35,7 +35,7 @@
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}"
             class="btn {{ $activeTab === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}"
             style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
-            <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['pesertaDidik'] }})
+            <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['peserta_didik'] }})
         </a>
     </div>
 

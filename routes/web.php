@@ -42,6 +42,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/guru', [DashboardController::class, 'guru'])->name('guru');
     Route::get('/tendik', [DashboardController::class, 'tendik'])->name('tendik');
     Route::get('/peserta-didik', [DashboardController::class, 'pesertaDidik'])->name('peserta-didik');
+    Route::get('/peserta_didik', [DashboardController::class, 'pesertaDidik'])->name('peserta_didik');
 
     // Tarik Data Dapodik
     Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik');
