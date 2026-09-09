@@ -29,7 +29,7 @@ return new class extends Migration
                 ['role' => 'admin', 'permission_key' => 'menu_dashboard', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_pengguna', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_guru', 'is_allowed' => true],
-                ['role' => 'admin', 'permission_key' => 'menu_siswa', 'is_allowed' => true],
+                ['role' => 'admin', 'permission_key' => 'menu_peserta_didik', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_rfid', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_dapodik', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_update', 'is_allowed' => true],
@@ -48,16 +48,16 @@ return new class extends Migration
                 ['role' => 'guru', 'permission_key' => 'menu_presensi_mengajar', 'is_allowed' => true],
                 ['role' => 'guru', 'permission_key' => 'menu_agenda_kbm', 'is_allowed' => true],
                 ['role' => 'guru', 'permission_key' => 'menu_penilaian', 'is_allowed' => true],
-                ['role' => 'guru', 'permission_key' => 'menu_presensi_siswa', 'is_allowed' => true],
+                ['role' => 'guru', 'permission_key' => 'menu_presensi_peserta_didik', 'is_allowed' => true],
                 ['role' => 'guru', 'permission_key' => 'menu_pengumuman', 'is_allowed' => true],
 
-                // Siswa default
-                ['role' => 'siswa', 'permission_key' => 'menu_dashboard', 'is_allowed' => true],
-                ['role' => 'siswa', 'permission_key' => 'menu_riwayat_rfid', 'is_allowed' => true],
-                ['role' => 'siswa', 'permission_key' => 'menu_jadwal_pelajaran', 'is_allowed' => true],
-                ['role' => 'siswa', 'permission_key' => 'menu_rapor', 'is_allowed' => true],
-                ['role' => 'siswa', 'permission_key' => 'menu_validasi_berkas', 'is_allowed' => true],
-                ['role' => 'siswa', 'permission_key' => 'menu_pengumuman', 'is_allowed' => true],
+                // Peserta Didik default
+                ['role' => 'peserta_didik', 'permission_key' => 'menu_dashboard', 'is_allowed' => true],
+                ['role' => 'peserta_didik', 'permission_key' => 'menu_riwayat_rfid', 'is_allowed' => true],
+                ['role' => 'peserta_didik', 'permission_key' => 'menu_jadwal_pelajaran', 'is_allowed' => true],
+                ['role' => 'peserta_didik', 'permission_key' => 'menu_rapor', 'is_allowed' => true],
+                ['role' => 'peserta_didik', 'permission_key' => 'menu_validasi_berkas', 'is_allowed' => true],
+                ['role' => 'peserta_didik', 'permission_key' => 'menu_pengumuman', 'is_allowed' => true],
             ];
 
             $now = now();

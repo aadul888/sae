@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\Schema;
 
 class RombelController extends Controller
 {
-    private const SORTABLE = ['nama', 'tingkat', 'jurusan', 'wali_kelas', 'ruang', 'total_siswa'];
+    private const SORTABLE = ['nama', 'tingkat', 'jurusan', 'wali_kelas', 'ruang', 'total_peserta_didik'];
 
     public function index(Request $request)
     {
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'siswa'));
+        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
 
         $q       = trim($request->get('q', ''));
         $tingkat = trim($request->get('tingkat', ''));
@@ -28,7 +28,7 @@ class RombelController extends Controller
             return view('dashboard.rombel', [
                 'list' => collect(),
                 'total' => 0,
-                'summary' => ['rombel' => 0, 'siswa' => 0, 'jurusan' => 0, 'wali' => 0],
+                'summary' => ['rombel' => 0, 'peserta_didik' => 0, 'jurusan' => 0, 'wali' => 0],
                 'filterTingkat' => collect(),
                 'filterJurusan' => collect(),
                 'q' => $q,
@@ -72,7 +72,7 @@ class RombelController extends Controller
 
         if (Schema::hasTable('peserta_didik')) {
             $baseQuery->leftJoin('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
-                ->addSelect(DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_siswa'))
+                ->addSelect(DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_peserta_didik'))
                 ->groupBy(
                     'rombongan_belajar.rombongan_belajar_id',
                     'rombongan_belajar.nama',
@@ -85,7 +85,7 @@ class RombelController extends Controller
                     'rombongan_belajar.jenis_rombel_str'
                 );
         } else {
-            $baseQuery->addSelect(DB::raw('0 as total_siswa'));
+            $baseQuery->addSelect(DB::raw('0 as total_peserta_didik'));
         }
 
         // Global search
@@ -112,7 +112,7 @@ class RombelController extends Controller
         // Summary metrics
         $summary = [
             'rombel' => $total,
-            'siswa' => $allResults->sum('total_siswa'),
+            'peserta_didik' => $allResults->sum('total_peserta_didik'),
             'jurusan' => $allResults->pluck('jurusan')->filter()->unique()->count(),
             'wali' => $allResults->pluck('wali_kelas')->filter()->unique()->count(),
         ];
@@ -153,7 +153,7 @@ class RombelController extends Controller
     /**
      * Detail siswa dalam suatu rombel via JSON untuk modal preview
      */
-    public function showSiswa(Request $request, $id)
+    public function showPesertaDidik(Request $request, $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
@@ -193,7 +193,7 @@ class RombelController extends Controller
                 'wali_kelas' => $rombel->ptk_id_str,
                 'ruang' => $rombel->id_ruang_str,
                 'kurikulum' => $rombel->kurikulum_id_str,
-                'total_siswa' => $siswa->count(),
+                'total_peserta_didik' => $siswa->count(),
             ],
             'data' => $siswa,
         ]);

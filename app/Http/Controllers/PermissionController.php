@@ -21,7 +21,7 @@ class PermissionController extends Controller
         }
 
         $activeRole = $request->query('role', 'admin');
-        if (!in_array($activeRole, ['admin', 'guru', 'siswa'])) {
+        if (!in_array($activeRole, ['admin', 'guru', 'peserta_didik'])) {
             $activeRole = 'admin';
         }
 
@@ -36,7 +36,7 @@ class PermissionController extends Controller
         $counts = [
             'admin' => RolePermission::where('role', 'admin')->where('is_allowed', true)->count(),
             'guru' => RolePermission::where('role', 'guru')->where('is_allowed', true)->count(),
-            'siswa' => RolePermission::where('role', 'siswa')->where('is_allowed', true)->count(),
+            'peserta_didik' => RolePermission::where('role', 'siswa')->where('is_allowed', true)->count(),
         ];
 
         return view('dashboard.hak-akses', compact('activeRole', 'permissionsConfig', 'savedPermissions', 'counts'));
@@ -58,7 +58,7 @@ class PermissionController extends Controller
         $isAllowed = filter_var($request->input('is_allowed'), FILTER_VALIDATE_BOOLEAN);
         $action = $request->input('action'); // null jika toggle akses menu keseluruhan, atau 'create','read','update','delete'
 
-        if (!in_array($targetRole, ['admin', 'guru', 'siswa']) || empty($permissionKey)) {
+        if (!in_array($targetRole, ['admin', 'guru', 'peserta_didik']) || empty($permissionKey)) {
             return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
         }
 
@@ -126,7 +126,7 @@ class PermissionController extends Controller
         }
 
         $targetRole = $request->input('role');
-        if (!in_array($targetRole, ['admin', 'guru', 'siswa'])) {
+        if (!in_array($targetRole, ['admin', 'guru', 'peserta_didik'])) {
             return response()->json(['status' => 'error', 'message' => 'Role tidak valid'], 422);
         }
 
@@ -141,7 +141,7 @@ class PermissionController extends Controller
                 'menu_dashboard',
                 'menu_pengguna',
                 'menu_guru',
-                'menu_siswa',
+                'menu_peserta_didik',
                 'menu_rfid',
                 'menu_dapodik',
                 'menu_update',
@@ -168,9 +168,9 @@ class PermissionController extends Controller
                 ];
             }
         } elseif ($targetRole === 'guru') {
-            $keys = ['menu_dashboard', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_siswa', 'menu_pengumuman'];
+            $keys = ['menu_dashboard', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_peserta_didik', 'menu_pengumuman'];
             foreach ($keys as $k) {
-                $isCrud = in_array($k, ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_siswa']);
+                $isCrud = in_array($k, ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_peserta_didik']);
                 $defaults[] = [
                     'role' => 'guru',
                     'permission_key' => $k,
@@ -187,7 +187,7 @@ class PermissionController extends Controller
             $keys = ['menu_dashboard', 'menu_riwayat_rfid', 'menu_jadwal_pelajaran', 'menu_rapor', 'menu_validasi_berkas', 'menu_pengumuman'];
             foreach ($keys as $k) {
                 $defaults[] = [
-                    'role' => 'siswa',
+                    'role' => 'peserta_didik',
                     'permission_key' => $k,
                     'is_allowed' => true,
                     'can_create' => false,

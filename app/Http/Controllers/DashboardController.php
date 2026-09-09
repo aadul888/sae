@@ -46,7 +46,7 @@ class DashboardController extends Controller
         if ($res = $this->checkAuth('admin')) return $res;
 
         $stats = [
-            'total_siswa'    => 1248,
+            'total_peserta_didik'    => 1248,
             'total_guru'     => 78,
             'total_tendik'   => 24,
             'total_kelas'    => 36,
@@ -57,8 +57,8 @@ class DashboardController extends Controller
 
         $recent_logs = [
             ['time' => '08:45', 'user' => 'Budi Santoso, S.Pd.', 'action' => 'Input Nilai Sumatif Kelas XII RPL 1', 'status' => 'success'],
-            ['time' => '08:30', 'user' => 'Sistem Sync', 'action' => 'Sinkronisasi Data Siswa Dapodik', 'status' => 'info'],
-            ['time' => '08:12', 'user' => 'Ahmad Dahlan', 'action' => 'Validasi Berkas Ijazah Siswa', 'status' => 'success'],
+            ['time' => '08:30', 'user' => 'Sistem Sync', 'action' => 'Sinkronisasi Data Peserta Didik Dapodik', 'status' => 'info'],
+            ['time' => '08:12', 'user' => 'Ahmad Dahlan', 'action' => 'Validasi Berkas Ijazah Peserta Didik', 'status' => 'success'],
             ['time' => '07:30', 'user' => 'Gateway RFID #01', 'action' => 'Presensi Masuk Gerbang Utama (950 Tap)', 'status' => 'warning'],
         ];
 
@@ -72,7 +72,7 @@ class DashboardController extends Controller
         $stats = [
             'total_jam_ajar'  => 24,
             'kelas_diampu'    => 5,
-            'total_siswa'     => 175,
+            'total_peserta_didik'     => 175,
             'presensi_masuk'  => '06:45 WIB',
             'status_presensi' => 'Hadir Tepat Waktu'
         ];
@@ -109,9 +109,9 @@ class DashboardController extends Controller
         return view('dashboard.tendik', compact('stats', 'administrasi_tugas'));
     }
 
-    public function siswa()
+    public function pesertaDidik()
     {
-        if ($res = $this->checkAuth('siswa')) return $res;
+        if ($res = $this->checkAuth('peserta_didik')) return $res;
 
         $stats = [
             'presensi_bulan_ini' => 98.2,
@@ -137,6 +137,6 @@ class DashboardController extends Controller
             ['jam' => '11:00 - 12:30', 'mapel' => 'Pendidikan Pancasila', 'guru' => 'Drs. Hendro Wibowo', 'ruang' => 'Ruang 12'],
         ];
 
-        return view('dashboard.siswa', compact('stats', 'presensi_terakhir', 'jadwal_pelajaran'));
+        return view('dashboard.peserta-didik', compact('stats', 'presensi_terakhir', 'jadwal_pelajaran'));
     }
 }

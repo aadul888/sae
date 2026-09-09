@@ -20,10 +20,10 @@
             <span class="hero-kicker"><i class="fas fa-shield-halved"></i> Ekosistem Pendidikan Digital 2026</span>
             <h1 class="hero-title">Sistem Aplikasi<br><span>Edukasi (SAE)</span></h1>
             <p class="hero-desc">
-                Aplikasi terintegrasi untuk absensi pintar, manajemen data siswa, validasi berkas, dan layanan informasi akademik realtime.
+                Aplikasi terintegrasi untuk absensi pintar, manajemen data peserta didik, validasi berkas, dan layanan informasi akademik realtime.
             </p>
             <div class="hero-actions">
-                <a href="/login" class="btn btn-primary"><i class="fas fa-user-graduate"></i> Portal Siswa</a>
+                <a href="/login" class="btn btn-primary"><i class="fas fa-user-graduate"></i> Portal Peserta Didik</a>
                 <a href="/admin" class="btn btn-outline"><i class="fas fa-chalkboard-user"></i> Portal Guru &amp; Tendik</a>
             </div>
         </div>
@@ -31,7 +31,7 @@
         <!-- NISN Verification Card -->
         <div id="nisn" class="card-nisn">
             <div class="card-nisn-head">
-                <span class="card-nisn-title"><i class="fas fa-id-card-clip text-primary"></i> Pengecekan Data Siswa</span>
+                <span class="card-nisn-title"><i class="fas fa-id-card-clip text-primary"></i> Pengecekan Data Peserta Didik</span>
                 <span style="font-size: 0.7rem; color: var(--accent); background: rgba(6,182,212,0.1); padding: 2px 8px; border-radius: 6px;">Live Check</span>
             </div>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
@@ -63,14 +63,14 @@
             <div class="kpi-icon teal"><i class="fas fa-person"></i></div>
             <div>
                 <div class="kpi-num">{{ number_format($stats['male_count']) }}</div>
-                <div class="kpi-desc">Siswa Laki-laki</div>
+                <div class="kpi-desc">Peserta Didik Laki-laki</div>
             </div>
         </div>
         <div class="kpi-card">
             <div class="kpi-icon purple"><i class="fas fa-person-dress"></i></div>
             <div>
                 <div class="kpi-num">{{ number_format($stats['female_count']) }}</div>
-                <div class="kpi-desc">Siswa Perempuan</div>
+                <div class="kpi-desc">Peserta Didik Perempuan</div>
             </div>
         </div>
         <div class="kpi-card">
@@ -160,7 +160,7 @@
                     <div class="service-icon" style="color:var(--success);"><i class="fas fa-sliders"></i></div>
                     <h3 class="service-title">Pusat Administrasi</h3>
                     <ul class="service-list">
-                        <li><i class="fas fa-check text-success me-2"></i> Master Data Siswa &amp; GTK</li>
+                        <li><i class="fas fa-check text-success me-2"></i> Master Data Peserta Didik &amp; GTK</li>
                         <li><i class="fas fa-check text-success me-2"></i> Cetak Kartu Pelajar Otomatis</li>
                         <li><i class="fas fa-check text-success me-2"></i> Manajemen Akses Role</li>
                     </ul>
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels: majorData.map(m => m.code || m.nama_jurusan),
                 datasets: [{
                     label: 'Jumlah Siswa',
-                    data: majorData.map(m => m.total_siswa),
+                    data: majorData.map(m => m.total_peserta_didik),
                     backgroundColor: '#3b82f6',
                     borderRadius: 8,
                 }]

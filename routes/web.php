@@ -41,13 +41,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
     Route::get('/guru', [DashboardController::class, 'guru'])->name('guru');
     Route::get('/tendik', [DashboardController::class, 'tendik'])->name('tendik');
-    Route::get('/siswa', [DashboardController::class, 'siswa'])->name('siswa');
+    Route::get('/peserta-didik', [DashboardController::class, 'pesertaDidik'])->name('peserta-didik');
 
     // Tarik Data Dapodik
     Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik');
     Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey');
 
-    // Manajemen Pengguna (3 Tab: Admin, Guru/Tendik, Siswa)
+    // Manajemen Pengguna (4 Tab: Admin, Guru, Tendik, Peserta Didik)
     Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');
     Route::put('/pengguna/{pengguna}', [UserController::class, 'update'])->name('pengguna.update');
     Route::delete('/pengguna/{pengguna}', [UserController::class, 'destroy'])->name('pengguna.destroy');
@@ -70,11 +70,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Master Data — Rombel (Sumber: Rombongan Belajar & Peserta Didik)
     Route::get('/master-data/rombel', [\App\Http\Controllers\RombelController::class, 'index'])->name('rombel.index');
-    Route::get('/master-data/rombel/{id}/siswa', [\App\Http\Controllers\RombelController::class, 'showSiswa'])->name('rombel.siswa');
+    Route::get('/master-data/rombel/{id}/peserta-didik', [\App\Http\Controllers\RombelController::class, 'showPesertaDidik'])->name('rombel.peserta-didik');
 
-    // Manajemen Data — Siswa Aktif, Guru Aktif, & Tendik Aktif (Sumber: Peserta Didik & GTK Dapodik)
-    Route::get('/manajemen-data/siswa-aktif', [\App\Http\Controllers\SiswaAktifController::class, 'index'])->name('siswa-aktif.index');
-    Route::get('/manajemen-data/siswa-aktif/{id}', [\App\Http\Controllers\SiswaAktifController::class, 'show'])->name('siswa-aktif.show');
+    // Manajemen Data — Peserta Didik Aktif, Guru Aktif, & Tendik Aktif (Sumber: Peserta Didik & GTK Dapodik)
+    Route::get('/manajemen-data/peserta-didik-aktif', [\App\Http\Controllers\PesertaDidikAktifController::class, 'index'])->name('peserta-didik-aktif.index');
+    Route::get('/manajemen-data/peserta-didik-aktif/{id}', [\App\Http\Controllers\PesertaDidikAktifController::class, 'show'])->name('peserta-didik-aktif.show');
     Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index');
     Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show');
     Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index');

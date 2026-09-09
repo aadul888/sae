@@ -38,11 +38,11 @@ class RolePermission extends Model
                     'label' => 'Dashboard Utama',
                     'desc' => 'Mengakses dashboard ringkasan statistik masing-masing role',
                     'icon' => 'fa-gauge-high',
-                    'roles' => ['admin', 'guru', 'siswa'],
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
                 ],
                 'menu_pengguna' => [
                     'label' => 'Manajemen Pengguna',
-                    'desc' => 'Melihat dan mengelola akun admin, guru/tendik, serta siswa',
+                    'desc' => 'Melihat dan mengelola akun admin, guru/tendik, serta peserta didik',
                     'icon' => 'fa-users-gear',
                     'roles' => ['admin'],
                 ],
@@ -52,8 +52,8 @@ class RolePermission extends Model
                     'icon' => 'fa-users',
                     'roles' => ['admin'],
                 ],
-                'menu_siswa' => [
-                    'label' => 'Data Siswa & Kelas',
+                'menu_peserta_didik' => [
+                    'label' => 'Data Peserta Didik & Kelas',
                     'desc' => 'Melihat direktori peserta didik dan rombel kelas',
                     'icon' => 'fa-user-graduate',
                     'roles' => ['admin'],
@@ -70,8 +70,8 @@ class RolePermission extends Model
                     'icon' => 'fa-cloud-arrow-down',
                     'roles' => ['admin'],
                 ],
-                'menu_siswa_aktif' => [
-                    'label' => 'Manajemen Data — Siswa Aktif',
+                'menu_peserta_didik_aktif' => [
+                    'label' => 'Manajemen Data — Peserta Didik Aktif',
                     'desc' => 'Direktori data peserta didik aktif bersumber dari Dapodik',
                     'icon' => 'fa-user-graduate',
                     'roles' => ['admin', 'guru'],
@@ -104,7 +104,7 @@ class RolePermission extends Model
                     'label' => 'Pengumuman & Info',
                     'desc' => 'Pusat informasi dan broadcast sekolah',
                     'icon' => 'fa-bullhorn',
-                    'roles' => ['admin', 'guru', 'siswa'],
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
                 ],
                 'menu_pengaturan' => [
                     'label' => 'Pengaturan Sistem',
@@ -120,7 +120,7 @@ class RolePermission extends Model
                 ],
                 'menu_rombel' => [
                     'label' => 'Master Data — Rombel',
-                    'desc' => 'Daftar rombongan belajar dan rincian siswa kelas',
+                    'desc' => 'Daftar rombongan belajar dan rincian peserta didik kelas',
                     'icon' => 'fa-school',
                     'roles' => ['admin', 'guru'],
                 ],
@@ -132,20 +132,20 @@ class RolePermission extends Model
                 ],
 
                 // Manajemen Data
-                'menu_berkas_siswa' => [
-                    'label' => 'Manajemen Data — Berkas Siswa',
-                    'desc' => 'Pengelolaan dokumen ijazah, KK, akta lahir, dan berkas siswa',
+                'menu_berkas_peserta_didik' => [
+                    'label' => 'Manajemen Data — Berkas Peserta Didik',
+                    'desc' => 'Pengelolaan dokumen ijazah, KK, akta lahir, dan berkas peserta didik',
                     'icon' => 'fa-folder-open',
                     'roles' => ['admin', 'guru'],
                 ],
                 'menu_perubahan_data' => [
-                    'label' => 'Manajemen Data — Perubahan Data Siswa',
-                    'desc' => 'Pengajuan dan verifikasi permohonan pembaruan biodata siswa',
+                    'label' => 'Manajemen Data — Perubahan Data Peserta Didik',
+                    'desc' => 'Pengajuan dan verifikasi permohonan pembaruan biodata peserta didik',
                     'icon' => 'fa-user-pen',
-                    'roles' => ['admin', 'guru', 'siswa'],
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
                 ],
-                'menu_siswa_tidak_aktif' => [
-                    'label' => 'Manajemen Data — Siswa Tidak Aktif',
+                'menu_peserta_didik_tidak_aktif' => [
+                    'label' => 'Manajemen Data — Peserta Didik Tidak Aktif',
                     'desc' => 'Arsip data peserta didik mutasi keluar, DO, atau nonaktif',
                     'icon' => 'fa-user-xmark',
                     'roles' => ['admin'],
@@ -166,13 +166,13 @@ class RolePermission extends Model
                 // Layanan Digital
                 'menu_e_izin' => [
                     'label' => 'Layanan Digital — E-Izin',
-                    'desc' => 'Pengajuan dan persetujuan izin/sakit siswa secara digital',
+                    'desc' => 'Pengajuan dan persetujuan izin/sakit peserta didik secara digital',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['admin', 'guru', 'siswa'],
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
                 ],
                 'menu_poin' => [
                     'label' => 'Layanan Digital — Poin & Pelanggaran',
-                    'desc' => 'Pencatatan poin prestasi dan tata tertib pelanggaran siswa',
+                    'desc' => 'Pencatatan poin prestasi dan tata tertib pelanggaran peserta didik',
                     'icon' => 'fa-star-half-stroke',
                     'roles' => ['admin', 'guru'],
                 ],
@@ -180,11 +180,11 @@ class RolePermission extends Model
                     'label' => 'Layanan Digital — Agenda Sekolah',
                     'desc' => 'Jadwal kegiatan sekolah dan kalender akademik',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['admin', 'guru', 'siswa'],
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
                 ],
                 'menu_buku_tamu' => [
                     'label' => 'Layanan Digital — Buku Tamu',
-                    'desc' => 'Pencatatan kunjungan tamu dinas, wali murid, dan umum',
+                    'desc' => 'Pencatatan kunjungan tamu dinas, wali peserta didik, dan umum',
                     'icon' => 'fa-address-book',
                     'roles' => ['admin'],
                 ],
@@ -196,9 +196,9 @@ class RolePermission extends Model
                 ],
                 'menu_kelulusan' => [
                     'label' => 'Layanan Digital — Kelulusan',
-                    'desc' => 'Pusat pengumuman kelulusan dan cetak SKL siswa',
+                    'desc' => 'Pusat pengumuman kelulusan dan cetak SKL peserta didik',
                     'icon' => 'fa-graduation-cap',
-                    'roles' => ['admin', 'guru', 'siswa'],
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
                 ],
 
                 // Menu Khusus Guru
@@ -215,42 +215,42 @@ class RolePermission extends Model
                     'roles' => ['guru'],
                 ],
                 'menu_penilaian' => [
-                    'label' => 'Penilaian Siswa (Guru)',
-                    'desc' => 'Input nilai tugas, ulangan harian, dan rapor siswa',
+                    'label' => 'Penilaian Peserta Didik (Guru)',
+                    'desc' => 'Input nilai tugas, ulangan harian, dan rapor peserta didik',
                     'icon' => 'fa-graduation-cap',
                     'roles' => ['guru'],
                 ],
-                'menu_presensi_siswa' => [
-                    'label' => 'Presensi Kelas Siswa (Guru)',
-                    'desc' => 'Input status hadir/sakit/izin/alfa siswa dalam rombel',
+                'menu_presensi_peserta_didik' => [
+                    'label' => 'Presensi Kelas Peserta Didik (Guru)',
+                    'desc' => 'Input status hadir/sakit/izin/alfa peserta didik dalam rombel',
                     'icon' => 'fa-users-viewfinder',
                     'roles' => ['guru'],
                 ],
 
-                // Menu Khusus Siswa
+                // Menu Khusus Peserta Didik
                 'menu_riwayat_rfid' => [
-                    'label' => 'Riwayat Presensi RFID (Siswa)',
+                    'label' => 'Riwayat Presensi RFID (Peserta Didik)',
                     'desc' => 'Melihat catatan log tap kehadiran masuk/pulang harian',
                     'icon' => 'fa-id-card-clip',
-                    'roles' => ['siswa'],
+                    'roles' => ['peserta_didik'],
                 ],
                 'menu_jadwal_pelajaran' => [
-                    'label' => 'Jadwal Pelajaran (Siswa)',
+                    'label' => 'Jadwal Pelajaran (Peserta Didik)',
                     'desc' => 'Melihat kalender mata pelajaran per semester',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['siswa'],
+                    'roles' => ['peserta_didik'],
                 ],
                 'menu_rapor' => [
-                    'label' => 'Transkrip & Rapor (Siswa)',
+                    'label' => 'Transkrip & Rapor (Peserta Didik)',
                     'desc' => 'Melihat capaian nilai akademik dan rapor digital',
                     'icon' => 'fa-file-lines',
-                    'roles' => ['siswa'],
+                    'roles' => ['peserta_didik'],
                 ],
                 'menu_validasi_berkas' => [
-                    'label' => 'Validasi Berkas & Ijazah (Siswa)',
+                    'label' => 'Validasi Berkas & Ijazah (Peserta Didik)',
                     'desc' => 'Pemeriksaan status berkas biodata kependidikan',
                     'icon' => 'fa-folder-open',
-                    'roles' => ['siswa'],
+                    'roles' => ['peserta_didik'],
                 ],
             ],
 

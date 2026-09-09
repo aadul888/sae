@@ -53,7 +53,7 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
-                    {{ number_format($summary['siswa'], 0, ',', '.') }}
+                    {{ number_format($summary['pesertaDidik'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Peserta Didik</div>
             </div>
@@ -91,12 +91,12 @@
                             ['kode', 'Kode Jurusan'],
                             ['nama', 'Kompetensi Keahlian'],
                             ['total_rombel', 'Jml Rombel'],
-                            ['total_siswa', 'Jml Siswa'],
+                            ['total_peserta_didik', 'Jml Peserta Didik'],
                         ];
                     @endphp
                     @foreach ($cols as [$key, $label])
                         <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ in_array($key, ['total_rombel', 'total_siswa']) ? 'text-align: center;' : '' }}
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ in_array($key, ['total_rombel', 'total_peserta_didik']) ? 'text-align: center;' : '' }}
                             data-sort="{{ $key }}">
                             {{ $label }}
                             <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
@@ -147,11 +147,11 @@
                             </span>
                         </td>
                         <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
-                            data-label="Jml Siswa">
+                            data-label="Jml Peserta Didik">
                             <span class="badge"
                                 style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
                                 <i class="fas fa-user-graduate me-1"></i>
-                                {{ number_format($item->total_siswa, 0, ',', '.') }}
+                                {{ number_format($item->total_peserta_didik, 0, ',', '.') }}
                             </span>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.8rem; color: var(--text-muted);" data-label="Tingkat">
@@ -174,7 +174,7 @@
                         </td>
                         <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
-                                <button type="button" class="btn-icon" title="Lihat Daftar Rombel & Siswa"
+                                <button type="button" class="btn-icon" title="Lihat Daftar Rombel & Peserta Didik"
                                     onclick="openRombelModal('{{ $item->kode }}', '{{ addslashes($item->nama) }}')">
                                     <i class="fas fa-eye"></i>
                                 </button>
@@ -276,7 +276,7 @@
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Ruang</th>
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">
-                                Jml Siswa</th>
+                                Jml Peserta Didik</th>
                         </tr>
                     </thead>
                     <tbody id="rombelTableBody">

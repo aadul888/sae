@@ -10,7 +10,7 @@
                 <i class="fas fa-users-gear text-primary me-2"></i> Manajemen Pengguna
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem;">
-                Kelola akun Administrator, Guru / Tenaga Kependidikan, serta Siswa dalam satu modul.
+                Kelola akun Administrator, Guru / Tenaga Kependidikan, serta Peserta Didik dalam satu modul.
             </p>
         </div>
     </div>
@@ -32,10 +32,10 @@
             style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
             <i class="fas fa-id-badge me-1"></i> Tendik ({{ $counts['tendik'] }})
         </a>
-        <a href="{{ request()->fullUrlWithQuery(['tab' => 'siswa']) }}"
-            class="btn {{ $activeTab === 'siswa' ? 'btn-primary' : 'btn-outline' }}"
+        <a href="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}"
+            class="btn {{ $activeTab === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}"
             style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
-            <i class="fas fa-user-graduate me-1"></i> Siswa ({{ $counts['siswa'] }})
+            <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['pesertaDidik'] }})
         </a>
     </div>
 
@@ -84,7 +84,7 @@
                         'admin' => $admins,
                         'guru' => $gurus,
                         'tendik' => $tendiks,
-                        default => $siswas,
+                        default => $pesertaDidiks,
                     };
                 @endphp
                 @forelse ($list as $item)
@@ -114,7 +114,7 @@
                             <span
                                 class="badge {{ $activeTab === 'admin' ? 'badge-primary' : ($activeTab === 'guru' ? 'badge-accent' : ($activeTab === 'tendik' ? 'badge-info' : 'badge-outline')) }}"
                                 style="font-size: 0.73rem; padding: 4px 8px; border-radius: 6px;">
-                                {{ $item->peran_id_str ?: ($activeTab === 'siswa' ? 'Peserta Didik' : ($activeTab === 'tendik' ? 'Tenaga Kependidikan' : 'Pengguna')) }}
+                                {{ $item->peran_id_str ?: ($activeTab === 'peserta_didik' ? 'Peserta Didik' : ($activeTab === 'tendik' ? 'Tenaga Kependidikan' : 'Pengguna')) }}
                             </span>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Kontak">
@@ -126,7 +126,7 @@
                                     onclick="openEditModal({{ json_encode($item) }})">
                                     <i class="fas fa-pen-to-square"></i>
                                 </button>
-                                @if ($activeTab === 'siswa' && $item->peserta_didik_id)
+                                @if ($activeTab === 'peserta_didik' && $item->peserta_didik_id)
                                     <form action="{{ route('dashboard.pengguna.resetPassword', $item->pengguna_id) }}"
                                         method="POST" style="display: inline; margin: 0;" data-action-type="reset"
                                         data-name="{{ $item->nama }}">

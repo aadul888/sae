@@ -1,8 +1,8 @@
 /**
- * Manajemen Data — Siswa Aktif - Frontend JS
+ * Manajemen Data — Peserta Didik Aktif - Frontend JS
  */
 
-window.openBiodataSiswaModal = async function (id) {
+window.openBiodataPesertaDidikModal = async function (id) {
     const modal = document.getElementById("biodataModal");
     const bioNama = document.getElementById("bioNama");
     const bioRombel = document.getElementById("bioRombel");
@@ -19,7 +19,7 @@ window.openBiodataSiswaModal = async function (id) {
 
     try {
         const res = await fetch(
-            "/dashboard/manajemen-data/siswa-aktif/" + encodeURIComponent(id),
+            "/dashboard/manajemen-data/peserta-didik-aktif/" + encodeURIComponent(id),
             {
                 headers: { Accept: "application/json" },
             },

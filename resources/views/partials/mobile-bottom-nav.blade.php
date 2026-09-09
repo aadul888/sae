@@ -1,6 +1,6 @@
 @php
-    $user = session('user', ['role' => 'siswa']);
-    $role = $user['role'] ?? 'siswa';
+    $user = session('user', ['role' => 'peserta_didik']);
+    $role = $user['role'] ?? 'pesertaDidik';
     $currentRoute = request()->route()->getName();
 @endphp
 

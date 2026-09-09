@@ -38,7 +38,7 @@ return new class extends Migration
 
             // Set default CRUD untuk Guru pada menu tertentu
             DB::table('role_permissions')->where('role', 'guru')
-                ->whereIn('permission_key', ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_siswa'])
+                ->whereIn('permission_key', ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_peserta_didik'])
                 ->update([
                     'can_create' => true,
                     'can_read' => true,

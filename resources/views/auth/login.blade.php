@@ -86,9 +86,9 @@
                         style="background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
                         <i class="fas fa-chalkboard-user text-success"></i> Guru
                     </button>
-                    <button type="button" onclick="fillDemo('siswa')"
+                    <button type="button" onclick="fillDemo('peserta_didik')"
                         style="background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
-                        <i class="fas fa-user-graduate text-accent"></i> Siswa
+                        <i class="fas fa-user-graduate text-accent"></i> Peserta Didik
                     </button>
                 </div>
             </div>

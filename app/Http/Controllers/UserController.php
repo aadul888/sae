@@ -76,7 +76,7 @@ class UserController extends Controller
                 ->where('peran_id_str', 'NOT LIKE', '%tata usaha%');
         });
 
-        $siswaQuery = User::where(function ($query) {
+        $pesertaDidikQuery = User::where(function ($query) {
             $query->where(function ($q2) {
                 $q2->where('peran_id_str', 'LIKE', '%siswa%')
                     ->orWhere('peran_id_str', 'LIKE', '%peserta didik%')
@@ -104,7 +104,7 @@ class UserController extends Controller
             $applySearch($adminQuery);
             $applySearch($guruQuery);
             $applySearch($tendikQuery);
-            $applySearch($siswaQuery);
+            $applySearch($pesertaDidikQuery);
         }
 
         $orderFn = function ($query) use ($sort, $sortDir) {
@@ -114,13 +114,13 @@ class UserController extends Controller
         $admins  = tap($adminQuery, $orderFn)->paginate($perPage, ['*'], 'admin_page');
         $gurus   = tap($guruQuery, $orderFn)->paginate($perPage, ['*'], 'guru_page');
         $tendiks = tap($tendikQuery, $orderFn)->paginate($perPage, ['*'], 'tendik_page');
-        $siswas  = tap($siswaQuery, $orderFn)->paginate($perPage, ['*'], 'siswa_page');
+        $pesertaDidiks  = tap($pesertaDidikQuery, $orderFn)->paginate($perPage, ['*'], 'peserta_didik_page');
 
         $counts = [
             'admin'  => (clone $adminQuery)->count(),
             'guru'   => (clone $guruQuery)->count(),
             'tendik' => (clone $tendikQuery)->count(),
-            'siswa'  => (clone $siswaQuery)->count(),
+            'siswa'  => (clone $pesertaDidikQuery)->count(),
         ];
 
         return view('dashboard.pengguna', compact(
@@ -180,14 +180,14 @@ class UserController extends Controller
     }
 
     /**
-     * Reset password siswa ke NISN dari tabel peserta_didik
+     * Reset password peserta didik ke NISN dari tabel peserta_didik
      */
     public function resetPassword($id)
     {
         $user = User::findOrFail($id);
 
         if (!$user->peserta_didik_id) {
-            return back()->with('error', 'Pengguna bukan siswa (tidak memiliki peserta_didik_id).');
+            return back()->with('error', 'Pengguna bukan peserta didik (tidak memiliki peserta_didik_id).');
         }
 
         $pd = DB::table('peserta_didik')
@@ -195,12 +195,12 @@ class UserController extends Controller
             ->first();
 
         if (!$pd || empty($pd->nisn)) {
-            return back()->with('error', 'Data NISN tidak ditemukan untuk siswa ini.');
+            return back()->with('error', 'Data NISN tidak ditemukan untuk peserta didik ini.');
         }
 
         $user->password = Hash::make($pd->nisn);
         $user->save();
 
-        return back()->with('success', "Password siswa {$user->nama} direset ke NISN.");
+        return back()->with('success', "Password peserta didik {$user->nama} direset ke NISN.");
     }
 }

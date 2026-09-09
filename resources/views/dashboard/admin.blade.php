@@ -31,7 +31,7 @@
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_siswa']) }}</div>
+                <div class="dash-stat-value">{{ number_format($stats['total_peserta_didik']) }}</div>
                 <div class="dash-stat-label">Total Peserta Didik</div>
             </div>
         </div>

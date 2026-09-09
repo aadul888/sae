@@ -50,7 +50,7 @@
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($totalSiswa) }}</div>
+                <div class="dash-stat-value">{{ number_format($totalPesertaDidik) }}</div>
                 <div class="dash-stat-label">Peserta Didik Terdata</div>
             </div>
         </div>
@@ -166,7 +166,7 @@
                         3</div>
                     <div>
                         <div style="font-weight: 700; color: var(--text-color);">Klik "Tarik Semua Data" di Feeder</div>
-                        <div style="color: var(--text-muted); font-size: 0.8rem;">Data Sekolah, Rombel, GTK, dan Siswa akan
+                        <div style="color: var(--text-muted); font-size: 0.8rem;">Data Sekolah, Rombel, GTK, dan Peserta Didik akan
                             otomatis diekstrak dan dikirim langsung ke sistem SAE.</div>
                     </div>
                 </div>

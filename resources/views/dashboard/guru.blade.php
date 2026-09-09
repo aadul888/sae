@@ -48,8 +48,8 @@
             <i class="fas fa-users-viewfinder"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_siswa'] }}</div>
-            <div class="dash-stat-label">Siswa Terdaftar</div>
+            <div class="dash-stat-value">{{ $stats['total_peserta_didik'] }}</div>
+            <div class="dash-stat-label">Peserta Didik Terdaftar</div>
         </div>
     </div>
 

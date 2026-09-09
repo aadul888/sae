@@ -1,13 +1,13 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Manajemen Data — Siswa Aktif — SAE')
-@section('dash_title', 'Siswa Aktif')
+@section('title', 'Manajemen Data — Peserta Didik Aktif — SAE')
+@section('dash_title', 'Peserta Didik Aktif')
 
 @section('content')
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                <i class="fas fa-user-graduate text-primary me-2"></i> Manajemen Data — Siswa Aktif
+                <i class="fas fa-user-graduate text-primary me-2"></i> Manajemen Data — Peserta Didik Aktif
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem;">
                 Direktori data peserta didik aktif bersumber langsung dari tabel <strong>Peserta Didik</strong> (Dapodik).
@@ -30,7 +30,7 @@
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
                     {{ number_format($summary['total'], 0, ',', '.') }}
                 </div>
-                <div class="dash-stat-label">Total Siswa Aktif</div>
+                <div class="dash-stat-label">Total Peserta Didik Aktif</div>
             </div>
         </div>
 
@@ -103,7 +103,7 @@
                 </select>
 
                 @if ($q || $rombel || $gender)
-                    <a href="{{ route('dashboard.siswa-aktif.index') }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline"
                         style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
                         <i class="fas fa-undo me-1"></i> Reset
                     </a>
@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    <!-- Datatable Siswa -->
+    <!-- Datatable Peserta Didik -->
     <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
         <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
@@ -204,7 +204,7 @@
                         <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
                                 <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
-                                    onclick="openBiodataSiswaModal('{{ $item->peserta_didik_id }}')">
+                                    onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
                                     <i class="fas fa-id-card"></i>
                                 </button>
                             </div>
@@ -263,7 +263,7 @@
         </div>
     @endif
 
-    {{-- Modal Biodata Siswa --}}
+    {{-- Modal Biodata Peserta Didik --}}
     <div id="biodataModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
@@ -283,7 +283,7 @@
 
             <div id="bioLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
                 <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
-                <div>Memuat biodata siswa...</div>
+                <div>Memuat biodata peserta didik...</div>
             </div>
 
             <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
@@ -336,6 +336,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/siswa-aktif.js') }}?v={{ filemtime(public_path('js/siswa-aktif.js')) }}"></script>
+        <script src="{{ asset('js/peserta-didik-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-aktif.js')) }}"></script>
     @endpush
 @endsection

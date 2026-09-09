@@ -42,15 +42,15 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 3. Siswa
+        // 3. Peserta Didik
         User::updateOrCreate(
-            ['username' => 'siswa@sae.id'],
+            ['username' => 'pesertadidik@sae.id'],
             [
-                'pengguna_id' => 'seed-siswa-1',
-                'nama' => 'Siswa',
-                'username' => 'siswa@sae.id',
+                'pengguna_id' => 'seed-pesertadidik-1',
+                'nama' => 'Peserta Didik',
+                'username' => 'pesertadidik@sae.id',
                 'peran_id_str' => 'Peserta Didik',
-                'password' => Hash::make('Siswa543!'),
+                'password' => Hash::make('PesertaDidik543!'),
                 'ptk_id' => null,
                 'peserta_didik_id' => null,
             ]

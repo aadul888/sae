@@ -170,9 +170,9 @@
                         <span><i class="fas fa-chalkboard-user text-primary me-2"></i> Direktori Guru Aktif</span>
                         <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
                     </a>
-                    <a href="{{ route('dashboard.siswa-aktif.index') }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline"
                         style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                        <span><i class="fas fa-user-graduate text-primary me-2"></i> Direktori Siswa Aktif</span>
+                        <span><i class="fas fa-user-graduate text-primary me-2"></i> Direktori Peserta Didik Aktif</span>
                         <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
                     </a>
                     <a href="#" class="btn btn-outline"

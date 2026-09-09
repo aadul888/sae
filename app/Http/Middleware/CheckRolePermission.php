@@ -22,7 +22,7 @@ class CheckRolePermission
             return redirect()->route('login')->with('error', 'Silakan masuk terlebih dahulu.');
         }
 
-        $role = is_array($user) ? ($user['role'] ?? 'siswa') : ($user->role ?? 'siswa');
+        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
 
         if (!RolePermission::canAccess($role, $permissionKey)) {
             if ($request->expectsJson()) {

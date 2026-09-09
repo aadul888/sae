@@ -23,7 +23,7 @@ class UpdateController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'siswa'));
+        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
 
         $status = $this->updateService->checkUpdate();
         return view('dashboard.update', compact('status'));

@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class SiswaAktifController extends Controller
+class PesertaDidikAktifController extends Controller
 {
     private const SORTABLE = ['nama', 'nisn', 'nipd', 'jenis_kelamin', 'nama_rombel', 'tingkat_pendidikan_id'];
 
@@ -15,7 +15,7 @@ class SiswaAktifController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!in_array($role, ['admin', 'guru', 'tendik'], true)) return redirect()->route('dashboard.' . ($role ?: 'siswa'));
+        if (!in_array($role, ['admin', 'guru', 'tendik'], true)) return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
 
         $q       = trim($request->get('q', ''));
         $rombel  = trim($request->get('rombel', ''));
@@ -25,7 +25,7 @@ class SiswaAktifController extends Controller
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
         if (!Schema::hasTable('peserta_didik')) {
-            return view('dashboard.siswa-aktif', [
+            return view('dashboard.peserta-didik-aktif', [
                 'list' => collect(),
                 'total' => 0,
                 'summary' => ['total' => 0, 'laki' => 0, 'perempuan' => 0, 'rombel' => 0],
@@ -113,7 +113,7 @@ class SiswaAktifController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        return view('dashboard.siswa-aktif', compact(
+        return view('dashboard.peserta-didik-aktif', compact(
             'list',
             'total',
             'summary',

@@ -76,7 +76,7 @@
                     </div>
                     <div>• <b>Admin:</b> admin@sae.id / <code style="color: var(--primary);">Admin543!</code></div>
                     <div>• <b>Guru:</b> gtk@sae.id / <code style="color: var(--primary);">Geteka543!</code></div>
-                    <div>• <b>Siswa:</b> siswa@sae.id / <code style="color: var(--primary);">Siswa543!</code></div>
+                    <div>• <b>Peserta Didik:</b> pesertadidik@sae.id / <code style="color: var(--primary);">PesertaDidik543!</code></div>
                 </div>
 
                 <button type="submit" class="btn btn-primary"

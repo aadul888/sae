@@ -27,11 +27,11 @@ class HomeController extends Controller
         ];
 
         $major_data = [
-            ['nama_jurusan' => 'Teknik Komputer & Jaringan', 'total_siswa' => 320, 'code' => 'TKJ'],
-            ['nama_jurusan' => 'Rekayasa Perangkat Lunak', 'total_siswa' => 295, 'code' => 'RPL'],
-            ['nama_jurusan' => 'Desain Komunikasi Visual', 'total_siswa' => 240, 'code' => 'DKV'],
-            ['nama_jurusan' => 'Teknik Kendaraan Ringan', 'total_siswa' => 210, 'code' => 'TKR'],
-            ['nama_jurusan' => 'Akuntansi Keuangan Lembaga', 'total_siswa' => 183, 'code' => 'AKL'],
+            ['nama_jurusan' => 'Teknik Komputer & Jaringan', 'total_peserta_didik' => 320, 'code' => 'TKJ'],
+            ['nama_jurusan' => 'Rekayasa Perangkat Lunak', 'total_peserta_didik' => 295, 'code' => 'RPL'],
+            ['nama_jurusan' => 'Desain Komunikasi Visual', 'total_peserta_didik' => 240, 'code' => 'DKV'],
+            ['nama_jurusan' => 'Teknik Kendaraan Ringan', 'total_peserta_didik' => 210, 'code' => 'TKR'],
+            ['nama_jurusan' => 'Akuntansi Keuangan Lembaga', 'total_peserta_didik' => 183, 'code' => 'AKL'],
         ];
 
         $chart_detail = [

@@ -40,7 +40,7 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
-                    {{ number_format($summary['siswa'], 0, ',', '.') }}
+                    {{ number_format($summary['pesertaDidik'], 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Peserta Didik</div>
             </div>
@@ -136,12 +136,12 @@
                             ['jurusan', 'Kompetensi Keahlian'],
                             ['wali_kelas', 'Wali Kelas'],
                             ['ruang', 'Ruang'],
-                            ['total_siswa', 'Jml Siswa'],
+                            ['total_peserta_didik', 'Jml Peserta Didik'],
                         ];
                     @endphp
                     @foreach ($cols as [$key, $label])
                         <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'total_siswa' ? 'text-align: center;' : '' }}"
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'total_peserta_didik' ? 'text-align: center;' : '' }}"
                             data-sort="{{ $key }}">
                             {{ $label }}
                             <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
@@ -198,17 +198,17 @@
                             {{ $item->ruang ?: '-' }}
                         </td>
                         <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
-                            data-label="Jml Siswa">
+                            data-label="Jml Peserta Didik">
                             <span class="badge"
                                 style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
                                 <i class="fas fa-user-graduate me-1"></i>
-                                {{ number_format($item->total_siswa, 0, ',', '.') }}
+                                {{ number_format($item->total_peserta_didik, 0, ',', '.') }}
                             </span>
                         </td>
                         <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
-                                <button type="button" class="btn-icon" title="Lihat Daftar Siswa"
-                                    onclick="openSiswaModal('{{ $item->rombongan_belajar_id }}', '{{ addslashes($item->nama) }}')">
+                                <button type="button" class="btn-icon" title="Lihat Daftar Peserta Didik"
+                                    onclick="openPesertaDidikModal('{{ $item->rombongan_belajar_id }}', '{{ addslashes($item->nama) }}')">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
@@ -271,34 +271,34 @@
         </div>
     @endif
 
-    {{-- Detail Siswa Modal --}}
-    <div id="siswaModal" class="modal-backdrop"
+    {{-- Detail Peserta Didik Modal --}}
+    <div id="pesertaDidikModal" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
             style="max-width: 760px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div>
-                    <h3 id="siswaModalTitle"
+                    <h3 id="pesertaDidikModalTitle"
                         style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
                         Daftar Peserta Didik
                     </h3>
-                    <div id="siswaModalSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    <div id="pesertaDidikModalSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
                         -
                     </div>
                 </div>
-                <button type="button" onclick="closeSiswaModal()"
+                <button type="button" onclick="closePesertaDidikModal()"
                     style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <div id="siswaLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            <div id="pesertaDidikLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
                 <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
                 <div>Memuat data peserta didik...</div>
             </div>
 
-            <div id="siswaTableWrapper" style="overflow-y: auto; flex: 1; display: none;">
+            <div id="pesertaDidikTableWrapper" style="overflow-y: auto; flex: 1; display: none;">
                 <table class="table"
                     style="width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 0.83rem;">
                     <thead>
@@ -306,7 +306,7 @@
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); width: 40px; text-align: center;">
                                 No</th>
-                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Siswa</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Peserta Didik</th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">NISN / NIPD</th>
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">
@@ -315,17 +315,17 @@
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="siswaTableBody">
+                    <tbody id="pesertaDidikTableBody">
                     </tbody>
                 </table>
             </div>
 
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-                <div id="siswaModalFooterCount" style="font-size: 0.8rem; color: var(--text-muted);">
-                    Total: 0 Siswa
+                <div id="pesertaDidikModalFooterCount" style="font-size: 0.8rem; color: var(--text-muted);">
+                    Total: 0 Peserta Didik
                 </div>
-                <button type="button" class="btn btn-outline" onclick="closeSiswaModal()"
+                <button type="button" class="btn btn-outline" onclick="closePesertaDidikModal()"
                     style="padding: 8px 18px; font-size: 0.82rem;">Tutup</button>
             </div>
         </div>

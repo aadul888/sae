@@ -89,6 +89,6 @@ class User extends Authenticatable
         if (str_contains($peran, 'guru') || str_contains($peran, 'ptk') || !empty($this->ptk_id)) {
             return 'guru';
         }
-        return 'siswa';
+        return 'peserta_didik';
     }
 }

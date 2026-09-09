@@ -393,7 +393,7 @@ class FeederReceiverController extends Controller
     {
         $now = now();
         $batchPd = [];
-        $batchPenggunaSiswa = [];
+        $batchPenggunaPesertaDidik = [];
         $defaultPassword = Hash::make('Sae12345!');
 
         foreach ($data as $pd) {
@@ -450,11 +450,11 @@ class FeederReceiverController extends Controller
                 'updated_at' => $now,
             ];
 
-            // Akun pengguna siswa (username & password default = NISN / NIK)
+            // Akun pengguna peserta didik (username & password default = NISN / NIK)
             $username = $nisn ?: ($nik ?: $pd['peserta_didik_id']);
             $plainPass = $nisn ?: ($nik ?: 'Sae12345!');
 
-            $batchPenggunaSiswa[] = [
+            $batchPenggunaPesertaDidik[] = [
                 'pengguna_id' => $pd['peserta_didik_id'],
                 'sekolah_id' => null,
                 'username' => $username,
@@ -485,9 +485,9 @@ class FeederReceiverController extends Controller
             DB::table('peserta_didik')->insert($chunk);
         }
 
-        // Hapus akun siswa lama lalu insert akun siswa baru
+        // Hapus akun peserta didik lama lalu insert akun peserta didik baru
         DB::table('pengguna')->whereNotNull('peserta_didik_id')->orWhere('peran_id_str', 'Peserta Didik')->delete();
-        foreach (array_chunk($batchPenggunaSiswa, 250) as $chunk) {
+        foreach (array_chunk($batchPenggunaPesertaDidik, 250) as $chunk) {
             DB::table('pengguna')->insert($chunk);
         }
 
@@ -540,7 +540,7 @@ class FeederReceiverController extends Controller
         // Backup existing live Dapodik pengguna
         $this->archiveTable('pengguna', 'backup_pengguna');
 
-        // Hapus akun selain peserta didik agar tidak menghapus akun siswa yang dibuat dari processPesertaDidik
+        // Hapus akun selain peserta didik agar tidak menghapus akun peserta didik yang dibuat dari processPesertaDidik
         DB::table('pengguna')->whereNull('peserta_didik_id')->where('peran_id_str', '!=', 'Peserta Didik')->delete();
         foreach (array_chunk($batchPengguna, 200) as $chunk) {
             DB::table('pengguna')->insert($chunk);

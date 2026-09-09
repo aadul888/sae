@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Siswa Dashboard — Sistem Aplikasi Edukasi (SAE)')
+@section('title', 'Peserta Didik Dashboard — Sistem Aplikasi Edukasi (SAE)')
 @section('dash_title', 'Portal Peserta Didik')
 
 @section('content')
@@ -8,7 +8,7 @@
 <div class="dash-banner" style="background: linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.1) 100%);">
     <div>
         <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-            Halo, {{ session('user.name', 'Siswa') }}! 🎓
+            Halo, {{ session('user.name', 'Peserta Didik') }}! 🎓
         </h2>
         <p style="color: var(--text-muted); font-size: 0.88rem;">
             NISN: <strong>{{ session('user.nisn', '0071234567') }}</strong> &bull; Kelas: <strong>{{ session('user.kelas', 'XII RPL 1') }}</strong> &bull; Status: <span class="text-success font-bold"><i class="fas fa-circle-check"></i> Aktif</span>

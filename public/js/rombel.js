@@ -2,14 +2,14 @@
  * Master Data — Rombongan Belajar (Sumber: Rombongan Belajar & Peserta Didik) - Frontend JS
  */
 
-window.openSiswaModal = async function (id, nama) {
-    const modal = document.getElementById("siswaModal");
-    const modalTitle = document.getElementById("siswaModalTitle");
-    const modalSubtitle = document.getElementById("siswaModalSubtitle");
-    const loading = document.getElementById("siswaLoading");
-    const tableWrapper = document.getElementById("siswaTableWrapper");
-    const tableBody = document.getElementById("siswaTableBody");
-    const footerCount = document.getElementById("siswaModalFooterCount");
+window.openPesertaDidikModal = async function (id, nama) {
+    const modal = document.getElementById("pesertaDidikModal");
+    const modalTitle = document.getElementById("pesertaDidikModalTitle");
+    const modalSubtitle = document.getElementById("pesertaDidikModalSubtitle");
+    const loading = document.getElementById("pesertaDidikLoading");
+    const tableWrapper = document.getElementById("pesertaDidikTableWrapper");
+    const tableBody = document.getElementById("pesertaDidikTableBody");
+    const footerCount = document.getElementById("pesertaDidikModalFooterCount");
 
     if (!modal) return;
 
@@ -24,7 +24,7 @@ window.openSiswaModal = async function (id, nama) {
         const res = await fetch(
             "/dashboard/master-data/rombel/" +
                 encodeURIComponent(id) +
-                "/siswa",
+                "/peserta-didik",
             {
                 headers: {
                     Accept: "application/json",
@@ -102,8 +102,8 @@ window.openSiswaModal = async function (id, nama) {
     }
 };
 
-window.closeSiswaModal = function () {
-    const modal = document.getElementById("siswaModal");
+window.closePesertaDidikModal = function () {
+    const modal = document.getElementById("pesertaDidikModal");
     if (modal) modal.style.display = "none";
 };
 
@@ -118,18 +118,18 @@ function escapeHtml(str) {
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-    const modal = document.getElementById("siswaModal");
+    const modal = document.getElementById("pesertaDidikModal");
     if (modal) {
         modal.addEventListener("click", function (e) {
             if (e.target === modal) {
-                window.closeSiswaModal();
+                window.closePesertaDidikModal();
             }
         });
     }
 
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
-            window.closeSiswaModal();
+            window.closePesertaDidikModal();
         }
     });
 

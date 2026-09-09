@@ -8,14 +8,14 @@ use Illuminate\Support\Facades\Schema;
 
 class KompetensiKeahlianController extends Controller
 {
-    private const SORTABLE = ['kode', 'nama', 'total_rombel', 'total_siswa'];
+    private const SORTABLE = ['kode', 'nama', 'total_rombel', 'total_peserta_didik'];
 
     public function index(Request $request)
     {
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'siswa'));
+        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
 
         $q       = trim($request->get('q', ''));
         $perPage = (int) $request->get('perPage', 15);
@@ -26,7 +26,7 @@ class KompetensiKeahlianController extends Controller
             return view('dashboard.kompetensi-keahlian', [
                 'list' => collect(),
                 'total' => 0,
-                'summary' => ['jurusan' => 0, 'rombel' => 0, 'siswa' => 0],
+                'summary' => ['jurusan' => 0, 'rombel' => 0, 'peserta_didik' => 0],
                 'q' => $q,
                 'perPage' => $perPage,
                 'sort' => $sort,
@@ -47,9 +47,9 @@ class KompetensiKeahlianController extends Controller
         // Total siswa jika tabel peserta_didik tersedia
         if (Schema::hasTable('peserta_didik')) {
             $baseQuery->leftJoin('peserta_didik', 'rombongan_belajar.rombongan_belajar_id', '=', 'peserta_didik.rombongan_belajar_id')
-                ->addSelect(DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_siswa'));
+                ->addSelect(DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_peserta_didik'));
         } else {
-            $baseQuery->addSelect(DB::raw('0 as total_siswa'));
+            $baseQuery->addSelect(DB::raw('0 as total_peserta_didik'));
         }
 
         if ($q !== '') {
@@ -64,7 +64,7 @@ class KompetensiKeahlianController extends Controller
         $summary = [
             'jurusan' => $total,
             'rombel' => $allResults->sum('total_rombel'),
-            'siswa' => $allResults->sum('total_siswa'),
+            'peserta_didik' => $allResults->sum('total_peserta_didik'),
         ];
 
         // Sorting collection
@@ -140,7 +140,7 @@ class KompetensiKeahlianController extends Controller
                 'rombongan_belajar.kurikulum_id_str as kurikulum',
                 'rombongan_belajar.ptk_id_str as wali_kelas',
                 'rombongan_belajar.id_ruang_str as ruang',
-                DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_siswa')
+                DB::raw('COUNT(DISTINCT peserta_didik.peserta_didik_id) as total_peserta_didik')
             )
             ->groupBy(
                 'rombongan_belajar.rombongan_belajar_id',
