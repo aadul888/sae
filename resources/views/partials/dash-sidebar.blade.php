@@ -106,7 +106,8 @@
                 $isGuruActive =
                     request()->routeIs('dashboard.guru-aktif*') || request()->routeIs('dashboard.guru-tidak-aktif*');
                 $isTendikActive =
-                    request()->routeIs('dashboard.tendik-aktif*') || request()->routeIs('dashboard.tendik-tidak-aktif*');
+                    request()->routeIs('dashboard.tendik-aktif*') ||
+                    request()->routeIs('dashboard.tendik-tidak-aktif*');
                 $isManajemenDataActive =
                     $isSiswaActive ||
                     $isGuruActive ||

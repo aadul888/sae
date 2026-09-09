@@ -10,7 +10,8 @@
                 <i class="fas fa-id-badge text-primary me-2"></i> Manajemen Data — Tendik Aktif
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem;">
-                Direktori Tenaga Kependidikan (TU, Laboran, Perpustakaan, Staf) bersumber dari tabel <strong>GTK</strong> (Dapodik).
+                Direktori Tenaga Kependidikan (TU, Laboran, Perpustakaan, Staf) bersumber dari tabel <strong>GTK</strong>
+                (Dapodik).
             </p>
         </div>
         <div class="dash-banner-actions">
@@ -81,7 +82,8 @@
                     <select id="perPageSelect" class="form-select"
                         style="padding: 6px 10px; font-size: 0.82rem; border-radius: 6px; width: auto; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);">
                         @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -91,7 +93,8 @@
                     style="padding: 6px 10px; font-size: 0.82rem; border-radius: 6px; width: auto; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); max-width: 220px;">
                     <option value="">Semua Status Kepegawaian</option>
                     @foreach ($filterStatus as $st)
-                        <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>{{ $st }}</option>
+                        <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>{{ $st }}
+                        </option>
                     @endforeach
                 </select>
 
@@ -178,10 +181,12 @@
                             <span style="opacity: 0.3;">▲▼</span>
                         @endif
                     </th>
-                    <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left;">
+                    <th
+                        style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left;">
                         Pendidikan
                     </th>
-                    <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                    <th
+                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                         Aksi
                     </th>
                 </tr>
@@ -197,7 +202,8 @@
                                 </div>
                             @endif
                         </td>
-                        <td style="padding: 12px 14px; font-size: 0.83rem; color: var(--text-color);" data-label="NUPTK / NIP">
+                        <td style="padding: 12px 14px; font-size: 0.83rem; color: var(--text-color);"
+                            data-label="NUPTK / NIP">
                             <div>{{ $tendik->nuptk ?: '-' }}</div>
                             @if ($tendik->nip)
                                 <div style="font-size: 0.76rem; color: var(--text-muted);">NIP: {{ $tendik->nip }}</div>
@@ -210,17 +216,20 @@
                             </span>
                         </td>
                         <td style="padding: 12px 14px; font-size: 0.83rem;" data-label="Tugas / Jabatan">
-                            <span class="badge badge-info" style="font-size: 0.75rem; padding: 4px 8px; font-weight: 600;">
+                            <span class="badge badge-info"
+                                style="font-size: 0.75rem; padding: 4px 8px; font-weight: 600;">
                                 {{ $tendik->jabatan_ptk ?: ($tendik->jenis_ptk ?: 'Tenaga Kependidikan') }}
                             </span>
                         </td>
                         <td style="padding: 12px 14px; font-size: 0.83rem;" data-label="Status">
-                            <span class="badge {{ str_contains(strtoupper($tendik->status_kepegawaian ?? ''), 'PNS') ? 'badge-success' : 'badge-warning' }}"
+                            <span
+                                class="badge {{ str_contains(strtoupper($tendik->status_kepegawaian ?? ''), 'PNS') ? 'badge-success' : 'badge-warning' }}"
                                 style="font-size: 0.75rem; padding: 3px 8px;">
                                 {{ $tendik->status_kepegawaian ?: '-' }}
                             </span>
                         </td>
-                        <td style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted);" data-label="Pendidikan">
+                        <td style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted);"
+                            data-label="Pendidikan">
                             <div>{{ $tendik->pendidikan_terakhir ?: '-' }}</div>
                             @if ($tendik->bidang_studi_terakhir)
                                 <div style="font-size: 0.75rem; color: var(--text-muted); opacity: 0.85;">
@@ -240,8 +249,10 @@
                 @empty
                     <tr>
                         <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted);">
-                            <i class="fas fa-user-slash" style="font-size: 2.5rem; opacity: 0.4; margin-bottom: 12px;"></i>
-                            <p style="font-size: 0.9rem; margin: 0;">Tidak ada data Tenaga Kependidikan yang sesuai dengan kriteria pencarian.</p>
+                            <i class="fas fa-user-slash"
+                                style="font-size: 2.5rem; opacity: 0.4; margin-bottom: 12px;"></i>
+                            <p style="font-size: 0.9rem; margin: 0;">Tidak ada data Tenaga Kependidikan yang sesuai dengan
+                                kriteria pencarian.</p>
                         </td>
                     </tr>
                 @endforelse
@@ -251,7 +262,8 @@
 
     <!-- Pagination -->
     @if ($list->hasPages())
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 24px;">
             <div style="font-size: 0.82rem; color: var(--text-muted);">
                 Menampilkan {{ $list->firstItem() ?? 0 }} - {{ $list->lastItem() ?? 0 }} dari {{ $total }} Tendik
             </div>
@@ -264,7 +276,8 @@
     <!-- Detail Tendik Modal -->
     <div id="modalDetailTendik" class="modal-backdrop" style="display: none;">
         <div class="modal-box" style="max-width: 650px; width: 92%;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
                 <h3 style="font-size: 1.1rem; font-weight: 700; margin: 0; color: var(--text-color);">
                     <i class="fas fa-id-badge text-primary me-2"></i> Profil Tenaga Kependidikan
                 </h3>
@@ -273,7 +286,8 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div id="modalBodyTendik" style="font-size: 0.85rem; color: var(--text-color); max-height: 70vh; overflow-y: auto;">
+            <div id="modalBodyTendik"
+                style="font-size: 0.85rem; color: var(--text-color); max-height: 70vh; overflow-y: auto;">
                 <div style="text-align: center; padding: 30px;">
                     <i class="fas fa-spinner fa-spin" style="font-size: 1.8rem; color: var(--primary);"></i>
                     <p style="margin-top: 10px; color: var(--text-muted);">Memuat data...</p>

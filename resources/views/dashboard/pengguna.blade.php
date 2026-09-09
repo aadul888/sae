@@ -80,7 +80,7 @@
             </thead>
             <tbody>
                 @php
-                    $list = match($activeTab) {
+                    $list = match ($activeTab) {
                         'admin' => $admins,
                         'guru' => $gurus,
                         'tendik' => $tendiks,
