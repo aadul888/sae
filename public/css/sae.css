@@ -354,6 +354,72 @@ select:-webkit-autofill {
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
+/* Global Responsive Segmented Tabs & Toolbars */
+.dash-tabs-nav,
+.dash-segmented-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-bg);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 18px;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    box-sizing: border-box;
+}
+.dash-tabs-nav::-webkit-scrollbar,
+.dash-segmented-tabs::-webkit-scrollbar {
+    display: none;
+}
+.dash-tabs-nav .tab-btn,
+.dash-tabs-nav a.btn,
+.dash-tabs-nav button.btn,
+.dash-segmented-tabs .tab-btn,
+.dash-segmented-tabs a.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 7px 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.toolbar-entries {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.per-page-select {
+    display: inline-block;
+    width: auto !important;
+    min-width: 60px;
+    padding: 7px 10px;
+    font-size: 0.82rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    flex: 0 0 auto !important;
+    appearance: auto;
+    -webkit-appearance: auto;
+}
+
 /* Table Styles */
 .table-responsive {
     overflow-x: auto;

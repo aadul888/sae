@@ -75,7 +75,7 @@
     <div class="card" style="padding: 16px; margin-bottom: 20px;">
         <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                <div class="toolbar-entries">
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                     <select id="perPageSelect" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
@@ -283,7 +283,8 @@
                         style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
                         Daftar Peserta Didik
                     </h3>
-                    <div id="pesertaDidikModalSubtitle" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    <div id="pesertaDidikModalSubtitle"
+                        style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
                         -
                     </div>
                 </div>
@@ -306,7 +307,8 @@
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); width: 40px; text-align: center;">
                                 No</th>
-                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Peserta Didik</th>
+                            <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">Nama Peserta Didik
+                            </th>
                             <th style="padding: 10px 14px; font-weight: 700; color: var(--text-muted);">NISN / NIPD</th>
                             <th
                                 style="padding: 10px 14px; font-weight: 700; color: var(--text-muted); text-align: center;">

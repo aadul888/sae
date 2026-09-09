@@ -891,7 +891,46 @@
     opacity: 0.7;
 }
 
-/* Data table toolbar: per-page + live search */
+/* Data table toolbar: per-page + live search + filters */
+.dash-tabs-nav,
+.dash-segmented-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card-bg);
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 18px;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.dash-tabs-nav::-webkit-scrollbar,
+.dash-segmented-tabs::-webkit-scrollbar {
+    display: none;
+}
+.dash-tabs-nav .tab-btn,
+.dash-tabs-nav a.btn,
+.dash-tabs-nav button.btn,
+.dash-segmented-tabs .tab-btn,
+.dash-segmented-tabs a.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 7px 16px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
 .toolbar-row {
     display: flex;
     justify-content: space-between;
@@ -900,14 +939,29 @@
     gap: 12px;
     margin-bottom: 16px;
 }
+.toolbar-entries {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
 .per-page-select {
+    display: inline-block;
+    width: auto !important;
+    min-width: 60px;
     padding: 7px 10px;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     border-radius: 8px;
     border: 1px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-color);
     cursor: pointer;
+    flex: 0 0 auto !important;
+    appearance: auto;
+    -webkit-appearance: auto;
 }
 .live-search-wrap {
     position: relative;
@@ -1151,38 +1205,82 @@
         overflow: visible !important;
     }
 
-    /* Toolbar: per-page + search tumpuk vertikal */
+    /* Toolbar: per-page + search + filter tumpuk rapi di mobile */
     .toolbar-row {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
+        gap: 12px;
     }
-    .toolbar-row > div {
+    .toolbar-row > div:not(.toolbar-entries) {
         width: 100%;
     }
-    .toolbar-row .per-page-select {
-        flex: 1;
+    .toolbar-entries {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 8px;
+        width: auto;
+    }
+    .toolbar-row .per-page-select,
+    .per-page-select,
+    .form-select.per-page-select {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 60px;
     }
     .live-search-wrap {
         width: 100%;
     }
     .live-search-wrap input {
         width: 100%;
+        box-sizing: border-box;
     }
 
-    /* Tab navigasi: scroll horizontal */
+    /* Filter dropdowns flex-wrap di mobile */
+    .card .toolbar-controls,
+    .card > div > div[style*="flex-wrap"] {
+        width: 100% !important;
+    }
+    .card select.form-control,
+    .card select.form-select {
+        flex: 1 1 calc(50% - 6px) !important;
+        min-width: 130px !important;
+        max-width: 100% !important;
+        width: auto !important;
+    }
+
+    /* Tab navigasi segmented: scroll horizontal halus tanpa terpotong */
     .dash-tabs,
+    .dash-tabs-nav,
+    .dash-segmented-tabs,
     [style*="width: fit-content"] {
         width: 100% !important;
-        overflow-x: auto;
-        white-space: nowrap;
-        flex-wrap: nowrap;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        box-sizing: border-box !important;
+        padding: 5px !important;
     }
     .dash-tabs::-webkit-scrollbar,
+    .dash-tabs-nav::-webkit-scrollbar,
+    .dash-segmented-tabs::-webkit-scrollbar,
     [style*="width: fit-content"]::-webkit-scrollbar {
-        display: none;
+        display: none !important;
+    }
+    .dash-tabs-nav .tab-btn,
+    .dash-tabs-nav a.btn,
+    .dash-segmented-tabs .tab-btn,
+    .dash-segmented-tabs a.btn,
+    [style*="width: fit-content"] a,
+    [style*="width: fit-content"] button {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        padding: 7px 14px !important;
+        font-size: 0.8rem !important;
     }
 
     /* Pagination: kompak */

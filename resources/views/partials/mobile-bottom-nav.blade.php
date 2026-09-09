@@ -1,11 +1,12 @@
 @php
     $user = session('user');
-    $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
+    $role = is_array($user) ? $user['role'] ?? 'peserta_didik' : $user->role ?? 'peserta_didik';
 @endphp
 
 <nav class="mobile-bottom-nav">
     <!-- 1. Home -->
-    <a href="{{ route('dashboard.' . $role) }}" class="mobile-nav-item {{ request()->routeIs('dashboard.*') && !request()->has('tab') ? 'active' : '' }}">
+    <a href="{{ route('dashboard.' . $role) }}"
+        class="mobile-nav-item {{ request()->routeIs('dashboard.*') && !request()->has('tab') ? 'active' : '' }}">
         <div class="mobile-nav-icon">
             <i class="fas fa-house"></i>
         </div>

@@ -77,15 +77,15 @@
         <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; flex: 1; min-width: 280px;">
                 <!-- Per Page -->
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-muted);">
+                <div class="toolbar-entries">
                     <span>Tampilkan</span>
-                    <select id="perPageSelect" class="form-select"
-                        style="padding: 6px 10px; font-size: 0.82rem; border-radius: 6px; width: auto; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);">
+                    <select id="perPageSelect" class="form-select per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
                             </option>
                         @endforeach
                     </select>
+                    <span>entri</span>
                 </div>
 
                 <!-- Filter Status Kepegawaian -->

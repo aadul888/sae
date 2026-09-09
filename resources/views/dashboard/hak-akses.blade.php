@@ -23,21 +23,17 @@
     </div>
 
     <!-- Role Switcher Tabs -->
-    <div
-        style="display: flex; gap: 8px; background: var(--card-bg); padding: 5px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; width: fit-content; flex-wrap: wrap;">
+    <div class="dash-tabs-nav">
         <a href="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
-            class="btn {{ $activeRole === 'admin' ? 'btn-primary' : 'btn-outline' }}"
-            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            class="btn {{ $activeRole === 'admin' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-shield me-1"></i> Administrator ({{ $counts['admin'] }})
         </a>
         <a href="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}"
-            class="btn {{ $activeRole === 'guru' ? 'btn-primary' : 'btn-outline' }}"
-            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            class="btn {{ $activeRole === 'guru' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-chalkboard-user me-1"></i> Guru &amp; Tendik ({{ $counts['guru'] }})
         </a>
         <a href="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}"
-            class="btn {{ $activeRole === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}"
-            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            class="btn {{ $activeRole === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['peserta_didik'] ?? 0 }})
         </a>
     </div>

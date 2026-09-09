@@ -15,32 +15,27 @@
         </div>
     </div>
 
-    <div
-        style="display: flex; gap: 8px; background: var(--card-bg); padding: 5px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px; width: fit-content;">
+    <div class="dash-tabs-nav">
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'admin']) }}"
-            class="btn {{ $activeTab === 'admin' ? 'btn-primary' : 'btn-outline' }}"
-            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            class="btn {{ $activeTab === 'admin' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-shield me-1"></i> Administrator ({{ $counts['admin'] }})
         </a>
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'guru']) }}"
-            class="btn {{ $activeTab === 'guru' ? 'btn-primary' : 'btn-outline' }}"
-            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            class="btn {{ $activeTab === 'guru' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-chalkboard-user me-1"></i> Guru ({{ $counts['guru'] }})
         </a>
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'tendik']) }}"
-            class="btn {{ $activeTab === 'tendik' ? 'btn-primary' : 'btn-outline' }}"
-            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            class="btn {{ $activeTab === 'tendik' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-id-badge me-1"></i> Tendik ({{ $counts['tendik'] }})
         </a>
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}"
-            class="btn {{ $activeTab === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}"
-            style="border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            class="btn {{ $activeTab === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['peserta_didik'] }})
         </a>
     </div>
 
     <div class="toolbar-row">
-        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted);">
+        <div class="toolbar-entries">
             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
             <select id="perPageSelect" class="per-page-select">
                 @foreach ([10, 15, 25, 50, 100] as $n)

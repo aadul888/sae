@@ -104,7 +104,8 @@
             {{-- Manajemen Data (Collapsible) --}}
             @php
                 $isPesertaDidikActive =
-                    request()->routeIs('dashboard.peserta-didik-aktif*') || request()->routeIs('dashboard.peserta-didik-tidak-aktif*');
+                    request()->routeIs('dashboard.peserta-didik-aktif*') ||
+                    request()->routeIs('dashboard.peserta-didik-tidak-aktif*');
                 $isGuruActive =
                     request()->routeIs('dashboard.guru-aktif*') || request()->routeIs('dashboard.guru-tidak-aktif*');
                 $isTendikActive =

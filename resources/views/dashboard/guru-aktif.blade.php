@@ -75,7 +75,7 @@
     <div class="card" style="padding: 16px; margin-bottom: 20px;">
         <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                <div class="toolbar-entries">
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                     <select id="perPageSelect" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
