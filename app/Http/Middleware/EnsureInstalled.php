@@ -18,6 +18,13 @@ class EnsureInstalled
 
         $isInstallRoute = $request->is('install*');
 
+        if (!class_exists(\App\Support\SystemSignature::class) || !\App\Support\SystemSignature::verify()) {
+            $dev = class_exists(\App\Support\SystemSignature::class)
+                ? \App\Support\SystemSignature::resolve()
+                : [];
+            return response()->view('errors.integrity', compact('dev'), 503);
+        }
+
         $installed = false;
         if (File::exists(base_path('.env'))) {
             try {

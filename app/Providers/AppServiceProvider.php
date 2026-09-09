@@ -27,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        if (!class_exists(\App\Support\SystemSignature::class) || !\App\Support\SystemSignature::verify()) {
+            throw new \RuntimeException('System integrity verification failed.');
+        }
+
         View::composer('*', function ($view) {
             static $appVersion = null;
             if ($appVersion === null) {
@@ -40,6 +44,7 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
             $view->with('appVersion', $appVersion);
+            $view->with('sysSign', \App\Support\SystemSignature::badge());
         });
     }
 }
