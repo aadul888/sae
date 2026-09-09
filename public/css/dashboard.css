@@ -893,7 +893,8 @@
 
 /* Data table toolbar: per-page + live search + filters */
 .dash-tabs-nav,
-.dash-segmented-tabs {
+.dash-segmented-tabs,
+.dash-desktop-tabs {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -910,14 +911,17 @@
     -ms-overflow-style: none;
 }
 .dash-tabs-nav::-webkit-scrollbar,
-.dash-segmented-tabs::-webkit-scrollbar {
+.dash-segmented-tabs::-webkit-scrollbar,
+.dash-desktop-tabs::-webkit-scrollbar {
     display: none;
 }
 .dash-tabs-nav .tab-btn,
 .dash-tabs-nav a.btn,
 .dash-tabs-nav button.btn,
 .dash-segmented-tabs .tab-btn,
-.dash-segmented-tabs a.btn {
+.dash-segmented-tabs a.btn,
+.dash-desktop-tabs .tab-btn,
+.dash-desktop-tabs a.btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -929,6 +933,49 @@
     border-radius: 8px;
     text-decoration: none;
     transition: all 0.2s ease;
+}
+
+/* Mobile Tab Dropdown Component */
+.dash-mobile-tab-select-wrap {
+    display: none;
+    width: 100%;
+    margin-bottom: 16px;
+}
+.mobile-tab-select-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0 14px;
+    height: 44px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: border-color 0.2s ease;
+}
+.mobile-tab-select-inner:focus-within {
+    border-color: var(--primary, #3b82f6);
+}
+.dash-mobile-tab-select {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 0.88rem;
+    font-weight: 600;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding-right: 20px;
+}
+.mobile-tab-select-inner .select-chevron {
+    position: absolute;
+    right: 14px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    pointer-events: none;
 }
 
 .toolbar-row {
@@ -1249,7 +1296,15 @@
         width: auto !important;
     }
 
-    /* Tab navigasi segmented: scroll horizontal halus tanpa terpotong */
+    /* Tab navigasi di mobile: sembunyikan desktop tabs jika ada mobile dropdown */
+    .dash-desktop-tabs {
+        display: none !important;
+    }
+    .dash-mobile-tab-select-wrap {
+        display: block !important;
+    }
+
+    /* Tab navigasi segmented fallback: scroll horizontal halus tanpa terpotong */
     .dash-tabs,
     .dash-tabs-nav,
     .dash-segmented-tabs,

@@ -22,8 +22,8 @@
         </div>
     </div>
 
-    <!-- Role Switcher Tabs -->
-    <div class="dash-tabs-nav">
+    <!-- Role Switcher Tabs (Desktop) -->
+    <div class="dash-tabs-nav dash-desktop-tabs">
         <a href="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
             class="btn {{ $activeRole === 'admin' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-shield me-1"></i> Administrator ({{ $counts['admin'] }})
@@ -36,6 +36,25 @@
             class="btn {{ $activeRole === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['peserta_didik'] ?? 0 }})
         </a>
+    </div>
+
+    <!-- Role Switcher (Mobile Dropdown) -->
+    <div class="dash-mobile-tab-select-wrap">
+        <div class="mobile-tab-select-inner">
+            <i class="fas {{ $activeRole === 'admin' ? 'fa-user-shield' : ($activeRole === 'guru' ? 'fa-chalkboard-user' : 'fa-user-graduate') }} text-primary me-2"></i>
+            <select class="dash-mobile-tab-select" onchange="window.location.href=this.value" aria-label="Pilih Peran Hak Akses">
+                <option value="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}" {{ $activeRole === 'admin' ? 'selected' : '' }}>
+                    Administrator ({{ $counts['admin'] }})
+                </option>
+                <option value="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}" {{ $activeRole === 'guru' ? 'selected' : '' }}>
+                    Guru &amp; Tendik ({{ $counts['guru'] }})
+                </option>
+                <option value="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}" {{ $activeRole === 'peserta_didik' ? 'selected' : '' }}>
+                    Peserta Didik ({{ $counts['peserta_didik'] ?? 0 }})
+                </option>
+            </select>
+            <i class="fas fa-chevron-down select-chevron"></i>
+        </div>
     </div>
 
     <!-- Permission Groups -->

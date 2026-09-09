@@ -15,7 +15,8 @@
         </div>
     </div>
 
-    <div class="dash-tabs-nav">
+    <!-- Desktop Segmented Tabs -->
+    <div class="dash-tabs-nav dash-desktop-tabs">
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'admin']) }}"
             class="btn {{ $activeTab === 'admin' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-shield me-1"></i> Administrator ({{ $counts['admin'] }})
@@ -32,6 +33,28 @@
             class="btn {{ $activeTab === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['peserta_didik'] }})
         </a>
+    </div>
+
+    <!-- Mobile Dropdown Selector -->
+    <div class="dash-mobile-tab-select-wrap">
+        <div class="mobile-tab-select-inner">
+            <i class="fas {{ $activeTab === 'admin' ? 'fa-user-shield' : ($activeTab === 'guru' ? 'fa-chalkboard-user' : ($activeTab === 'tendik' ? 'fa-id-badge' : 'fa-user-graduate')) }} text-primary me-2"></i>
+            <select class="dash-mobile-tab-select" onchange="window.location.href=this.value" aria-label="Pilih Kategori Pengguna">
+                <option value="{{ request()->fullUrlWithQuery(['tab' => 'admin']) }}" {{ $activeTab === 'admin' ? 'selected' : '' }}>
+                    Administrator ({{ $counts['admin'] }})
+                </option>
+                <option value="{{ request()->fullUrlWithQuery(['tab' => 'guru']) }}" {{ $activeTab === 'guru' ? 'selected' : '' }}>
+                    Guru ({{ $counts['guru'] }})
+                </option>
+                <option value="{{ request()->fullUrlWithQuery(['tab' => 'tendik']) }}" {{ $activeTab === 'tendik' ? 'selected' : '' }}>
+                    Tendik ({{ $counts['tendik'] }})
+                </option>
+                <option value="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}" {{ $activeTab === 'peserta_didik' ? 'selected' : '' }}>
+                    Peserta Didik ({{ $counts['peserta_didik'] }})
+                </option>
+            </select>
+            <i class="fas fa-chevron-down select-chevron"></i>
+        </div>
     </div>
 
     <div class="toolbar-row">

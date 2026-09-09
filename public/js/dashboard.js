@@ -45,11 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Auto-scroll Active Segmented Tab into view on Mobile
     const tabContainers = document.querySelectorAll(
-        ".dash-tabs-nav, .dash-segmented-tabs, .dash-tabs, [style*='overflow-x: auto']"
+        ".dash-tabs-nav, .dash-segmented-tabs, .dash-tabs, [style*='overflow-x: auto']",
     );
     tabContainers.forEach((container) => {
         const activeTab = container.querySelector(
-            ".btn-primary, .active, .tab-btn.active, [aria-selected='true']"
+            ".btn-primary, .active, .tab-btn.active, [aria-selected='true']",
         );
         if (activeTab) {
             setTimeout(() => {
