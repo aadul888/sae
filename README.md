@@ -99,11 +99,11 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 ## 🔑 Akun Default Setelah Instalasi
 
-| Role              | Username / Email         | Password Default        |
-| :---------------- | :----------------------- | :---------------------- |
-| **Administrator**    | `admin@sae.id` / `admin`        | `Admin543!`             |
-| **Guru / Tendik**    | `gtk@sae.id` / NUPTK            | `Geteka543!` / `123456` |
-| **Peserta Didik**    | `pesertadidik@sae.id` / NISN    | `PesertaDidik543!` / NISN |
+| Role              | Username / Email             | Password Default          |
+| :---------------- | :--------------------------- | :------------------------ |
+| **Administrator** | `admin@sae.id` / `admin`     | `Admin543!`               |
+| **Guru / Tendik** | `gtk@sae.id` / NUPTK         | `Geteka543!` / `123456`   |
+| **Peserta Didik** | `pesertadidik@sae.id` / NISN | `PesertaDidik543!` / NISN |
 
 > **Catatan:** Segera ganti password akun setelah berhasil login pertama kali.
 

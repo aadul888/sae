@@ -47,7 +47,6 @@ class UserController extends Controller
         })->where(function ($query) {
             $query->where('peran_id_str', 'NOT LIKE', '%admin%')
                 ->where('peran_id_str', 'NOT LIKE', '%operator%')
-                ->where('peran_id_str', 'NOT LIKE', '%siswa%')
                 ->where('peran_id_str', 'NOT LIKE', '%peserta didik%');
         });
 
@@ -78,8 +77,7 @@ class UserController extends Controller
 
         $pesertaDidikQuery = User::where(function ($query) {
             $query->where(function ($q2) {
-                $q2->where('peran_id_str', 'LIKE', '%siswa%')
-                    ->orWhere('peran_id_str', 'LIKE', '%peserta didik%')
+                $q2->where('peran_id_str', 'LIKE', '%peserta didik%')
                     ->orWhereNotNull('peserta_didik_id');
             })->orWhere(function ($q3) {
                 $q3->whereNull('peran_id_str')
