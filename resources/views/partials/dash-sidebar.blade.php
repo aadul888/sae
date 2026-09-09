@@ -27,6 +27,8 @@
                 <i class="fas fa-user-shield"></i>
             @elseif($role === 'guru')
                 <i class="fas fa-chalkboard-user"></i>
+            @elseif($role === 'tendik')
+                <i class="fas fa-id-badge"></i>
             @else
                 <i class="fas fa-user-graduate"></i>
             @endif

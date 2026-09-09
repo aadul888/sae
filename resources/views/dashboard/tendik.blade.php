@@ -92,22 +92,35 @@
                 <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
-                            <th style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">No. Agenda</th>
-                            <th style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Jenis / Kategori</th>
-                            <th style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Perihal Dokumen</th>
-                            <th style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Status</th>
-                            <th style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">Aksi</th>
+                            <th
+                                style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                                No. Agenda</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                                Jenis / Kategori</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                                Perihal Dokumen</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                                Status</th>
+                            <th
+                                style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">
+                                Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($administrasi_tugas as $adm)
                             <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px; font-size: 0.8rem; font-family: monospace; font-weight: 600; color: var(--text-color);">
+                                <td
+                                    style="padding: 12px 16px; font-size: 0.8rem; font-family: monospace; font-weight: 600; color: var(--text-color);">
                                     {{ $adm['nomor'] }}
-                                    <div style="font-size: 0.72rem; color: var(--text-muted); font-family: sans-serif;">{{ $adm['tgl'] }}</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); font-family: sans-serif;">
+                                        {{ $adm['tgl'] }}</div>
                                 </td>
                                 <td style="padding: 12px 14px; font-size: 0.8rem;">
-                                    <span class="badge {{ str_contains($adm['kategori'], 'Masuk') ? 'badge-primary' : (str_contains($adm['kategori'], 'Keluar') ? 'badge-success' : 'badge-warning') }}"
+                                    <span
+                                        class="badge {{ str_contains($adm['kategori'], 'Masuk') ? 'badge-primary' : (str_contains($adm['kategori'], 'Keluar') ? 'badge-success' : 'badge-warning') }}"
                                         style="font-size: 0.72rem; padding: 3px 8px;">
                                         {{ $adm['kategori'] }}
                                     </span>
@@ -119,12 +132,16 @@
                                     </div>
                                 </td>
                                 <td style="padding: 12px 14px; font-size: 0.8rem;">
-                                    <span style="display: inline-flex; align-items: center; gap: 5px; color: #10b981; font-weight: 600; font-size: 0.78rem;">
-                                        <i class="fas fa-circle-check" style="font-size: 0.68rem;"></i> {{ $adm['status'] }}
+                                    <span
+                                        style="display: inline-flex; align-items: center; gap: 5px; color: #10b981; font-weight: 600; font-size: 0.78rem;">
+                                        <i class="fas fa-circle-check" style="font-size: 0.68rem;"></i>
+                                        {{ $adm['status'] }}
                                     </span>
                                 </td>
                                 <td style="padding: 12px 16px; text-align: center;">
-                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;" title="Lihat Dokumen">
+                                    <button class="btn btn-outline"
+                                        style="padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;"
+                                        title="Lihat Dokumen">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </td>
@@ -138,7 +155,8 @@
         <!-- Right: Menu Cepat Administrasi -->
         <div style="display: flex; flex-direction: column; gap: 16px;">
             <div class="card" style="padding: 18px; border-radius: 14px;">
-                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <div
+                    style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-bolt text-primary"></i> Akses Cepat Administrasi
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -166,7 +184,8 @@
             </div>
 
             <!-- Jam Kerja & Kehadiran -->
-            <div class="card" style="padding: 18px; border-radius: 14px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15);">
+            <div class="card"
+                style="padding: 18px; border-radius: 14px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15);">
                 <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color); margin-bottom: 8px;">
                     <i class="far fa-clock text-primary me-1"></i> Jam Layanan TU Hari Ini
                 </div>
@@ -174,7 +193,8 @@
                     Senin - Kamis: <strong>07.00 - 15.30 WIB</strong><br>
                     Jumat: <strong>07.00 - 15.00 WIB</strong>
                 </div>
-                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 0.76rem; color: #10b981; font-weight: 600;">
+                <div
+                    style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 0.76rem; color: #10b981; font-weight: 600;">
                     <i class="fas fa-check-circle me-1"></i> Presensi staf telah terverifikasi via RFID Gateway.
                 </div>
             </div>

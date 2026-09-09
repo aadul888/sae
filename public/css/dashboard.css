@@ -115,6 +115,11 @@
     color: #10b981;
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
+.role-tendik {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
 .role-siswa {
     background: rgba(6, 182, 212, 0.15);
     color: var(--accent);
