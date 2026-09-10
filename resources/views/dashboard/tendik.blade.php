@@ -40,12 +40,16 @@
                     <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                 </div>
             </div>
-            <div>
-                <button class="btn btn-primary"
-                    style="background: #10b981; border: none; padding: 10px 18px; font-size: 0.85rem; border-radius: 8px; font-weight: 600;">
-                    <i class="fas fa-plus me-1"></i> Catat Surat / Dokumen
-                </button>
-            </div>
+            @if (
+                \App\Models\RolePermission::canAccess('tendik', 'menu_surat_keluar') ||
+                    \App\Models\RolePermission::canAccess('tendik', 'menu_berkas_peserta_didik'))
+                <div>
+                    <button class="btn btn-primary"
+                        style="background: #10b981; border: none; padding: 10px 18px; font-size: 0.85rem; border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-plus me-1"></i> Catat Surat / Dokumen
+                    </button>
+                </div>
+            @endif
         </div>
     </div>
 

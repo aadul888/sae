@@ -21,9 +21,12 @@ class PermissionController extends Controller
         }
 
         $activeRole = $request->query('role', 'admin');
-        if (!in_array($activeRole, ['admin', 'guru', 'peserta_didik'])) {
+        if (!in_array($activeRole, ['admin', 'guru', 'tendik', 'peserta_didik'])) {
             $activeRole = 'admin';
         }
+
+        // Sinkronisasi otomatis modul baru yang didaftarkan pada kode sistem
+        RolePermission::syncAvailablePermissions();
 
         $permissionsConfig = RolePermission::getAvailablePermissions();
 
@@ -32,14 +35,48 @@ class PermissionController extends Controller
             ->get()
             ->keyBy('permission_key');
 
-        // Ringkasan hitungan untuk masing-masing role
-        $counts = [
-            'admin' => RolePermission::where('role', 'admin')->where('is_allowed', true)->count(),
-            'guru' => RolePermission::where('role', 'guru')->where('is_allowed', true)->count(),
-            'peserta_didik' => RolePermission::where('role', 'peserta_didik')->where('is_allowed', true)->count(),
-        ];
+        // Bentuk data flat per modul untuk Datatable
+        $tableModules = [];
+        $groups = [];
+        foreach ($permissionsConfig as $groupName => $items) {
+            $groups[] = $groupName;
+            foreach ($items as $permKey => $perm) {
+                if (in_array($activeRole, $perm['roles'] ?? [])) {
+                    $saved = $savedPermissions->get($permKey);
+                    $tableModules[] = [
+                        'key' => $permKey,
+                        'label' => $perm['label'],
+                        'icon' => $perm['icon'],
+                        'group' => $groupName,
+                        'can_create' => $saved ? (bool) $saved->can_create : ($activeRole === 'admin'),
+                        'can_read' => $saved ? (bool) $saved->can_read : true,
+                        'can_update' => $saved ? (bool) $saved->can_update : ($activeRole === 'admin'),
+                        'can_delete' => $saved ? (bool) $saved->can_delete : ($activeRole === 'admin'),
+                        'is_locked' => ($activeRole === 'admin' && $permKey === 'menu_hak_akses'),
+                    ];
+                }
+            }
+        }
 
-        return view('dashboard.hak-akses', compact('activeRole', 'permissionsConfig', 'savedPermissions', 'counts'));
+        // Ringkasan hitungan item aktif yang relevan untuk masing-masing role
+        $counts = [];
+        foreach (['admin', 'guru', 'tendik', 'peserta_didik'] as $r) {
+            $relevantKeys = [];
+            foreach ($permissionsConfig as $items) {
+                foreach ($items as $k => $p) {
+                    if (in_array($r, $p['roles'] ?? [])) {
+                        $relevantKeys[] = $k;
+                    }
+                }
+            }
+            $counts[$r] = RolePermission::where('role', $r)
+                ->whereIn('permission_key', $relevantKeys)
+                ->where('is_allowed', true)
+                ->where('can_read', true)
+                ->count();
+        }
+
+        return view('dashboard.hak-akses', compact('activeRole', 'permissionsConfig', 'savedPermissions', 'tableModules', 'groups', 'counts'));
     }
 
     /**
@@ -56,9 +93,9 @@ class PermissionController extends Controller
         $targetRole = $request->input('role');
         $permissionKey = $request->input('permission_key');
         $isAllowed = filter_var($request->input('is_allowed'), FILTER_VALIDATE_BOOLEAN);
-        $action = $request->input('action'); // null jika toggle akses menu keseluruhan, atau 'create','read','update','delete'
+        $action = $request->input('action', 'read'); // 'create', 'read', 'update', 'delete'
 
-        if (!in_array($targetRole, ['admin', 'guru', 'peserta_didik']) || empty($permissionKey)) {
+        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik']) || empty($permissionKey)) {
             return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
         }
 
@@ -70,47 +107,81 @@ class PermissionController extends Controller
             ], 422);
         }
 
-        // Jika mengubah aksi CRUD spesifik
+        // Ambil atau buat record izin
+        $perm = RolePermission::firstOrCreate(
+            ['role' => $targetRole, 'permission_key' => $permissionKey],
+            [
+                'is_allowed' => true,
+                'can_create' => false,
+                'can_read' => true,
+                'can_update' => false,
+                'can_delete' => false,
+            ]
+        );
+
         if ($action && in_array($action, ['create', 'read', 'update', 'delete'])) {
             $column = 'can_' . $action;
-            $perm = RolePermission::firstOrCreate(
-                ['role' => $targetRole, 'permission_key' => $permissionKey],
-                ['is_allowed' => true, 'can_create' => false, 'can_read' => true, 'can_update' => false, 'can_delete' => false]
-            );
             $perm->{$column} = $isAllowed;
-            $perm->save();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Izin ' . strtoupper($action) . ' berhasil diperbarui.',
-                'data' => [
-                    'role' => $targetRole,
-                    'permission_key' => $permissionKey,
-                    'action' => $action,
-                    'is_allowed' => $isAllowed,
-                ],
-            ]);
+            // Jika create/update/delete dinyalakan, otomatis read dan is_allowed juga nyala
+            if ($isAllowed && in_array($action, ['create', 'update', 'delete'])) {
+                $perm->can_read = true;
+                $perm->is_allowed = true;
+            }
+
+            // Jika read dimatikan, matikan seluruh aksi operasional terkait
+            if ($action === 'read') {
+                $perm->is_allowed = $isAllowed;
+                if (!$isAllowed) {
+                    $perm->can_create = false;
+                    $perm->can_update = false;
+                    $perm->can_delete = false;
+                }
+            }
+
+            // Jika semua 4 aksi false, set is_allowed = false
+            if (!$perm->can_create && !$perm->can_read && !$perm->can_update && !$perm->can_delete) {
+                $perm->is_allowed = false;
+            }
         }
 
-        // Toggle akses menu keseluruhan
-        $perm = RolePermission::firstOrNew(['role' => $targetRole, 'permission_key' => $permissionKey]);
-        $perm->is_allowed = $isAllowed;
-        if (!$perm->exists) {
-            $perm->can_create = ($targetRole === 'admin');
-            $perm->can_read = true;
-            $perm->can_update = ($targetRole === 'admin');
-            $perm->can_delete = ($targetRole === 'admin');
-        }
         $perm->save();
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Izin berhasil diperbarui.',
+            'message' => 'Izin ' . strtoupper($action) . ' berhasil diperbarui.',
             'data' => [
                 'role' => $targetRole,
                 'permission_key' => $permissionKey,
-                'is_allowed' => $isAllowed,
+                'action' => $action,
+                'is_allowed' => (bool) $perm->is_allowed,
+                'can_create' => (bool) $perm->can_create,
+                'can_read' => (bool) $perm->can_read,
+                'can_update' => (bool) $perm->can_update,
+                'can_delete' => (bool) $perm->can_delete,
             ],
+        ]);
+    }
+
+    /**
+     * Sinkronkan modul sistem secara manual (AJAX)
+     */
+    public function sync(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $count = RolePermission::syncAvailablePermissions();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $count > 0
+                ? "Sinkronisasi berhasil! {$count} modul baru ditambahkan ke database."
+                : 'Sinkronisasi berhasil! Seluruh modul sudah mutakhir.',
+            'count' => $count,
         ]);
     }
 
@@ -126,81 +197,13 @@ class PermissionController extends Controller
         }
 
         $targetRole = $request->input('role');
-        if (!in_array($targetRole, ['admin', 'guru', 'peserta_didik'])) {
+        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik'])) {
             return response()->json(['status' => 'error', 'message' => 'Role tidak valid'], 422);
         }
 
-        // Hapus konfigurasi lama role tersebut
+        // Hapus konfigurasi lama role tersebut dan sinkronkan ulang bawaan
         RolePermission::where('role', $targetRole)->delete();
-
-        $defaults = [];
-        $now = now();
-
-        if ($targetRole === 'admin') {
-            $keys = [
-                'menu_dashboard',
-                'menu_pengguna',
-                'menu_guru',
-                'menu_peserta_didik',
-                'menu_rfid',
-                'menu_dapodik',
-                'menu_update',
-                'menu_hak_akses',
-                'menu_pengumuman',
-                'menu_pengaturan',
-                'fitur_pengguna_edit',
-                'fitur_pengguna_hapus',
-                'fitur_pengguna_reset',
-                'fitur_dapodik_sync',
-                'fitur_system_update'
-            ];
-            foreach ($keys as $k) {
-                $defaults[] = [
-                    'role' => 'admin',
-                    'permission_key' => $k,
-                    'is_allowed' => true,
-                    'can_create' => true,
-                    'can_read' => true,
-                    'can_update' => true,
-                    'can_delete' => true,
-                    'created_at' => $now,
-                    'updated_at' => $now
-                ];
-            }
-        } elseif ($targetRole === 'guru') {
-            $keys = ['menu_dashboard', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_peserta_didik', 'menu_pengumuman'];
-            foreach ($keys as $k) {
-                $isCrud = in_array($k, ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_peserta_didik']);
-                $defaults[] = [
-                    'role' => 'guru',
-                    'permission_key' => $k,
-                    'is_allowed' => true,
-                    'can_create' => $isCrud,
-                    'can_read' => true,
-                    'can_update' => $isCrud,
-                    'can_delete' => false,
-                    'created_at' => $now,
-                    'updated_at' => $now
-                ];
-            }
-        } else {
-            $keys = ['menu_dashboard', 'menu_riwayat_rfid', 'menu_jadwal_pelajaran', 'menu_rapor', 'menu_validasi_berkas', 'menu_pengumuman'];
-            foreach ($keys as $k) {
-                $defaults[] = [
-                    'role' => 'peserta_didik',
-                    'permission_key' => $k,
-                    'is_allowed' => true,
-                    'can_create' => false,
-                    'can_read' => true,
-                    'can_update' => false,
-                    'can_delete' => false,
-                    'created_at' => $now,
-                    'updated_at' => $now
-                ];
-            }
-        }
-
-        DB::table('role_permissions')->insert($defaults);
+        RolePermission::syncAvailablePermissions();
 
         return response()->json([
             'status' => 'success',

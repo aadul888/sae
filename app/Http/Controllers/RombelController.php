@@ -34,7 +34,9 @@ class RombelController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_rombel')) {
+            return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Rombel dinonaktifkan oleh Administrator.');
+        }
 
         $q       = trim($request->get('q', ''));
         $tingkat = trim($request->get('tingkat', ''));
@@ -211,6 +213,10 @@ class RombelController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_rombel')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
+        }
 
         $rombel = DB::table('rombongan_belajar')
             ->where('rombongan_belajar_id', $id)

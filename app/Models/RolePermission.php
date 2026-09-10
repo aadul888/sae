@@ -28,266 +28,226 @@ class RolePermission extends Model
     ];
 
     /**
-     * Definisi seluruh daftar menu & fitur yang dapat dikonfigurasi hak aksesnya
+     * Definisi seluruh daftar menu & fitur yang dapat dikonfigurasi hak aksesnya,
+     * dikelompokkan berdasarkan cluster modul sistem.
      */
     public static function getAvailablePermissions(): array
     {
         return [
-            'Menu Navigasi' => [
+            'Menu Utama' => [
                 'menu_dashboard' => [
                     'label' => 'Dashboard Utama',
-                    'desc' => 'Mengakses dashboard ringkasan statistik masing-masing role',
                     'icon' => 'fa-gauge-high',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
-                ],
-                'menu_pengguna' => [
-                    'label' => 'Manajemen Pengguna',
-                    'desc' => 'Melihat dan mengelola akun admin, guru/tendik, serta peserta didik',
-                    'icon' => 'fa-users-gear',
-                    'roles' => ['admin'],
-                ],
-                'menu_guru' => [
-                    'label' => 'Data Guru & Tendik',
-                    'desc' => 'Melihat data kepegawaian PTK dan biodata GTK',
-                    'icon' => 'fa-users',
-                    'roles' => ['admin'],
-                ],
-                'menu_peserta_didik' => [
-                    'label' => 'Data Peserta Didik & Kelas',
-                    'desc' => 'Melihat direktori peserta didik dan rombel kelas',
-                    'icon' => 'fa-user-graduate',
-                    'roles' => ['admin'],
-                ],
-                'menu_rfid' => [
-                    'label' => 'RFID & Presensi Realtime',
-                    'desc' => 'Monitoring absensi tap kartu RFID dan status kehadiran',
-                    'icon' => 'fa-id-card',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
                 'menu_dapodik' => [
                     'label' => 'Tarik Data Dapodik',
-                    'desc' => 'Sinkronisasi web service data lokal Dapodikdasmen',
                     'icon' => 'fa-cloud-arrow-down',
                     'roles' => ['admin'],
                 ],
-                'menu_peserta_didik_aktif' => [
-                    'label' => 'Manajemen Data — Peserta Didik Aktif',
-                    'desc' => 'Direktori data peserta didik aktif bersumber dari Dapodik',
-                    'icon' => 'fa-user-graduate',
-                    'roles' => ['admin', 'guru'],
-                ],
-                'menu_guru_aktif' => [
-                    'label' => 'Manajemen Data — Guru Aktif',
-                    'desc' => 'Direktori pendidik dan guru aktif',
-                    'icon' => 'fa-chalkboard-user',
-                    'roles' => ['admin', 'guru'],
-                ],
-                'menu_tendik_aktif' => [
-                    'label' => 'Manajemen Data — Tendik Aktif',
-                    'desc' => 'Direktori tenaga kependidikan (TU, laboran, pustakawan, staf) aktif',
-                    'icon' => 'fa-id-badge',
-                    'roles' => ['admin', 'guru'],
-                ],
-                'menu_update' => [
-                    'label' => 'Update Sistem',
-                    'desc' => 'Deteksi dan eksekusi pembaruan source code & database',
-                    'icon' => 'fa-arrows-rotate',
-                    'roles' => ['admin'],
-                ],
-                'menu_maintenance' => [
-                    'label' => 'Arsip & Maintenance',
-                    'desc' => 'Mencadangkan data dan membersihkan log sistem',
-                    'icon' => 'fa-server',
-                    'roles' => ['admin'],
-                ],
-                'menu_hak_akses' => [
-                    'label' => 'Pengaturan Hak Akses (Modul Baru)',
-                    'desc' => 'Mengonfigurasi hak akses menu dan fitur tiap peran pengguna',
-                    'icon' => 'fa-shield-halved',
-                    'roles' => ['admin'],
-                ],
-                'menu_pengumuman' => [
-                    'label' => 'Pengumuman & Info',
-                    'desc' => 'Pusat informasi dan broadcast sekolah',
-                    'icon' => 'fa-bullhorn',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
-                ],
-                'menu_pengaturan' => [
-                    'label' => 'Pengaturan Sistem',
-                    'desc' => 'Konfigurasi identitas sekolah dan parameter aplikasi',
-                    'icon' => 'fa-sliders',
-                    'roles' => ['admin'],
-                ],
+            ],
+
+            'Master Data' => [
                 'menu_kompetensi_keahlian' => [
-                    'label' => 'Master Data — Kompetensi Keahlian',
-                    'desc' => 'Mengelola kode dan nama kompetensi keahlian sekolah',
+                    'label' => 'Kompetensi Keahlian',
                     'icon' => 'fa-laptop-code',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_rombel' => [
-                    'label' => 'Master Data — Rombel',
-                    'desc' => 'Daftar rombongan belajar dan rincian peserta didik kelas',
+                    'label' => 'Rombongan Belajar (Rombel)',
                     'icon' => 'fa-school',
-                    'roles' => ['admin', 'guru'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_pembelajaran' => [
-                    'label' => 'Master Data — Pembelajaran',
-                    'desc' => 'Mata pelajaran dan alokasi jam pembelajaran kurikulum',
+                    'label' => 'Pembelajaran',
                     'icon' => 'fa-book-bookmark',
                     'roles' => ['admin', 'guru'],
                 ],
+            ],
 
-                // Manajemen Data
+            'Manajemen Data' => [
+                'menu_peserta_didik_aktif' => [
+                    'label' => 'Peserta Didik Aktif',
+                    'icon' => 'fa-user-graduate',
+                    'roles' => ['admin', 'guru', 'tendik'],
+                ],
+                'menu_guru_aktif' => [
+                    'label' => 'Guru Aktif',
+                    'icon' => 'fa-chalkboard-user',
+                    'roles' => ['admin', 'guru', 'tendik'],
+                ],
+                'menu_tendik_aktif' => [
+                    'label' => 'Tendik Aktif',
+                    'icon' => 'fa-id-badge',
+                    'roles' => ['admin', 'guru', 'tendik'],
+                ],
                 'menu_berkas_peserta_didik' => [
-                    'label' => 'Manajemen Data — Berkas Peserta Didik',
-                    'desc' => 'Pengelolaan dokumen ijazah, KK, akta lahir, dan berkas peserta didik',
+                    'label' => 'Berkas Peserta Didik',
                     'icon' => 'fa-folder-open',
-                    'roles' => ['admin', 'guru'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_perubahan_data' => [
-                    'label' => 'Manajemen Data — Perubahan Data Peserta Didik',
-                    'desc' => 'Pengajuan dan verifikasi permohonan pembaruan biodata peserta didik',
+                    'label' => 'Perubahan Data',
                     'icon' => 'fa-user-pen',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
                 'menu_peserta_didik_tidak_aktif' => [
-                    'label' => 'Manajemen Data — Peserta Didik Tidak Aktif',
-                    'desc' => 'Arsip data peserta didik mutasi keluar, DO, atau nonaktif',
+                    'label' => 'Peserta Didik Tidak Aktif',
                     'icon' => 'fa-user-xmark',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_guru_tidak_aktif' => [
-                    'label' => 'Manajemen Data — Guru Tidak Aktif',
-                    'desc' => 'Arsip data pendidik dan guru purna/mutasi',
+                    'label' => 'Guru Tidak Aktif',
                     'icon' => 'fa-user-slash',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_tendik_tidak_aktif' => [
-                    'label' => 'Manajemen Data — Tendik Tidak Aktif',
-                    'desc' => 'Arsip data tenaga kependidikan purna/mutasi',
+                    'label' => 'Tendik Tidak Aktif',
                     'icon' => 'fa-id-badge',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
+            ],
 
-                // Layanan Digital
+            'Layanan Digital' => [
+                'menu_pengumuman' => [
+                    'label' => 'Pengumuman & Broadcast',
+                    'icon' => 'fa-bullhorn',
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
+                ],
+                'menu_rfid' => [
+                    'label' => 'RFID & Presensi Realtime',
+                    'icon' => 'fa-id-card',
+                    'roles' => ['admin', 'guru', 'tendik'],
+                ],
                 'menu_e_izin' => [
-                    'label' => 'Layanan Digital — E-Izin',
-                    'desc' => 'Pengajuan dan persetujuan izin/sakit peserta didik secara digital',
+                    'label' => 'E-Izin',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
                 'menu_poin' => [
-                    'label' => 'Layanan Digital — Poin & Pelanggaran',
-                    'desc' => 'Pencatatan poin prestasi dan tata tertib pelanggaran peserta didik',
+                    'label' => 'Poin & Pelanggaran',
                     'icon' => 'fa-star-half-stroke',
-                    'roles' => ['admin', 'guru'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_agenda' => [
-                    'label' => 'Layanan Digital — Agenda Sekolah',
-                    'desc' => 'Jadwal kegiatan sekolah dan kalender akademik',
+                    'label' => 'Agenda Sekolah',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
                 'menu_buku_tamu' => [
-                    'label' => 'Layanan Digital — Buku Tamu',
-                    'desc' => 'Pencatatan kunjungan tamu dinas, wali peserta didik, dan umum',
+                    'label' => 'Buku Tamu',
                     'icon' => 'fa-address-book',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_inventaris' => [
-                    'label' => 'Layanan Digital — Inventaris',
-                    'desc' => 'Pengelolaan sarana prasarana dan inventaris barang sekolah',
+                    'label' => 'Inventaris Barang',
                     'icon' => 'fa-boxes-stacked',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_kelulusan' => [
-                    'label' => 'Layanan Digital — Kelulusan',
-                    'desc' => 'Pusat pengumuman kelulusan dan cetak SKL peserta didik',
+                    'label' => 'Kelulusan Siswa',
                     'icon' => 'fa-graduation-cap',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
+            ],
 
-                // Menu Khusus Guru
+            'Akademik Guru' => [
                 'menu_presensi_mengajar' => [
-                    'label' => 'Presensi Mengajar (Guru)',
-                    'desc' => 'Pencatatan kehadiran mengajar di kelas',
+                    'label' => 'Presensi Mengajar',
                     'icon' => 'fa-calendar-check',
                     'roles' => ['guru'],
                 ],
                 'menu_agenda_kbm' => [
-                    'label' => 'Jurnal & Agenda KBM (Guru)',
-                    'desc' => 'Pencatatan materi pelajaran dan ketercapaian kompetensi',
+                    'label' => 'Jurnal & Agenda KBM',
                     'icon' => 'fa-book-open-reader',
                     'roles' => ['guru'],
                 ],
                 'menu_penilaian' => [
-                    'label' => 'Penilaian Peserta Didik (Guru)',
-                    'desc' => 'Input nilai tugas, ulangan harian, dan rapor peserta didik',
+                    'label' => 'Penilaian Siswa',
                     'icon' => 'fa-graduation-cap',
                     'roles' => ['guru'],
                 ],
                 'menu_presensi_peserta_didik' => [
-                    'label' => 'Presensi Kelas Peserta Didik (Guru)',
-                    'desc' => 'Input status hadir/sakit/izin/alfa peserta didik dalam rombel',
+                    'label' => 'Presensi Kelas Siswa',
                     'icon' => 'fa-users-viewfinder',
                     'roles' => ['guru'],
                 ],
+            ],
 
-                // Menu Khusus Peserta Didik
+            'Portal Peserta Didik' => [
                 'menu_riwayat_rfid' => [
-                    'label' => 'Riwayat Presensi RFID (Peserta Didik)',
-                    'desc' => 'Melihat catatan log tap kehadiran masuk/pulang harian',
+                    'label' => 'Riwayat Presensi RFID',
                     'icon' => 'fa-id-card-clip',
                     'roles' => ['peserta_didik'],
                 ],
                 'menu_jadwal_pelajaran' => [
-                    'label' => 'Jadwal Pelajaran (Peserta Didik)',
-                    'desc' => 'Melihat kalender mata pelajaran per semester',
+                    'label' => 'Jadwal Pelajaran',
                     'icon' => 'fa-calendar-days',
                     'roles' => ['peserta_didik'],
                 ],
                 'menu_rapor' => [
-                    'label' => 'Transkrip & Rapor (Peserta Didik)',
-                    'desc' => 'Melihat capaian nilai akademik dan rapor digital',
+                    'label' => 'Transkrip & Rapor',
                     'icon' => 'fa-file-lines',
                     'roles' => ['peserta_didik'],
                 ],
                 'menu_validasi_berkas' => [
-                    'label' => 'Validasi Berkas & Ijazah (Peserta Didik)',
-                    'desc' => 'Pemeriksaan status berkas biodata kependidikan',
+                    'label' => 'Validasi Berkas & Ijazah',
                     'icon' => 'fa-folder-open',
                     'roles' => ['peserta_didik'],
+                ],
+            ],
+
+            'Sistem & Pengaturan' => [
+                'menu_pengguna' => [
+                    'label' => 'Manajemen Pengguna',
+                    'icon' => 'fa-users-gear',
+                    'roles' => ['admin'],
+                ],
+                'menu_hak_akses' => [
+                    'label' => 'Pengaturan Hak Akses',
+                    'icon' => 'fa-shield-halved',
+                    'roles' => ['admin'],
+                ],
+                'menu_pengaturan' => [
+                    'label' => 'Identitas Sekolah & Pengaturan',
+                    'icon' => 'fa-sliders',
+                    'roles' => ['admin'],
+                ],
+                'menu_maintenance' => [
+                    'label' => 'Arsip & Maintenance',
+                    'icon' => 'fa-server',
+                    'roles' => ['admin'],
+                ],
+                'menu_update' => [
+                    'label' => 'Update Sistem',
+                    'icon' => 'fa-arrows-rotate',
+                    'roles' => ['admin'],
                 ],
             ],
 
             'Fitur Operasional' => [
                 'fitur_pengguna_edit' => [
                     'label' => 'Edit Data Pengguna',
-                    'desc' => 'Mengubah identitas nama, kontak, dan alamat pengguna',
                     'icon' => 'fa-user-pen',
                     'roles' => ['admin'],
                 ],
                 'fitur_pengguna_hapus' => [
                     'label' => 'Hapus Akun Pengguna',
-                    'desc' => 'Menghapus data akun login pengguna secara permanen',
                     'icon' => 'fa-user-xmark',
                     'roles' => ['admin'],
                 ],
                 'fitur_pengguna_reset' => [
                     'label' => 'Reset Password Pengguna',
-                    'desc' => 'Mengembalikan password default pada akun pengguna',
                     'icon' => 'fa-key',
                     'roles' => ['admin'],
                 ],
                 'fitur_dapodik_sync' => [
                     'label' => 'Generate & Ubah Web Service Dapodik',
-                    'desc' => 'Mengubah URL atau Token Web Service integrasi Dapodik',
                     'icon' => 'fa-link',
                     'roles' => ['admin'],
                 ],
                 'fitur_system_update' => [
                     'label' => 'Eksekusi Update Sistem',
-                    'desc' => 'Menjalankan tombol pasang update pada sistem',
                     'icon' => 'fa-download',
                     'roles' => ['admin'],
                 ],
@@ -307,11 +267,98 @@ class RolePermission extends Model
 
         $row = self::where('role', $role)->where('permission_key', $permissionKey)->first();
         if ($row) {
-            return (bool) $row->is_allowed;
+            return (bool) ($row->is_allowed && $row->can_read);
         }
 
-        // Jika belum tercatat, default admin = true, role lain = false kecuali ada di defaults
-        return $role === 'admin';
+        // Admin default true
+        if ($role === 'admin') {
+            return true;
+        }
+
+        // Cek bawaan default jika konfigurasi belum tersimpan
+        return self::isDefaultAllowed($role, $permissionKey);
+    }
+
+    /**
+     * Sinkronisasi seluruh modul & fitur ke tabel role_permissions secara otomatis.
+     * Jika ada modul baru yang didaftarkan pada sistem, akan otomatis ditambahkan ke database.
+     */
+    public static function syncAvailablePermissions(): int
+    {
+        if (!Schema::hasTable('role_permissions')) {
+            return 0;
+        }
+
+        $allPermissions = self::getAvailablePermissions();
+        $addedCount = 0;
+        $now = now();
+
+        foreach ($allPermissions as $groupName => $items) {
+            foreach ($items as $permKey => $config) {
+                $roles = $config['roles'] ?? ['admin'];
+                foreach ($roles as $role) {
+                    $exists = self::where('role', $role)->where('permission_key', $permKey)->exists();
+                    if (!$exists) {
+                        $isDef = self::isDefaultAllowed($role, $permKey);
+                        self::create([
+                            'role' => $role,
+                            'permission_key' => $permKey,
+                            'is_allowed' => ($role === 'admin') ? true : $isDef,
+                            'can_create' => ($role === 'admin') ? true : ($isDef && in_array($role, ['guru', 'tendik'])),
+                            'can_read' => ($role === 'admin') ? true : $isDef,
+                            'can_update' => ($role === 'admin') ? true : ($isDef && in_array($role, ['guru', 'tendik'])),
+                            'can_delete' => ($role === 'admin') ? true : false,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]);
+                        $addedCount++;
+                    }
+                }
+            }
+        }
+
+        return $addedCount;
+    }
+
+    /**
+     * Daftar izin default bawaan sistem untuk tiap role jika belum dikustomisasi
+     */
+    public static function isDefaultAllowed(string $role, string $permissionKey): bool
+    {
+        $defaults = [
+            'guru' => [
+                'menu_dashboard',
+                'menu_presensi_mengajar',
+                'menu_agenda_kbm',
+                'menu_penilaian',
+                'menu_presensi_peserta_didik',
+                'menu_pengumuman',
+                'menu_peserta_didik_aktif',
+                'menu_guru_aktif',
+                'menu_rombel',
+                'menu_pembelajaran',
+            ],
+            'tendik' => [
+                'menu_dashboard',
+                'menu_tendik_aktif',
+                'menu_guru_aktif',
+                'menu_peserta_didik_aktif',
+                'menu_buku_tamu',
+                'menu_inventaris',
+                'menu_agenda',
+                'menu_pengumuman',
+            ],
+            'peserta_didik' => [
+                'menu_dashboard',
+                'menu_riwayat_rfid',
+                'menu_jadwal_pelajaran',
+                'menu_rapor',
+                'menu_validasi_berkas',
+                'menu_pengumuman',
+            ],
+        ];
+
+        return in_array($permissionKey, $defaults[$role] ?? [], true);
     }
 
     /**
@@ -334,6 +381,16 @@ class RolePermission extends Model
             return (bool) ($row->is_allowed && $row->{$actionCol});
         }
 
-        return $role === 'admin';
+        if ($role === 'admin') {
+            return true;
+        }
+
+        // Bawaan jika belum tercatat di DB
+        if (self::isDefaultAllowed($role, $permissionKey)) {
+            if ($actionCol === 'can_read') return true;
+            if (in_array($role, ['guru', 'tendik']) && in_array($actionCol, ['can_create', 'can_update'])) return true;
+        }
+
+        return false;
     }
 }

@@ -45,56 +45,57 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/peserta_didik', [DashboardController::class, 'pesertaDidik'])->name('peserta_didik');
 
     // Tarik Data Dapodik
-    Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik');
-    Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey');
+    Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik')->middleware('permission:menu_dapodik');
+    Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey')->middleware('permission:fitur_dapodik_sync');
 
     // Manajemen Pengguna (4 Tab: Admin, Guru, Tendik, Peserta Didik)
-    Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index');
-    Route::put('/pengguna/{pengguna}', [UserController::class, 'update'])->name('pengguna.update');
-    Route::delete('/pengguna/{pengguna}', [UserController::class, 'destroy'])->name('pengguna.destroy');
-    Route::post('/pengguna/{pengguna}/reset-password', [UserController::class, 'resetPassword'])->name('pengguna.resetPassword');
+    Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index')->middleware('permission:menu_pengguna');
+    Route::put('/pengguna/{pengguna}', [UserController::class, 'update'])->name('pengguna.update')->middleware('permission:fitur_pengguna_edit');
+    Route::delete('/pengguna/{pengguna}', [UserController::class, 'destroy'])->name('pengguna.destroy')->middleware('permission:fitur_pengguna_hapus');
+    Route::post('/pengguna/{pengguna}/reset-password', [UserController::class, 'resetPassword'])->name('pengguna.resetPassword')->middleware('permission:fitur_pengguna_reset');
 
     // Update Sistem
-    Route::get('/update', [UpdateController::class, 'index'])->name('update');
-    Route::get('/update/check', [UpdateController::class, 'check'])->name('update.check');
-    Route::post('/update/execute', [UpdateController::class, 'execute'])->name('update.execute');
-    Route::get('/update/diagnose', [UpdateController::class, 'diagnose'])->name('update.diagnose');
+    Route::get('/update', [UpdateController::class, 'index'])->name('update')->middleware('permission:menu_update');
+    Route::get('/update/check', [UpdateController::class, 'check'])->name('update.check')->middleware('permission:menu_update');
+    Route::post('/update/execute', [UpdateController::class, 'execute'])->name('update.execute')->middleware('permission:fitur_system_update');
+    Route::get('/update/diagnose', [UpdateController::class, 'diagnose'])->name('update.diagnose')->middleware('permission:menu_update');
 
     // Pengaturan Hak Akses (Role & Permission)
-    Route::get('/hak-akses', [PermissionController::class, 'index'])->name('hak-akses.index');
-    Route::post('/hak-akses/toggle', [PermissionController::class, 'toggle'])->name('hak-akses.toggle');
-    Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset');
+    Route::get('/hak-akses', [PermissionController::class, 'index'])->name('hak-akses.index')->middleware('permission:menu_hak_akses');
+    Route::post('/hak-akses/toggle', [PermissionController::class, 'toggle'])->name('hak-akses.toggle')->middleware('permission:menu_hak_akses');
+    Route::post('/hak-akses/sync', [PermissionController::class, 'sync'])->name('hak-akses.sync')->middleware('permission:menu_hak_akses');
+    Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset')->middleware('permission:menu_hak_akses');
 
     // Pengaturan — Identitas Sekolah (Sumber: Sekolah Dapodik)
-    Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index');
-    Route::put('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'update'])->name('identitas-sekolah.update');
+    Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index')->middleware('permission:menu_pengaturan');
+    Route::put('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'update'])->name('identitas-sekolah.update')->middleware('permission:menu_pengaturan');
 
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
-    Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index');
-    Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel');
+    Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian');
+    Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel')->middleware('permission:menu_kompetensi_keahlian');
 
     // Master Data — Rombel (Sumber: Rombongan Belajar & Peserta Didik)
-    Route::get('/master-data/rombel', [\App\Http\Controllers\RombelController::class, 'index'])->name('rombel.index');
-    Route::get('/master-data/rombel/reguler', [\App\Http\Controllers\RombelController::class, 'reguler'])->name('rombel.reguler');
-    Route::get('/master-data/rombel/matpel', [\App\Http\Controllers\RombelController::class, 'matpel'])->name('rombel.matpel');
-    Route::get('/master-data/rombel/{id}/peserta-didik', [\App\Http\Controllers\RombelController::class, 'showPesertaDidik'])->name('rombel.peserta-didik');
+    Route::get('/master-data/rombel', [\App\Http\Controllers\RombelController::class, 'index'])->name('rombel.index')->middleware('permission:menu_rombel');
+    Route::get('/master-data/rombel/reguler', [\App\Http\Controllers\RombelController::class, 'reguler'])->name('rombel.reguler')->middleware('permission:menu_rombel');
+    Route::get('/master-data/rombel/matpel', [\App\Http\Controllers\RombelController::class, 'matpel'])->name('rombel.matpel')->middleware('permission:menu_rombel');
+    Route::get('/master-data/rombel/{id}/peserta-didik', [\App\Http\Controllers\RombelController::class, 'showPesertaDidik'])->name('rombel.peserta-didik')->middleware('permission:menu_rombel');
 
     // Master Data — Pembelajaran (Sumber: Pembelajaran, GTK, & Rombongan Belajar)
-    Route::get('/master-data/pembelajaran', [\App\Http\Controllers\PembelajaranController::class, 'index'])->name('pembelajaran.index');
-    Route::get('/master-data/pembelajaran/{id}', [\App\Http\Controllers\PembelajaranController::class, 'show'])->name('pembelajaran.show');
+    Route::get('/master-data/pembelajaran', [\App\Http\Controllers\PembelajaranController::class, 'index'])->name('pembelajaran.index')->middleware('permission:menu_pembelajaran');
+    Route::get('/master-data/pembelajaran/{id}', [\App\Http\Controllers\PembelajaranController::class, 'show'])->name('pembelajaran.show')->middleware('permission:menu_pembelajaran');
 
     // Manajemen Data — Peserta Didik Aktif, Guru Aktif, & Tendik Aktif (Sumber: Peserta Didik & GTK Dapodik)
-    Route::get('/manajemen-data/peserta-didik-aktif', [\App\Http\Controllers\PesertaDidikAktifController::class, 'index'])->name('peserta-didik-aktif.index');
-    Route::get('/manajemen-data/peserta-didik-aktif/{id}', [\App\Http\Controllers\PesertaDidikAktifController::class, 'show'])->name('peserta-didik-aktif.show');
-    Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index');
-    Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show');
-    Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index');
-    Route::get('/manajemen-data/tendik-aktif/{id}', [\App\Http\Controllers\TendikAktifController::class, 'show'])->name('tendik-aktif.show');
+    Route::get('/manajemen-data/peserta-didik-aktif', [\App\Http\Controllers\PesertaDidikAktifController::class, 'index'])->name('peserta-didik-aktif.index')->middleware('permission:menu_peserta_didik_aktif');
+    Route::get('/manajemen-data/peserta-didik-aktif/{id}', [\App\Http\Controllers\PesertaDidikAktifController::class, 'show'])->name('peserta-didik-aktif.show')->middleware('permission:menu_peserta_didik_aktif');
+    Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index')->middleware('permission:menu_guru_aktif');
+    Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show')->middleware('permission:menu_guru_aktif');
+    Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index')->middleware('permission:menu_tendik_aktif');
+    Route::get('/manajemen-data/tendik-aktif/{id}', [\App\Http\Controllers\TendikAktifController::class, 'show'])->name('tendik-aktif.show')->middleware('permission:menu_tendik_aktif');
 
     // Arsip & Maintenance (Hanya Admin)
-    Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index');
-    Route::get('/maintenance/download', [\App\Http\Controllers\MaintenanceController::class, 'downloadArchive'])->name('maintenance.download');
-    Route::post('/maintenance/clean', [\App\Http\Controllers\MaintenanceController::class, 'cleanOldData'])->name('maintenance.clean');
+    Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance');
+    Route::get('/maintenance/download', [\App\Http\Controllers\MaintenanceController::class, 'downloadArchive'])->name('maintenance.download')->middleware('permission:menu_maintenance');
+    Route::post('/maintenance/clean', [\App\Http\Controllers\MaintenanceController::class, 'cleanOldData'])->name('maintenance.clean')->middleware('permission:menu_maintenance');
 });
 
 // Admin shortcut redirect

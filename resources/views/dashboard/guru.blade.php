@@ -33,10 +33,12 @@
             </div>
         </div>
         <div class="dash-banner-actions">
-            <button class="btn btn-primary"
-                style="padding: 9px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);">
-                <i class="fas fa-qrcode"></i> Buka Presensi Kelas
-            </button>
+            @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_peserta_didik'))
+                <button class="btn btn-primary"
+                    style="padding: 9px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);">
+                    <i class="fas fa-qrcode"></i> Buka Presensi Kelas
+                </button>
+            @endif
         </div>
     </div>
 
@@ -133,9 +135,11 @@
                                 @endif
                             </td>
                             <td style="padding: 14px; text-align: right;">
-                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;">
-                                    <i class="fas fa-pen-to-square"></i> Jurnal KBM
-                                </button>
+                                @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
+                                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;">
+                                        <i class="fas fa-pen-to-square"></i> Jurnal KBM
+                                    </button>
+                                @endif
                             </td>
                         </tr>
                     @endforeach
@@ -177,12 +181,14 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 2px;">
-                        <button class="btn btn-outline"
-                            style="width: 100%; justify-content: center; padding: 8px 12px; font-size: 0.8rem;">
-                            <i class="fas fa-pen-to-square"></i> Jurnal KBM
-                        </button>
-                    </div>
+                    @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
+                        <div style="margin-top: 2px;">
+                            <button class="btn btn-outline"
+                                style="width: 100%; justify-content: center; padding: 8px 12px; font-size: 0.8rem;">
+                                <i class="fas fa-pen-to-square"></i> Jurnal KBM
+                            </button>
+                        </div>
+                    @endif
                 </div>
             @endforeach
         </div>

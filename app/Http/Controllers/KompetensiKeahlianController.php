@@ -15,7 +15,9 @@ class KompetensiKeahlianController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role !== 'admin') return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian')) {
+            return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Kompetensi Keahlian dinonaktifkan oleh Administrator.');
+        }
 
         $q       = trim($request->get('q', ''));
         $perPage = (int) $request->get('perPage', 15);
@@ -129,6 +131,10 @@ class KompetensiKeahlianController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
+        }
 
         $baseRombel = DB::table('rombongan_belajar')
             ->where('jurusan_id', $kode)

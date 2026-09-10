@@ -46,6 +46,9 @@ class DashboardController extends Controller
     public function admin()
     {
         if ($res = $this->checkAuth('admin')) return $res;
+        if (!\App\Models\RolePermission::canAccess('admin', 'menu_dashboard')) {
+            return view('errors.dashboard-disabled', ['roleName' => 'Administrator', 'role' => 'admin']);
+        }
 
         $totalPd = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0;
         $totalGuru = Schema::hasTable('gtk') ? DB::table('gtk')->where(function ($q) {
@@ -91,6 +94,9 @@ class DashboardController extends Controller
     public function guru()
     {
         if ($res = $this->checkAuth('guru')) return $res;
+        if (!\App\Models\RolePermission::canAccess('guru', 'menu_dashboard')) {
+            return view('errors.dashboard-disabled', ['roleName' => 'Guru & Pendidik', 'role' => 'guru']);
+        }
 
         $user = session('user');
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
@@ -154,6 +160,9 @@ class DashboardController extends Controller
     public function tendik()
     {
         if ($res = $this->checkAuth('tendik')) return $res;
+        if (!\App\Models\RolePermission::canAccess('tendik', 'menu_dashboard')) {
+            return view('errors.dashboard-disabled', ['roleName' => 'Tenaga Kependidikan', 'role' => 'tendik']);
+        }
 
         $stats = [
             'total_surat_masuk'  => 14,
@@ -177,6 +186,9 @@ class DashboardController extends Controller
     public function pesertaDidik()
     {
         if ($res = $this->checkAuth('peserta_didik')) return $res;
+        if (!\App\Models\RolePermission::canAccess('peserta_didik', 'menu_dashboard')) {
+            return view('errors.dashboard-disabled', ['roleName' => 'Peserta Didik', 'role' => 'peserta_didik']);
+        }
 
         $user = session('user');
         $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);

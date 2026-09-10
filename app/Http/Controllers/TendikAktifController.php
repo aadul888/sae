@@ -15,7 +15,9 @@ class TendikAktifController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!in_array($role, ['admin', 'guru', 'tendik'], true)) return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'));
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_tendik_aktif')) {
+            return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Tendik Aktif dinonaktifkan oleh Administrator.');
+        }
 
         $q       = trim($request->get('q', ''));
         $status  = trim($request->get('status', ''));
@@ -153,6 +155,10 @@ class TendikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_tendik_aktif')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
+        }
 
         $gtk = DB::table('gtk')
             ->where('ptk_id', $id)

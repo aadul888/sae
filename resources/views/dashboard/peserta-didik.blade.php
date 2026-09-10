@@ -33,11 +33,13 @@
                 <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
             </div>
         </div>
-        <div class="dash-banner-actions">
-            <button class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
-                <i class="fas fa-qrcode"></i> Kartu Digital (QR)
-            </button>
-        </div>
+        @if (\App\Models\RolePermission::canAccess('peserta_didik', 'menu_riwayat_rfid'))
+            <div class="dash-banner-actions">
+                <button class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
+                    <i class="fas fa-qrcode"></i> Kartu Digital (QR)
+                </button>
+            </div>
+        @endif
     </div>
 
     <!-- Stats Counter -->
@@ -86,72 +88,77 @@
     <!-- 2 Columns: Attendance History & Schedule -->
     <div class="dash-grid-2">
         <!-- Recent Attendance -->
-        <div class="card" style="margin-bottom: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
-                    <i class="fas fa-id-card-clip text-accent"></i> Riwayat Tap Presensi Terakhir
-                </h3>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">RFID Live</span>
-            </div>
+        @if (\App\Models\RolePermission::canAccess('peserta_didik', 'menu_riwayat_rfid'))
+            <div class="card" style="margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
+                        <i class="fas fa-id-card-clip text-accent"></i> Riwayat Tap Presensi Terakhir
+                    </h3>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">RFID Live</span>
+                </div>
 
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
-                            <th style="padding: 10px;">Tanggal</th>
-                            <th style="padding: 10px;">Masuk</th>
-                            <th style="padding: 10px;">Pulang</th>
-                            <th style="padding: 10px;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($presensi_terakhir as $p)
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
-                                <td style="padding: 10px; font-weight: 600; color: var(--text-color);">{{ $p['tanggal'] }}
-                                </td>
-                                <td style="padding: 10px; color: #10b981;">{{ $p['jam_masuk'] }}</td>
-                                <td style="padding: 10px; color: var(--text-muted);">{{ $p['jam_pulang'] }}</td>
-                                <td style="padding: 10px;">
-                                    <span
-                                        style="background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
-                                        {{ $p['status'] }}
-                                    </span>
-                                </td>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                                <th style="padding: 10px;">Tanggal</th>
+                                <th style="padding: 10px;">Masuk</th>
+                                <th style="padding: 10px;">Pulang</th>
+                                <th style="padding: 10px;">Status</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach ($presensi_terakhir as $p)
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding: 10px; font-weight: 600; color: var(--text-color);">
+                                        {{ $p['tanggal'] }}
+                                    </td>
+                                    <td style="padding: 10px; color: #10b981;">{{ $p['jam_masuk'] }}</td>
+                                    <td style="padding: 10px; color: var(--text-muted);">{{ $p['jam_pulang'] }}</td>
+                                    <td style="padding: 10px;">
+                                        <span
+                                            style="background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                            {{ $p['status'] }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        @endif
 
         <!-- Today's Schedule -->
-        <div class="card" style="margin-bottom: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
-                    <i class="fas fa-book-bookmark text-primary"></i> Jadwal Pelajaran Hari Ini
-                </h3>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Kelas XII RPL 1</span>
-            </div>
+        @if (\App\Models\RolePermission::canAccess('peserta_didik', 'menu_jadwal_pelajaran'))
+            <div class="card" style="margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
+                        <i class="fas fa-book-bookmark text-primary"></i> Jadwal Pelajaran Hari Ini
+                    </h3>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Kelas XII RPL 1</span>
+                </div>
 
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                @foreach ($jadwal_pelajaran as $jp)
-                    <div
-                        style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    @foreach ($jadwal_pelajaran as $jp)
                         <div
-                            style="min-width: 90px; font-size: 0.78rem; font-weight: 700; color: var(--accent); background: rgba(6,182,212,0.1); padding: 6px; border-radius: 8px; text-align: center;">
-                            {{ $jp['jam'] }}
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
-                                {{ $jp['mapel'] }}</div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                                <i class="fas fa-chalkboard-user"></i> {{ $jp['guru'] }} &bull; <i
-                                    class="fas fa-location-dot"></i> {{ $jp['ruang'] }}
+                            style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                            <div
+                                style="min-width: 90px; font-size: 0.78rem; font-weight: 700; color: var(--accent); background: rgba(6,182,212,0.1); padding: 6px; border-radius: 8px; text-align: center;">
+                                {{ $jp['jam'] }}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
+                                    {{ $jp['mapel'] }}</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                    <i class="fas fa-chalkboard-user"></i> {{ $jp['guru'] }} &bull; <i
+                                        class="fas fa-location-dot"></i> {{ $jp['ruang'] }}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 @endsection

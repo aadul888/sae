@@ -4,6 +4,51 @@
         ? $user['name'] ?? ($user['nama'] ?? 'Pengguna')
         : $user->name ?? ($user->nama ?? 'Pengguna');
     $role = is_array($user) ? $user['role'] ?? 'peserta_didik' : $user->role ?? 'peserta_didik';
+
+    $can = fn(string $key) => \App\Models\RolePermission::canAccess($role, $key);
+
+    // Master Data Submenus
+    $hasMasterData = $can('menu_kompetensi_keahlian') || $can('menu_rombel') || $can('menu_pembelajaran');
+
+    // Manajemen Data Submenus
+    $hasPesertaDidik = $can('menu_peserta_didik_aktif') || $can('menu_peserta_didik_tidak_aktif');
+    $hasGuru = $can('menu_guru_aktif') || $can('menu_guru_tidak_aktif');
+    $hasTendik = $can('menu_tendik_aktif') || $can('menu_tendik_tidak_aktif');
+    $hasManajemenData =
+        $hasPesertaDidik || $hasGuru || $hasTendik || $can('menu_berkas_peserta_didik') || $can('menu_perubahan_data');
+
+    // Section: Utama
+    $hasUtama = $can('menu_dashboard') || $can('menu_dapodik') || $hasMasterData || $hasManajemenData;
+
+    // Section: Layanan Digital
+    $hasLayananDigital =
+        $can('menu_pengumuman') ||
+        $can('menu_rfid') ||
+        $can('menu_e_izin') ||
+        $can('menu_poin') ||
+        $can('menu_agenda') ||
+        $can('menu_buku_tamu') ||
+        $can('menu_inventaris') ||
+        $can('menu_kelulusan');
+
+    // Section: Sistem
+    $hasPengaturan =
+        $can('menu_pengguna') || $can('menu_hak_akses') || $can('menu_pengaturan') || $can('menu_maintenance');
+    $hasSistem = $hasPengaturan || $can('menu_update');
+
+    // Section: Akademik Guru
+    $hasAkademikGuru =
+        $can('menu_presensi_mengajar') ||
+        $can('menu_agenda_kbm') ||
+        $can('menu_penilaian') ||
+        $can('menu_presensi_peserta_didik');
+
+    // Section: Portal Siswa
+    $hasPortalSiswa =
+        $can('menu_riwayat_rfid') ||
+        $can('menu_jadwal_pelajaran') ||
+        $can('menu_rapor') ||
+        $can('menu_validasi_berkas');
 @endphp
 
 <aside class="dash-sidebar" id="dashSidebar">
@@ -41,17 +86,36 @@
 
     <!-- Navigation List -->
     <div class="dash-sidebar-nav">
-        <span class="nav-section-label">Utama</span>
+        @if ($hasUtama)
+            <span class="nav-section-label">Utama</span>
 
-        @if ($role === 'admin')
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_dashboard'))
-                <a href="{{ route('dashboard.admin') }}"
-                    class="dash-nav-link {{ request()->routeIs('dashboard.admin') ? 'active' : '' }}">
-                    <i class="fas fa-gauge-high"></i> <span>Dashboard Utama</span>
+            @php
+                $dashRoute = match ($role) {
+                    'admin' => route('dashboard.admin'),
+                    'guru' => route('dashboard.guru'),
+                    'tendik' => route('dashboard.tendik'),
+                    'peserta_didik' => route('dashboard.peserta-didik'),
+                    default => route('dashboard.admin'),
+                };
+                $dashLabel = match ($role) {
+                    'admin' => 'Dashboard Utama',
+                    'guru' => 'Dashboard Guru',
+                    'tendik' => 'Dashboard Tendik',
+                    'peserta_didik' => 'Dashboard Siswa',
+                    default => 'Dashboard',
+                };
+                $dashActive =
+                    request()->routeIs('dashboard.' . $role) ||
+                    ($role === 'peserta_didik' && request()->routeIs('dashboard.peserta-didik*'));
+            @endphp
+
+            @if ($can('menu_dashboard'))
+                <a href="{{ $dashRoute }}" class="dash-nav-link {{ $dashActive ? 'active' : '' }}">
+                    <i class="fas fa-gauge-high"></i> <span>{{ $dashLabel }}</span>
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_dapodik'))
+            @if ($can('menu_dapodik'))
                 <a href="{{ route('dashboard.dapodik') }}"
                     class="dash-nav-link {{ request()->routeIs('dashboard.dapodik*') ? 'active' : '' }}">
                     <i class="fas fa-cloud-arrow-down"></i> <span>Tarik Data Dapodik</span>
@@ -59,16 +123,13 @@
             @endif
 
             {{-- Master Data (Collapsible) - Posisi di atas Manajemen Data --}}
-            @php
-                $isMasterDataActive =
-                    request()->routeIs('dashboard.kompetensi-keahlian*') ||
-                    request()->routeIs('dashboard.rombel*') ||
-                    request()->routeIs('dashboard.pembelajaran*');
-            @endphp
-            @if (
-                \App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_rombel') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_pembelajaran'))
+            @if ($hasMasterData)
+                @php
+                    $isMasterDataActive =
+                        request()->routeIs('dashboard.kompetensi-keahlian*') ||
+                        request()->routeIs('dashboard.rombel*') ||
+                        request()->routeIs('dashboard.pembelajaran*');
+                @endphp
                 <div class="dash-nav-group {{ $isMasterDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
@@ -78,7 +139,7 @@
                         <i class="fas fa-chevron-right arrow-icon"></i>
                     </button>
                     <div class="dash-nav-submenu">
-                        @if (\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian'))
+                        @if ($can('menu_kompetensi_keahlian'))
                             <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.kompetensi-keahlian*') ? 'active' : '' }}">
                                 <i class="fas fa-laptop-code"></i> <span>Keahlian</span>
@@ -86,7 +147,7 @@
                         @endif
 
                         {{-- Nested Submenu: Rombel --}}
-                        @if (\App\Models\RolePermission::canAccess($role, 'menu_rombel'))
+                        @if ($can('menu_rombel'))
                             @php
                                 $isRombelActive = request()->routeIs('dashboard.rombel*');
                             @endphp
@@ -112,7 +173,7 @@
                             </div>
                         @endif
 
-                        @if (\App\Models\RolePermission::canAccess($role, 'menu_pembelajaran'))
+                        @if ($can('menu_pembelajaran'))
                             <a href="{{ route('dashboard.pembelajaran.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.pembelajaran*') ? 'active' : '' }}">
                                 <i class="fas fa-book-bookmark"></i> <span>Pembelajaran</span>
@@ -123,31 +184,24 @@
             @endif
 
             {{-- Manajemen Data (Collapsible) --}}
-            @php
-                $isPesertaDidikActive =
-                    request()->routeIs('dashboard.peserta-didik-aktif*') ||
-                    request()->routeIs('dashboard.peserta-didik-tidak-aktif*');
-                $isGuruActive =
-                    request()->routeIs('dashboard.guru-aktif*') || request()->routeIs('dashboard.guru-tidak-aktif*');
-                $isTendikActive =
-                    request()->routeIs('dashboard.tendik-aktif*') ||
-                    request()->routeIs('dashboard.tendik-tidak-aktif*');
-                $isManajemenDataActive =
-                    $isPesertaDidikActive ||
-                    $isGuruActive ||
-                    $isTendikActive ||
-                    request()->routeIs('dashboard.berkas-peserta-didik*') ||
-                    request()->routeIs('dashboard.perubahan-data*');
-            @endphp
-            @if (
-                \App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_guru_aktif') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_tendik_aktif') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_berkas_peserta_didik') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_perubahan_data') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_tidak_aktif') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_guru_tidak_aktif') ||
-                    \App\Models\RolePermission::canAccess($role, 'menu_tendik_tidak_aktif'))
+            @if ($hasManajemenData)
+                @php
+                    $isPesertaDidikActive =
+                        request()->routeIs('dashboard.peserta-didik-aktif*') ||
+                        request()->routeIs('dashboard.peserta-didik-tidak-aktif*');
+                    $isGuruActive =
+                        request()->routeIs('dashboard.guru-aktif*') ||
+                        request()->routeIs('dashboard.guru-tidak-aktif*');
+                    $isTendikActive =
+                        request()->routeIs('dashboard.tendik-aktif*') ||
+                        request()->routeIs('dashboard.tendik-tidak-aktif*');
+                    $isManajemenDataActive =
+                        $isPesertaDidikActive ||
+                        $isGuruActive ||
+                        $isTendikActive ||
+                        request()->routeIs('dashboard.berkas-peserta-didik*') ||
+                        request()->routeIs('dashboard.perubahan-data*');
+                @endphp
                 <div class="dash-nav-group {{ $isManajemenDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
@@ -158,93 +212,99 @@
                     </button>
                     <div class="dash-nav-submenu">
                         {{-- Nested Submenu: Peserta Didik --}}
-                        <div class="dash-nav-nested-group {{ $isPesertaDidikActive ? 'open active-group' : '' }}">
-                            <button type="button" class="dash-nav-nested-toggle">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-user-graduate"
-                                        style="width: 14px; text-align: center; opacity: 0.8;"></i>
-                                    <span>Peserta Didik</span>
-                                </div>
-                                <i class="fas fa-chevron-right nested-arrow-icon"></i>
-                            </button>
-                            <div class="dash-nav-nested-menu">
-                                @if (\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif'))
-                                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-aktif*') ? 'active' : '' }}">
-                                        <i class="fas fa-circle-check"></i> <span>Aktif</span>
-                                    </a>
-                                @endif
+                        @if ($hasPesertaDidik)
+                            <div class="dash-nav-nested-group {{ $isPesertaDidikActive ? 'open active-group' : '' }}">
+                                <button type="button" class="dash-nav-nested-toggle">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-user-graduate"
+                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
+                                        <span>Peserta Didik</span>
+                                    </div>
+                                    <i class="fas fa-chevron-right nested-arrow-icon"></i>
+                                </button>
+                                <div class="dash-nav-nested-menu">
+                                    @if ($can('menu_peserta_didik_aktif'))
+                                        <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
+                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-aktif*') ? 'active' : '' }}">
+                                            <i class="fas fa-circle-check"></i> <span>Aktif</span>
+                                        </a>
+                                    @endif
 
-                                @if (\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_tidak_aktif'))
-                                    <a href="#"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-tidak-aktif*') ? 'active' : '' }}">
-                                        <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
-                                    </a>
-                                @endif
+                                    @if ($can('menu_peserta_didik_tidak_aktif'))
+                                        <a href="#"
+                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-tidak-aktif*') ? 'active' : '' }}">
+                                            <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
-                        </div>
+                        @endif
 
                         {{-- Nested Submenu: Guru --}}
-                        <div class="dash-nav-nested-group {{ $isGuruActive ? 'open active-group' : '' }}">
-                            <button type="button" class="dash-nav-nested-toggle">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-chalkboard-user"
-                                        style="width: 14px; text-align: center; opacity: 0.8;"></i>
-                                    <span>Guru</span>
-                                </div>
-                                <i class="fas fa-chevron-right nested-arrow-icon"></i>
-                            </button>
-                            <div class="dash-nav-nested-menu">
-                                @if (\App\Models\RolePermission::canAccess($role, 'menu_guru_aktif'))
-                                    <a href="{{ route('dashboard.guru-aktif.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
-                                        <i class="fas fa-circle-check"></i> <span>Aktif</span>
-                                    </a>
-                                @endif
+                        @if ($hasGuru)
+                            <div class="dash-nav-nested-group {{ $isGuruActive ? 'open active-group' : '' }}">
+                                <button type="button" class="dash-nav-nested-toggle">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-chalkboard-user"
+                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
+                                        <span>Guru</span>
+                                    </div>
+                                    <i class="fas fa-chevron-right nested-arrow-icon"></i>
+                                </button>
+                                <div class="dash-nav-nested-menu">
+                                    @if ($can('menu_guru_aktif'))
+                                        <a href="{{ route('dashboard.guru-aktif.index') }}"
+                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
+                                            <i class="fas fa-circle-check"></i> <span>Aktif</span>
+                                        </a>
+                                    @endif
 
-                                @if (\App\Models\RolePermission::canAccess($role, 'menu_guru_tidak_aktif'))
-                                    <a href="#"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-tidak-aktif*') ? 'active' : '' }}">
-                                        <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
-                                    </a>
-                                @endif
+                                    @if ($can('menu_guru_tidak_aktif'))
+                                        <a href="#"
+                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-tidak-aktif*') ? 'active' : '' }}">
+                                            <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
-                        </div>
+                        @endif
 
                         {{-- Nested Submenu: Tendik --}}
-                        <div class="dash-nav-nested-group {{ $isTendikActive ? 'open active-group' : '' }}">
-                            <button type="button" class="dash-nav-nested-toggle">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-id-badge"
-                                        style="width: 14px; text-align: center; opacity: 0.8;"></i>
-                                    <span>Tendik</span>
+                        @if ($hasTendik)
+                            <div class="dash-nav-nested-group {{ $isTendikActive ? 'open active-group' : '' }}">
+                                <button type="button" class="dash-nav-nested-toggle">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-id-badge"
+                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
+                                        <span>Tendik</span>
+                                    </div>
+                                    <i class="fas fa-chevron-right nested-arrow-icon"></i>
+                                </button>
+                                <div class="dash-nav-nested-menu">
+                                    @if ($can('menu_tendik_aktif'))
+                                        <a href="{{ route('dashboard.tendik-aktif.index') }}"
+                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
+                                            <i class="fas fa-circle-check"></i> <span>Aktif</span>
+                                        </a>
+                                    @endif
+
+                                    @if ($can('menu_tendik_tidak_aktif'))
+                                        <a href="#"
+                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-tidak-aktif*') ? 'active' : '' }}">
+                                            <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
+                                        </a>
+                                    @endif
                                 </div>
-                                <i class="fas fa-chevron-right nested-arrow-icon"></i>
-                            </button>
-                            <div class="dash-nav-nested-menu">
-                                @if (\App\Models\RolePermission::canAccess($role, 'menu_tendik_aktif'))
-                                    <a href="{{ route('dashboard.tendik-aktif.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
-                                        <i class="fas fa-circle-check"></i> <span>Aktif</span>
-                                    </a>
-                                @endif
-
-                                @if (\App\Models\RolePermission::canAccess($role, 'menu_tendik_tidak_aktif'))
-                                    <a href="#"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-tidak-aktif*') ? 'active' : '' }}">
-                                        <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
-                                    </a>
-                                @endif
                             </div>
-                        </div>
+                        @endif
 
-                        @if (\App\Models\RolePermission::canAccess($role, 'menu_berkas_peserta_didik'))
+                        @if ($can('menu_berkas_peserta_didik'))
                             <a href="#" class="dash-nav-sublink">
                                 <i class="fas fa-folder-open"></i> <span>Berkas Peserta Didik</span>
                             </a>
                         @endif
 
-                        @if (\App\Models\RolePermission::canAccess($role, 'menu_perubahan_data'))
+                        @if ($can('menu_perubahan_data'))
                             <a href="#" class="dash-nav-sublink">
                                 <i class="fas fa-user-pen"></i> <span>Perubahan Data</span>
                             </a>
@@ -252,8 +312,10 @@
                     </div>
                 </div>
             @endif
+        @endif
 
-            {{-- Layanan Digital (Collapsible) --}}
+        {{-- Layanan Digital (Collapsible) --}}
+        @if ($hasLayananDigital)
             <span class="nav-section-label">Layanan Digital</span>
 
             @php
@@ -276,196 +338,169 @@
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_pengumuman'))
+                    @if ($can('menu_pengumuman'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-bullhorn"></i> <span>Pengumuman</span>
                         </a>
                     @endif
 
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_rfid'))
+                    @if ($can('menu_rfid'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-id-card"></i> <span>RFID &amp; Presensi</span>
                         </a>
                     @endif
 
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_e_izin'))
+                    @if ($can('menu_e_izin'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-file-signature"></i> <span>E-Izin</span>
                         </a>
                     @endif
 
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_poin'))
+                    @if ($can('menu_poin'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-star-half-stroke"></i> <span>Poin Pelanggaran</span>
                         </a>
                     @endif
 
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_agenda'))
+                    @if ($can('menu_agenda'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-calendar-days"></i> <span>Agenda Sekolah</span>
                         </a>
                     @endif
 
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_buku_tamu'))
+                    @if ($can('menu_buku_tamu'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-address-book"></i> <span>Buku Tamu</span>
                         </a>
                     @endif
 
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_inventaris'))
+                    @if ($can('menu_inventaris'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-boxes-stacked"></i> <span>Inventaris</span>
                         </a>
                     @endif
 
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_kelulusan'))
+                    @if ($can('menu_kelulusan'))
                         <a href="#" class="dash-nav-sublink">
                             <i class="fas fa-graduation-cap"></i> <span>Kelulusan</span>
                         </a>
                     @endif
                 </div>
             </div>
+        @endif
 
+        {{-- Konfigurasi & Pengaturan Sistem (Collapsible) --}}
+        @if ($hasSistem)
             <span class="nav-section-label">Sistem</span>
 
-            {{-- Konfigurasi & Pengaturan Sistem (Collapsible) --}}
-            @php
-                $isSistemGroupActive =
-                    request()->routeIs('dashboard.pengguna*') || request()->routeIs('dashboard.hak-akses*') || request()->routeIs('dashboard.identitas-sekolah*') || request()->routeIs('dashboard.maintenance*');
-            @endphp
-            <div class="dash-nav-group {{ $isSistemGroupActive ? 'open active-group' : '' }}">
-                <button type="button" class="dash-nav-toggle">
-                    <div class="dash-nav-toggle-main">
-                        <i class="fas fa-sliders"></i>
-                        <span>Pengaturan</span>
+            @if ($hasPengaturan)
+                @php
+                    $isSistemGroupActive =
+                        request()->routeIs('dashboard.pengguna*') ||
+                        request()->routeIs('dashboard.hak-akses*') ||
+                        request()->routeIs('dashboard.identitas-sekolah*') ||
+                        request()->routeIs('dashboard.maintenance*');
+                @endphp
+                <div class="dash-nav-group {{ $isSistemGroupActive ? 'open active-group' : '' }}">
+                    <button type="button" class="dash-nav-toggle">
+                        <div class="dash-nav-toggle-main">
+                            <i class="fas fa-sliders"></i>
+                            <span>Pengaturan</span>
+                        </div>
+                        <i class="fas fa-chevron-right arrow-icon"></i>
+                    </button>
+                    <div class="dash-nav-submenu">
+                        @if ($can('menu_pengguna'))
+                            <a href="{{ route('dashboard.pengguna.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.pengguna*') ? 'active' : '' }}">
+                                <i class="fas fa-users-gear"></i> <span>Pengguna</span>
+                            </a>
+                        @endif
+
+                        @if ($can('menu_hak_akses'))
+                            <a href="{{ route('dashboard.hak-akses.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.hak-akses*') ? 'active' : '' }}">
+                                <i class="fas fa-shield-halved"></i> <span>Hak Akses</span>
+                            </a>
+                        @endif
+
+                        @if ($can('menu_pengaturan'))
+                            <a href="{{ route('dashboard.identitas-sekolah.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas-sekolah*') ? 'active' : '' }}">
+                                <i class="fas fa-school"></i> <span>Identitas Sekolah</span>
+                            </a>
+                        @endif
+
+                        @if ($can('menu_maintenance'))
+                            <a href="{{ route('dashboard.maintenance.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.maintenance*') ? 'active' : '' }}">
+                                <i class="fas fa-server"></i> <span>Arsip & Maintenance</span>
+                            </a>
+                        @endif
                     </div>
-                    <i class="fas fa-chevron-right arrow-icon"></i>
-                </button>
-                <div class="dash-nav-submenu">
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_pengguna'))
-                        <a href="{{ route('dashboard.pengguna.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.pengguna*') ? 'active' : '' }}">
-                            <i class="fas fa-users-gear"></i> <span>Pengguna</span>
-                        </a>
-                    @endif
-
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_hak_akses'))
-                        <a href="{{ route('dashboard.hak-akses.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.hak-akses*') ? 'active' : '' }}">
-                            <i class="fas fa-shield-halved"></i> <span>Hak Akses</span>
-                        </a>
-                    @endif
-
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_pengaturan'))
-                        <a href="{{ route('dashboard.identitas-sekolah.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas-sekolah*') ? 'active' : '' }}">
-                            <i class="fas fa-school"></i> <span>Identitas Sekolah</span>
-                        </a>
-                    @endif
-                    
-                    @if (\App\Models\RolePermission::canAccess($role, 'menu_maintenance'))
-                        <a href="{{ route('dashboard.maintenance.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.maintenance*') ? 'active' : '' }}">
-                            <i class="fas fa-server"></i> <span>Arsip & Maintenance</span>
-                        </a>
-                    @endif
                 </div>
-            </div>
+            @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_update'))
+            @if ($can('menu_update'))
                 <a href="{{ route('dashboard.update') }}"
                     class="dash-nav-link {{ request()->routeIs('dashboard.update*') ? 'active' : '' }}">
                     <i class="fas fa-arrows-rotate"></i> <span>Update Sistem</span>
                 </a>
             @endif
-        @elseif($role === 'guru')
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_dashboard'))
-                <a href="{{ route('dashboard.guru') }}"
-                    class="dash-nav-link {{ request()->routeIs('dashboard.guru') ? 'active' : '' }}">
-                    <i class="fas fa-gauge-high"></i> <span>Dashboard Guru</span>
-                </a>
-            @endif
+        @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_presensi_mengajar'))
+        {{-- Layanan Akademik & Guru (Khusus Guru / peran yang diizinkan) --}}
+        @if ($hasAkademikGuru)
+            <span class="nav-section-label">Akademik Guru</span>
+
+            @if ($can('menu_presensi_mengajar'))
                 <a href="#" class="dash-nav-link">
                     <i class="fas fa-calendar-check"></i> <span>Presensi Mengajar</span>
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_agenda_kbm'))
+            @if ($can('menu_agenda_kbm'))
                 <a href="#" class="dash-nav-link">
                     <i class="fas fa-book-open-reader"></i> <span>Jurnal &amp; Agenda KBM</span>
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_penilaian'))
+            @if ($can('menu_penilaian'))
                 <a href="#" class="dash-nav-link">
-                    <i class="fas fa-graduation-cap"></i> <span>Penilaian Peserta Didik</span>
+                    <i class="fas fa-graduation-cap"></i> <span>Penilaian Siswa</span>
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_presensi_peserta_didik'))
+            @if ($can('menu_presensi_peserta_didik'))
                 <a href="#" class="dash-nav-link">
-                    <i class="fas fa-users-viewfinder"></i> <span>Presensi Kelas Peserta Didik</span>
+                    <i class="fas fa-users-viewfinder"></i> <span>Presensi Kelas</span>
                 </a>
             @endif
-        @elseif($role === 'tendik')
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_dashboard'))
-                <a href="{{ route('dashboard.tendik') }}"
-                    class="dash-nav-link {{ request()->routeIs('dashboard.tendik') ? 'active' : '' }}">
-                    <i class="fas fa-gauge-high"></i> <span>Dashboard Tendik</span>
-                </a>
-            @endif
+        @endif
 
-            <a href="{{ route('dashboard.tendik-aktif.index') }}"
-                class="dash-nav-link {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
-                <i class="fas fa-id-badge"></i> <span>Direktori Tendik</span>
-            </a>
+        {{-- Portal Peserta Didik (Khusus Peserta Didik / peran yang diizinkan) --}}
+        @if ($hasPortalSiswa)
+            <span class="nav-section-label">Portal Siswa</span>
 
-            <a href="{{ route('dashboard.guru-aktif.index') }}"
-                class="dash-nav-link {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
-                <i class="fas fa-chalkboard-user"></i> <span>Direktori Guru</span>
-            </a>
-
-            <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
-                class="dash-nav-link {{ request()->routeIs('dashboard.peserta-didik-aktif*') ? 'active' : '' }}">
-                <i class="fas fa-user-graduate"></i> <span>Direktori Peserta Didik</span>
-            </a>
-
-            <a href="#" class="dash-nav-link">
-                <i class="fas fa-file-invoice"></i> <span>Persuratan &amp; Dokumen</span>
-            </a>
-
-            <a href="#" class="dash-nav-link">
-                <i class="fas fa-address-book"></i> <span>Buku Tamu</span>
-            </a>
-        @elseif($role === 'peserta_didik')
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_dashboard'))
-                <a href="{{ route('dashboard.peserta-didik') }}"
-                    class="dash-nav-link {{ request()->routeIs('dashboard.peserta-didik') ? 'active' : '' }}">
-                    <i class="fas fa-gauge-high"></i> <span>Dashboard Peserta Didik</span>
-                </a>
-            @endif
-
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_riwayat_rfid'))
+            @if ($can('menu_riwayat_rfid'))
                 <a href="#" class="dash-nav-link">
                     <i class="fas fa-id-card-clip"></i> <span>Riwayat Presensi RFID</span>
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_jadwal_pelajaran'))
+            @if ($can('menu_jadwal_pelajaran'))
                 <a href="#" class="dash-nav-link">
                     <i class="fas fa-calendar-days"></i> <span>Jadwal Pelajaran</span>
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_rapor'))
+            @if ($can('menu_rapor'))
                 <a href="#" class="dash-nav-link">
                     <i class="fas fa-file-lines"></i> <span>Transkrip &amp; Rapor</span>
                 </a>
             @endif
 
-            @if (\App\Models\RolePermission::canAccess($role, 'menu_validasi_berkas'))
+            @if ($can('menu_validasi_berkas'))
                 <a href="#" class="dash-nav-link">
                     <i class="fas fa-folder-open"></i> <span>Validasi Berkas &amp; Ijazah</span>
                 </a>
