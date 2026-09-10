@@ -24,7 +24,8 @@ class CheckRolePermission
 
         $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
 
-        if (!RolePermission::canAccess($role, $permissionKey)) {
+        // Evaluasi gabungan hak akses: role dasar + tugas tambahan aktif pengguna
+        if (!RolePermission::canAccess($user, $permissionKey)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
@@ -32,7 +33,7 @@ class CheckRolePermission
                 ], 403);
             }
 
-            return redirect()->route('dashboard.' . $role)->with('error', 'Akses ditolak: Peran Anda tidak memiliki izin untuk membuka modul tersebut.');
+            return redirect()->route('dashboard.' . $role)->with('error', 'Akses ditolak: Peran atau penugasan Anda tidak memiliki izin untuk membuka modul tersebut.');
         }
 
         return $next($request);

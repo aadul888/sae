@@ -319,6 +319,13 @@ class FeederReceiverController extends Controller
             }
         }
 
+        // Sinkronkan otomatis tugas tambahan Wali Kelas dari rombongan_belajar
+        try {
+            \App\Models\PtkTugasTambahan::syncWaliKelasFromDapodik();
+        } catch (\Throwable $e) {
+            // Log or ignore non-fatal sync error
+        }
+
         return count($batchRombel);
     }
 

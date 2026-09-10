@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class RolePermission extends Model
 {
@@ -256,27 +257,81 @@ class RolePermission extends Model
     }
 
     /**
-     * Cek apakah role tertentu diizinkan mengakses permission tertentu
+     * Cek apakah role / user tertentu diizinkan mengakses permission tertentu.
+     * Mendukung evaluasi gabungan (Role Dasar + Izin Tugas Tambahan Aktif).
      */
-    public static function canAccess(string $role, string $permissionKey): bool
+    public static function canAccess(mixed $userOrRole, string $permissionKey): bool
     {
         // Jika tabel belum ada (sebelum migrasi selesai), fallback allow default admin
         if (!Schema::hasTable('role_permissions')) {
-            return $role === 'admin';
+            return $userOrRole === 'admin' || (is_object($userOrRole) && ($userOrRole->role ?? '') === 'admin');
         }
 
+        $role = is_string($userOrRole) ? $userOrRole : ($userOrRole['role'] ?? ($userOrRole->role ?? 'peserta_didik'));
+
+        // 1. Evaluasi izin dasar peran (Role-based)
+        $allowedByRole = false;
         $row = self::where('role', $role)->where('permission_key', $permissionKey)->first();
         if ($row) {
-            return (bool) ($row->is_allowed && $row->can_read);
+            $allowedByRole = (bool) ($row->is_allowed && $row->can_read);
+        } elseif ($role === 'admin') {
+            $allowedByRole = true;
+        } else {
+            $allowedByRole = self::isDefaultAllowed($role, $permissionKey);
         }
 
-        // Admin default true
-        if ($role === 'admin') {
+        if ($allowedByRole) {
             return true;
         }
 
-        // Cek bawaan default jika konfigurasi belum tersimpan
-        return self::isDefaultAllowed($role, $permissionKey);
+        // 2. Evaluasi izin dari tugas tambahan aktif (Duty-based)
+        if (in_array($role, ['guru', 'tendik']) && Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            $userId = is_array($userOrRole) ? ($userOrRole['id'] ?? ($userOrRole['pengguna_id'] ?? null)) : ($userOrRole->id ?? ($userOrRole->pengguna_id ?? null));
+            $ptkId = is_array($userOrRole) ? ($userOrRole['ptk_id'] ?? null) : ($userOrRole->ptk_id ?? null);
+
+            if ($userId || $ptkId) {
+                return self::hasDutyPermission($userId, $ptkId, $permissionKey);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Periksa apakah pengguna memiliki tugas tambahan aktif yang membuka modul tertentu
+     */
+    public static function hasDutyPermission(?int $userId, ?string $ptkId, string $permissionKey): bool
+    {
+        try {
+            $query = DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('ptt.is_active', true)
+                ->where('rtt.is_active', true);
+
+            if ($userId && $ptkId) {
+                $query->where(function ($q) use ($userId, $ptkId) {
+                    $q->where('ptt.user_id', $userId)->orWhere('ptt.ptk_id', $ptkId);
+                });
+            } elseif ($userId) {
+                $query->where('ptt.user_id', $userId);
+            } elseif ($ptkId) {
+                $query->where('ptt.ptk_id', $ptkId);
+            } else {
+                return false;
+            }
+
+            $grantedJsonList = $query->pluck('rtt.granted_permissions');
+            foreach ($grantedJsonList as $raw) {
+                $perms = is_string($raw) ? json_decode($raw, true) : $raw;
+                if (is_array($perms) && in_array($permissionKey, $perms, true)) {
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return false;
     }
 
     /**

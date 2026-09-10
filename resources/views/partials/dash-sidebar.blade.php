@@ -5,7 +5,33 @@
         : $user->name ?? ($user->nama ?? 'Pengguna');
     $role = is_array($user) ? $user['role'] ?? 'peserta_didik' : $user->role ?? 'peserta_didik';
 
-    $can = fn(string $key) => \App\Models\RolePermission::canAccess($role, $key);
+    // Evaluasi gabungan: hak role dasar + tugas tambahan aktif pengguna
+    $can = fn(string $key) => \App\Models\RolePermission::canAccess($user ?: $role, $key);
+
+    // Ambil daftar tugas tambahan aktif pengguna saat ini untuk badge/info sidebar
+    $userDuties = [];
+    if (in_array($role, ['guru', 'tendik'])) {
+        $uId = is_array($user)
+            ? $user['id'] ?? ($user['pengguna_id'] ?? null)
+            : $user->id ?? ($user->pengguna_id ?? null);
+        $pId = is_array($user) ? $user['ptk_id'] ?? null : $user->ptk_id ?? null;
+        if ($uId || $pId) {
+            $userDuties = \DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('ptt.is_active', true)
+                ->where('rtt.is_active', true)
+                ->where(function ($q) use ($uId, $pId) {
+                    if ($uId) {
+                        $q->where('ptt.user_id', $uId);
+                    }
+                    if ($pId) {
+                        $q->orWhere('ptt.ptk_id', $pId);
+                    }
+                })
+                ->select('rtt.nama', 'rtt.bidang', 'rtt.ekuivalensi_jam', 'ptt.rombel_id')
+                ->get();
+        }
+    }
 
     // Master Data Submenus
     $hasMasterData = $can('menu_kompetensi_keahlian') || $can('menu_rombel') || $can('menu_pembelajaran');
@@ -80,7 +106,16 @@
         </div>
         <div class="dash-user-info">
             <div class="dash-user-name" title="{{ $userName }}">{{ $userName }}</div>
-            <span class="dash-user-role role-{{ $role }}">{{ $role }}</span>
+            <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px;">
+                <span class="dash-user-role role-{{ $role }}">{{ $role }}</span>
+                @foreach ($userDuties as $duty)
+                    <span class="badge badge-accent"
+                        style="font-size: 0.62rem; padding: 1px 5px; border-radius: 4px; text-transform: none; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                        title="{{ $duty->nama }}{{ $duty->ekuivalensi_jam ? ' (' . $duty->ekuivalensi_jam . ' Jam)' : '' }}">
+                        {{ $duty->nama }}
+                    </span>
+                @endforeach
+            </div>
         </div>
     </div>
 

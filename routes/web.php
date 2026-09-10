@@ -65,6 +65,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/hak-akses/toggle', [PermissionController::class, 'toggle'])->name('hak-akses.toggle')->middleware('permission:menu_hak_akses');
     Route::post('/hak-akses/sync', [PermissionController::class, 'sync'])->name('hak-akses.sync')->middleware('permission:menu_hak_akses');
     Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset')->middleware('permission:menu_hak_akses');
+    Route::post('/hak-akses/tugas-tambahan/store', [PermissionController::class, 'storeTugasTambahan'])->name('hak-akses.tugas-tambahan.store')->middleware('permission:menu_hak_akses');
+    Route::delete('/hak-akses/tugas-tambahan/{id}', [PermissionController::class, 'destroyTugasTambahan'])->name('hak-akses.tugas-tambahan.destroy')->middleware('permission:menu_hak_akses');
+    Route::post('/hak-akses/tugas-tambahan/sync-wali', [PermissionController::class, 'syncWaliKelas'])->name('hak-akses.tugas-tambahan.sync-wali')->middleware('permission:menu_hak_akses');
 
     // Pengaturan — Identitas Sekolah (Sumber: Sekolah Dapodik)
     Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index')->middleware('permission:menu_pengaturan');
