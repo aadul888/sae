@@ -208,6 +208,9 @@ class UpdateService
         $success = true;
         $newCommit = null;
 
+        // 0. Pra-perbaikan hak akses agar git pull & zip fallback tidak Permission Denied
+        $this->ensurePermissions();
+
         // 1. Sync file kode
         if (is_dir(base_path('.git'))) {
             $basePath = base_path();
@@ -239,8 +242,9 @@ class UpdateService
             $logs[] = "[GIT PULL ($branch)] " . $pullText;
 
             // Jika git pull gagal / conflict / permission denied, fallback unduh ZIP
-            if ($pullOutput === null || str_contains($pullText, 'fatal:') || str_contains($pullText, 'error:') || str_contains($pullText, 'Permission denied') || str_contains($pullText, 'Could not resolve host')) {
+            if ($pullOutput === null || str_contains($pullText, 'fatal:') || str_contains($pullText, 'error:') || str_contains($pullText, 'Permission denied') || str_contains($pullText, 'insufficient permission') || str_contains($pullText, 'Could not resolve host')) {
                 $logs[] = "[FALLBACK] Git pull gagal, mencoba fallback deploy ZIP...";
+                $this->ensurePermissions();
                 $zipResult = $this->deployFromGitHubZip($branch);
                 foreach ($zipResult['logs'] as $zl) {
                     $logs[] = $zl;
@@ -253,6 +257,7 @@ class UpdateService
             $newCommit = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
         } else {
             // Standalone / Non-Git mode: Unduh ZIP dari GitHub & timpa file
+            $this->ensurePermissions();
             $zipResult = $this->deployFromGitHubZip('main');
             foreach ($zipResult['logs'] as $zl) {
                 $logs[] = $zl;
@@ -316,15 +321,26 @@ class UpdateService
     }
 
     /**
-     * Pastikan permission storage dan bootstrap/cache tetap writable oleh web server
+     * Pastikan permission storage, cache, .git, dan direktori web writable oleh PHP
      */
     protected function ensurePermissions(): void
     {
         if (DIRECTORY_SEPARATOR === '/') {
-            @shell_exec('chmod -R 777 ' . escapeshellarg(storage_path()) . ' ' . escapeshellarg(base_path('bootstrap/cache')) . ' 2>/dev/null');
+            $base = escapeshellarg(base_path());
+            $storage = escapeshellarg(storage_path());
+            $cache = escapeshellarg(base_path('bootstrap/cache'));
+            $gitDir = escapeshellarg(base_path('.git'));
+
+            // Pastikan runtime Laravel selalu writable
+            @shell_exec("chmod -R 777 $storage $cache 2>/dev/null");
+
+            // Pastikan repository .git writable agar git fetch/pull/unpack tidak permission denied
             if (is_dir(base_path('.git'))) {
-                @shell_exec('chmod -R 777 ' . escapeshellarg(base_path('.git')) . ' 2>/dev/null');
+                @shell_exec("chmod -R 777 $gitDir 2>/dev/null");
             }
+
+            // Pastikan folder-folder target deploy dapat ditulis
+            @shell_exec("chmod -R 775 " . escapeshellarg(app_path()) . " " . escapeshellarg(resource_path()) . " " . escapeshellarg(database_path()) . " " . escapeshellarg(public_path()) . " " . escapeshellarg(base_path('routes')) . " 2>/dev/null");
         }
     }
 
@@ -379,6 +395,7 @@ class UpdateService
             // Sync files (kecuali .env, storage, node_modules)
             $excluded = ['.env', 'storage', 'node_modules', '.git'];
             $copied = 0;
+            $failedCopies = [];
             $allFiles = File::allFiles($inner);
             foreach ($allFiles as $file) {
                 $rel = str_replace('\\', '/', substr($file->getPathname(), strlen($inner) + 1));
@@ -395,18 +412,39 @@ class UpdateService
                 $dest = base_path($rel);
                 $destDir = dirname($dest);
                 if (!is_dir($destDir)) {
-                    File::makeDirectory($destDir, 0755, true, true);
+                    @File::makeDirectory($destDir, 0777, true, true);
                 }
-                File::copy($file->getPathname(), $dest);
-                $copied++;
+
+                // Coba chmod target file bila writable issue
+                if (file_exists($dest) && !is_writable($dest)) {
+                    @chmod($dest, 0666);
+                }
+
+                $ok = @copy($file->getPathname(), $dest);
+                if (!$ok) {
+                    // Fallback pakai file_put_contents
+                    $content = @file_get_contents($file->getPathname());
+                    if ($content !== false && @file_put_contents($dest, $content) !== false) {
+                        $copied++;
+                    } else {
+                        $failedCopies[] = $rel;
+                    }
+                } else {
+                    $copied++;
+                }
             }
 
             File::deleteDirectory($tmpExtract);
-            $logs[] = "[ZIP SYNC] Berhasil menyalin $copied file pembaruan sistem.";
+
+            if (!empty($failedCopies)) {
+                $logs[] = "[ZIP NOTICE] $copied file berhasil disalin, " . count($failedCopies) . " file gagal izin tulis: " . implode(', ', array_slice($failedCopies, 0, 3));
+            } else {
+                $logs[] = "[ZIP SYNC] Berhasil menyalin $copied file pembaruan sistem.";
+            }
 
             $latestCommit = $this->fetchGitHubLatestCommit($branch);
             return [
-                'success' => true,
+                'success' => empty($failedCopies) || $copied > 0,
                 'logs' => $logs,
                 'sha' => $latestCommit['sha'] ?? null,
             ];
