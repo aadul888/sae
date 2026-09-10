@@ -4,12 +4,15 @@
 @section('dash_title', 'Portal Peserta Didik')
 
 @section('content')
+    @php
+        $hour = date('H');
+        $greeting = $hour < 11 ? 'Selamat Pagi,' : ($hour < 15 ? 'Selamat Siang,' : ($hour < 18 ? 'Selamat Sore,' : 'Selamat Malam,'));
+    @endphp
     <!-- Welcome Banner -->
     <div class="dash-banner" style="background: linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.1) 100%);">
         <div>
             <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.3;">
-                <span
-                    style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Halo,</span>
+                <span style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
                 {{ session('user.name', 'Peserta Didik') }}! 🎓
             </h2>
             <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">

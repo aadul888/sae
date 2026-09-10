@@ -4,16 +4,17 @@
 @section('dash_title', 'Portal Tenaga Kependidikan & Administrasi')
 
 @section('content')
+    @php
+        $hour = date('H');
+        $greeting = $hour < 11 ? 'Selamat Pagi,' : ($hour < 15 ? 'Selamat Siang,' : ($hour < 18 ? 'Selamat Sore,' : 'Selamat Malam,'));
+    @endphp
     <!-- Banner Header -->
     <div class="card"
         style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25); position: relative; overflow: hidden; border-radius: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
             <div>
-                <h2
-                    style="font-size: 1.45rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px; line-height: 1.3;">
-                    <span
-                        style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Selamat
-                        Pagi,</span>
+                <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px; line-height: 1.3;">
+                    <span style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
                     {{ session('user')['name'] ?? 'Tenaga Kependidikan' }}! 📁
                 </h2>
                 <div
