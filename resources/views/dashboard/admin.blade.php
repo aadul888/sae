@@ -6,13 +6,21 @@
 @section('content')
     @php
         $hour = date('H');
-        $greeting = $hour < 11 ? 'Selamat Pagi,' : ($hour < 15 ? 'Selamat Siang,' : ($hour < 18 ? 'Selamat Sore,' : 'Selamat Malam,'));
+        $greeting =
+            $hour < 11
+                ? 'Selamat Pagi,'
+                : ($hour < 15
+                    ? 'Selamat Siang,'
+                    : ($hour < 18
+                        ? 'Selamat Sore,'
+                        : 'Selamat Malam,'));
     @endphp
     <!-- Welcome Banner -->
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.3;">
-                <span style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
+                <span
+                    style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
                 {{ session('user.name', 'Admin') }}! 👋
             </h2>
             <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">

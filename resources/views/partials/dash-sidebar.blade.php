@@ -331,7 +331,7 @@
             {{-- Konfigurasi & Pengaturan Sistem (Collapsible) --}}
             @php
                 $isSistemGroupActive =
-                    request()->routeIs('dashboard.pengguna*') || request()->routeIs('dashboard.hak-akses*');
+                    request()->routeIs('dashboard.pengguna*') || request()->routeIs('dashboard.hak-akses*') || request()->routeIs('dashboard.identitas-sekolah*') || request()->routeIs('dashboard.maintenance*');
             @endphp
             <div class="dash-nav-group {{ $isSistemGroupActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
@@ -360,6 +360,13 @@
                         <a href="{{ route('dashboard.identitas-sekolah.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas-sekolah*') ? 'active' : '' }}">
                             <i class="fas fa-school"></i> <span>Identitas Sekolah</span>
+                        </a>
+                    @endif
+                    
+                    @if (\App\Models\RolePermission::canAccess($role, 'menu_maintenance'))
+                        <a href="{{ route('dashboard.maintenance.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.maintenance*') ? 'active' : '' }}">
+                            <i class="fas fa-server"></i> <span>Arsip & Maintenance</span>
                         </a>
                     @endif
                 </div>

@@ -94,6 +94,12 @@ class RolePermission extends Model
                     'icon' => 'fa-arrows-rotate',
                     'roles' => ['admin'],
                 ],
+                'menu_maintenance' => [
+                    'label' => 'Arsip & Maintenance',
+                    'desc' => 'Mencadangkan data dan membersihkan log sistem',
+                    'icon' => 'fa-server',
+                    'roles' => ['admin'],
+                ],
                 'menu_hak_akses' => [
                     'label' => 'Pengaturan Hak Akses (Modul Baru)',
                     'desc' => 'Mengonfigurasi hak akses menu dan fitur tiap peran pengguna',

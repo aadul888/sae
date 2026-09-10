@@ -140,96 +140,52 @@
                                 </div>
                             </div>
 
-                            <!-- Master Toggle Switch -->
-                            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                                <label class="switch-container"
-                                    style="position: relative; display: inline-block; width: 44px; height: 24px; margin: 0; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }};">
-                                    <input type="checkbox" class="permission-toggle" data-role="{{ $activeRole }}"
-                                        data-key="{{ $permKey }}" {{ $isAllowed ? 'checked' : '' }}
-                                        {{ $isLocked ? 'disabled' : '' }} style="opacity: 0; width: 0; height: 0;">
-                                    <span class="slider-toggle"
-                                        style="position: absolute; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $isAllowed ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: 24px;"></span>
+                            <!-- Master Radio Switch -->
+                            <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; background: rgba(0,0,0,0.15); padding: 6px 12px; border-radius: 8px;">
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; color: {{ $isAllowed ? '#10b981' : 'var(--text-muted)' }}; font-weight: {{ $isAllowed ? '700' : '500' }}; margin: 0;">
+                                    <input type="radio" class="permission-radio" name="menu_{{ $permKey }}" data-role="{{ $activeRole }}" data-key="{{ $permKey }}" value="1" {{ $isAllowed ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }}>
+                                    Aktif
                                 </label>
-                                <span class="status-label"
-                                    style="font-size: 0.75rem; font-weight: 600; min-width: 50px; color: {{ $isAllowed ? '#10b981' : '#64748b' }};">
-                                    {{ $isAllowed ? 'Aktif' : 'Nonaktif' }}
-                                </span>
+                                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; color: {{ !$isAllowed ? '#ef4444' : 'var(--text-muted)' }}; font-weight: {{ !$isAllowed ? '700' : '500' }}; margin: 0;">
+                                    <input type="radio" class="permission-radio" name="menu_{{ $permKey }}" data-role="{{ $activeRole }}" data-key="{{ $permKey }}" value="0" {{ !$isAllowed ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }}>
+                                    Nonaktif
+                                </label>
                             </div>
                         </div>
 
-                        <!-- CRUD Matrix Checkboxes -->
-                        <div class="crud-controls"
-                            style="margin-left: 52px; display: flex; align-items: center; gap: 18px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.05); flex-wrap: wrap;">
-                            <span
-                                style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Izin
-                                Operasi:</span>
-
-                            <!-- Create -->
-                            <label
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--text-color); cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; margin: 0;">
-                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                    data-key="{{ $permKey }}" data-action="create" {{ $canC ? 'checked' : '' }}
-                                    {{ $isLocked ? 'disabled' : '' }} style="cursor: pointer; accent-color: #3b82f6;">
-                                <span style="font-weight: 600; color: #3b82f6;"><i
-                                        class="fas fa-plus-circle me-1"></i>Create</span>
-                                <span style="color: var(--text-muted); font-size: 0.7rem;">(Tambah)</span>
-                            </label>
-
-                            <!-- Read -->
-                            <label
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--text-color); cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; margin: 0;">
-                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                    data-key="{{ $permKey }}" data-action="read" {{ $canR ? 'checked' : '' }}
-                                    {{ $isLocked ? 'disabled' : '' }} style="cursor: pointer; accent-color: #10b981;">
-                                <span style="font-weight: 600; color: #10b981;"><i class="fas fa-eye me-1"></i>Read</span>
-                                <span style="color: var(--text-muted); font-size: 0.7rem;">(Lihat)</span>
-                            </label>
-
-                            <!-- Update -->
-                            <label
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--text-color); cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; margin: 0;">
-                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                    data-key="{{ $permKey }}" data-action="update" {{ $canU ? 'checked' : '' }}
-                                    {{ $isLocked ? 'disabled' : '' }} style="cursor: pointer; accent-color: #f59e0b;">
-                                <span style="font-weight: 600; color: #f59e0b;"><i
-                                        class="fas fa-pen-to-square me-1"></i>Update</span>
-                                <span style="color: var(--text-muted); font-size: 0.7rem;">(Ubah)</span>
-                            </label>
-
-                            <!-- Delete -->
-                            <label
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; color: var(--text-color); cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; margin: 0;">
-                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                    data-key="{{ $permKey }}" data-action="delete" {{ $canD ? 'checked' : '' }}
-                                    {{ $isLocked ? 'disabled' : '' }} style="cursor: pointer; accent-color: #ef4444;">
-                                <span style="font-weight: 600; color: #ef4444;"><i
-                                        class="fas fa-trash me-1"></i>Delete</span>
-                                <span style="color: var(--text-muted); font-size: 0.7rem;">(Hapus)</span>
-                            </label>
+                        <!-- CRUD Matrix Radios -->
+                        <div class="crud-controls" style="margin-left: 52px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.05);">
+                            <span style="display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Izin Operasi:</span>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                                @foreach([
+                                    ['action' => 'create', 'label' => 'Create', 'icon' => 'fa-plus-circle', 'color' => '#3b82f6', 'val' => $canC],
+                                    ['action' => 'read', 'label' => 'Read', 'icon' => 'fa-eye', 'color' => '#10b981', 'val' => $canR],
+                                    ['action' => 'update', 'label' => 'Update', 'icon' => 'fa-pen-to-square', 'color' => '#f59e0b', 'val' => $canU],
+                                    ['action' => 'delete', 'label' => 'Delete', 'icon' => 'fa-trash', 'color' => '#ef4444', 'val' => $canD],
+                                ] as $crud)
+                                    <div style="display: flex; flex-direction: column; gap: 6px; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02);">
+                                        <span style="font-size: 0.72rem; font-weight: 700; color: {{ $crud['color'] }};">
+                                            <i class="fas {{ $crud['icon'] }} me-1"></i> {{ $crud['label'] }}
+                                        </span>
+                                        <div style="display: flex; gap: 12px;">
+                                            <label style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: {{ $crud['val'] ? '#10b981' : 'var(--text-muted)' }}; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; margin: 0; font-weight: {{ $crud['val'] ? '700' : '500' }};">
+                                                <input type="radio" class="crud-radio" name="{{ $crud['action'] }}_{{ $permKey }}" data-role="{{ $activeRole }}" data-key="{{ $permKey }}" data-action="{{ $crud['action'] }}" value="1" {{ $crud['val'] ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }}>
+                                                Ya
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: {{ !$crud['val'] ? '#ef4444' : 'var(--text-muted)' }}; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; margin: 0; font-weight: {{ !$crud['val'] ? '700' : '500' }};">
+                                                <input type="radio" class="crud-radio" name="{{ $crud['action'] }}_{{ $permKey }}" data-role="{{ $activeRole }}" data-key="{{ $permKey }}" data-action="{{ $crud['action'] }}" value="0" {{ !$crud['val'] ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }}>
+                                                Tidak
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
                 @endforeach
             </div>
         </div>
     @endforeach
-
-    <style>
-        .slider-toggle:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider-toggle:before {
-            transform: translateX(20px);
-        }
-    </style>
 
     @push('scripts')
         <script>
@@ -252,18 +208,13 @@
                     }
                 };
 
-                // 1. Toggle Akses Menu Keseluruhan (Master Switch)
-                document.querySelectorAll('.permission-toggle').forEach(toggle => {
-                    toggle.addEventListener('change', async (e) => {
-                        const cb = e.target;
-                        const role = cb.dataset.role;
-                        const key = cb.dataset.key;
-                        const isAllowed = cb.checked;
-                        const label = cb.closest('div').querySelector('.status-label');
-                        const slider = cb.closest('label').querySelector('.slider-toggle');
-
-                        label.textContent = 'Menyimpan...';
-                        label.style.color = '#eab308';
+                // 1. Toggle Akses Menu Keseluruhan (Master Switch Radios)
+                document.querySelectorAll('.permission-radio').forEach(radio => {
+                    radio.addEventListener('change', async (e) => {
+                        const target = e.target;
+                        const role = target.dataset.role;
+                        const key = target.dataset.key;
+                        const isAllowed = target.value === '1';
 
                         try {
                             const res = await fetch('{{ route('dashboard.hak-akses.toggle') }}', {
@@ -282,18 +233,26 @@
 
                             const data = await res.json();
                             if (data.status === 'success') {
-                                label.textContent = isAllowed ? 'Aktif' : 'Nonaktif';
-                                label.style.color = isAllowed ? '#10b981' : '#64748b';
-                                slider.style.backgroundColor = isAllowed ? '#10b981' : '#64748b';
+                                // Update colors
+                                const container = target.closest('div');
+                                const labelAktif = container.querySelector('label:first-child');
+                                const labelMati = container.querySelector('label:last-child');
+                                
+                                labelAktif.style.color = isAllowed ? '#10b981' : 'var(--text-muted)';
+                                labelAktif.style.fontWeight = isAllowed ? '700' : '500';
+                                
+                                labelMati.style.color = !isAllowed ? '#ef4444' : 'var(--text-muted)';
+                                labelMati.style.fontWeight = !isAllowed ? '700' : '500';
+                                
                                 showToast(data.message);
                             } else {
                                 throw new Error(data.message || 'Gagal mengubah izin');
                             }
                         } catch (err) {
-                            cb.checked = !isAllowed;
-                            label.textContent = !isAllowed ? 'Aktif' : 'Nonaktif';
-                            label.style.color = !isAllowed ? '#10b981' : '#64748b';
-                            slider.style.backgroundColor = !isAllowed ? '#10b981' : '#64748b';
+                            // Revert radio selection
+                            const revertedValue = isAllowed ? '0' : '1';
+                            target.closest('div').querySelector(`input[value="${revertedValue}"]`).checked = true;
+                            
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'error',
@@ -309,13 +268,13 @@
                 });
 
                 // 2. Toggle CRUD Spesifik (Create, Read, Update, Delete)
-                document.querySelectorAll('.crud-toggle').forEach(cb => {
-                    cb.addEventListener('change', async (e) => {
+                document.querySelectorAll('.crud-radio').forEach(radio => {
+                    radio.addEventListener('change', async (e) => {
                         const target = e.target;
                         const role = target.dataset.role;
                         const key = target.dataset.key;
                         const action = target.dataset.action;
-                        const isAllowed = target.checked;
+                        const isAllowed = target.value === '1';
 
                         try {
                             const res = await fetch('{{ route('dashboard.hak-akses.toggle') }}', {
@@ -335,12 +294,26 @@
 
                             const data = await res.json();
                             if (data.status === 'success') {
+                                // Update colors
+                                const container = target.closest('div');
+                                const labelYa = container.querySelector('label:first-child');
+                                const labelTidak = container.querySelector('label:last-child');
+                                
+                                labelYa.style.color = isAllowed ? '#10b981' : 'var(--text-muted)';
+                                labelYa.style.fontWeight = isAllowed ? '700' : '500';
+                                
+                                labelTidak.style.color = !isAllowed ? '#ef4444' : 'var(--text-muted)';
+                                labelTidak.style.fontWeight = !isAllowed ? '700' : '500';
+
                                 showToast(data.message);
                             } else {
                                 throw new Error(data.message || 'Gagal mengubah izin ' + action);
                             }
                         } catch (err) {
-                            target.checked = !isAllowed;
+                            // Revert radio selection
+                            const revertedValue = isAllowed ? '0' : '1';
+                            target.closest('div').querySelector(`input[value="${revertedValue}"]`).checked = true;
+
                             if (typeof Swal !== 'undefined') {
                                 Swal.fire({
                                     icon: 'error',
