@@ -10,9 +10,12 @@
         <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
             Selamat Pagi, {{ session('user.name', 'Guru') }}! 📚
         </h2>
-        <p style="color: var(--text-muted); font-size: 0.88rem;">
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">
             Mata Pelajaran: <strong>{{ session('user.mapel', 'Informatika & RPL') }}</strong> &bull; NIP: {{ session('user.nip', '197905122005011003') }}
         </p>
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #10b981;">
+            <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+        </div>
     </div>
     <div class="dash-banner-actions">
         <button class="btn btn-primary" style="padding: 9px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);">

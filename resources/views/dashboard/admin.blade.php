@@ -10,7 +10,7 @@
             <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 Selamat Datang, {{ session('user.name', 'Admin') }}! 👋
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.88rem;">
+            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">
                 @if (!empty($sekolah->nama))
                     <strong>{{ $sekolah->nama }}</strong> (NPSN: {{ $sekolah->npsn ?? '-' }}) &bull; Pusat Kendali &amp;
                     Manajemen Terintegrasi
@@ -18,6 +18,9 @@
                     Pusat Kendali Administrasi &amp; Manajemen Data Satuan Pendidikan Terintegrasi.
                 @endif
             </p>
+            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--primary);">
+                <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+            </div>
         </div>
         <div class="dash-banner-actions">
             <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">

@@ -10,9 +10,12 @@
         <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
             Halo, {{ session('user.name', 'Peserta Didik') }}! 🎓
         </h2>
-        <p style="color: var(--text-muted); font-size: 0.88rem;">
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">
             NISN: <strong>{{ session('user.nisn', '0071234567') }}</strong> &bull; Kelas: <strong>{{ session('user.kelas', 'XII RPL 1') }}</strong> &bull; Status: <span class="text-success font-bold"><i class="fas fa-circle-check"></i> Aktif</span>
         </p>
+        <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #06b6d4;">
+            <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+        </div>
     </div>
     <div class="dash-banner-actions">
         <button class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">

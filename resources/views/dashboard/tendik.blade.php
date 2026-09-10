@@ -12,13 +12,16 @@
                 <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px;">
                     Selamat Pagi, {{ session('user')['name'] ?? 'Tenaga Kependidikan' }}! 📁
                 </h2>
-                <div style="display: flex; gap: 16px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap;">
+                <div style="display: flex; gap: 16px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 12px;">
                     <span><i class="fas fa-briefcase text-primary me-1"></i> Bagian:
                         <strong>{{ session('user')['mapel'] ?? 'Tata Usaha / Administrasi Sekolah' }}</strong></span>
                     @if (!empty(session('user')['nip']))
                         <span><i class="fas fa-id-card text-primary me-1"></i> NIP:
                             <strong>{{ session('user')['nip'] }}</strong></span>
                     @endif
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #3b82f6;">
+                    <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                 </div>
             </div>
             <div>
