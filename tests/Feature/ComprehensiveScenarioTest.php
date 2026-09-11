@@ -175,4 +175,18 @@ class ComprehensiveScenarioTest extends TestCase
         $u->password = Hash::make('0102015638');
         $u->save();
     }
+
+    /**
+     * 8. Test Update Service checkUpdate returns valid structure
+     */
+    public function test_update_service_check_update()
+    {
+        $updateService = app(\App\Services\UpdateService::class);
+        $status = $updateService->checkUpdate();
+
+        $this->assertArrayHasKey('current_version', $status);
+        $this->assertArrayHasKey('has_git', $status);
+        $this->assertArrayHasKey('updates_available', $status);
+        $this->assertArrayHasKey('git_commit', $status);
+    }
 }

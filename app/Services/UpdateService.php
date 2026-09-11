@@ -11,7 +11,7 @@ use ZipArchive;
 
 class UpdateService
 {
-    const CURRENT_VERSION = '1.0.2';
+    const CURRENT_VERSION = '1.0.3';
     const GITHUB_REPO = 'aadul888/sae';
 
     /**
@@ -227,6 +227,7 @@ class UpdateService
             }
 
             // 1b. Reset file lokal yang termodifikasi (storage/.gitignore dll) agar tidak block pull
+            @shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard HEAD 2>&1');
             @shell_exec($envPrefix . ' ' . $gitCmd . ' checkout -- . 2>&1');
             $logs[] = "[GIT RESET] Local changes reset sebelum pull.";
 
@@ -236,14 +237,36 @@ class UpdateService
                 $logs[] = "[GIT FETCH] " . $fetchOut;
             }
 
-            // 1d. Pull dengan non-interactive
+            // 1d. Coba pull terlebih dahulu
             $pullOutput = @shell_exec($envPrefix . ' ' . $gitCmd . ' pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1');
             $pullText = trim($pullOutput ?: 'No output');
             $logs[] = "[GIT PULL ($branch)] " . $pullText;
 
-            // Jika git pull gagal / conflict / permission denied, fallback unduh ZIP
-            if ($pullOutput === null || str_contains($pullText, 'fatal:') || str_contains($pullText, 'error:') || str_contains($pullText, 'Permission denied') || str_contains($pullText, 'insufficient permission') || str_contains($pullText, 'Could not resolve host')) {
-                $logs[] = "[FALLBACK] Git pull gagal, mencoba fallback deploy ZIP...";
+            $gitPullSuccess = ($pullOutput !== null && !str_contains($pullText, 'fatal:') && !str_contains($pullText, 'error:') && !str_contains($pullText, 'Aborting'));
+
+            // 1e. Jika git pull gagal karena untracked working tree files, merge conflict, dll:
+            // Lakukan sinkronisasi pasti dengan hard reset ke origin/$branch (standar deployment server)
+            if (!$gitPullSuccess) {
+                $logs[] = "[GIT SYNC] Terdeteksi kendala merge/untracked files. Melakukan hard reset ke origin/$branch...";
+                $resetOut = trim(@shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
+                $logs[] = "[GIT RESET --HARD] " . $resetOut;
+
+                // Bersihkan untracked files sisa yang tidak terdaftar di git
+                @shell_exec($envPrefix . ' ' . $gitCmd . ' clean -fd 2>&1');
+
+                // Verifikasi apakah HEAD sekarang sudah sesuai dengan origin
+                $checkHead = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
+                $checkOrigin = trim(@shell_exec($gitCmd . ' rev-parse origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
+
+                if ($checkHead && $checkOrigin && $checkHead === $checkOrigin) {
+                    $gitPullSuccess = true;
+                    $logs[] = "[GIT SUCCESS] Repositori berhasil disinkronkan ke commit " . substr($checkHead, 0, 7);
+                }
+            }
+
+            // 1f. Jika git pull dan git reset tetap gagal (misal masalah network/kredensial/permission fatal), baru fallback ZIP
+            if (!$gitPullSuccess) {
+                $logs[] = "[FALLBACK] Git sync gagal, mencoba fallback deploy ZIP...";
                 $this->ensurePermissions();
                 $zipResult = $this->deployFromGitHubZip($branch);
                 foreach ($zipResult['logs'] as $zl) {
@@ -252,9 +275,15 @@ class UpdateService
                 if (!$zipResult['success']) {
                     $success = false;
                 }
+                if (!empty($zipResult['sha'])) {
+                    @shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard ' . escapeshellarg($zipResult['sha']) . ' 2>&1');
+                }
             }
 
             $newCommit = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
+            if (empty($newCommit) || str_contains($newCommit, 'fatal:')) {
+                $newCommit = $zipResult['sha'] ?? null;
+            }
         } else {
             // Standalone / Non-Git mode: Unduh ZIP dari GitHub & timpa file
             $this->ensurePermissions();
