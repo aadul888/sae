@@ -73,6 +73,17 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index')->middleware('permission:menu_pengaturan');
     Route::put('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'update'])->name('identitas-sekolah.update')->middleware('permission:menu_pengaturan');
 
+    // Layanan Digital — Pengumuman & Broadcast
+    Route::get('/informasi', [\App\Http\Controllers\PengumumanController::class, 'pengguna'])->name('informasi.index');
+    Route::post('/informasi/mark-all-read', [\App\Http\Controllers\PengumumanController::class, 'markAllRead'])->name('informasi.mark-all-read');
+    Route::post('/informasi/{id}/mark-read', [\App\Http\Controllers\PengumumanController::class, 'markSingleRead'])->name('informasi.mark-read');
+    Route::get('/informasi/{id}/detail', [\App\Http\Controllers\PengumumanController::class, 'detail'])->name('informasi.detail');
+    Route::get('/pengumuman', [\App\Http\Controllers\PengumumanController::class, 'index'])->name('pengumuman.index')->middleware('permission:menu_pengumuman');
+    Route::post('/pengumuman', [\App\Http\Controllers\PengumumanController::class, 'store'])->name('pengumuman.store')->middleware('permission:menu_pengumuman');
+    Route::put('/pengumuman/{id}', [\App\Http\Controllers\PengumumanController::class, 'update'])->name('pengumuman.update')->middleware('permission:menu_pengumuman');
+    Route::delete('/pengumuman/{id}', [\App\Http\Controllers\PengumumanController::class, 'destroy'])->name('pengumuman.destroy')->middleware('permission:menu_pengumuman');
+    Route::post('/pengumuman/{id}/toggle', [\App\Http\Controllers\PengumumanController::class, 'toggle'])->name('pengumuman.toggle')->middleware('permission:menu_pengumuman');
+
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian');
     Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel')->middleware('permission:menu_kompetensi_keahlian');

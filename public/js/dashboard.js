@@ -106,6 +106,85 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Notification Bell Dropdown Toggle & Outside Click
+    const notifBtn = document.getElementById("notifBellBtn");
+    const notifDropdown = document.getElementById("notifDropdown");
+
+    if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = notifDropdown.style.display === "block";
+            notifDropdown.style.display = isOpen ? "none" : "block";
+            notifBtn.setAttribute("aria-expanded", String(!isOpen));
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".dash-notif-container")) {
+                notifDropdown.style.display = "none";
+                notifBtn.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                notifDropdown.style.display = "none";
+                notifBtn.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        // Quick Mark All Read button in notification dropdown
+        const btnQuickMark = document.getElementById("btnQuickMarkAllRead");
+        if (btnQuickMark) {
+            btnQuickMark.addEventListener("click", async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+                try {
+                    btnQuickMark.style.opacity = "0.5";
+                    btnQuickMark.disabled = true;
+
+                    const res = await fetch("/dashboard/informasi/mark-all-read", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json",
+                            "X-CSRF-TOKEN": csrfToken,
+                        },
+                    });
+
+                    const data = await res.json();
+                    if (data.status === "success") {
+                        const bellDot = document.getElementById("bellNotifDot");
+                        if (bellDot) bellDot.remove();
+
+                        const headerBadge = document.getElementById("headerNotifBadge");
+                        if (headerBadge) headerBadge.remove();
+
+                        btnQuickMark.remove();
+
+                        document.querySelectorAll(".dash-notif-dot").forEach((dot) => dot.remove());
+                        document.querySelectorAll(".dash-notif-item.unread-item").forEach((el) => el.classList.remove("unread-item"));
+
+                        if (window.SAE && typeof window.SAE.toast === "function") {
+                            window.SAE.toast(data.message || "Semua pengumuman telah dibaca.", "success");
+                        }
+
+                        // Jika saat ini di halaman informasi feed, refresh atau update UI
+                        if (window.updateFeedAllRead && typeof window.updateFeedAllRead === "function") {
+                            window.updateFeedAllRead();
+                        }
+                    }
+                } catch (err) {
+                    btnQuickMark.style.opacity = "1";
+                    btnQuickMark.disabled = false;
+                }
+            });
+        }
+    }
+
     // Global Modal Backdrop Close & ESC Handler
     document.querySelectorAll(".modal-backdrop").forEach((modal) => {
         modal.addEventListener("click", function (e) {

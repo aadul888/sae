@@ -146,14 +146,16 @@
 
             @if ($can('menu_dashboard'))
                 <a href="{{ $dashRoute }}" class="dash-nav-link {{ $dashActive ? 'active' : '' }}">
-                    <i class="fas fa-gauge-high"></i> <span>{{ $dashLabel }}</span>
+                    <span class="nav-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
+                    <span class="nav-label">{{ $dashLabel }}</span>
                 </a>
             @endif
 
             @if ($can('menu_dapodik'))
                 <a href="{{ route('dashboard.dapodik') }}"
                     class="dash-nav-link {{ request()->routeIs('dashboard.dapodik*') ? 'active' : '' }}">
-                    <i class="fas fa-cloud-arrow-down"></i> <span>Tarik Data Dapodik</span>
+                    <span class="nav-icon"><i class="fas fa-fw fa-cloud-arrow-down"></i></span>
+                    <span class="nav-label">Tarik Data Dapodik</span>
                 </a>
             @endif
 
@@ -168,8 +170,8 @@
                 <div class="dash-nav-group {{ $isMasterDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
-                            <i class="fas fa-cubes"></i>
-                            <span>Master Data</span>
+                            <span class="nav-icon"><i class="fas fa-fw fa-cubes"></i></span>
+                            <span class="nav-label">Master Data</span>
                         </div>
                         <i class="fas fa-chevron-right arrow-icon"></i>
                     </button>
@@ -177,7 +179,8 @@
                         @if ($can('menu_kompetensi_keahlian'))
                             <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.kompetensi-keahlian*') ? 'active' : '' }}">
-                                <i class="fas fa-laptop-code"></i> <span>Keahlian</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-laptop-code"></i></span>
+                                <span class="nav-label">Keahlian</span>
                             </a>
                         @endif
 
@@ -188,21 +191,23 @@
                             @endphp
                             <div class="dash-nav-nested-group {{ $isRombelActive ? 'open active-group' : '' }}">
                                 <button type="button" class="dash-nav-nested-toggle">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-school"
-                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
-                                        <span>Rombel</span>
+                                    <div class="dash-nav-nested-toggle-main">
+                                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-school"></i></span>
+                                        <span class="nav-label">Rombel</span>
                                     </div>
                                     <i class="fas fa-chevron-right nested-arrow-icon"></i>
                                 </button>
                                 <div class="dash-nav-nested-menu">
                                     <a href="{{ route('dashboard.rombel.reguler') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.rombel.reguler') || (request()->routeIs('dashboard.rombel.index') && ($currentType ?? 'reguler') === 'reguler') ? 'active' : '' }}">
-                                        <i class="fas fa-users-rectangle"></i> <span>Kelas (Reguler)</span>
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-users-rectangle"></i></span>
+                                        <span class="nav-label">Kelas (Reguler)</span>
                                     </a>
                                     <a href="{{ route('dashboard.rombel.matpel') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.rombel.matpel') || (request()->routeIs('dashboard.rombel.index') && ($currentType ?? '') === 'matpel') ? 'active' : '' }}">
-                                        <i class="fas fa-book-open"></i> <span>Matpel Pilihan</span>
+                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book-open"></i></span>
+                                        <span class="nav-label">Matpel Pilihan</span>
                                     </a>
                                 </div>
                             </div>
@@ -211,7 +216,8 @@
                         @if ($can('menu_pembelajaran'))
                             <a href="{{ route('dashboard.pembelajaran.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.pembelajaran*') ? 'active' : '' }}">
-                                <i class="fas fa-book-bookmark"></i> <span>Pembelajaran</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
+                                <span class="nav-label">Pembelajaran</span>
                             </a>
                         @endif
                     </div>
@@ -240,8 +246,8 @@
                 <div class="dash-nav-group {{ $isManajemenDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
-                            <i class="fas fa-folder-tree"></i>
-                            <span>Manajemen Data</span>
+                            <span class="nav-icon"><i class="fas fa-fw fa-folder-tree"></i></span>
+                            <span class="nav-label">Manajemen Data</span>
                         </div>
                         <i class="fas fa-chevron-right arrow-icon"></i>
                     </button>
@@ -250,10 +256,10 @@
                         @if ($hasPesertaDidik)
                             <div class="dash-nav-nested-group {{ $isPesertaDidikActive ? 'open active-group' : '' }}">
                                 <button type="button" class="dash-nav-nested-toggle">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-user-graduate"
-                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
-                                        <span>Peserta Didik</span>
+                                    <div class="dash-nav-nested-toggle-main">
+                                        <span class="nav-icon sub-icon"><i
+                                                class="fas fa-fw fa-user-graduate"></i></span>
+                                        <span class="nav-label">Peserta Didik</span>
                                     </div>
                                     <i class="fas fa-chevron-right nested-arrow-icon"></i>
                                 </button>
@@ -261,14 +267,18 @@
                                     @if ($can('menu_peserta_didik_aktif'))
                                         <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
                                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-aktif*') ? 'active' : '' }}">
-                                            <i class="fas fa-circle-check"></i> <span>Aktif</span>
+                                            <span class="nav-icon nested-icon"><i
+                                                    class="fas fa-fw fa-circle-check"></i></span>
+                                            <span class="nav-label">Aktif</span>
                                         </a>
                                     @endif
 
                                     @if ($can('menu_peserta_didik_tidak_aktif'))
                                         <a href="#"
                                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-tidak-aktif*') ? 'active' : '' }}">
-                                            <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
+                                            <span class="nav-icon nested-icon"><i
+                                                    class="fas fa-fw fa-circle-xmark"></i></span>
+                                            <span class="nav-label">Tidak Aktif</span>
                                         </a>
                                     @endif
                                 </div>
@@ -279,10 +289,10 @@
                         @if ($hasGuru)
                             <div class="dash-nav-nested-group {{ $isGuruActive ? 'open active-group' : '' }}">
                                 <button type="button" class="dash-nav-nested-toggle">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-chalkboard-user"
-                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
-                                        <span>Guru</span>
+                                    <div class="dash-nav-nested-toggle-main">
+                                        <span class="nav-icon sub-icon"><i
+                                                class="fas fa-fw fa-chalkboard-user"></i></span>
+                                        <span class="nav-label">Guru</span>
                                     </div>
                                     <i class="fas fa-chevron-right nested-arrow-icon"></i>
                                 </button>
@@ -290,14 +300,18 @@
                                     @if ($can('menu_guru_aktif'))
                                         <a href="{{ route('dashboard.guru-aktif.index') }}"
                                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
-                                            <i class="fas fa-circle-check"></i> <span>Aktif</span>
+                                            <span class="nav-icon nested-icon"><i
+                                                    class="fas fa-fw fa-circle-check"></i></span>
+                                            <span class="nav-label">Aktif</span>
                                         </a>
                                     @endif
 
                                     @if ($can('menu_guru_tidak_aktif'))
                                         <a href="#"
                                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-tidak-aktif*') ? 'active' : '' }}">
-                                            <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
+                                            <span class="nav-icon nested-icon"><i
+                                                    class="fas fa-fw fa-circle-xmark"></i></span>
+                                            <span class="nav-label">Tidak Aktif</span>
                                         </a>
                                     @endif
                                 </div>
@@ -308,10 +322,9 @@
                         @if ($hasTendik)
                             <div class="dash-nav-nested-group {{ $isTendikActive ? 'open active-group' : '' }}">
                                 <button type="button" class="dash-nav-nested-toggle">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-id-badge"
-                                            style="width: 14px; text-align: center; opacity: 0.8;"></i>
-                                        <span>Tendik</span>
+                                    <div class="dash-nav-nested-toggle-main">
+                                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-badge"></i></span>
+                                        <span class="nav-label">Tendik</span>
                                     </div>
                                     <i class="fas fa-chevron-right nested-arrow-icon"></i>
                                 </button>
@@ -319,14 +332,18 @@
                                     @if ($can('menu_tendik_aktif'))
                                         <a href="{{ route('dashboard.tendik-aktif.index') }}"
                                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
-                                            <i class="fas fa-circle-check"></i> <span>Aktif</span>
+                                            <span class="nav-icon nested-icon"><i
+                                                    class="fas fa-fw fa-circle-check"></i></span>
+                                            <span class="nav-label">Aktif</span>
                                         </a>
                                     @endif
 
                                     @if ($can('menu_tendik_tidak_aktif'))
                                         <a href="#"
                                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-tidak-aktif*') ? 'active' : '' }}">
-                                            <i class="fas fa-circle-xmark"></i> <span>Tidak Aktif</span>
+                                            <span class="nav-icon nested-icon"><i
+                                                    class="fas fa-fw fa-circle-xmark"></i></span>
+                                            <span class="nav-label">Tidak Aktif</span>
                                         </a>
                                     @endif
                                 </div>
@@ -335,18 +352,171 @@
 
                         @if ($can('menu_berkas_peserta_didik'))
                             <a href="#" class="dash-nav-sublink">
-                                <i class="fas fa-folder-open"></i> <span>Berkas Peserta Didik</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
+                                <span class="nav-label">Berkas Peserta Didik</span>
                             </a>
                         @endif
 
                         @if ($can('menu_perubahan_data'))
                             <a href="#" class="dash-nav-sublink">
-                                <i class="fas fa-user-pen"></i> <span>Perubahan Data</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-pen"></i></span>
+                                <span class="nav-label">Perubahan Data</span>
                             </a>
                         @endif
                     </div>
                 </div>
             @endif
+        @endif
+
+        {{-- Layanan Akademik & Guru (Collapsible - Di Atas Layanan Digital) --}}
+        @if ($hasAkademikGuru)
+            @php
+                $isAkademikActive =
+                    request()->routeIs('dashboard.presensi-mengajar*') ||
+                    request()->routeIs('dashboard.agenda-kbm*') ||
+                    request()->routeIs('dashboard.penilaian*') ||
+                    request()->routeIs('dashboard.presensi-peserta-didik*');
+            @endphp
+            <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
+                <button type="button" class="dash-nav-toggle">
+                    <div class="dash-nav-toggle-main">
+                        <span class="nav-icon"><i class="fas fa-fw fa-chalkboard-user"></i></span>
+                        <span class="nav-label">Akademik Guru</span>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-icon"></i>
+                </button>
+                <div class="dash-nav-submenu">
+                    @if ($can('menu_presensi_mengajar'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
+                            <span class="nav-label">Presensi Mengajar</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_agenda_kbm'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
+                            <span class="nav-label">Jurnal &amp; Agenda KBM</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_penilaian'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-graduation-cap"></i></span>
+                            <span class="nav-label">Penilaian Siswa</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_presensi_peserta_didik'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-viewfinder"></i></span>
+                            <span class="nav-label">Presensi Kelas</span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        {{-- Administrasi Tendik (Collapsible - Di Atas Layanan Digital) --}}
+        @php
+            $hasAdministrasiTendik =
+                $can('menu_buku_tamu') ||
+                $can('menu_inventaris') ||
+                $can('menu_agenda') ||
+                $can('menu_berkas_peserta_didik');
+            $isAdministrasiTendikActive =
+                request()->routeIs('dashboard.buku-tamu*') ||
+                request()->routeIs('dashboard.inventaris*') ||
+                request()->routeIs('dashboard.agenda*');
+        @endphp
+        @if ($hasAdministrasiTendik)
+            <div class="dash-nav-group {{ $isAdministrasiTendikActive ? 'open active-group' : '' }}">
+                <button type="button" class="dash-nav-toggle">
+                    <div class="dash-nav-toggle-main">
+                        <span class="nav-icon"><i class="fas fa-fw fa-id-badge"></i></span>
+                        <span class="nav-label">Administrasi Tendik</span>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-icon"></i>
+                </button>
+                <div class="dash-nav-submenu">
+                    @if ($can('menu_buku_tamu'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-address-book"></i></span>
+                            <span class="nav-label">Buku Tamu</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_inventaris'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
+                            <span class="nav-label">Inventaris Sarpras</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_agenda'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                            <span class="nav-label">Agenda Sekolah</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_berkas_peserta_didik'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
+                            <span class="nav-label">Berkas Peserta Didik</span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        {{-- Portal Peserta Didik (Collapsible - Di Atas Layanan Digital) --}}
+        @if ($hasPortalSiswa)
+            @php
+                $isPortalSiswaActive =
+                    request()->routeIs('dashboard.riwayat-rfid*') ||
+                    request()->routeIs('dashboard.jadwal-pelajaran*') ||
+                    request()->routeIs('dashboard.rapor*') ||
+                    request()->routeIs('dashboard.validasi-berkas*');
+            @endphp
+            <div class="dash-nav-group {{ $isPortalSiswaActive ? 'open active-group' : '' }}">
+                <button type="button" class="dash-nav-toggle">
+                    <div class="dash-nav-toggle-main">
+                        <span class="nav-icon"><i class="fas fa-fw fa-user-graduate"></i></span>
+                        <span class="nav-label">Portal Siswa</span>
+                    </div>
+                    <i class="fas fa-chevron-right arrow-icon"></i>
+                </button>
+                <div class="dash-nav-submenu">
+                    @if ($can('menu_riwayat_rfid'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
+                            <span class="nav-label">Riwayat Presensi RFID</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_jadwal_pelajaran'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                            <span class="nav-label">Jadwal Pelajaran</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_rapor'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-lines"></i></span>
+                            <span class="nav-label">Transkrip &amp; Rapor</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_validasi_berkas'))
+                        <a href="#" class="dash-nav-sublink">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
+                            <span class="nav-label">Validasi Berkas &amp; Ijazah</span>
+                        </a>
+                    @endif
+                </div>
+            </div>
         @endif
 
         {{-- Layanan Digital (Collapsible) --}}
@@ -356,6 +526,7 @@
             @php
                 $isLayananDigitalActive =
                     request()->routeIs('dashboard.pengumuman*') ||
+                    request()->routeIs('dashboard.informasi*') ||
                     request()->routeIs('dashboard.rfid*') ||
                     request()->routeIs('dashboard.e-izin*') ||
                     request()->routeIs('dashboard.poin*') ||
@@ -367,57 +538,74 @@
             <div class="dash-nav-group {{ $isLayananDigitalActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
                     <div class="dash-nav-toggle-main">
-                        <i class="fas fa-globe"></i>
-                        <span>Layanan Digital</span>
+                        <span class="nav-icon"><i class="fas fa-fw fa-globe"></i></span>
+                        <span class="nav-label">Layanan Digital</span>
                     </div>
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
-                    @if ($can('menu_pengumuman'))
-                        <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-bullhorn"></i> <span>Pengumuman</span>
+                    @if ($role === 'admin' || \App\Models\RolePermission::can($role, 'menu_pengumuman', 'create'))
+                        @if ($can('menu_pengumuman'))
+                            <a href="{{ route('dashboard.pengumuman.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.pengumuman*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-bullhorn"></i></span>
+                                <span class="nav-label">Pengumuman &amp; Broadcast</span>
+                            </a>
+                        @endif
+                    @else
+                        <a href="{{ route('dashboard.informasi.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.informasi*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-bullhorn"></i></span>
+                            <span class="nav-label">Pengumuman &amp; Informasi</span>
                         </a>
                     @endif
 
                     @if ($can('menu_rfid'))
                         <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-id-card"></i> <span>RFID &amp; Presensi</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card"></i></span>
+                            <span class="nav-label">RFID &amp; Presensi</span>
                         </a>
                     @endif
 
                     @if ($can('menu_e_izin'))
                         <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-file-signature"></i> <span>E-Izin</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
+                            <span class="nav-label">E-Izin</span>
                         </a>
                     @endif
 
                     @if ($can('menu_poin'))
                         <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-star-half-stroke"></i> <span>Poin Pelanggaran</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-star-half-stroke"></i></span>
+                            <span class="nav-label">Poin Pelanggaran</span>
                         </a>
                     @endif
 
                     @if ($can('menu_agenda'))
                         <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-calendar-days"></i> <span>Agenda Sekolah</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                            <span class="nav-label">Agenda Sekolah</span>
                         </a>
                     @endif
 
                     @if ($can('menu_buku_tamu'))
                         <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-address-book"></i> <span>Buku Tamu</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-address-book"></i></span>
+                            <span class="nav-label">Buku Tamu</span>
                         </a>
                     @endif
 
                     @if ($can('menu_inventaris'))
                         <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-boxes-stacked"></i> <span>Inventaris</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
+                            <span class="nav-label">Inventaris</span>
                         </a>
                     @endif
 
                     @if ($can('menu_kelulusan'))
                         <a href="#" class="dash-nav-sublink">
-                            <i class="fas fa-graduation-cap"></i> <span>Kelulusan</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-graduation-cap"></i></span>
+                            <span class="nav-label">Kelulusan</span>
                         </a>
                     @endif
                 </div>
@@ -439,8 +627,8 @@
                 <div class="dash-nav-group {{ $isSistemGroupActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
                         <div class="dash-nav-toggle-main">
-                            <i class="fas fa-sliders"></i>
-                            <span>Pengaturan</span>
+                            <span class="nav-icon"><i class="fas fa-fw fa-sliders"></i></span>
+                            <span class="nav-label">Pengaturan</span>
                         </div>
                         <i class="fas fa-chevron-right arrow-icon"></i>
                     </button>
@@ -448,28 +636,32 @@
                         @if ($can('menu_pengguna'))
                             <a href="{{ route('dashboard.pengguna.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.pengguna*') ? 'active' : '' }}">
-                                <i class="fas fa-users-gear"></i> <span>Pengguna</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-gear"></i></span>
+                                <span class="nav-label">Pengguna</span>
                             </a>
                         @endif
 
                         @if ($can('menu_hak_akses'))
                             <a href="{{ route('dashboard.hak-akses.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.hak-akses*') ? 'active' : '' }}">
-                                <i class="fas fa-shield-halved"></i> <span>Hak Akses</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-shield-halved"></i></span>
+                                <span class="nav-label">Hak Akses</span>
                             </a>
                         @endif
 
                         @if ($can('menu_pengaturan'))
                             <a href="{{ route('dashboard.identitas-sekolah.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas-sekolah*') ? 'active' : '' }}">
-                                <i class="fas fa-school"></i> <span>Identitas Sekolah</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-school"></i></span>
+                                <span class="nav-label">Identitas Sekolah</span>
                             </a>
                         @endif
 
                         @if ($can('menu_maintenance'))
                             <a href="{{ route('dashboard.maintenance.index') }}"
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.maintenance*') ? 'active' : '' }}">
-                                <i class="fas fa-server"></i> <span>Arsip & Maintenance</span>
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-server"></i></span>
+                                <span class="nav-label">Arsip & Maintenance</span>
                             </a>
                         @endif
                     </div>
@@ -479,65 +671,8 @@
             @if ($can('menu_update'))
                 <a href="{{ route('dashboard.update') }}"
                     class="dash-nav-link {{ request()->routeIs('dashboard.update*') ? 'active' : '' }}">
-                    <i class="fas fa-arrows-rotate"></i> <span>Update Sistem</span>
-                </a>
-            @endif
-        @endif
-
-        {{-- Layanan Akademik & Guru (Khusus Guru / peran yang diizinkan) --}}
-        @if ($hasAkademikGuru)
-            <span class="nav-section-label">Akademik Guru</span>
-
-            @if ($can('menu_presensi_mengajar'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-calendar-check"></i> <span>Presensi Mengajar</span>
-                </a>
-            @endif
-
-            @if ($can('menu_agenda_kbm'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-book-open-reader"></i> <span>Jurnal &amp; Agenda KBM</span>
-                </a>
-            @endif
-
-            @if ($can('menu_penilaian'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-graduation-cap"></i> <span>Penilaian Siswa</span>
-                </a>
-            @endif
-
-            @if ($can('menu_presensi_peserta_didik'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-users-viewfinder"></i> <span>Presensi Kelas</span>
-                </a>
-            @endif
-        @endif
-
-        {{-- Portal Peserta Didik (Khusus Peserta Didik / peran yang diizinkan) --}}
-        @if ($hasPortalSiswa)
-            <span class="nav-section-label">Portal Siswa</span>
-
-            @if ($can('menu_riwayat_rfid'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-id-card-clip"></i> <span>Riwayat Presensi RFID</span>
-                </a>
-            @endif
-
-            @if ($can('menu_jadwal_pelajaran'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-calendar-days"></i> <span>Jadwal Pelajaran</span>
-                </a>
-            @endif
-
-            @if ($can('menu_rapor'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-file-lines"></i> <span>Transkrip &amp; Rapor</span>
-                </a>
-            @endif
-
-            @if ($can('menu_validasi_berkas'))
-                <a href="#" class="dash-nav-link">
-                    <i class="fas fa-folder-open"></i> <span>Validasi Berkas &amp; Ijazah</span>
+                    <span class="nav-icon"><i class="fas fa-fw fa-arrows-rotate"></i></span>
+                    <span class="nav-label">Update Sistem</span>
                 </a>
             @endif
         @endif

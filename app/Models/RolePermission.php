@@ -300,7 +300,7 @@ class RolePermission extends Model
     /**
      * Periksa apakah pengguna memiliki tugas tambahan aktif yang membuka modul tertentu
      */
-    public static function hasDutyPermission(?int $userId, ?string $ptkId, string $permissionKey): bool
+    public static function hasDutyPermission(mixed $userId, ?string $ptkId, string $permissionKey): bool
     {
         try {
             $query = DB::table('ptk_tugas_tambahan as ptt')
@@ -310,10 +310,10 @@ class RolePermission extends Model
 
             if ($userId && $ptkId) {
                 $query->where(function ($q) use ($userId, $ptkId) {
-                    $q->where('ptt.user_id', $userId)->orWhere('ptt.ptk_id', $ptkId);
+                    $q->where('ptt.user_id', (string) $userId)->orWhere('ptt.ptk_id', $ptkId);
                 });
             } elseif ($userId) {
-                $query->where('ptt.user_id', $userId);
+                $query->where('ptt.user_id', (string) $userId);
             } elseif ($ptkId) {
                 $query->where('ptt.ptk_id', $ptkId);
             } else {

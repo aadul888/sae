@@ -20,11 +20,20 @@ class HomeController extends Controller
             'grade_xii'      => 406,
         ];
 
-        $running_info = [
-            'Pendaftaran Ujian Sekolah Tahun Ajaran 2026/2027 telah dibuka.',
-            'Sinkronisasi Absensi RFID & Mobile berjalan normal.',
-            'Sosialisasi Portal Kelulusan Online dijadwalkan Jumat ini.',
-        ];
+        // Ambil pengumuman publik (running text) dari database
+        try {
+            $running_info = \App\Models\Pengumuman::forPublic()->pluck('isi')->toArray();
+        } catch (\Throwable $e) {
+            $running_info = [];
+        }
+
+        if (empty($running_info)) {
+            $running_info = [
+                'Pendaftaran Ujian Sekolah Tahun Ajaran 2026/2027 telah dibuka.',
+                'Sinkronisasi Absensi RFID & Mobile berjalan normal.',
+                'Sosialisasi Portal Kelulusan Online dijadwalkan Jumat ini.',
+            ];
+        }
 
         $major_data = [
             ['nama_jurusan' => 'Teknik Komputer & Jaringan', 'total_peserta_didik' => 320, 'code' => 'TKJ'],
@@ -59,7 +68,7 @@ class HomeController extends Controller
     public function checkNisn(Request $request)
     {
         $nisn = $request->input('nisn');
-        
+
         // Dummy response
         return response()->json([
             'status' => 'success',
