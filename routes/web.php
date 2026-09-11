@@ -40,6 +40,9 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout']);
+Route::get('/auth/update-password-wajib', [AuthController::class, 'showForceUpdatePassword'])->name('auth.force-update-password');
+Route::post('/auth/update-password-wajib', [AuthController::class, 'processForceUpdatePassword'])->name('auth.force-update-password.post');
+Route::get('/auth/cancel-force-update', [AuthController::class, 'cancelForceUpdate'])->name('auth.cancel-force-update');
 
 // Dashboard Multi-User Routes (Protected)
 Route::prefix('dashboard')->name('dashboard.')->group(function () {

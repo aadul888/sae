@@ -19,7 +19,7 @@
                 <i class="fas fa-moon"></i>
             </button>
             <a href="{{ url('/login') }}" class="btn btn-primary" style="padding: 0.45rem 1rem; font-size: 0.8rem;">
-                <i class="fas fa-right-to-bracket"></i> Masuk SSO
+                <i class="fas fa-right-to-bracket"></i> Masuk Portal
             </a>
         </div>
     </nav>

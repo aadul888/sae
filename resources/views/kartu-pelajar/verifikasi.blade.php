@@ -292,33 +292,6 @@
             width: fit-content;
         }
 
-        /* Digital Card View Section */
-        .card-preview-section {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 24px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-            margin-bottom: 24px;
-            text-align: center;
-        }
-
-        .card-preview-header {
-            margin-bottom: 20px;
-        }
-
-        .card-preview-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 4px;
-        }
-
-        .card-preview-subtitle {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
         .privacy-box {
             background: #eff6ff;
             border: 1px solid #bfdbfe;
@@ -454,16 +427,6 @@
                     Halaman verifikasi publik ini dirancang dengan prinsip <em>Privacy-by-Design</em>. Nomor Induk Kependudukan (NIK), alamat domisili lengkap, serta data kontak keluarga tidak dipublikasikan demi keamanan anak di bawah umur.
                 </div>
             </div>
-        </div>
-
-        <!-- Tampilan Kartu Pelajar Digital Resmi -->
-        <div class="card-preview-section">
-            <div class="card-preview-header">
-                <h2 class="card-preview-title"><i class="fas fa-id-card"></i> Bentuk Fisik Kartu Pelajar Digital</h2>
-                <p class="card-preview-subtitle">Standar CR-80 (Depan & Belakang) &bull; Dilengkapi Logo Jurusan & Barcode Otentikasi</p>
-            </div>
-
-            @include('kartu-pelajar.template', ['card' => $card, 'wrapperClass' => ''])
         </div>
 
         <!-- Footer -->

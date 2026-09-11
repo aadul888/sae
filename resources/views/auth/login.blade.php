@@ -20,17 +20,31 @@
                 <p style="font-size: 0.85rem; color: var(--text-muted);">Sistem Aplikasi Edukasi (SAE)</p>
             </div>
 
+            @if (session('success'))
+                <div
+                    style="background: rgba(16,185,129,0.12); border: 1px solid #10b981; color: #10b981; padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-circle-check"></i> <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if (session('warning'))
+                <div
+                    style="background: rgba(245,158,11,0.12); border: 1px solid #f59e0b; color: #d97706; padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-triangle-exclamation"></i> <span>{{ session('warning') }}</span>
+                </div>
+            @endif
+
             @if (session('info'))
                 <div
-                    style="background: rgba(6,182,212,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 20px;">
-                    <i class="fas fa-info-circle"></i> {{ session('info') }}
+                    style="background: rgba(6,182,212,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-info-circle"></i> <span>{{ session('info') }}</span>
                 </div>
             @endif
 
             @if ($errors->any())
                 <div
-                    style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 20px;">
-                    <i class="fas fa-triangle-exclamation"></i> {{ $errors->first() }}
+                    style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: 10px; font-size: 0.82rem; margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-triangle-exclamation"></i> <span>{{ $errors->first() }}</span>
                 </div>
             @endif
 
@@ -71,28 +85,6 @@
                 </button>
             </form>
 
-            <!-- Quick Demo Switcher -->
-            <div
-                style="margin-top: 28px; padding-top: 20px; border-top: 1px dashed var(--border-color); text-align: center;">
-                <p
-                    style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;">
-                    Coba Akses Cepat (Demo):</p>
-                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                    <button type="button" onclick="fillDemo('admin')"
-                        style="background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
-                        <i class="fas fa-user-shield text-primary"></i> Admin
-                    </button>
-                    <button type="button" onclick="fillDemo('guru')"
-                        style="background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
-                        <i class="fas fa-chalkboard-user text-success"></i> Guru
-                    </button>
-                    <button type="button" onclick="fillDemo('peserta_didik')"
-                        style="background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); font-size: 0.75rem; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
-                        <i class="fas fa-user-graduate text-accent"></i> Peserta Didik
-                    </button>
-                </div>
-            </div>
-
             <div style="margin-top: 20px; text-align: center;">
                 <a href="{{ route('home') }}" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: none;">
                     <i class="fas fa-arrow-left"></i> Kembali ke Halaman Utama
@@ -102,13 +94,6 @@
     </div>
 
     <script>
-        function fillDemo(role) {
-            const userInput = document.getElementById('usernameInput');
-            const passInput = document.getElementById('passwordInput');
-            userInput.value = role;
-            passInput.value = '123456';
-        }
-
         function togglePass() {
             const pass = document.getElementById('passwordInput');
             const eye = document.getElementById('eyeIcon');

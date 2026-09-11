@@ -24,9 +24,9 @@
                     informasi akademik realtime.
                 </p>
                 <div class="hero-actions">
-                    <a href="/login" class="btn btn-primary"><i class="fas fa-user-graduate"></i> Portal Peserta Didik</a>
-                    <a href="/admin" class="btn btn-outline"><i class="fas fa-chalkboard-user"></i> Portal Guru &amp;
-                        Tendik</a>
+                    <a href="{{ route('login') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-right-to-bracket"></i> Masuk Portal
+                    </a>
                 </div>
             </div>
 
@@ -40,19 +40,30 @@
                         Check</span>
                 </div>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
-                    Masukkan NISN untuk memverifikasi status aktif peserta didik.
+                    Masukkan NISN untuk memverifikasi status aktif peserta didik secara resmi.
                 </p>
-                <form id="nisnCheckForm">
-                    <div class="input-group">
-                        <label class="input-label" for="nisnInput">Nomor Induk Peserta Didik (NISN)</label>
-                        <input type="text" id="nisnInput" class="input-field" placeholder="Ketik 10 digit NISN..."
-                            required pattern="[0-9]{8,12}">
+                <form id="nisnCheckForm" novalidate>
+                    <div class="input-group" style="position: relative;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="input-label" for="nisnInput" style="margin-bottom: 0;">Nomor Induk Siswa Nasional (NISN)</label>
+                            <span id="nisnCounterBadge" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; transition: color 0.2s;">
+                                0 / 10 digit
+                            </span>
+                        </div>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="text" id="nisnInput" class="input-field" placeholder="Ketik 10 digit angka NISN..."
+                                maxlength="10" inputmode="numeric" autocomplete="off"
+                                style="letter-spacing: 1.5px; font-weight: 600; padding-right: 36px; transition: border-color 0.2s, box-shadow 0.2s;">
+                            <span id="nisnStatusIcon" style="position: absolute; right: 12px; pointer-events: none; display: none;"></span>
+                        </div>
+                        <div id="nisnErrorMsg" style="display: none; font-size: 0.76rem; color: #ef4444; margin-top: 6px; align-items: center; gap: 5px;">
+                            <i class="fas fa-circle-exclamation"></i> <span>NISN harus berupa angka dan pas 10 digit.</span>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <button type="submit" id="btnCheckNisn" class="btn btn-primary" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                         <i class="fas fa-magnifying-glass"></i> Verifikasi Data
                     </button>
                 </form>
-                <div id="nisnResult" class="nisn-result"></div>
             </div>
         </section>
 

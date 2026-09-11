@@ -66,67 +66,104 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // NISN Check Live API Handler
+    // NISN Check Live API Handler -> Validasi Ketat: Hanya Angka, Tepat 10 Digit
     const nisnForm = document.getElementById("nisnCheckForm");
     const nisnInput = document.getElementById("nisnInput");
-    const nisnResult = document.getElementById("nisnResult");
+    const nisnBadge = document.getElementById("nisnCounterBadge");
+    const nisnStatusIcon = document.getElementById("nisnStatusIcon");
+    const nisnErrorMsg = document.getElementById("nisnErrorMsg");
 
-    if (nisnForm && nisnInput && nisnResult) {
-        nisnForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const nisn = nisnInput.value.trim();
-            if (!nisn) return;
-
-            nisnResult.style.display = "block";
-            nisnResult.style.background = "rgba(59, 130, 246, 0.1)";
-            nisnResult.style.borderColor = "rgba(59, 130, 246, 0.3)";
-            nisnResult.innerHTML =
-                '<i class="fa-solid fa-spinner fa-spin me-2"></i> Mencari data...';
-
-            try {
-                const csrfToken =
-                    document
-                        .querySelector('meta[name="csrf-token"]')
-                        ?.getAttribute("content") || "";
-                const response = await fetch("/api/check-nisn", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                        Accept: "application/json",
-                    },
-                    body: JSON.stringify({ nisn }),
-                });
-
-                const data = await response.json();
-
-                if (data.status === "success") {
-                    nisnResult.style.background = "rgba(16, 185, 129, 0.1)";
-                    nisnResult.style.borderColor = "rgba(16, 185, 129, 0.3)";
-                    nisnResult.innerHTML = `
-                        <div style="font-weight: 700; color: #10b981; margin-bottom: 4px;">
-                            <i class="fa-solid fa-circle-check me-1"></i> ${data.message}
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--text-main);"><strong>Nama:</strong> ${data.data.nama}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);"><strong>Kelas:</strong> ${data.data.kelas}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);"><strong>Status:</strong> <span style="color:#10b981;">${data.data.status}</span></div>
-                    `;
-                } else {
-                    nisnResult.style.background = "rgba(239, 68, 68, 0.1)";
-                    nisnResult.style.borderColor = "rgba(239, 68, 68, 0.3)";
-                    nisnResult.innerHTML = `
-                        <div style="font-weight: 700; color: #ef4444; margin-bottom: 4px;">
-                            <i class="fa-solid fa-circle-xmark me-1"></i> ${data.message}
-                        </div>
-                        <div style="font-size: 0.8rem; color: var(--text-muted);">Pastikan nomor NISN yang dimasukkan sudah benar.</div>
-                    `;
-                }
-            } catch (err) {
-                nisnResult.style.background = "rgba(239, 68, 68, 0.1)";
-                nisnResult.style.borderColor = "rgba(239, 68, 68, 0.3)";
-                nisnResult.innerHTML =
-                    '<span style="color: #ef4444;"><i class="fa-solid fa-triangle-exclamation me-1"></i> Terjadi kesalahan koneksi.</span>';
+    if (nisnForm && nisnInput) {
+        const updateNisnValidationUI = (isSubmitAttempt = false) => {
+            const rawVal = nisnInput.value;
+            const cleanVal = rawVal.replace(/\D/g, "").slice(0, 10);
+            if (rawVal !== cleanVal) {
+                nisnInput.value = cleanVal;
             }
+
+            const len = cleanVal.length;
+            if (nisnBadge) {
+                nisnBadge.textContent = `${len} / 10 digit`;
+                if (len === 10) {
+                    nisnBadge.style.color = "#10b981";
+                } else if (len > 0) {
+                    nisnBadge.style.color = "var(--primary, #3b82f6)";
+                } else {
+                    nisnBadge.style.color = "var(--text-muted, #94a3b8)";
+                }
+            }
+
+            if (len === 10) {
+                nisnInput.style.borderColor = "#10b981";
+                nisnInput.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.15)";
+                if (nisnStatusIcon) {
+                    nisnStatusIcon.style.display = "block";
+                    nisnStatusIcon.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+                }
+                if (nisnErrorMsg) nisnErrorMsg.style.display = "none";
+            } else {
+                if (nisnStatusIcon) nisnStatusIcon.style.display = "none";
+                if (isSubmitAttempt) {
+                    nisnInput.style.borderColor = "#ef4444";
+                    nisnInput.style.boxShadow = "0 0 0 3px rgba(239, 68, 68, 0.15)";
+                    if (nisnErrorMsg) {
+                        nisnErrorMsg.style.display = "flex";
+                        nisnErrorMsg.querySelector("span").textContent =
+                            len === 0
+                                ? "NISN wajib diisi (tepat 10 digit angka)."
+                                : `NISN kurang ${10 - len} digit (harus pas 10 digit angka).`;
+                    }
+                } else {
+                    nisnInput.style.borderColor = "";
+                    nisnInput.style.boxShadow = "";
+                    if (nisnErrorMsg) nisnErrorMsg.style.display = "none";
+                }
+            }
+            return len === 10;
+        };
+
+        // Cegah input selain angka pada keypress
+        nisnInput.addEventListener("keydown", (e) => {
+            const allowedKeys = [
+                "Backspace", "Delete", "Tab", "Escape", "Enter",
+                "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+                "Home", "End"
+            ];
+            // Allow ctrl/cmd + A, C, V, X
+            if (e.ctrlKey || e.metaKey || allowedKeys.includes(e.key)) {
+                return;
+            }
+            // Jika bukan angka 0-9, blokir tombol
+            if (!/^[0-9]$/.test(e.key)) {
+                e.preventDefault();
+                if (nisnErrorMsg) {
+                    nisnErrorMsg.style.display = "flex";
+                    nisnErrorMsg.querySelector("span").textContent = "Hanya karakter angka (0-9) yang diizinkan.";
+                }
+            }
+        });
+
+        // Filter paste dan sanitasi input
+        nisnInput.addEventListener("input", () => {
+            updateNisnValidationUI(false);
+        });
+
+        nisnInput.addEventListener("paste", (e) => {
+            setTimeout(() => {
+                updateNisnValidationUI(false);
+            }, 0);
+        });
+
+        // Validasi ketat saat form di-submit
+        nisnForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const isValid = updateNisnValidationUI(true);
+            if (!isValid) {
+                nisnInput.focus();
+                return;
+            }
+            const cleanNisn = nisnInput.value.replace(/\D/g, "").slice(0, 10);
+            window.location.href = `/v/${encodeURIComponent(cleanNisn)}`;
         });
     }
 });
