@@ -1,0 +1,565 @@
+/**
+ * Stylesheet Kartu Pelajar Digital SAE — FORMAT PORTRAIT
+ * Standard ISO/IEC 7810 ID-1 (CR-80 Portrait: 54mm x 85.6mm)
+ */
+
+:root {
+    --kp-width: 54mm;
+    --kp-height: 85.6mm;
+    --kp-radius: 3.5mm;
+    --kp-primary: #0f172a;
+    --kp-secondary: #1e3a8a;
+    --kp-accent: #0284c7;
+    --kp-text: #0f172a;
+    --kp-border: #cbd5e1;
+}
+
+/* Modal Overlay Popup (Fixed Centered Backdrop) */
+.kp-modal-overlay {
+    display: none;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(15, 23, 42, 0.75) !important;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 999999 !important;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.kp-modal-dialog {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 660px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: kpModalPop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes kpModalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.94) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Container Pair */
+.kp-card-pair {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+/* Individual Card (Portrait Standard CR-80: 54mm x 85.6mm) */
+.kp-card {
+    width: var(--kp-width);
+    height: var(--kp-height);
+    box-sizing: border-box;
+    border-radius: var(--kp-radius);
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3mm 3.5mm 2.5mm 3.5mm;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--kp-text);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+/* Top Accent Line */
+.kp-bg-decor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3mm;
+    background: linear-gradient(90deg, #1e3a8a 0%, #0284c7 60%, #06b6d4 100%);
+    z-index: 1;
+}
+
+.kp-bg-decor-back {
+    background: linear-gradient(90deg, #0f172a 0%, #334155 100%);
+}
+
+/* WATERMARK LOGO JURUSAN SEBAGAI LATAR BELAKANG BADAN KARTU */
+.kp-card-watermark {
+    position: absolute;
+    inset: 0;
+    top: 3mm;
+    bottom: 3mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.30;
+    overflow: hidden;
+}
+
+.kp-card-watermark img {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+    filter: contrast(120%) saturate(110%);
+}
+
+/* Header (Portrait) */
+.kp-header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding-top: 1mm;
+}
+
+.kp-header-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+}
+
+.kp-school-logo {
+    width: 7.5mm;
+    height: 7.5mm;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.kp-school-title {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.kp-card-type {
+    font-size: 5pt;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: #0284c7;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.kp-school-name {
+    font-size: 5.8pt;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+}
+
+.kp-header-right {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.kp-sae-logo {
+    height: 5.5mm;
+    width: auto;
+    object-fit: contain;
+}
+
+/* Hairline Divider */
+.kp-divider {
+    position: relative;
+    z-index: 2;
+    height: 0.5px;
+    background: #e2e8f0;
+    margin: 1.2mm 0 1.5mm 0;
+}
+
+.kp-divider-back {
+    margin: 1.5mm 0;
+}
+
+/* Body Portrait */
+.kp-body-portrait {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    min-height: 0;
+    justify-content: space-between;
+}
+
+/* Pasfoto Siswa (Portrait Centered) - Bingkai Transparan & Latar Tembus Air */
+.kp-photo-box {
+    width: 22mm;
+    height: 29mm;
+    position: relative;
+    border-radius: 2mm;
+    overflow: hidden;
+    border: 1.5px solid rgba(148, 163, 184, 0.65);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.kp-student-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: transparent;
+}
+
+.kp-photo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgba(148, 163, 184, 0.9);
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    gap: 2px;
+}
+
+.kp-photo-placeholder i {
+    font-size: 16pt;
+}
+
+.kp-photo-placeholder span {
+    font-size: 5pt;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* Biodata Siswa (Portrait) */
+.kp-student-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1mm;
+    margin-top: 1.2mm;
+}
+
+.kp-student-name {
+    font-size: 7.8pt;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.15;
+    text-transform: uppercase;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 95%;
+}
+
+.kp-nisn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: #e0f2fe;
+    border: 0.5px solid #bae6fd;
+    border-radius: 1.5mm;
+    padding: 1px 5px;
+    width: fit-content;
+}
+
+.kp-nisn-label {
+    font-size: 5pt;
+    font-weight: 800;
+    color: #0369a1;
+    letter-spacing: 0.3px;
+}
+
+.kp-nisn-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 6.2pt;
+    font-weight: 700;
+    color: #0369a1;
+    letter-spacing: 0.5px;
+}
+
+.kp-rombel-jurusan {
+    font-size: 5.6pt;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    max-width: 100%;
+}
+
+.kp-rombel-name {
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.kp-bullet {
+    color: #94a3b8;
+    font-size: 6pt;
+}
+
+.kp-jurusan-name {
+    color: #475569;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 26mm;
+}
+
+.kp-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.kp-badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.5px;
+    background: #dcfce7;
+    color: #15803d;
+    border: 0.5px solid #86efac;
+    font-size: 5pt;
+    font-weight: 800;
+    padding: 0.8px 4px;
+    border-radius: 1mm;
+    letter-spacing: 0.3px;
+}
+
+.kp-badge-status i {
+    font-size: 4.5pt;
+}
+
+.kp-tp-label {
+    font-size: 5pt;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* QR Code Box (Portrait Bottom) */
+.kp-qrcode-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 1.5px;
+    margin-top: 1mm;
+}
+
+.kp-qr-wrapper {
+    width: 16mm;
+    height: 16mm;
+    background: #ffffff;
+    border: 0.5px solid #cbd5e1;
+    border-radius: 1.5mm;
+    padding: 0.8mm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.kp-qr-wrapper svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.kp-qr-sublabel {
+    font-size: 4.2pt;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+/* Footer Strip (Portrait) */
+.kp-footer-strip {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 4.2pt;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.3px;
+    border-top: 0.5px solid #f1f5f9;
+    padding-top: 1mm;
+    text-transform: uppercase;
+}
+
+/* BACK FACE PORTRAIT */
+.kp-back-header {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding-top: 1mm;
+}
+
+.kp-back-title {
+    font-size: 6.2pt;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    color: #0f172a;
+    text-transform: uppercase;
+}
+
+.kp-back-school {
+    font-size: 5.2pt;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.kp-back-content {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    padding: 0 0.5mm;
+    margin-top: 1mm;
+}
+
+.kp-terms-title {
+    font-size: 5pt;
+    font-weight: 800;
+    color: #334155;
+    margin-bottom: 1mm;
+    letter-spacing: 0.3px;
+}
+
+.kp-terms-list {
+    margin: 0;
+    padding-left: 3.2mm;
+    font-size: 4.6pt;
+    color: #475569;
+    line-height: 1.35;
+}
+
+.kp-terms-list li {
+    margin-bottom: 0.8mm;
+}
+
+.kp-back-bottom {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5mm;
+    border-top: 0.5px solid #f1f5f9;
+    padding-top: 1.5mm;
+    text-align: center;
+}
+
+.kp-barcode-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 38mm;
+}
+
+.kp-barcode-svg {
+    width: 100%;
+    height: 6mm;
+    display: flex;
+    align-items: center;
+}
+
+.kp-barcode-svg svg {
+    width: 100%;
+    height: 100%;
+}
+
+.kp-barcode-text {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 5pt;
+    font-weight: 700;
+    color: #334155;
+    letter-spacing: 1px;
+    margin-top: 1px;
+}
+
+.kp-back-contact {
+    font-size: 4.3pt;
+    color: #64748b;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.kp-back-contact i {
+    color: #94a3b8;
+    margin-right: 2px;
+}
+
+/* PRINT STYLES (PORTRAIT A4) */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 8mm;
+    }
+
+    body {
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .kp-card-pair {
+        gap: 5mm;
+        margin-bottom: 5mm;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .kp-card {
+        box-shadow: none !important;
+        border: 0.5px solid #94a3b8 !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}

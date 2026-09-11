@@ -30,6 +30,11 @@ Route::post('/install', [InstallController::class, 'process'])->name('install.pr
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/api/check-nisn', [HomeController::class, 'checkNisn'])->name('api.check-nisn');
 
+// Kartu Pelajar Digital — Verifikasi Publik & Direct Scan (Privacy-by-Design)
+Route::get('/v/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->name('kartu-pelajar.verify-short');
+Route::get('/verifikasi-pelajar/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->name('kartu-pelajar.verify');
+Route::get('/kartu-pelajar/preview/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'preview'])->name('kartu-pelajar.preview');
+
 // Auth Routes (Multi-User)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -72,6 +77,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Pengaturan — Identitas Sekolah (Sumber: Sekolah Dapodik)
     Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index')->middleware('permission:menu_pengaturan');
     Route::put('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'update'])->name('identitas-sekolah.update')->middleware('permission:menu_pengaturan');
+    Route::post('/identitas-sekolah/upload-logo', [\App\Http\Controllers\IdentitasSekolahController::class, 'uploadLogo'])->name('identitas-sekolah.upload-logo')->middleware('permission:menu_pengaturan');
+    Route::delete('/identitas-sekolah/delete-logo', [\App\Http\Controllers\IdentitasSekolahController::class, 'deleteLogo'])->name('identitas-sekolah.delete-logo')->middleware('permission:menu_pengaturan');
+    Route::post('/identitas-sekolah/upload-kop', [\App\Http\Controllers\IdentitasSekolahController::class, 'uploadKop'])->name('identitas-sekolah.upload-kop')->middleware('permission:menu_pengaturan');
+    Route::delete('/identitas-sekolah/delete-kop', [\App\Http\Controllers\IdentitasSekolahController::class, 'deleteKop'])->name('identitas-sekolah.delete-kop')->middleware('permission:menu_pengaturan');
 
     // Layanan Digital — Pengumuman & Broadcast
     Route::get('/informasi', [\App\Http\Controllers\PengumumanController::class, 'pengguna'])->name('informasi.index');
@@ -111,6 +120,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show')->middleware('permission:menu_guru_aktif');
     Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index')->middleware('permission:menu_tendik_aktif');
     Route::get('/manajemen-data/tendik-aktif/{id}', [\App\Http\Controllers\TendikAktifController::class, 'show'])->name('tendik-aktif.show')->middleware('permission:menu_tendik_aktif');
+
+    // Kartu Pelajar Digital — Layanan Cetak
+    Route::get('/kartu-pelajar/cetak/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'printSingle'])->name('kartu-pelajar.cetak-single');
+    Route::get('/kartu-pelajar/cetak-rombel/{rombelId}', [\App\Http\Controllers\KartuPelajarController::class, 'printRombel'])->name('kartu-pelajar.cetak-rombel');
 
     // Arsip & Maintenance (Hanya Admin)
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance');

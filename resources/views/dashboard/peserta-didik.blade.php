@@ -47,10 +47,14 @@
                 </div>
             </div>
         </div>
-        @if (\App\Models\RolePermission::canAccess('peserta_didik', 'menu_riwayat_rfid'))
+        @php
+            $currentNisn = $pd->nisn ?? session('user.nisn');
+        @endphp
+        @if ($currentNisn)
             <div class="dash-banner-actions">
-                <button class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
-                    <i class="fas fa-qrcode"></i> Kartu Digital (QR)
+                <button type="button" class="btn btn-outline" onclick="openKartuPelajarModal('{{ $currentNisn }}')"
+                    style="padding: 9px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; border-color: #06b6d4; color: #06b6d4;">
+                    <i class="fas fa-id-card"></i> Kartu Digital (QR)
                 </button>
             </div>
         @endif
@@ -175,4 +179,11 @@
             </div>
         @endif
     </div>
+
+    <!-- Modal Pratinjau Kartu Pelajar Digital -->
+    @include('kartu-pelajar.modal-preview')
 @endsection
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
+@endpush

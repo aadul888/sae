@@ -36,6 +36,9 @@
         href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
     <link rel="stylesheet"
         href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/kartu-pelajar.css') }}?v={{ file_exists(public_path('css/kartu-pelajar.css')) ? filemtime(public_path('css/kartu-pelajar.css')) : time() }}">
+    @stack('styles')
 
     <!-- Local Chart.js -->
     <script src="{{ asset('vendor/chartjs/chart.umd.min.js') }}"></script>

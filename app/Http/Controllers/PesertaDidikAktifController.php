@@ -15,9 +15,15 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
-            return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Peserta Didik Aktif dinonaktifkan oleh Administrator.');
+
+        // Proteksi ketat: peran peserta_didik tidak boleh mengakses modul Peserta Didik Aktif
+        if ($role === 'peserta_didik' || !\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif')) {
+            return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Peserta Didik Aktif dinonaktifkan.');
         }
+
+        // Cek wewenang unggah foto & cetak kartu masal (hanya Admin & Wali Kelas)
+        $canManageStudentPhotos = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+        $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
 
         $q       = trim($request->get('q', ''));
         $rombel  = trim($request->get('rombel', ''));
@@ -151,7 +157,9 @@ class PesertaDidikAktifController extends Controller
             'gender',
             'perPage',
             'sort',
-            'sortDir'
+            'sortDir',
+            'canManageStudentPhotos',
+            'waliRombel'
         ));
     }
 
@@ -163,7 +171,7 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
+        if ($role === 'peserta_didik' || !\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif')) {
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
         }
 
@@ -229,9 +237,11 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        if (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang memiliki izin untuk mengunggah pasfoto peserta didik.'
+            ], 403);
         }
 
         $request->validate([
@@ -303,9 +313,11 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        if (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang memiliki izin untuk menghapus pasfoto peserta didik.'
+            ], 403);
         }
 
         $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $id)->first();
@@ -336,9 +348,11 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        if (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang diizinkan mengakses data rombel kelas.'
+            ], 403);
         }
 
         $rombelName = trim($request->get('rombel', ''));
@@ -410,9 +424,11 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        if (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang memiliki izin untuk mengunggah pasfoto masal.'
+            ], 403);
         }
 
         // Jika upload single item dalam async loop

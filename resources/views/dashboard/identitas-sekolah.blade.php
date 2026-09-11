@@ -4,17 +4,35 @@
 @section('dash_title', 'Identitas Sekolah')
 
 @section('content')
+@php
+    $schoolLogoUrl = $sekolahMeta?->logo_url;
+    $schoolLogoSize = $sekolahMeta?->formatted_logo_size;
+    $schoolKopUrl = $sekolahMeta?->kop_url;
+    $schoolKopSize = $sekolahMeta?->formatted_kop_size;
+@endphp
+
     <!-- Welcome / Header Banner -->
-    <div class="dash-banner">
-        <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                <i class="fas fa-school text-primary me-2"></i> Identitas Satuan Pendidikan
-            </h2>
-            <p style="color: var(--text-muted); font-size: 0.86rem; margin-bottom: 0;">
-                Data profil resmi satuan pendidikan hasil integrasi sinkronisasi Dapodik dan konfigurasi sistem SAE.
-            </p>
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div id="bannerLogoContainer" onclick="document.getElementById('cardUploadLogoSekolah')?.scrollIntoView({behavior: 'smooth'})"
+                style="width: 58px; height: 58px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; flex-shrink: 0; transition: all 0.2s;"
+                title="Klik untuk melihat form Logo Sekolah">
+                <img id="bannerLogoImg" src="{{ $schoolLogoUrl ? $schoolLogoUrl . '?v=' . time() : '' }}" alt="Logo Sekolah"
+                    style="width: 100%; height: 100%; object-fit: contain; padding: 4px; display: {{ $schoolLogoUrl ? 'block' : 'none' }};">
+                <div id="bannerLogoPlaceholder" style="display: {{ $schoolLogoUrl ? 'none' : 'flex' }}; flex-direction: column; align-items: center; justify-content: center; color: var(--primary);">
+                    <i class="fas fa-school" style="font-size: 1.4rem;"></i>
+                </div>
+            </div>
+            <div>
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
+                    {{ $sekolah->nama ?? 'Identitas Satuan Pendidikan' }}
+                </h2>
+                <p style="color: var(--text-muted); font-size: 0.86rem; margin-bottom: 0;">
+                    NPSN: <strong style="color: var(--primary); font-family: monospace;">{{ $sekolah->npsn ?? '-' }}</strong> &bull; Data profil resmi satuan pendidikan hasil integrasi Dapodik &amp; SAE.
+                </p>
+            </div>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.82rem;">
                 <i class="fas fa-cloud-arrow-down me-1"></i> Sinkron Dapodik
             </a>
@@ -282,6 +300,171 @@
 
     </div>
 
+    <!-- Section: Identitas Visual & Dokumen Resmi Satuan Pendidikan (Terpisah & Rapi) -->
+    <div class="dash-grid-2" style="margin-bottom: 24px;">
+
+        <!-- Card 1: Form Upload Logo Sekolah -->
+        <div class="card" id="cardUploadLogoSekolah"
+            style="padding: 22px; border-radius: 14px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            Logo Resmi Sekolah
+                        </h3>
+                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 1px;">
+                            Kartu pelajar digital, rapor, sertifikat &amp; favicon sistem
+                        </div>
+                    </div>
+                </div>
+                <span id="cardLogoBadge" class="badge {{ $schoolLogoUrl ? 'badge-success' : 'badge-outline' }}" style="font-size: 0.72rem; padding: 4px 9px;">
+                    {{ $schoolLogoUrl ? 'Tersimpan (' . ($schoolLogoSize ?? 'PNG') . ')' : 'Belum Ada Logo' }}
+                </span>
+            </div>
+
+            <!-- Preview Box + Dropzone in Card -->
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                <div id="cardLogoPreviewContainer"
+                    style="width: 120px; height: 120px; border-radius: 14px; border: 2px dashed var(--border-color); background: repeating-conic-gradient(#80808018 0% 25%, transparent 0% 50%) 50% / 14px 14px, var(--bg-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s;">
+                    <img id="cardLogoPreviewImg"
+                        src="{{ $schoolLogoUrl ? $schoolLogoUrl . '?v=' . time() : '' }}"
+                        alt="Preview Logo"
+                        style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 6px; display: {{ $schoolLogoUrl ? 'block' : 'none' }};">
+                    <div id="cardLogoPlaceholder"
+                        style="display: {{ $schoolLogoUrl ? 'none' : 'flex' }}; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); padding: 8px;">
+                        <i class="fas fa-school" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 4px;"></i>
+                        <span style="font-size: 0.68rem;">Belum Ada</span>
+                    </div>
+                </div>
+
+                <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px;">
+                    <div id="cardLogoDropZone"
+                        style="border: 2px dashed rgba(99,102,241,0.35); background: rgba(255,255,255,0.015); border-radius: 12px; padding: 14px 12px; text-align: center; cursor: pointer; transition: all 0.2s;"
+                        onclick="document.getElementById('cardLogoFileInput').click()">
+                        <input type="file" id="cardLogoFileInput" accept=".png,image/png" style="display: none;">
+                        <i class="fas fa-cloud-arrow-up" style="font-size: 1.3rem; color: var(--primary); margin-bottom: 4px;"></i>
+                        <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-color);">
+                            Seret berkas PNG ke sini atau <span style="color: var(--primary); text-decoration: underline;">Pilih Berkas</span>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                            Khusus format <strong>.PNG</strong> (Transparan didukung) &bull; Maks. 5 MB
+                        </div>
+                    </div>
+
+                    <div id="cardLogoFileSpecs" style="font-size: 0.74rem; color: var(--text-muted); min-height: 18px;">
+                        @if ($schoolLogoUrl)
+                            <span style="color: #10b981;"><i class="fas fa-circle-check me-1"></i> PNG Aktif: {{ $schoolLogoSize }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Footer Notice & Buttons -->
+            <div style="padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-shield-halved text-primary"></i>
+                    <span>Tersimpan di <code>sekolah_meta</code> (Aman dari Dapodik)</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" id="btnCardDeleteLogo" class="btn btn-outline"
+                        style="padding: 6px 12px; font-size: 0.78rem; color: #ef4444; border-color: rgba(239,68,68,0.3); display: {{ $schoolLogoUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
+                        onclick="handleDeleteSekolahLogo()">
+                        <i class="fas fa-trash-can"></i> Hapus
+                    </button>
+                    <button type="button" id="btnCardSaveLogo" class="btn btn-primary"
+                        style="padding: 6px 14px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;"
+                        onclick="handleUploadSekolahLogo()">
+                        <i class="fas fa-cloud-arrow-up"></i> Simpan Logo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Form Upload Kop Surat Sekolah -->
+        <div class="card" id="cardUploadKopSekolah"
+            style="padding: 22px; border-radius: 14px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                        <i class="fas fa-heading"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.02rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            Kop Surat Resmi (Letterhead)
+                        </h3>
+                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 1px;">
+                            Surat dinas, blangko rapor &amp; blangko cetak dokumen
+                        </div>
+                    </div>
+                </div>
+                <span id="cardKopBadge" class="badge {{ $schoolKopUrl ? 'badge-success' : 'badge-outline' }}" style="font-size: 0.72rem; padding: 4px 9px;">
+                    {{ $schoolKopUrl ? 'Tersimpan (' . ($schoolKopSize ?? 'PNG') . ')' : 'Belum Ada Kop' }}
+                </span>
+            </div>
+
+            <!-- Preview Box (Wide) + Dropzone in Card -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div id="cardKopPreviewContainer"
+                    style="width: 100%; height: 95px; border-radius: 12px; border: 2px dashed var(--border-color); background: repeating-conic-gradient(#80808018 0% 25%, transparent 0% 50%) 50% / 12px 12px, var(--bg-card); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: all 0.2s;">
+                    <img id="cardKopPreviewImg"
+                        src="{{ $schoolKopUrl ? $schoolKopUrl . '?v=' . time() : '' }}"
+                        alt="Preview Kop Surat"
+                        style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 4px; display: {{ $schoolKopUrl ? 'block' : 'none' }};">
+                    <div id="cardKopPlaceholder"
+                        style="display: {{ $schoolKopUrl ? 'none' : 'flex' }}; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); padding: 6px;">
+                        <i class="fas fa-heading" style="font-size: 1.5rem; color: var(--primary); margin-bottom: 3px;"></i>
+                        <span style="font-size: 0.7rem;">Belum Ada Kop Surat</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                    <div id="cardKopDropZone"
+                        style="flex: 1; min-width: 200px; border: 2px dashed rgba(99,102,241,0.35); background: rgba(255,255,255,0.015); border-radius: 12px; padding: 12px 10px; text-align: center; cursor: pointer; transition: all 0.2s;"
+                        onclick="document.getElementById('cardKopFileInput').click()">
+                        <input type="file" id="cardKopFileInput" accept=".png,image/png" style="display: none;">
+                        <i class="fas fa-cloud-arrow-up" style="font-size: 1.2rem; color: var(--primary); margin-bottom: 2px;"></i>
+                        <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-color);">
+                            Seret berkas PNG ke sini atau <span style="color: var(--primary); text-decoration: underline;">Pilih Berkas</span>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 1px;">
+                            PNG (Lebar 1200 - 1800 px) &bull; Maks. 6 MB
+                        </div>
+                    </div>
+
+                    <div id="cardKopFileSpecs" style="font-size: 0.74rem; color: var(--text-muted); min-width: 140px;">
+                        @if ($schoolKopUrl)
+                            <span style="color: #10b981;"><i class="fas fa-circle-check me-1"></i> PNG Aktif: {{ $schoolKopSize }}</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Footer Notice & Buttons -->
+            <div style="padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-shield-halved text-primary"></i>
+                    <span>Tersimpan di <code>sekolah_meta</code> (Aman dari Dapodik)</span>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button type="button" id="btnCardDeleteKop" class="btn btn-outline"
+                        style="padding: 6px 12px; font-size: 0.78rem; color: #ef4444; border-color: rgba(239,68,68,0.3); display: {{ $schoolKopUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
+                        onclick="handleDeleteSekolahKop()">
+                        <i class="fas fa-trash-can"></i> Hapus
+                    </button>
+                    <button type="button" id="btnCardSaveKop" class="btn btn-primary"
+                        style="padding: 6px 14px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;"
+                        onclick="handleUploadSekolahKop()">
+                        <i class="fas fa-cloud-arrow-up"></i> Simpan Kop Surat
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
     <!-- Modal Edit Identitas Sekolah -->
     <div id="modalEditSekolah" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
@@ -434,26 +617,8 @@
 
 @push('scripts')
     <script>
-        function openEditSekolahModal() {
-            const modal = document.getElementById('modalEditSekolah');
-            if (modal) modal.style.display = 'flex';
-        }
-
-        function closeEditSekolahModal() {
-            const modal = document.getElementById('modalEditSekolah');
-            if (modal) modal.style.display = 'none';
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('modalEditSekolah');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) closeEditSekolahModal();
-                });
-            }
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeEditSekolahModal();
-            });
-        });
+        window.currentSekolahLogoUrl = "{{ $schoolLogoUrl ?? '' }}";
+        window.currentSekolahKopUrl = "{{ $schoolKopUrl ?? '' }}";
     </script>
+    <script src="{{ asset('js/identitas-sekolah.js') }}?v={{ file_exists(public_path('js/identitas-sekolah.js')) ? filemtime(public_path('js/identitas-sekolah.js')) : time() }}"></script>
 @endpush

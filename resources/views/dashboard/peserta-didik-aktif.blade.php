@@ -108,10 +108,17 @@
                     </a>
                 @endif
 
-                <button type="button" class="btn btn-primary" onclick="openBulkUploadFotoModal('{{ $rombel }}')"
-                    style="padding: 7px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
-                    <i class="fas fa-images"></i> Unggah Foto Masal Kelas
-                </button>
+                @if ($canManageStudentPhotos)
+                    <button type="button" class="btn btn-primary" onclick="openBulkUploadFotoModal('{{ $waliRombel ?: $rombel }}')"
+                        style="padding: 7px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
+                        <i class="fas fa-images"></i> Unggah Foto Masal Kelas
+                    </button>
+
+                    <button type="button" class="btn btn-outline" onclick="openCetakRombelModal('{{ $waliRombel ?: $rombel }}')"
+                        style="padding: 7px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; border-color: #0284c7; color: #0284c7;">
+                        <i class="fas fa-id-card"></i> Cetak Kartu Pelajar Masal
+                    </button>
+                @endif
             </div>
 
             <div class="live-search-wrap">
@@ -166,18 +173,26 @@
                             <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                 @if (!empty($item->foto_url))
                                     <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
+                                        @if ($canManageStudentPhotos)
                                         onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url }}', '{{ $item->foto_size ?? '' }}')"
                                         title="Klik untuk melihat / mengubah pasfoto peserta didik"
-                                        style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
+                                        @else
+                                        title="Pasfoto {{ $item->nama }}"
+                                        @endif
+                                        style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
                                         <img src="{{ $item->foto_url }}"
                                             alt="Foto {{ $item->nama }}"
                                             style="width: 100%; height: 100%; object-fit: cover;">
                                     </div>
                                 @else
                                     <div class="pd-foto-thumb empty" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
+                                        @if ($canManageStudentPhotos)
                                         onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '', '')"
                                         title="Klik untuk mengunggah pasfoto peserta didik (PNG)"
-                                        style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
+                                        @else
+                                        title="Belum ada pasfoto"
+                                        @endif
+                                        style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem; flex-shrink: 0; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} transition: all 0.2s ease;">
                                         <i class="fas fa-camera" style="font-size: 0.82rem;"></i>
                                         <span style="font-size: 0.52rem; font-weight: 800; letter-spacing: 0.5px; margin-top: 2px;">PNG</span>
                                     </div>
@@ -235,15 +250,23 @@
                         </td>
                         <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
+                                @if ($canManageStudentPhotos)
                                 <button type="button" class="btn-icon"
                                     title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
                                     onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
                                     <i class="fas fa-camera" style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
                                 </button>
+                                @endif
                                 <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
                                     onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
                                     <i class="fas fa-id-card"></i>
                                 </button>
+                                @if(!empty($item->nisn) && $canManageStudentPhotos)
+                                <button type="button" class="btn-icon" title="Pratinjau / Cetak Kartu Pelajar Digital"
+                                    onclick="openKartuPelajarModal('{{ $item->nisn }}')">
+                                    <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                </button>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -739,6 +762,14 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal Pratinjau Kartu Pelajar Digital & Modal Cetak Masal --}}
+    @include('kartu-pelajar.modal-preview')
+    @include('kartu-pelajar.modal-cetak-rombel')
+
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
+    @endpush
 
     @push('scripts')
         <script src="{{ asset('js/peserta-didik-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-aktif.js')) }}">

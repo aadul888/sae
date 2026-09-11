@@ -39,7 +39,12 @@ class IdentitasSekolahController extends Controller
             'total_pengguna' => Schema::hasTable('pengguna') ? DB::table('pengguna')->count() : 0,
         ];
 
-        return view('dashboard.identitas-sekolah', compact('sekolah', 'settings', 'stats'));
+        $sekolahMeta = null;
+        if (Schema::hasTable('sekolah_meta')) {
+            $sekolahMeta = \App\Models\SekolahMeta::first();
+        }
+
+        return view('dashboard.identitas-sekolah', compact('sekolah', 'settings', 'stats', 'sekolahMeta'));
     }
 
     public function update(Request $request)
@@ -110,5 +115,197 @@ class IdentitasSekolahController extends Controller
         }
 
         return back()->with('success', 'Identitas Sekolah berhasil disimpan.');
+    }
+
+    /**
+     * Unggah dan auto-kompresi logo sekolah (khusus format PNG transparan)
+     */
+    public function uploadLogo(Request $request, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengunggah logo sekolah.'], 403);
+        }
+
+        $request->validate([
+            'logo' => 'required|file|mimes:png|max:5120',
+        ], [
+            'logo.required' => 'Silakan pilih file logo terlebih dahulu.',
+            'logo.mimes' => 'Format file logo sekolah wajib berupa PNG (.png) untuk kebutuhan kartu pelajar dan kop digital.',
+            'logo.max' => 'Ukuran file logo sekolah maksimal 5 MB sebelum dikompresi.',
+        ]);
+
+        try {
+            $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+            $meta = \App\Models\SekolahMeta::getActiveMeta($sekolah?->sekolah_id, $sekolah?->npsn);
+
+            // Hapus file fisik logo lama jika sudah pernah ada
+            if (!empty($meta->logo_path)) {
+                $optimizer->deleteFile($meta->logo_path);
+            }
+
+            // Simpan dan kompresi PNG baru secara lossless dengan alpha channel
+            $result = $optimizer->optimizeAndSavePng(
+                $request->file('logo'),
+                \App\Services\ImageOptimizerService::ASSET_DIR_SEKOLAH,
+                'logo_sekolah_' . ($sekolah->npsn ?? 'main') . '_' . time(),
+                1000 // Resolusi optimal untuk logo resmi & background kartu pelajar
+            );
+
+            $meta->logo_path = $result['path'];
+            $meta->logo_size = $result['size'];
+            $meta->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Logo sekolah berhasil disimpan dan dioptimasi secara persisten.',
+                'logo_url' => $meta->logo_url,
+                'logo_size' => $meta->formatted_logo_size,
+                'dimensions' => $result['width'] . ' × ' . $result['height'] . ' px',
+                'savings_percent' => $result['savings_percent'],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengunggah logo sekolah: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Hapus logo sekolah
+     */
+    public function deleteLogo(Request $request, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus logo sekolah.'], 403);
+        }
+
+        try {
+            $meta = \App\Models\SekolahMeta::first();
+            if ($meta && !empty($meta->logo_path)) {
+                $optimizer->deleteFile($meta->logo_path);
+                $meta->logo_path = null;
+                $meta->logo_size = null;
+                $meta->save();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Logo sekolah berhasil dihapus.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menghapus logo sekolah: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Unggah kop surat resmi sekolah (Format PNG Lossless)
+     */
+    public function uploadKop(Request $request, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengunggah kop sekolah.'], 403);
+        }
+
+        $request->validate([
+            'kop' => 'required|file|mimes:png|max:6144',
+        ], [
+            'kop.required' => 'Silakan pilih berkas kop surat terlebih dahulu.',
+            'kop.mimes' => 'Format berkas kop surat sekolah wajib berupa PNG (.png) untuk kebutuhan surat dinas, rapor, dan kartu digital.',
+            'kop.max' => 'Ukuran berkas kop sekolah maksimal 6 MB sebelum dikompresi.',
+        ]);
+
+        try {
+            $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+            $meta = \App\Models\SekolahMeta::getActiveMeta($sekolah?->sekolah_id, $sekolah?->npsn);
+
+            // Hapus file fisik kop lama jika sudah pernah ada
+            if (!empty($meta->kop_path)) {
+                $optimizer->deleteFile($meta->kop_path);
+            }
+
+            // Simpan dan kompresi PNG kop surat (lebar resolusi hingga 1800px untuk cetak A4 tajam)
+            $result = $optimizer->optimizeAndSavePng(
+                $request->file('kop'),
+                \App\Services\ImageOptimizerService::ASSET_DIR_SEKOLAH,
+                'kop_sekolah_' . ($sekolah->npsn ?? 'main') . '_' . time(),
+                1800 // Resolusi optimal kop surat standar A4 cetak
+            );
+
+            $meta->kop_path = $result['path'];
+            $meta->kop_size = $result['size'];
+            $meta->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kop surat sekolah berhasil disimpan dan dioptimasi secara persisten.',
+                'kop_url' => $meta->kop_url,
+                'kop_size' => $meta->formatted_kop_size,
+                'dimensions' => $result['width'] . ' × ' . $result['height'] . ' px',
+                'savings_percent' => $result['savings_percent'],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengunggah kop sekolah: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Hapus kop surat sekolah
+     */
+    public function deleteKop(Request $request, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus kop sekolah.'], 403);
+        }
+
+        try {
+            $meta = \App\Models\SekolahMeta::first();
+            if ($meta && !empty($meta->kop_path)) {
+                $optimizer->deleteFile($meta->kop_path);
+                $meta->kop_path = null;
+                $meta->kop_size = null;
+                $meta->save();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kop surat sekolah berhasil dihapus.',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menghapus kop sekolah: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

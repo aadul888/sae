@@ -75,6 +75,19 @@
         $can('menu_jadwal_pelajaran') ||
         $can('menu_rapor') ||
         $can('menu_validasi_berkas');
+
+    // Proteksi ketat tingkat sistem: Peserta Didik hanya dapat melihat Dashboard & Portal Peserta Didik serta Layanan Siswa
+    if ($role === 'peserta_didik') {
+        $hasMasterData = false;
+        $hasPesertaDidik = false;
+        $hasGuru = false;
+        $hasTendik = false;
+        $hasManajemenData = false;
+        $hasSistem = false;
+        $hasPengaturan = false;
+        $hasAkademikGuru = false;
+        $hasUtama = $can('menu_dashboard');
+    }
 @endphp
 
 <aside class="dash-sidebar" id="dashSidebar">
@@ -141,7 +154,7 @@
                 };
                 $dashActive =
                     request()->routeIs('dashboard.' . $role) ||
-                    ($role === 'peserta_didik' && request()->routeIs('dashboard.peserta-didik*'));
+                    ($role === 'peserta_didik' && (request()->routeIs('dashboard.peserta-didik') || request()->routeIs('dashboard.peserta_didik')));
             @endphp
 
             @if ($can('menu_dashboard'))

@@ -90,7 +90,7 @@ class RolePermission extends Model
                 'menu_perubahan_data' => [
                     'label' => 'Perubahan Data',
                     'icon' => 'fa-user-pen',
-                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_peserta_didik_tidak_aktif' => [
                     'label' => 'Peserta Didik Tidak Aktif',
@@ -257,6 +257,122 @@ class RolePermission extends Model
     }
 
     /**
+     * Dapatkan definisi konfigurasi untuk permission tertentu
+     */
+    public static function getPermissionConfig(string $key): ?array
+    {
+        $all = self::getAvailablePermissions();
+        foreach ($all as $items) {
+            if (isset($items[$key])) {
+                return $items[$key];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Cek apakah pengguna saat ini adalah Wali Kelas atau Administrator
+     */
+    public static function isWaliKelasOrAdmin(mixed $userOrRole = null, ?string $rombelNameOrId = null): bool
+    {
+        $user = $userOrRole ?: session('user');
+        if (!$user) return false;
+
+        $role = is_string($user) ? $user : ($user['role'] ?? ($user->role ?? ''));
+        if ($role === 'admin') {
+            return true;
+        }
+
+        if ($role !== 'guru') {
+            return false;
+        }
+
+        $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+
+        if (!$userId && !$ptkId) {
+            return false;
+        }
+
+        // Cek di ptk_tugas_tambahan
+        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            $waliQuery = DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('rtt.kode', 'WALI_KELAS')
+                ->where('ptt.is_active', true)
+                ->where('rtt.is_active', true)
+                ->where(function ($q) use ($userId, $ptkId) {
+                    if ($userId) $q->where('ptt.user_id', (string) $userId);
+                    if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
+                });
+
+            if ($rombelNameOrId) {
+                $waliQuery->where(function ($q) use ($rombelNameOrId) {
+                    $q->where('ptt.rombel_id', $rombelNameOrId);
+                    $q->orWhereIn('ptt.rombel_id', function ($sub) use ($rombelNameOrId) {
+                        $sub->select('rombongan_belajar_id')->from('rombongan_belajar')->where('nama', $rombelNameOrId);
+                    });
+                });
+            }
+
+            if ($waliQuery->exists()) {
+                return true;
+            }
+        }
+
+        // Fallback: cek langsung di tabel rombongan_belajar jika ptk_id cocok
+        if ($ptkId && Schema::hasTable('rombongan_belajar')) {
+            $rombelQuery = DB::table('rombongan_belajar')->where('ptk_id', $ptkId);
+            if ($rombelNameOrId) {
+                $rombelQuery->where(function ($q) use ($rombelNameOrId) {
+                    $q->where('rombongan_belajar_id', $rombelNameOrId)->orWhere('nama', $rombelNameOrId);
+                });
+            }
+            if ($rombelQuery->exists()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Dapatkan nama rombel yang diampu oleh Wali Kelas saat ini
+     */
+    public static function getWaliKelasRombel(mixed $userOrRole = null): ?string
+    {
+        $user = $userOrRole ?: session('user');
+        if (!$user) return null;
+        $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+        if (!$userId && !$ptkId) return null;
+
+        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            $rombelId = DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('rtt.kode', 'WALI_KELAS')
+                ->where('ptt.is_active', true)
+                ->where('rtt.is_active', true)
+                ->where(function ($q) use ($userId, $ptkId) {
+                    if ($userId) $q->where('ptt.user_id', (string) $userId);
+                    if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
+                })
+                ->value('ptt.rombel_id');
+
+            if ($rombelId) {
+                $nama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->value('nama');
+                return $nama ?: $rombelId;
+            }
+        }
+
+        if ($ptkId && Schema::hasTable('rombongan_belajar')) {
+            return DB::table('rombongan_belajar')->where('ptk_id', $ptkId)->value('nama');
+        }
+
+        return null;
+    }
+
+    /**
      * Cek apakah role / user tertentu diizinkan mengakses permission tertentu.
      * Mendukung evaluasi gabungan (Role Dasar + Izin Tugas Tambahan Aktif).
      */
@@ -268,6 +384,12 @@ class RolePermission extends Model
         }
 
         $role = is_string($userOrRole) ? $userOrRole : ($userOrRole['role'] ?? ($userOrRole->role ?? 'peserta_didik'));
+
+        // Validasi ketat: pastikan permissionKey memang terdaftar dan didukung untuk role ini
+        $config = self::getPermissionConfig($permissionKey);
+        if ($config && !in_array($role, $config['roles'] ?? [], true)) {
+            return false;
+        }
 
         // 1. Evaluasi izin dasar peran (Role-based)
         $allowedByRole = false;
@@ -337,6 +459,7 @@ class RolePermission extends Model
     /**
      * Sinkronisasi seluruh modul & fitur ke tabel role_permissions secara otomatis.
      * Jika ada modul baru yang didaftarkan pada sistem, akan otomatis ditambahkan ke database.
+     * Dan secara otomatis membersihkan data izin usang (stale permissions).
      */
     public static function syncAvailablePermissions(): int
     {
@@ -348,6 +471,7 @@ class RolePermission extends Model
         $addedCount = 0;
         $now = now();
 
+        // 1. Tambahkan permission baru yang belum ada
         foreach ($allPermissions as $groupName => $items) {
             foreach ($items as $permKey => $config) {
                 $roles = $config['roles'] ?? ['admin'];
@@ -369,6 +493,23 @@ class RolePermission extends Model
                         $addedCount++;
                     }
                 }
+            }
+        }
+
+        // 2. Bersihkan baris izin yang rolenya sudah tidak terdaftar secara arsitektur
+        $validMap = [];
+        foreach ($allPermissions as $groupName => $items) {
+            foreach ($items as $permKey => $config) {
+                foreach ($config['roles'] ?? ['admin'] as $r) {
+                    $validMap[$r . ':' . $permKey] = true;
+                }
+            }
+        }
+
+        $allRows = self::all();
+        foreach ($allRows as $row) {
+            if (!isset($validMap[$row->role . ':' . $row->permission_key])) {
+                $row->delete();
             }
         }
 
