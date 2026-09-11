@@ -52,6 +52,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/peserta-didik', [DashboardController::class, 'pesertaDidik'])->name('peserta-didik');
     Route::get('/peserta_didik', [DashboardController::class, 'pesertaDidik'])->name('peserta_didik');
 
+    // Profil Pengguna & Keamanan Akun
+    Route::get('/profil', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile');
+    Route::put('/profil/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::put('/profil/kontak', [\App\Http\Controllers\ProfileController::class, 'updateContact'])->name('profile.contact');
+
     // Tarik Data Dapodik
     Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik')->middleware('permission:menu_dapodik');
     Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey')->middleware('permission:fitur_dapodik_sync');

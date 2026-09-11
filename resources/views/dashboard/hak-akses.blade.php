@@ -543,40 +543,6 @@
     @endif
 
     @push('scripts')
-        <style>
-            .sticky-table-header th {
-                position: sticky;
-                top: 72px;
-                z-index: 10;
-                background: var(--card-bg, #111827);
-            }
-
-            @media (max-width: 768px) {
-                .sticky-table-header th {
-                    top: 64px;
-                }
-            }
-
-            .slider-toggle-crud:before {
-                position: absolute;
-                content: "";
-                height: 14px;
-                width: 14px;
-                left: 3px;
-                bottom: 3px;
-                background-color: white;
-                transition: .3s;
-                border-radius: 50%;
-            }
-
-            input:checked+.slider-toggle-crud:before {
-                transform: translateX(16px);
-            }
-
-            input:disabled+.slider-toggle-crud {
-                opacity: 0.5;
-            }
-        </style>
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';

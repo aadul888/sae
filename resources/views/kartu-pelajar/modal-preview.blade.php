@@ -117,25 +117,6 @@
     </div>
 </div>
 
-<style>
-.btn-kp-tab {
-    border: none;
-    background: transparent;
-    padding: 5px 12px;
-    font-size: 0.76rem;
-    font-weight: 700;
-    color: #475569;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-.btn-kp-tab.active {
-    background: #ffffff;
-    color: #0284c7;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-</style>
-
 <script>
 let currentKpNisn = '';
 

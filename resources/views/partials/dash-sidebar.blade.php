@@ -104,21 +104,42 @@
             style="font-size: 0.68rem; padding: 2px 6px; font-family: monospace;">v{{ $appVersion ?? '1.0.1' }}</span>
     </div>
 
+    @php
+        $userFoto = is_array($user) ? ($user['foto_url'] ?? null) : ($user->foto_url ?? null);
+    @endphp
     <!-- User Profile Badge -->
     <div class="dash-sidebar-user">
-        <div class="dash-user-avatar">
-            @if ($role === 'admin')
-                <i class="fas fa-user-shield"></i>
-            @elseif($role === 'guru')
-                <i class="fas fa-chalkboard-user"></i>
-            @elseif($role === 'tendik')
-                <i class="fas fa-id-badge"></i>
+        <a href="{{ route('dashboard.profile') }}" title="Lihat Profil Saya" style="text-decoration: none; flex-shrink: 0; display: block;">
+            @if ($userFoto)
+                <img src="{{ $userFoto }}" alt="{{ $userName }}" class="dash-sidebar-avatar-img"
+                     onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                <div class="dash-sidebar-user-avatar" style="display: none;">
+                    @if ($role === 'admin')
+                        <i class="fas fa-user-shield"></i>
+                    @elseif($role === 'guru')
+                        <i class="fas fa-chalkboard-user"></i>
+                    @elseif($role === 'tendik')
+                        <i class="fas fa-id-badge"></i>
+                    @else
+                        <i class="fas fa-user-graduate"></i>
+                    @endif
+                </div>
             @else
-                <i class="fas fa-user-graduate"></i>
+                <div class="dash-sidebar-user-avatar">
+                    @if ($role === 'admin')
+                        <i class="fas fa-user-shield"></i>
+                    @elseif($role === 'guru')
+                        <i class="fas fa-chalkboard-user"></i>
+                    @elseif($role === 'tendik')
+                        <i class="fas fa-id-badge"></i>
+                    @else
+                        <i class="fas fa-user-graduate"></i>
+                    @endif
+                </div>
             @endif
-        </div>
+        </a>
         <div class="dash-user-info">
-            <div class="dash-user-name" title="{{ $userName }}">{{ $userName }}</div>
+            <a href="{{ route('dashboard.profile') }}" class="dash-user-name" title="{{ $userName }}" style="text-decoration: none; color: inherit; display: block;">{{ $userName }}</a>
             <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px;">
                 <span class="dash-user-role role-{{ $role }}">{{ $role }}</span>
                 @foreach ($userDuties as $duty)

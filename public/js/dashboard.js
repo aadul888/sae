@@ -106,14 +106,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Notification Bell Dropdown Toggle & Outside Click
+    // Notification Bell & User Avatar Dropdown Toggles
     const notifBtn = document.getElementById("notifBellBtn");
     const notifDropdown = document.getElementById("notifDropdown");
+    const userBtn = document.getElementById("userMenuBtn");
+    const userDropdown = document.getElementById("userDropdown");
+
+    const closeAllHeaderDropdowns = () => {
+        if (notifDropdown) {
+            notifDropdown.style.display = "none";
+            if (notifBtn) notifBtn.setAttribute("aria-expanded", "false");
+        }
+        if (userDropdown) {
+            userDropdown.style.display = "none";
+            if (userBtn) userBtn.setAttribute("aria-expanded", "false");
+        }
+    };
 
     if (notifBtn && notifDropdown) {
         notifBtn.addEventListener("click", (e) => {
             e.preventDefault();
             e.stopPropagation();
+            if (userDropdown) {
+                userDropdown.style.display = "none";
+                if (userBtn) userBtn.setAttribute("aria-expanded", "false");
+            }
             const isOpen = notifDropdown.style.display === "block";
             notifDropdown.style.display = isOpen ? "none" : "block";
             notifBtn.setAttribute("aria-expanded", String(!isOpen));
@@ -125,13 +142,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 notifBtn.setAttribute("aria-expanded", "false");
             }
         });
+    }
 
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
+    if (userBtn && userDropdown) {
+        userBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (notifDropdown) {
                 notifDropdown.style.display = "none";
-                notifBtn.setAttribute("aria-expanded", "false");
+                if (notifBtn) notifBtn.setAttribute("aria-expanded", "false");
+            }
+            const isOpen = userDropdown.style.display === "block";
+            userDropdown.style.display = isOpen ? "none" : "block";
+            userBtn.setAttribute("aria-expanded", String(!isOpen));
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".dash-user-container")) {
+                userDropdown.style.display = "none";
+                userBtn.setAttribute("aria-expanded", "false");
             }
         });
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeAllHeaderDropdowns();
+        }
+    });
 
         // Quick Mark All Read button in notification dropdown
         const btnQuickMark = document.getElementById("btnQuickMarkAllRead");
@@ -183,7 +221,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }
-    }
 
     // Global Modal Backdrop Close & ESC Handler
     document.querySelectorAll(".modal-backdrop").forEach((modal) => {

@@ -14,32 +14,32 @@
 @section('content')
     <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+            <h2>
                 <i
                     class="fas {{ ($currentType ?? 'reguler') === 'matpel' ? 'fa-book-open' : 'fa-users-rectangle' }} text-primary me-2"></i>
                 Master Data — Rombel {{ ($currentType ?? 'reguler') === 'matpel' ? '(Matpel Pilihan)' : '(Kelas Reguler)' }}
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p>
                 {{ ($currentType ?? 'reguler') === 'matpel'
                     ? 'Data rombongan belajar mata pelajaran pilihan disinkronkan otomatis dari tabel Rombongan Belajar (Dapodik).'
                     : 'Data rombongan belajar kelas reguler disinkronkan otomatis dari tabel Rombongan Belajar (Dapodik).' }}
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline">
                 <i class="fas fa-cloud-arrow-down me-1"></i> Tarik Data Dapodik
             </a>
         </div>
     </div>
 
     <!-- Summary Stats Grid -->
-    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+    <div class="dash-stat-grid">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
+            <div class="dash-stat-icon icon-primary">
                 <i class="fas {{ ($currentType ?? 'reguler') === 'matpel' ? 'fa-book-open' : 'fa-chalkboard-user' }}"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value">
                     {{ $summary['rombel'] }}
                 </div>
                 <div class="dash-stat-label">Total Rombel
@@ -48,11 +48,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon icon-success">
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value">
                     {{ number_format($summary['peserta_didik'] ?? 0, 0, ',', '.') }}
                 </div>
                 <div class="dash-stat-label">Total Peserta Didik</div>
@@ -60,11 +60,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
+            <div class="dash-stat-icon icon-accent">
                 <i class="fas fa-laptop-code"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value">
                     {{ $summary['jurusan'] }}
                 </div>
                 <div class="dash-stat-label">Jurusan Terdaftar</div>
@@ -72,11 +72,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon icon-warning">
                 <i class="fas fa-user-tie"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                <div class="dash-stat-value">
                     {{ $summary['wali'] }}
                 </div>
                 <div class="dash-stat-label">

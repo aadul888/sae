@@ -10,11 +10,6 @@
     </div>
 
     <div class="dash-header-right">
-        <!-- Theme Switcher (Single Action Button) -->
-        <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Ganti Tema">
-            <i class="fas fa-moon"></i>
-        </button>
-
         @php
             $currentUser = session('user');
             $currentUserName = is_array($currentUser)
@@ -39,9 +34,11 @@
                 $userNotifications = collect();
                 $notifCount = 0;
             }
+
+            $userFoto = session('user.foto_url');
         @endphp
 
-        <!-- Notification Bell & Dropdown Popup -->
+        <!-- 1. Notification Bell & Dropdown Popup -->
         <div class="dash-notif-container" style="position: relative;">
             <button type="button" class="dash-icon-btn" id="notifBellBtn" title="Pengumuman & Notifikasi"
                 aria-label="Notifikasi" aria-haspopup="true" aria-expanded="false" style="position: relative;">
@@ -52,7 +49,7 @@
                 @endif
             </button>
 
-            <!-- Dropdown Menu -->
+            <!-- Dropdown Menu Notifikasi -->
             <div class="dash-notif-dropdown" id="notifDropdown" style="display: none;">
                 <div
                     style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.02);">
@@ -122,29 +119,80 @@
             </div>
         </div>
 
-        <!-- Quick Profile Link / Role Badge -->
-        <div
-            style="display: flex; align-items: center; gap: 10px; padding-left: 10px; border-left: 1px solid var(--border-glass);">
-            @php
-                $userFoto = session('user.foto_url');
-            @endphp
-            @if ($userFoto)
-                <img src="{{ $userFoto }}" alt="{{ $currentUserName }}" 
-                     style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.15); flex-shrink: 0;">
-            @endif
-            <div style="text-align: right; display: none; line-height: 1.2;" class="d-md-block">
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">{{ $currentUserName }}</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">
-                    {{ str_replace('_', ' ', $currentUserRole) }}</div>
+        <!-- 2. User Avatar Button & Dropdown Menu -->
+        <div class="dash-user-container" style="position: relative;">
+            <button type="button" class="dash-user-btn" id="userMenuBtn" title="Menu Akun: {{ $currentUserName }}"
+                aria-label="Menu Akun Pengguna" aria-haspopup="true" aria-expanded="false">
+                @if ($userFoto)
+                    <img src="{{ $userFoto }}" alt="{{ $currentUserName }}" class="dash-header-avatar">
+                @else
+                    <div class="dash-header-avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                @endif
+            </button>
+
+            <!-- Dropdown Menu Pengguna -->
+            <div class="dash-user-dropdown" id="userDropdown" style="display: none;">
+                <!-- Header Info Akun -->
+                <div class="dash-user-dropdown-header">
+                    <div class="dash-user-dropdown-avatar-wrap">
+                        @if ($userFoto)
+                            <img src="{{ $userFoto }}" alt="{{ $currentUserName }}" class="dash-user-dropdown-avatar">
+                        @else
+                            <div class="dash-user-dropdown-avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="dash-user-dropdown-info">
+                        <div class="dash-user-dropdown-name" title="{{ $currentUserName }}">{{ $currentUserName }}</div>
+                        <div class="dash-user-dropdown-role">
+                            <span class="dash-role-badge dash-role-badge-{{ $currentUserRole }}">
+                                {{ strtoupper(str_replace('_', ' ', $currentUserRole)) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body Menu Item -->
+                <div class="dash-user-dropdown-body">
+                    <!-- Item 1: Profile -->
+                    <a href="{{ route('dashboard.profile') }}" class="dash-user-dropdown-item">
+                        <div class="dash-user-item-icon">
+                            <i class="fas fa-id-badge text-primary"></i>
+                        </div>
+                        <div class="dash-user-item-text">
+                            <div class="item-title">Profil Saya</div>
+                            <div class="item-desc">Data akun &amp; ubah kata sandi</div>
+                        </div>
+                        <i class="fas fa-chevron-right item-arrow"></i>
+                    </a>
+
+                    <!-- Item 2: Mode Gelap / Terang -->
+                    <button type="button" class="dash-user-dropdown-item theme-dropdown-action" id="dropdownThemeToggle">
+                        <div class="dash-user-item-icon">
+                            <i class="fa-solid fa-moon text-warning theme-icon"></i>
+                        </div>
+                        <div class="dash-user-item-text">
+                            <div class="item-title theme-text">Mode Gelap / Terang</div>
+                            <div class="item-desc">Beralih tema tampilan</div>
+                        </div>
+                        <span class="theme-status-pill" id="dropdownThemeBadge">Auto</span>
+                    </button>
+                </div>
+
+                <!-- Footer Menu Item (Logout) -->
+                <div class="dash-user-dropdown-footer">
+                    <form action="{{ route('logout') }}" method="POST" id="headerLogoutForm" style="margin: 0; width: 100%;">
+                        @csrf
+                        <button type="submit" class="dash-user-logout-btn">
+                            <i class="fas fa-arrow-right-from-bracket"></i>
+                            <span>Keluar dari Akun</span>
+                        </button>
+                    </form>
+                </div>
             </div>
-            <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
-                @csrf
-                <button type="submit" class="btn btn-outline"
-                    style="padding: 7px 12px; font-size: 0.8rem; border-color: rgba(239,68,68,0.3); color: var(--danger);"
-                    title="Keluar">
-                    <i class="fas fa-power-off"></i>
-                </button>
-            </form>
         </div>
     </div>
 </header>

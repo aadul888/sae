@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Theme Switcher (Hanya elemen ID themeToggleBtn)
-    const themeToggleBtns = document.querySelectorAll("#themeToggleBtn");
+    // Theme Switcher (Mendukung #themeToggleBtn, #dropdownThemeToggle, .theme-toggle-btn)
     const logos = document.querySelectorAll(
         "#navLogo, #dashLogo, #loginLogo, #installLogo",
     );
@@ -14,12 +13,23 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const applyTheme = (theme) => {
+        const themeToggleBtns = document.querySelectorAll("#themeToggleBtn, .theme-toggle-btn:not(#dropdownThemeToggle)");
+        const dropdownToggle = document.getElementById("dropdownThemeToggle");
+        const dropdownBadge = document.getElementById("dropdownThemeBadge");
+
         if (theme === "light") {
             htmlElement.setAttribute("data-theme", "light");
             themeToggleBtns.forEach((btn) => {
                 btn.innerHTML =
                     '<i class="fa-solid fa-sun" style="color: #f59e0b;"></i>';
             });
+            if (dropdownToggle) {
+                const iconEl = dropdownToggle.querySelector(".theme-icon");
+                const textEl = dropdownToggle.querySelector(".theme-text");
+                if (iconEl) iconEl.className = "fa-solid fa-moon text-primary theme-icon";
+                if (textEl) textEl.textContent = "Mode Gelap";
+                if (dropdownBadge) dropdownBadge.textContent = "Terang";
+            }
             logos.forEach((logo) => {
                 const src = getLogoSrc("light", logo);
                 if (src) logo.src = src;
@@ -29,6 +39,13 @@ document.addEventListener("DOMContentLoaded", () => {
             themeToggleBtns.forEach((btn) => {
                 btn.innerHTML = '<i class="fa-solid fa-moon"></i>';
             });
+            if (dropdownToggle) {
+                const iconEl = dropdownToggle.querySelector(".theme-icon");
+                const textEl = dropdownToggle.querySelector(".theme-text");
+                if (iconEl) iconEl.className = "fa-solid fa-sun text-warning theme-icon";
+                if (textEl) textEl.textContent = "Mode Terang";
+                if (dropdownBadge) dropdownBadge.textContent = "Gelap";
+            }
             logos.forEach((logo) => {
                 const src = getLogoSrc("dark", logo);
                 if (src) logo.src = src;
@@ -45,15 +62,18 @@ document.addEventListener("DOMContentLoaded", () => {
             : "dark");
     applyTheme(savedTheme);
 
-    themeToggleBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
+    // Delegated click listener untuk semua tombol theme toggle
+    document.addEventListener("click", (e) => {
+        const btn = e.target.closest("#themeToggleBtn, #dropdownThemeToggle, .theme-toggle-btn");
+        if (btn) {
+            e.preventDefault();
             const currentTheme =
                 htmlElement.getAttribute("data-theme") === "light"
                     ? "light"
                     : "dark";
             const nextTheme = currentTheme === "light" ? "dark" : "light";
             applyTheme(nextTheme);
-        });
+        }
     });
 
     // Public Mobile Navigation Toggle
