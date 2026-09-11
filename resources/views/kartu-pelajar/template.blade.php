@@ -61,33 +61,28 @@
             <div class="kp-student-info">
                 <div class="kp-student-name" title="{{ $card['nama'] }}">{{ $card['nama'] }}</div>
                 
-                <div class="kp-nisn-pill">
-                    <span class="kp-nisn-label">NISN</span>
+                <div class="kp-nisn-pill" title="Status: {{ $card['status'] ?? 'AKTIF' }}">
+                    <i class="fas fa-circle-check" style="color: #10b981; font-size: 5.5pt;"></i>
                     <span class="kp-nisn-value">{{ $card['nisn'] }}</span>
                 </div>
 
                 <div class="kp-rombel-jurusan">
                     <span class="kp-rombel-name">{{ $card['rombel'] }}</span>
-                    @if(!empty($card['jurusan']) && $card['jurusan'] !== '-')
-                        <span class="kp-bullet">&bull;</span>
-                        <span class="kp-jurusan-name" title="{{ $card['jurusan'] }}">{{ $card['jurusan'] }}</span>
-                    @endif
-                </div>
-
-                <div class="kp-status-row">
-                    <span class="kp-badge-status">
-                        <i class="fas fa-circle-check"></i> {{ $card['status'] ?? 'AKTIF' }}
-                    </span>
+                    <span class="kp-bullet">&bull;</span>
                     <span class="kp-tp-label">{{ $card['tahun_pelajaran'] }}</span>
                 </div>
             </div>
 
-            <!-- QR Code Direct Scan -->
-            <div class="kp-qrcode-box">
+            <!-- QR Code Direct Scan (Bisa di-klik untuk Zoom Fullscreen saat Transaksi) -->
+            <div class="kp-qrcode-box" 
+                 onclick="zoomKpQrCode(event, this)" 
+                 data-student-name="{{ $card['nama'] }}" 
+                 data-student-nisn="{{ $card['nisn'] }}" 
+                 data-student-rombel="{{ $card['rombel'] }}"
+                 title="Klik untuk memperbesar QR Code (Transaksi / Presensi)">
                 <div class="kp-qr-wrapper">
                     {!! $card['qr_code_svg'] !!}
                 </div>
-                <div class="kp-qr-sublabel">SCAN VERIFIKASI</div>
             </div>
         </div>
 

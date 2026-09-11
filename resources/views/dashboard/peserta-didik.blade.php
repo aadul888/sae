@@ -180,10 +180,14 @@
         @endif
     </div>
 
-    <!-- Modal Pratinjau Kartu Pelajar Digital -->
-    @include('kartu-pelajar.modal-preview')
+    <!-- Modal Pratinjau Kartu Pelajar Digital Layar Penuh (Tanpa Frame Luar & Bisa Digeser) -->
+    @include('kartu-pelajar.modal-fullscreen')
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}?v={{ filemtime(public_path('css/kartu-pelajar.css')) }}">
+@endpush
+
+@push('scripts')
+    <script src="{{ asset('js/html2canvas.min.js') }}"></script>
 @endpush

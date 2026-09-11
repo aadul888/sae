@@ -28,10 +28,10 @@
 
         <!-- Body Modal -->
         <div style="background: #f8fafc; padding: 20px; overflow-y: auto; flex: 1; min-height: 240px;">
-            <!-- Loading State -->
-            <div id="kpModalLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; color: #64748b;">
-                <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: #0284c7; margin-bottom: 12px;"></i>
-                <div style="font-size: 0.88rem; font-weight: 600;">Memuat Data Kartu Pelajar...</div>
+            <!-- Loading State (Tepat di Tengah) -->
+            <div id="kpModalLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 260px; padding: 32px; color: #475569; gap: 14px;">
+                <i class="fas fa-circle-notch fa-spin" style="font-size: 40px; color: #0284c7; filter: drop-shadow(0 0 10px rgba(2,132,199,0.3));"></i>
+                <div style="font-size: 0.92rem; font-weight: 700; letter-spacing: 0.2px;">Memuat Kartu Pelajar Digital...</div>
             </div>
 
             <!-- Content State -->
@@ -83,6 +83,40 @@
     </div>
 </div>
 
+<!-- Modal Zoom QR Code Layar Penuh (Untuk Transaksi Cepat & Presensi) -->
+<div id="kpQrZoomOverlay" class="kp-qr-zoom-overlay" style="display: none;" onclick="closeKpQrZoom()">
+    <div class="kp-qr-zoom-card" onclick="event.stopPropagation()">
+        <div class="kp-qr-zoom-header">
+            <div class="kp-qr-zoom-badge">
+                <i class="fas fa-qrcode"></i>
+                <span>QR Transaksi &amp; Presensi</span>
+            </div>
+            <button type="button" class="kp-qr-zoom-close" onclick="closeKpQrZoom()" title="Tutup Zoom QR">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="kp-qr-zoom-box" id="kpQrZoomBox" title="Arahkan ke mesin scanner">
+            <!-- Disuntikkan via JavaScript -->
+        </div>
+
+        <div class="kp-qr-zoom-info">
+            <div class="kp-qr-zoom-name" id="kpQrZoomName">-</div>
+            <div class="kp-qr-zoom-pills">
+                <span class="kp-qr-zoom-pill" id="kpQrZoomNisn">
+                    <i class="fas fa-id-badge"></i> NISN: -
+                </span>
+                <span class="kp-qr-zoom-pill" id="kpQrZoomRombel">
+                    <i class="fas fa-users-rectangle"></i> Kelas: -
+                </span>
+            </div>
+            <div class="kp-qr-zoom-hint">
+                <i class="fas fa-circle-info"></i> Tunjukkan QR Code ini langsung ke mesin scanner atau petugas. Ketuk di mana saja untuk menutup.
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .btn-kp-tab {
     border: none;
@@ -107,6 +141,7 @@ let currentKpNisn = '';
 
 function openKartuPelajarModal(nisn) {
     currentKpNisn = nisn;
+    closeKpQrZoom();
     const modal = document.getElementById('kartuPelajarModal');
     if (!modal) return;
 
@@ -152,6 +187,7 @@ function openKartuPelajarModal(nisn) {
 }
 
 function closeKartuPelajarModal() {
+    closeKpQrZoom();
     const modal = document.getElementById('kartuPelajarModal');
     if (!modal) return;
     modal.style.display = 'none';
@@ -196,8 +232,54 @@ function escapeKpHtml(text) {
     return text.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
+// Fungsi Membuka Zoom QR Code Fullscreen
+window.zoomKpQrCode = function(e, el) {
+    if (e) {
+        e.stopPropagation();
+        if (e.preventDefault) e.preventDefault();
+    }
+
+    const overlay = document.getElementById('kpQrZoomOverlay');
+    const box = document.getElementById('kpQrZoomBox');
+    const nameEl = document.getElementById('kpQrZoomName');
+    const nisnEl = document.getElementById('kpQrZoomNisn');
+    const rombelEl = document.getElementById('kpQrZoomRombel');
+
+    if (!overlay || !box) return;
+
+    const targetBox = el || document.querySelector('.kp-qrcode-box');
+    const qrSvg = targetBox ? targetBox.querySelector('svg') : null;
+    if (qrSvg) {
+        box.innerHTML = qrSvg.outerHTML;
+    }
+
+    const name = (targetBox && targetBox.dataset.studentName) ? targetBox.dataset.studentName : (document.querySelector('.kp-student-name')?.textContent?.trim() || '-');
+    const nisn = (targetBox && targetBox.dataset.studentNisn) ? targetBox.dataset.studentNisn : (document.querySelector('.kp-nisn-value')?.textContent?.trim() || currentKpNisn);
+    const rombel = (targetBox && targetBox.dataset.studentRombel) ? targetBox.dataset.studentRombel : (document.querySelector('.kp-rombel-name')?.textContent?.trim() || '-');
+
+    if (nameEl) nameEl.textContent = name;
+    if (nisnEl) nisnEl.innerHTML = '<i class="fas fa-id-badge"></i> NISN: ' + escapeKpHtml(nisn);
+    if (rombelEl) rombelEl.innerHTML = '<i class="fas fa-users-rectangle"></i> ' + escapeKpHtml(rombel);
+
+    overlay.classList.add('show');
+    overlay.style.setProperty('display', 'flex', 'important');
+};
+
+window.closeKpQrZoom = function() {
+    const overlay = document.getElementById('kpQrZoomOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+        overlay.style.setProperty('display', 'none', 'important');
+    }
+};
+
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+        const qrOverlay = document.getElementById('kpQrZoomOverlay');
+        if (qrOverlay && qrOverlay.style.display !== 'none') {
+            closeKpQrZoom();
+            return;
+        }
         closeKartuPelajarModal();
         if (typeof closeCetakRombelModal === 'function') {
             closeCetakRombelModal();
