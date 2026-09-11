@@ -104,10 +104,12 @@ class ComprehensiveScenarioTest extends TestCase
      */
     public function test_peserta_didik_forced_password_update_flow()
     {
-        // Pastikan password peserta didik 0102015638 adalah default NISN
+        // Pastikan password peserta didik 0102015638 adalah default NISN & belum pernah update
         $u = User::where('username', '0102015638')->first();
         $this->assertNotNull($u);
         $u->password = Hash::make('0102015638');
+        $u->password_updated_at = null;
+        $u->raw_data = null;
         $u->save();
 
         // Step A: Login dengan NISN & password default NISN
@@ -154,12 +156,12 @@ class ComprehensiveScenarioTest extends TestCase
         $validAttempt->assertSessionHas('success');
         $validAttempt->assertSessionMissing('force_update_password');
 
-        // Step E: Coba login dengan password lama (NISN) -> harus gagal
+        // Step E: Coba login dengan password lama (NISN) -> harus gagal dengan pesan 1 kali aktivasi
         $oldPassLogin = $this->post('/login', [
             'username' => '0102015638',
             'password' => '0102015638',
         ]);
-        $oldPassLogin->assertSessionHas('error');
+        $oldPassLogin->assertSessionHas('error', 'Login menggunakan password default (NISN) hanya berlaku 1 kali saat aktivasi. Anda sudah pernah memperbarui password, silakan gunakan password baru Anda.');
 
         // Step F: Login dengan password baru yang valid -> sukses masuk portal
         $newPassLogin = $this->post('/login', [
@@ -170,9 +172,11 @@ class ComprehensiveScenarioTest extends TestCase
         $newPassLogin->assertSessionHas('user');
         $this->assertEquals('peserta_didik', session('user.role'));
 
-        // Reset kembali ke NISN agar user dapat mencobanya secara langsung kapan saja
+        // Reset kembali ke NISN dan null-kan password_updated_at agar user dapat menguji secara langsung
         $u->refresh();
         $u->password = Hash::make('0102015638');
+        $u->password_updated_at = null;
+        $u->raw_data = null;
         $u->save();
     }
 

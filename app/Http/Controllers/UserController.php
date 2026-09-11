@@ -197,6 +197,10 @@ class UserController extends Controller
         }
 
         $user->password = Hash::make($pd->nisn);
+        $user->password_updated_at = null;
+        $raw = !empty($user->raw_data) ? (json_decode($user->raw_data, true) ?: []) : [];
+        unset($raw['password_updated_at'], $raw['is_password_updated']);
+        $user->raw_data = !empty($raw) ? json_encode($raw) : null;
         $user->save();
 
         return back()->with('success', "Password peserta didik {$user->nama} direset ke NISN.");

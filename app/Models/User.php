@@ -35,6 +35,7 @@ class User extends Authenticatable
         'ptk_id',
         'peserta_didik_id',
         'raw_data',
+        'password_updated_at',
     ];
 
     /**
@@ -52,7 +53,9 @@ class User extends Authenticatable
      *
      * @var array<string, string>
      */
-    protected $casts = [];
+    protected $casts = [
+        'password_updated_at' => 'datetime',
+    ];
 
     protected $appends = [
         'name',

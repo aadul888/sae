@@ -16,6 +16,8 @@ class PasswordUpdateTest extends TestCase
         $u = User::where('username', '0095591334')->first();
         if ($u) {
             $u->password = Hash::make('0095591334');
+            $u->password_updated_at = null;
+            $u->raw_data = null;
             $u->save();
         }
     }

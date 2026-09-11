@@ -69,6 +69,58 @@ class AuthController extends Controller
             }
         }
 
+        // Cek khusus Peserta Didik terkait aturan bisnis:
+        // "Login dengan password NISN ini berlaku hanya 1 kali saat aktivasi"
+        if ($user->role === 'peserta_didik') {
+            $studentNisn = '';
+            if (!empty($user->peserta_didik_id)) {
+                $pd = \Illuminate\Support\Facades\DB::table('peserta_didik')
+                    ->where('peserta_didik_id', $user->peserta_didik_id)
+                    ->select('nisn')
+                    ->first();
+                if ($pd && !empty($pd->nisn)) {
+                    $studentNisn = trim($pd->nisn);
+                }
+            }
+            if (empty($studentNisn) && ctype_digit(trim($user->username))) {
+                $studentNisn = trim($user->username);
+            }
+
+            // Cek apakah peserta didik sudah pernah melakukan update password
+            $hasUpdatedPassword = !empty($user->password_updated_at);
+            if (!$hasUpdatedPassword && !empty($user->raw_data)) {
+                $raw = json_decode($user->raw_data, true);
+                if (!empty($raw['password_updated_at']) || !empty($raw['is_password_updated'])) {
+                    $hasUpdatedPassword = true;
+                }
+            }
+            // Jika password di database sudah bukan NISN (sudah diganti ke password personal)
+            if (!$hasUpdatedPassword && !empty($user->password) && !empty($studentNisn) && !password_verify($studentNisn, $user->password) && $user->password !== $studentNisn) {
+                $hasUpdatedPassword = true;
+            }
+
+            // Jika peserta didik menginputkan password berupa NISN:
+            if (!empty($studentNisn) && $password === $studentNisn) {
+                // Jika SUDAH pernah update password: TOLAK login dengan password NISN!
+                if ($hasUpdatedPassword) {
+                    return back()->withInput()->with('error', 'Login menggunakan password default (NISN) hanya berlaku 1 kali saat aktivasi. Anda sudah pernah memperbarui password, silakan gunakan password baru Anda.');
+                }
+
+                // Jika BELUM pernah update password: izinkan 1 kali ini & paksa ke form update password
+                session([
+                    'force_update_password' => [
+                        'pengguna_id' => $user->pengguna_id,
+                        'nama' => $user->name ?? $user->nama,
+                        'nisn' => $studentNisn,
+                        'username' => $user->username,
+                    ]
+                ]);
+
+                return redirect()->route('auth.force-update-password')
+                    ->with('warning', 'Akun Anda terdeteksi masih menggunakan password default (NISN). Demi keamanan data, Anda wajib membuat password baru sebelum masuk ke portal.');
+            }
+        }
+
         $isValid = false;
         $dbPassword = $user->password ?? '';
 
@@ -87,50 +139,6 @@ class AuthController extends Controller
 
         if (!$isValid) {
             return back()->withInput()->with('error', 'Username/Email/NIP/NISN atau password tidak valid.');
-        }
-
-        // Cek apakah role pengguna adalah peserta didik dan menggunakan password default berupa NISN
-        if ($user->role === 'peserta_didik') {
-            $studentNisn = '';
-            if (!empty($user->peserta_didik_id)) {
-                $pd = \Illuminate\Support\Facades\DB::table('peserta_didik')
-                    ->where('peserta_didik_id', $user->peserta_didik_id)
-                    ->select('nisn')
-                    ->first();
-                if ($pd && !empty($pd->nisn)) {
-                    $studentNisn = trim($pd->nisn);
-                }
-            }
-            if (empty($studentNisn) && ctype_digit(trim($user->username))) {
-                $studentNisn = trim($user->username);
-            }
-
-            // Deteksi apakah menggunakan password default berupa NISN
-            $isUsingDefaultNisn = false;
-            if (!empty($studentNisn)) {
-                if ($password === $studentNisn) {
-                    $isUsingDefaultNisn = true;
-                } elseif (!empty($dbPassword) && (password_verify($studentNisn, $dbPassword) || $dbPassword === $studentNisn || md5($studentNisn) === $dbPassword || sha1($studentNisn) === $dbPassword)) {
-                    $isUsingDefaultNisn = true;
-                } elseif (empty($dbPassword) && ($identifier === $studentNisn || $password === $studentNisn)) {
-                    $isUsingDefaultNisn = true;
-                }
-            }
-
-            if ($isUsingDefaultNisn) {
-                // Paksa isi form update password (jangan login langsung ke portal)
-                session([
-                    'force_update_password' => [
-                        'pengguna_id' => $user->pengguna_id,
-                        'nama' => $user->name ?? $user->nama,
-                        'nisn' => $studentNisn,
-                        'username' => $user->username,
-                    ]
-                ]);
-
-                return redirect()->route('auth.force-update-password')
-                    ->with('warning', 'Akun Anda terdeteksi masih menggunakan password default (NISN). Demi keamanan data, Anda wajib membuat password baru sebelum masuk ke portal.');
-            }
         }
 
         $userData = $user->toArray();
@@ -220,6 +228,13 @@ class AuthController extends Controller
         }
 
         $user->password = Hash::make($request->password);
+        $user->password_updated_at = now();
+
+        $raw = !empty($user->raw_data) ? (json_decode($user->raw_data, true) ?: []) : [];
+        $raw['password_updated_at'] = now()->toDateTimeString();
+        $raw['is_password_updated'] = true;
+        $user->raw_data = json_encode($raw);
+
         $user->save();
 
         session()->forget('force_update_password');
