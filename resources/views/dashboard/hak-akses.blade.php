@@ -587,15 +587,6 @@
                         'warning' : 'success');
                     if (window.SAE && typeof window.SAE.toast === 'function') {
                         window.SAE.toast(title, type);
-                    } else if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: type === 'danger' ? 'error' : type,
-                            title: title,
-                            showConfirmButton: false,
-                            timer: 1600
-                        });
                     }
                 };
 

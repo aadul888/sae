@@ -102,7 +102,7 @@
                 <option value="{{ request()->fullUrlWithQuery(['target_peran' => 'tendik', 'page' => 1]) }}"
                     {{ $targetPeranFilter === 'tendik' ? 'selected' : '' }}>🪪 Khusus Tendik</option>
                 <option value="{{ request()->fullUrlWithQuery(['target_peran' => 'peserta_didik', 'page' => 1]) }}"
-                    {{ $targetPeranFilter === 'peserta_didik' ? 'selected' : '' }}>🎓 Khusus Siswa</option>
+                    {{ $targetPeranFilter === 'peserta_didik' ? 'selected' : '' }}>🎓 Khusus Peserta Didik</option>
                 <option value="{{ request()->fullUrlWithQuery(['target_peran' => 'admin', 'page' => 1]) }}"
                     {{ $targetPeranFilter === 'admin' ? 'selected' : '' }}>🛡️ Khusus Administrator</option>
             </select>
@@ -219,7 +219,7 @@
                                 </span>
                             @elseif($item->target_peran === 'peserta_didik')
                                 <span class="badge badge-success" style="font-size: 0.72rem; padding: 4px 8px;">
-                                    <i class="fas fa-user-graduate me-1"></i> Siswa
+                                    <i class="fas fa-user-graduate me-1"></i> Peserta Didik
                                 </span>
                             @elseif($item->target_peran === 'admin')
                                 <span class="badge badge-danger" style="font-size: 0.72rem; padding: 4px 8px;">

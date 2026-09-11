@@ -69,8 +69,8 @@
         $can('menu_penilaian') ||
         $can('menu_presensi_peserta_didik');
 
-    // Section: Portal Siswa
-    $hasPortalSiswa =
+    // Section: Portal Peserta Didik
+    $hasPortalPesertaDidik =
         $can('menu_riwayat_rfid') ||
         $can('menu_jadwal_pelajaran') ||
         $can('menu_rapor') ||
@@ -136,7 +136,7 @@
                     'admin' => 'Dashboard Utama',
                     'guru' => 'Dashboard Guru',
                     'tendik' => 'Dashboard Tendik',
-                    'peserta_didik' => 'Dashboard Siswa',
+                    'peserta_didik' => 'Dashboard Peserta Didik',
                     default => 'Dashboard',
                 };
                 $dashActive =
@@ -403,7 +403,7 @@
                     @if ($can('menu_penilaian'))
                         <a href="#" class="dash-nav-sublink">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-graduation-cap"></i></span>
-                            <span class="nav-label">Penilaian Siswa</span>
+                            <span class="nav-label">Penilaian Peserta Didik</span>
                         </a>
                     @endif
 
@@ -471,19 +471,19 @@
         @endif
 
         {{-- Portal Peserta Didik (Collapsible - Di Atas Layanan Digital) --}}
-        @if ($hasPortalSiswa)
+        @if ($hasPortalPesertaDidik)
             @php
-                $isPortalSiswaActive =
+                $isPortalPesertaDidikActive =
                     request()->routeIs('dashboard.riwayat-rfid*') ||
                     request()->routeIs('dashboard.jadwal-pelajaran*') ||
                     request()->routeIs('dashboard.rapor*') ||
                     request()->routeIs('dashboard.validasi-berkas*');
             @endphp
-            <div class="dash-nav-group {{ $isPortalSiswaActive ? 'open active-group' : '' }}">
+            <div class="dash-nav-group {{ $isPortalPesertaDidikActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
                     <div class="dash-nav-toggle-main">
                         <span class="nav-icon"><i class="fas fa-fw fa-user-graduate"></i></span>
-                        <span class="nav-label">Portal Siswa</span>
+                        <span class="nav-label">Portal Peserta Didik</span>
                     </div>
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>

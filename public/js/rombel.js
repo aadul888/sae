@@ -132,7 +132,7 @@ window.openPesertaDidikModal = async function (id, nama) {
                             </span>
                         </td>
                         <td style="padding: 10px 14px; font-size: 0.8rem; color: var(--text-muted);">
-                            ${escapeHtml(s.jenis_pendaftaran || "Siswa Baru")}
+                            ${escapeHtml(s.jenis_pendaftaran || "Peserta Didik Baru")}
                         </td>
                         <td style="padding: 10px 14px; color: var(--text-muted); font-size: 0.8rem;">
                             ${escapeHtml([s.tempat_lahir, s.tanggal_lahir].filter(Boolean).join(", ") || "-")}

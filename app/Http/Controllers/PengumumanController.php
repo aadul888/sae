@@ -94,7 +94,7 @@ class PengumumanController extends Controller
     }
 
     /**
-     * Halaman feed & portal informasi bagi pengguna (Guru, Tendik, Siswa, Admin)
+     * Halaman feed & portal informasi bagi pengguna (Guru, Tendik, Peserta Didik, Admin)
      */
     public function pengguna(Request $request)
     {

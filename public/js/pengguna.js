@@ -98,41 +98,32 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // --- SweetAlert2 Form Confirmations ---
+    // --- Form Confirmations (SAE Unified Dialog System) ---
     document.querySelectorAll("form[data-action-type]").forEach((form) => {
-        form.addEventListener("submit", function (e) {
+        form.addEventListener("submit", async function (e) {
             e.preventDefault();
             const type = this.dataset.actionType;
             const nama = this.dataset.name || "item ini";
             const targetForm = this;
-
-            if (typeof Swal === "undefined") {
-                if (confirm(`Yakin ingin memproses ${nama}?`)) {
-                    targetForm.submit();
-                }
-                return;
-            }
-
             const isDelete = type === "delete";
-            Swal.fire({
-                title: isDelete ? "Hapus Pengguna?" : "Reset Password?",
-                html: isDelete
-                    ? `Yakin ingin menghapus pengguna <strong>${nama}</strong>?<br><small style="color:#ef4444;">Tindakan ini tidak dapat dibatalkan.</small>`
-                    : `Reset password <strong>${nama}</strong> ke NISN?<br><small>Password akan dikembalikan ke nilai NISN.</small>`,
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: isDelete ? "#ef4444" : "#f59e0b",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: isDelete
-                    ? '<i class="fas fa-trash me-1"></i> Ya, Hapus'
-                    : '<i class="fas fa-key me-1"></i> Ya, Reset',
-                cancelButtonText: "Batal",
-                reverseButtons: true,
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    targetForm.submit();
-                }
-            });
+
+            const title = isDelete ? "Hapus Pengguna?" : "Reset Password?";
+            const msg = isDelete
+                ? `Yakin ingin menghapus akun pengguna <strong>${nama}</strong>?<br><span style="color:#ef4444; font-size:0.8rem;">Tindakan ini tidak dapat dibatalkan.</span>`
+                : `Reset password akun <strong>${nama}</strong> ke default (NISN / Sae12345!)?`;
+            const confirmBtnText = isDelete ? "Ya, Hapus Akun" : "Ya, Reset Password";
+
+            const confirmed = await window.SAE.confirm(
+                msg,
+                title,
+                isDelete ? "danger" : "warning",
+                confirmBtnText,
+                "Batal"
+            );
+
+            if (confirmed) {
+                targetForm.submit();
+            }
         });
     });
 });

@@ -1761,6 +1761,320 @@
         overflow-wrap: anywhere;
     }
 
+    /* Pastikan badge status/metrik tidak gepeng terpotong per huruf */
+    .table-responsive-stack tbody td span.badge,
+    .table-responsive-stack tbody td .badge {
+        white-space: nowrap !important;
+        word-break: normal !important;
+        overflow-wrap: normal !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Khusus Card Kompetensi Keahlian di Mobile: Tampilan Rapih & Proporsional */
+    .table-keahlian tbody tr {
+        display: flex !important;
+        flex-direction: column !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 16px !important;
+        padding: 16px !important;
+        margin-bottom: 14px !important;
+        background: var(--bg-card, #131b2e) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    /* 1. HERO HEADER: Jurusan Cell (Logo + Nama + Badge + Rombel) */
+    .table-keahlian tbody td.cell-jurusan-main {
+        order: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 0 0 12px 0 !important;
+        margin-bottom: 8px !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+
+    /* Sembunyikan label pseudo-element "KOMPETENSI KEAHL..." yang terpotong dan mubazir */
+    .table-keahlian tbody td.cell-jurusan-main::before {
+        display: none !important;
+    }
+
+    .table-keahlian tbody td.cell-jurusan-main > div.jurusan-main-wrapper {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-keahlian tbody td.cell-jurusan-main .jurusan-logo-thumb {
+        width: 48px !important;
+        height: 48px !important;
+        flex-shrink: 0 !important;
+        border-radius: 12px !important;
+    }
+
+    .table-keahlian tbody td.cell-jurusan-main .jurusan-info {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+
+    .table-keahlian tbody td.cell-jurusan-main .jurusan-title-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 6px 8px !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    .table-keahlian tbody td.cell-jurusan-main .jurusan-nama {
+        font-size: 0.96rem !important;
+        font-weight: 700 !important;
+        color: var(--text-color) !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .table-keahlian tbody td.cell-jurusan-main .badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        font-size: 0.68rem !important;
+        padding: 3px 8px !important;
+        border-radius: 6px !important;
+    }
+
+    .table-keahlian tbody td.cell-jurusan-main .jurusan-rombel-sub {
+        font-size: 0.76rem !important;
+        color: var(--text-muted) !important;
+        margin-top: 5px !important;
+        line-height: 1.4 !important;
+        word-break: break-word !important;
+        text-align: left !important;
+    }
+
+    /* 2. BARIS-BARIS DETAIL METRIK */
+    .table-keahlian tbody td.cell-kode {
+        order: 2 !important;
+    }
+    .table-keahlian tbody td.cell-rombel {
+        order: 3 !important;
+    }
+    .table-keahlian tbody td.cell-peserta-didik,
+    .table-keahlian tbody td.cell-siswa {
+        order: 4 !important;
+    }
+    .table-keahlian tbody td.cell-tingkat {
+        order: 5 !important;
+    }
+    .table-keahlian tbody td.cell-kurikulum {
+        order: 6 !important;
+    }
+
+    .table-keahlian tbody td.cell-kode,
+    .table-keahlian tbody td.cell-rombel,
+    .table-keahlian tbody td.cell-peserta-didik,
+    .table-keahlian tbody td.cell-siswa,
+    .table-keahlian tbody td.cell-tingkat,
+    .table-keahlian tbody td.cell-kurikulum {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.07) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-keahlian tbody td.cell-tingkat .tingkat-wrap {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end !important;
+        gap: 4px !important;
+        max-width: 65% !important;
+    }
+
+    .table-keahlian tbody td.cell-kurikulum {
+        align-items: flex-start !important;
+    }
+
+    .table-keahlian tbody td.cell-kurikulum .kurikulum-text {
+        max-width: 65% !important;
+        text-align: right !important;
+        font-size: 0.8rem !important;
+        line-height: 1.4 !important;
+        color: var(--text-muted) !important;
+        word-break: break-word !important;
+    }
+
+    /* 3. FOOTER AKSI */
+    .table-keahlian tbody td.cell-aksi {
+        order: 7 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 12px 0 0 0 !important;
+        margin-top: 4px !important;
+        border-bottom: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-keahlian tbody td.cell-aksi .table-actions {
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+        max-width: 100% !important;
+    }
+
+    .table-keahlian tbody td.cell-aksi .btn-icon {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Khusus Card Peserta Didik Aktif di Mobile: Tampilan Rapih & Proporsional */
+    .table-pd tbody tr {
+        display: flex !important;
+        flex-direction: column !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 16px !important;
+        padding: 16px !important;
+        margin-bottom: 14px !important;
+        background: var(--bg-card, #131b2e) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    /* 1. HERO HEADER: Peserta Didik Cell (Foto + Nama + NIK + Badge Status) */
+    .table-pd tbody td.cell-pd-nama {
+        order: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 0 0 12px 0 !important;
+        margin-bottom: 8px !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama::before {
+        display: none !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama > div.pd-main-wrapper {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        gap: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama .pd-foto-thumb {
+        width: 48px !important;
+        height: 48px !important;
+        flex-shrink: 0 !important;
+        border-radius: 12px !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama .pd-info {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama .pd-title-row {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 6px 8px !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama .pd-nama {
+        font-size: 0.96rem !important;
+        font-weight: 700 !important;
+        color: var(--text-color) !important;
+        line-height: 1.35 !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama .badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        font-size: 0.68rem !important;
+        padding: 3px 8px !important;
+        border-radius: 6px !important;
+    }
+
+    /* 2. BARIS-BARIS DETAIL METRIK */
+    .table-pd tbody td.cell-pd-nisn { order: 2 !important; }
+    .table-pd tbody td.cell-pd-gender { order: 3 !important; }
+    .table-pd tbody td.cell-pd-rombel { order: 4 !important; }
+    .table-pd tbody td.cell-pd-tingkat { order: 5 !important; }
+    .table-pd tbody td.cell-pd-ttl { order: 6 !important; }
+
+    .table-pd tbody td.cell-pd-nisn,
+    .table-pd tbody td.cell-pd-gender,
+    .table-pd tbody td.cell-pd-rombel,
+    .table-pd tbody td.cell-pd-tingkat,
+    .table-pd tbody td.cell-pd-ttl {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.07) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 3. FOOTER AKSI */
+    .table-pd tbody td.cell-pd-aksi {
+        order: 7 !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 12px 0 0 0 !important;
+        margin-top: 4px !important;
+        border-bottom: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-pd tbody td.cell-pd-aksi .table-actions {
+        display: flex !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+        max-width: 100% !important;
+    }
+
+    .table-pd tbody td.cell-pd-aksi .btn-icon {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 0.95rem !important;
+    }
+
     .table-responsive-stack .table-actions {
         justify-content: flex-end;
         max-width: 60%;
@@ -1971,5 +2285,28 @@
 }
 .badge-unread-status {
     animation: pulseBadge 2.2s infinite ease-in-out;
+}
+
+/* SweetAlert2 Highest Priority Z-Index Overlay */
+.swal2-container {
+    z-index: 1000000 !important;
+}
+
+/* Foto Peserta Didik & Logo Jurusan Thumbnail Micro-Interactions */
+.jurusan-logo-thumb,
+.pd-foto-thumb {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.jurusan-logo-thumb:hover,
+.pd-foto-thumb:hover {
+    transform: scale(1.08) !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+}
+.jurusan-logo-thumb.empty:hover,
+.pd-foto-thumb.empty:hover {
+    border-color: var(--primary) !important;
+    background: rgba(99, 102, 241, 0.16) !important;
+    transform: scale(1.08) !important;
 }
 

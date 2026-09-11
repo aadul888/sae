@@ -116,6 +116,23 @@ class PesertaDidikAktifController extends Controller
         $offset = ($currentPage - 1) * $perPage;
         $itemsForPage = $sorted->slice($offset, $perPage)->values();
 
+        // Ambil info foto persisten dari peserta_didik_meta
+        $pdIds = $itemsForPage->pluck('peserta_didik_id')->filter()->values()->all();
+        $metaMap = collect();
+        if (!empty($pdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMap = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)
+                ->get()
+                ->keyBy('peserta_didik_id');
+        }
+
+        foreach ($itemsForPage as $item) {
+            $meta = $metaMap[$item->peserta_didik_id] ?? null;
+            $item->foto_url = $meta?->foto_url;
+            $item->foto_size = $meta?->formatted_foto_size;
+            $item->foto_width = $meta?->foto_width;
+            $item->foto_height = $meta?->foto_height;
+        }
+
         $list = new \Illuminate\Pagination\LengthAwarePaginator(
             $itemsForPage,
             $total,
@@ -167,6 +184,11 @@ class PesertaDidikAktifController extends Controller
                 ->first();
         }
 
+        $meta = null;
+        if (Schema::hasTable('peserta_didik_meta')) {
+            $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pesertaDidik->peserta_didik_id)->first();
+        }
+
         $rombelId = $pesertaDidik->rombongan_belajar_id ?? ($anggota->rombongan_belajar_id ?? null);
         $pembelajaran = collect();
         if (!empty($rombelId) && Schema::hasTable('pembelajaran')) {
@@ -191,9 +213,119 @@ class PesertaDidikAktifController extends Controller
             'status' => 'success',
             'data' => $pesertaDidik,
             'anggota' => $anggota,
+            'meta' => $meta,
+            'foto_url' => $meta?->foto_url,
+            'foto_size' => $meta?->formatted_foto_size,
             'pembelajaran' => $pembelajaran,
             'total_mapel' => $pembelajaran->count(),
             'total_jam' => $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
+        ]);
+    }
+
+    /**
+     * Unggah dan auto-kompresi pasfoto peserta didik (khusus format PNG)
+     */
+    public function uploadFoto(Request $request, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'peserta_didik_id' => 'required|string|max:50',
+            'foto' => 'required|file|mimes:png|max:5120',
+        ], [
+            'peserta_didik_id.required' => 'ID peserta didik wajib disertakan.',
+            'foto.required' => 'File foto wajib diunggah.',
+            'foto.mimes' => 'Format foto harus berupa PNG (.png) untuk kebutuhan kartu pelajar digital.',
+            'foto.max' => 'Ukuran file foto maksimal adalah 5 MB.',
+        ]);
+
+        $pdId = $request->input('peserta_didik_id');
+        $pesertaDidik = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+        if (!$pesertaDidik) {
+            return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan di database.'], 404);
+        }
+
+        try {
+            $meta = \App\Models\PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $pdId]);
+
+            // Hapus file lama jika ada
+            if ($meta->foto_path) {
+                $optimizer->deleteFile($meta->foto_path);
+            }
+
+            // Optimasi dan simpan PNG ke assets/peserta-didik/foto
+            $prefix = 'foto_' . ($pesertaDidik->nisn ?: preg_replace('/[^a-zA-Z0-9_-]/', '', $pdId));
+            $result = $optimizer->optimizeAndSavePng(
+                $request->file('foto'),
+                \App\Services\ImageOptimizerService::ASSET_DIR_FOTO_PESERTA_DIDIK,
+                $prefix,
+                1000
+            );
+
+            // Simpan metadata ke tabel peserta_didik_meta
+            $meta->nisn = $pesertaDidik->nisn;
+            $meta->foto_path = $result['path'];
+            $meta->foto_size = $result['size'];
+            $meta->foto_width = $result['width'];
+            $meta->foto_height = $result['height'];
+            $meta->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Foto peserta didik berhasil disimpan dan dikompresi.',
+                'data' => [
+                    'foto_url' => $meta->foto_url,
+                    'foto_size' => $meta->formatted_foto_size,
+                    'width' => $result['width'],
+                    'height' => $result['height'],
+                    'savings' => $result['savings_percent'],
+                    'peserta_didik_id' => $pdId,
+                    'nama' => $pesertaDidik->nama,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memproses foto: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Hapus pasfoto peserta didik
+     */
+    public function deleteFoto(Request $request, string|int $id, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $id)->first();
+        if (!$meta || empty($meta->foto_path)) {
+            return response()->json(['status' => 'error', 'message' => 'Foto peserta didik tidak ditemukan.'], 404);
+        }
+
+        $optimizer->deleteFile($meta->foto_path);
+        $meta->foto_path = null;
+        $meta->foto_size = null;
+        $meta->foto_width = null;
+        $meta->foto_height = null;
+        $meta->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Foto peserta didik berhasil dihapus.',
+            'data' => [
+                'peserta_didik_id' => $id,
+            ],
         ]);
     }
 }

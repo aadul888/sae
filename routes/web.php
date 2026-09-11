@@ -87,6 +87,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian');
     Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel')->middleware('permission:menu_kompetensi_keahlian');
+    Route::post('/master-data/kompetensi-keahlian/{kode}/logo', [KompetensiKeahlianController::class, 'uploadLogo'])->name('kompetensi-keahlian.upload-logo')->middleware('permission:menu_kompetensi_keahlian');
+    Route::delete('/master-data/kompetensi-keahlian/{kode}/logo', [KompetensiKeahlianController::class, 'deleteLogo'])->name('kompetensi-keahlian.delete-logo')->middleware('permission:menu_kompetensi_keahlian');
 
     // Master Data — Rombel (Sumber: Rombongan Belajar & Peserta Didik)
     Route::get('/master-data/rombel', [\App\Http\Controllers\RombelController::class, 'index'])->name('rombel.index')->middleware('permission:menu_rombel');
@@ -100,6 +102,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Manajemen Data — Peserta Didik Aktif, Guru Aktif, & Tendik Aktif (Sumber: Peserta Didik & GTK Dapodik)
     Route::get('/manajemen-data/peserta-didik-aktif', [\App\Http\Controllers\PesertaDidikAktifController::class, 'index'])->name('peserta-didik-aktif.index')->middleware('permission:menu_peserta_didik_aktif');
+    Route::post('/manajemen-data/peserta-didik-aktif/upload-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'uploadFoto'])->name('peserta-didik-aktif.upload-foto')->middleware('permission:menu_peserta_didik_aktif');
+    Route::delete('/manajemen-data/peserta-didik-aktif/{id}/delete-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'deleteFoto'])->name('peserta-didik-aktif.delete-foto')->middleware('permission:menu_peserta_didik_aktif');
     Route::get('/manajemen-data/peserta-didik-aktif/{id}', [\App\Http\Controllers\PesertaDidikAktifController::class, 'show'])->name('peserta-didik-aktif.show')->middleware('permission:menu_peserta_didik_aktif');
     Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index')->middleware('permission:menu_guru_aktif');
     Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show')->middleware('permission:menu_guru_aktif');

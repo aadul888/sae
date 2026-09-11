@@ -10,8 +10,9 @@ class HomeController extends Controller
     {
         // Data dummy statistik sekolah
         $stats = [
-            'total_students' => 1248,
-            'total_classes'  => 36,
+            'total_peserta_didik' => 1248,
+            'total_students'      => 1248,
+            'total_classes'       => 36,
             'total_majors'   => 5,
             'male_count'     => 680,
             'female_count'   => 568,

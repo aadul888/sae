@@ -146,7 +146,7 @@ class RolePermission extends Model
                     'roles' => ['admin', 'tendik'],
                 ],
                 'menu_kelulusan' => [
-                    'label' => 'Kelulusan Siswa',
+                    'label' => 'Kelulusan Peserta Didik',
                     'icon' => 'fa-graduation-cap',
                     'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
@@ -164,12 +164,12 @@ class RolePermission extends Model
                     'roles' => ['guru'],
                 ],
                 'menu_penilaian' => [
-                    'label' => 'Penilaian Siswa',
+                    'label' => 'Penilaian Peserta Didik',
                     'icon' => 'fa-graduation-cap',
                     'roles' => ['guru'],
                 ],
                 'menu_presensi_peserta_didik' => [
-                    'label' => 'Presensi Kelas Siswa',
+                    'label' => 'Presensi Kelas Peserta Didik',
                     'icon' => 'fa-users-viewfinder',
                     'roles' => ['guru'],
                 ],

@@ -102,23 +102,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     btnRun.addEventListener("click", async () => {
-        const confirmed =
-            typeof Swal !== "undefined"
-                ? (
-                      await Swal.fire({
-                          title: "Jalankan Pembaruan Sistem?",
-                          text: "Sistem akan memperbarui file kode dan migrasi database secara otomatis.",
-                          icon: "question",
-                          showCancelButton: true,
-                          confirmButtonText:
-                              '<i class="fas fa-download me-1"></i> Ya, Pasang Sekarang',
-                          cancelButtonText: "Batal",
-                          confirmButtonColor: "#6366f1",
-                          cancelButtonColor: "#64748b",
-                          ...getThemeColors(),
-                      })
-                  ).isConfirmed
-                : confirm("Jalankan pembaruan sistem sekarang?");
+        const confirmed = window.SAE && typeof window.SAE.confirm === "function"
+            ? await window.SAE.confirm(
+                  "Sistem akan memperbarui file kode dan migrasi database secara otomatis.",
+                  "Jalankan Pembaruan Sistem?",
+                  "info",
+                  "Ya, Pasang Sekarang",
+                  "Batal"
+              )
+            : confirm("Jalankan pembaruan sistem sekarang?");
 
         if (!confirmed) return;
 
@@ -172,14 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     lastUpdateText.textContent = data.data.timestamp;
                 }
 
-                if (typeof Swal !== "undefined") {
-                    Swal.fire({
-                        title: "Berhasil!",
-                        text: "Sistem berhasil diperbarui.",
-                        icon: "success",
-                        confirmButtonColor: "#10b981",
-                        ...getThemeColors(),
-                    });
+                if (window.SAE && typeof window.SAE.toast === "function") {
+                    window.SAE.toast("Sistem berhasil diperbarui!", "success");
                 }
             } else {
                 data.data.logs.forEach((l) => appendLog(l, "#f87171"));
@@ -187,26 +173,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Pembaruan selesai dengan catatan / error.",
                     "#fbbf24",
                 );
-                if (typeof Swal !== "undefined") {
-                    Swal.fire({
-                        title: "Perhatian",
-                        text: "Pembaruan selesai dengan beberapa catatan.",
-                        icon: "warning",
-                        confirmButtonColor: "#f59e0b",
-                        ...getThemeColors(),
-                    });
+                if (window.SAE && typeof window.SAE.toast === "function") {
+                    window.SAE.toast("Pembaruan selesai dengan beberapa catatan.", "warning");
                 }
             }
         } catch (err) {
             appendLog("Error eksekusi update: " + err.message, "#f87171");
-            if (typeof Swal !== "undefined") {
-                Swal.fire({
-                    title: "Gagal!",
-                    text: "Terjadi kesalahan: " + err.message,
-                    icon: "error",
-                    confirmButtonColor: "#ef4444",
-                    ...getThemeColors(),
-                });
+            if (window.SAE && typeof window.SAE.toast === "function") {
+                window.SAE.toast("Gagal: " + err.message, "danger");
             }
         } finally {
             btnRun.disabled = false;

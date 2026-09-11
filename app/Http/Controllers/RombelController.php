@@ -228,7 +228,7 @@ class RombelController extends Controller
 
         $pesertaDidik = collect();
         if (Schema::hasTable('peserta_didik')) {
-            $arStudentIds = Schema::hasTable('anggota_rombel')
+            $arPesertaDidikIds = Schema::hasTable('anggota_rombel')
                 ? DB::table('anggota_rombel')
                 ->where('rombongan_belajar_id', $id)
                 ->pluck('peserta_didik_id')
@@ -237,10 +237,10 @@ class RombelController extends Controller
                 : [];
 
             $pdQuery = DB::table('peserta_didik')
-                ->where(function ($q) use ($id, $arStudentIds) {
+                ->where(function ($q) use ($id, $arPesertaDidikIds) {
                     $q->where('peserta_didik.rombongan_belajar_id', $id);
-                    if (!empty($arStudentIds)) {
-                        $q->orWhereIn('peserta_didik.peserta_didik_id', $arStudentIds);
+                    if (!empty($arPesertaDidikIds)) {
+                        $q->orWhereIn('peserta_didik.peserta_didik_id', $arPesertaDidikIds);
                     }
                 })
                 ->select(

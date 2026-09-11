@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Global UI Alert, Confirm & Toast Helper
 window.SAE = {
-    toast(message, type = "info", duration = 3000) {
+    toast(message, type = "info", duration = 3200) {
         let container = document.getElementById("saeToastContainer");
         if (!container) {
             container = document.createElement("div");
@@ -145,13 +145,14 @@ window.SAE = {
         const icons = {
             success: "fa-circle-check text-success",
             danger: "fa-circle-xmark text-danger",
+            error: "fa-circle-xmark text-danger",
             warning: "fa-triangle-exclamation text-warning",
             info: "fa-circle-info text-primary",
         };
 
         const toast = document.createElement("div");
         toast.className = "sae-toast";
-        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> <span>${message}</span>`;
+        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}" style="font-size: 1.1rem; flex-shrink: 0;"></i> <span style="line-height: 1.4;">${message}</span>`;
         container.appendChild(toast);
 
         requestAnimationFrame(() => toast.classList.add("show"));
@@ -167,6 +168,7 @@ window.SAE = {
             const icons = {
                 success: "fa-circle-check",
                 danger: "fa-triangle-exclamation",
+                error: "fa-triangle-exclamation",
                 warning: "fa-triangle-exclamation",
                 info: "fa-circle-info",
             };
@@ -181,7 +183,7 @@ window.SAE = {
                     <div class="sae-dialog-title">${title}</div>
                     <div class="sae-dialog-message">${message}</div>
                     <div class="sae-dialog-actions">
-                        <button class="btn btn-primary sae-dialog-ok" style="padding: 8px 20px; font-size: 0.88rem;">OK</button>
+                        <button class="btn btn-primary sae-dialog-ok" style="padding: 8px 22px; font-size: 0.88rem;">OK</button>
                     </div>
                 </div>
             `;
@@ -190,69 +192,44 @@ window.SAE = {
             requestAnimationFrame(() => overlay.classList.add("active"));
 
             const okBtn = overlay.querySelector(".sae-dialog-ok");
-            okBtn.focus();
-            okBtn.onclick = () => {
+            if (okBtn) okBtn.focus();
+            const close = () => {
                 overlay.classList.remove("active");
                 setTimeout(() => {
                     overlay.remove();
                     resolve(true);
                 }, 200);
             };
+            if (okBtn) okBtn.onclick = close;
+            overlay.onclick = (e) => {
+                if (e.target === overlay) close();
+            };
         });
     },
 
-    confirm(message, title = "Konfirmasi Tindakan", type = "warning") {
-        if (typeof Swal !== "undefined") {
-            const swalIcons = {
-                success: "success",
-                danger: "error",
-                warning: "warning",
-                info: "info",
-            };
-            return Swal.fire({
-                title: title,
-                text: message,
-                icon: swalIcons[type] || "warning",
-                showCancelButton: true,
-                confirmButtonColor: type === "danger" ? "#ef4444" : "#4f46e5",
-                cancelButtonColor: "#64748b",
-                confirmButtonText: "Lanjutkan",
-                cancelButtonText: "Batal",
-                background:
-                    document.documentElement.getAttribute("data-theme") ===
-                        "dark" ||
-                    !document.documentElement.getAttribute("data-theme")
-                        ? "#1e293b"
-                        : "#ffffff",
-                color:
-                    document.documentElement.getAttribute("data-theme") ===
-                        "dark" ||
-                    !document.documentElement.getAttribute("data-theme")
-                        ? "#f8fafc"
-                        : "#1e293b",
-            }).then((res) => res.isConfirmed);
-        }
-
+    confirm(message, title = "Konfirmasi Tindakan", type = "warning", confirmText = "Lanjutkan", cancelText = "Batal") {
         return new Promise((resolve) => {
             const icons = {
                 success: "fa-circle-check",
                 danger: "fa-triangle-exclamation",
+                error: "fa-triangle-exclamation",
                 warning: "fa-triangle-exclamation",
                 info: "fa-circle-info",
             };
 
+            const isDanger = type === "danger" || type === "error";
             const overlay = document.createElement("div");
             overlay.className = "sae-dialog-overlay";
             overlay.innerHTML = `
                 <div class="sae-dialog-box">
-                    <div class="sae-dialog-icon ${type}">
+                    <div class="sae-dialog-icon ${isDanger ? 'danger' : type}">
                         <i class="fa-solid ${icons[type] || icons.warning}"></i>
                     </div>
                     <div class="sae-dialog-title">${title}</div>
                     <div class="sae-dialog-message">${message}</div>
                     <div class="sae-dialog-actions">
-                        <button class="btn btn-outline sae-dialog-cancel" style="padding: 8px 16px; font-size: 0.88rem;">Batal</button>
-                        <button class="btn btn-primary sae-dialog-ok" style="padding: 8px 18px; font-size: 0.88rem;">Lanjutkan</button>
+                        <button class="btn btn-outline sae-dialog-cancel" style="padding: 8px 16px; font-size: 0.88rem;">${cancelText}</button>
+                        <button class="btn ${isDanger ? 'btn-danger' : 'btn-primary'} sae-dialog-ok" style="padding: 8px 18px; font-size: 0.88rem; ${isDanger ? 'background: #ef4444; border-color: #ef4444; color: #fff;' : ''}">${confirmText}</button>
                     </div>
                 </div>
             `;
@@ -262,7 +239,7 @@ window.SAE = {
 
             const cancelBtn = overlay.querySelector(".sae-dialog-cancel");
             const okBtn = overlay.querySelector(".sae-dialog-ok");
-            okBtn.focus();
+            if (okBtn) okBtn.focus();
 
             const close = (res) => {
                 overlay.classList.remove("active");
@@ -272,8 +249,11 @@ window.SAE = {
                 }, 200);
             };
 
-            cancelBtn.onclick = () => close(false);
-            okBtn.onclick = () => close(true);
+            if (cancelBtn) cancelBtn.onclick = () => close(false);
+            if (okBtn) okBtn.onclick = () => close(true);
+            overlay.onclick = (e) => {
+                if (e.target === overlay) close(false);
+            };
         });
     },
 
@@ -319,6 +299,42 @@ window.SAE = {
 
         return success;
     },
+};
+
+// Universal SweetAlert2 Shim: Mengarahkan seluruh panggilan Swal.fire ke style tunggal SAE secara konsisten
+window.Swal = {
+    fire: function (titleOrOpts, message, icon) {
+        let opts = {};
+        if (typeof titleOrOpts === "string") {
+            opts = { title: titleOrOpts, text: message, icon: icon };
+        } else if (typeof titleOrOpts === "object" && titleOrOpts !== null) {
+            opts = titleOrOpts;
+        }
+
+        const isConfirm = Boolean(opts.showCancelButton);
+        const rawMsg = opts.html || opts.text || opts.title || "";
+        const title = opts.title || "Pemberitahuan";
+        const iconType = (opts.icon === "error" ? "danger" : opts.icon) || "info";
+
+        if (isConfirm) {
+            const confirmText = opts.confirmButtonText ? String(opts.confirmButtonText).replace(/<[^>]*>?/gm, "").trim() : "Lanjutkan";
+            const cancelText = opts.cancelButtonText ? String(opts.cancelButtonText).replace(/<[^>]*>?/gm, "").trim() : "Batal";
+            return window.SAE.confirm(rawMsg, title, iconType, confirmText, cancelText).then((isConfirmed) => ({
+                isConfirmed: isConfirmed,
+                isDismissed: !isConfirmed,
+            }));
+        } else if (opts.toast || iconType === "success" || iconType === "info" || iconType === "warning" || iconType === "danger") {
+            // Seluruh alert status (sukses/info/peringatan) menggunakan SAE Toast modern di pojok atas
+            const toastMsg = opts.title && opts.text ? `${opts.title} - ${opts.text}` : (opts.text || opts.title || rawMsg);
+            const cleanToastMsg = typeof toastMsg === "string" ? toastMsg.replace(/<[^>]*>?/gm, "").trim() : toastMsg;
+            window.SAE.toast(cleanToastMsg, iconType);
+            return Promise.resolve({ isConfirmed: true });
+        } else {
+            return window.SAE.alert(rawMsg, title, iconType).then(() => ({ isConfirmed: true }));
+        }
+    },
+    close: function () {},
+    showLoading: function () {},
 };
 
 // Global Automatic Listeners (Auto Flash Messages, Auto Confirm, Auto Copy)

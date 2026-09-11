@@ -49,8 +49,7 @@
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px; max-width: 250px;">
                 Hapus session kadaluarsa, log sisa, dan cache aplikasi. Aksi ini tidak menghapus data sekolah (Dapodik).
             </p>
-            <form action="{{ route('dashboard.maintenance.clean') }}" method="POST" id="formCleanData" data-confirm="clean"
-                data-name="Log Data & Cache">
+            <form action="{{ route('dashboard.maintenance.clean') }}" method="POST" id="formCleanData">
                 @csrf
                 <button type="submit" class="btn"
                     style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 10px 24px; font-weight: 600; border-radius: 8px; transition: all 0.2s;">
@@ -62,76 +61,6 @@
     </div>
 
     @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                const formClean = document.getElementById('formCleanData');
-                if (formClean) {
-                    formClean.addEventListener('submit', function(e) {
-                        e.preventDefault();
-
-                        Swal.fire({
-                            title: 'Bersihkan Sistem?',
-                            text: "Anda akan membersihkan cache & log data lama aplikasi.",
-                            icon: 'warning',
-                            showCancelButton: true,
-                            confirmButtonColor: '#ef4444',
-                            cancelButtonColor: '#475569',
-                            confirmButtonText: 'Ya, Bersihkan!',
-                            cancelButtonText: 'Batal',
-                            background: '#1e293b',
-                            color: '#f8fafc'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-
-                                Swal.fire({
-                                    title: 'Memproses...',
-                                    text: 'Membersihkan data sistem',
-                                    allowOutsideClick: false,
-                                    background: '#1e293b',
-                                    color: '#f8fafc',
-                                    didOpen: () => {
-                                        Swal.showLoading();
-                                    }
-                                });
-
-                                fetch(formClean.action, {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRF-TOKEN': document.querySelector(
-                                                'meta[name="csrf-token"]').content,
-                                            'Accept': 'application/json'
-                                        }
-                                    })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.status === 'success') {
-                                            Swal.fire({
-                                                title: 'Berhasil!',
-                                                text: data.message,
-                                                icon: 'success',
-                                                background: '#1e293b',
-                                                color: '#f8fafc',
-                                                confirmButtonColor: '#10b981'
-                                            });
-                                        } else {
-                                            throw new Error(data.message ||
-                                                'Terjadi kesalahan sistem.');
-                                        }
-                                    })
-                                    .catch(error => {
-                                        Swal.fire({
-                                            title: 'Gagal',
-                                            text: error.message,
-                                            icon: 'error',
-                                            background: '#1e293b',
-                                            color: '#f8fafc'
-                                        });
-                                    });
-                            }
-                        });
-                    });
-                }
-            });
-        </script>
+        <script src="{{ asset('js/maintenance.js') }}?v={{ file_exists(public_path('js/maintenance.js')) ? filemtime(public_path('js/maintenance.js')) : time() }}"></script>
     @endpush
 @endsection

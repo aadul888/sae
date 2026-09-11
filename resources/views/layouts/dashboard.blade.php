@@ -37,9 +37,8 @@
     <link rel="stylesheet"
         href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">
 
-    <!-- Local Chart.js & SweetAlert2 -->
+    <!-- Local Chart.js -->
     <script src="{{ asset('vendor/chartjs/chart.umd.min.js') }}"></script>
-    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
 </head>
 
 <body>
