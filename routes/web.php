@@ -102,7 +102,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Manajemen Data — Peserta Didik Aktif, Guru Aktif, & Tendik Aktif (Sumber: Peserta Didik & GTK Dapodik)
     Route::get('/manajemen-data/peserta-didik-aktif', [\App\Http\Controllers\PesertaDidikAktifController::class, 'index'])->name('peserta-didik-aktif.index')->middleware('permission:menu_peserta_didik_aktif');
+    Route::get('/manajemen-data/peserta-didik-aktif/rombel-members', [\App\Http\Controllers\PesertaDidikAktifController::class, 'getRombelMembers'])->name('peserta-didik-aktif.rombel-members')->middleware('permission:menu_peserta_didik_aktif');
     Route::post('/manajemen-data/peserta-didik-aktif/upload-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'uploadFoto'])->name('peserta-didik-aktif.upload-foto')->middleware('permission:menu_peserta_didik_aktif');
+    Route::post('/manajemen-data/peserta-didik-aktif/bulk-upload-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'bulkUploadFoto'])->name('peserta-didik-aktif.bulk-upload-foto')->middleware('permission:menu_peserta_didik_aktif');
     Route::delete('/manajemen-data/peserta-didik-aktif/{id}/delete-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'deleteFoto'])->name('peserta-didik-aktif.delete-foto')->middleware('permission:menu_peserta_didik_aktif');
     Route::get('/manajemen-data/peserta-didik-aktif/{id}', [\App\Http\Controllers\PesertaDidikAktifController::class, 'show'])->name('peserta-didik-aktif.show')->middleware('permission:menu_peserta_didik_aktif');
     Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index')->middleware('permission:menu_guru_aktif');

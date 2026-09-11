@@ -328,4 +328,195 @@ class PesertaDidikAktifController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Mengambil seluruh peserta didik dalam rombel kelas yang dipilih (36-52 siswa)
+     */
+    public function getRombelMembers(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $rombelName = trim($request->get('rombel', ''));
+        if (!$rombelName) {
+            return response()->json(['status' => 'error', 'message' => 'Rombel kelas wajib dipilih.'], 422);
+        }
+
+        if (!Schema::hasTable('peserta_didik')) {
+            return response()->json(['status' => 'error', 'message' => 'Tabel peserta didik belum tersedia.'], 500);
+        }
+
+        // Ambil data siswa di rombel ini
+        $students = DB::table('peserta_didik')
+            ->where('nama_rombel', $rombelName)
+            ->select(
+                'peserta_didik_id',
+                'nama',
+                'nisn',
+                'nipd',
+                'nik',
+                'jenis_kelamin',
+                'nama_rombel'
+            )
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        // Ambil metadata foto untuk seluruh siswa di kelas ini
+        $pdIds = $students->pluck('peserta_didik_id')->filter()->toArray();
+        $metas = collect();
+        if (Schema::hasTable('peserta_didik_meta') && !empty($pdIds)) {
+            $metas = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)->get()->keyBy('peserta_didik_id');
+        }
+
+        $totalWithFoto = 0;
+        $mapped = $students->map(function ($s, $idx) use ($metas, &$totalWithFoto) {
+            $m = $metas[$s->peserta_didik_id] ?? null;
+            $hasFoto = !empty($m?->foto_path);
+            if ($hasFoto) $totalWithFoto++;
+
+            return [
+                'no_urut' => $idx + 1,
+                'peserta_didik_id' => $s->peserta_didik_id,
+                'nama' => $s->nama,
+                'nisn' => $s->nisn ?: '',
+                'nipd' => $s->nipd ?: '',
+                'nik' => $s->nik ?: '',
+                'jenis_kelamin' => $s->jenis_kelamin ?: '-',
+                'nama_rombel' => $s->nama_rombel,
+                'has_foto' => $hasFoto,
+                'foto_url' => $m?->foto_url,
+                'foto_size' => $m?->formatted_foto_size,
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'rombel' => $rombelName,
+            'total' => $mapped->count(),
+            'total_with_foto' => $totalWithFoto,
+            'total_without_foto' => $mapped->count() - $totalWithFoto,
+            'data' => $mapped,
+        ]);
+    }
+
+    /**
+     * Menerima upload foto masal atau satu per satu secara batch dari antrean async klien
+     */
+    public function bulkUploadFoto(Request $request, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($role, 'menu_peserta_didik_aktif')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        // Jika upload single item dalam async loop
+        if ($request->hasFile('foto') && $request->filled('peserta_didik_id')) {
+            return $this->uploadFoto($request, $optimizer);
+        }
+
+        // Jika upload batch multipart (files + mappings)
+        $files = $request->file('files', []);
+        $mappingsRaw = $request->input('mappings', '[]');
+        $mappings = json_decode($mappingsRaw, true) ?: [];
+
+        if (empty($files) || !is_array($files)) {
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada berkas foto yang dikirim.'], 422);
+        }
+
+        $successCount = 0;
+        $failedCount = 0;
+        $results = [];
+
+        foreach ($files as $file) {
+            $originalName = $file->getClientOriginalName();
+            $pdId = $mappings[$originalName] ?? null;
+
+            if (!$pdId) {
+                // Coba cocokkan langsung dari nama file jika tanpa ekstensi berupa NISN
+                $cleanName = pathinfo($originalName, PATHINFO_FILENAME);
+                $foundStudent = DB::table('peserta_didik')
+                    ->where('nisn', $cleanName)
+                    ->orWhere('nipd', $cleanName)
+                    ->orWhere('peserta_didik_id', $cleanName)
+                    ->first();
+                $pdId = $foundStudent?->peserta_didik_id;
+            }
+
+            if (!$pdId) {
+                $failedCount++;
+                $results[] = [
+                    'filename' => $originalName,
+                    'status' => 'error',
+                    'message' => 'Tidak dapat menemukan data peserta didik untuk berkas ini.',
+                ];
+                continue;
+            }
+
+            $student = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+            if (!$student) {
+                $failedCount++;
+                $results[] = [
+                    'filename' => $originalName,
+                    'status' => 'error',
+                    'message' => "Peserta didik ID {$pdId} tidak ditemukan.",
+                ];
+                continue;
+            }
+
+            try {
+                $meta = \App\Models\PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $pdId]);
+                if ($meta->foto_path) {
+                    $optimizer->deleteFile($meta->foto_path);
+                }
+
+                $prefix = 'foto_' . ($student->nisn ?: preg_replace('/[^a-zA-Z0-9_-]/', '', $pdId));
+                $optResult = $optimizer->optimizeAndSavePng(
+                    $file,
+                    \App\Services\ImageOptimizerService::ASSET_DIR_FOTO_PESERTA_DIDIK,
+                    $prefix,
+                    1000
+                );
+
+                $meta->nisn = $student->nisn;
+                $meta->foto_path = $optResult['path'];
+                $meta->foto_size = $optResult['size'];
+                $meta->foto_width = $optResult['width'];
+                $meta->foto_height = $optResult['height'];
+                $meta->save();
+
+                $successCount++;
+                $results[] = [
+                    'peserta_didik_id' => $pdId,
+                    'nama' => $student->nama,
+                    'nisn' => $student->nisn,
+                    'filename' => $originalName,
+                    'status' => 'success',
+                    'foto_url' => $meta->foto_url,
+                    'foto_size' => $meta->formatted_foto_size,
+                    'savings' => $optResult['savings_percent'],
+                ];
+            } catch (\Throwable $e) {
+                $failedCount++;
+                $results[] = [
+                    'filename' => $originalName,
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Proses masal selesai: {$successCount} foto berhasil disimpan, {$failedCount} gagal.",
+            'success_count' => $successCount,
+            'failed_count' => $failedCount,
+            'data' => $results,
+        ]);
+    }
 }

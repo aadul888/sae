@@ -256,6 +256,16 @@ class RombelController extends Controller
                 ->distinct();
 
             $pesertaDidik = $pdQuery->orderBy('peserta_didik.nama', 'asc')->get();
+
+            if (Schema::hasTable('peserta_didik_meta') && $pesertaDidik->isNotEmpty()) {
+                $pdIds = $pesertaDidik->pluck('peserta_didik_id')->filter()->toArray();
+                $metas = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $pdIds)->get()->keyBy('peserta_didik_id');
+                foreach ($pesertaDidik as $s) {
+                    $m = $metas[$s->peserta_didik_id] ?? null;
+                    $s->foto_url = $m?->foto_url;
+                    $s->foto_size = $m?->formatted_foto_size;
+                }
+            }
         }
 
         $pembelajaran = collect();

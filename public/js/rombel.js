@@ -121,7 +121,21 @@ window.openPesertaDidikModal = async function (id, nama) {
                             ${idx + 1}
                         </td>
                         <td style="padding: 10px 14px; font-weight: 600; color: var(--text-color);">
-                            ${escapeHtml(s.nama || "-")}
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                ${s.foto_url ? `
+                                    <div style="width: 32px; height: 42px; border-radius: 6px; overflow: hidden; border: 1.5px solid var(--border-color); flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.15); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 6px 6px;">
+                                        <img src="${s.foto_url}" alt="${escapeHtml(s.nama)}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                ` : `
+                                    <div style="width: 32px; height: 42px; border-radius: 6px; background: rgba(99,102,241,0.06); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.75rem; flex-shrink: 0;">
+                                        <i class="fas fa-user-graduate" style="opacity: 0.5;"></i>
+                                    </div>
+                                `}
+                                <div>
+                                    <div style="font-size: 0.86rem;">${escapeHtml(s.nama || "-")}</div>
+                                    ${s.foto_url ? `<span style="font-size: 0.65rem; color: #10b981; font-weight: 600;"><i class="fas fa-check-circle"></i> Foto PNG Aktif</span>` : ''}
+                                </div>
+                            </div>
                         </td>
                         <td style="padding: 10px 14px; font-family: monospace; font-size: 0.8rem; color: var(--primary);">
                             ${escapeHtml(s.nisn || s.nipd || "-")}

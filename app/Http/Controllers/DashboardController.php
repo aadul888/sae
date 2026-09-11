@@ -197,6 +197,11 @@ class DashboardController extends Controller
         $pd = null;
         if (Schema::hasTable('peserta_didik')) {
             $pd = $pdId ? DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first() : DB::table('peserta_didik')->where('nama', $userName)->first();
+            if ($pd && Schema::hasTable('peserta_didik_meta')) {
+                $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+                $pd->foto_url = $meta?->foto_url;
+                $pd->foto_size = $meta?->formatted_foto_size;
+            }
         }
 
         $pembelajaran = collect();

@@ -85,6 +85,12 @@ class AuthController extends Controller
                 $userData['nisn'] = $pd->nisn;
                 $userData['kelas'] = $pd->nama_rombel;
             }
+            if (\Illuminate\Support\Facades\Schema::hasTable('peserta_didik_meta')) {
+                $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $user->peserta_didik_id)->first();
+                if ($meta && !empty($meta->foto_path)) {
+                    $userData['foto_url'] = $meta->foto_url;
+                }
+            }
         }
 
         session(['user' => $userData]);

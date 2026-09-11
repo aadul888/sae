@@ -78,9 +78,10 @@
 
                 <div class="dash-notif-list">
                     @forelse ($userNotifications as $notif)
-                        @php($isUnread = !$notif->sudahDibacaOleh($currentUserId))
-                        <a href="{{ route('dashboard.informasi.index', ['highlight' => $notif->id]) }}" class="dash-notif-item {{ $isUnread ? 'unread-item' : '' }}"
-                            @if ($isUnread) aria-label="Pengumuman baru: {{ $notif->judul }}" @endif>
+                        @php
+                            $isUnread = !$notif->sudahDibacaOleh($currentUserId);
+                        @endphp
+                        <a href="{{ route('dashboard.informasi.index', ['highlight' => $notif->id]) }}" class="dash-notif-item {{ $isUnread ? 'unread-item' : '' }}">
                             <div class="dash-notif-row">
                                 <div class="dash-notif-title">
                                     @if ($isUnread)
@@ -124,10 +125,17 @@
         <!-- Quick Profile Link / Role Badge -->
         <div
             style="display: flex; align-items: center; gap: 10px; padding-left: 10px; border-left: 1px solid var(--border-glass);">
+            @php
+                $userFoto = session('user.foto_url');
+            @endphp
+            @if ($userFoto)
+                <img src="{{ $userFoto }}" alt="{{ $currentUserName }}" 
+                     style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.15); flex-shrink: 0;">
+            @endif
             <div style="text-align: right; display: none; line-height: 1.2;" class="d-md-block">
                 <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">{{ $currentUserName }}</div>
                 <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">
-                    {{ $currentUserRole }}</div>
+                    {{ str_replace('_', ' ', $currentUserRole) }}</div>
             </div>
             <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
                 @csrf

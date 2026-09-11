@@ -107,6 +107,11 @@
                         <i class="fas fa-undo me-1"></i> Reset
                     </a>
                 @endif
+
+                <button type="button" class="btn btn-primary" onclick="openBulkUploadFotoModal('{{ $rombel }}')"
+                    style="padding: 7px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
+                    <i class="fas fa-images"></i> Unggah Foto Masal Kelas
+                </button>
             </div>
 
             <div class="live-search-wrap">
@@ -488,47 +493,56 @@
                 </button>
             </div>
 
-            <div style="overflow-y: auto; flex: 1;">
+            <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
                 <input type="hidden" id="fotoUploadPdId" value="">
 
-                {{-- Area Drag & Drop / Preview Pasfoto --}}
-                <div id="fotoDropZone"
-                    style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.01); transition: all 0.2s ease;">
-                    
+                {{-- Info Box Persistensi & Kartu Pelajar --}}
+                <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 0.78rem; line-height: 1.5; color: var(--text-color);">
+                    <div style="font-weight: 700; color: var(--primary); margin-bottom: 4px;">
+                        <i class="fas fa-shield-halved me-1"></i> Perlindungan Dapodik & Standar Gambar:
+                    </div>
+                    <ul style="margin: 0; padding-left: 18px; color: var(--text-muted);">
+                        <li>Pasfoto disimpan secara <strong>persisten</strong> di tabel metadata dan <strong>tidak akan terhapus</strong> ketika melakukan tarik data Dapodik.</li>
+                        <li>Wajib format <strong>PNG</strong> (akan digunakan untuk kartu pelajar digital & sistem presensi).</li>
+                        <li>Sistem melakukan <strong>kompresi otomatis lossless</strong> sehingga file ringan tanpa mengurangi ketajaman.</li>
+                    </ul>
+                </div>
+
+                {{-- Area Preview Pasfoto (3:4) --}}
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
+                        Pratinjau Pasfoto (Aspek Rasio 3:4)
+                    </div>
                     <div id="fotoPreviewContainer"
-                        style="width: 130px; height: 170px; margin: 0 auto 12px auto; border-radius: 10px; border: 1.5px solid var(--border-color); background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.35);">
+                        style="width: 126px; height: 168px; margin: 0 auto; border-radius: 12px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.35);">
                         <img id="fotoPreviewImg" src="" alt="Pratinjau Foto"
                             style="display: none; width: 100%; height: 100%; object-fit: cover;">
-                        <div id="fotoPreviewPlaceholder" style="color: var(--text-muted); padding: 12px;">
-                            <i class="fas fa-user-graduate" style="font-size: 2.2rem; opacity: 0.35; margin-bottom: 8px;"></i>
-                            <div style="font-size: 0.75rem;">Belum ada pasfoto</div>
+                        <div id="fotoPreviewPlaceholder" style="color: var(--text-muted); font-size: 0.8rem; padding: 10px;">
+                            <i class="fas fa-user-graduate mb-2" style="font-size: 2.2rem; opacity: 0.4;"></i>
+                            <div style="font-size: 0.72rem;">Belum ada pasfoto</div>
                         </div>
                     </div>
-
-                    <div style="font-weight: 600; font-size: 0.88rem; color: var(--text-color); margin-bottom: 4px;">
-                        Pilih berkas PNG atau seret ke sini
+                    <div id="fotoFileSpecs" style="display: none; font-size: 0.74rem; color: #10b981; margin-top: 8px; font-weight: 600;">
+                        -
                     </div>
-                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 12px;">
-                        Wajib format <strong>.png</strong> • Aspek rasio pasfoto 3:4 • Maksimal 5 MB
+                </div>
+
+                {{-- Form Unggah Drag & Drop --}}
+                <form id="fotoUploadForm" enctype="multipart/form-data">
+                    @csrf
+                    <div id="fotoDropZone"
+                        style="border: 2px dashed rgba(99,102,241,0.4); border-radius: 12px; padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
+                        onclick="document.getElementById('fotoFileInput').click()">
+                        <i class="fas fa-file-image" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
+                        <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
+                            Pilih file atau seret file PNG ke sini
+                        </div>
+                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                            Hanya file <strong>.PNG</strong> (Maks. 5 MB)
+                        </div>
+                        <input type="file" id="fotoFileInput" name="foto" accept=".png,image/png" style="display: none;">
                     </div>
-
-                    <label for="fotoFileInput" class="btn btn-outline"
-                        style="padding: 7px 16px; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-folder-open"></i> Telusuri File PNG
-                    </label>
-                    <input type="file" id="fotoFileInput" accept="image/png" style="display: none;">
-                </div>
-
-                {{-- Spesifikasi / Metadata info --}}
-                <div id="fotoFileSpecs"
-                    style="display: none; margin-top: 10px; padding: 8px 12px; background: rgba(99,102,241,0.08); border-radius: 8px; font-size: 0.76rem; color: var(--primary); text-align: center;">
-                </div>
-
-                <div
-                    style="margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.18); font-size: 0.74rem; color: var(--text-muted); line-height: 1.45;">
-                    <strong style="color: #10b981;"><i class="fas fa-shield-halved me-1"></i> Auto-Kompresi & Proteksi Dapodik:</strong>
-                    Sistem otomatis mengompresi PNG lossless dengan rasio kartu pelajar serta menyimpannya persisten di tabel metadata sehingga pasfoto tidak akan hilang saat sinkronisasi feeder Dapodik.
-                </div>
+                </form>
             </div>
 
             <div
@@ -543,6 +557,183 @@
                     <button type="button" id="btnSubmitFoto" onclick="handleSubmitFoto()" class="btn btn-primary"
                         style="padding: 8px 18px; font-size: 0.8rem;">
                         <i class="fas fa-cloud-arrow-up me-1"></i> Simpan Pasfoto
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Unggah Pasfoto Masal per Kelas (36 - 52 Peserta Didik Sekaligus) --}}
+    <div id="bulkFotoUploadModal" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(6px);">
+        <div class="card"
+            style="max-width: 960px; width: 95%; max-height: 92vh; display: flex; flex-direction: column; margin: 0; border-radius: 16px; padding: 22px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
+            
+            {{-- Header Modal --}}
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 10px; background: rgba(99,102,241,0.18); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.15rem; box-shadow: 0 2px 10px rgba(99,102,241,0.25);">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                            Unggah Pasfoto Masal per Kelas
+                        </h3>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                            Dukungan unggah sekaligus satu kelas (36 - 52 peserta didik) dengan pencocokan otomatis cerdas format PNG
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeBulkUploadFotoModal()"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;" title="Tutup Modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            {{-- Body Modal (Scrollable) --}}
+            <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
+                {{-- STEP 1: Pilih Kelas / Rombel --}}
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 250px;">
+                        <label for="bulkRombelSelect" style="margin: 0; font-weight: 700; font-size: 0.85rem; color: var(--text-color); white-space: nowrap;">
+                            <i class="fas fa-chalkboard text-primary me-1"></i> Pilih Kelas:
+                        </label>
+                        <select id="bulkRombelSelect" class="form-select toolbar-filter-select"
+                            onchange="handleBulkRombelChange(this.value)" style="min-width: 200px; flex: 1;">
+                            <option value="">-- Pilih Rombel Kelas --</option>
+                            @foreach ($filterRombel as $r)
+                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div id="bulkRombelStatsBadge" style="display: none; align-items: center; gap: 8px;">
+                        <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.78rem; padding: 5px 10px;">
+                            <i class="fas fa-users me-1"></i> <span id="bulkTotalPdCount">0</span> Peserta Didik
+                        </span>
+                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.78rem; padding: 5px 10px;">
+                            <i class="fas fa-check-circle me-1"></i> <span id="bulkSudahFotoCount">0</span> Sudah Ada Foto
+                        </span>
+                        <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 0.78rem; padding: 5px 10px;">
+                            <i class="fas fa-clock me-1"></i> <span id="bulkBelumFotoCount">0</span> Belum
+                        </span>
+                    </div>
+                </div>
+
+                {{-- STEP 2: Dropzone Multi-file PNG --}}
+                <div id="bulkDropZoneWrapper" style="display: none; margin-bottom: 14px;">
+                    <div id="bulkDropZone"
+                        style="border: 2px dashed rgba(99,102,241,0.45); border-radius: 14px; padding: 22px; text-align: center; cursor: pointer; background: rgba(99,102,241,0.03); transition: all 0.25s ease;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 8px;">
+                            <i class="fas fa-cloud-arrow-up"></i>
+                        </div>
+                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color); margin-bottom: 4px;">
+                            Pilih atau Tarik Seluruh Foto PNG Kelas Ini ke Sini
+                        </div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 12px auto; line-height: 1.45;">
+                            Unggah 36 hingga 52 file PNG sekaligus. Beri nama file berupa <strong>NISN</strong> (contoh: <code>0071234567.png</code>), <strong>Nama Peserta Didik</strong>, atau <strong>Nomor Urut Absen</strong> (<code>01.png</code> s.d. <code>36.png</code>) untuk pencocokan otomatis 100%.
+                        </div>
+
+                        <div style="display: inline-flex; align-items: center; gap: 8px;">
+                            <label for="bulkFilesInput" class="btn btn-primary"
+                                style="padding: 8px 18px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-folder-open"></i> Pilih Berkas Foto Sekaligus
+                            </label>
+                            <button type="button" id="btnClearBulkMatches" onclick="resetBulkMatches()" class="btn btn-outline"
+                                style="display: none; padding: 8px 14px; font-size: 0.82rem;">
+                                <i class="fas fa-rotate-left me-1"></i> Reset Berkas
+                            </button>
+                        </div>
+                        <input type="file" id="bulkFilesInput" multiple accept="image/png" style="display: none;">
+                    </div>
+                </div>
+
+                {{-- Summary Banner Pencocokan Otomatis --}}
+                <div id="bulkMatchSummaryBanner"
+                    style="display: none; margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); font-size: 0.82rem; color: var(--text-color); align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-circle-check text-success" style="font-size: 1.2rem;"></i>
+                        <div>
+                            <span id="bulkMatchSummaryText" style="font-weight: 600;">36 foto berhasil dicocokkan otomatis.</span>
+                            <div id="bulkMatchHint" style="font-size: 0.74rem; color: var(--text-muted);">
+                                Anda dapat meninjau pratinjau setiap peserta didik di bawah sebelum menekan tombol simpan.
+                            </div>
+                        </div>
+                    </div>
+                    <span id="bulkFilesCountBadge" class="badge badge-primary" style="font-size: 0.75rem; padding: 4px 8px;">
+                        0 Berkas Siap
+                    </span>
+                </div>
+
+                {{-- Live Progress Bar Container --}}
+                <div id="bulkProgressContainer"
+                    style="display: none; margin-bottom: 14px; padding: 14px; border-radius: 12px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.25);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span id="bulkProgressTitle" style="font-weight: 700; font-size: 0.84rem; color: var(--primary);">
+                            <i class="fas fa-spinner fa-spin me-1"></i> Mengompresi &amp; Menyimpan Pasfoto...
+                        </span>
+                        <span id="bulkProgressPercent" style="font-weight: 800; font-size: 0.85rem; color: var(--text-color);">
+                            0%
+                        </span>
+                    </div>
+                    <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
+                        <div id="bulkProgressBar"
+                            style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.25s ease; border-radius: 10px;"></div>
+                    </div>
+                    <div id="bulkProgressDetail" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; text-align: right;">
+                        0 dari 0 foto selesai
+                    </div>
+                </div>
+
+                {{-- Loading Spinner State --}}
+                <div id="bulkLoadingSpinner" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+                    <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.6rem; color: var(--primary);"></i>
+                    <div style="margin-top: 8px; font-size: 0.86rem;">Memuat daftar peserta didik rombel...</div>
+                </div>
+
+                {{-- Empty State (Belum Pilih Rombel) --}}
+                <div id="bulkEmptyState" style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
+                    <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; opacity: 0.45; margin-bottom: 12px;">
+                        <i class="fas fa-chalkboard-user"></i>
+                    </div>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Pilih Rombel Kelas Terlebih Dahulu</h4>
+                    <p style="font-size: 0.78rem; max-width: 420px; margin: 0 auto;">Pilih rombel kelas pada pilihan di atas untuk menampilkan daftar peserta didik dan mencocokkan foto masal sekaligus.</p>
+                </div>
+
+                {{-- STEP 3: Tabel Peserta Didik Rombel & Pemetaan Berkas Foto --}}
+                <div id="bulkTableWrapper" style="display: none; overflow-x: auto;">
+                    <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 0;">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
+                                <th style="padding: 10px 12px; width: 45px; text-align: center; color: var(--text-muted);">No</th>
+                                <th style="padding: 10px 12px; width: 60px; text-align: center; color: var(--text-muted);">Foto Lama</th>
+                                <th style="padding: 10px 12px; color: var(--text-muted);">Nama Lengkap &amp; NISN</th>
+                                <th style="padding: 10px 12px; color: var(--text-muted); width: 220px;">Berkas Foto Baru</th>
+                                <th style="padding: 10px 12px; width: 90px; text-align: center; color: var(--text-muted);">Pratinjau</th>
+                                <th style="padding: 10px 12px; width: 120px; text-align: center; color: var(--text-muted);">Status</th>
+                                <th style="padding: 10px 12px; width: 60px; text-align: right; color: var(--text-muted);">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulkStudentsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Footer Modal --}}
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                <button type="button" onclick="closeBulkUploadFotoModal()" class="btn btn-outline"
+                    style="padding: 8px 18px; font-size: 0.82rem;">
+                    Batal
+                </button>
+
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="btnStartBulkUpload" onclick="executeBulkUploadQueue()" class="btn btn-primary"
+                        disabled style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                        <span id="btnStartBulkUploadText">Mulai Unggah &amp; Kompresi Masal (0 Foto)</span>
                     </button>
                 </div>
             </div>

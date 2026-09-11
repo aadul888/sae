@@ -15,22 +15,36 @@
                         ? 'Selamat Sore,'
                         : 'Selamat Malam,'));
     @endphp
+    @php
+        $fotoUrl = $pd->foto_url ?? session('user.foto_url');
+        $fotoSize = $pd->foto_size ?? null;
+    @endphp
     <!-- Welcome Banner -->
-    <div class="dash-banner" style="background: linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.1) 100%);">
-        <div>
-            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.3;">
-                <span
-                    style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
-                {{ session('user.name', 'Peserta Didik') }}! 🎓
-            </h2>
-            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">
-                NISN: <strong>{{ session('user.nisn', '0071234567') }}</strong> &bull; Kelas:
-                <strong>{{ session('user.kelas', 'XII RPL 1') }}</strong> &bull; Status: <span
-                    class="text-success font-bold"><i class="fas fa-circle-check"></i> Aktif</span>
-            </p>
-            <div
-                style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #06b6d4;">
-                <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+    <div class="dash-banner" style="background: linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
+            @if ($fotoUrl)
+                <!-- Pasfoto Peserta Didik (Tanpa Bingkai & Tanpa Latar Belakang) -->
+                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ session('user.name', 'Peserta Didik') }}" 
+                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));">
+                </div>
+            @endif
+
+            <div style="flex: 1; min-width: 0;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                    <span
+                        style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
+                    {{ session('user.name', 'Peserta Didik') }}! 🎓
+                </h2>
+                <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 8px; line-height: 1.4;">
+                    NISN: <strong>{{ session('user.nisn', $pd->nisn ?? '0071234567') }}</strong> &bull; Kelas:
+                    <strong>{{ session('user.kelas', $pd->nama_rombel ?? 'XII RPL 1') }}</strong> &bull; Status: <span
+                        class="text-success font-bold"><i class="fas fa-circle-check"></i> Aktif</span>
+                </p>
+                <div
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #06b6d4;">
+                    <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+                </div>
             </div>
         </div>
         @if (\App\Models\RolePermission::canAccess('peserta_didik', 'menu_riwayat_rfid'))
