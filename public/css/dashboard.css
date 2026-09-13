@@ -89,7 +89,9 @@
     border: 2px solid var(--primary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     display: block;
-    transition: transform 0.2s ease, border-color 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .dash-sidebar-user a:hover .dash-sidebar-avatar-img {
@@ -707,7 +709,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .dash-user-btn:hover {
@@ -868,7 +872,9 @@
     border-radius: 10px;
     color: var(--text-color);
     text-decoration: none !important;
-    transition: background 0.18s ease, transform 0.15s ease;
+    transition:
+        background 0.18s ease,
+        transform 0.15s ease;
     width: 100%;
     background: none;
     border: none;
@@ -2318,11 +2324,21 @@
     }
 
     /* 2. BARIS-BARIS DETAIL METRIK */
-    .table-pd tbody td.cell-pd-nisn { order: 2 !important; }
-    .table-pd tbody td.cell-pd-gender { order: 3 !important; }
-    .table-pd tbody td.cell-pd-rombel { order: 4 !important; }
-    .table-pd tbody td.cell-pd-tingkat { order: 5 !important; }
-    .table-pd tbody td.cell-pd-ttl { order: 6 !important; }
+    .table-pd tbody td.cell-pd-nisn {
+        order: 2 !important;
+    }
+    .table-pd tbody td.cell-pd-gender {
+        order: 3 !important;
+    }
+    .table-pd tbody td.cell-pd-rombel {
+        order: 4 !important;
+    }
+    .table-pd tbody td.cell-pd-tingkat {
+        order: 5 !important;
+    }
+    .table-pd tbody td.cell-pd-ttl {
+        order: 6 !important;
+    }
 
     .table-pd tbody td.cell-pd-nisn,
     .table-pd tbody td.cell-pd-gender,
@@ -2555,19 +2571,11 @@
 }
 
 /* Pengumuman & Informasi Enhancements */
-.informasi-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
 .card-informasi-item {
-    background: var(--card-bg);
-    border: 1px solid var(--border-glass);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: var(--card-shadow);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    transition:
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.2s ease;
 }
 .card-informasi-item:hover {
     transform: translateY(-2px);
@@ -2580,8 +2588,15 @@
     color: var(--primary) !important;
 }
 @keyframes pulseBadge {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.85; transform: scale(1.04); }
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.85;
+        transform: scale(1.04);
+    }
 }
 .badge-unread-status {
     animation: pulseBadge 2.2s infinite ease-in-out;
@@ -2595,7 +2610,10 @@
 /* Foto Peserta Didik & Logo Jurusan Thumbnail Micro-Interactions */
 .jurusan-logo-thumb,
 .pd-foto-thumb {
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease !important;
+    transition:
+        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.2s ease,
+        box-shadow 0.2s ease !important;
 }
 .jurusan-logo-thumb:hover,
 .pd-foto-thumb:hover {
@@ -2708,7 +2726,7 @@
     left: 3px;
     bottom: 3px;
     background-color: white;
-    transition: .3s;
+    transition: 0.3s;
     border-radius: 50%;
 }
 
@@ -2738,7 +2756,11 @@ input:disabled + .slider-toggle-crud {
 }
 
 .profile-banner-card {
-    background: linear-gradient(135deg, rgba(79, 110, 247, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%);
+    background: linear-gradient(
+        135deg,
+        rgba(79, 110, 247, 0.12) 0%,
+        rgba(139, 92, 246, 0.08) 100%
+    );
     border: 1px solid var(--border-color);
     border-radius: 18px;
     padding: 24px;
@@ -2752,13 +2774,17 @@ input:disabled + .slider-toggle-crud {
 }
 
 .profile-banner-card::after {
-    content: '';
+    content: "";
     position: absolute;
     right: -40px;
     bottom: -40px;
     width: 180px;
     height: 180px;
-    background: radial-gradient(circle, rgba(79, 110, 247, 0.15) 0%, transparent 70%);
+    background: radial-gradient(
+        circle,
+        rgba(79, 110, 247, 0.15) 0%,
+        transparent 70%
+    );
     pointer-events: none;
     border-radius: 50%;
 }
@@ -2928,7 +2954,9 @@ input:disabled + .slider-toggle-crud {
     border-radius: 10px;
     color: var(--text-color);
     font-size: 0.88rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .profile-input-wrapper .form-control:focus {
@@ -3024,7 +3052,9 @@ input:disabled + .slider-toggle-crud {
     height: 100%;
     width: 0%;
     border-radius: 3px;
-    transition: width 0.3s ease, background-color 0.3s ease;
+    transition:
+        width 0.3s ease,
+        background-color 0.3s ease;
 }
 
 .pw-strength-text {
@@ -3034,4 +3064,3 @@ input:disabled + .slider-toggle-crud {
     justify-content: space-between;
     align-items: center;
 }
-
