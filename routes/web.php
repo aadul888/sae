@@ -78,6 +78,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/hak-akses/toggle', [PermissionController::class, 'toggle'])->name('hak-akses.toggle')->middleware('permission:menu_hak_akses');
     Route::post('/hak-akses/sync', [PermissionController::class, 'sync'])->name('hak-akses.sync')->middleware('permission:menu_hak_akses');
     Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset')->middleware('permission:menu_hak_akses');
+    Route::post('/hak-akses/add-module', [PermissionController::class, 'addModule'])->name('hak-akses.add-module')->middleware('permission:menu_hak_akses');
+    Route::post('/hak-akses/remove-module', [PermissionController::class, 'removeModule'])->name('hak-akses.remove-module')->middleware('permission:menu_hak_akses');
     Route::post('/hak-akses/tugas-tambahan/store', [PermissionController::class, 'storeTugasTambahan'])->name('hak-akses.tugas-tambahan.store')->middleware('permission:menu_hak_akses');
     Route::delete('/hak-akses/tugas-tambahan/{id}', [PermissionController::class, 'destroyTugasTambahan'])->name('hak-akses.tugas-tambahan.destroy')->middleware('permission:menu_hak_akses');
     Route::post('/hak-akses/tugas-tambahan/sync-wali', [PermissionController::class, 'syncWaliKelas'])->name('hak-akses.tugas-tambahan.sync-wali')->middleware('permission:menu_hak_akses');
@@ -124,6 +126,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/manajemen-data/peserta-didik-aktif/bulk-upload-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'bulkUploadFoto'])->name('peserta-didik-aktif.bulk-upload-foto')->middleware('permission:menu_peserta_didik_aktif');
     Route::delete('/manajemen-data/peserta-didik-aktif/{id}/delete-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'deleteFoto'])->name('peserta-didik-aktif.delete-foto')->middleware('permission:menu_peserta_didik_aktif');
     Route::get('/manajemen-data/peserta-didik-aktif/{id}', [\App\Http\Controllers\PesertaDidikAktifController::class, 'show'])->name('peserta-didik-aktif.show')->middleware('permission:menu_peserta_didik_aktif');
+    Route::get('/manajemen-data/peserta-didik-tidak-aktif', [\App\Http\Controllers\PesertaDidikTidakAktifController::class, 'index'])->name('peserta-didik-tidak-aktif.index')->middleware('permission:menu_peserta_didik_tidak_aktif');
+    Route::get('/manajemen-data/peserta-didik-tidak-aktif/export', [\App\Http\Controllers\PesertaDidikTidakAktifController::class, 'exportExcel'])->name('peserta-didik-tidak-aktif.export')->middleware('permission:menu_peserta_didik_tidak_aktif');
+    Route::get('/manajemen-data/peserta-didik-tidak-aktif/{id}', [\App\Http\Controllers\PesertaDidikTidakAktifController::class, 'show'])->name('peserta-didik-tidak-aktif.show')->middleware('permission:menu_peserta_didik_tidak_aktif');
     Route::get('/manajemen-data/guru-aktif', [\App\Http\Controllers\GuruAktifController::class, 'index'])->name('guru-aktif.index')->middleware('permission:menu_guru_aktif');
     Route::get('/manajemen-data/guru-aktif/{id}', [\App\Http\Controllers\GuruAktifController::class, 'show'])->name('guru-aktif.show')->middleware('permission:menu_guru_aktif');
     Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index')->middleware('permission:menu_tendik_aktif');

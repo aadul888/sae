@@ -308,7 +308,7 @@
                                     @endif
 
                                     @if ($can('menu_peserta_didik_tidak_aktif'))
-                                        <a href="#"
+                                        <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}"
                                             class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-tidak-aktif*') ? 'active' : '' }}">
                                             <span class="nav-icon nested-icon"><i
                                                     class="fas fa-fw fa-circle-xmark"></i></span>
@@ -415,7 +415,7 @@
                 <button type="button" class="dash-nav-toggle">
                     <div class="dash-nav-toggle-main">
                         <span class="nav-icon"><i class="fas fa-fw fa-chalkboard-user"></i></span>
-                        <span class="nav-label">Akademik Guru</span>
+                        <span class="nav-label">Administrasi Guru</span>
                     </div>
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>

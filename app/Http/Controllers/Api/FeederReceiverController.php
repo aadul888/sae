@@ -547,6 +547,74 @@ class FeederReceiverController extends Controller
             return 0;
         }
 
+        // 1. Deteksi Siswa yang Tidak Aktif / Alumni (Siswa lama yang tidak ada di kiriman Feeder baru)
+        if (Schema::hasTable('peserta_didik') && Schema::hasTable('peserta_didik_tidak_aktif')) {
+            $incomingPdIds = array_filter(array_column($batchPd, 'peserta_didik_id'));
+            // Pastikan siswa yang masuk data aktif DAPODIK otomatis dibersihkan dari tabel tidak aktif agar tidak ganda
+            if (!empty($incomingPdIds)) {
+                DB::table('peserta_didik_tidak_aktif')->whereIn('peserta_didik_id', $incomingPdIds)->delete();
+            }
+            $currentStudents = DB::table('peserta_didik')->get()->keyBy('peserta_didik_id');
+            $currentPdIds = $currentStudents->keys()->all();
+            $missingPdIds = array_diff($currentPdIds, $incomingPdIds);
+
+            if (!empty($missingPdIds)) {
+                $metas = Schema::hasTable('peserta_didik_meta')
+                    ? DB::table('peserta_didik_meta')->whereIn('peserta_didik_id', $missingPdIds)->get()->keyBy('peserta_didik_id')
+                    : collect();
+
+                $currentYear = date('Y');
+                $defaultTahunLulus = ($currentYear - 1) . '/' . $currentYear;
+
+                foreach ($missingPdIds as $mId) {
+                    $st = $currentStudents[$mId];
+                    $isLulus = in_array((string)$st->tingkat_pendidikan_id, ['12', '13', 'XII', 'XIII'], true);
+                    $statusKeluar = $isLulus ? 'Alumni' : 'Mutasi';
+                    $tahunLulus = $isLulus ? $defaultTahunLulus : null;
+                    $alasan = $isLulus ? 'Lulus Tingkat Akhir (Alumni)' : 'Mutasi / Keluar dari Satuan Pendidikan';
+                    $fotoPath = $metas[$mId]->foto_path ?? null;
+
+                    DB::table('peserta_didik_tidak_aktif')->updateOrInsert(
+                        ['peserta_didik_id' => $mId],
+                        [
+                            'registrasi_id' => $st->registrasi_id,
+                            'nipd' => $st->nipd,
+                            'nama' => $st->nama,
+                            'nisn' => $st->nisn,
+                            'nik' => $st->nik,
+                            'jenis_kelamin' => $st->jenis_kelamin,
+                            'tempat_lahir' => $st->tempat_lahir,
+                            'tanggal_lahir' => $st->tanggal_lahir,
+                            'agama_id_str' => $st->agama_id_str,
+                            'nama_rombel_terakhir' => $st->nama_rombel,
+                            'rombongan_belajar_id' => $st->rombongan_belajar_id,
+                            'tingkat_pendidikan_terakhir' => $st->tingkat_pendidikan_id,
+                            'kurikulum_id_str' => $st->kurikulum_id_str,
+                            'tahun_lulus' => $tahunLulus,
+                            'tanggal_keluar' => now()->toDateString(),
+                            'status_keluar' => $statusKeluar,
+                            'alasan_keluar' => $alasan,
+                            'foto_path' => $fotoPath,
+                            'email' => $st->email,
+                            'nomor_telepon_seluler' => $st->nomor_telepon_seluler,
+                            'alamat_jalan' => $st->alamat_jalan,
+                            'raw_data' => $st->raw_data,
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]
+                    );
+
+                    // Perbarui peran akun di tabel pengguna
+                    DB::table('pengguna')
+                        ->where('peserta_didik_id', $mId)
+                        ->update([
+                            'peran_id_str' => ($statusKeluar === 'Alumni' ? 'Alumni' : 'Tidak Aktif'),
+                            'updated_at' => $now,
+                        ]);
+                }
+            }
+        }
+
         // Backup existing live peserta_didik ke tabel backup_peserta_didik
         $this->archiveTable('peserta_didik', 'backup_peserta_didik');
 

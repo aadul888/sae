@@ -2555,7 +2555,18 @@
 }
 
 /* Pengumuman & Informasi Enhancements */
+.informasi-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 .card-informasi-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-glass);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
 }
 .card-informasi-item:hover {

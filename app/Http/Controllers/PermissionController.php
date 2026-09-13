@@ -17,7 +17,7 @@ class PermissionController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         if ($role !== 'admin') {
-            return redirect()->route('dashboard.' . ($role ?: 'login'))->with('error', 'Akses dibatasi hanya untuk Administrator.');
+            return redirect()->route($role ? ('dashboard.' . ($role === 'peserta_didik' ? 'peserta-didik' : $role)) : 'login')->with('error', 'Akses dibatasi hanya untuk Administrator.');
         }
 
         $activeRole = $request->query('role', 'admin');
@@ -74,50 +74,61 @@ class PermissionController extends Controller
         $savedPermissions = RolePermission::where('role', $activeRole)
             ->get()
             ->keyBy('permission_key');
+        $hasRoleRecords = $savedPermissions->isNotEmpty();
 
         // Bentuk data flat per modul untuk Datatable
         $tableModules = [];
         $groups = [];
+        $existingKeys = [];
+
         foreach ($permissionsConfig as $groupName => $items) {
             $groups[] = $groupName;
             foreach ($items as $permKey => $perm) {
-                if (in_array($activeRole, $perm['roles'] ?? [])) {
-                    $saved = $savedPermissions->get($permKey);
+                $saved = $savedPermissions->get($permKey);
+                $isDefault = in_array($activeRole, $perm['roles'] ?? []);
+
+                // Modul muncul jika tersimpan di database untuk role ini.
+                // Jika role belum pernah memiliki konfigurasi di DB, gunakan fallback default.
+                $isIncluded = $saved ? true : (!$hasRoleRecords && $isDefault);
+
+                if ($isIncluded) {
+                    $existingKeys[$permKey] = true;
                     $tableModules[] = [
                         'key' => $permKey,
                         'label' => $perm['label'],
                         'icon' => $perm['icon'],
                         'group' => $groupName,
                         'can_create' => $saved ? (bool) $saved->can_create : ($activeRole === 'admin'),
-                        'can_read' => $saved ? (bool) $saved->can_read : true,
+                        'can_read' => $saved ? (bool) $saved->can_read : $isDefault,
                         'can_update' => $saved ? (bool) $saved->can_update : ($activeRole === 'admin'),
                         'can_delete' => $saved ? (bool) $saved->can_delete : ($activeRole === 'admin'),
-                        'is_locked' => ($activeRole === 'admin' && $permKey === 'menu_hak_akses'),
+                        'is_locked' => ($activeRole === 'admin' && in_array($permKey, ['menu_hak_akses', 'menu_dashboard'])),
+                        'is_custom' => (bool)$saved && !$isDefault,
                     ];
                 }
+            }
+        }
+
+        // Modul sistem yang belum ditambahkan ke role aktif ini (harus tetap berupa associative array dengan key modul)
+        $allSystemModules = RolePermission::getAllSystemModules();
+        $availableModulesToAdd = [];
+        foreach ($allSystemModules as $k => $mod) {
+            if (!isset($existingKeys[$k])) {
+                $availableModulesToAdd[$k] = $mod;
             }
         }
 
         // Ringkasan hitungan item aktif yang relevan untuk masing-masing role
         $counts = [];
         foreach (['admin', 'guru', 'tendik', 'peserta_didik'] as $r) {
-            $relevantKeys = [];
-            foreach ($permissionsConfig as $items) {
-                foreach ($items as $k => $p) {
-                    if (in_array($r, $p['roles'] ?? [])) {
-                        $relevantKeys[] = $k;
-                    }
-                }
-            }
             $counts[$r] = RolePermission::where('role', $r)
-                ->whereIn('permission_key', $relevantKeys)
                 ->where('is_allowed', true)
                 ->where('can_read', true)
                 ->count();
         }
         $counts['tugas_tambahan'] = DB::table('ptk_tugas_tambahan')->where('is_active', true)->count();
 
-        return view('dashboard.hak-akses', compact('activeRole', 'permissionsConfig', 'savedPermissions', 'tableModules', 'groups', 'counts', 'tugasTambahanList', 'refTugasList', 'ptkList', 'rombelList'));
+        return view('dashboard.hak-akses', compact('activeRole', 'permissionsConfig', 'savedPermissions', 'tableModules', 'groups', 'counts', 'tugasTambahanList', 'refTugasList', 'ptkList', 'rombelList', 'availableModulesToAdd'));
     }
 
     /**
@@ -390,6 +401,80 @@ class PermissionController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => "Hak akses peran {$targetRole} telah direset ke bawaan sistem.",
+        ]);
+    }
+
+    /**
+     * Tambahkan modul sistem ke peran tertentu (AJAX)
+     */
+    public function addModule(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $targetRole = $request->input('role');
+        $permissionKey = $request->input('permission_key');
+
+        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik']) || empty($permissionKey)) {
+            return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
+        }
+
+        $config = RolePermission::getPermissionConfig($permissionKey);
+        if (!$config) {
+            return response()->json(['status' => 'error', 'message' => 'Modul sistem tidak dikenali'], 404);
+        }
+
+        $canCreate = in_array($targetRole, ['admin', 'guru', 'tendik']);
+        $canUpdate = in_array($targetRole, ['admin', 'guru', 'tendik']);
+        $canDelete = $targetRole === 'admin';
+
+        RolePermission::updateOrCreate(
+            ['role' => $targetRole, 'permission_key' => $permissionKey],
+            [
+                'is_allowed' => true,
+                'can_create' => $canCreate,
+                'can_read' => true,
+                'can_update' => $canUpdate,
+                'can_delete' => $canDelete,
+                'updated_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Modul '{$config['label']}' berhasil ditambahkan ke peran " . ucfirst(str_replace('_', ' ', $targetRole)) . " dan kini aktif di sidebar.",
+        ]);
+    }
+
+    /**
+     * Hapus modul dari peran tertentu (AJAX)
+     */
+    public function removeModule(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $targetRole = $request->input('role');
+        $permissionKey = $request->input('permission_key');
+
+        if ($targetRole === 'admin' && in_array($permissionKey, ['menu_dashboard', 'menu_hak_akses'])) {
+            return response()->json(['status' => 'error', 'message' => 'Modul inti Administrator tidak dapat dihapus demi keamanan sistem.'], 422);
+        }
+
+        $config = RolePermission::getPermissionConfig($permissionKey);
+        $label = $config['label'] ?? $permissionKey;
+
+        RolePermission::where('role', $targetRole)->where('permission_key', $permissionKey)->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Modul '{$label}' berhasil dihapus dari peran " . ucfirst(str_replace('_', ' ', $targetRole)) . " dan disembunyikan dari sidebar.",
         ]);
     }
 }

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use ZipArchive;
 
+use App\Services\BackupService;
+
 class MaintenanceController extends Controller
 {
     private function checkAdmin()
@@ -39,11 +41,18 @@ class MaintenanceController extends Controller
         // Perlu unduh arsip jika ada data aktif dan (belum pernah unduh arsip atau izin sinkronisasi terkunci)
         $isArchiveRequired = $hasActiveData && (!$archiveDownloadedAt || !$syncAllowed);
 
+        $fotoDir = storage_path('app/public/assets/peserta-didik/foto');
+        $fotoCount = File::isDirectory($fotoDir) ? count(File::files($fotoDir)) : 0;
+
         $counts = [
             'peserta_didik' => Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
+            'peserta_didik_tidak_aktif' => Schema::hasTable('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->count() : 0,
+            'alumni_lulus' => Schema::hasTable('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->where('status_keluar', 'Alumni')->count() : 0,
+            'alumni_mutasi' => Schema::hasTable('peserta_didik_tidak_aktif') ? DB::table('peserta_didik_tidak_aktif')->where('status_keluar', '<>', 'Alumni')->count() : 0,
             'gtk' => Schema::hasTable('gtk') ? DB::table('gtk')->count() : 0,
             'rombongan_belajar' => Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
             'pembelajaran' => Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->count() : 0,
+            'foto_count' => $fotoCount,
         ];
 
         return view('dashboard.maintenance', compact('settings', 'hasActiveData', 'isArchiveRequired', 'lastSync', 'archiveDownloadedAt', 'syncAllowed', 'counts'));
@@ -60,95 +69,26 @@ class MaintenanceController extends Controller
         }
 
         $adminName = is_array($user) ? ($user['nama'] ?? ($user['username'] ?? 'Admin')) : ($user->nama ?? ($user->username ?? 'Admin'));
-        $settings = DB::table('settings')->where('id', 1)->first();
-        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
 
-        $nowStr = date('Ymd_His');
-        $filename = 'SAE_Arsip_Backup_' . ($sekolah->npsn ?? 'Data') . '_' . $nowStr . '.zip';
-        $tempDir = storage_path('app/archives');
-        if (!File::isDirectory($tempDir)) {
-            File::makeDirectory($tempDir, 0755, true, true);
+        try {
+            $backupService = new BackupService();
+            $result = $backupService->createComprehensiveBackup($adminName);
+
+            // Tandai di database bahwa arsip telah diunduh dan izin sinkronisasi dibuka
+            DB::table('settings')->where('id', 1)->update([
+                'archive_downloaded_at' => now(),
+                'archive_file_name' => $result['filename'],
+                'sync_allowed' => true,
+                'updated_at' => now(),
+            ]);
+
+            return response()->download($result['zip_path'], $result['filename'], [
+                'Content-Type' => 'application/zip',
+                'Content-Disposition' => 'attachment; filename="' . $result['filename'] . '"',
+            ])->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memproses paket arsip: ' . $e->getMessage());
         }
-        $zipPath = $tempDir . '/' . $filename;
-
-        // Kumpulkan data aktif dari seluruh tabel inti
-        $tables = [
-            'sekolah',
-            'sekolah_meta',
-            'gtk',
-            'rombongan_belajar',
-            'anggota_rombel',
-            'pembelajaran',
-            'peserta_didik',
-            'peserta_didik_meta',
-            'pengguna',
-            'ptk_tugas_tambahan',
-            'jurusan_meta',
-        ];
-
-        $manifestCounts = [];
-        $dataExport = [];
-
-        foreach ($tables as $tbl) {
-            if (Schema::hasTable($tbl)) {
-                $rows = DB::table($tbl)->get()->toArray();
-                $manifestCounts[$tbl] = count($rows);
-                $dataExport[$tbl] = $rows;
-            } else {
-                $manifestCounts[$tbl] = 0;
-            }
-        }
-
-        $manifest = [
-            'app_name' => $settings->app_name ?? 'SAE - Sistem Aplikasi Edukasi',
-            'app_version' => $settings->app_version ?? '1.0.0',
-            'sekolah' => [
-                'nama' => $sekolah->nama ?? 'Nama Sekolah',
-                'npsn' => $sekolah->npsn ?? '-',
-                'bentuk_pendidikan' => $sekolah->bentuk_pendidikan_id_str ?? '-',
-            ],
-            'exported_at' => date('Y-m-d H:i:s'),
-            'exported_by' => $adminName,
-            'summary_counts' => $manifestCounts,
-            'description' => 'Arsip komprehensif data pokok satuan pendidikan sebelum pergantian tahun pelajaran atau sinkronisasi Dapodik baru.',
-        ];
-
-        $fileList = [
-            'manifest.json' => json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
-        ];
-        foreach ($dataExport as $tbl => $rows) {
-            $fileList[$tbl . '.json'] = json_encode($rows, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        }
-
-        $zipCreated = false;
-        if (class_exists('ZipArchive')) {
-            $zip = new ZipArchive();
-            if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-                foreach ($fileList as $name => $content) {
-                    $zip->addFromString($name, $content);
-                }
-                $zip->close();
-                $zipCreated = true;
-            }
-        }
-
-        if (!$zipCreated) {
-            // Fallback kompresi ZIP murni via PHP (selalu menghasilkan .zip valid tanpa ketergantungan ekstensi C)
-            $this->createPurePhpZip($zipPath, $fileList);
-        }
-
-        // Tandai di database bahwa arsip telah diunduh dan izin sinkronisasi dibuka
-        DB::table('settings')->where('id', 1)->update([
-            'archive_downloaded_at' => now(),
-            'archive_file_name' => $filename,
-            'sync_allowed' => true,
-            'updated_at' => now(),
-        ]);
-
-        return response()->download($zipPath, $filename, [
-            'Content-Type' => 'application/zip',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-        ])->deleteFileAfterSend(true);
     }
 
     /**

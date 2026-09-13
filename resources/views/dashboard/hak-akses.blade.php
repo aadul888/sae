@@ -373,6 +373,11 @@
                     @endforeach
                 </select>
 
+                <button type="button" id="btnOpenAddModule" class="btn btn-primary"
+                    style="padding: 7px 14px; font-size: 0.8rem; margin-left: 8px;">
+                    <i class="fas fa-plus me-1"></i> Tambah Modul ke Peran
+                </button>
+
                 <span class="badge badge-outline" id="totalBadge" style="margin-left: 6px; font-size: 0.73rem;">
                     Total: {{ count($tableModules) }} Modul
                 </span>
@@ -416,6 +421,10 @@
                                 <span style="color: #ef4444; font-size: 0.73rem;" title="Hapus (Delete)"><i
                                         class="fas fa-trash me-1"></i>Hapus</span>
                             </div>
+                        </th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 65px;">
+                            Kelola
                         </th>
                     </tr>
                 </thead>
@@ -517,10 +526,27 @@
                                     </div>
                                 </div>
                             </td>
+                            <td style="padding: 14px 18px; text-align: center;" data-label="Kelola">
+                                @if (!$item['is_locked'])
+                                    <button type="button" class="btn-icon btn-remove-module"
+                                        data-key="{{ $item['key'] }}" data-name="{{ $item['label'] }}"
+                                        title="Hapus Modul {{ $item['label'] }} dari Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
+                                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                        onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'"
+                                        onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
+                                        <i class="fas fa-trash-can" style="font-size: 0.82rem;"></i>
+                                    </button>
+                                @else
+                                    <span style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.4;"
+                                        title="Modul ini dikunci sistem">
+                                        <i class="fas fa-lock" style="font-size: 0.8rem;"></i>
+                                    </span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4"
+                            <td colspan="5"
                                 style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Tidak ada modul yang tersedia untuk peran ini.</div>
@@ -528,7 +554,7 @@
                         </tr>
                     @endforelse
                     <tr id="noSearchResultRow" style="display: none;">
-                        <td colspan="4"
+                        <td colspan="5"
                             style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                             <i class="fas fa-magnifying-glass mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                             <div>Tidak ada modul yang cocok dengan filter pencarian.</div>
@@ -540,6 +566,67 @@
 
         <!-- Table Pagination Footer -->
         <div id="tablePaginationWrap" class="custom-pagination"></div>
+
+        <!-- Modal Tambah Modul ke Peran -->
+        <div id="modalAddModule" class="modal-backdrop"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div class="card"
+                style="max-width: 520px; width: 92%; margin: 0; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--card-bg, #1e293b);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <h3
+                        style="font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-plus-circle text-primary"></i> Tambah Modul ke Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}
+                    </h3>
+                    <button type="button" id="btnCloseAddModule"
+                        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="formAddModule">
+                    <input type="hidden" name="role" value="{{ $activeRole }}">
+                    <div class="form-group-compact" style="margin-bottom: 18px;">
+                        <label
+                            style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block;">
+                            Pilih Modul Sistem <span style="color: #ef4444;">*</span>
+                        </label>
+                        @php
+                            $groupedAvailable = collect($availableModulesToAdd ?? [])->groupBy('group');
+                        @endphp
+                        @if (empty($availableModulesToAdd))
+                            <div style="padding: 12px; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.84rem; color: var(--text-muted);">
+                                <i class="fas fa-check-circle text-primary me-1"></i> Semua modul sistem sudah ditambahkan ke peran ini.
+                            </div>
+                        @else
+                            <select name="permission_key" id="selectAddModule" required
+                                style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                                <option value="">-- Pilih Modul untuk Ditambahkan --</option>
+                                @foreach ($groupedAvailable as $grpName => $mods)
+                                    <optgroup label="{{ $grpName }}">
+                                        @foreach ($mods as $mKey => $mVal)
+                                            <option value="{{ $mKey }}">{{ $mVal['label'] }} ({{ $mKey }})</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </select>
+                        @endif
+                        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 6px; margin-bottom: 0;">
+                            Modul yang ditambahkan akan otomatis diaktifkan untuk peran ini dan dapat diatur hak akses CRUD serta visibilitasnya di sidebar.
+                        </p>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                        <button type="button" id="btnCancelAddModule" class="btn btn-outline"
+                            style="padding: 9px 18px; font-size: 0.85rem; border-radius: 8px;">Batal</button>
+                        <button type="submit" id="btnSubmitAddModule" class="btn btn-primary"
+                            style="padding: 9px 20px; font-size: 0.85rem; border-radius: 8px; font-weight: 600;" {{ empty($availableModulesToAdd) ? 'disabled' : '' }}>
+                            <i class="fas fa-plus me-1"></i> Tambahkan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     @endif
 
     @push('scripts')
@@ -1202,6 +1289,138 @@
                         }
                     });
                 }
+
+                // 5. Tambah Modul ke Peran
+                const btnOpenAddModule = document.getElementById('btnOpenAddModule');
+                const modalAddModule = document.getElementById('modalAddModule');
+                const btnCloseAddModule = document.getElementById('btnCloseAddModule');
+                const btnCancelAddModule = document.getElementById('btnCancelAddModule');
+                const formAddModule = document.getElementById('formAddModule');
+                const btnSubmitAddModule = document.getElementById('btnSubmitAddModule');
+
+                if (btnOpenAddModule && modalAddModule) {
+                    btnOpenAddModule.addEventListener('click', () => {
+                        modalAddModule.style.display = 'flex';
+                    });
+                }
+
+                if (btnCloseAddModule && modalAddModule) {
+                    btnCloseAddModule.addEventListener('click', () => {
+                        modalAddModule.style.display = 'none';
+                    });
+                }
+
+                if (btnCancelAddModule && modalAddModule) {
+                    btnCancelAddModule.addEventListener('click', () => {
+                        modalAddModule.style.display = 'none';
+                    });
+                }
+
+                if (modalAddModule) {
+                    modalAddModule.addEventListener('click', (e) => {
+                        if (e.target === modalAddModule) {
+                            modalAddModule.style.display = 'none';
+                        }
+                    });
+                }
+
+                if (formAddModule) {
+                    formAddModule.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const selectMod = document.getElementById('selectAddModule');
+                        const permKey = selectMod?.value;
+                        if (!permKey) {
+                            showToast('Silakan pilih modul terlebih dahulu.', 'warning');
+                            return;
+                        }
+
+                        const origText = btnSubmitAddModule ? btnSubmitAddModule.innerHTML : '';
+                        if (btnSubmitAddModule) {
+                            btnSubmitAddModule.disabled = true;
+                            btnSubmitAddModule.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+                        }
+
+                        try {
+                            const res = await fetch('{{ route('dashboard.hak-akses.add-module') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken
+                                },
+                                body: JSON.stringify({
+                                    role: '{{ $activeRole }}',
+                                    permission_key: permKey
+                                })
+                            });
+
+                            const data = await res.json();
+                            if (data.status === 'success') {
+                                showToast(data.message || 'Modul berhasil ditambahkan!', 'success');
+                                if (modalAddModule) modalAddModule.style.display = 'none';
+                                setTimeout(() => window.location.reload(), 600);
+                            } else {
+                                throw new Error(data.message || 'Gagal menambahkan modul');
+                            }
+                        } catch (err) {
+                            showToast(err.message || 'Terjadi kesalahan sistem', 'danger');
+                            if (btnSubmitAddModule) {
+                                btnSubmitAddModule.disabled = false;
+                                btnSubmitAddModule.innerHTML = origText;
+                            }
+                        }
+                    });
+                }
+
+                // 6. Hapus Modul dari Peran
+                document.addEventListener('click', async (e) => {
+                    const btn = e.target.closest('.btn-remove-module');
+                    if (!btn) return;
+
+                    const key = btn.dataset.key;
+                    const name = btn.dataset.name || key;
+
+                    let confirmed = false;
+                    const confirmMsg = `Hapus modul "${name}" dari peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}? Modul ini tidak akan lagi tampil di menu peran ini.`;
+
+                    if (window.SAE && typeof window.SAE.confirm === 'function') {
+                        confirmed = await window.SAE.confirm(confirmMsg, 'Hapus Modul?', 'warning');
+                    } else {
+                        confirmed = confirm(confirmMsg);
+                    }
+
+                    if (!confirmed) return;
+
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                    try {
+                        const res = await fetch('{{ route('dashboard.hak-akses.remove-module') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({
+                                role: '{{ $activeRole }}',
+                                permission_key: key
+                            })
+                        });
+
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            showToast(data.message || 'Modul berhasil dihapus dari peran ini.', 'success');
+                            setTimeout(() => window.location.reload(), 600);
+                        } else {
+                            throw new Error(data.message || 'Gagal menghapus modul');
+                        }
+                    } catch (err) {
+                        showToast(err.message || 'Terjadi kesalahan saat menghapus modul', 'danger');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-trash-can"></i>';
+                    }
+                });
             });
         </script>
     @endpush
