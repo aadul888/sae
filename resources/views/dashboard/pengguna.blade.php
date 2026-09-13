@@ -1,4 +1,4 @@
-﻿@extends('layouts.dashboard')
+@extends('layouts.dashboard')
 
 @section('title', 'Manajemen Pengguna — SAE')
 @section('dash_title', 'Manajemen Pengguna')
@@ -171,11 +171,13 @@
                         </td>
                         <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
+                                @if ($canUpdate)
                                 <button type="button" class="btn-icon" title="Edit"
                                     onclick="openEditModal({{ json_encode($item) }})">
                                     <i class="fas fa-pen-to-square"></i>
                                 </button>
-                                @if ($activeTab === 'peserta_didik' && $item->peserta_didik_id)
+                                @endif
+                                @if ($canUpdate && $activeTab === 'peserta_didik' && $item->peserta_didik_id)
                                     <form action="{{ route('dashboard.pengguna.resetPassword', $item->pengguna_id) }}"
                                         method="POST" style="display: inline; margin: 0;" data-action-type="reset"
                                         data-name="{{ $item->nama }}">
@@ -185,6 +187,7 @@
                                         </button>
                                     </form>
                                 @endif
+                                @if ($canDelete)
                                 <form action="{{ route('dashboard.pengguna.destroy', $item->pengguna_id) }}"
                                     method="POST" style="display: inline; margin: 0;" data-action-type="delete"
                                     data-name="{{ $item->nama }}">
@@ -194,6 +197,7 @@
                                         <i class="fas fa-trash-can"></i>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

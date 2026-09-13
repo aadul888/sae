@@ -590,27 +590,28 @@
                             style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block;">
                             Pilih Modul Sistem <span style="color: #ef4444;">*</span>
                         </label>
-                        @php
-                            $groupedAvailable = collect($availableModulesToAdd ?? [])->groupBy('group');
-                        @endphp
-                        @if (empty($availableModulesToAdd))
-                            <div style="padding: 12px; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.84rem; color: var(--text-muted);">
-                                <i class="fas fa-check-circle text-primary me-1"></i> Semua modul sistem sudah ditambahkan ke peran ini.
-                            </div>
-                        @else
-                            <select name="permission_key" id="selectAddModule" required
-                                style="width: 100%; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
-                                <option value="">-- Pilih Modul untuk Ditambahkan --</option>
-                                @foreach ($groupedAvailable as $grpName => $mods)
-                                    <optgroup label="{{ $grpName }}">
-                                        @foreach ($mods as $mKey => $mVal)
-                                            <option value="{{ $mKey }}">{{ $mVal['label'] }} ({{ $mKey }})</option>
-                                        @endforeach
-                                    </optgroup>
-                                @endforeach
-                            </select>
-                        @endif
-                        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 6px; margin-bottom: 0;">
+                        <select name="permission_key" id="selectAddModule" required
+                            style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: #1e293b !important; color: #f8fafc !important; border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;">
+                            <option value="" style="background-color: #1e293b; color: #94a3b8;">-- Pilih Modul untuk Ditambahkan --</option>
+                            @foreach ($availableModulesToAdd as $mKey => $mVal)
+                                <option value="{{ $mVal['key'] }}" style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">{{ $mVal['label'] }}</option>
+                            @endforeach
+                            <option value="__NEW_CUSTOM_MODULE__" style="background-color: #0f172a; color: #38bdf8; font-weight: 600; padding: 8px 12px;">+ Daftarkan Modul Baru / Mendatang...</option>
+                        </select>
+
+                        <!-- Input Dinamis jika Mendaftarkan Modul Baru / Mendatang -->
+                        <div id="customModuleFields" style="display: none; flex-direction: column; gap: 8px; margin-top: 14px; padding: 14px; background: rgba(56, 189, 248, 0.06); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 10px;">
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8; display: block;">
+                                <i class="fas fa-sparkles me-1"></i> Nama Modul Baru / Mendatang <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="text" id="inputCustomModuleName" name="custom_name" placeholder="Contoh: Perpustakaan Digital, Bimbingan Konseling, Keuangan"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.18); background-color: #1e293b; color: #f8fafc; border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                            <p style="font-size: 0.72rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                                Sistem akan otomatis membuat izin RBAC dan merefleksikannya di matriks hak akses serta sidebar.
+                            </p>
+                        </div>
+
+                        <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 8px; margin-bottom: 0;">
                             Modul yang ditambahkan akan otomatis diaktifkan untuk peran ini dan dapat diatur hak akses CRUD serta visibilitasnya di sidebar.
                         </p>
                     </div>
@@ -620,7 +621,7 @@
                         <button type="button" id="btnCancelAddModule" class="btn btn-outline"
                             style="padding: 9px 18px; font-size: 0.85rem; border-radius: 8px;">Batal</button>
                         <button type="submit" id="btnSubmitAddModule" class="btn btn-primary"
-                            style="padding: 9px 20px; font-size: 0.85rem; border-radius: 8px; font-weight: 600;" {{ empty($availableModulesToAdd) ? 'disabled' : '' }}>
+                            style="padding: 9px 20px; font-size: 0.85rem; border-radius: 8px; font-weight: 600;">
                             <i class="fas fa-plus me-1"></i> Tambahkan
                         </button>
                     </div>
@@ -1324,13 +1325,41 @@
                     });
                 }
 
+                const selectAddModule = document.getElementById('selectAddModule');
+                const customModuleFields = document.getElementById('customModuleFields');
+                const inputCustomModuleName = document.getElementById('inputCustomModuleName');
+
+                if (selectAddModule && customModuleFields) {
+                    selectAddModule.addEventListener('change', () => {
+                        if (selectAddModule.value === '__NEW_CUSTOM_MODULE__') {
+                            customModuleFields.style.display = 'flex';
+                            if (inputCustomModuleName) {
+                                inputCustomModuleName.required = true;
+                                inputCustomModuleName.focus();
+                            }
+                        } else {
+                            customModuleFields.style.display = 'none';
+                            if (inputCustomModuleName) {
+                                inputCustomModuleName.required = false;
+                            }
+                        }
+                    });
+                }
+
                 if (formAddModule) {
                     formAddModule.addEventListener('submit', async (e) => {
                         e.preventDefault();
-                        const selectMod = document.getElementById('selectAddModule');
-                        const permKey = selectMod?.value;
+                        const permKey = selectAddModule?.value;
+                        const customName = inputCustomModuleName ? inputCustomModuleName.value.trim() : '';
+
                         if (!permKey) {
                             showToast('Silakan pilih modul terlebih dahulu.', 'warning');
+                            return;
+                        }
+
+                        if (permKey === '__NEW_CUSTOM_MODULE__' && !customName) {
+                            showToast('Silakan masukkan nama modul baru.', 'warning');
+                            inputCustomModuleName?.focus();
                             return;
                         }
 
@@ -1350,7 +1379,8 @@
                                 },
                                 body: JSON.stringify({
                                     role: '{{ $activeRole }}',
-                                    permission_key: permKey
+                                    permission_key: permKey,
+                                    custom_name: customName
                                 })
                             });
 

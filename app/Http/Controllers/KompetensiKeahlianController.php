@@ -15,9 +15,14 @@ class KompetensiKeahlianController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian')) {
+        if (!\App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian')) {
             return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Kompetensi Keahlian dinonaktifkan oleh Administrator.');
         }
+
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'create');
+        $canRead   = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'read');
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'update');
+        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'delete');
 
         $q       = trim($request->get('q', ''));
         $perPage = (int) $request->get('perPage', 15);
@@ -137,7 +142,11 @@ class KompetensiKeahlianController extends Controller
             'q',
             'perPage',
             'sort',
-            'sortDir'
+            'sortDir',
+            'canCreate',
+            'canRead',
+            'canUpdate',
+            'canDelete'
         ));
     }
 
@@ -210,9 +219,10 @@ class KompetensiKeahlianController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
         }
 
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian')) {
-            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengunggah logo.'], 403);
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'update');
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'create');
+        if (!$canUpdate && !$canCreate) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses (Ubah/Tambah) untuk mengunggah logo.'], 403);
         }
 
         $request->validate([
@@ -278,8 +288,8 @@ class KompetensiKeahlianController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
         }
 
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_kompetensi_keahlian')) {
+        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'delete');
+        if (!$canDelete) {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus logo.'], 403);
         }
 

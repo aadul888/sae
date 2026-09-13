@@ -22,6 +22,12 @@ class UserController extends Controller
         $sort      = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir   = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
+        $authUser = session('user');
+        $canCreate = \App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'create');
+        $canRead   = \App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'read');
+        $canUpdate = \App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'update') || \App\Models\RolePermission::canAccess($authUser, 'fitur_pengguna_edit');
+        $canDelete = \App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'delete') || \App\Models\RolePermission::canAccess($authUser, 'fitur_pengguna_hapus');
+
         $adminQuery = User::where(function ($query) {
             $query->where('peran_id_str', 'LIKE', '%admin%')
                 ->orWhere('peran_id_str', 'LIKE', '%operator%')
@@ -131,7 +137,11 @@ class UserController extends Controller
             'q',
             'perPage',
             'sort',
-            'sortDir'
+            'sortDir',
+            'canCreate',
+            'canRead',
+            'canUpdate',
+            'canDelete'
         ));
     }
 
@@ -140,6 +150,11 @@ class UserController extends Controller
      */
     public function update(Request $request, string|int $id)
     {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'update') && !\App\Models\RolePermission::canAccess($authUser, 'fitur_pengguna_edit')) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak akses untuk mengubah data pengguna.');
+        }
+
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
@@ -171,6 +186,11 @@ class UserController extends Controller
      */
     public function destroy(string|int $id)
     {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'delete') && !\App\Models\RolePermission::canAccess($authUser, 'fitur_pengguna_hapus')) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak akses untuk menghapus data pengguna.');
+        }
+
         $user = User::findOrFail($id);
         $user->delete();
 
@@ -182,6 +202,11 @@ class UserController extends Controller
      */
     public function resetPassword(string|int $id)
     {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'update') && !\App\Models\RolePermission::canAccess($authUser, 'fitur_pengguna_reset')) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak akses untuk mereset password pengguna.');
+        }
+
         $user = User::findOrFail($id);
 
         if (!$user->peserta_didik_id) {

@@ -21,8 +21,15 @@ class PesertaDidikAktifController extends Controller
             return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Peserta Didik Aktif dinonaktifkan.');
         }
 
-        // Cek wewenang unggah foto & cetak kartu masal (hanya Admin & Wali Kelas)
-        $canManageStudentPhotos = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+        // Hak akses granular CRUD modul Peserta Didik Aktif
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
+        $canRead   = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'read');
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
+        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete');
+
+        // Cek wewenang unggah foto & kelola (Harus ada izin mutasi DAN Admin / Wali Kelas)
+        $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+        $canManageStudentPhotos = ($canUpdate || $canCreate) && $isWaliOrAdmin;
         $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
 
         $q       = trim($request->get('q', ''));
@@ -159,7 +166,12 @@ class PesertaDidikAktifController extends Controller
             'sort',
             'sortDir',
             'canManageStudentPhotos',
-            'waliRombel'
+            'waliRombel',
+            'canCreate',
+            'canRead',
+            'canUpdate',
+            'canDelete',
+            'isWaliOrAdmin'
         ));
     }
 
@@ -237,10 +249,12 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        if (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
+        if ((!$canUpdate && !$canCreate) || !\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang memiliki izin untuk mengunggah pasfoto peserta didik.'
+                'message' => 'Akses ditolak: Anda tidak memiliki hak akses (Ubah/Tambah) atau wewenang Wali Kelas/Admin untuk mengunggah pasfoto peserta didik.'
             ], 403);
         }
 
@@ -313,10 +327,11 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        if (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete');
+        if (!$canDelete || !\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang memiliki izin untuk menghapus pasfoto peserta didik.'
+                'message' => 'Akses ditolak: Anda tidak memiliki hak akses Hapus atau wewenang untuk menghapus pasfoto peserta didik.'
             ], 403);
         }
 
@@ -424,10 +439,12 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
-        if (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
+        if ((!$canUpdate && !$canCreate) || !\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang memiliki izin untuk mengunggah pasfoto masal.'
+                'message' => 'Akses ditolak: Anda tidak memiliki hak akses (Ubah/Tambah) untuk mengunggah pasfoto masal.'
             ], 403);
         }
 

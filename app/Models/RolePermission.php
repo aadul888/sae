@@ -262,8 +262,8 @@ class RolePermission extends Model
     }
 
     /**
-     * Otomatis mendeteksi modul menu baru yang dibuat di sistem
-     * dengan memindai berkas partials/dash-sidebar.blade.php dan routes/web.php
+     * Otomatis mendeteksi modul menu & fitur baru yang dibuat di sistem
+     * dengan memindai berkas route, controller, blade view, dan rekaman database.
      */
     public static function discoverSystemModules(array $baseConfigs = []): array
     {
@@ -275,42 +275,73 @@ class RolePermission extends Model
             }
         }
 
-        $filesToScan = [
-            resource_path('views/partials/dash-sidebar.blade.php'),
-            base_path('routes/web.php'),
-        ];
+        // 1. Kumpulkan seluruh berkas rute, controller, dan view untuk pemindaian otomatis
+        $filesToScan = array_merge(
+            glob(base_path('routes/*.php')) ?: [],
+            glob(app_path('Http/Controllers/*.php')) ?: [],
+            glob(resource_path('views/partials/*.blade.php')) ?: [],
+            glob(resource_path('views/dashboard/*.blade.php')) ?: []
+        );
 
         foreach ($filesToScan as $filePath) {
             if (!file_exists($filePath)) continue;
-            $content = file_get_contents($filePath);
+            $content = @file_get_contents($filePath);
             if (!$content) continue;
 
-            preg_match_all('/can\(\s*[\'"](menu_[a-zA-Z0-9_]+)[\'"]\s*\)/', $content, $m1);
-            preg_match_all('/permission:(menu_[a-zA-Z0-9_]+)/', $content, $m2);
+            preg_match_all('/can\(\s*[\'"]((?:menu_|fitur_)[a-zA-Z0-9_]+)[\'"]\s*\)/', $content, $m1);
+            preg_match_all('/permission:((?:menu_|fitur_)[a-zA-Z0-9_]+)/', $content, $m2);
+            preg_match_all('/canAccess\([^,]+,\s*[\'"]((?:menu_|fitur_)[a-zA-Z0-9_]+)[\'"]/', $content, $m3);
 
-            $foundKeys = array_unique(array_merge($m1[1] ?? [], $m2[1] ?? []));
+            $foundKeys = array_unique(array_merge($m1[1] ?? [], $m2[1] ?? [], $m3[1] ?? []));
             foreach ($foundKeys as $key) {
                 if (!isset($knownKeys[$key]) && !isset($discovered[$key])) {
-                    $cleanName = str_replace(['menu_', '_'], ['', ' '], $key);
+                    $cleanName = str_replace(['menu_', 'fitur_', '_'], ['', '', ' '], $key);
                     $label = ucwords($cleanName);
 
-                    $group = 'Modul Sistem Baru';
-                    $icon = 'fa-cube';
+                    $group = str_starts_with($key, 'fitur_') ? 'Fitur Operasional' : 'Modul Sistem Baru';
+                    $icon = str_starts_with($key, 'fitur_') ? 'fa-screwdriver-wrench' : 'fa-cube';
+
                     if (str_contains($key, 'guru')) {
                         $group = 'Administrasi Guru';
                         $icon = 'fa-chalkboard-user';
                     } elseif (str_contains($key, 'tendik')) {
                         $group = 'Administrasi Tendik';
                         $icon = 'fa-id-badge';
-                    } elseif (str_contains($key, 'peserta_didik') || str_contains($key, 'siswa')) {
+                    } elseif (str_contains($key, 'peserta_didik') || str_contains($key, 'siswa') || str_contains($key, 'santri')) {
                         $group = 'Portal Peserta Didik';
                         $icon = 'fa-user-graduate';
+                    } elseif (str_contains($key, 'perpustakaan') || str_contains($key, 'buku')) {
+                        $group = 'Layanan Digital';
+                        $icon = 'fa-book';
+                    } elseif (str_contains($key, 'keuangan') || str_contains($key, 'spp') || str_contains($key, 'bayar')) {
+                        $group = 'Layanan Digital';
+                        $icon = 'fa-wallet';
+                    } elseif (str_contains($key, 'bk') || str_contains($key, 'konseling')) {
+                        $group = 'Layanan Digital';
+                        $icon = 'fa-user-nurse';
                     }
 
                     $discovered[$key] = [
                         'label' => $label,
                         'icon' => $icon,
                         'group' => $group,
+                        'roles' => ['admin'],
+                    ];
+                }
+            }
+        }
+
+        // 2. Deteksi modul yang tersimpan di tabel role_permissions database (agar modul kustom/mendatang selalu terbaca)
+        if (Schema::hasTable('role_permissions')) {
+            $dbKeys = DB::table('role_permissions')->distinct()->pluck('permission_key')->toArray();
+            foreach ($dbKeys as $key) {
+                if (!isset($knownKeys[$key]) && !isset($discovered[$key])) {
+                    $cleanName = str_replace(['menu_', 'fitur_', '_'], ['', '', ' '], $key);
+                    $isFitur = str_starts_with($key, 'fitur_');
+                    $discovered[$key] = [
+                        'label' => ucwords($cleanName),
+                        'icon' => $isFitur ? 'fa-screwdriver-wrench' : 'fa-cube',
+                        'group' => $isFitur ? 'Fitur Operasional' : 'Modul Sistem Baru',
                         'roles' => ['admin'],
                     ];
                 }
@@ -363,16 +394,31 @@ class RolePermission extends Model
     }
 
     /**
-     * Dapatkan definisi konfigurasi untuk permission tertentu
+     * Dapatkan definisi konfigurasi untuk permission tertentu (Mendukung fallback dinamis masa depan)
      */
     public static function getPermissionConfig(string $key): ?array
     {
         $all = self::getAvailablePermissions();
-        foreach ($all as $items) {
+        foreach ($all as $group => $items) {
             if (isset($items[$key])) {
-                return $items[$key];
+                $item = $items[$key];
+                $item['group'] = $group;
+                return $item;
             }
         }
+
+        // Fallback dinamis jika modul baru belum terdaftar secara statis
+        if (!empty($key)) {
+            $isFitur = str_starts_with($key, 'fitur_');
+            $cleanName = str_replace(['menu_', 'fitur_', '_'], ['', '', ' '], $key);
+            return [
+                'label' => ucwords($cleanName),
+                'icon' => $isFitur ? 'fa-screwdriver-wrench' : 'fa-cube',
+                'group' => $isFitur ? 'Fitur Operasional' : 'Modul Sistem Baru',
+                'roles' => ['admin'],
+            ];
+        }
+
         return null;
     }
 
@@ -479,39 +525,74 @@ class RolePermission extends Model
     }
 
     /**
-     * Cek apakah role / user tertentu diizinkan mengakses permission tertentu.
+     * Cek apakah role / user tertentu diizinkan mengakses permission tertentu dengan aksi CRUD spesifik.
      * Mendukung evaluasi gabungan (Role Dasar + Izin Tugas Tambahan Aktif).
+     *
+     * @param mixed $userOrRole Objek User, array sesi, atau string peran ('admin', 'guru', 'tendik', 'peserta_didik')
+     * @param string $permissionKey Key modul (contoh: 'menu_peserta_didik_aktif')
+     * @param string $action Aksi operasional: 'read' (default), 'create', 'update', 'delete'
      */
-    public static function canAccess(mixed $userOrRole, string $permissionKey): bool
+    public static function canAccess(mixed $userOrRole, string $permissionKey, string $action = 'read'): bool
     {
         // Jika tabel belum ada (sebelum migrasi selesai), fallback allow default admin
         if (!Schema::hasTable('role_permissions')) {
-            return $userOrRole === 'admin' || (is_object($userOrRole) && ($userOrRole->role ?? '') === 'admin');
+            $r = is_string($userOrRole) ? $userOrRole : (is_array($userOrRole) ? ($userOrRole['role'] ?? '') : ($userOrRole->role ?? ''));
+            return $r === 'admin';
         }
 
-        $role = is_string($userOrRole) ? $userOrRole : ($userOrRole['role'] ?? ($userOrRole->role ?? 'peserta_didik'));
+        $user = $userOrRole ?: session('user');
+        $role = is_string($user) ? $user : (is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik'));
+
+        $action = strtolower(trim($action));
+        $actionCol = 'can_' . $action;
+        if (!in_array($actionCol, ['can_create', 'can_read', 'can_update', 'can_delete'])) {
+            $actionCol = 'can_read';
+        }
 
         // 1. Otoritas Utama: Izin peran tersimpan di database
         $row = self::where('role', $role)->where('permission_key', $permissionKey)->first();
         if ($row) {
-            return (bool) ($row->is_allowed && $row->can_read);
+            // Jika modul dinonaktifkan (is_allowed false), seluruh aksi ditolak
+            if (!$row->is_allowed) {
+                return false;
+            }
+
+            // Jika mengecek izin baca (read)
+            if ($actionCol === 'can_read') {
+                return (bool) $row->can_read;
+            }
+
+            // Jika mengecek izin mutasi (create, update, delete):
+            // Wajib memenuhi can_read true dan kolom aksi spesifik true
+            return (bool) ($row->can_read && $row->{$actionCol});
         }
 
         // 2. Evaluasi izin dari tugas tambahan aktif (Duty-based) untuk Guru & Tendik
+        // Hanya dievaluasi jika modul ini belum pernah dimatikan secara eksplisit di database
         if (in_array($role, ['guru', 'tendik']) && Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
-            $userId = is_array($userOrRole) ? ($userOrRole['id'] ?? ($userOrRole['pengguna_id'] ?? null)) : ($userOrRole->id ?? ($userOrRole->pengguna_id ?? null));
-            $ptkId = is_array($userOrRole) ? ($userOrRole['ptk_id'] ?? null) : ($userOrRole->ptk_id ?? null);
+            $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
+            $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
 
             if ($userId || $ptkId) {
-                if (self::hasDutyPermission($userId, $ptkId, $permissionKey)) {
+                if (self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
                     return true;
                 }
             }
         }
 
-        // 3. Fallback HANYA jika peran belum pernah dikonfigurasi sama sekali di database
+        // 3. Khusus Administrator: selalu diizinkan mengakses modul baru yang belum pernah dimatikan eksplisit di database
+        if ($role === 'admin') {
+            return true;
+        }
+
+        // 4. Fallback HANYA jika peran belum pernah dikonfigurasi sama sekali di database
         if (!self::where('role', $role)->exists()) {
-            return self::isDefaultAllowed($role, $permissionKey);
+            if (!self::isDefaultAllowed($role, $permissionKey)) {
+                return false;
+            }
+            if ($actionCol === 'can_read') return true;
+            if (in_array($role, ['guru', 'tendik']) && in_array($actionCol, ['can_create', 'can_update'])) return true;
+            return false;
         }
 
         return false;
@@ -520,7 +601,7 @@ class RolePermission extends Model
     /**
      * Periksa apakah pengguna memiliki tugas tambahan aktif yang membuka modul tertentu
      */
-    public static function hasDutyPermission(mixed $userId, ?string $ptkId, string $permissionKey): bool
+    public static function hasDutyPermission(mixed $userId, ?string $ptkId, string $permissionKey, string $action = 'read'): bool
     {
         try {
             $query = DB::table('ptk_tugas_tambahan as ptt')
@@ -540,12 +621,14 @@ class RolePermission extends Model
                 return false;
             }
 
+            $action = strtolower(trim($action));
+
             // 1. Cek granted_permissions JSON dari tabel ref_tugas_tambahan jika tersedia
             $grantedJsonList = $query->pluck('rtt.granted_permissions');
             foreach ($grantedJsonList as $raw) {
                 $perms = is_string($raw) ? json_decode($raw, true) : $raw;
                 if (is_array($perms) && in_array($permissionKey, $perms, true)) {
-                    return true;
+                    return in_array($action, ['read', 'create', 'update']);
                 }
             }
 
@@ -561,7 +644,7 @@ class RolePermission extends Model
                         'menu_agenda_kbm',
                         'menu_berkas_peserta_didik',
                     ], true)) {
-                        return true;
+                        return in_array($action, ['read', 'create', 'update']);
                     }
                 }
 
@@ -575,7 +658,7 @@ class RolePermission extends Model
                         'menu_agenda_kbm',
                         'menu_penilaian',
                     ], true)) {
-                        return true;
+                        return in_array($action, ['read', 'create', 'update']);
                     }
                 }
 
@@ -587,14 +670,14 @@ class RolePermission extends Model
                         'menu_poin',
                         'menu_e_izin',
                     ], true)) {
-                        return true;
+                        return in_array($action, ['read', 'create', 'update']);
                     }
                 }
 
                 // Modul sarpras
                 if (in_array($d->kode, ['WAKA_SARPRAS', 'KEPALA_LAB', 'KEPALA_BENGKEL'], true)) {
                     if ($permissionKey === 'menu_inventaris') {
-                        return true;
+                        return in_array($action, ['read', 'create', 'update']);
                     }
                 }
             }
@@ -727,32 +810,6 @@ class RolePermission extends Model
      */
     public static function can(mixed $userOrRole, string $permissionKey, string $action): bool
     {
-        $user = $userOrRole ?: session('user');
-        if (!$user) return false;
-        $role = is_string($user) ? $user : ($user['role'] ?? ($user->role ?? 'peserta_didik'));
-
-        if (!Schema::hasTable('role_permissions')) {
-            return $role === 'admin';
-        }
-
-        $actionCol = 'can_' . strtolower($action);
-        if (!in_array($actionCol, ['can_create', 'can_read', 'can_update', 'can_delete'])) {
-            return self::canAccess($user, $permissionKey);
-        }
-
-        $row = self::where('role', $role)->where('permission_key', $permissionKey)->first();
-        if ($row) {
-            // Menu harus aktif (is_allowed) dan can_read aktif dan aksi terkait bernilai true
-            return (bool) ($row->is_allowed && $row->can_read && $row->{$actionCol});
-        }
-
-        // Bawaan HANYA jika peran belum pernah dikonfigurasi sama sekali di database
-        if (!self::where('role', $role)->exists() && self::isDefaultAllowed($role, $permissionKey)) {
-            if ($actionCol === 'can_read') return true;
-            if ($role === 'admin') return true;
-            if (in_array($role, ['guru', 'tendik']) && in_array($actionCol, ['can_create', 'can_update'])) return true;
-        }
-
-        return false;
+        return self::canAccess($userOrRole, $permissionKey, $action);
     }
 }

@@ -33,11 +33,12 @@
             </div>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            @if (\App\Models\RolePermission::canAccess(session('user'), 'menu_dapodik'))
             <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.82rem;">
                 <i class="fas fa-cloud-arrow-down me-1"></i> Sinkron Dapodik
             </a>
-            @if (session('user') &&
-                    (is_array(session('user')) ? session('user')['role'] ?? '' : session('user')->role ?? '') === 'admin')
+            @endif
+            @if ($canUpdate)
                 <button type="button" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.82rem;"
                     onclick="openEditSekolahModal()">
                     <i class="fas fa-pen-to-square me-1"></i> Edit Data
@@ -369,16 +370,20 @@
                     <span>Tersimpan di <code>sekolah_meta</code> (Aman dari Dapodik)</span>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
+                    @if ($canDelete)
                     <button type="button" id="btnCardDeleteLogo" class="btn btn-outline"
                         style="padding: 6px 12px; font-size: 0.78rem; color: #ef4444; border-color: rgba(239,68,68,0.3); display: {{ $schoolLogoUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
                         onclick="handleDeleteSekolahLogo()">
                         <i class="fas fa-trash-can"></i> Hapus
                     </button>
+                    @endif
+                    @if ($canUpdate)
                     <button type="button" id="btnCardSaveLogo" class="btn btn-primary"
                         style="padding: 6px 14px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;"
                         onclick="handleUploadSekolahLogo()">
                         <i class="fas fa-cloud-arrow-up"></i> Simpan Logo
                     </button>
+                    @endif
                 </div>
             </div>
         </div>
@@ -449,16 +454,20 @@
                     <span>Tersimpan di <code>sekolah_meta</code> (Aman dari Dapodik)</span>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
+                    @if ($canDelete)
                     <button type="button" id="btnCardDeleteKop" class="btn btn-outline"
                         style="padding: 6px 12px; font-size: 0.78rem; color: #ef4444; border-color: rgba(239,68,68,0.3); display: {{ $schoolKopUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
                         onclick="handleDeleteSekolahKop()">
                         <i class="fas fa-trash-can"></i> Hapus
                     </button>
+                    @endif
+                    @if ($canUpdate)
                     <button type="button" id="btnCardSaveKop" class="btn btn-primary"
                         style="padding: 6px 14px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px;"
                         onclick="handleUploadSekolahKop()">
                         <i class="fas fa-cloud-arrow-up"></i> Simpan Kop Surat
                     </button>
+                    @endif
                 </div>
             </div>
         </div>
@@ -467,7 +476,7 @@
 
     <!-- Modal Edit Identitas Sekolah -->
     <div id="modalEditSekolah" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
             style="max-width: 680px; width: 92%; max-height: 88vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
             <div

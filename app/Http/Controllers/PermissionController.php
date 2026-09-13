@@ -118,6 +118,11 @@ class PermissionController extends Controller
             }
         }
 
+        // Urutkan modul yang dapat ditambahkan secara alfabetis berdasarkan nama modul
+        uasort($availableModulesToAdd, function ($a, $b) {
+            return strcasecmp($a['label'] ?? '', $b['label'] ?? '');
+        });
+
         // Ringkasan hitungan item aktif yang relevan untuk masing-masing role
         $counts = [];
         foreach (['admin', 'guru', 'tendik', 'peserta_didik'] as $r) {
@@ -416,21 +421,30 @@ class PermissionController extends Controller
         }
 
         $targetRole = $request->input('role');
-        $permissionKey = $request->input('permission_key');
+        $permissionKey = trim($request->input('permission_key', ''));
+        $customName = trim($request->input('custom_name', ''));
+
+        // Jika memilih untuk mendaftarkan modul baru / mendatang
+        if ($permissionKey === '__NEW_CUSTOM_MODULE__' || (!empty($customName) && empty($permissionKey))) {
+            if (empty($customName)) {
+                return response()->json(['status' => 'error', 'message' => 'Nama modul baru wajib diisi.'], 422);
+            }
+            $cleanSlug = \Illuminate\Support\Str::slug($customName, '_');
+            $permissionKey = 'menu_' . $cleanSlug;
+        }
 
         if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik']) || empty($permissionKey)) {
             return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
         }
 
         $config = RolePermission::getPermissionConfig($permissionKey);
-        if (!$config) {
-            return response()->json(['status' => 'error', 'message' => 'Modul sistem tidak dikenali'], 404);
-        }
+        $moduleLabel = !empty($customName) ? $customName : ($config['label'] ?? ucwords(str_replace(['menu_', '_'], ['', ' '], $permissionKey)));
 
         $canCreate = in_array($targetRole, ['admin', 'guru', 'tendik']);
         $canUpdate = in_array($targetRole, ['admin', 'guru', 'tendik']);
         $canDelete = $targetRole === 'admin';
 
+        // 1. Daftarkan/aktifkan modul untuk peran target
         RolePermission::updateOrCreate(
             ['role' => $targetRole, 'permission_key' => $permissionKey],
             [
@@ -443,9 +457,24 @@ class PermissionController extends Controller
             ]
         );
 
+        // 2. Pastikan Administrator selalu memiliki hak kontrol penuh atas modul baru ini
+        if ($targetRole !== 'admin') {
+            RolePermission::firstOrCreate(
+                ['role' => 'admin', 'permission_key' => $permissionKey],
+                [
+                    'is_allowed' => true,
+                    'can_create' => true,
+                    'can_read' => true,
+                    'can_update' => true,
+                    'can_delete' => true,
+                    'updated_at' => now(),
+                ]
+            );
+        }
+
         return response()->json([
             'status' => 'success',
-            'message' => "Modul '{$config['label']}' berhasil ditambahkan ke peran " . ucfirst(str_replace('_', ' ', $targetRole)) . " dan kini aktif di sidebar.",
+            'message' => "Modul '{$moduleLabel}' berhasil didaftarkan ke peran " . ucfirst(str_replace('_', ' ', $targetRole)) . " dan kini aktif di sidebar.",
         ]);
     }
 

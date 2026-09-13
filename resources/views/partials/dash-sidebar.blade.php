@@ -6,7 +6,7 @@
     $role = is_array($user) ? $user['role'] ?? 'peserta_didik' : $user->role ?? 'peserta_didik';
 
     // Evaluasi gabungan: hak role dasar + tugas tambahan aktif pengguna
-    $can = fn(string $key) => \App\Models\RolePermission::canAccess($user ?: $role, $key);
+    $can = fn(string $key, string $action = 'read') => \App\Models\RolePermission::canAccess($user ?: $role, $key, $action);
 
     // Ambil daftar tugas tambahan aktif pengguna saat ini untuk badge/info sidebar
     $userDuties = [];
@@ -76,17 +76,24 @@
         $can('menu_rapor') ||
         $can('menu_validasi_berkas');
 
-    // Proteksi ketat tingkat sistem: Peserta Didik hanya dapat melihat Dashboard & Portal Peserta Didik serta Layanan Siswa
-    if ($role === 'peserta_didik') {
-        $hasMasterData = false;
-        $hasPesertaDidik = false;
-        $hasGuru = false;
-        $hasTendik = false;
-        $hasManajemenData = false;
-        $hasSistem = false;
-        $hasPengaturan = false;
-        $hasAkademikGuru = false;
-        $hasUtama = $can('menu_dashboard');
+    // Kumpulkan modul sistem tambahan yang aktif tapi belum ter-render pada template bawaan
+    $allKnownModules = \App\Models\RolePermission::getAllSystemModules();
+    $renderedMenuKeys = [
+        'menu_dashboard', 'menu_dapodik', 'menu_kompetensi_keahlian', 'menu_rombel',
+        'menu_pembelajaran', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif',
+        'menu_guru_aktif', 'menu_guru_tidak_aktif', 'menu_tendik_aktif', 'menu_tendik_tidak_aktif',
+        'menu_berkas_peserta_didik', 'menu_perubahan_data', 'menu_presensi_mengajar',
+        'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_peserta_didik', 'menu_buku_tamu',
+        'menu_inventaris', 'menu_agenda', 'menu_riwayat_rfid', 'menu_jadwal_pelajaran',
+        'menu_rapor', 'menu_validasi_berkas', 'menu_pengumuman', 'menu_rfid', 'menu_e_izin',
+        'menu_poin', 'menu_kelulusan', 'menu_pengguna', 'menu_hak_akses', 'menu_pengaturan',
+        'menu_maintenance', 'menu_update',
+    ];
+    $extraModules = [];
+    foreach ($allKnownModules as $mKey => $mMeta) {
+        if (!in_array($mKey, $renderedMenuKeys, true) && $can($mKey)) {
+            $extraModules[] = $mMeta;
+        }
     }
 @endphp
 
@@ -709,6 +716,33 @@
                     <span class="nav-label">Update Sistem</span>
                 </a>
             @endif
+        @endif
+
+        @if (!empty($extraModules))
+            <span class="nav-section-label">Modul Lainnya</span>
+            @foreach ($extraModules as $extra)
+                @php
+                    $routeSlug = str_replace(['menu_', '_'], ['', '-'], $extra['key']);
+                    $routeTarget = '#';
+                    if (\Illuminate\Support\Facades\Route::has('dashboard.' . $routeSlug . '.index')) {
+                        $routeTarget = route('dashboard.' . $routeSlug . '.index');
+                    } elseif (\Illuminate\Support\Facades\Route::has('dashboard.' . $routeSlug)) {
+                        $routeTarget = route('dashboard.' . $routeSlug);
+                    } elseif (\Illuminate\Support\Facades\Route::has($routeSlug . '.index')) {
+                        $routeTarget = route($routeSlug . '.index');
+                    } elseif (\Illuminate\Support\Facades\Route::has($routeSlug)) {
+                        $routeTarget = route($routeSlug);
+                    }
+                @endphp
+                <a href="{{ $routeTarget }}" class="dash-nav-link {{ $routeTarget !== '#' && request()->is('dashboard/' . $routeSlug . '*') ? 'active' : '' }}"
+                    @if ($routeTarget === '#') onclick="event.preventDefault(); if (window.SAE && typeof window.SAE.toast === 'function') { window.SAE.toast('Modul {{ addslashes($extra['label']) }} sedang dalam tahap pengembangan (Segera Hadir).', 'info'); } else { alert('Modul {{ addslashes($extra['label']) }} sedang dalam tahap pengembangan (Segera Hadir).'); }" @endif>
+                    <span class="nav-icon"><i class="fas fa-fw {{ $extra['icon'] ?? 'fa-cube' }}"></i></span>
+                    <span class="nav-label">{{ $extra['label'] }}</span>
+                    @if ($routeTarget === '#')
+                        <span class="badge badge-outline" style="font-size: 0.6rem; padding: 2px 5px; margin-left: auto; opacity: 0.7;">Segera</span>
+                    @endif
+                </a>
+            @endforeach
         @endif
     </div>
 

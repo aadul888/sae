@@ -16,8 +16,9 @@
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            @if ($grade12ActiveCount > 0)
+            @if (($canCreate || $canUpdate) && $grade12ActiveCount > 0)
                 <button type="button" id="btnArchiveGrade12" class="btn btn-primary" data-count="{{ $grade12ActiveCount }}"
+                    data-url="{{ route('dashboard.peserta-didik-tidak-aktif.archive-grade12') }}"
                     style="padding: 9px 16px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
                     <i class="fas fa-box-archive"></i>
                     <span>Arsipkan Siswa Kelas XII ({{ $grade12ActiveCount }})</span>
@@ -322,7 +323,7 @@
 
     {{-- Modal Biodata Peserta Didik Tidak Aktif / Alumni --}}
     <div id="biodataModal" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
             style="max-width: 720px; width: 94%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
             <div
@@ -440,7 +441,7 @@
 
     {{-- Modal Preview Pasfoto Besar --}}
     <div id="photoPreviewModal" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px);"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);"
         onclick="closePhotoPreviewModal()">
         <div style="position: relative; max-width: 400px; width: 90%; text-align: center;"
             onclick="event.stopPropagation()">
@@ -458,219 +459,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const liveSearch = document.getElementById('liveSearch');
-            const clearSearch = document.getElementById('clearSearch');
-            const perPageSelect = document.getElementById('perPageSelect');
-            const filterStatus = document.getElementById('filterStatus');
-            const filterTahun = document.getElementById('filterTahun');
-            const btnArchiveGrade12 = document.getElementById('btnArchiveGrade12');
-
-            let debounceTimer;
-
-            function applyFilter() {
-                const params = new URLSearchParams(window.location.search);
-
-                if (liveSearch.value.trim()) {
-                    params.set('q', liveSearch.value.trim());
-                } else {
-                    params.delete('q');
-                }
-
-                if (filterStatus.value) {
-                    params.set('status', filterStatus.value);
-                } else {
-                    params.delete('status');
-                }
-
-                if (filterTahun.value) {
-                    params.set('tahun', filterTahun.value);
-                } else {
-                    params.delete('tahun');
-                }
-
-                if (perPageSelect.value) {
-                    params.set('perPage', perPageSelect.value);
-                }
-
-                params.set('page', '1');
-                window.location.search = params.toString();
-            }
-
-            if (perPageSelect) perPageSelect.addEventListener('change', applyFilter);
-            if (filterStatus) filterStatus.addEventListener('change', applyFilter);
-            if (filterTahun) filterTahun.addEventListener('change', applyFilter);
-
-            if (liveSearch) {
-                liveSearch.addEventListener('input', function() {
-                    if (this.value.trim()) {
-                        clearSearch.classList.add('visible');
-                    } else {
-                        clearSearch.classList.remove('visible');
-                    }
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(applyFilter, 500);
-                });
-
-                liveSearch.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        clearTimeout(debounceTimer);
-                        applyFilter();
-                    }
-                });
-            }
-
-            if (clearSearch) {
-                clearSearch.addEventListener('click', function() {
-                    liveSearch.value = '';
-                    clearSearch.classList.remove('visible');
-                    applyFilter();
-                });
-            }
-
-            // Sortable column headers
-            document.querySelectorAll('.sortable-th').forEach(function(th) {
-                th.style.cursor = 'pointer';
-                th.addEventListener('click', function() {
-                    const sortKey = this.dataset.sort;
-                    if (!sortKey) return;
-                    const params = new URLSearchParams(window.location.search);
-                    const currentSort = params.get('sort') || 'nama';
-                    const currentDir = params.get('sort_dir') || 'asc';
-                    let newDir = 'asc';
-                    if (currentSort === sortKey) {
-                        newDir = currentDir === 'asc' ? 'desc' : 'asc';
-                    }
-                    params.set('sort', sortKey);
-                    params.set('sort_dir', newDir);
-                    params.set('page', '1');
-                    window.location.search = params.toString();
-                });
-            });
-
-            // Aksi Pengarsipan Siswa Tingkat XII
-            if (btnArchiveGrade12) {
-                btnArchiveGrade12.addEventListener('click', async function() {
-                    const count = this.getAttribute('data-count');
-                    if (!count || count <= 0) {
-                        alert('Tidak ada siswa kelas XII yang perlu diarsipkan.');
-                        return;
-                    }
-
-                    if (!confirm(`Apakah Anda yakin ingin mengarsipkan ${count} siswa kelas XII?`)) {
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(
-                            '{{ route('peserta-didik-tidak-aktif.archive-grade12') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                },
-                                body: JSON.stringify({
-                                    count: parseInt(count)
-                                })
-                            });
-
-                        const result = await response.json();
-
-                        if (result.status === 'success') {
-                            alert(result.message);
-                            window.location.reload();
-                        } else {
-                            alert('Gagal: ' + result.message);
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Terjadi kesalahan saat mengarsipkan data.');
-                    }
-                });
-            }
-        });
-
-        function openBiodataModal(id) {
-            const modal = document.getElementById('biodataModal');
-            const loading = document.getElementById('bioLoading');
-            const content = document.getElementById('bioContent');
-
-            modal.style.display = 'flex';
-            loading.style.display = 'block';
-            content.style.display = 'none';
-
-            fetch(`{{ url('dashboard/manajemen-data/peserta-didik-tidak-aktif') }}/${id}`)
-                .then(res => res.json())
-                .then(res => {
-                    loading.style.display = 'none';
-                    if (res.status === 'success' && res.data) {
-                        const d = res.data;
-                        content.style.display = 'block';
-
-                        document.getElementById('bioNama').textContent = d.nama || '-';
-                        document.getElementById('bioRombel').textContent = (d.nama_rombel_terakhir ? d
-                            .nama_rombel_terakhir + ' • Tingkat ' + (d.tingkat_pendidikan_terakhir || '-') : '-');
-                        document.getElementById('bioNisn').textContent = (d.nisn || '-') + (d.nipd ? ' / ' + d.nipd :
-                            '');
-                        document.getElementById('bioNik').textContent = d.nik || '-';
-                        document.getElementById('bioJk').textContent = d.jenis_kelamin === 'L' ? 'Laki-Laki' : (d
-                            .jenis_kelamin === 'P' ? 'Perempuan' : '-');
-                        document.getElementById('bioTtl').textContent = [d.tempat_lahir, d.tanggal_lahir].filter(
-                            Boolean).join(', ') || '-';
-                        document.getElementById('bioAgama').textContent = d.agama_id_str || '-';
-
-                        const statusBadge = d.status_keluar === 'Alumni' ?
-                            '<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-weight: 700; padding: 3px 8px;"><i class="fas fa-graduation-cap me-1"></i>Alumni (Lulus)</span>' :
-                            '<span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-weight: 700; padding: 3px 8px;"><i class="fas fa-right-from-bracket me-1"></i>' +
-                            (d.status_keluar || 'Mutasi') + '</span>';
-
-                        document.getElementById('bioStatus').innerHTML = statusBadge;
-                        document.getElementById('bioTahunLulus').textContent = (d.tahun_lulus ? 'Tahun ' + d
-                            .tahun_lulus : '-') + (d.tanggal_keluar ? ' (Tgl: ' + d.tanggal_keluar + ')' : '');
-                        document.getElementById('bioRombelDetail').textContent = (d.nama_rombel_terakhir || '-') + (d
-                            .kurikulum_id_str ? ' (' + d.kurikulum_id_str + ')' : '');
-                        document.getElementById('bioAlasan').textContent = d.alasan_keluar || '-';
-
-                        document.getElementById('bioHp').textContent = d.nomor_telepon_seluler || '-';
-                        document.getElementById('bioEmail').textContent = d.email || '-';
-                        document.getElementById('bioAlamat').textContent = d.alamat_jalan || '-';
-
-                        const fotoContainer = document.getElementById('bioFotoContainer');
-                        if (d.foto_url) {
-                            fotoContainer.innerHTML =
-                                `<img src="${d.foto_url}" alt="${d.nama}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                        } else {
-                            fotoContainer.innerHTML =
-                                `<i class="fas fa-user-graduate text-primary" style="font-size: 1.3rem;"></i>`;
-                        }
-                    } else {
-                        loading.style.display = 'block';
-                        loading.innerHTML =
-                            '<div style="color: var(--danger);"><i class="fas fa-exclamation-circle me-1"></i> Gagal memuat rincian arsip siswa.</div>';
-                    }
-                })
-                .catch(err => {
-                    loading.style.display = 'block';
-                    loading.innerHTML =
-                        '<div style="color: var(--danger);"><i class="fas fa-exclamation-circle me-1"></i> Kesalahan jaringan: ' +
-                        err.message + '</div>';
-                });
-        }
-
-        function closeBiodataModal() {
-            document.getElementById('biodataModal').style.display = 'none';
-        }
-
-        function openPhotoPreviewModal(url, name) {
-            document.getElementById('imgFullPreview').src = url;
-            document.getElementById('txtFullPreviewName').innerText = name;
-            document.getElementById('photoPreviewModal').style.display = 'flex';
-        }
-
-        function closePhotoPreviewModal() {
-            document.getElementById('photoPreviewModal').style.display = 'none';
-        }
-    </script>
+    <script src="{{ asset('js/peserta-didik-tidak-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-tidak-aktif.js')) }}"></script>
 @endpush

@@ -14,9 +14,11 @@
             </p>
         </div>
         <div class="dash-banner-actions">
+            @if (\App\Models\RolePermission::canAccess($user ?? session('user'), 'menu_dapodik'))
             <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
                 <i class="fas fa-cloud-arrow-down me-1"></i> Tarik Data Dapodik
             </a>
+            @endif
         </div>
     </div>
 
@@ -113,7 +115,9 @@
                         style="padding: 7px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
                         <i class="fas fa-images"></i> Unggah Foto Masal Kelas
                     </button>
+                @endif
 
+                @if ($isWaliOrAdmin)
                     <button type="button" class="btn btn-outline" onclick="openCetakRombelModal('{{ $waliRombel ?: $rombel }}')"
                         style="padding: 7px 14px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 6px; border-color: #0284c7; color: #0284c7;">
                         <i class="fas fa-id-card"></i> Cetak Kartu Pelajar Masal
@@ -261,7 +265,7 @@
                                     onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
                                     <i class="fas fa-id-card"></i>
                                 </button>
-                                @if(!empty($item->nisn) && $canManageStudentPhotos)
+                                @if(!empty($item->nisn) && $isWaliOrAdmin)
                                 <button type="button" class="btn-icon" title="Pratinjau / Cetak Kartu Pelajar Digital"
                                     onclick="openKartuPelajarModal('{{ $item->nisn }}')">
                                     <i class="fas fa-address-card" style="color: #0284c7;"></i>
@@ -570,10 +574,12 @@
 
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                @if ($canDelete)
                 <button type="button" id="btnDeleteFoto" onclick="handleDeleteFoto()" class="btn btn-danger"
                     style="display: none; padding: 8px 14px; font-size: 0.8rem;">
                     <i class="fas fa-trash-can me-1"></i> Hapus Pasfoto
                 </button>
+                @endif
                 <div style="display: flex; gap: 8px; margin-left: auto;">
                     <button type="button" onclick="closeUploadFotoModal()" class="btn btn-outline"
                         style="padding: 8px 16px; font-size: 0.8rem;">Batal</button>

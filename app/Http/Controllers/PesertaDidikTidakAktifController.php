@@ -22,6 +22,11 @@ class PesertaDidikTidakAktifController extends Controller
             return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Peserta Didik Tidak Aktif dinonaktifkan.');
         }
 
+        $canCreate = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'create');
+        $canRead   = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'read');
+        $canUpdate = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'update');
+        $canDelete = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'delete');
+
         $q       = trim($request->get('q', ''));
         $status  = trim($request->get('status', ''));
         $tahun   = trim($request->get('tahun', ''));
@@ -132,7 +137,11 @@ class PesertaDidikTidakAktifController extends Controller
             'perPage',
             'sort',
             'sortDir',
-            'grade12ActiveCount'
+            'grade12ActiveCount',
+            'canCreate',
+            'canRead',
+            'canUpdate',
+            'canDelete'
         ));
     }
 
@@ -260,8 +269,8 @@ class PesertaDidikTidakAktifController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
 
-        if (!RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        if (!RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'create') && !RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki izin untuk mengarsipkan data siswa.'], 403);
         }
 
         $grade12ActiveCount = (int) $request->get('count', 0);

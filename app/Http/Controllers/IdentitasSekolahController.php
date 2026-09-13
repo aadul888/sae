@@ -44,7 +44,14 @@ class IdentitasSekolahController extends Controller
             $sekolahMeta = \App\Models\SekolahMeta::first();
         }
 
-        return view('dashboard.identitas-sekolah', compact('sekolah', 'settings', 'stats', 'sekolahMeta'));
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $canCreate = \App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'create');
+        $canRead   = \App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'read');
+        $canUpdate = \App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'update');
+        $canDelete = \App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'delete');
+
+        return view('dashboard.identitas-sekolah', compact('sekolah', 'settings', 'stats', 'sekolahMeta', 'canCreate', 'canRead', 'canUpdate', 'canDelete'));
     }
 
     public function update(Request $request)
@@ -52,8 +59,8 @@ class IdentitasSekolahController extends Controller
         $user = session('user');
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role !== 'admin') {
-            return back()->with('error', 'Hanya administrator yang dapat memperbarui identitas sekolah.');
+        if (!\App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'update')) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk memperbarui identitas sekolah.');
         }
 
         $request->validate([
@@ -128,7 +135,7 @@ class IdentitasSekolahController extends Controller
         }
 
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+        if (!\App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'update')) {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengunggah logo sekolah.'], 403);
         }
 
@@ -188,7 +195,7 @@ class IdentitasSekolahController extends Controller
         }
 
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+        if (!\App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'delete')) {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus logo sekolah.'], 403);
         }
 
@@ -224,7 +231,7 @@ class IdentitasSekolahController extends Controller
         }
 
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+        if (!\App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'update')) {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengunggah kop sekolah.'], 403);
         }
 
@@ -284,7 +291,7 @@ class IdentitasSekolahController extends Controller
         }
 
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_pengaturan')) {
+        if (!\App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'delete')) {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menghapus kop sekolah.'], 403);
         }
 

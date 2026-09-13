@@ -208,11 +208,13 @@
                         </td>
                         <td class="cell-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
+                                @if ($canUpdate || $canCreate)
                                 <button type="button" class="btn-icon"
                                     title="{{ !empty($item->logo_url) ? 'Ganti / Lihat Logo Jurusan' : 'Unggah Logo Jurusan' }}"
                                     onclick="openUploadLogoModal('{{ $item->kode }}', '{{ addslashes($item->nama) }}', '{{ $item->logo_url ?? '' }}', '{{ $item->logo_size ?? '' }}')">
                                     <i class="fas fa-image" style="{{ !empty($item->logo_url) ? 'color: #10b981;' : '' }}"></i>
                                 </button>
+                                @endif
                                 <button type="button" class="btn-icon" title="Lihat Daftar Rombel & Peserta Didik"
                                     onclick="openRombelModal('{{ $item->kode }}', '{{ addslashes($item->nama) }}')">
                                     <i class="fas fa-eye"></i>
@@ -413,11 +415,13 @@
 
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                @if ($canDelete)
                 <button type="button" id="btnDeleteLogo" class="btn"
                     style="display: none; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.82rem; padding: 8px 14px;"
                     onclick="handleDeleteLogo()">
                     <i class="fas fa-trash-can me-1"></i> Hapus Logo
                 </button>
+                @endif
                 <div style="display: flex; gap: 8px; margin-left: auto;">
                     <button type="button" class="btn btn-outline" onclick="closeLogoUploadModal()"
                         style="padding: 8px 16px; font-size: 0.82rem;">Batal</button>
