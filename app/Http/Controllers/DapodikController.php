@@ -34,7 +34,21 @@ class DapodikController extends Controller
         $apiKey = $setting->api_key ?? 'sae_secret_live_key_2026';
         $lastSync = $setting->last_sync ?? ($sekolah->updated_at ?? '-');
 
-        return view('dashboard.tarik-data', compact('sekolah', 'totalGtk', 'totalPesertaDidik', 'totalRombel', 'apiKey', 'lastSync'));
+        $hasActiveData = ($totalPesertaDidik > 0 || $totalGtk > 0 || $totalRombel > 0);
+        $syncAllowed = $hasActiveData ? (bool)($setting->sync_allowed ?? false) : true;
+        $archiveDownloadedAt = $setting->archive_downloaded_at ?? null;
+
+        return view('dashboard.tarik-data', compact(
+            'sekolah',
+            'totalGtk',
+            'totalPesertaDidik',
+            'totalRombel',
+            'apiKey',
+            'lastSync',
+            'hasActiveData',
+            'syncAllowed',
+            'archiveDownloadedAt'
+        ));
     }
 
     public function generateApiKey()

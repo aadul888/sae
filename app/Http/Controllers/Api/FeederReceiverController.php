@@ -48,10 +48,19 @@ class FeederReceiverController extends Controller
         $data = $payload['data'] ?? $request->input('data');
 
         if ($type === 'auth_check') {
+            $settings = DB::table('settings')->where('id', 1)->first();
+            $hasActiveData = (Schema::hasTable('peserta_didik') && DB::table('peserta_didik')->count() > 0)
+                || (Schema::hasTable('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
+                || (Schema::hasTable('gtk') && DB::table('gtk')->count() > 0);
+            $syncAllowed = $hasActiveData ? (bool)($settings->sync_allowed ?? false) : true;
+
             return response()->json([
                 'status' => 'success',
                 'success' => true,
                 'authenticated' => true,
+                'sync_allowed' => $syncAllowed,
+                'has_active_data' => $hasActiveData,
+                'archive_downloaded_at' => $settings->archive_downloaded_at ?? null,
                 'message' => 'Koneksi API SAE berhasil terhubung.'
             ]);
         }
@@ -61,6 +70,27 @@ class FeederReceiverController extends Controller
                 'status' => 'error',
                 'message' => 'Format payload tidak valid. Type dan data wajib dikirim.'
             ], 400);
+        }
+
+        // Cek proteksi keamanan pergantian data:
+        // Jika database SAE sudah memiliki data aktif sebelumnya, admin WAJIB mencadangkan & mengunduh berkas arsip terlebih dahulu.
+        $hasActiveData = (Schema::hasTable('peserta_didik') && DB::table('peserta_didik')->count() > 0)
+            || (Schema::hasTable('rombongan_belajar') && DB::table('rombongan_belajar')->count() > 0)
+            || (Schema::hasTable('gtk') && DB::table('gtk')->count() > 0);
+
+        if ($hasActiveData) {
+            $settings = DB::table('settings')->where('id', 1)->first();
+            $syncAllowed = (bool)($settings->sync_allowed ?? false);
+
+            if (!$syncAllowed) {
+                return response()->json([
+                    'status' => 'error',
+                    'success' => false,
+                    'requires_backup' => true,
+                    'code' => 'ARCHIVE_REQUIRED',
+                    'message' => 'Sinkronisasi Ditolak! Terdapat data aktif di sistem SAE dan Anda belum melakukan pencadangan serta pengunduhan data arsip. Harap buka menu "Arsip & Maintenance" di dashboard SAE, lalu klik "Unduh Arsip (.ZIP)" untuk mengarsipkan data lama terlebih dahulu sebelum mengirim data Dapodik baru.'
+                ], 422);
+            }
         }
 
         try {
@@ -118,6 +148,14 @@ class FeederReceiverController extends Controller
                 'last_sync' => now(),
                 'updated_at' => now(),
             ]);
+
+            // Jika sinkronisasi sudah sampai tahap akhir (getPengguna atau syncAll),
+            // kunci kembali sync_allowed agar untuk siklus/semester berikutnya admin wajib mengunduh arsip lagi
+            if ($type === 'syncAll' || $type === 'getPengguna') {
+                DB::table('settings')->where('id', 1)->update([
+                    'sync_allowed' => false,
+                ]);
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -455,23 +493,50 @@ class FeederReceiverController extends Controller
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
+        }
 
-            // Akun pengguna peserta didik (username & password default = NISN / NIK)
-            $username = $nisn ?: ($nik ?: $pd['peserta_didik_id']);
-            $plainPass = $nisn ?: ($nik ?: 'Sae12345!');
-
-            $batchPenggunaPesertaDidik[] = [
-                'pengguna_id' => $pd['peserta_didik_id'],
-                'sekolah_id' => null,
-                'username' => $username,
-                'nama' => $pd['nama'] ?? '-',
-                'peran_id_str' => 'Peserta Didik',
-                'password' => password_hash($plainPass, PASSWORD_BCRYPT, ['cost' => 8]),
-                'alamat' => $pd['alamat_jalan'] ?? null,
-                'no_telepon' => $pd['nomor_telepon_rumah'] ?? null,
-                'no_hp' => $pd['nomor_telepon_seluler'] ?? null,
-                'ptk_id' => null,
+        if (empty($batchPd)) {
+            return 0;
+            $batchPd[] = [
                 'peserta_didik_id' => $pd['peserta_didik_id'],
+                'registrasi_id' => $pd['registrasi_id'] ?? null,
+                'jenis_pendaftaran_id' => $pd['jenis_pendaftaran_id'] ?? null,
+                'jenis_pendaftaran_id_str' => $pd['jenis_pendaftaran_id_str'] ?? null,
+                'nipd' => $pd['nipd'] ?? null,
+                'tanggal_masuk_sekolah' => $pd['tanggal_masuk_sekolah'] ?? null,
+                'sekolah_asal' => $pd['sekolah_asal'] ?? null,
+                'nama' => $pd['nama'] ?? '-',
+                'nisn' => $nisn,
+                'jenis_kelamin' => $pd['jenis_kelamin'] ?? null,
+                'nik' => $nik,
+                'tempat_lahir' => $pd['tempat_lahir'] ?? null,
+                'tanggal_lahir' => $pd['tanggal_lahir'] ?? null,
+                'agama_id' => isset($pd['agama_id']) ? (int)$pd['agama_id'] : null,
+                'agama_id_str' => $pd['agama_id_str'] ?? null,
+                'nomor_telepon_rumah' => $pd['nomor_telepon_rumah'] ?? null,
+                'nomor_telepon_seluler' => $pd['nomor_telepon_seluler'] ?? null,
+                'nama_ayah' => $pd['nama_ayah'] ?? null,
+                'pekerjaan_ayah_id' => isset($pd['pekerjaan_ayah_id']) ? (int)$pd['pekerjaan_ayah_id'] : null,
+                'pekerjaan_ayah_id_str' => $pd['pekerjaan_ayah_id_str'] ?? null,
+                'nama_ibu' => $pd['nama_ibu'] ?? null,
+                'pekerjaan_ibu_id' => isset($pd['pekerjaan_ibu_id']) ? (int)$pd['pekerjaan_ibu_id'] : null,
+                'pekerjaan_ibu_id_str' => $pd['pekerjaan_ibu_id_str'] ?? null,
+                'nama_wali' => $pd['nama_wali'] ?? null,
+                'pekerjaan_wali_id' => isset($pd['pekerjaan_wali_id']) ? (int)$pd['pekerjaan_wali_id'] : null,
+                'pekerjaan_wali_id_str' => $pd['pekerjaan_wali_id_str'] ?? null,
+                'anak_keberapa' => $pd['anak_keberapa'] ?? null,
+                'tinggi_badan' => $pd['tinggi_badan'] ?? null,
+                'berat_badan' => $pd['berat_badan'] ?? null,
+                'email' => $email,
+                'semester_id' => $pd['semester_id'] ?? null,
+                'anggota_rombel_id' => $pd['anggota_rombel_id'] ?? null,
+                'rombongan_belajar_id' => $pd['rombongan_belajar_id'] ?? null,
+                'tingkat_pendidikan_id' => $pd['tingkat_pendidikan_id'] ?? null,
+                'nama_rombel' => $pd['nama_rombel'] ?? null,
+                'kurikulum_id' => $pd['kurikulum_id'] ?? null,
+                'kurikulum_id_str' => $pd['kurikulum_id_str'] ?? null,
+                'kebutuhan_khusus' => $pd['kebutuhan_khusus'] ?? null,
+                'alamat_jalan' => $pd['alamat_jalan'] ?? null,
                 'raw_data' => json_encode($pd, JSON_UNESCAPED_UNICODE),
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -482,7 +547,7 @@ class FeederReceiverController extends Controller
             return 0;
         }
 
-        // Backup existing data
+        // Backup existing live peserta_didik ke tabel backup_peserta_didik
         $this->archiveTable('peserta_didik', 'backup_peserta_didik');
 
         // Overwrite live peserta_didik
@@ -491,10 +556,95 @@ class FeederReceiverController extends Controller
             DB::table('peserta_didik')->insert($chunk);
         }
 
-        // Hapus akun peserta didik lama lalu insert akun peserta didik baru
-        DB::table('pengguna')->whereNotNull('peserta_didik_id')->orWhere('peran_id_str', 'Peserta Didik')->delete();
-        foreach (array_chunk($batchPenggunaPesertaDidik, 250) as $chunk) {
-            DB::table('pengguna')->insert($chunk);
+        // Sinkronisasi Akun Pengguna Peserta Didik:
+        // PERTAHANKAN PASSWORD SISWA YANG PERNAH DIUBAH! JANGAN DELETE ATAU RESET PASSWORD MEREKA.
+        $existingUsers = DB::table('pengguna')
+            ->whereNotNull('peserta_didik_id')
+            ->orWhere('peran_id_str', 'Peserta Didik')
+            ->get();
+
+        $existingByPdId = [];
+        $existingByUsername = [];
+        foreach ($existingUsers as $u) {
+            if (!empty($u->peserta_didik_id)) {
+                $existingByPdId[$u->peserta_didik_id] = $u;
+            }
+            if (!empty($u->username)) {
+                $existingByUsername[$u->username] = $u;
+            }
+        }
+
+        $newAccounts = [];
+        $seenUsernames = [];
+
+        foreach ($data as $pd) {
+            if (empty($pd['peserta_didik_id'])) {
+                continue;
+            }
+
+            $pdId = $pd['peserta_didik_id'];
+            $nisn = !empty($pd['nisn']) ? $pd['nisn'] : null;
+            $nik = !empty($pd['nik']) ? $pd['nik'] : null;
+            $username = $nisn ?: ($nik ?: $pdId);
+            $nama = $pd['nama'] ?? '-';
+            $alamat = $pd['alamat_jalan'] ?? null;
+            $telp = $pd['nomor_telepon_rumah'] ?? null;
+            $hp = $pd['nomor_telepon_seluler'] ?? null;
+            $rawData = json_encode($pd, JSON_UNESCAPED_UNICODE);
+
+            $existing = $existingByPdId[$pdId] ?? ($existingByUsername[$username] ?? null);
+
+            if ($existing) {
+                // Siswa lama: perbarui profil, pertahankan password kustom jika sudah diganti
+                $updateData = [
+                    'username' => $username,
+                    'nama' => $nama,
+                    'alamat' => $alamat,
+                    'no_telepon' => $telp,
+                    'no_hp' => $hp,
+                    'raw_data' => $rawData,
+                    'updated_at' => $now,
+                ];
+
+                // Hanya jika siswa BELUM pernah mengganti password dan NISN berubah, sinkronkan password default
+                if (empty($existing->password_updated_at)) {
+                    $plainPass = $nisn ?: ($nik ?: 'Sae12345!');
+                    $updateData['password'] = password_hash($plainPass, PASSWORD_BCRYPT, ['cost' => 8]);
+                }
+
+                DB::table('pengguna')->where('pengguna_id', $existing->pengguna_id)->update($updateData);
+            } else {
+                if (isset($seenUsernames[$username])) {
+                    $username = $username . '_' . substr($pdId, 0, 4);
+                }
+                $seenUsernames[$username] = true;
+
+                // Siswa baru: buat akun baru dengan default password NISN / NIK
+                $plainPass = $nisn ?: ($nik ?: 'Sae12345!');
+                $newAccounts[] = [
+                    'pengguna_id' => $pdId,
+                    'sekolah_id' => null,
+                    'username' => $username,
+                    'nama' => $nama,
+                    'peran_id_str' => 'Peserta Didik',
+                    'password' => password_hash($plainPass, PASSWORD_BCRYPT, ['cost' => 8]),
+                    'password_updated_at' => null,
+                    'alamat' => $alamat,
+                    'no_telepon' => $telp,
+                    'no_hp' => $hp,
+                    'ptk_id' => null,
+                    'peserta_didik_id' => $pdId,
+                    'raw_data' => $rawData,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        if (!empty($newAccounts)) {
+            foreach (array_chunk($newAccounts, 250) as $chunk) {
+                DB::table('pengguna')->insert($chunk);
+            }
         }
 
         return count($batchPd);
@@ -503,9 +653,30 @@ class FeederReceiverController extends Controller
     private function processPengguna(array $data): int
     {
         $now = now();
-        $batchPengguna = [];
         $defaultPassword = Hash::make('Sae12345!');
         $seenPenggunaIds = [];
+
+        // Backup existing live Dapodik pengguna ke tabel backup_pengguna
+        $this->archiveTable('pengguna', 'backup_pengguna');
+
+        // Ambil akun staf / guru / admin yang sudah ada
+        $existingStaff = DB::table('pengguna')
+            ->where(function ($q) {
+                $q->whereNull('peserta_didik_id')->where('peran_id_str', '!=', 'Peserta Didik');
+            })
+            ->get();
+
+        $existingStaffById = [];
+        $existingStaffByUsername = [];
+        foreach ($existingStaff as $st) {
+            $existingStaffById[$st->pengguna_id] = $st;
+            if (!empty($st->username)) {
+                $existingStaffByUsername[$st->username] = $st;
+            }
+        }
+
+        $batchNewPengguna = [];
+        $seenUsernames = [];
 
         foreach ($data as $u) {
             if (empty($u['pengguna_id'])) {
@@ -520,39 +691,70 @@ class FeederReceiverController extends Controller
 
             $ptkId = !empty($u['ptk_id']) ? $u['ptk_id'] : null;
             $username = $u['username'] ?? $penggunaId;
+            $nama = $u['nama'] ?? '-';
+            $peran = $u['peran_id_str'] ?? null;
+            $alamat = $u['alamat'] ?? null;
+            $telp = $u['no_telepon'] ?? null;
+            $hp = $u['no_hp'] ?? null;
+            $rawData = json_encode($u, JSON_UNESCAPED_UNICODE);
 
-            $batchPengguna[] = [
-                'pengguna_id' => $penggunaId,
-                'sekolah_id' => $u['sekolah_id'] ?? null,
-                'username' => $username,
-                'nama' => $u['nama'] ?? '-',
-                'peran_id_str' => $u['peran_id_str'] ?? null,
-                'password' => !empty($u['password']) ? $u['password'] : $defaultPassword,
-                'alamat' => $u['alamat'] ?? null,
-                'no_telepon' => $u['no_telepon'] ?? null,
-                'no_hp' => $u['no_hp'] ?? null,
-                'ptk_id' => $ptkId,
-                'peserta_didik_id' => $u['peserta_didik_id'] ?? null,
-                'raw_data' => json_encode($u, JSON_UNESCAPED_UNICODE),
-                'created_at' => $now,
-                'updated_at' => $now,
-            ];
+            $existing = $existingStaffById[$penggunaId] ?? ($existingStaffByUsername[$username] ?? null);
+
+            if ($existing) {
+                // User sudah ada: jika sudah pernah ubah password di SAE (password_updated_at !== null),
+                // pertahankan password lokal SAE!
+                $updateFields = [
+                    'sekolah_id' => $u['sekolah_id'] ?? null,
+                    'username' => $username,
+                    'nama' => $nama,
+                    'peran_id_str' => $peran,
+                    'alamat' => $alamat,
+                    'no_telepon' => $telp,
+                    'no_hp' => $hp,
+                    'ptk_id' => $ptkId,
+                    'raw_data' => $rawData,
+                    'updated_at' => $now,
+                ];
+
+                if (empty($existing->password_updated_at)) {
+                    $updateFields['password'] = !empty($u['password']) ? $u['password'] : $defaultPassword;
+                }
+
+                DB::table('pengguna')->where('pengguna_id', $existing->pengguna_id)->update($updateFields);
+            } else {
+                if (isset($seenUsernames[$username])) {
+                    $username = $username . '_' . substr($penggunaId, 0, 4);
+                }
+                $seenUsernames[$username] = true;
+
+                // GTK baru
+                $batchNewPengguna[] = [
+                    'pengguna_id' => $penggunaId,
+                    'sekolah_id' => $u['sekolah_id'] ?? null,
+                    'username' => $username,
+                    'nama' => $nama,
+                    'peran_id_str' => $peran,
+                    'password' => !empty($u['password']) ? $u['password'] : $defaultPassword,
+                    'password_updated_at' => null,
+                    'alamat' => $alamat,
+                    'no_telepon' => $telp,
+                    'no_hp' => $hp,
+                    'ptk_id' => $ptkId,
+                    'peserta_didik_id' => $u['peserta_didik_id'] ?? null,
+                    'raw_data' => $rawData,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
         }
 
-        if (empty($batchPengguna)) {
-            return 0;
+        if (!empty($batchNewPengguna)) {
+            foreach (array_chunk($batchNewPengguna, 200) as $chunk) {
+                DB::table('pengguna')->insert($chunk);
+            }
         }
 
-        // Backup existing live Dapodik pengguna
-        $this->archiveTable('pengguna', 'backup_pengguna');
-
-        // Hapus akun selain peserta didik agar tidak menghapus akun peserta didik yang dibuat dari processPesertaDidik
-        DB::table('pengguna')->whereNull('peserta_didik_id')->where('peran_id_str', '!=', 'Peserta Didik')->delete();
-        foreach (array_chunk($batchPengguna, 200) as $chunk) {
-            DB::table('pengguna')->insert($chunk);
-        }
-
-        // Bersihkan sesi aktif agar user otomatis logout dan login dengan akun Dapodik
+        // Bersihkan sesi aktif agar user otomatis memperbarui sesi dengan akun Dapodik
         try {
             $sessionPath = storage_path('framework/sessions');
             if (is_dir($sessionPath)) {
@@ -570,6 +772,6 @@ class FeederReceiverController extends Controller
             // Ignore session purge warning
         }
 
-        return count($batchPengguna);
+        return count($seenPenggunaIds);
     }
 }
