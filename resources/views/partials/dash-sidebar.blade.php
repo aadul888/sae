@@ -6,7 +6,11 @@
     $role = is_array($user) ? $user['role'] ?? 'peserta_didik' : $user->role ?? 'peserta_didik';
 
     // Evaluasi gabungan: hak role dasar + tugas tambahan aktif pengguna
-    $can = fn(string $key, string $action = 'read') => \App\Models\RolePermission::canAccess($user ?: $role, $key, $action);
+    $can = fn(string $key, string $action = 'read') => \App\Models\RolePermission::canAccess(
+        $user ?: $role,
+        $key,
+        $action,
+    );
 
     // Ambil daftar tugas tambahan aktif pengguna saat ini untuk badge/info sidebar
     $userDuties = [];
@@ -34,7 +38,11 @@
     }
 
     // Master Data Submenus
-    $hasMasterData = $can('menu_kompetensi_keahlian') || $can('menu_rombel') || $can('menu_pembelajaran');
+    $hasMasterData =
+        $can('menu_kompetensi_keahlian') ||
+        $can('menu_rombel') ||
+        $can('menu_pembelajaran') ||
+        $can('menu_kalender_pendidikan');
 
     // Manajemen Data Submenus
     $hasPesertaDidik = $can('menu_peserta_didik_aktif') || $can('menu_peserta_didik_tidak_aktif');
@@ -79,15 +87,41 @@
     // Kumpulkan modul sistem tambahan yang aktif tapi belum ter-render pada template bawaan
     $allKnownModules = \App\Models\RolePermission::getAllSystemModules();
     $renderedMenuKeys = [
-        'menu_dashboard', 'menu_dapodik', 'menu_kompetensi_keahlian', 'menu_rombel',
-        'menu_pembelajaran', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif',
-        'menu_guru_aktif', 'menu_guru_tidak_aktif', 'menu_tendik_aktif', 'menu_tendik_tidak_aktif',
-        'menu_berkas_peserta_didik', 'menu_perubahan_data', 'menu_presensi_mengajar',
-        'menu_agenda_kbm', 'menu_penilaian', 'menu_presensi_peserta_didik', 'menu_buku_tamu',
-        'menu_inventaris', 'menu_agenda', 'menu_riwayat_rfid', 'menu_jadwal_pelajaran',
-        'menu_rapor', 'menu_validasi_berkas', 'menu_pengumuman', 'menu_rfid', 'menu_e_izin',
-        'menu_poin', 'menu_kelulusan', 'menu_pengguna', 'menu_hak_akses', 'menu_pengaturan',
-        'menu_maintenance', 'menu_update',
+        'menu_dashboard',
+        'menu_dapodik',
+        'menu_kompetensi_keahlian',
+        'menu_rombel',
+        'menu_pembelajaran',
+        'menu_kalender_pendidikan',
+        'menu_peserta_didik_aktif',
+        'menu_peserta_didik_tidak_aktif',
+        'menu_guru_aktif',
+        'menu_guru_tidak_aktif',
+        'menu_tendik_aktif',
+        'menu_tendik_tidak_aktif',
+        'menu_berkas_peserta_didik',
+        'menu_perubahan_data',
+        'menu_presensi_mengajar',
+        'menu_agenda_kbm',
+        'menu_penilaian',
+        'menu_presensi_peserta_didik',
+        'menu_buku_tamu',
+        'menu_inventaris',
+        'menu_agenda',
+        'menu_riwayat_rfid',
+        'menu_jadwal_pelajaran',
+        'menu_rapor',
+        'menu_validasi_berkas',
+        'menu_pengumuman',
+        'menu_rfid',
+        'menu_e_izin',
+        'menu_poin',
+        'menu_kelulusan',
+        'menu_pengguna',
+        'menu_hak_akses',
+        'menu_pengaturan',
+        'menu_maintenance',
+        'menu_update',
     ];
     $extraModules = [];
     foreach ($allKnownModules as $mKey => $mMeta) {
@@ -112,14 +146,15 @@
     </div>
 
     @php
-        $userFoto = is_array($user) ? ($user['foto_url'] ?? null) : ($user->foto_url ?? null);
+        $userFoto = is_array($user) ? $user['foto_url'] ?? null : $user->foto_url ?? null;
     @endphp
     <!-- User Profile Badge -->
     <div class="dash-sidebar-user">
-        <a href="{{ route('dashboard.profile') }}" title="Lihat Profil Saya" style="text-decoration: none; flex-shrink: 0; display: block;">
+        <a href="{{ route('dashboard.profile') }}" title="Lihat Profil Saya"
+            style="text-decoration: none; flex-shrink: 0; display: block;">
             @if ($userFoto)
                 <img src="{{ $userFoto }}" alt="{{ $userName }}" class="dash-sidebar-avatar-img"
-                     onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
                 <div class="dash-sidebar-user-avatar" style="display: none;">
                     @if ($role === 'admin')
                         <i class="fas fa-user-shield"></i>
@@ -146,7 +181,8 @@
             @endif
         </a>
         <div class="dash-user-info">
-            <a href="{{ route('dashboard.profile') }}" class="dash-user-name" title="{{ $userName }}" style="text-decoration: none; color: inherit; display: block;">{{ $userName }}</a>
+            <a href="{{ route('dashboard.profile') }}" class="dash-user-name" title="{{ $userName }}"
+                style="text-decoration: none; color: inherit; display: block;">{{ $userName }}</a>
             <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px;">
                 <span class="dash-user-role role-{{ $role }}">{{ $role }}</span>
                 @foreach ($userDuties as $duty)
@@ -182,7 +218,9 @@
                 };
                 $dashActive =
                     request()->routeIs('dashboard.' . $role) ||
-                    ($role === 'peserta_didik' && (request()->routeIs('dashboard.peserta-didik') || request()->routeIs('dashboard.peserta_didik')));
+                    ($role === 'peserta_didik' &&
+                        (request()->routeIs('dashboard.peserta-didik') ||
+                            request()->routeIs('dashboard.peserta_didik')));
             @endphp
 
             @if ($can('menu_dashboard'))
@@ -206,7 +244,8 @@
                     $isMasterDataActive =
                         request()->routeIs('dashboard.kompetensi-keahlian*') ||
                         request()->routeIs('dashboard.rombel*') ||
-                        request()->routeIs('dashboard.pembelajaran*');
+                        request()->routeIs('dashboard.pembelajaran*') ||
+                        request()->routeIs('dashboard.kalender-pendidikan*');
                 @endphp
                 <div class="dash-nav-group {{ $isMasterDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
@@ -259,6 +298,14 @@
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.pembelajaran*') ? 'active' : '' }}">
                                 <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
                                 <span class="nav-label">Pembelajaran</span>
+                            </a>
+                        @endif
+
+                        @if ($can('menu_kalender_pendidikan'))
+                            <a href="{{ route('dashboard.kalender-pendidikan.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.kalender-pendidikan*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                                <span class="nav-label">Kalender Pendidikan</span>
                             </a>
                         @endif
                     </div>
@@ -734,12 +781,14 @@
                         $routeTarget = route($routeSlug);
                     }
                 @endphp
-                <a href="{{ $routeTarget }}" class="dash-nav-link {{ $routeTarget !== '#' && request()->is('dashboard/' . $routeSlug . '*') ? 'active' : '' }}"
+                <a href="{{ $routeTarget }}"
+                    class="dash-nav-link {{ $routeTarget !== '#' && request()->is('dashboard/' . $routeSlug . '*') ? 'active' : '' }}"
                     @if ($routeTarget === '#') onclick="event.preventDefault(); if (window.SAE && typeof window.SAE.toast === 'function') { window.SAE.toast('Modul {{ addslashes($extra['label']) }} sedang dalam tahap pengembangan (Segera Hadir).', 'info'); } else { alert('Modul {{ addslashes($extra['label']) }} sedang dalam tahap pengembangan (Segera Hadir).'); }" @endif>
                     <span class="nav-icon"><i class="fas fa-fw {{ $extra['icon'] ?? 'fa-cube' }}"></i></span>
                     <span class="nav-label">{{ $extra['label'] }}</span>
                     @if ($routeTarget === '#')
-                        <span class="badge badge-outline" style="font-size: 0.6rem; padding: 2px 5px; margin-left: auto; opacity: 0.7;">Segera</span>
+                        <span class="badge badge-outline"
+                            style="font-size: 0.6rem; padding: 2px 5px; margin-left: auto; opacity: 0.7;">Segera</span>
                     @endif
                 </a>
             @endforeach

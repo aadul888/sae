@@ -1,0 +1,35 @@
+# ==============================================================================
+
+# SAE - Root Web Server Protection & Fallback Router (Apache / LiteSpeed / cPanel)
+
+# ==============================================================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # 1. Lindungi file sensitif jika proyek diletakkan langsung di DocumentRoot (public_html)
+    <FilesMatch "^\.(env|git|gitignore|editorconfig)">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+
+    <FilesMatch "\.(sql|log|sh|md|lock|json|xml|yml|yaml)$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+
+    # Blokir akses langsung ke direktori internal aplikasi
+    RewriteRule ^(app|bootstrap|config|database|resources|storage|tests)/ - [F,L,NC]
+    RewriteRule ^composer\.(json|lock)$ - [F,L,NC]
+    RewriteRule ^artisan$ - [F,L,NC]
+    RewriteRule ^\.env.*$ - [F,L,NC]
+
+    # 2. Forward otomatis ke folder /public jika server belum mengarahkan DocumentRoot ke /public
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+
+</IfModule>
+
+# Cegah directory listing
+
+Options -Indexes

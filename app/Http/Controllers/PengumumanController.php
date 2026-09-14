@@ -24,15 +24,15 @@ class PengumumanController extends Controller
         $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
 
         // Jika bukan admin dan tidak memiliki hak membuat/mengubah pengumuman, arahkan ke feed pengguna
-        $canCreate = RolePermission::can($role, 'menu_pengumuman', 'create');
-        $canUpdate = RolePermission::can($role, 'menu_pengumuman', 'update');
-        $canDelete = RolePermission::can($role, 'menu_pengumuman', 'delete');
+        $canCreate = RolePermission::canAccess($user, 'menu_pengumuman', 'create');
+        $canUpdate = RolePermission::canAccess($user, 'menu_pengumuman', 'update');
+        $canDelete = RolePermission::canAccess($user, 'menu_pengumuman', 'delete');
 
         if ($role !== 'admin' && !$canCreate && !$canUpdate && !$canDelete) {
             return redirect()->route('dashboard.informasi.index');
         }
 
-        if (!RolePermission::canAccess($user ?: $role, 'menu_pengumuman')) {
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'read')) {
             return redirect()->route('dashboard.' . $role)->with('error', 'Akses dibatasi.');
         }
 
@@ -213,8 +213,8 @@ class PengumumanController extends Controller
             return redirect()->route('login');
         }
 
-        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
-        $userId = (string) (is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? '')) : ($user->pengguna_id ?? ($user->id ?? '')));
+        $role = (string) data_get($user, 'role', 'peserta_didik');
+        $userId = (string) data_get($user, 'pengguna_id', data_get($user, 'id', ''));
 
         if ($userId !== '') {
             Pengumuman::forUserRole($role)->get()->each(function (Pengumuman $p) use ($userId) {
@@ -243,13 +243,16 @@ class PengumumanController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Silakan login terlebih dahulu.'], 401);
         }
 
-        $userId = (string) (is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? '')) : ($user->pengguna_id ?? ($user->id ?? '')));
-        $pengumuman = Pengumuman::findOrFail($id);
+        $userId = (string) data_get($user, 'pengguna_id', data_get($user, 'id', ''));
+        $pengumuman = Pengumuman::find($id);
+        if (!$pengumuman) {
+            return response()->json(['status' => 'error', 'message' => 'Pengumuman tidak ditemukan.'], 404);
+        }
 
         $pengumuman->tandaiDibacaOleh($userId);
 
         // Hitung sisa unread untuk role pengguna saat ini
-        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
+        $role = (string) data_get($user, 'role', 'peserta_didik');
         $remainingUnread = Pengumuman::forUserRole($role)->get()->filter(fn($p) => !$p->sudahDibacaOleh($userId))->count();
 
         return response()->json([
@@ -265,15 +268,28 @@ class PengumumanController extends Controller
     public function detail(Request $request, int $id)
     {
         $user = session('user');
-        $userId = $user ? (string) (is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? '')) : ($user->pengguna_id ?? ($user->id ?? ''))) : null;
+        $userId = $user ? (string) data_get($user, 'pengguna_id', data_get($user, 'id', '')) : null;
+        $role = $user ? (string) data_get($user, 'role', 'peserta_didik') : 'peserta_didik';
 
-        $pengumuman = Pengumuman::findOrFail($id);
+        $pengumuman = Pengumuman::find($id);
+        if (!$pengumuman) {
+            return response()->json(['status' => 'error', 'message' => 'Pengumuman tidak ditemukan.'], 404);
+        }
+
+        // Pengguna non-admin hanya boleh melihat pengumuman aktif yang sesuai perannya
+        if ($role !== 'admin') {
+            if (!$pengumuman->is_active) {
+                return response()->json(['status' => 'error', 'message' => 'Pengumuman sudah tidak aktif.'], 404);
+            }
+            if ($pengumuman->target_peran !== 'semua' && $pengumuman->target_peran !== $role) {
+                return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk melihat pengumuman ini.'], 403);
+            }
+        }
 
         if ($userId) {
             $pengumuman->tandaiDibacaOleh($userId);
         }
 
-        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
         $remainingUnread = $userId ? Pengumuman::forUserRole($role)->get()->filter(fn($p) => !$p->sudahDibacaOleh($userId))->count() : 0;
 
         return response()->json([
@@ -300,9 +316,14 @@ class PengumumanController extends Controller
     public function store(Request $request)
     {
         $user = session('user');
-        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
+        if (!$user) {
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401);
+            }
+            return redirect()->route('login');
+        }
 
-        if (!RolePermission::can($role, 'menu_pengumuman', 'create')) {
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'create')) {
             if ($request->expectsJson()) {
                 return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk menambah pengumuman.'], 403);
             }
@@ -318,7 +339,7 @@ class PengumumanController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        $defaultAuthor = is_array($user) ? ($user['name'] ?? ($user['nama'] ?? 'Staff')) : ($user->name ?? ($user->nama ?? 'Staff'));
+        $defaultAuthor = (string) data_get($user, 'name', data_get($user, 'nama', 'Staff'));
         $authorName = !empty($validated['penulis_nama']) ? trim($validated['penulis_nama']) : $defaultAuthor;
 
         $pengumuman = Pengumuman::create([
@@ -326,7 +347,7 @@ class PengumumanController extends Controller
             'isi' => $validated['isi'],
             'target' => $validated['target'],
             'target_peran' => $validated['target_peran'] ?? 'semua',
-            'is_active' => $request->has('is_active') ? (bool)$request->input('is_active') : true,
+            'is_active' => $request->boolean('is_active', true),
             'penulis_nama' => $authorName,
         ]);
 
@@ -347,16 +368,27 @@ class PengumumanController extends Controller
     public function update(Request $request, int $id)
     {
         $user = session('user');
-        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
+        if (!$user) {
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401);
+            }
+            return redirect()->route('login');
+        }
 
-        if (!RolePermission::can($role, 'menu_pengumuman', 'update')) {
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'update')) {
             if ($request->expectsJson()) {
                 return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk mengubah pengumuman.'], 403);
             }
             return back()->with('error', 'Anda tidak memiliki hak untuk mengubah pengumuman.');
         }
 
-        $pengumuman = Pengumuman::findOrFail($id);
+        $pengumuman = Pengumuman::find($id);
+        if (!$pengumuman) {
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Pengumuman tidak ditemukan.'], 404);
+            }
+            return back()->with('error', 'Pengumuman tidak ditemukan.');
+        }
 
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
@@ -375,7 +407,7 @@ class PengumumanController extends Controller
             'target' => $validated['target'],
             'target_peran' => $validated['target_peran'] ?? 'semua',
             'penulis_nama' => $authorName,
-            'is_active' => $request->has('is_active') ? (bool)$request->input('is_active') : true,
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         if ($request->expectsJson()) {
@@ -395,13 +427,19 @@ class PengumumanController extends Controller
     public function toggle(Request $request, int $id)
     {
         $user = session('user');
-        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401);
+        }
 
-        if (!RolePermission::can($role, 'menu_pengumuman', 'update')) {
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'update')) {
             return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
         }
 
-        $pengumuman = Pengumuman::findOrFail($id);
+        $pengumuman = Pengumuman::find($id);
+        if (!$pengumuman) {
+            return response()->json(['status' => 'error', 'message' => 'Pengumuman tidak ditemukan.'], 404);
+        }
+
         $pengumuman->is_active = !$pengumuman->is_active;
         $pengumuman->save();
 
@@ -418,16 +456,28 @@ class PengumumanController extends Controller
     public function destroy(Request $request, int $id)
     {
         $user = session('user');
-        $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
+        if (!$user) {
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Silakan masuk terlebih dahulu.'], 401);
+            }
+            return redirect()->route('login');
+        }
 
-        if (!RolePermission::can($role, 'menu_pengumuman', 'delete')) {
+        if (!RolePermission::canAccess($user, 'menu_pengumuman', 'delete')) {
             if ($request->expectsJson()) {
                 return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak untuk menghapus pengumuman.'], 403);
             }
             return back()->with('error', 'Anda tidak memiliki hak untuk menghapus pengumuman.');
         }
 
-        $pengumuman = Pengumuman::findOrFail($id);
+        $pengumuman = Pengumuman::find($id);
+        if (!$pengumuman) {
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => 'Pengumuman tidak ditemukan.'], 404);
+            }
+            return back()->with('error', 'Pengumuman tidak ditemukan.');
+        }
+
         $pengumuman->delete();
 
         if ($request->expectsJson()) {

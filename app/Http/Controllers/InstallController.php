@@ -34,19 +34,31 @@ class InstallController extends Controller
         $username = $request->input('db_user');
         $password = $request->input('db_pass') ?? '';
 
-        // 1. Tes koneksi MySQL Server & Buat Database jika belum ada
+        // 1. Tes koneksi MySQL Server & Buat/Gunakan Database (Kompatibel VPS & Shared Hosting)
         try {
-            $pdo = new PDO("mysql:host={$host};port={$port}", $username, $password, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_TIMEOUT => 5
-            ]);
-            $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+            try {
+                // Coba koneksi langsung ke DB spesifik (umumnya sudah dibuat terlebih dahulu di cPanel/Hostinger)
+                $pdo = new PDO("mysql:host={$host};port={$port};dbname={$database}", $username, $password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 5
+                ]);
+            } catch (Exception $directEx) {
+                // Fallback: Konek ke server root MySQL dan buat database jika izin mencukupi (VPS / Local)
+                $pdo = new PDO("mysql:host={$host};port={$port}", $username, $password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 5
+                ]);
+                $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;");
+                $pdo->exec("USE `{$database}`;");
+            }
         } catch (Exception $e) {
             return back()->withInput()->with('error', 'Gagal terhubung ke MySQL Server: ' . $e->getMessage());
         }
 
         // 2. Tulis / Update file .env
+        $appUrl = $request->getSchemeAndHttpHost();
         $this->writeEnvFile([
+            'APP_URL' => $appUrl,
             'DB_HOST' => $host,
             'DB_PORT' => $port,
             'DB_DATABASE' => $database,
@@ -65,23 +77,28 @@ class InstallController extends Controller
         ]);
         DB::purge('mysql');
 
-        // 4. Impor database SQL bawaan (database/db_sae.sql)
+        // 4. Impor database SQL bawaan (database/db_sae.sql) dan migrasi skema terbaru
         try {
             $sqlFile = database_path('db_sae.sql');
             if (File::exists($sqlFile)) {
                 $sql = File::get($sqlFile);
                 $pdo->exec("USE `{$database}`;");
                 $pdo->exec($sql);
-            } else {
-                // Fallback ke migration & seed jika file sql tidak ada
-                Artisan::call('migrate:fresh', [
-                    '--force' => true,
-                    '--seed' => true,
-                ]);
             }
-            Artisan::call('config:clear');
+
+            // Jalankan migrasi tambahan (seperti tabel kalender_pendidikan, role_permissions, dll)
+            Artisan::call('migrate', [
+                '--force' => true,
+            ]);
+
+            // Hubungkan storage symlink
+            Artisan::call('storage:link', [
+                '--force' => true,
+            ]);
+
+            Artisan::call('optimize:clear');
         } catch (Exception $e) {
-            return back()->withInput()->with('error', 'Gagal mengimpor database default: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Gagal mengimpor skema database: ' . $e->getMessage());
         }
 
         return redirect()->route('login')->with('success', 'Instalasi SAE berhasil! Silakan login menggunakan akun default.');

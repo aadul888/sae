@@ -27,41 +27,95 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 ## 🛠️ Panduan Instalasi (Fresh Install)
 
-### Metode 1: Instalasi Cepat via Web Wizard (Rekomendasi Hosting & VPS)
-
-1. **Clone Langsung ke Root Direktori Web / Hosting**
-   Masuk ke folder root hosting Anda (misalnya `public_html` atau `/var/www/html`):
-
-    ```bash
-    # Clone langsung ke folder saat ini (titik di ujung)
-    git clone https://github.com/aadul888/sae.git .
-    composer install --no-dev --optimize-autoloader
-    ```
-
-2. **Set Izin Folder (Permissions)**
-   Pastikan folder `storage` dan `bootstrap/cache` memiliki izin tulis (_writable_):
-
-    ```bash
-    chmod -R 775 storage bootstrap/cache
-    ```
-
-3. **Buka Web Browser**
-    - Akses domain/IP server Anda (contoh: `https://sekolah-anda.sch.id` atau `http://localhost`).
-    - Sistem akan otomatis mengarahkan ke halaman wizard: `http://domain-anda/install`.
-
-4. **Lengkapi Form Instalasi**
-    - Masukkan informasi koneksi database (Host, Port, Nama Database, Username, Password).
-    - Masukkan nama instansi/sekolah dan akun Administrator.
-    - Klik **Mulai Instalasi & Migrasi**. Sistem akan otomatis membuat database, file `.env`, `APP_KEY`, dan migrasi data awal.
+> **⚠️ PERHATIAN KEAMANAN PENTING (DocumentRoot):**
+> Titik masuk publik (_entry point_) aplikasi Laravel berada di folder **`public/`**.
+> Konfigurasikan **DocumentRoot** web server Anda (Nginx/Apache/LiteSpeed) agar mengarah langsung ke folder **`public/`** (contoh: `/var/www/sae/public` atau `/home/user/public_html/public`).
+> Jangan pernah membuka akses root proyek langsung ke internet tanpa pengalihan DocumentRoot atau proteksi `.htaccess`.
 
 ---
 
-### Metode 2: Instalasi Manual via Terminal / CLI
+### Skenario A: Instalasi di VPS (Ubuntu / Debian / CentOS / aaPanel)
 
-1. **Clone Langsung ke Root Direktori dan Install Dependensi**
+1. **Clone Repositori ke Direktori Web**
 
     ```bash
-    git clone https://github.com/aadul888/sae.git .
+    cd /var/www
+    git clone https://github.com/aadul888/sae.git
+    cd sae
+    ```
+
+2. **Install Dependensi Composer**
+
+    ```bash
+    composer install --no-dev --optimize-autoloader
+    ```
+
+3. **Atur Hak Akses & Kepemilikan Folder (Permissions)**
+   Gunakan script otomatisasi yang sudah disediakan:
+
+    ```bash
+    chmod +x deploy.sh
+    ./deploy.sh
+    ```
+
+    _Atau atur manual sesuai user web server Anda:_
+
+    ```bash
+    # User webserver: www-data (Ubuntu/Debian), www (aaPanel), nginx (CentOS)
+    chown -R www-data:www-data storage bootstrap/cache
+    chmod -R 775 storage bootstrap/cache
+    ```
+
+4. **Konfigurasi Web Server (Arahkan ke `/public`)**
+    - **Nginx:** Salin atau gunakan template `nginx.conf` yang tersedia di root proyek. Pastikan baris root mengarah ke:
+        ```nginx
+        root /var/www/sae/public;
+        index index.php;
+        ```
+    - **Apache / LiteSpeed:** Pastikan modul `mod_rewrite` aktif dan `DocumentRoot` mengarah ke `/var/www/sae/public`. File `public/.htaccess` sudah tersedia bawaan.
+
+5. **Jalankan Web Wizard**
+    - Buka browser dan akses: `https://domain-anda.sch.id`
+    - Sistem akan otomatis mengarahkan ke halaman instalasi: `https://domain-anda.sch.id/install`
+    - Masukkan informasi koneksi database MySQL Anda. Wizard akan otomatis menguji koneksi, membuat database (jika belum ada), menulis file `.env`, mengimpor skema awal, dan menautkan storage link.
+
+---
+
+### Skenario B: Instalasi di Shared Hosting (cPanel / DirectAdmin / Hostinger)
+
+1. **Buat Database MySQL di Panel Hosting**
+    - Buka menu **MySQL Databases** di cPanel.
+    - Buat database baru (misal: `sekolah_sae`) dan buat user MySQL beserta passwordnya.
+    - Sambungkan user ke database dengan mencentang izin **ALL PRIVILEGES**.
+
+2. **Upload / Clone Kode Sumber**
+    - **Opsi 1 (Paling Aman - Subdomain / Addon Domain):**
+      Saat menambahkan domain di cPanel, atur Document Root ke folder `public_html/public` atau folder khusus seperti `sae/public`.
+    - **Opsi 2 (Domain Utama `public_html`):**
+      Ekstrak/clone file ke dalam `public_html`. Sistem SAE sudah menyertakan root `.htaccess` khusus yang secara otomatis memproteksi file sensitif (`.env`, `storage`, `database/`) dan mengalihkan request pengunjung ke `/public`.
+
+3. **Install Dependensi via Terminal cPanel (atau Upload Vendor)**
+   Jika hosting menyediakan akses SSH / Terminal:
+
+    ```bash
+    composer install --no-dev --optimize-autoloader
+    chmod -R 775 storage bootstrap/cache
+    ```
+
+4. **Selesaikan Instalasi via Web Wizard**
+    - Akses `https://domain-anda.sch.id` di browser.
+    - Masukkan nama database, username, dan password MySQL yang sudah dibuat pada Langkah 1.
+    - Klik **Mulai Instalasi & Migrasi**.
+
+---
+
+### Skenario C: Instalasi Manual via Terminal / CLI (Pengembang / Pengujian)
+
+1. **Clone & Install Dependensi**
+
+    ```bash
+    git clone https://github.com/aadul888/sae.git
+    cd sae
     composer install
     ```
 
@@ -72,7 +126,7 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
     php artisan key:generate
     ```
 
-    Sesuaikan konfigurasi database pada file `.env`:
+    Sesuaikan parameter database di file `.env`:
 
     ```env
     DB_CONNECTION=mysql
@@ -83,14 +137,15 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
     DB_PASSWORD=
     ```
 
-3. **Migrasi Database & Seeder**
+3. **Migrasi Database & Storage Symlink**
 
     ```bash
+    # Impor database awal atau migrasi:
     php artisan migrate --force
-    php artisan db:seed
+    php artisan storage:link
     ```
 
-4. **Jalankan Aplikasi**
+4. **Jalankan Server Lokal**
     ```bash
     php artisan serve
     ```

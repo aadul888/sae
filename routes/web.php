@@ -119,6 +119,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/master-data/pembelajaran', [\App\Http\Controllers\PembelajaranController::class, 'index'])->name('pembelajaran.index')->middleware('permission:menu_pembelajaran,read');
     Route::get('/master-data/pembelajaran/{id}', [\App\Http\Controllers\PembelajaranController::class, 'show'])->name('pembelajaran.show')->middleware('permission:menu_pembelajaran,read');
 
+    // Master Data — Kalender Pendidikan
+    Route::get('/master-data/kalender-pendidikan', [\App\Http\Controllers\KalenderPendidikanController::class, 'index'])->name('kalender-pendidikan.index')->middleware('permission:menu_kalender_pendidikan,read');
+    Route::get('/master-data/kalender-pendidikan/events', [\App\Http\Controllers\KalenderPendidikanController::class, 'getEvents'])->name('kalender-pendidikan.events')->middleware('permission:menu_kalender_pendidikan,read');
+    Route::post('/master-data/kalender-pendidikan', [\App\Http\Controllers\KalenderPendidikanController::class, 'store'])->name('kalender-pendidikan.store')->middleware('permission:menu_kalender_pendidikan,create');
+    Route::get('/master-data/kalender-pendidikan/{id}', [\App\Http\Controllers\KalenderPendidikanController::class, 'show'])->name('kalender-pendidikan.show')->middleware('permission:menu_kalender_pendidikan,read');
+    Route::put('/master-data/kalender-pendidikan/{id}', [\App\Http\Controllers\KalenderPendidikanController::class, 'update'])->name('kalender-pendidikan.update')->middleware('permission:menu_kalender_pendidikan,update');
+    Route::delete('/master-data/kalender-pendidikan/{id}', [\App\Http\Controllers\KalenderPendidikanController::class, 'destroy'])->name('kalender-pendidikan.destroy')->middleware('permission:menu_kalender_pendidikan,delete');
+
     // Manajemen Data — Peserta Didik Aktif, Guru Aktif, & Tendik Aktif (Sumber: Peserta Didik & GTK Dapodik)
     Route::get('/manajemen-data/peserta-didik-aktif', [\App\Http\Controllers\PesertaDidikAktifController::class, 'index'])->name('peserta-didik-aktif.index')->middleware('permission:menu_peserta_didik_aktif,read');
     Route::get('/manajemen-data/peserta-didik-aktif/rombel-members', [\App\Http\Controllers\PesertaDidikAktifController::class, 'getRombelMembers'])->name('peserta-didik-aktif.rombel-members')->middleware('permission:menu_peserta_didik_aktif,read');

@@ -66,6 +66,11 @@ class RolePermission extends Model
                     'icon' => 'fa-book-bookmark',
                     'roles' => ['admin', 'guru'],
                 ],
+                'menu_kalender_pendidikan' => [
+                    'label' => 'Kalender Pendidikan',
+                    'icon' => 'fa-calendar-days',
+                    'roles' => ['admin', 'guru', 'tendik'],
+                ],
             ],
 
             'Manajemen Data' => [
@@ -744,6 +749,7 @@ class RolePermission extends Model
                 'menu_kompetensi_keahlian',
                 'menu_rombel',
                 'menu_pembelajaran',
+                'menu_kalender_pendidikan',
                 'menu_peserta_didik_aktif',
                 'menu_guru_aktif',
                 'menu_tendik_aktif',
@@ -781,6 +787,7 @@ class RolePermission extends Model
                 'menu_guru_aktif',
                 'menu_rombel',
                 'menu_pembelajaran',
+                'menu_kalender_pendidikan',
             ],
             'tendik' => [
                 'menu_dashboard',
@@ -791,6 +798,7 @@ class RolePermission extends Model
                 'menu_inventaris',
                 'menu_agenda',
                 'menu_pengumuman',
+                'menu_kalender_pendidikan',
             ],
             'peserta_didik' => [
                 'menu_dashboard',
