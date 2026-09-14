@@ -29,12 +29,19 @@
             <div
                 style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: 12px; padding: 12px 14px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                 <div>
-                    <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 700;">Peserta Didik</div>
-                    <div style="font-size: 0.92rem; font-weight: 700; color: var(--text-color);">{{ $forceData['nama'] ?? 'Peserta Didik' }}</div>
+                    <div
+                        style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 700;">
+                        Peserta Didik</div>
+                    <div style="font-size: 0.92rem; font-weight: 700; color: var(--text-color);">
+                        {{ $forceData['nama'] ?? 'Peserta Didik' }}</div>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 700;">NISN</div>
-                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--primary, #3b82f6); font-family: monospace;">{{ $forceData['nisn'] ?? '-' }}</div>
+                    <div
+                        style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 700;">
+                        NISN</div>
+                    <div
+                        style="font-size: 0.88rem; font-weight: 700; color: var(--primary, #3b82f6); font-family: monospace;">
+                        {{ $forceData['nisn'] ?? '-' }}</div>
                 </div>
             </div>
 
@@ -43,7 +50,9 @@
                 style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #d97706; padding: 10px 14px; border-radius: 12px; font-size: 0.79rem; line-height: 1.4; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
                 <i class="fas fa-triangle-exclamation" style="margin-top: 2px; font-size: 0.95rem; flex-shrink: 0;"></i>
                 <div>
-                    <strong>Perhatian:</strong> Password akun Anda terdeteksi menggunakan password default (NISN). Demi melindungi privasi data &amp; nilai akademik, Anda <strong>wajib</strong> membuat password baru sebelum dapat mengakses portal.
+                    <strong>Perhatian:</strong> Password akun Anda terdeteksi menggunakan password default (NISN). Demi
+                    melindungi privasi data &amp; nilai akademik, Anda <strong>wajib</strong> membuat password baru sebelum
+                    dapat mengakses portal.
                 </div>
             </div>
 
@@ -59,7 +68,8 @@
 
                 <!-- Password Baru Input -->
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
+                    <label
+                        style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
                         <i class="fas fa-lock"></i> Password Baru
                     </label>
                     <div class="input-group"
@@ -79,7 +89,8 @@
                 <div
                     style="background: var(--input-bg, rgba(0,0,0,0.03)); border: 1px solid var(--border-color); border-radius: 14px; padding: 14px 16px; margin-bottom: 18px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.04em;">
+                        <span
+                            style="font-size: 0.74rem; font-weight: 700; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.04em;">
                             <i class="fas fa-list-check text-primary me-1"></i> Parameter Keamanan Password:
                         </span>
                         <span id="strengthLabel" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted);">
@@ -88,34 +99,61 @@
                     </div>
 
                     <!-- Strength Progress Bar -->
-                    <div style="height: 5px; width: 100%; background: var(--border-color); border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
-                        <div id="strengthBar" style="height: 100%; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; border-radius: 10px;"></div>
+                    <div
+                        style="height: 5px; width: 100%; background: var(--border-color); border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
+                        <div id="strengthBar"
+                            style="height: 100%; width: 0%; transition: width 0.3s ease, background-color 0.3s ease; border-radius: 10px;">
+                        </div>
                     </div>
 
                     <!-- Checklist Items -->
                     <div style="display: grid; grid-template-columns: 1fr; gap: 7px; font-size: 0.77rem;">
-                        <div id="param-len" class="param-item" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
-                            <i class="far fa-circle" id="icon-len"></i>
+                        <div id="param-len" class="param-item"
+                            style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
+                            <span id="icon-wrap-len"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0;"><i
+                                    class="fas fa-circle-xmark"
+                                    style="color: var(--text-muted); opacity: 0.55; font-size: 0.85rem;"></i></span>
                             <span>Panjang <strong>8 - 15 karakter</strong></span>
                         </div>
-                        <div id="param-case" class="param-item" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
-                            <i class="far fa-circle" id="icon-case"></i>
+                        <div id="param-case" class="param-item"
+                            style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
+                            <span id="icon-wrap-case"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0;"><i
+                                    class="fas fa-circle-xmark"
+                                    style="color: var(--text-muted); opacity: 0.55; font-size: 0.85rem;"></i></span>
                             <span>Kombinasi Huruf Besar &amp; Kecil (<strong>A-z</strong>)</span>
                         </div>
-                        <div id="param-num" class="param-item" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
-                            <i class="far fa-circle" id="icon-num"></i>
+                        <div id="param-num" class="param-item"
+                            style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
+                            <span id="icon-wrap-num"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0;"><i
+                                    class="fas fa-circle-xmark"
+                                    style="color: var(--text-muted); opacity: 0.55; font-size: 0.85rem;"></i></span>
                             <span>Mengandung minimal 1 angka (<strong>0-9</strong>)</span>
                         </div>
-                        <div id="param-sym" class="param-item" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
-                            <i class="far fa-circle" id="icon-sym"></i>
+                        <div id="param-sym" class="param-item"
+                            style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
+                            <span id="icon-wrap-sym"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0;"><i
+                                    class="fas fa-circle-xmark"
+                                    style="color: var(--text-muted); opacity: 0.55; font-size: 0.85rem;"></i></span>
                             <span>Karakter khusus / simbol (<strong>!@#$%^&amp;*</strong> dll)</span>
                         </div>
-                        <div id="param-space" class="param-item" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
-                            <i class="far fa-circle" id="icon-space"></i>
+                        <div id="param-space" class="param-item"
+                            style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
+                            <span id="icon-wrap-space"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0;"><i
+                                    class="fas fa-circle-xmark"
+                                    style="color: var(--text-muted); opacity: 0.55; font-size: 0.85rem;"></i></span>
                             <span><strong>Tanpa spasi</strong> sama sekali</span>
                         </div>
-                        <div id="param-nisn" class="param-item" style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
-                            <i class="far fa-circle" id="icon-nisn"></i>
+                        <div id="param-nisn" class="param-item"
+                            style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); transition: color 0.2s;">
+                            <span id="icon-wrap-nisn"
+                                style="display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex-shrink: 0;"><i
+                                    class="fas fa-circle-xmark"
+                                    style="color: var(--text-muted); opacity: 0.55; font-size: 0.85rem;"></i></span>
                             <span>Tidak boleh sama dengan NISN lama</span>
                         </div>
                     </div>
@@ -152,7 +190,8 @@
             </form>
 
             <div style="margin-top: 20px; text-align: center;">
-                <a href="{{ route('auth.cancel-force-update') }}" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: none;">
+                <a href="{{ route('auth.cancel-force-update') }}"
+                    style="color: var(--text-muted); font-size: 0.8rem; text-decoration: none;">
                     <i class="fas fa-arrow-left"></i> Batal &amp; Kembali ke Halaman Login
                 </a>
             </div>
@@ -187,21 +226,21 @@
 
         function setParamStatus(id, isValid, isNegative = false) {
             const item = document.getElementById('param-' + id);
-            const icon = document.getElementById('icon-' + id);
-            if (!item || !icon) return;
+            const wrap = document.getElementById('icon-wrap-' + id);
+            if (!item || !wrap) return;
+
+            const hasInput = newPassInput.value.length > 0;
 
             if (isValid) {
                 item.style.color = '#10b981';
-                icon.className = 'fas fa-check-circle';
-                icon.style.color = '#10b981';
-            } else if (isNegative) {
+                wrap.innerHTML = '<i class="fas fa-circle-check" style="color: #10b981; font-size: 0.85rem;"></i>';
+            } else if (isNegative || hasInput) {
                 item.style.color = '#ef4444';
-                icon.className = 'fas fa-circle-xmark';
-                icon.style.color = '#ef4444';
+                wrap.innerHTML = '<i class="fas fa-circle-xmark" style="color: #ef4444; font-size: 0.85rem;"></i>';
             } else {
                 item.style.color = 'var(--text-muted)';
-                icon.className = 'far fa-circle';
-                icon.style.color = 'var(--text-muted)';
+                wrap.innerHTML =
+                    '<i class="fas fa-circle-xmark" style="color: var(--text-muted); opacity: 0.55; font-size: 0.85rem;"></i>';
             }
         }
 
@@ -326,5 +365,8 @@
                 newPassInput.focus();
             }
         });
+
+        // Inisialisasi ikon indikator pada saat halaman pertama kali dimuat
+        evaluatePassword();
     </script>
 @endsection

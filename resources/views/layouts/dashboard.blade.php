@@ -33,7 +33,6 @@
     <!-- FontAwesome 6 Local -->
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <script src="{{ asset('js/sae-logos.js') }}?v={{ $dashLogoJsVer }}"></script>
-    <script defer src="{{ asset('vendor/fontawesome/js/all.min.js') }}"></script>
 
     <!-- Global App & Dashboard Stylesheets with Cache Busting -->
     <link rel="stylesheet"

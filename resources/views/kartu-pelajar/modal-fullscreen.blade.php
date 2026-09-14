@@ -16,7 +16,8 @@
 
         <div class="kp-viewer-actions">
             <!-- Tombol Unduh dengan Menu Opsi -->
-            <button type="button" class="kp-viewer-btn kp-btn-download" id="kpBtnDownload" onclick="toggleKpDownloadMenu(event)">
+            <button type="button" class="kp-viewer-btn kp-btn-download" id="kpBtnDownload"
+                onclick="toggleKpDownloadMenu(event)">
                 <i class="fas fa-download"></i>
                 <span id="kpBtnDownloadLabel">Unduh</span>
             </button>
@@ -40,14 +41,16 @@
                     <span>Unduh Kedua Sisi (2 File PNG)</span>
                 </button>
                 <div class="kp-download-divider"></div>
-                <a href="#" id="kpBtnPrintDirect" target="_blank" class="kp-download-item" style="text-decoration: none;">
+                <a href="#" id="kpBtnPrintDirect" target="_blank" class="kp-download-item"
+                    style="text-decoration: none;">
                     <i class="fas fa-print" style="color: #cbd5e1;"></i>
                     <span>Cetak / Simpan PDF</span>
                 </a>
             </div>
 
             <!-- Tombol Tutup -->
-            <button type="button" class="kp-viewer-btn kp-btn-close" onclick="closeKartuPelajarModal()" title="Tutup Layar Penuh">
+            <button type="button" class="kp-viewer-btn kp-btn-close" onclick="closeKartuPelajarModal()"
+                title="Tutup Layar Penuh">
                 <i class="fas fa-times"></i>
                 <span>Tutup</span>
             </button>
@@ -65,12 +68,14 @@
         <!-- Stage Area (Tempat Kartu Mengambang & Bisa Digeser) -->
         <div id="kpViewerStage" class="kp-viewer-stage" style="display: none;">
             <!-- Navigasi Panah Kiri (Desktop) -->
-            <button type="button" class="kp-nav-arrow kp-arrow-left" id="kpArrowLeft" onclick="slideCardTo('front')" title="Lihat Sisi Depan">
+            <button type="button" class="kp-nav-arrow kp-arrow-left" id="kpArrowLeft" onclick="slideCardTo('front')"
+                title="Lihat Sisi Depan">
                 <i class="fas fa-chevron-left"></i>
             </button>
 
             <!-- Swipe Wrapper (Hanya 1 Kartu Utuh yang Tampil) -->
-            <div class="kp-swipe-wrapper" id="kpSwipeWrapper" title="Geser ke kiri / kanan atau ketuk kartu untuk membalik">
+            <div class="kp-swipe-wrapper" id="kpSwipeWrapper"
+                title="Geser ke kiri / kanan atau ketuk kartu untuk membalik">
                 <div class="kp-swipe-track" id="kpSwipeTrack">
                     <!-- Slide 1: Sisi Depan -->
                     <div class="kp-swipe-slide" id="kpSlideFront" data-side="front"></div>
@@ -80,7 +85,8 @@
             </div>
 
             <!-- Navigasi Panah Kanan (Desktop) -->
-            <button type="button" class="kp-nav-arrow kp-arrow-right" id="kpArrowRight" onclick="slideCardTo('back')" title="Lihat Sisi Belakang">
+            <button type="button" class="kp-nav-arrow kp-arrow-right" id="kpArrowRight" onclick="slideCardTo('back')"
+                title="Lihat Sisi Belakang">
                 <i class="fas fa-chevron-right"></i>
             </button>
         </div>
@@ -140,209 +146,283 @@
                 </span>
             </div>
             <div class="kp-qr-zoom-hint">
-                <i class="fas fa-circle-info"></i> Tunjukkan QR Code ini langsung ke mesin scanner atau petugas. Ketuk di mana saja untuk menutup.
+                <i class="fas fa-circle-info"></i> Tunjukkan QR Code ini langsung ke mesin scanner atau petugas. Ketuk
+                di mana saja untuk menutup.
             </div>
         </div>
     </div>
 </div>
 
 <script>
-(function() {
-    let currentKpNisn = '';
-    let currentSide = 'front';
-    let isSwiping = false;
-    let startX = 0;
-    let startY = 0;
-    let currentX = 0;
-    let dragStartTime = 0;
+    (function() {
+        let currentKpNisn = '';
+        let currentSide = 'front';
+        let isSwiping = false;
+        let startX = 0;
+        let startY = 0;
+        let currentX = 0;
+        let dragStartTime = 0;
 
-    // Menyelaraskan skala kartu agar pas 100% di layar (tanpa terpotong atas, bawah, maupun samping)
-    function refreshViewerDimensions() {
-        const area = document.getElementById('kpViewerArea');
-        if (!area) return;
+        // Menyelaraskan skala kartu agar pas 100% di layar (tanpa terpotong atas, bawah, maupun samping)
+        function refreshViewerDimensions() {
+            const area = document.getElementById('kpViewerArea');
+            if (!area) return;
 
-        const availW = area.clientWidth;
-        const availH = area.clientHeight;
-        if (availW <= 0 || availH <= 0) return;
+            const availW = area.clientWidth;
+            const availH = area.clientHeight;
+            if (availW <= 0 || availH <= 0) return;
 
-        // Dimensi dasar kartu ISO CR-80: 54mm x 85.6mm (204.1px x 323.5px pada 96 DPI)
-        const baseW = 204.1;
-        const baseH = 323.5;
+            // Dimensi dasar kartu ISO CR-80: 54mm x 85.6mm (204.1px x 323.5px pada 96 DPI)
+            const baseW = 204.1;
+            const baseH = 323.5;
 
-        // Ruang aman bernapas (margin) agar tidak menempel tombol atas & bawah
-        const fitW = Math.max(120, availW - 24);
-        const fitH = Math.max(160, availH - 24);
+            // Ruang aman bernapas (margin) agar tidak menempel tombol atas & bawah
+            const fitW = Math.max(120, availW - 24);
+            const fitH = Math.max(160, availH - 24);
 
-        const scaleW = fitW / baseW;
-        const scaleH = fitH / baseH;
+            const scaleW = fitW / baseW;
+            const scaleH = fitH / baseH;
 
-        // Math.min memastikan kartu 100% UTUH baik secara tinggi maupun lebar
-        let scale = Math.min(scaleW, scaleH);
+            // Math.min memastikan kartu 100% UTUH baik secara tinggi maupun lebar
+            let scale = Math.min(scaleW, scaleH);
 
-        // Batasi rentang skala proporsional: min 0.65 (layar mungil), max 1.35 (desktop)
-        scale = Math.max(0.65, Math.min(scale, 1.35));
+            // Batasi rentang skala proporsional: min 0.65 (layar mungil), max 1.35 (desktop)
+            scale = Math.max(0.65, Math.min(scale, 1.35));
 
-        document.documentElement.style.setProperty('--kp-viewer-scale', scale.toFixed(3));
+            document.documentElement.style.setProperty('--kp-viewer-scale', scale.toFixed(3));
 
-        // Sinkronisasi posisi track ke sisi aktif saat ini
-        slideCardTo(currentSide, false);
-    }
-
-    window.addEventListener('resize', refreshViewerDimensions);
-    window.addEventListener('orientationchange', function() {
-        setTimeout(refreshViewerDimensions, 150);
-    });
-
-    // Fungsi Utama: Membuka Kartu Digital Layar Penuh
-    window.openKartuPelajarModal = function(nisn) {
-        currentKpNisn = nisn;
-        closeKpQrZoom();
-        const viewer = document.getElementById('kpFullscreenViewer');
-        if (!viewer) return;
-
-        viewer.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-
-        const loading = document.getElementById('kpViewerLoading');
-        const stage = document.getElementById('kpViewerStage');
-        const bottomBar = document.getElementById('kpViewerBottomBar');
-        const slideFront = document.getElementById('kpSlideFront');
-        const slideBack = document.getElementById('kpSlideBack');
-        const printLink = document.getElementById('kpBtnPrintDirect');
-
-        loading.style.display = 'flex';
-        stage.style.display = 'none';
-        bottomBar.style.display = 'none';
-        slideFront.innerHTML = '';
-        slideBack.innerHTML = '';
-
-        if (printLink) {
-            printLink.href = '{{ url("/dashboard/kartu-pelajar/cetak") }}/' + encodeURIComponent(nisn);
+            // Sinkronisasi posisi track ke sisi aktif saat ini
+            slideCardTo(currentSide, false);
         }
 
-        fetch('{{ url("/kartu-pelajar/preview") }}/' + encodeURIComponent(nisn), {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (!data.success) {
-                alert(data.message || 'Gagal memuat kartu pelajar.');
-                closeKartuPelajarModal();
-                return;
-            }
-
-            // Parsing kartu depan dan kartu belakang dari template HTML
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.html, 'text/html');
-            const frontCard = doc.querySelector('.kp-card-front');
-            const backCard = doc.querySelector('.kp-card-back');
-
-            if (frontCard) slideFront.appendChild(frontCard);
-            if (backCard) slideBack.appendChild(backCard);
-
-            loading.style.display = 'none';
-            stage.style.display = 'flex';
-            bottomBar.style.display = 'flex';
-
-            currentSide = 'front';
-            slideCardTo('front', false);
-
-            // Reflow presisi dimensi & setup gesture
-            refreshViewerDimensions();
-            requestAnimationFrame(refreshViewerDimensions);
-            setTimeout(refreshViewerDimensions, 50);
-            setTimeout(refreshViewerDimensions, 180);
-
-            setupSwipeGestures();
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Terjadi kesalahan saat memuat kartu pelajar.');
-            closeKartuPelajarModal();
+        window.addEventListener('resize', refreshViewerDimensions);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(refreshViewerDimensions, 150);
         });
-    };
 
-    // Fungsi Menutup Layar Penuh
-    window.closeKartuPelajarModal = function() {
-        closeKpQrZoom();
-        const viewer = document.getElementById('kpFullscreenViewer');
-        if (!viewer) return;
-        viewer.style.display = 'none';
-        document.body.style.overflow = '';
-        closeDownloadMenu();
-    };
+        // Fungsi Utama: Membuka Kartu Digital Layar Penuh
+        window.openKartuPelajarModal = function(nisn) {
+            currentKpNisn = nisn;
+            closeKpQrZoom();
+            const viewer = document.getElementById('kpFullscreenViewer');
+            if (!viewer) return;
 
-    // Klik backdrop (di luar kartu dan tombol) untuk menutup
-    window.handleKpBackdropClick = function(e) {
-        if (e.target.id === 'kpFullscreenViewer' || e.target.id === 'kpViewerArea') {
-            closeKartuPelajarModal();
-        }
-    };
+            viewer.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
 
-    // Fungsi Menggeser Kartu: Pure Percentage Translation
-    window.slideCardTo = function(side, animated = true) {
-        currentSide = side;
-        const track = document.getElementById('kpSwipeTrack');
-        const pillFront = document.getElementById('kpPillFront');
-        const pillBack = document.getElementById('kpPillBack');
-        const arrowLeft = document.getElementById('kpArrowLeft');
-        const arrowRight = document.getElementById('kpArrowRight');
+            const loading = document.getElementById('kpViewerLoading');
+            const stage = document.getElementById('kpViewerStage');
+            const bottomBar = document.getElementById('kpViewerBottomBar');
+            const slideFront = document.getElementById('kpSlideFront');
+            const slideBack = document.getElementById('kpSlideBack');
+            const printLink = document.getElementById('kpBtnPrintDirect');
 
-        if (track) {
-            track.style.transition = animated ? 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)' : 'none';
-            // 0% = Sisi Depan 100% penuh di layar, Sisi Belakang di luar layar kanan
-            // -50% = Sisi Belakang 100% penuh di layar, Sisi Depan di luar layar kiri
-            track.style.transform = side === 'front' ? 'translateX(0%)' : 'translateX(-50%)';
-        }
-
-        if (pillFront && pillBack) {
-            if (side === 'front') {
-                pillFront.classList.add('active');
-                pillBack.classList.remove('active');
-                if (arrowLeft) arrowLeft.style.opacity = '0.35';
-                if (arrowRight) arrowRight.style.opacity = '1';
-            } else {
-                pillFront.classList.remove('active');
-                pillBack.classList.add('active');
-                if (arrowLeft) arrowLeft.style.opacity = '1';
-                if (arrowRight) arrowRight.style.opacity = '0.35';
+            if (loading) {
+                loading.classList.remove('hidden');
+                loading.style.setProperty('display', 'flex', 'important');
             }
-        }
-    };
+            stage.style.display = 'none';
+            bottomBar.style.display = 'none';
+            slideFront.innerHTML = '';
+            slideBack.innerHTML = '';
 
-    // Setup Gestur Geser (Swipe Touch & Mouse Drag)
-    function setupSwipeGestures() {
-        const wrapper = document.getElementById('kpSwipeWrapper');
-        const track = document.getElementById('kpSwipeTrack');
-        if (!wrapper || !track || wrapper.dataset.gestureBound) return;
+            if (printLink) {
+                printLink.href = '{{ url('/dashboard/kartu-pelajar/cetak') }}/' + encodeURIComponent(nisn);
+            }
 
-        wrapper.dataset.gestureBound = 'true';
+            fetch('{{ url('/kartu-pelajar/preview') }}/' + encodeURIComponent(nisn), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert(data.message || 'Gagal memuat kartu pelajar.');
+                        closeKartuPelajarModal();
+                        return;
+                    }
 
-        // 1. Touch Events (Mobile Touchscreen)
-        wrapper.addEventListener('touchstart', function(e) {
-            if (e.touches.length !== 1) return;
-            isSwiping = true;
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            currentX = startX;
-            dragStartTime = Date.now();
-            track.style.transition = 'none';
-        }, { passive: true });
+                    // Parsing kartu depan dan kartu belakang dari template HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data.html, 'text/html');
+                    const frontCard = doc.querySelector('.kp-card-front');
+                    const backCard = doc.querySelector('.kp-card-back');
 
-        wrapper.addEventListener('touchmove', function(e) {
-            if (!isSwiping) return;
-            currentX = e.touches[0].clientX;
-            const deltaX = currentX - startX;
-            const deltaY = e.touches[0].clientY - startY;
+                    if (frontCard) slideFront.appendChild(frontCard);
+                    if (backCard) slideBack.appendChild(backCard);
 
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    if (loading) {
+                        loading.classList.add('hidden');
+                        loading.style.setProperty('display', 'none', 'important');
+                    }
+                    stage.style.display = 'flex';
+                    bottomBar.style.display = 'flex';
+
+                    currentSide = 'front';
+                    slideCardTo('front', false);
+
+                    // Reflow presisi dimensi & setup gesture
+                    refreshViewerDimensions();
+                    requestAnimationFrame(refreshViewerDimensions);
+                    setTimeout(refreshViewerDimensions, 50);
+                    setTimeout(refreshViewerDimensions, 180);
+
+                    setupSwipeGestures();
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (loading) {
+                        loading.classList.add('hidden');
+                        loading.style.setProperty('display', 'none', 'important');
+                    }
+                    alert('Terjadi kesalahan saat memuat kartu pelajar.');
+                    closeKartuPelajarModal();
+                });
+        };
+
+        // Fungsi Menutup Layar Penuh
+        window.closeKartuPelajarModal = function() {
+            closeKpQrZoom();
+            const viewer = document.getElementById('kpFullscreenViewer');
+            if (!viewer) return;
+            viewer.style.display = 'none';
+            const loading = document.getElementById('kpViewerLoading');
+            if (loading) {
+                loading.classList.add('hidden');
+                loading.style.setProperty('display', 'none', 'important');
+            }
+            document.body.style.overflow = '';
+            closeDownloadMenu();
+        };
+
+        // Klik backdrop (di luar kartu dan tombol) untuk menutup
+        window.handleKpBackdropClick = function(e) {
+            if (e.target.id === 'kpFullscreenViewer' || e.target.id === 'kpViewerArea') {
+                closeKartuPelajarModal();
+            }
+        };
+
+        // Fungsi Menggeser Kartu: Pure Percentage Translation
+        window.slideCardTo = function(side, animated = true) {
+            currentSide = side;
+            const track = document.getElementById('kpSwipeTrack');
+            const pillFront = document.getElementById('kpPillFront');
+            const pillBack = document.getElementById('kpPillBack');
+            const arrowLeft = document.getElementById('kpArrowLeft');
+            const arrowRight = document.getElementById('kpArrowRight');
+
+            if (track) {
+                track.style.transition = animated ? 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1)' : 'none';
+                // 0% = Sisi Depan 100% penuh di layar, Sisi Belakang di luar layar kanan
+                // -50% = Sisi Belakang 100% penuh di layar, Sisi Depan di luar layar kiri
+                track.style.transform = side === 'front' ? 'translateX(0%)' : 'translateX(-50%)';
+            }
+
+            if (pillFront && pillBack) {
+                if (side === 'front') {
+                    pillFront.classList.add('active');
+                    pillBack.classList.remove('active');
+                    if (arrowLeft) arrowLeft.style.opacity = '0.35';
+                    if (arrowRight) arrowRight.style.opacity = '1';
+                } else {
+                    pillFront.classList.remove('active');
+                    pillBack.classList.add('active');
+                    if (arrowLeft) arrowLeft.style.opacity = '1';
+                    if (arrowRight) arrowRight.style.opacity = '0.35';
+                }
+            }
+        };
+
+        // Setup Gestur Geser (Swipe Touch & Mouse Drag)
+        function setupSwipeGestures() {
+            const wrapper = document.getElementById('kpSwipeWrapper');
+            const track = document.getElementById('kpSwipeTrack');
+            if (!wrapper || !track || wrapper.dataset.gestureBound) return;
+
+            wrapper.dataset.gestureBound = 'true';
+
+            // 1. Touch Events (Mobile Touchscreen)
+            wrapper.addEventListener('touchstart', function(e) {
+                if (e.touches.length !== 1) return;
+                isSwiping = true;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                currentX = startX;
+                dragStartTime = Date.now();
+                track.style.transition = 'none';
+            }, {
+                passive: true
+            });
+
+            wrapper.addEventListener('touchmove', function(e) {
+                if (!isSwiping) return;
+                currentX = e.touches[0].clientX;
+                const deltaX = currentX - startX;
+                const deltaY = e.touches[0].clientY - startY;
+
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    const wrapW = wrapper.clientWidth || 360;
+                    // Track adalah 200% dari wrapper, jadi deltaX di track = (deltaX / (wrapW * 2)) * 100
+                    const dragPercent = (deltaX / (wrapW * 2)) * 100;
+                    const basePercent = currentSide === 'front' ? 0 : -50;
+                    let targetOffset = basePercent + dragPercent;
+
+                    // Hambatan elastis di tepi
+                    if (currentSide === 'front' && targetOffset > 0) {
+                        targetOffset = dragPercent * 0.25;
+                    } else if (currentSide === 'back' && targetOffset < -50) {
+                        targetOffset = -50 + (targetOffset - (-50)) * 0.25;
+                    }
+
+                    track.style.transform = `translateX(${targetOffset}%)`;
+                }
+            }, {
+                passive: true
+            });
+
+            wrapper.addEventListener('touchend', function(e) {
+                if (!isSwiping) return;
+                isSwiping = false;
+                const deltaX = currentX - startX;
+                const duration = Date.now() - dragStartTime;
+
+                // Ketukan singkat (Tap) tanpa geser = balik kartu
+                if (Math.abs(deltaX) < 10 && duration < 260) {
+                    slideCardTo(currentSide === 'front' ? 'back' : 'front');
+                    return;
+                }
+
+                // Ambang batas geser 30px
+                if (deltaX < -30) {
+                    slideCardTo('back');
+                } else if (deltaX > 30) {
+                    slideCardTo('front');
+                } else {
+                    slideCardTo(currentSide);
+                }
+            });
+
+            // 2. Mouse Drag Events (Desktop)
+            let isMouseDown = false;
+            wrapper.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return;
+                isMouseDown = true;
+                startX = e.clientX;
+                currentX = startX;
+                dragStartTime = Date.now();
+                track.style.transition = 'none';
+            });
+
+            window.addEventListener('mousemove', function(e) {
+                if (!isMouseDown) return;
+                currentX = e.clientX;
+                const deltaX = currentX - startX;
                 const wrapW = wrapper.clientWidth || 360;
-                // Track adalah 200% dari wrapper, jadi deltaX di track = (deltaX / (wrapW * 2)) * 100
                 const dragPercent = (deltaX / (wrapW * 2)) * 100;
                 const basePercent = currentSide === 'front' ? 0 : -50;
                 let targetOffset = basePercent + dragPercent;
 
-                // Hambatan elastis di tepi
                 if (currentSide === 'front' && targetOffset > 0) {
                     targetOffset = dragPercent * 0.25;
                 } else if (currentSide === 'back' && targetOffset < -50) {
@@ -350,270 +430,243 @@
                 }
 
                 track.style.transform = `translateX(${targetOffset}%)`;
-            }
-        }, { passive: true });
+            });
 
-        wrapper.addEventListener('touchend', function(e) {
-            if (!isSwiping) return;
-            isSwiping = false;
-            const deltaX = currentX - startX;
-            const duration = Date.now() - dragStartTime;
+            window.addEventListener('mouseup', function(e) {
+                if (!isMouseDown) return;
+                isMouseDown = false;
+                const deltaX = currentX - startX;
+                const duration = Date.now() - dragStartTime;
 
-            // Ketukan singkat (Tap) tanpa geser = balik kartu
-            if (Math.abs(deltaX) < 10 && duration < 260) {
-                slideCardTo(currentSide === 'front' ? 'back' : 'front');
-                return;
-            }
+                // Klik singkat tanpa geser = balik kartu
+                if (Math.abs(deltaX) < 8 && duration < 260) {
+                    slideCardTo(currentSide === 'front' ? 'back' : 'front');
+                    return;
+                }
 
-            // Ambang batas geser 30px
-            if (deltaX < -30) {
-                slideCardTo('back');
-            } else if (deltaX > 30) {
-                slideCardTo('front');
-            } else {
-                slideCardTo(currentSide);
-            }
-        });
-
-        // 2. Mouse Drag Events (Desktop)
-        let isMouseDown = false;
-        wrapper.addEventListener('mousedown', function(e) {
-            if (e.button !== 0) return;
-            isMouseDown = true;
-            startX = e.clientX;
-            currentX = startX;
-            dragStartTime = Date.now();
-            track.style.transition = 'none';
-        });
-
-        window.addEventListener('mousemove', function(e) {
-            if (!isMouseDown) return;
-            currentX = e.clientX;
-            const deltaX = currentX - startX;
-            const wrapW = wrapper.clientWidth || 360;
-            const dragPercent = (deltaX / (wrapW * 2)) * 100;
-            const basePercent = currentSide === 'front' ? 0 : -50;
-            let targetOffset = basePercent + dragPercent;
-
-            if (currentSide === 'front' && targetOffset > 0) {
-                targetOffset = dragPercent * 0.25;
-            } else if (currentSide === 'back' && targetOffset < -50) {
-                targetOffset = -50 + (targetOffset - (-50)) * 0.25;
-            }
-
-            track.style.transform = `translateX(${targetOffset}%)`;
-        });
-
-        window.addEventListener('mouseup', function(e) {
-            if (!isMouseDown) return;
-            isMouseDown = false;
-            const deltaX = currentX - startX;
-            const duration = Date.now() - dragStartTime;
-
-            // Klik singkat tanpa geser = balik kartu
-            if (Math.abs(deltaX) < 8 && duration < 260) {
-                slideCardTo(currentSide === 'front' ? 'back' : 'front');
-                return;
-            }
-
-            if (deltaX < -30) {
-                slideCardTo('back');
-            } else if (deltaX > 30) {
-                slideCardTo('front');
-            } else {
-                slideCardTo(currentSide);
-            }
-        });
-    }
-
-    // Toggle Dropdown Menu Unduh
-    window.toggleKpDownloadMenu = function(e) {
-        e.stopPropagation();
-        const menu = document.getElementById('kpDownloadMenu');
-        if (menu) {
-            menu.classList.toggle('show');
-        }
-    };
-
-    function closeDownloadMenu() {
-        const menu = document.getElementById('kpDownloadMenu');
-        if (menu) menu.classList.remove('show');
-    }
-
-    document.addEventListener('click', closeDownloadMenu);
-
-    // Toast Notifikasi
-    function showToast(msg, isError = false) {
-        const toast = document.getElementById('kpViewerToast');
-        const text = document.getElementById('kpToastText');
-        if (!toast || !text) return;
-
-        text.textContent = msg;
-        toast.style.borderColor = isError ? 'rgba(239, 68, 68, 0.6)' : 'rgba(56, 189, 248, 0.5)';
-        toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-
-    // Eksekusi Unduh Kartu (High-Res PNG via html2canvas)
-    window.executeDownload = async function(mode) {
-        closeDownloadMenu();
-        const btn = document.getElementById('kpBtnDownload');
-        const originalHtml = btn.innerHTML;
-
-        // Cek ketersediaan html2canvas
-        if (typeof html2canvas === 'undefined') {
-            showToast('Memuat pustaka gambar...', false);
-            try {
-                await new Promise((resolve, reject) => {
-                    const s = document.createElement('script');
-                    s.src = '{{ asset("js/html2canvas.min.js") }}';
-                    s.onload = resolve;
-                    s.onerror = reject;
-                    document.head.appendChild(s);
-                });
-            } catch (err) {
-                window.open('{{ url("/dashboard/kartu-pelajar/cetak") }}/' + encodeURIComponent(currentKpNisn), '_blank');
-                return;
-            }
+                if (deltaX < -30) {
+                    slideCardTo('back');
+                } else if (deltaX > 30) {
+                    slideCardTo('front');
+                } else {
+                    slideCardTo(currentSide);
+                }
+            });
         }
 
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Menyiapkan...</span>';
-        btn.disabled = true;
-
-        const captureAndDownload = async (cardEl, sideName) => {
-            if (!cardEl) return false;
-            try {
-                const canvas = await html2canvas(cardEl, {
-                    scale: 3, // Kualitas cetak retina 300dpi
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    logging: false,
-                    onclone: function(clonedDoc) {
-                        const clonedCard = clonedDoc.querySelector('#' + cardEl.id) || clonedDoc.querySelector('.kp-card');
-                        if (clonedCard) {
-                            clonedCard.style.transform = 'none';
-                            clonedCard.style.boxShadow = 'none';
-                            clonedCard.style.margin = '0';
-                        }
-                    }
-                });
-
-                const link = document.createElement('a');
-                link.download = `Kartu_Pelajar_${currentKpNisn}_${sideName}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                return true;
-            } catch (e) {
-                console.error('Error rendering card:', e);
-                return false;
+        // Toggle Dropdown Menu Unduh
+        window.toggleKpDownloadMenu = function(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('kpDownloadMenu');
+            if (menu) {
+                menu.classList.toggle('show');
             }
         };
 
-        const frontEl = document.querySelector('#kpSlideFront .kp-card');
-        const backEl = document.querySelector('#kpSlideBack .kp-card');
+        function closeDownloadMenu() {
+            const menu = document.getElementById('kpDownloadMenu');
+            if (menu) menu.classList.remove('show');
+        }
 
-        try {
-            if (mode === 'active') {
-                const target = currentSide === 'front' ? frontEl : backEl;
-                const sideName = currentSide === 'front' ? 'DEPAN' : 'BELAKANG';
-                const success = await captureAndDownload(target, sideName);
-                if (success) showToast(`Kartu Sisi ${sideName} berhasil diunduh!`);
-            } else if (mode === 'front') {
-                const success = await captureAndDownload(frontEl, 'DEPAN');
-                if (success) showToast('Kartu Sisi Depan berhasil diunduh!');
-            } else if (mode === 'back') {
-                const success = await captureAndDownload(backEl, 'BELAKANG');
-                if (success) showToast('Kartu Sisi Belakang berhasil diunduh!');
-            } else if (mode === 'both') {
-                await captureAndDownload(frontEl, 'DEPAN');
-                await new Promise(r => setTimeout(r, 450));
-                await captureAndDownload(backEl, 'BELAKANG');
-                showToast('Kedua sisi kartu berhasil diunduh!');
+        document.addEventListener('click', closeDownloadMenu);
+
+        // Toast Notifikasi
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('kpViewerToast');
+            const text = document.getElementById('kpToastText');
+            if (!toast || !text) return;
+
+            text.textContent = msg;
+            toast.style.borderColor = isError ? 'rgba(239, 68, 68, 0.6)' : 'rgba(56, 189, 248, 0.5)';
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Eksekusi Unduh Kartu (High-Res PNG via html2canvas)
+        window.executeDownload = async function(mode) {
+            closeDownloadMenu();
+            const btn = document.getElementById('kpBtnDownload');
+            const originalHtml = btn.innerHTML;
+
+            // Cek ketersediaan html2canvas
+            if (typeof html2canvas === 'undefined') {
+                showToast('Memuat pustaka gambar...', false);
+                try {
+                    await new Promise((resolve, reject) => {
+                        const s = document.createElement('script');
+                        s.src = '{{ asset('js/html2canvas.min.js') }}';
+                        s.onload = resolve;
+                        s.onerror = reject;
+                        document.head.appendChild(s);
+                    });
+                } catch (err) {
+                    window.open('{{ url('/dashboard/kartu-pelajar/cetak') }}/' + encodeURIComponent(
+                        currentKpNisn), '_blank');
+                    return;
+                }
             }
-        } catch (err) {
-            console.error(err);
-            showToast('Gagal memproses unduhan kartu.', true);
-        } finally {
-            btn.innerHTML = originalHtml;
-            btn.disabled = false;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Menyiapkan...</span>';
+            btn.disabled = true;
+
+            const captureAndDownload = async (cardEl, sideName) => {
+                if (!cardEl) return false;
+                let staging = null;
+                try {
+                    // Buat container staging terisolasi di luar viewport agar rendering html2canvas bebas dari transform parent / zoom / scale viewer
+                    staging = document.createElement('div');
+                    staging.style.position = 'fixed';
+                    staging.style.left = '-9999px';
+                    staging.style.top = '0';
+                    staging.style.width = '204px'; // 54mm @ 96dpi ≈ 204.09px
+                    staging.style.height = '324px'; // 85.6mm @ 96dpi ≈ 323.53px
+                    staging.style.overflow = 'hidden';
+                    staging.style.zIndex = '-9999';
+                    staging.style.background = '#ffffff';
+
+                    const clone = cardEl.cloneNode(true);
+                    clone.classList.add('kp-card-capture-target');
+                    clone.style.transform = 'none';
+                    clone.style.margin = '0';
+                    clone.style.boxShadow = 'none';
+                    staging.appendChild(clone);
+                    document.body.appendChild(staging);
+
+                    // Tunggu render font & aset sejenak
+                    await new Promise(r => setTimeout(r, 120));
+
+                    const canvas = await html2canvas(clone, {
+                        scale: 3, // Kualitas cetak retina 300dpi
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        width: clone.offsetWidth,
+                        height: clone.offsetHeight
+                    });
+
+                    const link = document.createElement('a');
+                    link.download = `Kartu_Pelajar_${currentKpNisn}_${sideName}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    return true;
+                } catch (e) {
+                    console.error('Error rendering card:', e);
+                    return false;
+                } finally {
+                    if (staging && staging.parentNode) {
+                        staging.parentNode.removeChild(staging);
+                    }
+                }
+            };
+
+            const frontEl = document.querySelector('#kpSlideFront .kp-card');
+            const backEl = document.querySelector('#kpSlideBack .kp-card');
+
+            try {
+                if (mode === 'active') {
+                    const target = currentSide === 'front' ? frontEl : backEl;
+                    const sideName = currentSide === 'front' ? 'DEPAN' : 'BELAKANG';
+                    const success = await captureAndDownload(target, sideName);
+                    if (success) showToast(`Kartu Sisi ${sideName} berhasil diunduh!`);
+                } else if (mode === 'front') {
+                    const success = await captureAndDownload(frontEl, 'DEPAN');
+                    if (success) showToast('Kartu Sisi Depan berhasil diunduh!');
+                } else if (mode === 'back') {
+                    const success = await captureAndDownload(backEl, 'BELAKANG');
+                    if (success) showToast('Kartu Sisi Belakang berhasil diunduh!');
+                } else if (mode === 'both') {
+                    await captureAndDownload(frontEl, 'DEPAN');
+                    await new Promise(r => setTimeout(r, 450));
+                    await captureAndDownload(backEl, 'BELAKANG');
+                    showToast('Kedua sisi kartu berhasil diunduh!');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal memproses unduhan kartu.', true);
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        };
+
+        // Fungsi Membuka Zoom QR Code Fullscreen (Untuk Transaksi & Presensi Cepat)
+        window.zoomKpQrCode = function(e, el) {
+            if (e) {
+                e.stopPropagation();
+                if (e.preventDefault) e.preventDefault();
+            }
+
+            const overlay = document.getElementById('kpQrZoomOverlay');
+            const box = document.getElementById('kpQrZoomBox');
+            const nameEl = document.getElementById('kpQrZoomName');
+            const nisnEl = document.getElementById('kpQrZoomNisn');
+            const rombelEl = document.getElementById('kpQrZoomRombel');
+
+            if (!overlay || !box) return;
+
+            // Ambil SVG QR Code dari elemen yang di-klik atau dari kartu aktif
+            const targetBox = el || document.querySelector('.kp-qrcode-box');
+            const qrSvg = targetBox ? targetBox.querySelector('svg') : null;
+            if (qrSvg) {
+                box.innerHTML = qrSvg.outerHTML;
+            }
+
+            // Ambil biodata siswa dari dataset atau DOM kartu
+            const name = (targetBox && targetBox.dataset.studentName) ? targetBox.dataset.studentName : (
+                document.querySelector('.kp-student-name')?.textContent?.trim() || '-');
+            const nisn = (targetBox && targetBox.dataset.studentNisn) ? targetBox.dataset.studentNisn : (
+                document.querySelector('.kp-nisn-value')?.textContent?.trim() || currentKpNisn);
+            const rombel = (targetBox && targetBox.dataset.studentRombel) ? targetBox.dataset.studentRombel : (
+                document.querySelector('.kp-rombel-name')?.textContent?.trim() || '-');
+
+            if (nameEl) nameEl.textContent = name;
+            if (nisnEl) nisnEl.innerHTML = '<i class="fas fa-id-badge"></i> NISN: ' + escapeKpText(nisn);
+            if (rombelEl) rombelEl.innerHTML = '<i class="fas fa-users-rectangle"></i> ' + escapeKpText(rombel);
+
+            overlay.classList.add('show');
+            overlay.style.setProperty('display', 'flex', 'important');
+        };
+
+        window.closeKpQrZoom = function() {
+            const overlay = document.getElementById('kpQrZoomOverlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+                overlay.style.setProperty('display', 'none', 'important');
+            }
+        };
+
+        function escapeKpText(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
         }
-    };
 
-    // Fungsi Membuka Zoom QR Code Fullscreen (Untuk Transaksi & Presensi Cepat)
-    window.zoomKpQrCode = function(e, el) {
-        if (e) {
-            e.stopPropagation();
-            if (e.preventDefault) e.preventDefault();
-        }
+        // Navigasi Keyboard (Panah Kiri/Kanan & Escape & Spasi)
+        document.addEventListener('keydown', function(e) {
+            // Jika QR Zoom sedang terbuka, tombol Escape menutup QR Zoom lebih dahulu
+            const qrOverlay = document.getElementById('kpQrZoomOverlay');
+            if (qrOverlay && qrOverlay.style.display !== 'none') {
+                if (e.key === 'Escape') {
+                    closeKpQrZoom();
+                    return;
+                }
+            }
 
-        const overlay = document.getElementById('kpQrZoomOverlay');
-        const box = document.getElementById('kpQrZoomBox');
-        const nameEl = document.getElementById('kpQrZoomName');
-        const nisnEl = document.getElementById('kpQrZoomNisn');
-        const rombelEl = document.getElementById('kpQrZoomRombel');
+            const viewer = document.getElementById('kpFullscreenViewer');
+            if (!viewer || viewer.style.display === 'none') return;
 
-        if (!overlay || !box) return;
-
-        // Ambil SVG QR Code dari elemen yang di-klik atau dari kartu aktif
-        const targetBox = el || document.querySelector('.kp-qrcode-box');
-        const qrSvg = targetBox ? targetBox.querySelector('svg') : null;
-        if (qrSvg) {
-            box.innerHTML = qrSvg.outerHTML;
-        }
-
-        // Ambil biodata siswa dari dataset atau DOM kartu
-        const name = (targetBox && targetBox.dataset.studentName) ? targetBox.dataset.studentName : (document.querySelector('.kp-student-name')?.textContent?.trim() || '-');
-        const nisn = (targetBox && targetBox.dataset.studentNisn) ? targetBox.dataset.studentNisn : (document.querySelector('.kp-nisn-value')?.textContent?.trim() || currentKpNisn);
-        const rombel = (targetBox && targetBox.dataset.studentRombel) ? targetBox.dataset.studentRombel : (document.querySelector('.kp-rombel-name')?.textContent?.trim() || '-');
-
-        if (nameEl) nameEl.textContent = name;
-        if (nisnEl) nisnEl.innerHTML = '<i class="fas fa-id-badge"></i> NISN: ' + escapeKpText(nisn);
-        if (rombelEl) rombelEl.innerHTML = '<i class="fas fa-users-rectangle"></i> ' + escapeKpText(rombel);
-
-        overlay.classList.add('show');
-        overlay.style.setProperty('display', 'flex', 'important');
-    };
-
-    window.closeKpQrZoom = function() {
-        const overlay = document.getElementById('kpQrZoomOverlay');
-        if (overlay) {
-            overlay.classList.remove('show');
-            overlay.style.setProperty('display', 'none', 'important');
-        }
-    };
-
-    function escapeKpText(str) {
-        const d = document.createElement('div');
-        d.textContent = str || '';
-        return d.innerHTML;
-    }
-
-    // Navigasi Keyboard (Panah Kiri/Kanan & Escape & Spasi)
-    document.addEventListener('keydown', function(e) {
-        // Jika QR Zoom sedang terbuka, tombol Escape menutup QR Zoom lebih dahulu
-        const qrOverlay = document.getElementById('kpQrZoomOverlay');
-        if (qrOverlay && qrOverlay.style.display !== 'none') {
             if (e.key === 'Escape') {
-                closeKpQrZoom();
-                return;
+                closeKartuPelajarModal();
+            } else if (e.key === 'ArrowLeft') {
+                slideCardTo('front');
+            } else if (e.key === 'ArrowRight') {
+                slideCardTo('back');
+            } else if (e.key === ' ' || e.code === 'Space') {
+                slideCardTo(currentSide === 'front' ? 'back' : 'front');
             }
-        }
-
-        const viewer = document.getElementById('kpFullscreenViewer');
-        if (!viewer || viewer.style.display === 'none') return;
-
-        if (e.key === 'Escape') {
-            closeKartuPelajarModal();
-        } else if (e.key === 'ArrowLeft') {
-            slideCardTo('front');
-        } else if (e.key === 'ArrowRight') {
-            slideCardTo('back');
-        } else if (e.key === ' ' || e.code === 'Space') {
-            slideCardTo(currentSide === 'front' ? 'back' : 'front');
-        }
-    });
-})();
+        });
+    })();
 </script>

@@ -32,7 +32,6 @@
 
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <script src="{{ asset('js/sae-logos.js') }}?v={{ $logoJsVer }}"></script>
-    <script defer src="{{ asset('vendor/fontawesome/js/all.min.js') }}"></script>
     <link rel="stylesheet" href="{{ asset('css/sae.css') }}?v={{ @filemtime(public_path('css/sae.css')) ?: '1' }}">
     @yield('styles')
 </head>

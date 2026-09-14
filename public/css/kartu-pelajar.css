@@ -488,7 +488,8 @@
     font-weight: 800;
     color: #334155;
     margin-bottom: 1mm;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
+    text-align: left;
 }
 
 .kp-terms-list {
@@ -497,10 +498,14 @@
     font-size: 4.6pt;
     color: #475569;
     line-height: 1.35;
+    text-align: left;
+    word-spacing: normal;
 }
 
 .kp-terms-list li {
     margin-bottom: 0.8mm;
+    text-align: left;
+    word-spacing: normal;
 }
 
 .kp-back-bottom {
@@ -781,6 +786,14 @@
     text-align: center;
     z-index: 30;
     pointer-events: none;
+}
+
+.kp-viewer-loading.hidden,
+.kp-viewer-loading[style*="none"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 .kp-viewer-loading i {
@@ -1226,7 +1239,7 @@
     inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
-    display: flex !important;
+    display: flex;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1237,6 +1250,14 @@
     letter-spacing: 0.4px !important;
     text-align: center !important;
     z-index: 50 !important;
+    pointer-events: none !important;
+}
+
+.kp-viewer-loading.hidden,
+.kp-viewer-loading[style*="none"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
     pointer-events: none !important;
 }
 
@@ -1308,13 +1329,38 @@
 }
 
 .kp-fullscreen-overlay .kp-card {
-    transform: scale(var(--kp-viewer-scale, 1.2)) !important;
+    transform: scale(var(--kp-viewer-scale, 1.2));
     transform-origin: center center !important;
-    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.22) !important;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.22);
     border-radius: 3.8mm !important;
     margin: 0 !important;
     flex-shrink: 0 !important;
     transition: box-shadow 0.2s ease !important;
+}
+
+/* Clean Download / Capture State for High-Res PNG Export */
+.kp-card-capture-target {
+    width: 54mm !important;
+    height: 85.6mm !important;
+    min-width: 54mm !important;
+    min-height: 85.6mm !important;
+    max-width: 54mm !important;
+    max-height: 85.6mm !important;
+    transform: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    border-radius: 3.5mm !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+}
+
+.kp-card-capture-target * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
 }
 
 .kp-card-watermark {
