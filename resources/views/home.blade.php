@@ -24,7 +24,8 @@
                     informasi akademik realtime.
                 </p>
                 <div class="hero-actions">
-                    <a href="{{ route('login') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                    <a href="{{ route('login') }}" class="btn btn-primary"
+                        style="display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-right-to-bracket"></i> Masuk Portal
                     </a>
                 </div>
@@ -44,23 +45,30 @@
                 </p>
                 <form id="nisnCheckForm" novalidate>
                     <div class="input-group" style="position: relative;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <label class="input-label" for="nisnInput" style="margin-bottom: 0;">Nomor Induk Siswa Nasional (NISN)</label>
-                            <span id="nisnCounterBadge" style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; transition: color 0.2s;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="input-label" for="nisnInput" style="margin-bottom: 0;">Nomor Induk Siswa Nasional
+                                (NISN)</label>
+                            <span id="nisnCounterBadge"
+                                style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; transition: color 0.2s;">
                                 0 / 10 digit
                             </span>
                         </div>
                         <div style="position: relative; display: flex; align-items: center;">
-                            <input type="text" id="nisnInput" class="input-field" placeholder="Ketik 10 digit angka NISN..."
-                                maxlength="10" inputmode="numeric" autocomplete="off"
+                            <input type="text" id="nisnInput" class="input-field"
+                                placeholder="Ketik 10 digit angka NISN..." maxlength="10" inputmode="numeric"
+                                autocomplete="off"
                                 style="letter-spacing: 1.5px; font-weight: 600; padding-right: 36px; transition: border-color 0.2s, box-shadow 0.2s;">
-                            <span id="nisnStatusIcon" style="position: absolute; right: 12px; pointer-events: none; display: none;"></span>
+                            <span id="nisnStatusIcon"
+                                style="position: absolute; right: 12px; pointer-events: none; display: none;"></span>
                         </div>
-                        <div id="nisnErrorMsg" style="display: none; font-size: 0.76rem; color: #ef4444; margin-top: 6px; align-items: center; gap: 5px;">
+                        <div id="nisnErrorMsg"
+                            style="display: none; font-size: 0.76rem; color: #ef4444; margin-top: 6px; align-items: center; gap: 5px;">
                             <i class="fas fa-circle-exclamation"></i> <span>NISN harus berupa angka dan pas 10 digit.</span>
                         </div>
                     </div>
-                    <button type="submit" id="btnCheckNisn" class="btn btn-primary" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <button type="submit" id="btnCheckNisn" class="btn btn-primary"
+                        style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                         <i class="fas fa-magnifying-glass"></i> Verifikasi Data
                     </button>
                 </form>
@@ -93,7 +101,7 @@
             <div class="kpi-card">
                 <div class="kpi-icon orange"><i class="fas fa-chalkboard"></i></div>
                 <div>
-                    <div class="kpi-num">{{ $stats['grade_x'] + $stats['grade_xi'] + $stats['grade_xii'] }}</div>
+                    <div class="kpi-num">{{ number_format($stats['total_classes']) }}</div>
                     <div class="kpi-desc">Rombongan Belajar</div>
                 </div>
             </div>
@@ -239,11 +247,18 @@
         document.addEventListener('DOMContentLoaded', () => {
             const stats = @json($stats);
             const majorData = @json($major_data);
+            const chartDetail = @json($chart_detail);
+
+            const filterMajor = document.getElementById('filterMajor');
+            const filterGrade = document.getElementById('filterGrade');
+
+            let barChart = null;
+            let pieChart = null;
 
             // Bar Chart (Jurusan)
             const ctxBar = document.getElementById('barMajorChart')?.getContext('2d');
             if (ctxBar) {
-                new Chart(ctxBar, {
+                barChart = new Chart(ctxBar, {
                     type: 'bar',
                     data: {
                         labels: majorData.map(m => m.code || m.nama_jurusan),
@@ -293,7 +308,7 @@
             // Pie Chart (Tingkat)
             const ctxPie = document.getElementById('pieGradeChart')?.getContext('2d');
             if (ctxPie) {
-                new Chart(ctxPie, {
+                pieChart = new Chart(ctxPie, {
                     type: 'doughnut',
                     data: {
                         labels: ['Kelas X', 'Kelas XI', 'Kelas XII'],
@@ -320,5 +335,70 @@
                     }
                 });
             }
+
+            function updateCharts() {
+                const selectedMajor = filterMajor ? filterMajor.value : '';
+                const selectedGrade = filterGrade ? filterGrade.value : '';
+
+                let filtered = chartDetail;
+                if (selectedMajor) {
+                    filtered = filtered.filter(item => item.j === selectedMajor);
+                }
+                if (selectedGrade) {
+                    filtered = filtered.filter(item => item.tg === selectedGrade);
+                }
+
+                if (barChart) {
+                    let barLabels = [];
+                    let barValues = [];
+
+                    if (selectedMajor) {
+                        barLabels = filtered.map(item => item.k);
+                        barValues = filtered.map(item => item.L + item.P);
+                    } else if (selectedGrade) {
+                        const majorMap = {};
+                        filtered.forEach(item => {
+                            majorMap[item.j] = (majorMap[item.j] || 0) + (item.L + item.P);
+                        });
+                        majorData.forEach(m => {
+                            if (majorMap[m.nama_jurusan] !== undefined) {
+                                barLabels.push(m.code || m.nama_jurusan);
+                                barValues.push(majorMap[m.nama_jurusan]);
+                            }
+                        });
+                    } else {
+                        barLabels = majorData.map(m => m.code || m.nama_jurusan);
+                        barValues = majorData.map(m => m.total_peserta_didik);
+                    }
+
+                    barChart.data.labels = barLabels;
+                    barChart.data.datasets[0].data = barValues;
+                    barChart.update();
+                }
+
+                if (pieChart) {
+                    let countX = 0,
+                        countXI = 0,
+                        countXII = 0;
+                    if (selectedMajor) {
+                        filtered.forEach(item => {
+                            if (item.tg === 'X') countX += (item.L + item.P);
+                            else if (item.tg === 'XI') countXI += (item.L + item.P);
+                            else if (item.tg === 'XII') countXII += (item.L + item.P);
+                        });
+                    } else {
+                        countX = stats.grade_x;
+                        countXI = stats.grade_xi;
+                        countXII = stats.grade_xii;
+                    }
+
+                    pieChart.data.datasets[0].data = [countX, countXI, countXII];
+                    pieChart.update();
+                }
+            }
+
+            if (filterMajor) filterMajor.addEventListener('change', updateCharts);
+            if (filterGrade) filterGrade.addEventListener('change', updateCharts);
         });
     </script>
+@endsection
