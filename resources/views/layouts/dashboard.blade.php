@@ -22,13 +22,17 @@
         })();
     </script>
 
+    @php
+        $dashLogoIconVer = @filemtime(public_path('img/logo-icon.png')) ?: '1';
+        $dashLogoJsVer = @filemtime(public_path('js/sae-logos.js')) ?: '1';
+    @endphp
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
-    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ $dashLogoIconVer }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ $dashLogoIconVer }}">
 
     <!-- FontAwesome 6 Local -->
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <script src="{{ asset('js/sae-logos.js') }}"></script>
+    <script src="{{ asset('js/sae-logos.js') }}?v={{ $dashLogoJsVer }}"></script>
     <script defer src="{{ asset('vendor/fontawesome/js/all.min.js') }}"></script>
 
     <!-- Global App & Dashboard Stylesheets with Cache Busting -->

@@ -12,8 +12,12 @@
             </div>
 
             <div style="text-align: center; margin-bottom: 24px;">
-                <img id="installLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}"
-                    data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo"
+                @php
+                    $installLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
+                    $installLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
+                @endphp
+                <img id="installLogo" src="{{ $installLogoDark }}" data-dark="{{ $installLogoDark }}"
+                    data-light="{{ $installLogoLight }}" alt="SAE Logo"
                     style="height: 48px; max-width: 180px; width: auto; object-fit: contain; margin-bottom: 12px;">
                 <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px;">Installer
                     Sistem SAE</h2>

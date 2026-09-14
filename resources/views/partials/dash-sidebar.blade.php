@@ -134,11 +134,14 @@
 <aside class="dash-sidebar" id="dashSidebar">
     <!-- Brand -->
     <div class="dash-sidebar-header">
+        @php
+            $dashLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
+            $dashLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
+        @endphp
         <a href="{{ route('dashboard.' . $role) }}" class="brand"
             style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-            <img id="dashLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}"
-                data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo"
-                style="height: 36px; max-width: 140px; object-fit: contain;"
+            <img id="dashLogo" src="{{ $dashLogoDark }}" data-dark="{{ $dashLogoDark }}" data-light="{{ $dashLogoLight }}"
+                alt="SAE Logo" style="height: 36px; max-width: 140px; object-fit: contain;"
                 onerror="this.onerror=null; this.src='/img/logo-dark.png';">
         </a>
         <span class="badge badge-primary"

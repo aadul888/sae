@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetak Kartu Pelajar — {{ $card['nama'] }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
-    
+    <link rel="icon" type="image/png"
+        href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+
     <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
 
     <style>
@@ -28,7 +31,7 @@
             background: #ffffff;
             padding: 14px 20px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -92,17 +95,19 @@
                 background: none !important;
                 padding: 0 !important;
             }
+
             .action-bar {
                 display: none !important;
             }
         }
     </style>
 </head>
+
 <body>
 
     <div class="action-bar no-print">
         <a href="javascript:window.close();" class="btn-back"><i class="fas fa-arrow-left"></i> Tutup Jendela</a>
-        
+
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <label for="sideFilter" style="font-size: 0.8rem; font-weight: 700; color: #475569;">Sisi Kartu:</label>
             <select id="sideFilter" class="filter-select" onchange="changeSideFilter(this.value)">
@@ -132,4 +137,5 @@
         }
     </script>
 </body>
+
 </html>

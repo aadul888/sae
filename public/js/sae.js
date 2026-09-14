@@ -6,14 +6,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const htmlElement = document.documentElement;
 
     const getLogoSrc = (mode, el) => {
+        const directSrc = mode === "light" ? el.dataset.light : el.dataset.dark;
+        if (directSrc) {
+            return directSrc;
+        }
         if (window.__SAE_LOGOS__ && window.__SAE_LOGOS__[mode]) {
             return window.__SAE_LOGOS__[mode];
         }
-        return mode === "light" ? el.dataset.light : el.dataset.dark;
+        return el.src;
     };
 
     const applyTheme = (theme) => {
-        const themeToggleBtns = document.querySelectorAll("#themeToggleBtn, .theme-toggle-btn:not(#dropdownThemeToggle)");
+        const themeToggleBtns = document.querySelectorAll(
+            "#themeToggleBtn, .theme-toggle-btn:not(#dropdownThemeToggle)",
+        );
         const dropdownToggle = document.getElementById("dropdownThemeToggle");
         const dropdownBadge = document.getElementById("dropdownThemeBadge");
 
@@ -26,7 +32,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (dropdownToggle) {
                 const iconEl = dropdownToggle.querySelector(".theme-icon");
                 const textEl = dropdownToggle.querySelector(".theme-text");
-                if (iconEl) iconEl.className = "fa-solid fa-moon text-primary theme-icon";
+                if (iconEl)
+                    iconEl.className =
+                        "fa-solid fa-moon text-primary theme-icon";
                 if (textEl) textEl.textContent = "Mode Gelap";
                 if (dropdownBadge) dropdownBadge.textContent = "Terang";
             }
@@ -42,7 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (dropdownToggle) {
                 const iconEl = dropdownToggle.querySelector(".theme-icon");
                 const textEl = dropdownToggle.querySelector(".theme-text");
-                if (iconEl) iconEl.className = "fa-solid fa-sun text-warning theme-icon";
+                if (iconEl)
+                    iconEl.className =
+                        "fa-solid fa-sun text-warning theme-icon";
                 if (textEl) textEl.textContent = "Mode Terang";
                 if (dropdownBadge) dropdownBadge.textContent = "Gelap";
             }
@@ -64,7 +74,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Delegated click listener untuk semua tombol theme toggle
     document.addEventListener("click", (e) => {
-        const btn = e.target.closest("#themeToggleBtn, #dropdownThemeToggle, .theme-toggle-btn");
+        const btn = e.target.closest(
+            "#themeToggleBtn, #dropdownThemeToggle, .theme-toggle-btn",
+        );
         if (btn) {
             e.preventDefault();
             const currentTheme =
@@ -115,17 +127,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (len === 10) {
                 nisnInput.style.borderColor = "#10b981";
-                nisnInput.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.15)";
+                nisnInput.style.boxShadow =
+                    "0 0 0 3px rgba(16, 185, 129, 0.15)";
                 if (nisnStatusIcon) {
                     nisnStatusIcon.style.display = "block";
-                    nisnStatusIcon.innerHTML = '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
+                    nisnStatusIcon.innerHTML =
+                        '<i class="fas fa-check-circle" style="color: #10b981;"></i>';
                 }
                 if (nisnErrorMsg) nisnErrorMsg.style.display = "none";
             } else {
                 if (nisnStatusIcon) nisnStatusIcon.style.display = "none";
                 if (isSubmitAttempt) {
                     nisnInput.style.borderColor = "#ef4444";
-                    nisnInput.style.boxShadow = "0 0 0 3px rgba(239, 68, 68, 0.15)";
+                    nisnInput.style.boxShadow =
+                        "0 0 0 3px rgba(239, 68, 68, 0.15)";
                     if (nisnErrorMsg) {
                         nisnErrorMsg.style.display = "flex";
                         nisnErrorMsg.querySelector("span").textContent =
@@ -145,9 +160,17 @@ document.addEventListener("DOMContentLoaded", () => {
         // Cegah input selain angka pada keypress
         nisnInput.addEventListener("keydown", (e) => {
             const allowedKeys = [
-                "Backspace", "Delete", "Tab", "Escape", "Enter",
-                "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
-                "Home", "End"
+                "Backspace",
+                "Delete",
+                "Tab",
+                "Escape",
+                "Enter",
+                "ArrowLeft",
+                "ArrowRight",
+                "ArrowUp",
+                "ArrowDown",
+                "Home",
+                "End",
             ];
             // Allow ctrl/cmd + A, C, V, X
             if (e.ctrlKey || e.metaKey || allowedKeys.includes(e.key)) {
@@ -158,7 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault();
                 if (nisnErrorMsg) {
                     nisnErrorMsg.style.display = "flex";
-                    nisnErrorMsg.querySelector("span").textContent = "Hanya karakter angka (0-9) yang diizinkan.";
+                    nisnErrorMsg.querySelector("span").textContent =
+                        "Hanya karakter angka (0-9) yang diizinkan.";
                 }
             }
         });
@@ -264,7 +288,13 @@ window.SAE = {
         });
     },
 
-    confirm(message, title = "Konfirmasi Tindakan", type = "warning", confirmText = "Lanjutkan", cancelText = "Batal") {
+    confirm(
+        message,
+        title = "Konfirmasi Tindakan",
+        type = "warning",
+        confirmText = "Lanjutkan",
+        cancelText = "Batal",
+    ) {
         return new Promise((resolve) => {
             const icons = {
                 success: "fa-circle-check",
@@ -279,14 +309,14 @@ window.SAE = {
             overlay.className = "sae-dialog-overlay";
             overlay.innerHTML = `
                 <div class="sae-dialog-box">
-                    <div class="sae-dialog-icon ${isDanger ? 'danger' : type}">
+                    <div class="sae-dialog-icon ${isDanger ? "danger" : type}">
                         <i class="fa-solid ${icons[type] || icons.warning}"></i>
                     </div>
                     <div class="sae-dialog-title">${title}</div>
                     <div class="sae-dialog-message">${message}</div>
                     <div class="sae-dialog-actions">
                         <button class="btn btn-outline sae-dialog-cancel" style="padding: 8px 16px; font-size: 0.88rem;">${cancelText}</button>
-                        <button class="btn ${isDanger ? 'btn-danger' : 'btn-primary'} sae-dialog-ok" style="padding: 8px 18px; font-size: 0.88rem; ${isDanger ? 'background: #ef4444; border-color: #ef4444; color: #fff;' : ''}">${confirmText}</button>
+                        <button class="btn ${isDanger ? "btn-danger" : "btn-primary"} sae-dialog-ok" style="padding: 8px 18px; font-size: 0.88rem; ${isDanger ? "background: #ef4444; border-color: #ef4444; color: #fff;" : ""}">${confirmText}</button>
                     </div>
                 </div>
             `;
@@ -371,23 +401,52 @@ window.Swal = {
         const isConfirm = Boolean(opts.showCancelButton);
         const rawMsg = opts.html || opts.text || opts.title || "";
         const title = opts.title || "Pemberitahuan";
-        const iconType = (opts.icon === "error" ? "danger" : opts.icon) || "info";
+        const iconType =
+            (opts.icon === "error" ? "danger" : opts.icon) || "info";
 
         if (isConfirm) {
-            const confirmText = opts.confirmButtonText ? String(opts.confirmButtonText).replace(/<[^>]*>?/gm, "").trim() : "Lanjutkan";
-            const cancelText = opts.cancelButtonText ? String(opts.cancelButtonText).replace(/<[^>]*>?/gm, "").trim() : "Batal";
-            return window.SAE.confirm(rawMsg, title, iconType, confirmText, cancelText).then((isConfirmed) => ({
+            const confirmText = opts.confirmButtonText
+                ? String(opts.confirmButtonText)
+                      .replace(/<[^>]*>?/gm, "")
+                      .trim()
+                : "Lanjutkan";
+            const cancelText = opts.cancelButtonText
+                ? String(opts.cancelButtonText)
+                      .replace(/<[^>]*>?/gm, "")
+                      .trim()
+                : "Batal";
+            return window.SAE.confirm(
+                rawMsg,
+                title,
+                iconType,
+                confirmText,
+                cancelText,
+            ).then((isConfirmed) => ({
                 isConfirmed: isConfirmed,
                 isDismissed: !isConfirmed,
             }));
-        } else if (opts.toast || iconType === "success" || iconType === "info" || iconType === "warning" || iconType === "danger") {
+        } else if (
+            opts.toast ||
+            iconType === "success" ||
+            iconType === "info" ||
+            iconType === "warning" ||
+            iconType === "danger"
+        ) {
             // Seluruh alert status (sukses/info/peringatan) menggunakan SAE Toast modern di pojok atas
-            const toastMsg = opts.title && opts.text ? `${opts.title} - ${opts.text}` : (opts.text || opts.title || rawMsg);
-            const cleanToastMsg = typeof toastMsg === "string" ? toastMsg.replace(/<[^>]*>?/gm, "").trim() : toastMsg;
+            const toastMsg =
+                opts.title && opts.text
+                    ? `${opts.title} - ${opts.text}`
+                    : opts.text || opts.title || rawMsg;
+            const cleanToastMsg =
+                typeof toastMsg === "string"
+                    ? toastMsg.replace(/<[^>]*>?/gm, "").trim()
+                    : toastMsg;
             window.SAE.toast(cleanToastMsg, iconType);
             return Promise.resolve({ isConfirmed: true });
         } else {
-            return window.SAE.alert(rawMsg, title, iconType).then(() => ({ isConfirmed: true }));
+            return window.SAE.alert(rawMsg, title, iconType).then(() => ({
+                isConfirmed: true,
+            }));
         }
     },
     close: function () {},

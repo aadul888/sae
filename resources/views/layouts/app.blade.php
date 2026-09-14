@@ -22,13 +22,18 @@
         })();
     </script>
 
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.png') }}">
+    @php
+        $logoIconVer = @filemtime(public_path('img/logo-icon.png')) ?: '1';
+        $faviconVer = @filemtime(public_path('favicon.png')) ?: '1';
+        $logoJsVer = @filemtime(public_path('js/sae-logos.js')) ?: '1';
+    @endphp
+    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ $logoIconVer }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.png') }}?v={{ $faviconVer }}">
 
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <script src="{{ asset('js/sae-logos.js') }}"></script>
+    <script src="{{ asset('js/sae-logos.js') }}?v={{ $logoJsVer }}"></script>
     <script defer src="{{ asset('vendor/fontawesome/js/all.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ asset('css/sae.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/sae.css') }}?v={{ @filemtime(public_path('css/sae.css')) ?: '1' }}">
     @yield('styles')
 </head>
 

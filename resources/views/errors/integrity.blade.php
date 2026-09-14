@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Integritas Sistem — SAE</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
+    <link rel="icon" type="image/png"
+        href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
     <style>
         * {
             margin: 0;

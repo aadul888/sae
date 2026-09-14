@@ -1,10 +1,13 @@
 <header>
+    @php
+        $navLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
+        $navLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
+    @endphp
     <nav class="navbar">
         <a href="{{ url('/') }}" class="nav-brand"
             style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
-            <img id="navLogo" src="{{ asset('img/logo-dark.png') }}" data-dark="{{ asset('img/logo-dark.png') }}"
-                data-light="{{ asset('img/logo-light.png') }}" alt="SAE Logo"
-                style="height: 38px; width: auto; object-fit: contain;"
+            <img id="navLogo" src="{{ $navLogoDark }}" data-dark="{{ $navLogoDark }}" data-light="{{ $navLogoLight }}"
+                alt="SAE Logo" style="height: 38px; width: auto; object-fit: contain;"
                 onerror="this.onerror=null; this.src='/img/logo-dark.png';">
         </a>
         <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation">

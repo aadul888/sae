@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetak Kartu Pelajar Masal — {{ $rombel->nama }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}">
-    
+    <link rel="icon" type="image/png"
+        href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+
     <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
 
     <style>
@@ -28,7 +31,7 @@
             background: #ffffff;
             padding: 14px 20px;
             border-radius: 14px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -134,6 +137,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- Sticky Toolbar (Non-Printable) -->
@@ -166,10 +170,12 @@
         @forelse($cards as $card)
             @include('kartu-pelajar.template', ['card' => $card, 'wrapperClass' => ''])
         @empty
-            <div class="no-print" style="text-align: center; padding: 48px; background: #fff; border-radius: 12px; width: 100%;">
+            <div class="no-print"
+                style="text-align: center; padding: 48px; background: #fff; border-radius: 12px; width: 100%;">
                 <i class="fas fa-users-slash" style="font-size: 40px; color: #94a3b8; margin-bottom: 12px;"></i>
                 <h3 style="font-size: 1.1rem; color: #1e293b;">Tidak Ada Peserta Didik di Rombel Ini</h3>
-                <p style="font-size: 0.85rem; color: #64748b;">Belum ada data peserta didik yang terhubung ke rombongan belajar {{ $rombel->nama }}.</p>
+                <p style="font-size: 0.85rem; color: #64748b;">Belum ada data peserta didik yang terhubung ke rombongan
+                    belajar {{ $rombel->nama }}.</p>
             </div>
         @endforelse
     </div>
@@ -185,4 +191,5 @@
         }
     </script>
 </body>
+
 </html>
