@@ -34,50 +34,56 @@ Platform Sistem Informasi & Administrasi Digital Sekolah terintegrasi Dapodik Ke
 
 ---
 
-### Skenario A: Instalasi di VPS (Ubuntu / Debian / CentOS / aaPanel)
+### Skenario A: Instalasi di VPS (aaPanel / CyberPanel / CLI Ubuntu / Debian)
 
-1. **Clone Repositori ke Direktori Web**
+#### 1. Setup Melalui Panel Hosting (aaPanel / CyberPanel) — Paling Mudah:
 
+1. **Tambah Situs Web (Add Website):**
+    - Domain: `sae.smakpal.sch.id` (sesuaikan domain Anda).
+    - PHP Version: `PHP 8.2` atau `PHP 8.3`.
+2. **Kloning Kode Sumber:**
+   Masuk ke menu **Files** atau Terminal panel, clone repositori ke root direktori situs:
+    ```bash
+    cd /www/wwwroot/sae.smakpal.sch.id
+    git clone https://github.com/aadul888/sae.git .
+    composer install --no-dev --optimize-autoloader
+    chmod +x deploy.sh && ./deploy.sh
+    ```
+3. **⚠️ Konfigurasi Nginx Web Server (KUNCI MENCEGAH ERROR 404):**
+    - Buka menu **Website** -> Klik nama domain Anda.
+    - Tab **Site Directory**: Ubah **Running directory** dari `/` menjadi **`/public`** -> Klik **Save**.
+    - Tab **URL Rewrite**: Pilih preset **Laravel 5** (atau tempel: `location / { try_files $uri $uri/ /index.php?$query_string; }`) -> Klik **Save**.
+4. **Buka Browser:**
+   Akses `https://domain-anda.sch.id` (otomatis redirect ke `/install`), masukkan info database, selesai!
+
+---
+
+#### 2. Setup Manual via Terminal VPS (Nginx Standalone):
+
+1. **Clone Repositori & Install Dependensi:**
     ```bash
     cd /var/www
     git clone https://github.com/aadul888/sae.git
     cd sae
-    ```
-
-2. **Install Dependensi Composer**
-
-    ```bash
     composer install --no-dev --optimize-autoloader
+    chmod +x deploy.sh && ./deploy.sh
+    ```
+2. **Konfigurasi Virtual Host Nginx:**
+   Pastikan konfigurasi Nginx domain Anda (`/etc/nginx/sites-available/...`) memiliki:
+
+    ```nginx
+    root /var/www/sae/public;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
     ```
 
-3. **Atur Hak Akses & Kepemilikan Folder (Permissions)**
-   Gunakan script otomatisasi yang sudah disediakan:
+    Lalu jalankan `nginx -t && systemctl reload nginx`.
 
-    ```bash
-    chmod +x deploy.sh
-    ./deploy.sh
-    ```
-
-    _Atau atur manual sesuai user web server Anda:_
-
-    ```bash
-    # User webserver: www-data (Ubuntu/Debian), www (aaPanel), nginx (CentOS)
-    chown -R www-data:www-data storage bootstrap/cache
-    chmod -R 775 storage bootstrap/cache
-    ```
-
-4. **Konfigurasi Web Server (Arahkan ke `/public`)**
-    - **Nginx:** Salin atau gunakan template `nginx.conf` yang tersedia di root proyek. Pastikan baris root mengarah ke:
-        ```nginx
-        root /var/www/sae/public;
-        index index.php;
-        ```
-    - **Apache / LiteSpeed:** Pastikan modul `mod_rewrite` aktif dan `DocumentRoot` mengarah ke `/var/www/sae/public`. File `public/.htaccess` sudah tersedia bawaan.
-
-5. **Jalankan Web Wizard**
-    - Buka browser dan akses: `https://domain-anda.sch.id`
-    - Sistem akan otomatis mengarahkan ke halaman instalasi: `https://domain-anda.sch.id/install`
-    - Masukkan informasi koneksi database MySQL Anda. Wizard akan otomatis menguji koneksi, membuat database (jika belum ada), menulis file `.env`, mengimpor skema awal, dan menautkan storage link.
+3. **Buka Web Wizard:**
+   Akses `https://domain-anda.sch.id` di browser untuk menyelesaikan setup via GUI.
 
 ---
 

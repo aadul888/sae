@@ -51,11 +51,16 @@ chown $PHP_USER:$PHP_USER storage/logs/laravel.log
 echo "🔗 Creating storage link..."
 php artisan storage:link --force 2>/dev/null || true
 
-# 7. Cache Laravel & Optimize
-echo "⚡ Optimizing Laravel..."
-php artisan optimize:clear 2>/dev/null || true
-php artisan config:cache 2>/dev/null || true
-php artisan route:cache 2>/dev/null || true
-php artisan view:cache 2>/dev/null || true
+# 7. Cache Laravel & Optimize (Hanya cache jika .env sudah ada)
+if [ -f .env ]; then
+    echo "⚡ Optimizing Laravel caches..."
+    php artisan optimize:clear 2>/dev/null || true
+    php artisan config:cache 2>/dev/null || true
+    php artisan route:cache 2>/dev/null || true
+    php artisan view:cache 2>/dev/null || true
+else
+    echo "⚡ Fresh install mode detected (.env not ready). Flushing cache only..."
+    php artisan optimize:clear 2>/dev/null || true
+fi
 
 echo "✅ Deploy & permission setup complete!"

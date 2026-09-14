@@ -28,9 +28,6 @@
 
             <form action="{{ route('install.process') }}" method="POST">
                 @csrf
-                <input type="hidden" name="db_host" value="{{ old('db_host', '127.0.0.1') }}">
-                <input type="hidden" name="db_port" value="{{ old('db_port', '3306') }}">
-
                 <div style="margin-bottom: 18px;">
                     <label
                         style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
@@ -57,7 +54,7 @@
                     </div>
                 </div>
 
-                <div style="margin-bottom: 22px;">
+                <div style="margin-bottom: 18px;">
                     <label
                         style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
                         <i class="fas fa-lock text-primary"></i> Password Database
@@ -69,6 +66,26 @@
                     </div>
                 </div>
 
+                <!-- Pengaturan Lanjutan (Host & Port) -->
+                <details style="margin-bottom: 20px; font-size: 0.82rem; color: var(--text-muted);">
+                    <summary
+                        style="cursor: pointer; font-weight: 600; color: var(--primary); margin-bottom: 10px; user-select: none;">
+                        <i class="fas fa-sliders me-1"></i> Pengaturan Host & Port Lanjutan
+                    </summary>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-top: 8px;">
+                        <div>
+                            <label style="display: block; font-size: 0.75rem; margin-bottom: 4px;">Host Database</label>
+                            <input type="text" name="db_host" value="{{ old('db_host', '127.0.0.1') }}"
+                                style="width: 100%; border: 1px solid var(--border-color); background: var(--input-bg); border-radius: 8px; padding: 8px 10px; color: var(--text-color); font-size: 0.85rem; outline: none;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.75rem; margin-bottom: 4px;">Port</label>
+                            <input type="text" name="db_port" value="{{ old('db_port', '3306') }}"
+                                style="width: 100%; border: 1px solid var(--border-color); background: var(--input-bg); border-radius: 8px; padding: 8px 10px; color: var(--text-color); font-size: 0.85rem; outline: none;">
+                        </div>
+                    </div>
+                </details>
+
                 <div
                     style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 12px; padding: 14px; margin-bottom: 22px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;">
                     <div style="font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
@@ -76,7 +93,8 @@
                     </div>
                     <div>• <b>Admin:</b> admin@sae.id / <code style="color: var(--primary);">Admin543!</code></div>
                     <div>• <b>Guru:</b> gtk@sae.id / <code style="color: var(--primary);">Geteka543!</code></div>
-                    <div>• <b>Peserta Didik:</b> pesertadidik@sae.id / <code style="color: var(--primary);">PesertaDidik543!</code></div>
+                    <div>• <b>Peserta Didik:</b> pesertadidik@sae.id / <code
+                            style="color: var(--primary);">PesertaDidik543!</code></div>
                 </div>
 
                 <button type="submit" class="btn btn-primary"
