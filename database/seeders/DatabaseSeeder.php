@@ -69,6 +69,9 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now()
             ]
         );
+
+        // 4. Kalender Pendidikan 2026/2027
+        $this->call(KalenderPendidikanSeeder::class);
     }
 }
 
