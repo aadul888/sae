@@ -321,7 +321,11 @@ function initResponsesLiveSearch() {
             url.searchParams.delete('q');
         }
         url.searchParams.set('page', '1');
-        window.location.href = url.toString();
+        if (typeof window.refreshLiveTable === 'function') {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
     };
 
     liveSearch.addEventListener('input', function () {
@@ -329,7 +333,7 @@ function initResponsesLiveSearch() {
             clearSearch.classList.toggle('visible', this.value.trim().length > 0);
         }
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(applySearch, 850);
+        debounceTimer = setTimeout(applySearch, 300);
     });
 
     liveSearch.addEventListener('keydown', function (e) {
@@ -360,7 +364,11 @@ function initResponsesPerPage() {
         const url = new URL(window.location.href);
         url.searchParams.set('perPage', this.value);
         url.searchParams.set('page', '1');
-        window.location.href = url.toString();
+        if (typeof window.refreshLiveTable === 'function') {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
     });
 }
 
@@ -384,7 +392,11 @@ function initSortHeaders() {
             url.searchParams.set('sort', sortField);
             url.searchParams.set('sort_dir', newDir);
             url.searchParams.delete('page'); // kembali ke halaman 1
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === 'function') {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     });
 }

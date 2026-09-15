@@ -249,7 +249,11 @@ document.addEventListener("DOMContentLoaded", () => {
         else url.searchParams.delete("q");
 
         url.searchParams.set("page", "1");
-        window.location.href = url.toString();
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
     };
 
     document
@@ -278,7 +282,7 @@ document.addEventListener("DOMContentLoaded", () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 applyFilters();
-            }, 850);
+            }, 300);
         });
 
         liveSearch.addEventListener("keydown", (e) => {
@@ -318,7 +322,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 url.searchParams.set("sort_dir", "asc");
             }
 
-            window.location.href = url.toString();
+            url.searchParams.set("page", "1");
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     });
 });

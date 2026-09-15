@@ -373,13 +373,13 @@ PHP;
     <div class="card" style="padding: 20px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px;">
         <!-- Toolbar: Pencarian, Filter & Dropdown Baris -->
         <div class="dash-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 260px; max-width: 480px;">
-                <div style="position: relative; width: 100%;">
-                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
-                    <input type="text" id="liveSearchInput" placeholder="Cari data {$title}..."
-                        style="width: 100%; height: 38px; padding: 0 12px 0 34px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; box-sizing: border-box;">
+                <div class="live-search-wrap" style="width: 100%;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearchInput" placeholder="Cari data {$title}..." autocomplete="off">
+                    <button type="button" class="clear-search" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-            </div>
 
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <select id="filterStatus" style="height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">

@@ -1195,3 +1195,71 @@ select:-webkit-autofill {
     transform: translateX(0);
     opacity: 1;
 }
+
+/* Standarisasi Universal Live Search Wrap (Icon Kaca Pembesar & Input) */
+.live-search-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.live-search-wrap input,
+.live-search-wrap input[type="text"],
+.live-search-wrap input[type="search"] {
+    padding: 8px 36px 8px 38px !important;
+    padding-left: 38px !important;
+    padding-right: 36px !important;
+    font-size: 0.85rem !important;
+    width: 260px;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)) !important;
+    background: var(--card-bg, #1a2234) !important;
+    color: var(--text-color, #f8fafc) !important;
+    line-height: 1.4 !important;
+    box-sizing: border-box !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+.live-search-wrap input:focus,
+.live-search-wrap input[type="text"]:focus,
+.live-search-wrap input[type="search"]:focus {
+    border-color: var(--primary, #4f6ef7) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+    outline: none !important;
+}
+.live-search-wrap .search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 2;
+}
+.live-search-wrap .clear-search {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted, #94a3b8);
+    cursor: pointer;
+    font-size: 0.8rem;
+    width: 22px;
+    height: 22px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    z-index: 3;
+    padding: 0;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+.live-search-wrap .clear-search:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+.live-search-wrap .clear-search.visible {
+    display: inline-flex;
+}
+

@@ -385,7 +385,11 @@
                 url.searchParams.delete(paramName);
             }
             url.searchParams.delete('page');
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === 'function') {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         }
 
         document.getElementById('perPageSelect').addEventListener('change', function() {
@@ -414,7 +418,7 @@
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 applyFilter('q', val.trim());
-            }, 500);
+            }, 300);
         });
 
         clearSearchBtn.addEventListener('click', function() {
@@ -436,7 +440,11 @@
                 url.searchParams.set('sort', sortKey);
                 url.searchParams.set('sort_dir', nextDir);
                 url.searchParams.delete('page');
-                window.location.href = url.toString();
+                if (typeof window.refreshLiveTable === 'function') {
+                    window.refreshLiveTable(url.toString());
+                } else {
+                    window.location.href = url.toString();
+                }
             });
         });
 

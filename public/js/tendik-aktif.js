@@ -173,7 +173,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         url.searchParams.set("page", "1");
-        window.location.href = url.toString();
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
     }
 
     let searchTimer = null;
@@ -185,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.value.trim().length > 0,
                 );
             clearTimeout(searchTimer);
-            searchTimer = setTimeout(applyFilter, 850);
+            searchTimer = setTimeout(applyFilter, 300);
         });
 
         searchInput.addEventListener("keydown", function (e) {
@@ -232,7 +236,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             url.searchParams.delete("page");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     });
 });

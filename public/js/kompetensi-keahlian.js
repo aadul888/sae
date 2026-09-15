@@ -476,7 +476,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 url.searchParams.delete("q");
             }
             url.searchParams.set("page", "1");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         };
 
         searchInput.addEventListener("input", function () {
@@ -490,7 +494,7 @@ document.addEventListener("DOMContentLoaded", function () {
             clearTimeout(timer);
             timer = setTimeout(() => {
                 triggerSearch(this.value.trim());
-            }, 850);
+            }, 300);
         });
 
         searchInput.addEventListener("keydown", function (e) {
@@ -508,7 +512,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 const url = new URL(window.location.href);
                 url.searchParams.delete("q");
                 url.searchParams.set("page", "1");
-                window.location.href = url.toString();
+                if (typeof window.refreshLiveTable === "function") {
+                    window.refreshLiveTable(url.toString());
+                } else {
+                    window.location.href = url.toString();
+                }
             });
         }
     }
@@ -520,7 +528,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const url = new URL(window.location.href);
             url.searchParams.set("perPage", this.value);
             url.searchParams.set("page", "1");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     }
 
@@ -543,7 +555,11 @@ document.addEventListener("DOMContentLoaded", function () {
             url.searchParams.set("sort", sortField);
             url.searchParams.set("sort_dir", newDir);
             url.searchParams.set("page", "1");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     });
 });

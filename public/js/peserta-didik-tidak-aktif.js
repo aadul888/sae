@@ -38,7 +38,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         params.set('page', '1');
-        window.location.search = params.toString();
+        const targetUrl = window.location.pathname + '?' + params.toString();
+        if (typeof window.refreshLiveTable === 'function') {
+            window.refreshLiveTable(targetUrl);
+        } else {
+            window.location.search = params.toString();
+        }
     }
 
     if (perPageSelect) perPageSelect.addEventListener('change', applyFilter);
@@ -53,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (clearSearch) clearSearch.classList.remove('visible');
             }
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(applyFilter, 850);
+            debounceTimer = setTimeout(applyFilter, 300);
         });
 
         liveSearch.addEventListener('keydown', function (e) {

@@ -50,7 +50,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 url.searchParams.delete("q");
             }
             url.searchParams.set("page", "1");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         };
 
         liveSearch.addEventListener("input", function () {
@@ -58,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 triggerSearch(this.value);
-            }, 850);
+            }, 300);
         });
 
         liveSearch.addEventListener("keydown", function (e) {
@@ -77,7 +81,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const url = new URL(window.location.href);
             url.searchParams.delete("q");
             url.searchParams.set("page", "1");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     }
 
@@ -88,7 +96,11 @@ document.addEventListener("DOMContentLoaded", function () {
             const url = new URL(window.location.href);
             url.searchParams.set("perPage", this.value);
             url.searchParams.set("page", "1");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     }
 
@@ -106,36 +118,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 url.searchParams.set("sort_dir", "asc");
             }
             url.searchParams.set("page", "1");
-            window.location.href = url.toString();
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         });
     });
 
     // --- Form Confirmations (SAE Unified Dialog System) ---
-    document.querySelectorAll("form[data-action-type]").forEach((form) => {
-        form.addEventListener("submit", async function (e) {
-            e.preventDefault();
-            const type = this.dataset.actionType;
-            const nama = this.dataset.name || "item ini";
-            const targetForm = this;
-            const isDelete = type === "delete";
+    document.addEventListener("submit", async function (e) {
+        const targetForm = e.target.closest("form[data-action-type]");
+        if (!targetForm) return;
 
-            const title = isDelete ? "Hapus Pengguna?" : "Reset Password?";
-            const msg = isDelete
-                ? `Yakin ingin menghapus akun pengguna <strong>${nama}</strong>?<br><span style="color:#ef4444; font-size:0.8rem;">Tindakan ini tidak dapat dibatalkan.</span>`
-                : `Reset password akun <strong>${nama}</strong> ke default (NISN / Sae12345!)?`;
-            const confirmBtnText = isDelete ? "Ya, Hapus Akun" : "Ya, Reset Password";
+        e.preventDefault();
+        const type = targetForm.dataset.actionType;
+        const nama = targetForm.dataset.name || "item ini";
+        const isDelete = type === "delete";
 
-            const confirmed = await window.SAE.confirm(
-                msg,
-                title,
-                isDelete ? "danger" : "warning",
-                confirmBtnText,
-                "Batal"
-            );
+        const title = isDelete ? "Hapus Pengguna?" : "Reset Password?";
+        const msg = isDelete
+            ? `Yakin ingin menghapus akun pengguna <strong>${nama}</strong>?<br><span style="color:#ef4444; font-size:0.8rem;">Tindakan ini tidak dapat dibatalkan.</span>`
+            : `Reset password akun <strong>${nama}</strong> ke default (NISN / Sae12345!)?`;
+        const confirmBtnText = isDelete ? "Ya, Hapus Akun" : "Ya, Reset Password";
 
-            if (confirmed) {
-                targetForm.submit();
-            }
-        });
+        const confirmed = await window.SAE.confirm(
+            msg,
+            title,
+            isDelete ? "danger" : "warning",
+            confirmBtnText,
+            "Batal"
+        );
+
+        if (confirmed) {
+            targetForm.submit();
+        }
     });
 });

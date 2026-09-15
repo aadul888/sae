@@ -252,3 +252,208 @@ window.escapeHtml = function (str) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 };
+
+/**
+ * SAE Universal Live Table & Search Engine
+ * Refreshes datatables and pagination via AJAX without reloading the entire page.
+ * Keeps input focus, cursor position, and smooth transitions.
+ */
+window.refreshLiveTable = async function (url, options = {}) {
+    if (!url) return;
+    const targetUrl = typeof url === "string" ? url : url.toString();
+
+    // 1. Locate the active table container in DOM
+    const container =
+        document.querySelector("#tableDataContainer") ||
+        document.querySelector(
+            ".card.table-responsive-stack, .table-responsive-stack, .dash-table-card",
+        ) ||
+        document.querySelector("table");
+
+    if (!container) {
+        window.location.href = targetUrl;
+        return;
+    }
+
+    // 2. Subtle loading visual feedback
+    const originalOpacity = container.style.opacity || "1";
+    container.style.transition = "opacity 0.15s ease";
+    container.style.opacity = "0.45";
+    container.style.pointerEvents = "none";
+
+    try {
+        const response = await fetch(targetUrl, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                Accept: "text/html, application/xhtml+xml",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
+        }
+
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+
+        // 3. Swap container contents
+        const curDataContainer = document.querySelector("#tableDataContainer");
+        const newDataContainer = doc.querySelector("#tableDataContainer");
+
+        if (curDataContainer && newDataContainer) {
+            curDataContainer.innerHTML = newDataContainer.innerHTML;
+        } else {
+            // Find and swap the table card/container
+            const curTable =
+                document.querySelector(
+                    ".card.table-responsive-stack, .table-responsive-stack, .dash-table-card",
+                ) || document.querySelector("table");
+            const newTable =
+                doc.querySelector(
+                    ".card.table-responsive-stack, .table-responsive-stack, .dash-table-card",
+                ) || doc.querySelector("table");
+
+            if (curTable && newTable) {
+                curTable.innerHTML = newTable.innerHTML;
+            }
+
+            // Find and swap pagination
+            const curPagination = document.querySelector(
+                ".custom-pagination, .dash-pagination, .pagination",
+            );
+            const newPagination = doc.querySelector(
+                ".custom-pagination, .dash-pagination, .pagination",
+            );
+
+            if (curPagination && newPagination) {
+                curPagination.outerHTML = newPagination.outerHTML;
+            } else if (curPagination && !newPagination) {
+                curPagination.style.display = "none";
+                curPagination.innerHTML = "";
+            } else if (!curPagination && newPagination) {
+                const anchor = curTable || container;
+                if (anchor) anchor.insertAdjacentElement("afterend", newPagination);
+            }
+        }
+
+        // 4. Update badge / total entries count if present in the page
+        const countSelectors = [
+            ".badge-total",
+            "#totalBadge",
+            ".total-badge",
+            ".total-count-text",
+        ];
+        countSelectors.forEach((sel) => {
+            const curEl = document.querySelector(sel);
+            const newEl = doc.querySelector(sel);
+            if (curEl && newEl && curEl.innerHTML !== newEl.innerHTML) {
+                curEl.innerHTML = newEl.innerHTML;
+            }
+        });
+
+        // 5. Update browser URL silently without page reload
+        window.history.replaceState(null, "", targetUrl);
+
+        // 6. Notify any custom listeners
+        window.dispatchEvent(
+            new CustomEvent("sae:tableRefreshed", {
+                detail: { url: targetUrl, doc },
+            }),
+        );
+    } catch (err) {
+        console.warn("[SAE LiveSearch] Refresh failed, using fallback:", err);
+    } finally {
+        container.style.opacity = originalOpacity;
+        container.style.pointerEvents = "auto";
+    }
+};
+
+// Global Delegated Click Handler for Pagination Links (No Full Reload)
+document.addEventListener("click", function (e) {
+    const pageLink = e.target.closest(
+        ".custom-pagination a, .dash-pagination a, .pagination a",
+    );
+    if (
+        pageLink &&
+        pageLink.href &&
+        !pageLink.hasAttribute("data-no-ajax") &&
+        !pageLink.classList.contains("disabled") &&
+        !pageLink.getAttribute("href").startsWith("javascript:")
+    ) {
+        e.preventDefault();
+        window.refreshLiveTable(pageLink.href);
+    }
+});
+
+// Global Delegated Handler for Clear Search Buttons (.clear-search)
+document.addEventListener("click", function (e) {
+    const clearBtn = e.target.closest(".live-search-wrap .clear-search");
+    if (!clearBtn) return;
+    e.preventDefault();
+    const wrap = clearBtn.closest(".live-search-wrap");
+    if (!wrap) return;
+    const input = wrap.querySelector("input");
+    if (input) {
+        input.value = "";
+        clearBtn.classList.remove("visible");
+        input.focus();
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+});
+
+// Universal Auto-Enhancer for ANY .live-search-wrap input inside a GET form
+let globalLiveSearchTimer = null;
+document.addEventListener("input", function (e) {
+    const input = e.target;
+    const wrap = input.closest(".live-search-wrap");
+    if (!wrap) return;
+
+    // Toggle clear button visibility
+    const clearBtn = wrap.querySelector(".clear-search");
+    if (clearBtn) {
+        clearBtn.classList.toggle("visible", input.value.trim().length > 0);
+    }
+
+    // If this input is inside a GET form, auto-refresh table via AJAX
+    const form = wrap.closest("form");
+    if (
+        form &&
+        !form.hasAttribute("data-manual-search") &&
+        (form.method || "get").toLowerCase() === "get"
+    ) {
+        clearTimeout(globalLiveSearchTimer);
+        globalLiveSearchTimer = setTimeout(() => {
+            const formData = new FormData(form);
+            const url = new URL(form.action || window.location.href, window.location.origin);
+            for (const [key, val] of formData.entries()) {
+                if (val) url.searchParams.set(key, val);
+                else url.searchParams.delete(key);
+            }
+            url.searchParams.set("page", "1");
+            window.refreshLiveTable(url.toString());
+        }, 300);
+    }
+});
+
+// Global Interception for Search Forms submitting with live-search-wrap
+document.addEventListener("submit", function (e) {
+    const form = e.target;
+    if (
+        form &&
+        form.querySelector(".live-search-wrap") &&
+        !form.hasAttribute("data-no-ajax") &&
+        (form.method || "get").toLowerCase() === "get"
+    ) {
+        e.preventDefault();
+        clearTimeout(globalLiveSearchTimer);
+        const formData = new FormData(form);
+        const url = new URL(form.action || window.location.href, window.location.origin);
+        for (const [key, val] of formData.entries()) {
+            if (val) url.searchParams.set(key, val);
+            else url.searchParams.delete(key);
+        }
+        url.searchParams.set("page", "1");
+        window.refreshLiveTable(url.toString());
+    }
+});
+
