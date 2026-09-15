@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 4. Inisialisasi Per-Page Selector Respon Formulir
     initResponsesPerPage();
+
+    // 5. Sort Header — klik th.sortable-th untuk sort server-side
+    initSortHeaders();
 });
 
 /**
@@ -361,3 +364,27 @@ function initResponsesPerPage() {
     });
 }
 
+/**
+ * Sort Header — Klik kolom th.sortable-th untuk sort server-side
+ */
+function initSortHeaders() {
+    document.querySelectorAll('.sortable-th').forEach(function (th) {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', function () {
+            const sortField = this.getAttribute('data-sort');
+            if (!sortField) return;
+
+            const url = new URL(window.location.href);
+            const currentSort = url.searchParams.get('sort') || 'created_at';
+            const currentDir  = url.searchParams.get('sort_dir') || 'desc';
+
+            // Toggle arah: jika kolom yang sama diklik dan sedang asc → desc, selainnya → asc
+            const newDir = (currentSort === sortField && currentDir === 'asc') ? 'desc' : 'asc';
+
+            url.searchParams.set('sort', sortField);
+            url.searchParams.set('sort_dir', newDir);
+            url.searchParams.delete('page'); // kembali ke halaman 1
+            window.location.href = url.toString();
+        });
+    });
+}

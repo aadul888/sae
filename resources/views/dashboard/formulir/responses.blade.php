@@ -123,9 +123,24 @@
                     <thead>
                         <tr style="background:var(--bg-hover);border-bottom:1px solid var(--border-color);">
                             <th style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;width:50px;text-align:center;">No</th>
-                            <th style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Waktu Submit</th>
-                            <th style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Nama Responden</th>
-                            <th style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Identitas</th>
+                            <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}"
+                                data-sort="created_at"
+                                style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;cursor:pointer;">
+                                Waktu Submit
+                                <span class="sort-icon">{!! $sort === 'created_at' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'nama_responden' ? 'sorted' : '' }}"
+                                data-sort="nama_responden"
+                                style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;cursor:pointer;">
+                                Nama Responden
+                                <span class="sort-icon">{!! $sort === 'nama_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'identitas_responden' ? 'sorted' : '' }}"
+                                data-sort="identitas_responden"
+                                style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;cursor:pointer;">
+                                Identitas
+                                <span class="sort-icon">{!! $sort === 'identitas_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
                             <th style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Ringkasan Jawaban</th>
                             <th style="padding:12px 18px;font-size:0.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;text-align:center;width:100px;">Aksi</th>
                         </tr>

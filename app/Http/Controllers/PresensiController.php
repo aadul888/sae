@@ -100,7 +100,17 @@ class PresensiController extends Controller
             $perPageLog = 15;
         }
 
-        $logs = $logsQuery->orderBy('ph.jam_masuk', 'desc')->paginate($perPageLog)->withQueryString();
+        $sortLog    = $request->input('sort', 'jam_masuk');
+        $sortLogDir = $request->input('sort_dir', 'desc');
+        $allowedLogSorts = ['nama_siswa', 'nama_rombel', 'jam_masuk', 'jam_pulang', 'status'];
+        if (!in_array($sortLog, $allowedLogSorts, true)) {
+            $sortLog = 'jam_masuk';
+        }
+        if (!in_array($sortLogDir, ['asc', 'desc'], true)) {
+            $sortLogDir = 'desc';
+        }
+
+        $logs = $logsQuery->orderBy('ph.' . $sortLog, $sortLogDir)->paginate($perPageLog)->withQueryString();
 
         // Format foto URL untuk siswa di logs
         $logs->getCollection()->transform(function ($item) {
@@ -182,6 +192,8 @@ class PresensiController extends Controller
             'persenHadir',
             'rombelList',
             'logs',
+            'sortLog',
+            'sortLogDir',
             'siswaRfidList',
             'izinPending',
             'perPageLog',

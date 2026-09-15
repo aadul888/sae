@@ -287,11 +287,36 @@
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                         <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">No</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Peserta Didik</th>
-                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Rombel</th>
-                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jam Masuk</th>
-                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jam Pulang</th>
-                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Status</th>
+                        <th class="sortable-th {{ $sortLog === 'nama_siswa' ? 'sorted' : '' }}"
+                            data-sort="nama_siswa"
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Nama Peserta Didik
+                            <span class="sort-icon">{!! $sortLog === 'nama_siswa' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th class="sortable-th {{ $sortLog === 'nama_rombel' ? 'sorted' : '' }}"
+                            data-sort="nama_rombel"
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Rombel
+                            <span class="sort-icon">{!! $sortLog === 'nama_rombel' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th class="sortable-th {{ $sortLog === 'jam_masuk' ? 'sorted' : '' }}"
+                            data-sort="jam_masuk"
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Jam Masuk
+                            <span class="sort-icon">{!! $sortLog === 'jam_masuk' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th class="sortable-th {{ $sortLog === 'jam_pulang' ? 'sorted' : '' }}"
+                            data-sort="jam_pulang"
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Jam Pulang
+                            <span class="sort-icon">{!! $sortLog === 'jam_pulang' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th class="sortable-th {{ $sortLog === 'status' ? 'sorted' : '' }}"
+                            data-sort="status"
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; cursor: pointer;">
+                            Status
+                            <span class="sort-icon">{!! $sortLog === 'status' ? ($sortLogDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
                         <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Keterangan</th>
                         <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Snapshot</th>
                     </tr>

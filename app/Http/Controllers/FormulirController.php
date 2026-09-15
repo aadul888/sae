@@ -376,7 +376,18 @@ class FormulirController extends Controller
 
         $formulir = Formulir::withCount('respon')->findOrFail($id);
 
-        $query = $formulir->respon()->latest();
+        $sort    = $request->input('sort', 'created_at');
+        $sortDir = $request->input('sort_dir', 'desc');
+        $allowedSorts = ['nama_responden', 'identitas_responden', 'created_at'];
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'created_at';
+        }
+        if (!in_array($sortDir, ['asc', 'desc'], true)) {
+            $sortDir = 'desc';
+        }
+
+        // Ganti ->latest() di query builder dengan sort dinamis
+        $query = $formulir->respon()->orderBy($sort, $sortDir);
 
         if ($request->filled('q')) {
             $search = $request->input('q');
@@ -429,7 +440,7 @@ class FormulirController extends Controller
             }
         }
 
-        return view('dashboard.formulir.responses', compact('formulir', 'responses', 'fieldStats', 'perPage'));
+        return view('dashboard.formulir.responses', compact('formulir', 'responses', 'fieldStats', 'perPage', 'sort', 'sortDir'));
     }
 
     /**

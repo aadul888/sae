@@ -459,5 +459,30 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    /* ==========================================================================
+       SORT HEADER — Klik th.sortable-th untuk sort kolom server-side
+       ========================================================================== */
+    document.querySelectorAll(".sortable-th").forEach(function (th) {
+        th.style.cursor = "pointer";
+        th.addEventListener("click", function () {
+            const sortField = this.getAttribute("data-sort");
+            if (!sortField) return;
+
+            const url = new URL(window.location.href);
+            const currentSort = url.searchParams.get("sort") || "created_at";
+            const currentDir = url.searchParams.get("sort_dir") || "desc";
+
+            let newDir = "asc";
+            if (currentSort === sortField && currentDir === "asc") {
+                newDir = "desc";
+            }
+
+            url.searchParams.set("sort", sortField);
+            url.searchParams.set("sort_dir", newDir);
+            url.searchParams.delete("page"); // reset ke halaman pertama
+            window.location.href = url.toString();
+        });
+    });
 });
 

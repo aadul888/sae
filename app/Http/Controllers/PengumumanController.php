@@ -67,7 +67,17 @@ class PengumumanController extends Controller
             $query->where('is_active', $statusFilter === '1');
         }
 
-        $query->orderByDesc('created_at');
+        $sort    = $request->get('sort', 'created_at');
+        $sortDir = $request->get('sort_dir', 'desc');
+        $allowedSorts = ['judul', 'target', 'target_peran', 'is_active', 'created_at'];
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'created_at';
+        }
+        if (!in_array($sortDir, ['asc', 'desc'], true)) {
+            $sortDir = 'desc';
+        }
+
+        $query->orderBy($sort, $sortDir);
 
         $list = $query->paginate($perPage)->appends($request->query());
 
@@ -87,6 +97,8 @@ class PengumumanController extends Controller
             'targetPeranFilter',
             'statusFilter',
             'perPage',
+            'sort',
+            'sortDir',
             'canCreate',
             'canUpdate',
             'canDelete'

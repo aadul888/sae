@@ -149,29 +149,41 @@
         <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead class="sticky-table-header">
                 <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                         No</th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Judul &amp; Pesan Pengumuman</th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
-                        Target Tampilan</th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                        Ditujukan Kepada</th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                    <th class="sortable-th {{ $sort === 'judul' ? 'sorted' : '' }}"
+                        data-sort="judul"
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                        Judul &amp; Pesan Pengumuman
+                        <span class="sort-icon">{!! $sort === 'judul' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th class="sortable-th {{ $sort === 'target' ? 'sorted' : '' }}"
+                        data-sort="target"
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px; cursor: pointer;">
+                        Target Tampilan
+                        <span class="sort-icon">{!! $sort === 'target' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th class="sortable-th {{ $sort === 'target_peran' ? 'sorted' : '' }}"
+                        data-sort="target_peran"
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; cursor: pointer;">
+                        Ditujukan Kepada
+                        <span class="sort-icon">{!! $sort === 'target_peran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                         Pembaca</th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
-                        Status</th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px;">
-                        Tanggal</th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
+                    <th class="sortable-th {{ $sort === 'is_active' ? 'sorted' : '' }}"
+                        data-sort="is_active"
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px; cursor: pointer;">
+                        Status
+                        <span class="sort-icon">{!! $sort === 'is_active' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}"
+                        data-sort="created_at"
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px; cursor: pointer;">
+                        Tanggal
+                        <span class="sort-icon">{!! $sort === 'created_at' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
                         Aksi</th>
                 </tr>
             </thead>
