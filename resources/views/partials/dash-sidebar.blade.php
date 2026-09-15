@@ -502,7 +502,8 @@
                     @endif
 
                     @if ($can('menu_presensi_peserta_didik'))
-                        <a href="{{ route('dashboard.presensi.kelas') }}" class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
+                        <a href="{{ route('dashboard.presensi.kelas') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-viewfinder"></i></span>
                             <span class="nav-label">Presensi Kelas</span>
                         </a>
@@ -584,7 +585,8 @@
                 </button>
                 <div class="dash-nav-submenu">
                     @if ($can('menu_riwayat_rfid'))
-                        <a href="{{ route('dashboard.presensi.riwayat-saya') }}" class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
+                        <a href="{{ route('dashboard.presensi.riwayat-saya') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
                             <span class="nav-label">Riwayat Presensi RFID</span>
                         </a>
@@ -781,35 +783,6 @@
                     <span class="nav-label">Update Sistem</span>
                 </a>
             @endif
-        @endif
-
-        @if (!empty($extraModules))
-            <span class="nav-section-label">Modul Lainnya</span>
-            @foreach ($extraModules as $extra)
-                @php
-                    $routeSlug = str_replace(['menu_', '_'], ['', '-'], $extra['key']);
-                    $routeTarget = '#';
-                    if (\Illuminate\Support\Facades\Route::has('dashboard.' . $routeSlug . '.index')) {
-                        $routeTarget = route('dashboard.' . $routeSlug . '.index');
-                    } elseif (\Illuminate\Support\Facades\Route::has('dashboard.' . $routeSlug)) {
-                        $routeTarget = route('dashboard.' . $routeSlug);
-                    } elseif (\Illuminate\Support\Facades\Route::has($routeSlug . '.index')) {
-                        $routeTarget = route($routeSlug . '.index');
-                    } elseif (\Illuminate\Support\Facades\Route::has($routeSlug)) {
-                        $routeTarget = route($routeSlug);
-                    }
-                @endphp
-                <a href="{{ $routeTarget }}"
-                    class="dash-nav-link {{ $routeTarget !== '#' && request()->is('dashboard/' . $routeSlug . '*') ? 'active' : '' }}"
-                    @if ($routeTarget === '#') onclick="event.preventDefault(); if (window.SAE && typeof window.SAE.toast === 'function') { window.SAE.toast('Modul {{ addslashes($extra['label']) }} sedang dalam tahap pengembangan (Segera Hadir).', 'info'); } else { alert('Modul {{ addslashes($extra['label']) }} sedang dalam tahap pengembangan (Segera Hadir).'); }" @endif>
-                    <span class="nav-icon"><i class="fas fa-fw {{ $extra['icon'] ?? 'fa-cube' }}"></i></span>
-                    <span class="nav-label">{{ $extra['label'] }}</span>
-                    @if ($routeTarget === '#')
-                        <span class="badge badge-outline"
-                            style="font-size: 0.6rem; padding: 2px 5px; margin-left: auto; opacity: 0.7;">Segera</span>
-                    @endif
-                </a>
-            @endforeach
         @endif
     </div>
 
