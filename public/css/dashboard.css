@@ -1323,6 +1323,22 @@
         padding: 14px 12px !important;
         border-radius: 12px !important;
     }
+
+    /* Formulir Grid & Cards Mobile Responsiveness */
+    .form-stat-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+        margin-bottom: 16px !important;
+    }
+    .form-card-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+    }
+    .form-item-card {
+        padding: 16px 14px !important;
+        border-radius: 12px !important;
+    }
+
     .dash-footer {
         display: none; /* replaced by bottom nav on mobile */
     }
@@ -1700,6 +1716,81 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
     outline: none;
 }
+
+/* Universal Form Inputs & Controls (Consistent Dark/Light Theme System) */
+.form-control,
+.input-control,
+.input,
+input[type="text"]:not(.kiosk-hidden-input),
+input[type="search"],
+input[type="date"],
+input[type="time"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+textarea.form-control,
+textarea.input,
+textarea,
+select.form-control,
+select.input {
+    background-color: var(--card-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-color) !important;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-family: inherit;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.form-control:focus,
+.input-control:focus,
+.input:focus,
+input[type="text"]:focus:not(.kiosk-hidden-input),
+input[type="search"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="month"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16) !important;
+    outline: none !important;
+}
+
+.form-control::placeholder,
+.input::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.7;
+}
+
+/* Ensure native date/time pickers adopt dark color-scheme */
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="month"],
+[data-theme="dark"] input[type="datetime-local"],
+input[type="date"],
+input[type="time"],
+input[type="month"] {
+    color-scheme: dark;
+}
+
+[data-theme="light"] input[type="date"],
+[data-theme="light"] input[type="time"],
+[data-theme="light"] input[type="month"],
+[data-theme="light"] input[type="datetime-local"] {
+    color-scheme: light;
+}
+
 .live-search-wrap {
     position: relative;
 }

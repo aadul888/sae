@@ -468,6 +468,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (searchInput) {
         let timer = null;
+        const triggerSearch = (val) => {
+            const url = new URL(window.location.href);
+            if (val) {
+                url.searchParams.set("q", val);
+            } else {
+                url.searchParams.delete("q");
+            }
+            url.searchParams.set("page", "1");
+            window.location.href = url.toString();
+        };
+
         searchInput.addEventListener("input", function () {
             if (clearSearch) {
                 if (this.value.trim().length > 0) {
@@ -478,15 +489,16 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             clearTimeout(timer);
             timer = setTimeout(() => {
-                const url = new URL(window.location.href);
-                if (this.value.trim()) {
-                    url.searchParams.set("q", this.value.trim());
-                } else {
-                    url.searchParams.delete("q");
-                }
-                url.searchParams.set("page", "1");
-                window.location.href = url.toString();
-            }, 500);
+                triggerSearch(this.value.trim());
+            }, 850);
+        });
+
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                triggerSearch(this.value.trim());
+            }
         });
 
         if (clearSearch) {

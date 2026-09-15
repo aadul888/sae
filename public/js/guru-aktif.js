@@ -187,7 +187,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.value.trim().length > 0,
                 );
             clearTimeout(timer);
-            timer = setTimeout(applyFilter, 500);
+            timer = setTimeout(applyFilter, 850);
+        });
+
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                applyFilter();
+            }
         });
     }
 

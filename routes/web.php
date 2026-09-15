@@ -122,6 +122,25 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/formulir/{id}/export-csv', [\App\Http\Controllers\FormulirController::class, 'exportCsv'])->name('formulir.export-csv')->middleware('permission:menu_formulir,read');
     Route::delete('/formulir/{id}/respon/{responId}', [\App\Http\Controllers\FormulirController::class, 'deleteResponse'])->name('formulir.delete-response')->middleware('permission:menu_formulir,delete');
 
+    // Layanan Digital — Presensi & RFID Realtime
+    Route::get('/presensi', [\App\Http\Controllers\PresensiController::class, 'index'])->name('presensi.index')->middleware('permission:menu_rfid,read');
+    Route::get('/presensi/scan', [\App\Http\Controllers\PresensiController::class, 'scanKiosk'])->name('presensi.scan')->middleware('permission:menu_rfid,read');
+    Route::post('/presensi/scan/process', [\App\Http\Controllers\PresensiController::class, 'processScan'])->name('presensi.scan.process')->middleware('permission:menu_rfid,read');
+    Route::get('/presensi/live-log', [\App\Http\Controllers\PresensiController::class, 'getLiveLog'])->name('presensi.live-log')->middleware('permission:menu_rfid,read');
+    Route::post('/presensi/rfid/assign', [\App\Http\Controllers\PresensiController::class, 'assignRfid'])->name('presensi.rfid.assign')->middleware('permission:menu_rfid,update');
+    Route::post('/presensi/pengaturan', [\App\Http\Controllers\PresensiController::class, 'updatePengaturan'])->name('presensi.pengaturan.update')->middleware('permission:menu_rfid,update');
+    Route::get('/presensi/export', [\App\Http\Controllers\PresensiController::class, 'export'])->name('presensi.export')->middleware('permission:menu_rfid,read');
+    Route::post('/presensi/izin/{id}/verifikasi', [\App\Http\Controllers\PresensiController::class, 'verifikasiIzin'])->name('presensi.izin.verifikasi')->middleware('permission:menu_rfid,update');
+
+    // Administrasi Guru — Presensi Kelas (Wali Kelas & Guru)
+    Route::get('/presensi/kelas', [\App\Http\Controllers\PresensiController::class, 'kelas'])->name('presensi.kelas')->middleware('permission:menu_presensi_peserta_didik,read');
+    Route::post('/presensi/kelas/status', [\App\Http\Controllers\PresensiController::class, 'updateStatusKelas'])->name('presensi.kelas.status')->middleware('permission:menu_presensi_peserta_didik,update');
+    Route::post('/presensi/kelas/auto-alpha', [\App\Http\Controllers\PresensiController::class, 'tandaiAlphaRombel'])->name('presensi.kelas.auto-alpha')->middleware('permission:menu_presensi_peserta_didik,update');
+
+    // Portal Peserta Didik — Riwayat Presensi Saya
+    Route::get('/presensi/saya', [\App\Http\Controllers\PresensiController::class, 'riwayatSaya'])->name('presensi.riwayat-saya')->middleware('permission:menu_riwayat_rfid,read');
+    Route::post('/presensi/saya/izin', [\App\Http\Controllers\PresensiController::class, 'pengajuanIzin'])->name('presensi.saya.izin')->middleware('permission:menu_riwayat_rfid,create');
+
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian,read');
     Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel')->middleware('permission:menu_kompetensi_keahlian,read');

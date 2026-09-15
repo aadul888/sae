@@ -23,7 +23,7 @@ class BackupService
         $npsn     = $sekolah->npsn ?? 'Data';
         $namaSekolah = $sekolah->nama ?? 'Satuan Pendidikan';
 
-        $timestamp = date('Ymd_His');
+        $timestamp = now()->format('Ymd_His');
         $zipFilename = 'SAE_Arsip_Backup_' . preg_replace('/[^A-Za-z0-9_\-]/', '', $npsn) . '_' . $timestamp . '.zip';
 
         $tempBase = storage_path('app/archives');
@@ -92,7 +92,7 @@ class BackupService
         $header = "-- ==========================================================\n"
             . "-- SISTEM APLIKASI EDUKASI (SAE) - BACKUP DATABASE LENGKAP\n"
             . "-- Satuan Pendidikan : {$namaSekolah} (NPSN: {$npsn})\n"
-            . "-- Waktu Ekspor      : " . date('Y-m-d H:i:s') . "\n"
+            . "-- Waktu Ekspor      : " . now()->format('Y-m-d H:i:s') . " (WIB)\n"
             . "-- Operator Ekspor   : {$adminName}\n"
             . "-- Database Asal     : {$dbName}\n"
             . "-- Kompatibilitas    : MySQL 5.7+, MySQL 8.0+, MariaDB 10.3+\n"
@@ -158,7 +158,7 @@ class BackupService
         }
 
         $footer = "SET FOREIGN_KEY_CHECKS=1;\n"
-            . "-- Selesai diekspor oleh SAE Backup Engine pada " . date('Y-m-d H:i:s') . "\n";
+            . "-- Selesai diekspor oleh SAE Backup Engine pada " . now()->format('Y-m-d H:i:s') . " (WIB)\n";
 
         fwrite($handleFull, $footer);
         fwrite($handleSchema, $footer);
@@ -466,7 +466,7 @@ class BackupService
                 'nama' => $namaSekolah,
                 'npsn' => $npsn,
             ],
-            'exported_at' => date('Y-m-d H:i:s'),
+            'exported_at' => now()->format('Y-m-d H:i:s'),
             'exported_by' => $adminName,
             'summary_database' => $summaryCounts,
             'summary_media' => $mediaCounts,
@@ -489,7 +489,7 @@ class BackupService
             . "================================================================================\n\n"
             . "Satuan Pendidikan : {$namaSekolah}\n"
             . "NPSN              : {$npsn}\n"
-            . "Waktu Pengarsipan : " . ($manifest['exported_at'] ?? date('Y-m-d H:i:s')) . "\n"
+            . "Waktu Pengarsipan : " . ($manifest['exported_at'] ?? now()->format('Y-m-d H:i:s')) . " (WIB)\n"
             . "Operator Pengarsip: {$adminName}\n\n"
             . "Arsip ini dibuat sebagai rekam jejak digital satuan pendidikan sebelum pergantian\n"
             . "tahun pelajaran, sinkronisasi Dapodik baru, atau pemeliharaan sistem berkala.\n\n"

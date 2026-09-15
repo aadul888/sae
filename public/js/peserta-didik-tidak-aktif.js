@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (clearSearch) clearSearch.classList.remove('visible');
             }
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(applyFilter, 500);
+            debounceTimer = setTimeout(applyFilter, 850);
         });
 
         liveSearch.addEventListener('keydown', function (e) {

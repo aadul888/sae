@@ -11,6 +11,8 @@ class PesertaDidikMeta extends Model
     protected $fillable = [
         'peserta_didik_id',
         'nisn',
+        'rfid_uid',
+        'rfid_registered_at',
         'foto_path',
         'foto_size',
         'foto_width',

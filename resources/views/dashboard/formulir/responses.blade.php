@@ -81,17 +81,29 @@
 
     <!-- Tabel Lengkap Seluruh Tanggapan Masuk -->
     <div class="response-table-container">
-        <div
-            style="padding: 16px 20px; border-bottom: 1px solid var(--border-color, #e2e8f0); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <h3 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--text-color);">
-                <i class="fas fa-table-list me-1 text-primary"></i> Daftar Responden ({{ $responses->total() }})
-            </h3>
-            <form action="{{ route('dashboard.formulir.responses', $formulir->id) }}" method="GET"
-                style="display: flex; gap: 8px;">
-                <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari nama atau jawaban..."
-                    class="form-control form-control-sm" style="width: 220px;">
-                <button type="submit" class="btn btn-outline btn-sm">Cari</button>
-            </form>
+        <div class="toolbar-row"
+            style="padding: 16px 20px; border-bottom: 1px solid var(--border-color, #e2e8f0); margin-bottom: 0;">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <h3 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--text-color);">
+                    <i class="fas fa-table-list me-1 text-primary"></i> Daftar Responden ({{ $responses->total() }})
+                </h3>
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" class="per-page-select">
+                        @foreach ([10, 15, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
+                </div>
+            </div>
+            <div class="live-search-wrap">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="liveSearch" placeholder="Cari nama atau jawaban..." value="{{ request('q') }}" autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ request('q') ? 'visible' : '' }}" title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
 
         @if ($responses->count() > 0)
@@ -172,8 +184,46 @@
                 </table>
             </div>
 
-            <div style="padding: 16px 20px;">
-                {{ $responses->links() }}
+            {{-- Custom Pagination with Entry Summary --}}
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--border-color, #e2e8f0);">
+                <div style="font-size: 0.82rem; color: var(--text-muted);">
+                    Menampilkan {{ $responses->firstItem() ?? 0 }} sampai {{ $responses->lastItem() ?? 0 }} dari {{ $responses->total() }} entri
+                </div>
+                @if ($responses->hasPages())
+                    <div class="custom-pagination" style="margin: 0; padding: 0;">
+                        @if ($responses->onFirstPage())
+                            <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+                        @else
+                            <a href="{{ $responses->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                        @endif
+                        @php
+                            $cur = $responses->currentPage();
+                            $last = $responses->lastPage();
+                            $from = max(1, $cur - 2);
+                            $to = min($last, $cur + 2);
+                        @endphp
+                        @if ($from > 1)
+                            <a href="{{ $responses->url(1) }}" class="page-btn">1</a>
+                            @if ($from > 2)
+                                <span class="page-info">&hellip;</span>
+                            @endif
+                        @endif
+                        @for ($i = $from; $i <= $to; $i++)
+                            <a href="{{ $responses->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                        @endfor
+                        @if ($to < $last)
+                            @if ($to < $last - 1)
+                                <span class="page-info">&hellip;</span>
+                            @endif
+                            <a href="{{ $responses->url($last) }}" class="page-btn">{{ $last }}</a>
+                        @endif
+                        @if ($responses->hasMorePages())
+                            <a href="{{ $responses->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                        @else
+                            <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+                        @endif
+                    </div>
+                @endif
             </div>
         @else
             <div style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
@@ -204,6 +254,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/formulir.js') }}"></script>
+        <script src="{{ asset('js/formulir.js') }}?v={{ file_exists(public_path('js/formulir.js')) ? filemtime(public_path('js/formulir.js')) : time() }}"></script>
     @endpush
 @endsection

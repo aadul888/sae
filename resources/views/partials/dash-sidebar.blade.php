@@ -468,6 +468,7 @@
                     request()->routeIs('dashboard.presensi-mengajar*') ||
                     request()->routeIs('dashboard.agenda-kbm*') ||
                     request()->routeIs('dashboard.penilaian*') ||
+                    request()->routeIs('dashboard.presensi.kelas*') ||
                     request()->routeIs('dashboard.presensi-peserta-didik*');
             @endphp
             <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
@@ -501,7 +502,7 @@
                     @endif
 
                     @if ($can('menu_presensi_peserta_didik'))
-                        <a href="#" class="dash-nav-sublink">
+                        <a href="{{ route('dashboard.presensi.kelas') }}" class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-viewfinder"></i></span>
                             <span class="nav-label">Presensi Kelas</span>
                         </a>
@@ -567,6 +568,7 @@
         @if ($hasPortalPesertaDidik)
             @php
                 $isPortalPesertaDidikActive =
+                    request()->routeIs('dashboard.presensi.riwayat-saya*') ||
                     request()->routeIs('dashboard.riwayat-rfid*') ||
                     request()->routeIs('dashboard.jadwal-pelajaran*') ||
                     request()->routeIs('dashboard.rapor*') ||
@@ -582,7 +584,7 @@
                 </button>
                 <div class="dash-nav-submenu">
                     @if ($can('menu_riwayat_rfid'))
-                        <a href="#" class="dash-nav-sublink">
+                        <a href="{{ route('dashboard.presensi.riwayat-saya') }}" class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
                             <span class="nav-label">Riwayat Presensi RFID</span>
                         </a>
@@ -621,6 +623,7 @@
                     request()->routeIs('dashboard.formulir*') ||
                     request()->routeIs('dashboard.pengumuman*') ||
                     request()->routeIs('dashboard.informasi*') ||
+                    request()->routeIs('dashboard.presensi*') ||
                     request()->routeIs('dashboard.rfid*') ||
                     request()->routeIs('dashboard.e-izin*') ||
                     request()->routeIs('dashboard.poin*') ||
@@ -663,7 +666,8 @@
                     @endif
 
                     @if ($can('menu_rfid'))
-                        <a href="#" class="dash-nav-sublink">
+                        <a href="{{ route('dashboard.presensi.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi*') && !request()->routeIs('dashboard.presensi.kelas*') && !request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card"></i></span>
                             <span class="nav-label">RFID &amp; Presensi</span>
                         </a>

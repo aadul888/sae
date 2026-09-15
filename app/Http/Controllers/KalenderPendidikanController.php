@@ -116,8 +116,8 @@ class KalenderPendidikanController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        $start = $request->get('start', date('Y-m-01', strtotime('-1 month')));
-        $end   = $request->get('end', date('Y-m-t', strtotime('+1 month')));
+        $start = $request->get('start', now()->startOfMonth()->subMonth()->format('Y-m-d'));
+        $end   = $request->get('end', now()->endOfMonth()->addMonth()->format('Y-m-d'));
 
         $events = KalenderPendidikan::betweenDates($start, $end)
             ->orderBy('tanggal_mulai')

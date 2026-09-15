@@ -38,9 +38,11 @@ class FormulirController extends Controller
 
     private function canManage(): bool
     {
+        $user = $this->getCurrentUser();
+        if (!$user) return false;
         $role = $this->getCurrentRole();
         if ($role === 'admin') return true;
-        return RolePermission::can($role, 'menu_formulir', 'create') || RolePermission::can($role, 'menu_formulir', 'update');
+        return RolePermission::canAccess($user, 'menu_formulir', 'create') || RolePermission::canAccess($user, 'menu_formulir', 'update');
     }
 
     /**
@@ -385,7 +387,12 @@ class FormulirController extends Controller
             });
         }
 
-        $responses = $query->paginate(20)->withQueryString();
+        $perPage = (int) $request->input('perPage', 15);
+        if (!in_array($perPage, [10, 15, 25, 50, 100])) {
+            $perPage = 15;
+        }
+
+        $responses = $query->paginate($perPage)->withQueryString();
 
         // Hitung ringkasan statistik untuk field bertipe choice/rating/select
         $fieldStats = [];
@@ -422,7 +429,7 @@ class FormulirController extends Controller
             }
         }
 
-        return view('dashboard.formulir.responses', compact('formulir', 'responses', 'fieldStats'));
+        return view('dashboard.formulir.responses', compact('formulir', 'responses', 'fieldStats', 'perPage'));
     }
 
     /**

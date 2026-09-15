@@ -42,19 +42,31 @@ document.addEventListener("DOMContentLoaded", function () {
     const clearSearch = document.getElementById("clearSearch");
 
     if (liveSearch) {
+        const triggerSearch = (val) => {
+            const url = new URL(window.location.href);
+            if (val) {
+                url.searchParams.set("q", val);
+            } else {
+                url.searchParams.delete("q");
+            }
+            url.searchParams.set("page", "1");
+            window.location.href = url.toString();
+        };
+
         liveSearch.addEventListener("input", function () {
             clearSearch.classList.toggle("visible", this.value.length > 0);
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
-                const url = new URL(window.location.href);
-                if (this.value) {
-                    url.searchParams.set("q", this.value);
-                } else {
-                    url.searchParams.delete("q");
-                }
-                url.searchParams.set("page", "1");
-                window.location.href = url.toString();
-            }, 400);
+                triggerSearch(this.value);
+            }, 850);
+        });
+
+        liveSearch.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(debounceTimer);
+                triggerSearch(this.value);
+            }
         });
     }
 

@@ -54,7 +54,7 @@
                     Data Telah Terarsip Lengkap &amp; Feeder Siap Sinkron
                 </div>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
-                    Paket arsip terakhir diunduh pada <b>{{ $archiveDownloadedAt ? date('d M Y, H:i', strtotime($archiveDownloadedAt)) . ' WIB' : '-' }}</b>.
+                    Paket arsip terakhir diunduh pada <b>{{ $archiveDownloadedAt ? \Carbon\Carbon::parse($archiveDownloadedAt)->format('d M Y, H:i') . ' WIB' : '-' }}</b>.
                     Aplikasi SAE Feeder saat ini diizinkan mengirimkan data baru ke sistem.
                 </p>
             </div>
@@ -120,7 +120,7 @@
                     </div>
                     <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 4px;">
                         <span style="color: var(--text-muted);">Unduhan Terakhir:</span>
-                        <b>{{ $archiveDownloadedAt ? date('d/m/Y H:i', strtotime($archiveDownloadedAt)) : 'Belum Pernah' }}</b>
+                        <b>{{ $archiveDownloadedAt ? \Carbon\Carbon::parse($archiveDownloadedAt)->format('d/m/Y H:i') : 'Belum Pernah' }}</b>
                     </div>
                 </div>
             </div>

@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 applyFilters();
-            }, 500);
+            }, 850);
         });
 
         liveSearch.addEventListener("keydown", (e) => {

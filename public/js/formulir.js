@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 2. Inisialisasi Modal Tanggapan & Escape Key Handler
     initResponseModal();
+
+    // 3. Inisialisasi Live Search Respon Formulir
+    initResponsesLiveSearch();
+
+    // 4. Inisialisasi Per-Page Selector Respon Formulir
+    initResponsesPerPage();
 });
 
 /**
@@ -292,3 +298,66 @@ window.exportCsv = function (filename) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 };
+
+/**
+ * Live Search untuk Tabel Respon Formulir (850ms Debounce)
+ */
+function initResponsesLiveSearch() {
+    const liveSearch = document.getElementById('liveSearch');
+    const clearSearch = document.getElementById('clearSearch');
+    if (!liveSearch) return;
+
+    let debounceTimer = null;
+
+    const applySearch = () => {
+        const url = new URL(window.location.href);
+        const query = liveSearch.value.trim();
+        if (query) {
+            url.searchParams.set('q', query);
+        } else {
+            url.searchParams.delete('q');
+        }
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    };
+
+    liveSearch.addEventListener('input', function () {
+        if (clearSearch) {
+            clearSearch.classList.toggle('visible', this.value.trim().length > 0);
+        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(applySearch, 850);
+    });
+
+    liveSearch.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            applySearch();
+        }
+    });
+
+    if (clearSearch) {
+        clearSearch.addEventListener('click', function () {
+            liveSearch.value = '';
+            clearSearch.classList.remove('visible');
+            applySearch();
+        });
+    }
+}
+
+/**
+ * Per-Page Selector untuk Tabel Respon Formulir
+ */
+function initResponsesPerPage() {
+    const perPageSelect = document.getElementById('perPageSelect');
+    if (!perPageSelect) return;
+
+    perPageSelect.addEventListener('change', function () {
+        const url = new URL(window.location.href);
+        url.searchParams.set('perPage', this.value);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    });
+}
+

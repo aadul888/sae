@@ -139,7 +139,7 @@
                         <i class="fas fa-info-circle text-primary me-1"></i> Status Penarikan Terakhir
                     </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">
-                        Arsip Terakhir: <b>{{ $archiveDownloadedAt ? date('d M Y, H:i', strtotime($archiveDownloadedAt)) . ' WIB' : 'Belum Pernah' }}</b>
+                        Arsip Terakhir: <b>{{ $archiveDownloadedAt ? \Carbon\Carbon::parse($archiveDownloadedAt)->format('d M Y, H:i') . ' WIB' : 'Belum Pernah' }}</b>
                     </span>
                 </div>
                 <div style="color: var(--text-muted);">

@@ -278,6 +278,6 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/formulir.js') }}"></script>
+        <script src="{{ asset('js/formulir.js') }}?v={{ file_exists(public_path('js/formulir.js')) ? filemtime(public_path('js/formulir.js')) : time() }}"></script>
     @endpush
 @endsection

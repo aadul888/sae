@@ -79,13 +79,13 @@ class DashboardController extends Controller
             'total_pengguna'      => $totalPengguna ?: 0,
             'presensi_today'      => 96.4,
             'rfid_taps'           => $totalPd ? round($totalPd * 0.94) : 0,
-            'sync_dapodik'        => $lastSync ? date('d M Y, H:i', strtotime($lastSync)) . ' WIB' : 'Belum Sinkron'
+            'sync_dapodik'        => $lastSync ? \Carbon\Carbon::parse($lastSync)->format('d M Y, H:i') . ' WIB' : 'Belum Sinkron'
         ];
 
         $recent_logs = [
-            ['time' => date('H:i'), 'user' => 'Sistem Sync', 'action' => 'Data Dapodik: ' . $totalPd . ' Peserta Didik, ' . $totalGuru . ' Guru, ' . $totalKelas . ' Rombel, ' . $totalPembelajaran . ' Mapel', 'status' => 'info'],
-            ['time' => date('H:i', strtotime('-15 minutes')), 'user' => 'Gateway RFID #01', 'action' => 'Presensi Masuk Gerbang Utama Aktif', 'status' => 'success'],
-            ['time' => date('H:i', strtotime('-45 minutes')), 'user' => $sekolah->nama ?? 'Admin Sekolah', 'action' => 'Monitoring Data Pokok Satuan Pendidikan', 'status' => 'success'],
+            ['time' => now()->format('H:i'), 'user' => 'Sistem Sync', 'action' => 'Data Dapodik: ' . $totalPd . ' Peserta Didik, ' . $totalGuru . ' Guru, ' . $totalKelas . ' Rombel, ' . $totalPembelajaran . ' Mapel', 'status' => 'info'],
+            ['time' => now()->subMinutes(15)->format('H:i'), 'user' => 'Gateway RFID #01', 'action' => 'Presensi Masuk Gerbang Utama Aktif', 'status' => 'success'],
+            ['time' => now()->subMinutes(45)->format('H:i'), 'user' => $sekolah->nama ?? 'Admin Sekolah', 'action' => 'Monitoring Data Pokok Satuan Pendidikan', 'status' => 'success'],
         ];
 
         return view('dashboard.admin', compact('stats', 'recent_logs', 'sekolah'));
