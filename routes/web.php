@@ -35,6 +35,12 @@ Route::get('/v/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'v
 Route::get('/verifikasi-pelajar/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->name('kartu-pelajar.verify');
 Route::get('/kartu-pelajar/preview/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'preview'])->name('kartu-pelajar.preview');
 
+// SAE Forms — Formulir & Survei Publik
+Route::get('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'showPublic'])->name('formulir.public');
+Route::post('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'submitPublic'])->name('formulir.submit');
+Route::get('/f/{slug}/sukses/{respon}', [\App\Http\Controllers\FormulirController::class, 'successPublic'])->name('formulir.success');
+Route::get('/formulir/{slug}', [\App\Http\Controllers\FormulirController::class, 'showPublic']);
+
 // Auth Routes (Multi-User)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -102,6 +108,19 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::put('/pengumuman/{id}', [\App\Http\Controllers\PengumumanController::class, 'update'])->name('pengumuman.update')->middleware('permission:menu_pengumuman,update');
     Route::delete('/pengumuman/{id}', [\App\Http\Controllers\PengumumanController::class, 'destroy'])->name('pengumuman.destroy')->middleware('permission:menu_pengumuman,delete');
     Route::post('/pengumuman/{id}/toggle', [\App\Http\Controllers\PengumumanController::class, 'toggle'])->name('pengumuman.toggle')->middleware('permission:menu_pengumuman,update');
+
+    // Layanan Digital — Formulir & Survei (SAE Form / OpnForm)
+    Route::get('/formulir', [\App\Http\Controllers\FormulirController::class, 'index'])->name('formulir.index')->middleware('permission:menu_formulir,read');
+    Route::get('/formulir/buat', [\App\Http\Controllers\FormulirController::class, 'create'])->name('formulir.create')->middleware('permission:menu_formulir,create');
+    Route::post('/formulir', [\App\Http\Controllers\FormulirController::class, 'store'])->name('formulir.store')->middleware('permission:menu_formulir,create');
+    Route::get('/formulir/{id}/edit', [\App\Http\Controllers\FormulirController::class, 'edit'])->name('formulir.edit')->middleware('permission:menu_formulir,update');
+    Route::put('/formulir/{id}', [\App\Http\Controllers\FormulirController::class, 'update'])->name('formulir.update')->middleware('permission:menu_formulir,update');
+    Route::delete('/formulir/{id}', [\App\Http\Controllers\FormulirController::class, 'destroy'])->name('formulir.destroy')->middleware('permission:menu_formulir,delete');
+    Route::post('/formulir/{id}/toggle', [\App\Http\Controllers\FormulirController::class, 'toggle'])->name('formulir.toggle')->middleware('permission:menu_formulir,update');
+    Route::post('/formulir/{id}/duplikasi', [\App\Http\Controllers\FormulirController::class, 'duplicate'])->name('formulir.duplicate')->middleware('permission:menu_formulir,create');
+    Route::get('/formulir/{id}/respon', [\App\Http\Controllers\FormulirController::class, 'responses'])->name('formulir.responses')->middleware('permission:menu_formulir,read');
+    Route::get('/formulir/{id}/export-csv', [\App\Http\Controllers\FormulirController::class, 'exportCsv'])->name('formulir.export-csv')->middleware('permission:menu_formulir,read');
+    Route::delete('/formulir/{id}/respon/{responId}', [\App\Http\Controllers\FormulirController::class, 'deleteResponse'])->name('formulir.delete-response')->middleware('permission:menu_formulir,delete');
 
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian,read');

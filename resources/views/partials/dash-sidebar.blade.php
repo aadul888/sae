@@ -56,6 +56,7 @@
 
     // Section: Layanan Digital
     $hasLayananDigital =
+        $can('menu_formulir') ||
         $can('menu_pengumuman') ||
         $can('menu_rfid') ||
         $can('menu_e_izin') ||
@@ -112,6 +113,7 @@
         'menu_jadwal_pelajaran',
         'menu_rapor',
         'menu_validasi_berkas',
+        'menu_formulir',
         'menu_pengumuman',
         'menu_rfid',
         'menu_e_izin',
@@ -616,6 +618,7 @@
 
             @php
                 $isLayananDigitalActive =
+                    request()->routeIs('dashboard.formulir*') ||
                     request()->routeIs('dashboard.pengumuman*') ||
                     request()->routeIs('dashboard.informasi*') ||
                     request()->routeIs('dashboard.rfid*') ||
@@ -635,6 +638,14 @@
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
+                    @if ($can('menu_formulir'))
+                        <a href="{{ route('dashboard.formulir.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.formulir*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
+                            <span class="nav-label">Formulir &amp; Survei</span>
+                        </a>
+                    @endif
+
                     @if ($role === 'admin' || \App\Models\RolePermission::can($role, 'menu_pengumuman', 'create'))
                         @if ($can('menu_pengumuman'))
                             <a href="{{ route('dashboard.pengumuman.index') }}"

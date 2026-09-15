@@ -117,6 +117,11 @@ class RolePermission extends Model
             ],
 
             'Layanan Digital' => [
+                'menu_formulir' => [
+                    'label' => 'Formulir & Survei',
+                    'icon' => 'fa-clipboard-list',
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
+                ],
                 'menu_pengumuman' => [
                     'label' => 'Pengumuman & Broadcast',
                     'icon' => 'fa-bullhorn',

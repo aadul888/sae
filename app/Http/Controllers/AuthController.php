@@ -168,6 +168,12 @@ class AuthController extends Controller
 
         session(['user' => $userData]);
 
+        // Arahkan kembali ke formulir jika ada antrean URL yang dituju
+        if (session()->has('url.intended')) {
+            $intended = session()->pull('url.intended');
+            return redirect()->to($intended)->with('success', 'Selamat datang kembali, ' . $user->name);
+        }
+
         return redirect()->route('dashboard.' . $user->role)->with('success', 'Selamat datang kembali, ' . $user->name);
     }
 
