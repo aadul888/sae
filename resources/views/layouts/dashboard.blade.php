@@ -14,7 +14,11 @@
     <meta property="og:site_name" content="SAE (Sistem Aplikasi Edukasi)">
     <meta property="og:title" content="@yield('title', 'Dashboard — SAE (Sistem Aplikasi Edukasi)')">
     <meta property="og:description" content="@yield('meta_description', 'SAE (Sistem Aplikasi Edukasi) — Platform digital terpadu untuk absensi pintar, administrasi sekolah, validasi berkas peserta didik, dan layanan akademik modern realtime.')">
-    <meta property="og:image" content="{{ asset('img/logo-dark.png') }}">
+    <meta property="og:image" content="{{ asset('img/logo-icon.png') }}">
+    <meta property="og:image:secure_url" content="{{ asset('img/logo-icon.png') }}">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="881">
+    <meta property="og:image:height" content="881">
 
     <!-- Prevent Theme Flicker (FOUC) -->
     <script>
