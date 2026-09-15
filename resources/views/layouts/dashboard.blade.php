@@ -5,7 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Dashboard — SAE')</title>
+    <title>@yield('title', 'Dashboard — SAE (Sistem Aplikasi Edukasi)')</title>
+
+    <!-- Standard SEO & Description -->
+    <meta name="description" content="@yield('meta_description', 'SAE (Sistem Aplikasi Edukasi) — Platform digital terpadu untuk absensi pintar, administrasi sekolah, validasi berkas peserta didik, dan layanan akademik modern realtime.')">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:site_name" content="SAE (Sistem Aplikasi Edukasi)">
+    <meta property="og:title" content="@yield('title', 'Dashboard — SAE (Sistem Aplikasi Edukasi)')">
+    <meta property="og:description" content="@yield('meta_description', 'SAE (Sistem Aplikasi Edukasi) — Platform digital terpadu untuk absensi pintar, administrasi sekolah, validasi berkas peserta didik, dan layanan akademik modern realtime.')">
+    <meta property="og:image" content="{{ asset('img/logo-dark.png') }}">
 
     <!-- Prevent Theme Flicker (FOUC) -->
     <script>

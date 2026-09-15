@@ -451,7 +451,7 @@
             <p><strong>{{ $card['sekolah']['nama'] }}</strong> &bull; NPSN: {{ $card['sekolah']['npsn'] }}</p>
             <p>{{ $card['sekolah']['alamat'] }} &bull; Telp: {{ $card['sekolah']['telepon'] }}</p>
             <p style="margin-top: 6px; font-size: 0.7rem; color: #94a3b8;">
-                &copy; {{ date('Y') }} Sistem Administrasi Edukasi (SAE). Seluruh Hak Cipta Dilindungi
+                &copy; {{ date('Y') }} Sistem Aplikasi Edukasi (SAE). Seluruh Hak Cipta Dilindungi
                 Undang-Undang.
             </p>
         </footer>

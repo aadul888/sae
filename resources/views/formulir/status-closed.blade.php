@@ -99,7 +99,7 @@
         </div>
 
         <div class="footer-branding" style="margin-top: 24px;">
-            Didukung oleh <strong>SAE Digital Forms</strong> &bull; Sistem Administrasi Edukasi
+            Didukung oleh <strong>SAE Digital Forms</strong> &bull; Sistem Aplikasi Edukasi
         </div>
     </div>
 

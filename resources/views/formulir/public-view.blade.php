@@ -40,11 +40,11 @@
                     <img src="{{ $dashLogoIcon }}" alt="Logo SAE" class="school-logo">
                 @endif
                 <div class="school-info">
-                    <div class="school-title">{{ $sekolah->nama ?? 'Sistem Administrasi Edukasi' }}</div>
+                    <div class="school-title">{{ $sekolah->nama ?? 'Sistem Aplikasi Edukasi' }}</div>
                     <div class="school-sub">NPSN: {{ $sekolah->npsn ?? '40306164' }}</div>
                 </div>
             </div>
-            <a href="{{ url('/') }}" class="sae-brand-badge" title="SAE - Sistem Administrasi Edukasi">
+            <a href="{{ url('/') }}" class="sae-brand-badge" title="SAE - Sistem Aplikasi Edukasi">
                 <img src="{{ $dashLogoDark }}" alt="SAE Logo" class="sae-header-logo" onerror="this.onerror=null; this.src='{{ $dashLogoIcon }}';">
             </a>
         </div>
@@ -283,7 +283,7 @@
 
         <!-- Footer Branding -->
         <div class="footer-branding">
-            Didukung oleh <strong>SAE Digital Forms</strong> &bull; Sistem Administrasi Edukasi Terintegrasi
+            Didukung oleh <strong>SAE Digital Forms</strong> &bull; Sistem Aplikasi Edukasi Terintegrasi
         </div>
     </div>
 

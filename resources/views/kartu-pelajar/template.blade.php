@@ -38,7 +38,7 @@
             </div>
             <div class="kp-header-right">
                 <img src="{{ asset('img/logo-icon.png') }}" alt="Logo SAE" class="kp-sae-logo"
-                    title="Sistem Administrasi Edukasi">
+                    title="Sistem Aplikasi Edukasi">
             </div>
         </div>
 

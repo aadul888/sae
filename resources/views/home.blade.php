@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'SAE — Sistem Aplikasi Edukasi')
+@section('title', 'SAE (Sistem Aplikasi Edukasi)')
+@section('meta_description', 'SAE (Sistem Aplikasi Edukasi) — Platform digital terpadu untuk absensi pintar, manajemen data peserta didik, validasi berkas, dan layanan informasi akademik realtime.')
 
 @section('content')
     <div class="container">
