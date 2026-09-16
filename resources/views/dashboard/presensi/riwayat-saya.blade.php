@@ -1,7 +1,7 @@
 @extends('layouts.dashboard')
 
 @section('title', 'Riwayat Presensi Saya — SAE')
-@section('dash_title', 'Riwayat Presensi Siswa')
+@section('dash_title', 'Riwayat Presensi Peserta Didik')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/presensi.css') }}?v={{ file_exists(public_path('css/presensi.css')) ? filemtime(public_path('css/presensi.css')) : time() }}">

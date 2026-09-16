@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Aksi Pengarsipan Siswa Tingkat XII
+    // Aksi Pengarsipan Peserta Didik Tingkat XII
     if (btnArchiveGrade12) {
         btnArchiveGrade12.addEventListener('click', async function () {
             const count = this.getAttribute('data-count');
@@ -109,20 +109,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (window.Swal) {
                     Swal.fire({
                         icon: 'info',
-                        title: 'Tidak Ada Siswa',
-                        text: 'Tidak ada siswa kelas XII aktif yang perlu diarsipkan.',
+                        title: 'Tidak Ada Peserta Didik',
+                        text: 'Tidak ada peserta didik kelas XII aktif yang perlu diarsipkan.',
                         confirmButtonColor: 'var(--primary, #6366f1)',
                     });
                 } else {
-                    alert('Tidak ada siswa kelas XII yang perlu diarsipkan.');
+                    alert('Tidak ada peserta didik kelas XII yang perlu diarsipkan.');
                 }
                 return;
             }
 
             const confirmResult = window.Swal
                 ? await Swal.fire({
-                    title: 'Arsipkan Siswa Kelas XII?',
-                    text: `Apakah Anda yakin ingin memindahkan ${count} siswa kelas XII ke dalam arsip Alumni (lulus)? Status pada data aktif akan dipindahkan ke arsip tidak aktif.`,
+                    title: 'Arsipkan Peserta Didik Kelas XII?',
+                    text: `Apakah Anda yakin ingin memindahkan ${count} peserta didik kelas XII ke dalam arsip Alumni (lulus)? Status pada data aktif akan dipindahkan ke arsip tidak aktif.`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: 'var(--primary, #6366f1)',
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     cancelButtonText: 'Batal',
                     reverseButtons: true,
                 })
-                : { isConfirmed: confirm(`Apakah Anda yakin ingin mengarsipkan ${count} siswa kelas XII?`) };
+                : { isConfirmed: confirm(`Apakah Anda yakin ingin mengarsipkan ${count} peserta didik kelas XII?`) };
 
             if (!confirmResult.isConfirmed) {
                 return;
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (window.Swal) {
                 Swal.fire({
                     title: 'Memproses Pengarsipan...',
-                    text: `Sedang memindahkan data ${count} siswa kelas XII...`,
+                    text: `Sedang memindahkan data ${count} peserta didik kelas XII...`,
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     didOpen: () => {
@@ -271,7 +271,7 @@ window.openBiodataModal = function (id) {
                     loading.style.display = 'block';
                     loading.innerHTML =
                         '<div style="color: var(--danger);"><i class="fas fa-exclamation-circle me-1"></i> ' +
-                        (res.message || 'Gagal memuat rincian arsip siswa.') + '</div>';
+                        (res.message || 'Gagal memuat rincian arsip peserta didik.') + '</div>';
                 }
             }
         })

@@ -14,7 +14,7 @@ function escapeHtml(str) {
 }
 
 // ==========================================
-// 1. MODAL DETAIL BIODATA LENGKAP SISWA
+// 1. MODAL DETAIL BIODATA LENGKAP PESERTA DIDIK
 // ==========================================
 window.openBiodataPesertaDidikModal = async function (id) {
     const modal = document.getElementById("biodataModal");
@@ -209,7 +209,7 @@ document.addEventListener("click", function (e) {
     }
 });
 
-// Event Delegation untuk tombol detail siswa
+// Event Delegation untuk tombol detail peserta didik
 document.addEventListener("click", function (e) {
     const btn = e.target.closest(".btn-detail-siswa");
     if (!btn) return;

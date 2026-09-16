@@ -62,7 +62,7 @@
                     <div class="dash-stat-value" style="font-size: 1.35rem;">
                         {{ number_format($summary['total'], 0, ',', '.') }}
                     </div>
-                    <div class="dash-stat-label">Total Siswa di Kelas</div>
+                    <div class="dash-stat-label">Total Peserta Didik di Kelas</div>
                 </div>
             </div>
 
@@ -288,7 +288,7 @@
             @if ($total > 0)
                 <div style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div class="total-count-text" style="font-size: 0.83rem; color: var(--text-muted);">
-                        Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai <strong>{{ $list->lastItem() ?: 0 }}</strong> dari <strong>{{ number_format($total, 0, ',', '.') }}</strong> siswa
+                        Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai <strong>{{ $list->lastItem() ?: 0 }}</strong> dari <strong>{{ number_format($total, 0, ',', '.') }}</strong> peserta didik
                     </div>
                 </div>
             @endif

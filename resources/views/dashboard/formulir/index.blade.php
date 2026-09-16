@@ -11,7 +11,7 @@
                 <i class="fas fa-clipboard-list text-primary me-2"></i> Formulir &amp; Survei Digital
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
-                Buat kuesioner, angket rombel, pendaftaran ekskul, dan survei publik dengan integrasi otomatis data siswa
+                Buat kuesioner, angket rombel, pendaftaran ekskul, dan survei publik dengan integrasi otomatis data peserta didik
                 &amp; guru SAE.
             </p>
         </div>
@@ -145,7 +145,7 @@
 
                             @if ($f->target_peran === 'peserta_didik')
                                 <span class="badge-chip badge-role-siswa"><i class="fas fa-graduation-cap"></i> Khusus
-                                    Siswa</span>
+                                    Peserta Didik</span>
                             @elseif ($f->target_peran === 'guru')
                                 <span class="badge-chip badge-role-guru"><i class="fas fa-chalkboard-user"></i> Khusus
                                     Guru</span>
@@ -156,7 +156,7 @@
                         <h3 class="form-card-title">{{ $f->judul }}</h3>
                         <p class="form-card-desc">{{ $f->deskripsi ?: 'Tidak ada deskripsi tambahan.' }}</p>
 
-                        <!-- Status Pengisian Khusus Siswa / Responden -->
+                        <!-- Status Pengisian Khusus Peserta Didik / Responden -->
                         @if ($role === 'peserta_didik')
                             @if ($hasResponded)
                                 <div class="form-student-status student-status-done">
@@ -260,7 +260,7 @@
             </div>
             <h4 style="font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Belum Ada Formulir</h4>
             <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 440px; margin: 0 auto 20px;">
-                Belum ada formulir atau survei yang dibuat. Buat formulir baru untuk mengumpulkan data dari siswa, guru,
+                Belum ada formulir atau survei yang dibuat. Buat formulir baru untuk mengumpulkan data dari peserta didik, guru,
                 atau masyarakat umum.
             </p>
             @if ($canManage)

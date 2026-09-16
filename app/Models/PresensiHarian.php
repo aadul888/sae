@@ -31,11 +31,17 @@ class PresensiHarian extends Model
         'lampiran_dokumen',
         'verified_by',
         'device_info',
+        'latitude',
+        'longitude',
+        'jarak_meter',
     ];
 
     protected $casts = [
         'tanggal' => 'date:Y-m-d',
         'menit_terlambat' => 'integer',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'jarak_meter' => 'float',
     ];
 
     protected $appends = [
@@ -65,12 +71,12 @@ class PresensiHarian extends Model
 
     public function getStatusLabelAttribute(): string
     {
-        return self::STATUS_LABELS[$this->status] ?? $this->status;
+        return self::STATUS_LABELS[$this->status] ?? ($this->status ?? '-');
     }
 
     public function getStatusBadgeAttribute(): string
     {
-        return self::STATUS_BADGES[$this->status] ?? ('<span class="badge">' . $this->status . '</span>');
+        return self::STATUS_BADGES[$this->status] ?? ('<span class="badge">' . ($this->status ?? '-') . '</span>');
     }
 
     public function getFotoMasukUrlAttribute(): ?string
@@ -111,5 +117,29 @@ class PresensiHarian extends Model
     public function scopeByRombel($query, string $rombelId)
     {
         return $query->where('rombongan_belajar_id', $rombelId);
+    }
+
+    /**
+     * Otomatisasi Pulang Cepat:
+     * Siswa yang hadir/terlambat di hari-hari sebelumnya (tanggal < hari ini)
+     * namun tidak melakukan absensi pulang, otomatis ditandai sebagai 'pulang_cepat'.
+     */
+    public static function autoCloseUncheckedOut(): int
+    {
+        $today = now()->toDateString();
+
+        return (int) self::where('tanggal', '<', $today)
+            ->whereIn('status', ['H', 'T'])
+            ->whereNull('jam_pulang')
+            ->where(function ($q) {
+                $q->whereNull('status_ketepatan_pulang')
+                  ->orWhere('status_ketepatan_pulang', '!=', 'pulang_cepat');
+            })
+            ->update([
+                'status_ketepatan_pulang' => 'pulang_cepat',
+                'metode_pulang' => 'otomatis',
+                'keterangan' => DB::raw("IF(keterangan IS NULL OR keterangan = '', 'Pulang Cepat (Tidak tap pulang)', keterangan)"),
+                'updated_at' => now(),
+            ]);
     }
 }

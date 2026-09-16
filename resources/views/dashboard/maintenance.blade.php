@@ -93,7 +93,7 @@
                     </div>
                     <div style="display: flex; align-items: flex-start; gap: 8px;">
                         <i class="fas fa-file-excel text-success" style="margin-top: 2px;"></i>
-                        <div><strong>02_DATA_EXCEL_CSV:</strong> Format CSV UTF-8 BOM siap double-click di Microsoft Excel (Siswa, Alumni, GTK, Rombel, Jadwal).</div>
+                        <div><strong>02_DATA_EXCEL_CSV:</strong> Format CSV UTF-8 BOM siap double-click di Microsoft Excel (Peserta Didik, Alumni, GTK, Rombel, Jadwal).</div>
                     </div>
                     <div style="display: flex; align-items: flex-start; gap: 8px;">
                         <i class="fas fa-images text-info" style="margin-top: 2px;"></i>
@@ -104,18 +104,18 @@
                 <div style="background: var(--bg-body); border-radius: 8px; padding: 14px; margin-bottom: 20px; font-size: 0.82rem; border: 1px solid var(--border-color);">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                         <span style="color: var(--text-muted);">Peserta Didik Aktif:</span>
-                        <b>{{ number_format($counts['peserta_didik']) }} siswa</b>
+                        <b>{{ number_format($counts['peserta_didik']) }} peserta didik</b>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                         <span style="color: var(--text-muted);">Alumni &amp; Tidak Aktif:</span>
-                        <b>{{ number_format($counts['peserta_didik_tidak_aktif'] ?? 0) }} siswa</b>
+                        <b>{{ number_format($counts['peserta_didik_tidak_aktif'] ?? 0) }} peserta didik</b>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
                         <span style="color: var(--text-muted);">Guru &amp; Tenaga Kependidikan:</span>
                         <b>{{ number_format($counts['gtk']) }} orang</b>
                     </div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span style="color: var(--text-muted);">Pasfoto Siswa Tersimpan:</span>
+                        <span style="color: var(--text-muted);">Pasfoto Peserta Didik Tersimpan:</span>
                         <b>{{ number_format($counts['foto_count'] ?? 0) }} foto</b>
                     </div>
                     <div style="display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 6px; margin-top: 4px;">

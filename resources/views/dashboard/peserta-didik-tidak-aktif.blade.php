@@ -24,7 +24,7 @@
                     data-url="{{ route('dashboard.peserta-didik-tidak-aktif.archive-grade12') }}"
                     style="padding: 9px 16px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
                     <i class="fas fa-box-archive"></i>
-                    <span>Arsipkan Siswa Kelas XII ({{ $grade12ActiveCount }})</span>
+                    <span>Arsipkan Peserta Didik Kelas XII ({{ $grade12ActiveCount }})</span>
                 </button>
             @endif
             <a href="{{ route('dashboard.peserta-didik-tidak-aktif.export', ['status' => $status, 'tahun' => $tahun]) }}"
@@ -46,7 +46,7 @@
                 <div class="dash-stat-value" style="font-size: 1.35rem;">
                     {{ number_format($summary['total'], 0, ',', '.') }}
                 </div>
-                <div class="dash-stat-label">Total Siswa Diarsipkan</div>
+                <div class="dash-stat-label">Total Peserta Didik Diarsipkan</div>
             </div>
         </div>
 
@@ -364,7 +364,7 @@
                     <div>
                         <h3 id="bioNama"
                             style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
-                            Biodata Arsip Siswa</h3>
+                            Biodata Arsip Peserta Didik</h3>
                         <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
                 </div>
@@ -376,14 +376,14 @@
 
             <div id="bioLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
                 <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
-                <div>Memuat rincian arsip siswa...</div>
+                <div>Memuat rincian arsip peserta didik...</div>
             </div>
 
             <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
                 <div style="margin-bottom: 12px;">
                     <div
                         style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <i class="fas fa-user me-1"></i> Data Pribadi Siswa
+                        <i class="fas fa-user me-1"></i> Data Pribadi Peserta Didik
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
                         <tr style="border-bottom: 1px solid var(--border-color);">

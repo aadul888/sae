@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const formEl = document.getElementById('builderForm');
     const isEditMode = formEl && formEl.dataset.mode === 'edit';
     if (!isEditMode && questions.length === 0) {
-        addField('sae_nama', 'Nama Lengkap Siswa');
+        addField('sae_nama', 'Nama Lengkap Peserta Didik');
         addField('sae_nisn', 'NISN');
         addField('sae_rombel', 'Kelas / Rombel');
         addField('text', 'Pertanyaan Anda');
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
- * Toggle visibilitas target rombel jika peran dipilih adalah siswa serta sinkronisasi opsi publik
+ * Toggle visibilitas target rombel jika peran dipilih adalah peserta didik serta sinkronisasi opsi publik
  */
 window.toggleRombelTarget = function () {
     const select = document.getElementById('targetPeranSelect');
@@ -86,13 +86,13 @@ window.toggleRombelTarget = function () {
             if (select.value === 'publik') {
                 targetHint.innerHTML = '<i class="fas fa-globe text-info me-1"></i> Terbuka untuk umum tanpa login. Responden tamu dapat mengetik nama dan identitas secara mandiri.';
             } else if (select.value === 'peserta_didik') {
-                targetHint.innerHTML = '<i class="fas fa-user-graduate text-success me-1"></i> Khusus Siswa aktif. Responden wajib login SAE, nama, NISN & kelas terisi otomatis.';
+                targetHint.innerHTML = '<i class="fas fa-user-graduate text-success me-1"></i> Khusus Peserta Didik aktif. Responden wajib login SAE, nama, NISN & kelas terisi otomatis.';
             } else if (select.value === 'guru') {
                 targetHint.innerHTML = '<i class="fas fa-chalkboard-user text-primary me-1"></i> Khusus Pendidik / Guru. Responden wajib login akun SAE.';
             } else if (select.value === 'tendik') {
                 targetHint.innerHTML = '<i class="fas fa-id-badge text-warning me-1"></i> Khusus Tenaga Kependidikan. Responden wajib login akun SAE.';
             } else {
-                targetHint.innerHTML = '<i class="fas fa-users text-primary me-1"></i> Semua akun pengguna SAE (Siswa, Guru, Tendik, Admin) wajib login.';
+                targetHint.innerHTML = '<i class="fas fa-users text-primary me-1"></i> Semua akun pengguna SAE (Peserta Didik, Guru, Tendik, Admin) wajib login.';
             }
         }
     }

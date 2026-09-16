@@ -14,7 +14,7 @@ function escapeHtml(str) {
 }
 
 // ==========================================
-// 1. MODAL DETAIL BIODATA LENGKAP ARSIP SISWA
+// 1. MODAL DETAIL BIODATA LENGKAP ARSIP PESERTA DIDIK
 // ==========================================
 window.openBiodataModal = function (id) {
     const modal = document.getElementById("biodataModal");
@@ -113,7 +113,7 @@ window.openBiodataModal = function (id) {
                     }
                 }
             } else {
-                throw new Error(res.message || "Gagal memuat arsip siswa.");
+                throw new Error(res.message || "Gagal memuat arsip peserta didik.");
             }
         })
         .catch((err) => {
@@ -145,7 +145,7 @@ document.addEventListener("click", function (e) {
     }
 });
 
-// Event Delegation untuk tombol detail siswa tidak aktif
+// Event Delegation untuk tombol detail peserta didik tidak aktif
 document.addEventListener("click", function (e) {
     const btn = e.target.closest(".btn-detail-tidak-aktif");
     if (!btn) return;

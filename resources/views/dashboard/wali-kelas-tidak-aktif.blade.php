@@ -59,7 +59,7 @@
                     <div class="dash-stat-value" style="font-size: 1.35rem;">
                         {{ number_format($summary['total'], 0, ',', '.') }}
                     </div>
-                    <div class="dash-stat-label">Total Siswa Tidak Aktif</div>
+                    <div class="dash-stat-label">Total Peserta Didik Tidak Aktif</div>
                 </div>
             </div>
 
@@ -299,7 +299,7 @@
             @if ($total > 0)
                 <div style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div class="total-count-text" style="font-size: 0.83rem; color: var(--text-muted);">
-                        Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai <strong>{{ $list->lastItem() ?: 0 }}</strong> dari <strong>{{ number_format($total, 0, ',', '.') }}</strong> siswa
+                        Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai <strong>{{ $list->lastItem() ?: 0 }}</strong> dari <strong>{{ number_format($total, 0, ',', '.') }}</strong> peserta didik
                     </div>
                 </div>
             @endif
@@ -358,7 +358,7 @@
                     <div>
                         <h3 id="bioNama"
                             style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
-                            Biodata Arsip Siswa</h3>
+                            Biodata Arsip Peserta Didik</h3>
                         <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
                 </div>
@@ -370,14 +370,14 @@
 
             <div id="bioLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
                 <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
-                <div>Memuat rincian arsip siswa...</div>
+                <div>Memuat rincian arsip peserta didik...</div>
             </div>
 
             <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
                 <div style="margin-bottom: 12px;">
                     <div
                         style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <i class="fas fa-user me-1"></i> Data Pribadi Siswa
+                        <i class="fas fa-user me-1"></i> Data Pribadi Peserta Didik
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
                         <tr style="border-bottom: 1px solid var(--border-color);">

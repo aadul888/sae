@@ -183,6 +183,11 @@ class RolePermission extends Model
                     'icon' => 'fa-user-xmark',
                     'roles' => ['admin', 'guru'],
                 ],
+                'menu_wali_kelas_presensi' => [
+                    'label' => 'Presensi Kelas (Wali Kelas)',
+                    'icon' => 'fa-clipboard-user',
+                    'roles' => ['admin', 'guru'],
+                ],
             ],
 
             'Administrasi Tendik' => [
@@ -197,9 +202,9 @@ class RolePermission extends Model
                     'roles' => ['admin', 'tendik'],
                 ],
                 'menu_agenda' => [
-                    'label' => 'Agenda Sekolah',
-                    'icon' => 'fa-calendar-days',
-                    'roles' => ['admin', 'tendik'],
+                    'label' => 'Agenda Kelas',
+                    'icon' => 'fa-clipboard-list',
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
             ],
 
@@ -699,6 +704,7 @@ class RolePermission extends Model
                     if (in_array($permissionKey, [
                         'menu_wali_kelas_aktif',
                         'menu_wali_kelas_tidak_aktif',
+                        'menu_wali_kelas_presensi',
                         'menu_peserta_didik_aktif',
                         'menu_presensi_peserta_didik',
                         'menu_penilaian',

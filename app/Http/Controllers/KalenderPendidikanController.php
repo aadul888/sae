@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 
 class KalenderPendidikanController extends Controller
 {
-    private const SORTABLE = ['nama_kegiatan', 'tipe', 'tanggal_mulai', 'tanggal_selesai'];
+    private const SORTABLE = ['nama_kegiatan', 'tipe', 'mode_presensi', 'tanggal_mulai', 'tanggal_selesai'];
 
     public function index(Request $request)
     {
@@ -28,12 +28,13 @@ class KalenderPendidikanController extends Controller
         $canUpdate = RolePermission::canAccess($user, 'menu_kalender_pendidikan', 'update');
         $canDelete = RolePermission::canAccess($user, 'menu_kalender_pendidikan', 'delete');
 
-        $q         = trim($request->get('q', ''));
-        $tipe      = trim($request->get('tipe', ''));
-        $bulan     = trim($request->get('bulan', ''));
-        $tahun     = trim($request->get('tahun', ''));
-        $dampak    = trim($request->get('dampak', ''));
-        $perPage   = (int) $request->get('perPage', 15);
+        $q            = trim($request->get('q', ''));
+        $tipe         = trim($request->get('tipe', ''));
+        $modePresensi = trim($request->get('mode_presensi', ''));
+        $bulan        = trim($request->get('bulan', ''));
+        $tahun        = trim($request->get('tahun', ''));
+        $dampak       = trim($request->get('dampak', ''));
+        $perPage      = (int) $request->get('perPage', 15);
         if (!in_array($perPage, [10, 15, 25, 50, 100], true)) {
             $perPage = 15;
         }
@@ -53,6 +54,10 @@ class KalenderPendidikanController extends Controller
 
         if ($tipe !== '') {
             $query->where('tipe', $tipe);
+        }
+
+        if ($modePresensi !== '') {
+            $query->where('mode_presensi', $modePresensi);
         }
 
         if ($bulan !== '') {
@@ -82,6 +87,7 @@ class KalenderPendidikanController extends Controller
         // Summary counts
         $totalAgenda   = KalenderPendidikan::count();
         $totalLiburPd  = KalenderPendidikan::where('libur_pd', true)->count();
+        $totalDaring   = KalenderPendidikan::where('mode_presensi', 'daring')->orWhere('tipe', 'pembelajaran_daring')->count();
         $totalLiburGtk = KalenderPendidikan::where(function ($q) {
             $q->where('libur_guru', true)->orWhere('libur_tendik', true);
         })->count();
@@ -93,6 +99,7 @@ class KalenderPendidikanController extends Controller
             'list',
             'totalAgenda',
             'totalLiburPd',
+            'totalDaring',
             'totalLiburGtk',
             'totalUjian',
             'canCreate',
@@ -100,6 +107,7 @@ class KalenderPendidikanController extends Controller
             'canDelete',
             'q',
             'tipe',
+            'modePresensi',
             'bulan',
             'tahun',
             'dampak',
@@ -124,18 +132,21 @@ class KalenderPendidikanController extends Controller
             ->get()
             ->map(function ($ev) {
                 return [
-                    'id'              => $ev->id,
-                    'title'           => $ev->nama_kegiatan,
-                    'start'           => $ev->tanggal_mulai->format('Y-m-d'),
-                    'end'             => $ev->tanggal_selesai->copy()->addDay()->format('Y-m-d'), // FullCalendar non-inclusive end
-                    'raw_end'         => $ev->tanggal_selesai->format('Y-m-d'),
-                    'color'           => $ev->warna ?: '#3b82f6',
-                    'tipe'            => $ev->tipe,
-                    'tipe_label'      => $ev->tipe_label,
-                    'libur_pd'        => $ev->libur_pd,
-                    'libur_guru'      => $ev->libur_guru,
-                    'libur_tendik'    => $ev->libur_tendik,
-                    'keterangan'      => $ev->keterangan,
+                    'id'                  => $ev->id,
+                    'title'               => $ev->nama_kegiatan,
+                    'start'               => $ev->tanggal_mulai->format('Y-m-d'),
+                    'end'                 => $ev->tanggal_selesai->copy()->addDay()->format('Y-m-d'), // FullCalendar non-inclusive end
+                    'raw_end'             => $ev->tanggal_selesai->format('Y-m-d'),
+                    'color'               => $ev->warna ?: '#3b82f6',
+                    'tipe'                => $ev->tipe,
+                    'tipe_label'          => $ev->tipe_label,
+                    'mode_presensi'       => $ev->mode_presensi,
+                    'mode_presensi_label' => $ev->mode_presensi_label,
+                    'mode_presensi_badge' => $ev->mode_presensi_badge,
+                    'libur_pd'            => $ev->libur_pd,
+                    'libur_guru'          => $ev->libur_guru,
+                    'libur_tendik'        => $ev->libur_tendik,
+                    'keterangan'          => $ev->keterangan,
                 ];
             });
 
@@ -155,6 +166,7 @@ class KalenderPendidikanController extends Controller
         $validated = $request->validate([
             'nama_kegiatan'   => 'required|string|max:200',
             'tipe'            => 'required|string|max:50',
+            'mode_presensi'   => 'nullable|string|in:luring,daring,libur',
             'tanggal_mulai'   => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'warna'           => 'nullable|string|max:20',
@@ -166,14 +178,21 @@ class KalenderPendidikanController extends Controller
 
         $userName = is_array($user) ? ($user['nama'] ?? ($user['username'] ?? 'User')) : ($user->nama ?? ($user->username ?? 'User'));
 
+        $isLiburPd = (bool) ($request->input('libur_pd', false));
+        $modePresensi = $validated['mode_presensi'] ?? ($isLiburPd ? 'libur' : ($validated['tipe'] === 'pembelajaran_daring' ? 'daring' : 'luring'));
+        if ($isLiburPd && $modePresensi !== 'libur') {
+            $modePresensi = 'libur';
+        }
+
         $event = KalenderPendidikan::create([
             'nama_kegiatan'   => trim($validated['nama_kegiatan']),
             'tipe'            => $validated['tipe'],
+            'mode_presensi'   => $modePresensi,
             'tanggal_mulai'   => $validated['tanggal_mulai'],
             'tanggal_selesai' => $validated['tanggal_selesai'],
             'warna'           => !empty($validated['warna']) ? $validated['warna'] : '#3b82f6',
             'keterangan'      => $validated['keterangan'] ?? null,
-            'libur_pd'        => (bool) ($request->input('libur_pd', false)),
+            'libur_pd'        => $isLiburPd,
             'libur_guru'      => (bool) ($request->input('libur_guru', false)),
             'libur_tendik'    => (bool) ($request->input('libur_tendik', false)),
             'created_by'      => $userName,
@@ -205,19 +224,22 @@ class KalenderPendidikanController extends Controller
         return response()->json([
             'status' => 'success',
             'data'   => [
-                'id'              => $event->id,
-                'nama_kegiatan'   => $event->nama_kegiatan,
-                'tipe'            => $event->tipe,
-                'tipe_label'      => $event->tipe_label,
-                'tanggal_mulai'   => $event->tanggal_mulai->format('Y-m-d'),
-                'tanggal_selesai' => $event->tanggal_selesai->format('Y-m-d'),
-                'warna'           => $event->warna,
-                'libur_pd'        => (bool) $event->libur_pd,
-                'libur_guru'      => (bool) $event->libur_guru,
-                'libur_tendik'    => (bool) $event->libur_tendik,
-                'keterangan'      => $event->keterangan,
-                'created_by'      => $event->created_by,
-                'created_at'      => $event->created_at?->format('d M Y H:i'),
+                'id'                  => $event->id,
+                'nama_kegiatan'       => $event->nama_kegiatan,
+                'tipe'                => $event->tipe,
+                'tipe_label'          => $event->tipe_label,
+                'mode_presensi'       => $event->mode_presensi,
+                'mode_presensi_label' => $event->mode_presensi_label,
+                'mode_presensi_badge' => $event->mode_presensi_badge,
+                'tanggal_mulai'       => $event->tanggal_mulai->format('Y-m-d'),
+                'tanggal_selesai'     => $event->tanggal_selesai->format('Y-m-d'),
+                'warna'               => $event->warna,
+                'libur_pd'            => (bool) $event->libur_pd,
+                'libur_guru'          => (bool) $event->libur_guru,
+                'libur_tendik'        => (bool) $event->libur_tendik,
+                'keterangan'          => $event->keterangan,
+                'created_by'          => $event->created_by,
+                'created_at'          => $event->created_at?->format('d M Y H:i'),
             ]
         ]);
     }
@@ -243,6 +265,7 @@ class KalenderPendidikanController extends Controller
         $validated = $request->validate([
             'nama_kegiatan'   => 'required|string|max:200',
             'tipe'            => 'required|string|max:50',
+            'mode_presensi'   => 'nullable|string|in:luring,daring,libur',
             'tanggal_mulai'   => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'warna'           => 'nullable|string|max:20',
@@ -252,14 +275,21 @@ class KalenderPendidikanController extends Controller
             'libur_tendik'    => 'nullable|boolean',
         ]);
 
+        $isLiburPd = (bool) ($request->input('libur_pd', false));
+        $modePresensi = $validated['mode_presensi'] ?? ($isLiburPd ? 'libur' : ($validated['tipe'] === 'pembelajaran_daring' ? 'daring' : 'luring'));
+        if ($isLiburPd && $modePresensi !== 'libur') {
+            $modePresensi = 'libur';
+        }
+
         $event->update([
             'nama_kegiatan'   => trim($validated['nama_kegiatan']),
             'tipe'            => $validated['tipe'],
+            'mode_presensi'   => $modePresensi,
             'tanggal_mulai'   => $validated['tanggal_mulai'],
             'tanggal_selesai' => $validated['tanggal_selesai'],
             'warna'           => !empty($validated['warna']) ? $validated['warna'] : $event->warna,
             'keterangan'      => $validated['keterangan'] ?? null,
-            'libur_pd'        => (bool) ($request->input('libur_pd', false)),
+            'libur_pd'        => $isLiburPd,
             'libur_guru'      => (bool) ($request->input('libur_guru', false)),
             'libur_tendik'    => (bool) ($request->input('libur_tendik', false)),
         ]);

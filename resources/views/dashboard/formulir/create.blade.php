@@ -78,13 +78,13 @@
                     <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Target Peran</label>
                     <select name="target_peran" id="targetPeranSelect" class="form-select" onchange="toggleRombelTarget()">
                         <option value="semua">Semua Pengguna SAE (Login)</option>
-                        <option value="peserta_didik">Khusus Peserta Didik (Siswa)</option>
+                        <option value="peserta_didik">Khusus Peserta Didik</option>
                         <option value="guru">Khusus Guru / Pendidik</option>
                         <option value="tendik">Khusus Tenaga Kependidikan</option>
                         <option value="publik">Publik Terbuka (Siapa saja tanpa login)</option>
                     </select>
                     <div id="targetRoleHint" class="form-text mt-1" style="font-size: 0.76rem;">
-                        <i class="fas fa-users text-primary me-1"></i> Semua akun pengguna SAE (Siswa, Guru, Tendik, Admin) wajib login.
+                        <i class="fas fa-users text-primary me-1"></i> Semua akun pengguna SAE (Peserta Didik, Guru, Tendik, Admin) wajib login.
                     </div>
                 </div>
 
@@ -97,7 +97,7 @@
                             <option value="{{ $r->rombongan_belajar_id }}">{{ $r->nama }}</option>
                         @endforeach
                     </select>
-                    <small class="text-muted" style="font-size: 0.75rem;">Hanya siswa di kelas tersebut yang diizinkan
+                    <small class="text-muted" style="font-size: 0.75rem;">Hanya peserta didik di kelas tersebut yang diizinkan
                         mengisi.</small>
                 </div>
 
@@ -105,7 +105,7 @@
                     <input class="form-check-input" type="checkbox" name="limit_one_response" id="limitOne" value="1"
                         checked>
                     <label class="form-check-label" for="limitOne" style="font-size: 0.85rem; font-weight: 600;">
-                        Batasi 1 Kali Pengisian per Akun/Siswa
+                        Batasi 1 Kali Pengisian per Akun/Peserta Didik
                     </label>
                 </div>
 
@@ -194,8 +194,8 @@
                         <i class="fas fa-id-badge text-warning me-1"></i> Data Otomatis SAE (Terkunci Sesuai Akun):
                     </span>
                     <button type="button" class="btn-preset-field sae-field"
-                        onclick="addField('sae_nama', 'Nama Lengkap Siswa')">
-                        <i class="fas fa-user-check text-warning"></i> Nama Siswa (Auto)
+                        onclick="addField('sae_nama', 'Nama Lengkap Peserta Didik')">
+                        <i class="fas fa-user-check text-warning"></i> Nama Peserta Didik (Auto)
                     </button>
                     <button type="button" class="btn-preset-field sae-field"
                         onclick="addField('sae_nisn', 'NISN')">

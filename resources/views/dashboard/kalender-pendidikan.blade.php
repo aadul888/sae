@@ -10,13 +10,13 @@
                 <i class="fas fa-calendar-days text-primary me-2"></i> Master Data — Kalender Pendidikan
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem;">
-                Manajemen agenda akademik, hari libur, dan jadwal asesmen yang terintegrasi langsung dengan sistem presensi
+                Manajemen agenda akademik, hari libur, dan jadwal KBM (Luring, Daring, Libur) yang terintegrasi langsung dengan sistem presensi
                 peserta didik, guru, serta tendik.
             </p>
         </div>
         <div class="dash-banner-actions">
             @if ($canCreate)
-                <button type="button" class="btn btn-primary btn-responsive-icon" onclick="openAddModal()"
+                <button type="button" class="btn btn-primary btn-responsive-icon" id="btnTambahAgenda" onclick="if(typeof openAddModal === 'function') openAddModal();"
                     style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600;"
                     title="Tambah Agenda">
                     <i class="fas fa-plus"></i> <span class="btn-responsive-text">Tambah Agenda</span>
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Summary Stats Grid -->
-    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                 <i class="fas fa-calendar-check"></i>
@@ -48,6 +48,18 @@
                     {{ number_format($totalLiburPd) }}
                 </div>
                 <div class="dash-stat-label">Libur Peserta Didik</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary);">
+                <i class="fas fa-laptop-house"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    {{ number_format($totalDaring ?? 0) }}
+                </div>
+                <div class="dash-stat-label">Agenda Daring (PJJ)</div>
             </div>
         </div>
 
@@ -89,16 +101,22 @@
         </div>
 
         <div style="display: flex; flex-wrap: wrap; gap: 8px; flex: 1; min-width: 240px;">
+            <select id="filterModePresensi" class="toolbar-filter-select" style="min-width: 140px;">
+                <option value="">Semua Mode Presensi</option>
+                <option value="luring" {{ ($modePresensi ?? '') === 'luring' ? 'selected' : '' }}>Luring (Efektif)</option>
+                <option value="daring" {{ ($modePresensi ?? '') === 'daring' ? 'selected' : '' }}>Daring (PJJ)</option>
+                <option value="libur" {{ ($modePresensi ?? '') === 'libur' ? 'selected' : '' }}>Libur</option>
+            </select>
+
             <select id="filterTipe" class="toolbar-filter-select" style="min-width: 150px;">
                 <option value="">Semua Kategori</option>
+                <option value="hari_efektif" {{ $tipe === 'hari_efektif' ? 'selected' : '' }}>Hari Efektif Belajar</option>
+                <option value="pembelajaran_daring" {{ $tipe === 'pembelajaran_daring' ? 'selected' : '' }}>Pembelajaran Daring (PJJ)</option>
+                <option value="kegiatan_sekolah" {{ $tipe === 'kegiatan_sekolah' ? 'selected' : '' }}>Kegiatan Sekolah</option>
+                <option value="ujian_asesmen" {{ $tipe === 'ujian_asesmen' ? 'selected' : '' }}>Ujian &amp; Asesmen</option>
                 <option value="libur_nasional" {{ $tipe === 'libur_nasional' ? 'selected' : '' }}>Libur Nasional</option>
                 <option value="libur_semester" {{ $tipe === 'libur_semester' ? 'selected' : '' }}>Libur Semester</option>
                 <option value="libur_khusus" {{ $tipe === 'libur_khusus' ? 'selected' : '' }}>Libur Khusus Satpen</option>
-                <option value="kegiatan_sekolah" {{ $tipe === 'kegiatan_sekolah' ? 'selected' : '' }}>Kegiatan Sekolah
-                </option>
-                <option value="ujian_asesmen" {{ $tipe === 'ujian_asesmen' ? 'selected' : '' }}>Ujian &amp; Asesmen
-                </option>
-                <option value="hari_efektif" {{ $tipe === 'hari_efektif' ? 'selected' : '' }}>Hari Efektif</option>
             </select>
 
             <select id="filterDampak" class="toolbar-filter-select" style="min-width: 160px;">
@@ -106,8 +124,7 @@
                 <option value="libur_pd" {{ $dampak === 'libur_pd' ? 'selected' : '' }}>Libur Peserta Didik</option>
                 <option value="libur_guru" {{ $dampak === 'libur_guru' ? 'selected' : '' }}>Libur Guru</option>
                 <option value="libur_tendik" {{ $dampak === 'libur_tendik' ? 'selected' : '' }}>Libur Tendik</option>
-                <option value="libur_semua" {{ $dampak === 'libur_semua' ? 'selected' : '' }}>Libur Semua (PD &amp; GTK)
-                </option>
+                <option value="libur_semua" {{ $dampak === 'libur_semua' ? 'selected' : '' }}>Libur Semua (PD &amp; GTK)</option>
             </select>
 
             <select id="filterBulan" class="toolbar-filter-select" style="min-width: 110px;">
@@ -140,7 +157,7 @@
                         $cols = [
                             ['tanggal_mulai', 'Tanggal Pelaksanaan'],
                             ['nama_kegiatan', 'Nama Agenda & Kategori'],
-                            ['dampak', 'Dampak Presensi'],
+                            ['dampak', 'Mode & Dampak Presensi'],
                             ['created_by', 'Petugas'],
                         ];
                     @endphp
@@ -200,6 +217,11 @@
                                 'color' => '#06b6d4',
                                 'border' => 'rgba(6,182,212,0.3)',
                             ],
+                            'pembelajaran_daring' => [
+                                'bg' => 'rgba(59,130,246,0.15)',
+                                'color' => '#3b82f6',
+                                'border' => 'rgba(59,130,246,0.3)',
+                            ],
                         ];
                         $styleBadge = $tipeColors[$item->tipe] ?? [
                             'bg' => 'rgba(148,163,184,0.15)',
@@ -242,10 +264,12 @@
                         </td>
 
                         <td style="padding: 14px 18px;" data-label="Presensi">
-                            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem;">
                                 <div>
-                                    <span
-                                        style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Siswa:</span>
+                                    {!! $item->mode_presensi_badge !!}
+                                </div>
+                                <div>
+                                    <span style="font-weight: 600; color: var(--text-muted); display: inline-block; min-width: 85px;">Peserta Didik:</span>
                                     @if ($item->libur_pd)
                                         <span class="badge"
                                             style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
@@ -254,13 +278,12 @@
                                     @else
                                         <span class="badge"
                                             style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
-                                            <i class="fas fa-check me-1"></i> Efektif
+                                            <i class="fas fa-check me-1"></i> {{ $item->mode_presensi === 'daring' ? 'Daring' : 'Efektif' }}
                                         </span>
                                     @endif
                                 </div>
                                 <div>
-                                    <span
-                                        style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Guru:</span>
+                                    <span style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Guru:</span>
                                     @if ($item->libur_guru)
                                         <span class="badge"
                                             style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
@@ -274,8 +297,7 @@
                                     @endif
                                 </div>
                                 <div>
-                                    <span
-                                        style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Tendik:</span>
+                                    <span style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Tendik:</span>
                                     @if ($item->libur_tendik)
                                         <span class="badge"
                                             style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">
@@ -416,7 +438,19 @@
                 <div class="form-group-compact" style="margin-bottom: 14px;">
                     <label>Nama Agenda / Kegiatan <span style="color: #ef4444;">*</span></label>
                     <input type="text" name="nama_kegiatan" id="inputNamaKegiatan" required
-                        placeholder="Contoh: Libur Hari Raya Idul Fitri / Asesmen Sumatif Akhir Semester" maxlength="200">
+                        placeholder="Contoh: Pembelajaran Jarak Jauh (PJJ) / Ujian Asesmen / Libur Nasional" maxlength="200">
+                </div>
+
+                <div class="form-group-compact" style="margin-bottom: 14px;">
+                    <label>Kondisi / Mode Presensi <span style="color: #ef4444;">*</span></label>
+                    <select name="mode_presensi" id="inputModePresensi" required style="width: 100%; padding: 10px 12px; font-size: 0.88rem;">
+                        <option value="luring" selected>Luring (Presensi Efektif Sekolah — Scanner Terminal Aktif)</option>
+                        <option value="daring">Daring (Pembelajaran Jarak Jauh / Belajar Rumah — Scanner Terminal Non-Aktif)</option>
+                        <option value="libur">Libur (Hari Libur Sekolah — Bebas Presensi)</option>
+                    </select>
+                    <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 4px;">
+                        Menentukan aturan sistem presensi pada tanggal pelaksanaan agenda ini.
+                    </small>
                 </div>
 
                 <div class="modal-form-grid"
@@ -424,18 +458,19 @@
                     <div class="form-group-compact">
                         <label>Kategori Agenda <span style="color: #ef4444;">*</span></label>
                         <select name="tipe" id="inputTipe" required>
+                            <option value="hari_efektif" selected>Hari Efektif Belajar</option>
+                            <option value="pembelajaran_daring">Pembelajaran Daring (PJJ)</option>
+                            <option value="kegiatan_sekolah">Kegiatan Sekolah / Upacara</option>
+                            <option value="ujian_asesmen">Ujian &amp; Asesmen</option>
                             <option value="libur_nasional">Libur Nasional</option>
                             <option value="libur_semester">Libur Semester / Akhir Tahun</option>
                             <option value="libur_khusus">Libur Khusus Satpen</option>
-                            <option value="kegiatan_sekolah" selected>Kegiatan Sekolah / Upacara</option>
-                            <option value="ujian_asesmen">Ujian &amp; Asesmen</option>
-                            <option value="hari_efektif">Hari Efektif Belajar</option>
                         </select>
                     </div>
 
                     <div class="form-group-compact">
                         <label>Warna Penanda</label>
-                        <input type="color" name="warna" id="inputWarna" value="#3b82f6"
+                        <input type="color" name="warna" id="inputWarna" value="#06b6d4"
                             style="height: 40px; padding: 4px; border-radius: 8px; cursor: pointer; width: 100%;">
                     </div>
                 </div>
@@ -457,11 +492,11 @@
                 <div
                     style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px;">
                     <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                        <i class="fas fa-fingerprint text-primary me-1"></i> Integrasi Dampak Presensi
+                        <i class="fas fa-fingerprint text-primary me-1"></i> Integrasi Dampak Libur Presensi
                     </div>
                     <p style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 10px;">
                         Centang peran yang diliburkan pada tanggal ini agar sistem presensi tidak mencatat ketidakhadiran
-                        (alpa).
+                        (alpha).
                     </p>
 
                     <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -469,7 +504,7 @@
                             style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-color); cursor: pointer; margin: 0;">
                             <input type="checkbox" name="libur_pd" id="inputLiburPd" value="1"
                                 style="width: 16px; height: 16px;">
-                            <span>Liburkan <strong>Peserta Didik</strong> (Siswa Bebas Presensi)</span>
+                            <span>Liburkan <strong>Peserta Didik</strong> (Peserta Didik Bebas Presensi)</span>
                         </label>
                         <label
                             style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-color); cursor: pointer; margin: 0;">
@@ -498,7 +533,7 @@
                     <button type="button" id="btnCancelModal" class="btn btn-outline"
                         style="padding: 8px 16px; font-size: 0.85rem;">Batal</button>
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 8px 20px; font-size: 0.85rem; font-weight: 600;">Simpan</button>
+                        style="padding: 8px 20px; font-size: 0.85rem; font-weight: 600;">Simpan Agenda</button>
                 </div>
             </form>
         </div>
@@ -511,7 +546,10 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <div>
-                    <span id="viewTipeBadge" class="badge" style="font-size: 0.72rem; margin-bottom: 6px;"></span>
+                    <div style="display: flex; gap: 6px; align-items: center; margin-bottom: 6px;">
+                        <span id="viewTipeBadge" class="badge" style="font-size: 0.72rem;"></span>
+                        <span id="viewModeBadge"></span>
+                    </div>
                     <h3 id="viewJudul"
                         style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 6px 0 0 0; line-height: 1.3;">
                     </h3>
@@ -557,5 +595,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/kalender-pendidikan.js') }}"></script>
+    <script src="{{ asset('js/kalender-pendidikan.js') }}?v={{ file_exists(public_path('js/kalender-pendidikan.js')) ? filemtime(public_path('js/kalender-pendidikan.js')) : time() }}"></script>
 @endpush

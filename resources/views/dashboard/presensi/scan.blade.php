@@ -53,7 +53,25 @@
         </div>
     </header>
 
-    @if ($isLibur)
+    @if (isset($statusHari) && $statusHari['mode'] === 'libur')
+        <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.1); padding: 14px 20px; text-align: center;">
+            <div style="font-weight: 800; font-size: 1rem; color: var(--danger);">
+                <i class="fas fa-umbrella-beach me-2"></i> HARI LIBUR SEKOLAH: {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Kalender Akademik' }}
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                Terminal presensi tidak menerima pencatatan kehadiran pada hari libur resmi.
+            </div>
+        </div>
+    @elseif (isset($statusHari) && $statusHari['mode'] === 'daring')
+        <div class="card" style="margin-bottom: 20px; border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.1); padding: 14px 20px; text-align: center;">
+            <div style="font-weight: 800; font-size: 1rem; color: #3b82f6;">
+                <i class="fas fa-laptop-house me-2"></i> PEMBELAJARAN DARING (PJJ): {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Jadwal PJJ / Daring' }}
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                Hari ini kegiatan belajar mengajar dilaksanakan secara daring (PJJ). Terminal presensi gerbang sekolah dinonaktifkan.
+            </div>
+        </div>
+    @elseif ($isLibur)
         <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.1); padding: 14px 20px; text-align: center;">
             <div style="font-weight: 800; font-size: 1rem; color: var(--danger);">
                 <i class="fas fa-umbrella-beach me-2"></i> HARI LIBUR SEKOLAH: {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Kalender Akademik' }}
@@ -63,6 +81,15 @@
             </div>
         </div>
     @endif
+
+    <!-- Geolocation Configuration for Kiosk Terminal -->
+    <div id="kioskGeoConfig" 
+         data-require-location="{{ $requireLocation ? '1' : '0' }}"
+         data-school-lat="{{ $schoolLat ?? '' }}"
+         data-school-lon="{{ $schoolLon ?? '' }}"
+         data-school-radius="{{ $schoolRadius }}"
+         style="display: none;">
+    </div>
 
     <!-- Main Kiosk Body -->
     <main class="kiosk-grid">
@@ -105,12 +132,15 @@
                     <div class="scanner-laser-line"></div>
                 </div>
 
-                <div style="position: absolute; bottom: 12px; left: 14px; display: flex; gap: 6px;">
+                <div style="position: absolute; bottom: 12px; left: 14px; display: flex; gap: 6px; flex-wrap: wrap;">
                     <span id="cameraStatusBadge" class="badge badge-success" style="font-size: 0.72rem; padding: 4px 8px; backdrop-filter: blur(4px);">
                         <i class="fas fa-video"></i> Kamera Siap
                     </span>
                     <span class="badge badge-primary" style="font-size: 0.72rem; padding: 4px 8px; backdrop-filter: blur(4px);">
                         <i class="fas fa-wifi"></i> RFID Online
+                    </span>
+                    <span id="gpsStatusBadge" class="badge badge-secondary" style="font-size: 0.72rem; padding: 4px 8px; backdrop-filter: blur(4px); background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
+                        <i class="fas fa-location-crosshairs"></i> GPS: Menghubungkan...
                     </span>
                 </div>
             </div>
@@ -162,6 +192,43 @@
                 </div>
             </div>
 
+            <!-- Lokasi & Radius Presensi Card -->
+            <div class="card" style="padding: 18px; border-radius: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        <i class="fas fa-location-dot text-primary me-1"></i> Lokasi &amp; Radius Presensi
+                    </div>
+                    @if ($requireLocation)
+                        <span class="badge badge-warning" style="font-size: 0.7rem; font-weight: 700;">Wajib Radius</span>
+                    @else
+                        <span class="badge badge-secondary" style="font-size: 0.7rem; font-weight: 600;">Radius Opsional</span>
+                    @endif
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem;">
+                    <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-muted); font-size: 0.72rem;">Batas Toleransi:</div>
+                        <div style="font-weight: 800; font-size: 1.05rem; color: var(--primary); font-family: monospace;">
+                            {{ number_format($schoolRadius, 0, ',', '.') }} Meter
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <div style="color: var(--text-muted); font-size: 0.72rem;">Jarak Perangkat:</div>
+                        <div id="kioskGpsDistanceText" style="font-weight: 800; font-size: 0.92rem; color: var(--text-color); font-family: monospace;">
+                            <i class="fas fa-spinner fa-spin me-1" style="font-size: 0.75rem;"></i> Mendeteksi...
+                        </div>
+                    </div>
+                </div>
+                @if ($schoolLat && $schoolLon)
+                    <div style="margin-top: 10px; font-size: 0.74rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px;">
+                        <span><i class="fas fa-map-pin text-danger me-1"></i> Titik Sekolah: {{ number_format($schoolLat, 5) }}, {{ number_format($schoolLon, 5) }}</span>
+                        <a href="https://maps.google.com/?q={{ $schoolLat }},{{ $schoolLon }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.72rem;">
+                            Buka Peta <i class="fas fa-external-link-alt ms-1" style="font-size: 0.65rem;"></i>
+                        </a>
+                    </div>
+                @endif
+            </div>
+
             <!-- Recent Scans Live Feed -->
             <div class="card" style="padding: 18px; border-radius: 16px; flex: 1; display: flex; flex-direction: column;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
@@ -198,7 +265,7 @@
                         </div>
                     @empty
                         <div style="text-align: center; color: var(--text-muted); padding: 30px; font-size: 0.85rem;">
-                            Belum ada siswa yang melakukan presensi pada sesi ini.
+                            Belum ada peserta didik yang melakukan presensi pada sesi ini.
                         </div>
                     @endforelse
                 </div>
@@ -209,7 +276,7 @@
     <!-- Pop-up Verification Modal / Card (Overlay) -->
     <div id="verifyPopupOverlay" class="verify-popup-overlay">
         <div class="verify-popup-card">
-            <img id="popupFotoSiswa" src="{{ asset('img/logo-dark.png') }}" alt="Foto Siswa" class="verify-avatar" onerror="this.src='/img/logo-dark.png';">
+            <img id="popupFotoSiswa" src="{{ asset('img/logo-dark.png') }}" alt="Foto Peserta Didik" class="verify-avatar" onerror="this.src='/img/logo-dark.png';">
             
             <div style="margin-bottom: 8px;">
                 <span id="popupStatusBadge" class="badge badge-success" style="font-size: 0.85rem; padding: 6px 14px; font-weight: 800;">
@@ -233,6 +300,9 @@
                 </div>
                 <div id="popupPesanDetail" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">
                     Presensi masuk berhasil dicatat dalam database.
+                </div>
+                <div id="popupLokasiPresensi" style="display: none; font-size: 0.78rem; color: var(--text-muted); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                    <i class="fas fa-location-dot text-primary me-1"></i> <span id="popupLokasiText"></span>
                 </div>
             </div>
         </div>

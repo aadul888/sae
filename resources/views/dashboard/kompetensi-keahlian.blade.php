@@ -165,7 +165,7 @@
                             </span>
                         </td>
                         <td class="cell-peserta-didik cell-siswa" style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
-                            data-label="Siswa">
+                            data-label="Peserta Didik">
                             <span class="badge"
                                 style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
                                 <i class="fas fa-user-graduate me-1"></i>

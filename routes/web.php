@@ -196,6 +196,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/peserta-didik-tidak-aktif', [\App\Http\Controllers\WaliKelasController::class, 'pesertaDidikTidakAktif'])->name('peserta-didik-tidak-aktif.index')->middleware('permission:menu_wali_kelas_tidak_aktif,read');
         Route::get('/peserta-didik/{id}', [\App\Http\Controllers\WaliKelasController::class, 'showPesertaDidik'])->name('peserta-didik.show')->middleware('permission:menu_wali_kelas_aktif,read');
         Route::get('/peserta-didik-tidak-aktif/{id}', [\App\Http\Controllers\WaliKelasController::class, 'showPesertaDidikTidakAktif'])->name('peserta-didik-tidak-aktif.show')->middleware('permission:menu_wali_kelas_tidak_aktif,read');
+        
+        // Presensi Kelas Binaan (Kontrol Kendala & Rekap PDF)
+        Route::get('/presensi', [\App\Http\Controllers\WaliKelasController::class, 'presensi'])->name('presensi.index')->middleware('permission:menu_wali_kelas_presensi,read');
+        Route::post('/presensi/manual', [\App\Http\Controllers\WaliKelasController::class, 'simpanPresensiManual'])->name('presensi.manual')->middleware('permission:menu_wali_kelas_presensi,update');
+        Route::get('/presensi/pdf/{tipe}', [\App\Http\Controllers\WaliKelasController::class, 'downloadPdf'])->name('presensi.pdf')->middleware('permission:menu_wali_kelas_presensi,read');
     });
 });
 

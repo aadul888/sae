@@ -87,7 +87,7 @@
 
     // Section: Wali Kelas (Khusus Admin sebagai pengelola & Guru dengan tugas tambahan Wali Kelas)
     $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
-    $hasWaliKelas = $isWaliOrAdmin && ($can('menu_wali_kelas_aktif') || $can('menu_wali_kelas_tidak_aktif'));
+    $hasWaliKelas = $isWaliOrAdmin && ($can('menu_wali_kelas_aktif') || $can('menu_wali_kelas_tidak_aktif') || $can('menu_wali_kelas_presensi'));
     $waliKelasRombelName = $role === 'guru' ? \App\Models\RolePermission::getWaliKelasRombel($user) : null;
 
     // Kumpulkan modul sistem tambahan yang aktif tapi belum ter-render pada template bawaan
@@ -103,6 +103,7 @@
         'menu_peserta_didik_tidak_aktif',
         'menu_wali_kelas_aktif',
         'menu_wali_kelas_tidak_aktif',
+        'menu_wali_kelas_presensi',
         'menu_guru_aktif',
         'menu_guru_tidak_aktif',
         'menu_tendik_aktif',
@@ -556,6 +557,14 @@
                             <span class="nav-label">Peserta Didik Tidak Aktif</span>
                         </a>
                     @endif
+
+                    @if ($can('menu_wali_kelas_presensi'))
+                        <a href="{{ route('dashboard.wali-kelas.presensi.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.presensi*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-user"></i></span>
+                            <span class="nav-label">Presensi Kelas</span>
+                        </a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -739,8 +748,8 @@
 
                     @if ($can('menu_agenda'))
                         <a href="#" class="dash-nav-sublink">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
-                            <span class="nav-label">Agenda Sekolah</span>
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
+                            <span class="nav-label">Agenda Kelas</span>
                         </a>
                     @endif
 

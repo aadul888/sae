@@ -181,6 +181,122 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // 4.5. Pelacak Geolokasi & Radius Jarak Sekolah (GPS Kiosk)
+    const geoConfigEl = document.getElementById('kioskGeoConfig');
+    const requireLocation = geoConfigEl ? geoConfigEl.dataset.requireLocation === '1' : false;
+    const schoolLat = geoConfigEl && geoConfigEl.dataset.schoolLat !== '' ? parseFloat(geoConfigEl.dataset.schoolLat) : null;
+    const schoolLon = geoConfigEl && geoConfigEl.dataset.schoolLon !== '' ? parseFloat(geoConfigEl.dataset.schoolLon) : null;
+    const schoolRadius = geoConfigEl ? (parseInt(geoConfigEl.dataset.schoolRadius, 10) || 100) : 100;
+
+    let currentLat = null;
+    let currentLon = null;
+    let currentAccuracy = null;
+    let currentDistance = null;
+
+    function calculateClientDistance(lat1, lon1, lat2, lon2) {
+        if (lat1 === null || lon1 === null || lat2 === null || lon2 === null) return null;
+        const R = 6371000;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return Math.round(R * c);
+    }
+
+    function updateGpsUI(lat, lon, accuracy) {
+        currentLat = lat;
+        currentLon = lon;
+        currentAccuracy = accuracy;
+
+        const gpsBadge = document.getElementById('gpsStatusBadge');
+        const gpsDistanceText = document.getElementById('kioskGpsDistanceText');
+
+        if (schoolLat !== null && schoolLon !== null) {
+            currentDistance = calculateClientDistance(schoolLat, schoolLon, currentLat, currentLon);
+            const inRadius = currentDistance <= schoolRadius;
+
+            if (gpsBadge) {
+                if (inRadius) {
+                    gpsBadge.className = 'badge badge-success';
+                    gpsBadge.innerHTML = `<i class="fas fa-location-dot"></i> GPS: Radius OK (${currentDistance}m)`;
+                } else {
+                    gpsBadge.className = 'badge badge-danger';
+                    gpsBadge.innerHTML = `<i class="fas fa-triangle-exclamation"></i> GPS: Luar Radius (${currentDistance}m / maks ${schoolRadius}m)`;
+                }
+            }
+
+            if (gpsDistanceText) {
+                gpsDistanceText.innerHTML = inRadius
+                    ? `<span style="color: var(--success);"><i class="fas fa-circle-check me-1"></i> ${currentDistance} m (Dalam Radius)</span>`
+                    : `<span style="color: var(--danger);"><i class="fas fa-triangle-exclamation me-1"></i> ${currentDistance} m (Di Luar Radius)</span>`;
+            }
+        } else {
+            if (gpsBadge) {
+                gpsBadge.className = 'badge badge-primary';
+                gpsBadge.innerHTML = `<i class="fas fa-location-dot"></i> GPS: Aktif (&plusmn;${Math.round(accuracy)}m)`;
+            }
+            if (gpsDistanceText) {
+                gpsDistanceText.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            }
+        }
+    }
+
+    function handleGpsError(err) {
+        const gpsBadge = document.getElementById('gpsStatusBadge');
+        const gpsDistanceText = document.getElementById('kioskGpsDistanceText');
+
+        console.warn('Geolocation error:', err.message);
+
+        if (gpsBadge) {
+            if (err.code === 1) {
+                gpsBadge.className = 'badge badge-danger';
+                gpsBadge.innerHTML = '<i class="fas fa-location-slash"></i> GPS: Izin Ditolak';
+            } else {
+                gpsBadge.className = 'badge badge-warning';
+                gpsBadge.innerHTML = '<i class="fas fa-location-crosshairs"></i> GPS: Mencari Sinyal...';
+            }
+        }
+
+        if (gpsDistanceText) {
+            if (err.code === 1) {
+                gpsDistanceText.innerHTML = '<span style="color: var(--danger);"><i class="fas fa-ban me-1"></i> Izin lokasi ditolak</span>';
+            } else {
+                gpsDistanceText.innerHTML = '<span style="color: var(--warning);"><i class="fas fa-satellite-dish me-1"></i> Mencari sinyal GPS...</span>';
+            }
+        }
+    }
+
+    function initGeolocation() {
+        const gpsBadge = document.getElementById('gpsStatusBadge');
+        const gpsDistanceText = document.getElementById('kioskGpsDistanceText');
+
+        if (!navigator.geolocation) {
+            if (gpsBadge) {
+                gpsBadge.className = 'badge badge-warning';
+                gpsBadge.innerHTML = '<i class="fas fa-location-slash"></i> GPS: Tidak Didukung';
+            }
+            if (gpsDistanceText) {
+                gpsDistanceText.textContent = 'Browser tidak mendukung GPS';
+            }
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => updateGpsUI(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
+            handleGpsError,
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+        );
+
+        navigator.geolocation.watchPosition(
+            (pos) => updateGpsUI(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
+            handleGpsError,
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+        );
+    }
+    initGeolocation();
+
     // 5. Global RFID / Barcode Scanner Listener (Keyboard Wedge)
     const hiddenInput = document.getElementById('kioskScannerInput');
     let scanBuffer = '';
@@ -240,6 +356,35 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isProcessing) return;
         isProcessing = true;
 
+        // Validasi Geolokasi jika diwajibkan oleh sekolah
+        if (requireLocation) {
+            if (currentLat === null || currentLon === null) {
+                playSound('error');
+                showNoticeCard(
+                    'Izin Lokasi Diperlukan',
+                    'Koordinat GPS belum terdeteksi. Harap aktifkan GPS dan berikan izin akses lokasi pada browser Anda.',
+                    'error'
+                );
+                speakGreeting('Izin lokasi GPS diperlukan untuk presensi.');
+                isProcessing = false;
+                ensureFocus();
+                return;
+            }
+
+            if (schoolLat !== null && schoolLon !== null && currentDistance !== null && currentDistance > schoolRadius) {
+                playSound('error');
+                showNoticeCard(
+                    'Di Luar Radius Sekolah',
+                    `Jarak Anda saat ini (${currentDistance} m) berada di luar batas toleransi radius sekolah (${schoolRadius} m). Presensi ditolak.`,
+                    'error'
+                );
+                speakGreeting('Presensi ditolak. Lokasi Anda berada di luar radius sekolah.');
+                isProcessing = false;
+                ensureFocus();
+                return;
+            }
+        }
+
         const snapshot = captureSnapshot();
         const modeEl = document.querySelector('input[name="kiosk_mode"]:checked');
         const modeVal = modeEl ? modeEl.value : 'auto';
@@ -255,7 +400,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify({
                     identifier: identifier,
                     mode: modeVal,
-                    snapshot: snapshot
+                    snapshot: snapshot,
+                    latitude: currentLat,
+                    longitude: currentLon
                 })
             });
 
@@ -314,6 +461,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const waktu = d.jam_pulang || d.jam_masuk || '--:--';
         if (popupWaktu) popupWaktu.textContent = `Pukul ${waktu} WIB`;
         if (popupPesan) popupPesan.textContent = res.message;
+
+        const popupLokasiWrap = document.getElementById('popupLokasiPresensi');
+        const popupLokasiText = document.getElementById('popupLokasiText');
+        if (popupLokasiWrap && popupLokasiText) {
+            if (d.jarak_meter !== null && d.jarak_meter !== undefined) {
+                popupLokasiWrap.style.display = 'block';
+                popupLokasiText.textContent = `Terverifikasi di radius sekolah (${Math.round(d.jarak_meter)} meter)`;
+            } else {
+                popupLokasiWrap.style.display = 'none';
+            }
+        }
 
         if (popupStatusBadge) {
             if (d.status === 'H') {

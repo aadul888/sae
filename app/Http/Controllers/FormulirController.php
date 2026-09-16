@@ -579,7 +579,7 @@ class FormulirController extends Controller
 
         if ($requiresLogin && !$user) {
             $roleLabels = [
-                'peserta_didik' => 'Khusus Peserta Didik (Siswa)',
+                'peserta_didik' => 'Khusus Peserta Didik',
                 'guru' => 'Khusus Guru / Pendidik',
                 'tendik' => 'Khusus Tenaga Kependidikan',
                 'semua' => 'Semua Pengguna SAE (Login Akun)',

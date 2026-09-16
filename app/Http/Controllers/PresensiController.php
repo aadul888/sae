@@ -6,6 +6,7 @@ use App\Models\KalenderPendidikan;
 use App\Models\PesertaDidikMeta;
 use App\Models\PresensiHarian;
 use App\Models\PresensiIzin;
+use App\Models\PresensiMapel;
 use App\Models\PresensiPengaturan;
 use App\Models\RolePermission;
 use App\Services\QrCodeService;
@@ -23,21 +24,23 @@ class PresensiController extends Controller
      */
     public function index(Request $request)
     {
+        // Otomatis tandai pulang cepat untuk siswa yang tidak tap pulang di hari sebelumnya
+        PresensiHarian::autoCloseUncheckedOut();
+
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? 'guru') : ($user->role ?? 'guru');
 
         $tanggal = $request->input('tanggal', now()->toDateString());
         $pengaturan = PresensiPengaturan::getPengaturan();
 
-        // Cek status hari libur dari Kalender Pendidikan
-        $isLiburKalender = KalenderPendidikan::isLibur($tanggal, 'pd');
-        $agendaHariIni = null;
-        if ($isLiburKalender) {
-            $agendaHariIni = KalenderPendidikan::where('tanggal_mulai', '<=', $tanggal)
-                ->where('tanggal_selesai', '>=', $tanggal)
-                ->where('libur_pd', true)
-                ->first();
-        }
+        // Cek status hari (Luring, Daring, Libur) dari Kalender Pendidikan
+        $statusHari = KalenderPendidikan::getStatusHari($tanggal, 'pd');
+        $isLiburKalender = $statusHari['mode'] === 'libur';
+        $isDaringKalender = $statusHari['mode'] === 'daring';
+        $agendaHariIni = $statusHari['agenda'];
+
+        // Ambil daftar jurusan / kompetensi keahlian untuk pengaturan
+        $jurusanList = PresensiPengaturan::getJurusanList();
 
         // Statistik Presensi Hari Ini / Tanggal Terpilih
         $totalSiswa = DB::table('peserta_didik')->count();
@@ -175,12 +178,25 @@ class PresensiController extends Controller
             ->limit(10)
             ->get();
 
+        // Informasi Satuan Pendidikan & Titik Koordinat Efektif
+        $sekolah = PresensiPengaturan::getSekolah();
+        $effectiveLat = $pengaturan->getEffectiveLatitude();
+        $effectiveLon = $pengaturan->getEffectiveLongitude();
+        $effectiveRadius = $pengaturan->getEffectiveRadius();
+
         return view('dashboard.presensi.index', compact(
             'pengaturan',
+            'sekolah',
+            'effectiveLat',
+            'effectiveLon',
+            'effectiveRadius',
             'tanggal',
             'activeTab',
+            'statusHari',
             'isLiburKalender',
+            'isDaringKalender',
             'agendaHariIni',
+            'jurusanList',
             'totalSiswa',
             'countHadir',
             'countTerlambat',
@@ -208,15 +224,9 @@ class PresensiController extends Controller
     {
         $pengaturan = PresensiPengaturan::getPengaturan();
         $today = now()->toDateString();
-        $isLibur = KalenderPendidikan::isLibur($today, 'pd');
-
-        $agendaLibur = null;
-        if ($isLibur) {
-            $agendaLibur = KalenderPendidikan::where('tanggal_mulai', '<=', $today)
-                ->where('tanggal_selesai', '>=', $today)
-                ->where('libur_pd', true)
-                ->first();
-        }
+        $statusHari = KalenderPendidikan::getStatusHari($today, 'pd');
+        $isLibur = $statusHari['mode'] === 'libur';
+        $agendaLibur = $statusHari['agenda'];
 
         // Recent Scans (5 scan terakhir)
         $recentScans = DB::table('presensi_harian as ph')
@@ -246,7 +256,22 @@ class PresensiController extends Controller
                 return $s;
             });
 
-        return view('dashboard.presensi.scan', compact('pengaturan', 'isLibur', 'agendaLibur', 'recentScans'));
+        $schoolLat = $pengaturan->getEffectiveLatitude();
+        $schoolLon = $pengaturan->getEffectiveLongitude();
+        $schoolRadius = $pengaturan->getEffectiveRadius();
+        $requireLocation = (bool) $pengaturan->require_location;
+
+        return view('dashboard.presensi.scan', compact(
+            'pengaturan',
+            'isLibur',
+            'agendaLibur',
+            'statusHari',
+            'recentScans',
+            'schoolLat',
+            'schoolLon',
+            'schoolRadius',
+            'requireLocation'
+        ));
     }
 
     /**
@@ -258,6 +283,8 @@ class PresensiController extends Controller
             'identifier' => 'required|string|max:255',
             'mode' => 'nullable|string|in:auto,masuk,pulang',
             'snapshot' => 'nullable|string', // Base64 data URI snapshot webcam
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         $rawIdentifier = trim($request->input('identifier'));
@@ -270,18 +297,43 @@ class PresensiController extends Controller
 
         $pengaturan = PresensiPengaturan::getPengaturan();
 
-        // 1. Cek Kalender Pendidikan (Hari Libur)
-        if (KalenderPendidikan::isLibur($today, 'pd')) {
-            $agenda = KalenderPendidikan::where('tanggal_mulai', '<=', $today)
-                ->where('tanggal_selesai', '>=', $today)
-                ->where('libur_pd', true)
-                ->first();
-
+        // 1. Cek Kalender Pendidikan (Kondisi Libur & Daring)
+        $statusHari = KalenderPendidikan::getStatusHari($today, 'pd');
+        if ($statusHari['mode'] === 'libur') {
+            $agenda = $statusHari['agenda'];
             return response()->json([
                 'status' => 'warning',
                 'title' => 'Hari Libur Akademik',
                 'message' => 'Hari ini adalah hari libur sekolah: ' . ($agenda ? $agenda->nama_kegiatan : 'Libur Kalender Pendidikan') . '. Presensi dinonaktifkan.',
                 'speech_text' => 'Hari ini adalah hari libur sekolah. Presensi tidak aktif.',
+            ], 422);
+        }
+
+        if ($statusHari['mode'] === 'daring') {
+            $agenda = $statusHari['agenda'];
+            return response()->json([
+                'status' => 'warning',
+                'title' => 'Pembelajaran Daring (PJJ)',
+                'message' => 'Hari ini dijadwalkan Pembelajaran Daring (PJJ): ' . ($agenda ? $agenda->nama_kegiatan : 'Belajar di Rumah') . '. Terminal scanner gerbang dinonaktifkan.',
+                'speech_text' => 'Hari ini adalah jadwal pembelajaran daring.',
+            ], 422);
+        }
+
+        // 2. Cek Geolokasi GPS (Jika diwajibkan oleh pengaturan)
+        $userLat = $request->filled('latitude') ? (float) $request->input('latitude') : null;
+        $userLon = $request->filled('longitude') ? (float) $request->input('longitude') : null;
+        $locCheck = $pengaturan->checkLocationRadius($userLat, $userLon);
+
+        if ($pengaturan->require_location && !$locCheck['allowed']) {
+            return response()->json([
+                'status' => 'error',
+                'title' => 'Di Luar Radius Sekolah',
+                'message' => $locCheck['message'],
+                'speech_text' => 'Presensi ditolak. Lokasi Anda berada di luar batas radius sekolah.',
+                'data' => [
+                    'distance_meter' => $locCheck['distance_meter'],
+                    'radius_meter' => $locCheck['radius_meter'],
+                ],
             ], 422);
         }
 
@@ -340,10 +392,21 @@ class PresensiController extends Controller
         if (!$siswa) {
             return response()->json([
                 'status' => 'error',
-                'title' => 'Siswa Tidak Ditemukan',
+                'title' => 'Peserta Didik Tidak Ditemukan',
                 'message' => "Kartu RFID atau QR [{$cleanId}] belum terdaftar dalam sistem database sekolah.",
                 'speech_text' => 'Kartu atau kode tidak terdaftar.',
             ], 404);
+        }
+
+        // 4. Cek Pembatasan Kompetensi Keahlian (Jurusan) yang Diizinkan Presensi
+        $rb = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $siswa->rombongan_belajar_id)->first();
+        if ($rb && !$pengaturan->isJurusanAktif($rb->jurusan_id)) {
+            return response()->json([
+                'status' => 'warning',
+                'title' => 'Jurusan Tidak Aktif Presensi',
+                'message' => 'Kompetensi Keahlian ' . ($rb->jurusan_id_str ?: 'peserta didik') . ' saat ini tidak dijadwalkan untuk presensi gerbang (misal: sedang PKL/Prakerin).',
+                'speech_text' => 'Jurusan anda sedang tidak dijadwalkan presensi.',
+            ], 422);
         }
 
         // 4. Deteksi Metode Pemindai
@@ -414,6 +477,12 @@ class PresensiController extends Controller
                 $speechGreeting = "Sampai jumpa {$siswa->nama}, selamat beristirahat.";
             }
 
+            if ($userLat !== null && $userLon !== null) {
+                $presensi->latitude = $userLat;
+                $presensi->longitude = $userLon;
+                $presensi->jarak_meter = $locCheck['distance_meter'];
+            }
+
             $presensi->save();
         } else {
             // Mode Presensi Masuk
@@ -462,6 +531,12 @@ class PresensiController extends Controller
                 $speechGreeting = "Selamat pagi {$siswa->nama}, presensi masuk berhasil tepat waktu.";
             }
 
+            if ($userLat !== null && $userLon !== null) {
+                $presensi->latitude = $userLat;
+                $presensi->longitude = $userLon;
+                $presensi->jarak_meter = $locCheck['distance_meter'];
+            }
+
             $presensi->save();
         }
 
@@ -480,6 +555,7 @@ class PresensiController extends Controller
      */
     public function getLiveLog(Request $request)
     {
+        PresensiHarian::autoCloseUncheckedOut();
         $today = now()->toDateString();
         $recent = DB::table('presensi_harian as ph')
             ->join('peserta_didik as pd', 'ph.peserta_didik_id', '=', 'pd.peserta_didik_id')
@@ -525,7 +601,7 @@ class PresensiController extends Controller
     }
 
     /**
-     * Dasbor Presensi Kelas untuk Guru & Wali Kelas
+     * Dasbor Presensi Kelas untuk Guru Mapel & Wali Kelas
      */
     public function kelas(Request $request)
     {
@@ -562,6 +638,39 @@ class PresensiController extends Controller
 
         $selectedRombelId = $request->input('rombel_id', $waliRombel ?: ($rombelList->first()?->rombongan_belajar_id ?? ''));
         $tanggal = $request->input('tanggal', now()->toDateString());
+        $jamKe = $request->input('jam_ke', '');
+
+        // Daftar Pembelajaran / Mata Pelajaran di Rombel Terpilih
+        $pembelajaranList = collect();
+        if ($selectedRombelId) {
+            $pembelajaranList = DB::table('pembelajaran as p')
+                ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
+                ->where('p.rombongan_belajar_id', $selectedRombelId)
+                ->select(
+                    'p.pembelajaran_id',
+                    'p.nama_mata_pelajaran',
+                    'p.ptk_id',
+                    'p.jam_mengajar_per_minggu',
+                    'g.nama as nama_guru'
+                )
+                ->orderBy('p.nama_mata_pelajaran', 'asc')
+                ->get();
+        }
+
+        // Default mapel terpilih: prioritaskan mapel yang diampu oleh PTK jika guru login
+        $defaultPembelajaranId = null;
+        if ($ptkId) {
+            $guruPembelajaran = $pembelajaranList->firstWhere('ptk_id', $ptkId);
+            if ($guruPembelajaran) {
+                $defaultPembelajaranId = $guruPembelajaran->pembelajaran_id;
+            }
+        }
+        if (!$defaultPembelajaranId && $pembelajaranList->isNotEmpty()) {
+            $defaultPembelajaranId = $pembelajaranList->first()->pembelajaran_id;
+        }
+
+        $selectedPembelajaranId = $request->input('pembelajaran_id', $defaultPembelajaranId);
+        $selectedPembelajaran = $pembelajaranList->firstWhere('pembelajaran_id', $selectedPembelajaranId);
 
         // Ambil Siswa di Rombel Terpilih
         $siswaList = collect();
@@ -572,9 +681,20 @@ class PresensiController extends Controller
 
             $siswaList = DB::table('peserta_didik as pd')
                 ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+                // Konteks Presensi Gerbang / Harian Sekolah (READ-ONLY)
                 ->leftJoin('presensi_harian as ph', function ($join) use ($tanggal) {
                     $join->on('pd.peserta_didik_id', '=', 'ph.peserta_didik_id')
                         ->where('ph.tanggal', '=', $tanggal);
+                })
+                // Presensi Mapel Terpisah untuk Guru KBM
+                ->leftJoin('presensi_mapel as pm', function ($join) use ($tanggal, $selectedPembelajaranId, $selectedRombelId) {
+                    $join->on('pd.peserta_didik_id', '=', 'pm.peserta_didik_id')
+                        ->where('pm.tanggal', '=', $tanggal);
+                    if ($selectedPembelajaranId) {
+                        $join->where('pm.pembelajaran_id', '=', $selectedPembelajaranId);
+                    } else {
+                        $join->where('pm.rombongan_belajar_id', '=', $selectedRombelId);
+                    }
                 })
                 ->where('pd.rombongan_belajar_id', $selectedRombelId)
                 ->select(
@@ -584,42 +704,49 @@ class PresensiController extends Controller
                     'pd.jenis_kelamin',
                     'pdm.foto_path',
                     'pdm.rfid_uid',
-                    'ph.id as presensi_id',
-                    'ph.status as status_presensi',
-                    'ph.jam_masuk',
-                    'ph.jam_pulang',
-                    'ph.menit_terlambat',
-                    'ph.keterangan',
-                    'ph.lampiran_dokumen',
-                    'ph.foto_masuk'
+                    // Data Presensi Gerbang (Sekolah)
+                    'ph.id as gerbang_presensi_id',
+                    'ph.status as gerbang_status',
+                    'ph.jam_masuk as gerbang_jam_masuk',
+                    'ph.jam_pulang as gerbang_jam_pulang',
+                    'ph.menit_terlambat as gerbang_menit_terlambat',
+                    'ph.status_ketepatan_pulang as gerbang_status_pulang',
+                    'ph.keterangan as gerbang_keterangan',
+                    // Data Presensi Mapel
+                    'pm.id as mapel_presensi_id',
+                    'pm.status as mapel_status',
+                    'pm.jam_ke as mapel_jam_ke',
+                    'pm.keterangan as mapel_keterangan',
+                    'pm.agenda_kelas_id'
                 )
                 ->orderBy('pd.nama', 'asc')
                 ->get()
                 ->map(function ($item) {
                     $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
-                    $item->lampiran_url = !empty($item->lampiran_dokumen) ? asset('storage/' . ltrim($item->lampiran_dokumen, '/')) : null;
-                    $item->snapshot_url = !empty($item->foto_masuk) ? asset('storage/' . ltrim($item->foto_masuk, '/')) : null;
                     return $item;
                 });
         }
 
-        // Rekap kelas hari ini
+        // Rekap presensi mapel kelas hari ini
         $rekap = [
             'total' => $siswaList->count(),
-            'hadir' => $siswaList->where('status_presensi', 'H')->count(),
-            'terlambat' => $siswaList->where('status_presensi', 'T')->count(),
-            'izin' => $siswaList->where('status_presensi', 'I')->count(),
-            'sakit' => $siswaList->where('status_presensi', 'S')->count(),
-            'dispen' => $siswaList->where('status_presensi', 'D')->count(),
-            'alpha' => $siswaList->where('status_presensi', 'A')->count(),
-            'belum' => $siswaList->whereNull('status_presensi')->count(),
+            'hadir' => $siswaList->where('mapel_status', 'H')->count(),
+            'terlambat' => $siswaList->where('mapel_status', 'T')->count(),
+            'izin' => $siswaList->where('mapel_status', 'I')->count(),
+            'sakit' => $siswaList->where('mapel_status', 'S')->count(),
+            'alpha' => $siswaList->where('mapel_status', 'A')->count(),
+            'belum' => $siswaList->whereNull('mapel_status')->count(),
         ];
 
         return view('dashboard.presensi.kelas', compact(
             'rombelList',
             'selectedRombelId',
             'selectedRombel',
+            'pembelajaranList',
+            'selectedPembelajaranId',
+            'selectedPembelajaran',
             'tanggal',
+            'jamKe',
             'siswaList',
             'rekap',
             'waliRombel'
@@ -627,101 +754,126 @@ class PresensiController extends Controller
     }
 
     /**
-     * API: Update Cepat Status Kehadiran Siswa per Kelas
+     * API: Update Cepat Status Kehadiran Siswa per Mapel (Guru KBM)
      */
     public function updateStatusKelas(Request $request)
     {
         $request->validate([
             'peserta_didik_id' => 'required|string',
             'tanggal' => 'required|date',
-            'status' => 'required|string|in:H,T,I,S,A,D',
+            'status' => 'required|string|in:H,T,I,S,A',
+            'pembelajaran_id' => 'nullable|string',
+            'rombongan_belajar_id' => 'nullable|string',
+            'jam_ke' => 'nullable|string|max:20',
             'keterangan' => 'nullable|string|max:500',
-            'lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:4096',
         ]);
 
         $user = session('user');
-        $verifiedBy = is_array($user) ? ($user['nama'] ?? 'Guru') : ($user->nama ?? 'Guru');
+        $verifiedBy = is_array($user) ? ($user['nama'] ?? 'Guru Mapel') : ($user->nama ?? 'Guru Mapel');
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
 
         $pdId = $request->input('peserta_didik_id');
         $tanggal = $request->input('tanggal');
         $status = $request->input('status');
+        $pembelajaranId = $request->input('pembelajaran_id');
+        $rombelId = $request->input('rombongan_belajar_id');
+        $jamKe = $request->input('jam_ke');
         $keterangan = $request->input('keterangan');
 
         $siswa = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
         if (!$siswa) {
-            return response()->json(['status' => 'error', 'message' => 'Siswa tidak ditemukan.'], 404);
+            return response()->json(['status' => 'error', 'message' => 'Peserta didik tidak ditemukan.'], 404);
         }
 
-        $presensi = PresensiHarian::firstOrNew([
+        $pembelajaran = null;
+        if ($pembelajaranId) {
+            $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $pembelajaranId)->first();
+        }
+
+        $matchCondition = [
             'peserta_didik_id' => $pdId,
             'tanggal' => $tanggal,
-        ]);
-
-        $presensi->nisn = $siswa->nisn;
-        $presensi->rombongan_belajar_id = $siswa->rombongan_belajar_id;
-        $presensi->status = $status;
-        $presensi->keterangan = $keterangan;
-        $presensi->verified_by = $verifiedBy;
-        $presensi->metode_masuk = 'manual';
-
-        if ($status === 'H' && empty($presensi->jam_masuk)) {
-            $presensi->jam_masuk = '07:00:00';
-            $presensi->status_ketepatan_masuk = 'tepat_waktu';
+        ];
+        if ($pembelajaranId) {
+            $matchCondition['pembelajaran_id'] = $pembelajaranId;
+        } else {
+            $matchCondition['rombongan_belajar_id'] = $rombelId ?: $siswa->rombongan_belajar_id;
         }
 
-        // Upload lampiran jika ada
-        if ($request->hasFile('lampiran')) {
-            $file = $request->file('lampiran');
-            $ext = $file->getClientOriginalExtension();
-            $fileName = 'surat_' . ($siswa->nisn ?: $pdId) . '_' . date('Ymd_His') . '.' . $ext;
-            $path = $file->storeAs('presensi/surat', $fileName, 'public');
-            $presensi->lampiran_dokumen = $path;
-        }
-
-        $presensi->save();
+        $presensiMapel = PresensiMapel::updateOrCreate(
+            $matchCondition,
+            [
+                'nisn' => $siswa->nisn,
+                'rombongan_belajar_id' => $rombelId ?: ($pembelajaran?->rombongan_belajar_id ?: $siswa->rombongan_belajar_id),
+                'pembelajaran_id' => $pembelajaranId ?: null,
+                'ptk_id' => $pembelajaran?->ptk_id ?: $ptkId,
+                'mata_pelajaran_id' => $pembelajaran?->mata_pelajaran_id,
+                'nama_mata_pelajaran' => $pembelajaran?->nama_mata_pelajaran,
+                'jam_ke' => $jamKe,
+                'status' => $status,
+                'keterangan' => $keterangan,
+                'created_by' => $verifiedBy,
+            ]
+        );
 
         return response()->json([
             'status' => 'success',
-            'message' => "Status presensi {$siswa->nama} berhasil diubah menjadi " . (PresensiHarian::STATUS_LABELS[$status] ?? $status),
-            'badge' => PresensiHarian::STATUS_BADGES[$status] ?? $status,
+            'message' => "Status presensi {$siswa->nama} pada mapel " . ($pembelajaran?->nama_mata_pelajaran ?: 'ini') . " diubah ke " . (PresensiMapel::STATUS_LABELS[$status] ?? $status),
+            'badge' => PresensiMapel::STATUS_BADGES[$status] ?? $status,
         ]);
     }
 
     /**
-     * API: Tandai Siswa yang Belum Hadir di Rombel sebagai Alpha
+     * API: Tandai Siswa yang Belum Dicatat di Mapel sebagai Alpha
      */
     public function tandaiAlphaRombel(Request $request)
     {
         $request->validate([
             'rombongan_belajar_id' => 'required|string',
             'tanggal' => 'required|date',
+            'pembelajaran_id' => 'nullable|string',
         ]);
 
         $user = session('user');
-        $verifiedBy = is_array($user) ? ($user['nama'] ?? 'Guru') : ($user->nama ?? 'Guru');
+        $verifiedBy = is_array($user) ? ($user['nama'] ?? 'Guru Mapel') : ($user->nama ?? 'Guru Mapel');
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
 
         $rombelId = $request->input('rombongan_belajar_id');
         $tanggal = $request->input('tanggal');
+        $pembelajaranId = $request->input('pembelajaran_id');
+
+        $pembelajaran = null;
+        if ($pembelajaranId) {
+            $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $pembelajaranId)->first();
+        }
 
         // Ambil semua siswa di rombel
         $siswaList = DB::table('peserta_didik')->where('rombongan_belajar_id', $rombelId)->get();
 
         $markedCount = 0;
         foreach ($siswaList as $siswa) {
-            $exists = PresensiHarian::where('peserta_didik_id', $siswa->peserta_didik_id)
-                ->where('tanggal', $tanggal)
-                ->exists();
+            $query = PresensiMapel::where('peserta_didik_id', $siswa->peserta_didik_id)
+                ->where('tanggal', $tanggal);
+            if ($pembelajaranId) {
+                $query->where('pembelajaran_id', $pembelajaranId);
+            } else {
+                $query->where('rombongan_belajar_id', $rombelId);
+            }
+            $exists = $query->exists();
 
             if (!$exists) {
-                PresensiHarian::create([
+                PresensiMapel::create([
                     'peserta_didik_id' => $siswa->peserta_didik_id,
                     'nisn' => $siswa->nisn,
                     'rombongan_belajar_id' => $rombelId,
+                    'pembelajaran_id' => $pembelajaranId ?: null,
+                    'ptk_id' => $pembelajaran?->ptk_id ?: $ptkId,
+                    'mata_pelajaran_id' => $pembelajaran?->mata_pelajaran_id,
+                    'nama_mata_pelajaran' => $pembelajaran?->nama_mata_pelajaran,
                     'tanggal' => $tanggal,
                     'status' => 'A',
-                    'metode_masuk' => 'manual',
-                    'keterangan' => 'Tanpa keterangan hingga batas waktu presensi harian',
-                    'verified_by' => $verifiedBy,
+                    'keterangan' => 'Alpha pada jam pelajaran',
+                    'created_by' => $verifiedBy,
                 ]);
                 $markedCount++;
             }
@@ -729,7 +881,7 @@ class PresensiController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => "Sebanyak {$markedCount} peserta didik yang belum absen berhasil ditandai sebagai Alpha.",
+            'message' => "Sebanyak {$markedCount} peserta didik yang belum absen di mapel ini berhasil ditandai sebagai Alpha.",
             'count' => $markedCount,
         ]);
     }
@@ -902,7 +1054,7 @@ class PresensiController extends Controller
 
         if ($duplicate) {
             $siswaLain = DB::table('peserta_didik')->where('peserta_didik_id', $duplicate->peserta_didik_id)->first();
-            $namaLain = $siswaLain ? $siswaLain->nama : 'Siswa Lain';
+            $namaLain = $siswaLain ? $siswaLain->nama : 'Peserta Didik Lain';
             return response()->json([
                 'status' => 'error',
                 'message' => "Kartu RFID UID [{$rfidUid}] sudah digunakan oleh {$namaLain} ({$duplicate->nisn}). Silakan gunakan kartu lain atau lepaskan kartu terlebih dahulu.",
@@ -935,10 +1087,16 @@ class PresensiController extends Controller
             'jam_pulang_mulai' => 'required|date_format:H:i',
             'jam_pulang_selesai' => 'required|date_format:H:i',
             'hari_aktif' => 'required|array|min:1',
+            'jurusan_aktif' => 'nullable|array',
+            'jurusan_aktif.*' => 'string',
             'toleransi_terlambat_menit' => 'required|integer|min:0|max:120',
             'require_camera' => 'nullable|boolean',
             'allow_rfid' => 'nullable|boolean',
             'allow_qr' => 'nullable|boolean',
+            'require_location' => 'nullable|boolean',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'radius_meter' => 'nullable|integer|min:10|max:50000',
         ]);
 
         $pengaturan = PresensiPengaturan::getPengaturan();
@@ -949,10 +1107,15 @@ class PresensiController extends Controller
             'jam_pulang_mulai' => $request->input('jam_pulang_mulai') . ':00',
             'jam_pulang_selesai' => $request->input('jam_pulang_selesai') . ':00',
             'hari_aktif' => $request->input('hari_aktif'),
+            'jurusan_aktif' => $request->input('jurusan_aktif'),
             'toleransi_terlambat_menit' => (int) $request->input('toleransi_terlambat_menit'),
             'require_camera' => $request->boolean('require_camera'),
             'allow_rfid' => $request->boolean('allow_rfid'),
             'allow_qr' => $request->boolean('allow_qr'),
+            'require_location' => $request->boolean('require_location'),
+            'latitude' => $request->filled('latitude') ? (float) $request->input('latitude') : null,
+            'longitude' => $request->filled('longitude') ? (float) $request->input('longitude') : null,
+            'radius_meter' => (int) $request->input('radius_meter', 100),
         ]);
 
         return response()->json([
@@ -1063,6 +1226,9 @@ class PresensiController extends Controller
             'menit_terlambat' => $presensi->menit_terlambat,
             'foto_masuk_url' => $presensi->foto_masuk_url,
             'foto_pulang_url' => $presensi->foto_pulang_url,
+            'latitude' => $presensi->latitude ? (float) $presensi->latitude : null,
+            'longitude' => $presensi->longitude ? (float) $presensi->longitude : null,
+            'jarak_meter' => $presensi->jarak_meter !== null ? (float) $presensi->jarak_meter : null,
         ];
     }
 }

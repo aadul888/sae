@@ -1,42 +1,52 @@
 /**
  * SAE - Sistem Presensi Peserta Didik
- * Logic for Class Attendance (Wali Kelas & Guru)
+ * Logic for Class & Subject Attendance (Guru Mapel & Wali Kelas)
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Quick Change Attendance Status
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     const modalIzinSakit = document.getElementById('modalIzinSakit');
     const formIzinSakit = document.getElementById('formIzinSakit');
     const inputIzinPdId = document.getElementById('izinPdId');
     const inputIzinStatus = document.getElementById('izinStatusVal');
+    const inputIzinKeterangan = document.getElementById('izinKeteranganInput');
     const textIzinPdNama = document.getElementById('izinPdNama');
     const titleModalIzin = document.getElementById('titleModalIzin');
     const btnCloseIzinModal = document.getElementById('btnCloseIzinModal');
     const btnCancelIzinModal = document.getElementById('btnCancelIzinModal');
 
+    function getContextData() {
+        const tanggal = document.getElementById('kelasTanggalInput')?.value || new Date().toISOString().slice(0, 10);
+        const pembelajaranId = document.getElementById('kelasPembelajaranSelect')?.value || '';
+        const rombelId = document.querySelector('select[name="rombel_id"]')?.value || '';
+        const jamKe = document.getElementById('kelasJamKeInput')?.value || '';
+        return { tanggal, pembelajaranId, rombelId, jamKe };
+    }
+
+    // 1. Quick Change Attendance Status Toggle
     document.querySelectorAll('.btn-status-toggle').forEach(btn => {
         btn.addEventListener('click', async function () {
             const pdId = this.getAttribute('data-id');
             const targetStatus = this.getAttribute('data-status');
-            const tanggal = document.getElementById('kelasTanggalInput')?.value || new Date().toISOString().slice(0, 10);
             const namaSiswa = this.getAttribute('data-nama');
+            const ctx = getContextData();
 
-            // Jika status Izin (I) atau Sakit (S), tampilkan modal input alasan & lampiran surat
+            // Jika status Izin (I) atau Sakit (S), tampilkan modal input alasan
             if (targetStatus === 'I' || targetStatus === 'S') {
                 if (inputIzinPdId) inputIzinPdId.value = pdId;
                 if (inputIzinStatus) inputIzinStatus.value = targetStatus;
                 if (textIzinPdNama) textIzinPdNama.textContent = namaSiswa;
+                if (inputIzinKeterangan) inputIzinKeterangan.value = '';
                 if (titleModalIzin) {
                     titleModalIzin.textContent = targetStatus === 'S'
-                        ? 'Pencatatan Sakit & Surat Dokter'
-                        : 'Pencatatan Izin & Surat Permohonan';
+                        ? 'Pencatatan Sakit pada Jam Mapel'
+                        : 'Pencatatan Izin pada Jam Mapel';
                 }
                 if (modalIzinSakit) modalIzinSakit.style.display = 'flex';
                 return;
             }
 
-            // Untuk status H, T, A, D langsung eksekusi update cepat
+            // Untuk status H, T, A langsung eksekusi update cepat
             try {
                 const response = await fetch('/dashboard/presensi/kelas/status', {
                     method: 'POST',
@@ -47,8 +57,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     body: JSON.stringify({
                         peserta_didik_id: pdId,
-                        tanggal: tanggal,
-                        status: targetStatus
+                        tanggal: ctx.tanggal,
+                        status: targetStatus,
+                        pembelajaran_id: ctx.pembelajaranId,
+                        rombongan_belajar_id: ctx.rombelId,
+                        jam_ke: ctx.jamKe
                     })
                 });
 
@@ -69,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     Swal.fire({
                         icon: 'success',
-                        title: 'Status Disimpan',
+                        title: 'Status Mapel Disimpan',
                         text: res.message,
                         timer: 1200,
                         showConfirmButton: false,
@@ -77,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         position: 'top-end'
                     });
                 } else {
-                    Swal.fire('Gagal', res.message || 'Gagal mengubah status.', 'error');
+                    Swal.fire('Gagal', res.message || 'Gagal mengubah status mapel.', 'error');
                 }
             } catch (err) {
                 Swal.fire('Error', 'Terjadi kesalahan koneksi.', 'error');
@@ -93,19 +106,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnCloseIzinModal) btnCloseIzinModal.addEventListener('click', closeIzinModal);
     if (btnCancelIzinModal) btnCancelIzinModal.addEventListener('click', closeIzinModal);
 
-    // 2. Form Submit Izin / Sakit dengan Lampiran Surat
+    // 2. Form Submit Izin / Sakit Mapel
     if (formIzinSakit) {
         formIzinSakit.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const pdId = inputIzinPdId.value;
             const targetStatus = inputIzinStatus.value;
-            const tanggal = document.getElementById('kelasTanggalInput')?.value || new Date().toISOString().slice(0, 10);
-
-            const formData = new FormData(this);
-            formData.append('peserta_didik_id', pdId);
-            formData.append('tanggal', tanggal);
-            formData.append('status', targetStatus);
+            const keterangan = inputIzinKeterangan?.value || '';
+            const ctx = getContextData();
 
             try {
                 Swal.fire({
@@ -117,23 +126,53 @@ document.addEventListener('DOMContentLoaded', function () {
                 const response = await fetch('/dashboard/presensi/kelas/status', {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json'
                     },
-                    body: formData
+                    body: JSON.stringify({
+                        peserta_didik_id: pdId,
+                        tanggal: ctx.tanggal,
+                        status: targetStatus,
+                        pembelajaran_id: ctx.pembelajaranId,
+                        rombongan_belajar_id: ctx.rombelId,
+                        jam_ke: ctx.jamKe,
+                        keterangan: keterangan
+                    })
                 });
 
                 const res = await response.json();
 
                 if (response.ok && res.status === 'success') {
                     closeIzinModal();
+
+                    // Update UI baris
+                    const row = document.getElementById('row-siswa-' + pdId);
+                    if (row) {
+                        row.querySelectorAll('.btn-status-toggle').forEach(b => {
+                            if (b.getAttribute('data-status') === targetStatus) {
+                                b.className = `btn-status-toggle active-${targetStatus}`;
+                            } else {
+                                b.className = 'btn-status-toggle';
+                            }
+                        });
+
+                        const badgeCell = document.getElementById('badge-status-' + pdId);
+                        if (badgeCell) badgeCell.innerHTML = res.badge;
+
+                        const ketCell = document.getElementById('ket-status-' + pdId);
+                        if (ketCell) ketCell.textContent = keterangan || '-';
+                    }
+
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil!',
+                        title: 'Tersimpan!',
                         text: res.message,
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => window.location.reload());
+                        timer: 1300,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
                 } else {
                     Swal.fire('Gagal', res.message || 'Gagal menyimpan.', 'error');
                 }
@@ -143,17 +182,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3. Tombol Tandai Sisa Siswa sebagai Alpha
+    // 3. Tombol Tandai Sisa Peserta Didik sebagai Alpha di Mapel
     const btnTandaiAlpha = document.getElementById('btnTandaiAlpha');
     if (btnTandaiAlpha) {
         btnTandaiAlpha.addEventListener('click', function () {
             const rombelId = this.getAttribute('data-rombel');
             const rombelNama = this.getAttribute('data-rombel-nama');
-            const tanggal = document.getElementById('kelasTanggalInput')?.value || new Date().toISOString().slice(0, 10);
+            const ctx = getContextData();
 
             Swal.fire({
                 title: 'Tandai Sisa sebagai Alpha?',
-                text: `Seluruh siswa di kelas ${rombelNama} yang belum memiliki data presensi pada tanggal ${tanggal} akan otomatis dicatat sebagai Alpha (Tanpa Keterangan).`,
+                text: `Seluruh peserta didik di kelas ${rombelNama} yang belum memiliki data presensi pada mapel ini akan otomatis dicatat sebagai Alpha. Presensi gerbang sekolah tidak akan terpengaruh.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
@@ -178,7 +217,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             },
                             body: JSON.stringify({
                                 rombongan_belajar_id: rombelId,
-                                tanggal: tanggal
+                                tanggal: ctx.tanggal,
+                                pembelajaran_id: ctx.pembelajaranId
                             })
                         });
 
@@ -189,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 icon: 'success',
                                 title: 'Berhasil!',
                                 text: res.message,
-                                timer: 1600,
+                                timer: 1500,
                                 showConfirmButton: false
                             }).then(() => window.location.reload());
                         } else {
@@ -200,44 +240,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             });
-        });
-    }
-
-    // 4. Modal Preview Surat / Lampiran
-    const modalLampiran = document.getElementById('modalPreviewLampiran');
-    const frameLampiran = document.getElementById('frameLampiran');
-    const imgLampiran = document.getElementById('imgLampiran');
-    const btnCloseLampiranModal = document.getElementById('btnCloseLampiranModal');
-
-    document.querySelectorAll('.btn-preview-lampiran').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const url = this.getAttribute('data-url');
-            const isPdf = url.toLowerCase().endsWith('.pdf');
-
-            if (modalLampiran) {
-                if (isPdf) {
-                    if (frameLampiran) {
-                        frameLampiran.src = url;
-                        frameLampiran.style.display = 'block';
-                    }
-                    if (imgLampiran) imgLampiran.style.display = 'none';
-                } else {
-                    if (imgLampiran) {
-                        imgLampiran.src = url;
-                        imgLampiran.style.display = 'block';
-                    }
-                    if (frameLampiran) frameLampiran.style.display = 'none';
-                }
-                modalLampiran.style.display = 'flex';
-            }
-        });
-    });
-
-    if (btnCloseLampiranModal) {
-        btnCloseLampiranModal.addEventListener('click', () => {
-            if (modalLampiran) modalLampiran.style.display = 'none';
-            if (frameLampiran) frameLampiran.src = '';
-            if (imgLampiran) imgLampiran.src = '';
         });
     }
 });

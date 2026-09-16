@@ -78,7 +78,7 @@
                     <i class="fas fa-user-clock text-primary" style="font-size: 1.25rem;"></i>
                     <div>
                         <div style="font-weight: 700; color: #1e293b; font-size: 0.86rem;">Mengisi sebagai Responden Publik</div>
-                        <div style="font-size: 0.76rem; color: #64748b;">Punya akun SAE (Siswa/Guru)? Masuk agar identitas terisi otomatis.</div>
+                        <div style="font-size: 0.76rem; color: #64748b;">Punya akun SAE (Peserta Didik/Guru)? Masuk agar identitas terisi otomatis.</div>
                     </div>
                 </div>
                 <a href="{{ route('login') }}" class="btn-login-option">
@@ -159,7 +159,7 @@
                                     <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}" class="form-control"
                                         placeholder="{{ $placeholder ?: 'Ketik NISN / NIK / No. Identitas...' }}"
                                         {{ $required ? 'required' : '' }} value="{{ old($fieldId) }}">
-                                    <div class="form-text-hint"><i class="fas fa-id-card me-1"></i> Nomor induk siswa, NIK, atau nomor identitas responden.</div>
+                                    <div class="form-text-hint"><i class="fas fa-id-card me-1"></i> Nomor induk peserta didik, NIK, atau nomor identitas responden.</div>
                                 @endif
 
                             @elseif ($type === 'sae_rombel')

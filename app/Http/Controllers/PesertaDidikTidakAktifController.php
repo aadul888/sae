@@ -165,7 +165,7 @@ class PesertaDidikTidakAktifController extends Controller
             ->first();
 
         if (!$item) {
-            return response()->json(['status' => 'error', 'message' => 'Data arsip siswa tidak ditemukan.'], 404);
+            return response()->json(['status' => 'error', 'message' => 'Data arsip peserta didik tidak ditemukan.'], 404);
         }
 
         $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
@@ -276,13 +276,13 @@ class PesertaDidikTidakAktifController extends Controller
         if (!$user) return redirect()->route('login');
 
         if (!RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'create') && !RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'update')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki izin untuk mengarsipkan data siswa.'], 403);
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki izin untuk mengarsipkan data peserta didik.'], 403);
         }
 
         $grade12ActiveCount = (int) $request->get('count', 0);
 
         if ($grade12ActiveCount === 0) {
-            return response()->json(['status' => 'error', 'message' => 'Tidak ada siswa kelas XII yang perlu diarsipkan.'], 400);
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada peserta didik kelas XII yang perlu diarsipkan.'], 400);
         }
 
         // Ambil siswa kelas XII yang masih aktif
@@ -294,7 +294,7 @@ class PesertaDidikTidakAktifController extends Controller
             ->all();
 
         if (empty($grade12Students)) {
-            return response()->json(['status' => 'error', 'message' => 'Tidak ada siswa kelas XII yang ditemukan.'], 404);
+            return response()->json(['status' => 'error', 'message' => 'Tidak ada peserta didik kelas XII yang ditemukan.'], 404);
         }
 
         // Pindahkan ke tabel tidak aktif
@@ -341,7 +341,7 @@ class PesertaDidikTidakAktifController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => "Berhasil mengarsipkan {$movedCount} siswa kelas XII.",
+            'message' => "Berhasil mengarsipkan {$movedCount} peserta didik kelas XII.",
             'moved_count' => $movedCount,
         ]);
     }

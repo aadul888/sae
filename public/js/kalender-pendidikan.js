@@ -16,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modalTitle");
     const methodField = document.getElementById("methodField");
     const inputNama = document.getElementById("inputNamaKegiatan");
+    const inputModePresensi = document.getElementById("inputModePresensi");
     const inputTipe = document.getElementById("inputTipe");
     const inputWarna = document.getElementById("inputWarna");
     const inputMulai = document.getElementById("inputTanggalMulai");
@@ -37,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
         kegiatan_sekolah: "#6366f1",
         ujian_asesmen: "#10b981",
         hari_efektif: "#06b6d4",
+        pembelajaran_daring: "#3b82f6",
     };
 
     const openModal = (isEdit = false, item = null) => {
@@ -49,7 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 '<input type="hidden" name="_method" value="PUT">';
 
             if (inputNama) inputNama.value = item.nama_kegiatan || "";
-            if (inputTipe) inputTipe.value = item.tipe || "kegiatan_sekolah";
+            if (inputTipe) inputTipe.value = item.tipe || "hari_efektif";
+            if (inputModePresensi) {
+                inputModePresensi.value = item.mode_presensi || (item.libur_pd ? 'libur' : 'luring');
+            }
             if (inputWarna) inputWarna.value = item.warna || "#3b82f6";
             if (inputMulai)
                 inputMulai.value = item.tanggal_mulai
@@ -74,7 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const today = new Date().toISOString().substring(0, 10);
             if (inputMulai) inputMulai.value = today;
             if (inputSelesai) inputSelesai.value = today;
-            if (inputWarna) inputWarna.value = defaultColors.kegiatan_sekolah;
+            if (inputModePresensi) inputModePresensi.value = "luring";
+            if (inputTipe) inputTipe.value = "hari_efektif";
+            if (inputWarna) inputWarna.value = defaultColors.hari_efektif;
         }
         modal.style.display = "flex";
     };
@@ -83,13 +90,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (modal) modal.style.display = "none";
     };
 
+    // Expose functions globally to prevent ReferenceError
+    window.openAddModal = () => openModal(false);
+    window.openAgendaModal = openModal;
+    window.closeAgendaModal = closeModal;
+
     if (btnTambah) btnTambah.addEventListener("click", () => openModal(false));
     if (btnEmptyTambah)
         btnEmptyTambah.addEventListener("click", () => openModal(false));
     if (btnCloseModal) btnCloseModal.addEventListener("click", closeModal);
     if (btnCancelModal) btnCancelModal.addEventListener("click", closeModal);
 
-    // Otomatis sesuaikan warna default dan checkbox libur saat kategori dipilih
+    // Otomatis sesuaikan mode presensi, warna default, dan checkbox libur saat kategori dipilih
     if (inputTipe) {
         inputTipe.addEventListener("change", () => {
             const val = inputTipe.value;
@@ -97,16 +109,39 @@ document.addEventListener("DOMContentLoaded", () => {
                 inputWarna.value = defaultColors[val];
             }
             if (val.startsWith("libur_")) {
+                if (inputModePresensi) inputModePresensi.value = "libur";
                 if (inputLiburPd) inputLiburPd.checked = true;
                 if (val === "libur_nasional" || val === "libur_semester") {
                     if (inputLiburGuru) inputLiburGuru.checked = true;
                     if (inputLiburTendik)
                         inputLiburTendik.checked = val === "libur_nasional";
                 }
+            } else if (val === "pembelajaran_daring") {
+                if (inputModePresensi) inputModePresensi.value = "daring";
+                if (inputLiburPd) inputLiburPd.checked = false;
             } else if (val === "hari_efektif") {
+                if (inputModePresensi) inputModePresensi.value = "luring";
                 if (inputLiburPd) inputLiburPd.checked = false;
                 if (inputLiburGuru) inputLiburGuru.checked = false;
                 if (inputLiburTendik) inputLiburTendik.checked = false;
+            }
+        });
+    }
+
+    // Penyesuaian saat mode presensi diubah secara manual
+    if (inputModePresensi) {
+        inputModePresensi.addEventListener("change", () => {
+            const mode = inputModePresensi.value;
+            if (mode === "libur") {
+                if (inputLiburPd) inputLiburPd.checked = true;
+            } else if (mode === "daring") {
+                if (inputLiburPd) inputLiburPd.checked = false;
+                if (inputTipe && inputTipe.value !== "pembelajaran_daring") {
+                    inputTipe.value = "pembelajaran_daring";
+                    if (inputWarna) inputWarna.value = defaultColors.pembelajaran_daring;
+                }
+            } else if (mode === "luring") {
+                if (inputLiburPd) inputLiburPd.checked = false;
             }
         });
     }
@@ -138,6 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewModal = document.getElementById("viewModal");
     const viewJudul = document.getElementById("viewJudul");
     const viewTipeBadge = document.getElementById("viewTipeBadge");
+    const viewModeBadge = document.getElementById("viewModeBadge");
     const viewTanggal = document.getElementById("viewTanggal");
     const viewDampakBadges = document.getElementById("viewDampakBadges");
     const viewKeterangan = document.getElementById("viewKeterangan");
@@ -167,6 +203,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         item.warna || "#3b82f6";
                     viewTipeBadge.style.color = "#fff";
                 }
+                if (viewModeBadge) {
+                    const mode = item.mode_presensi || (item.libur_pd ? 'libur' : 'luring');
+                    if (mode === 'daring') {
+                        viewModeBadge.innerHTML = '<span class="badge badge-primary"><i class="fas fa-laptop-house me-1"></i> Daring</span>';
+                    } else if (mode === 'libur') {
+                        viewModeBadge.innerHTML = '<span class="badge badge-danger"><i class="fas fa-umbrella-beach me-1"></i> Libur</span>';
+                    } else {
+                        viewModeBadge.innerHTML = '<span class="badge badge-success"><i class="fas fa-school me-1"></i> Luring</span>';
+                    }
+                }
 
                 const tglMulai = item.tanggal_mulai
                     ? item.tanggal_mulai.substring(0, 10)
@@ -184,8 +230,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (viewDampakBadges) {
                     let badgesHtml = "";
                     badgesHtml += item.libur_pd
-                        ? '<span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 3px 8px;"><i class="fas fa-ban me-1"></i> Libur Siswa</span>'
-                        : '<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 3px 8px;"><i class="fas fa-check me-1"></i> Siswa Masuk</span>';
+                        ? '<span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 3px 8px;"><i class="fas fa-ban me-1"></i> Libur Peserta Didik</span>'
+                        : '<span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 3px 8px;"><i class="fas fa-check me-1"></i> Peserta Didik ' + (item.mode_presensi === 'daring' ? 'Daring' : 'Masuk') + '</span>';
 
                     badgesHtml += item.libur_guru
                         ? '<span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 3px 8px;"><i class="fas fa-ban me-1"></i> Libur Guru</span>'
@@ -198,25 +244,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     viewDampakBadges.innerHTML = badgesHtml;
                 }
 
-                if (viewKeterangan) {
+                if (viewKeterangan)
                     viewKeterangan.textContent =
-                        item.keterangan || "Tidak ada keterangan tambahan.";
-                }
+                        item.keterangan || "Tidak ada catatan tambahan.";
                 if (viewPembuat)
                     viewPembuat.textContent = item.created_by || "Sistem";
-                if (viewWaktu)
+                if (viewWaktu) {
                     viewWaktu.textContent = item.created_at
-                        ? item.created_at.substring(0, 16)
+                        ? item.created_at.substring(0, 16).replace("T", " ")
                         : "-";
+                }
 
-                if (viewModal) viewModal.style.display = "flex";
+                viewModal.style.display = "flex";
             } catch (err) {
-                console.error("Gagal membuka pratinjau agenda", err);
+                console.error("Gagal membuka detail agenda", err);
             }
         });
     });
 
-    // Menutup modal jika klik di luar box (backdrop)
     window.addEventListener("click", (e) => {
         if (e.target === modal) closeModal();
         if (e.target === viewModal) closeViewModal();
@@ -228,6 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const applyFilters = () => {
         const url = new URL(window.location.href);
         const perPage = document.getElementById("perPageSelect")?.value;
+        const modePresensi = document.getElementById("filterModePresensi")?.value;
         const tipe = document.getElementById("filterTipe")?.value;
         const dampak = document.getElementById("filterDampak")?.value;
         const bulan = document.getElementById("filterBulan")?.value;
@@ -235,6 +281,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (perPage) url.searchParams.set("perPage", perPage);
         else url.searchParams.delete("perPage");
+
+        if (modePresensi) url.searchParams.set("mode_presensi", modePresensi);
+        else url.searchParams.delete("mode_presensi");
 
         if (tipe) url.searchParams.set("tipe", tipe);
         else url.searchParams.delete("tipe");
@@ -260,6 +309,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .getElementById("perPageSelect")
         ?.addEventListener("change", applyFilters);
     document
+        .getElementById("filterModePresensi")
+        ?.addEventListener("change", applyFilters);
+    document
         .getElementById("filterTipe")
         ?.addEventListener("change", applyFilters);
     document
@@ -280,16 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 else clearSearch.classList.remove("visible");
             }
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                applyFilters();
-            }, 300);
-        });
-
-        liveSearch.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                clearTimeout(debounceTimer);
-                applyFilters();
-            }
+            debounceTimer = setTimeout(applyFilters, 400);
         });
     }
 
@@ -302,32 +345,4 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
-    // Sortable Table Headers
-    document.querySelectorAll(".sortable-th[data-sort]").forEach((th) => {
-        th.addEventListener("click", () => {
-            const sortKey = th.dataset.sort;
-            if (!sortKey) return;
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get("sort");
-            const currentDir = url.searchParams.get("sort_dir") || "asc";
-
-            if (currentSort === sortKey) {
-                url.searchParams.set(
-                    "sort_dir",
-                    currentDir === "asc" ? "desc" : "asc",
-                );
-            } else {
-                url.searchParams.set("sort", sortKey);
-                url.searchParams.set("sort_dir", "asc");
-            }
-
-            url.searchParams.set("page", "1");
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        });
-    });
 });

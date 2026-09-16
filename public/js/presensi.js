@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Live Search Debounce (850ms) for RFID Siswa ---
+    // --- Live Search Debounce (850ms) for RFID Peserta Didik ---
     const rfidSearchInput = document.getElementById('rfidSearchInput');
     const clearRfidSearch = document.getElementById('clearRfidSearch');
     const formFilterRfid = document.getElementById('formFilterRfid');
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 Swal.fire({
                     title: 'Menyimpan...',
-                    text: 'Mendaftarkan kartu RFID ke siswa...',
+                    text: 'Mendaftarkan kartu RFID ke peserta didik...',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
@@ -277,24 +277,147 @@ document.addEventListener('DOMContentLoaded', function () {
     // 3. Form Simpan Pengaturan Presensi
     const formPengaturan = document.getElementById('formPengaturanPresensi');
     if (formPengaturan) {
+        // Toggle Pilih Semua / Hapus Semua Jurusan
+        const btnSelectAllJurusan = document.getElementById('btnSelectAllJurusan');
+        const btnDeselectAllJurusan = document.getElementById('btnDeselectAllJurusan');
+        if (btnSelectAllJurusan) {
+            btnSelectAllJurusan.addEventListener('click', () => {
+                document.querySelectorAll('.chk-jurusan').forEach(chk => chk.checked = true);
+            });
+        }
+        if (btnDeselectAllJurusan) {
+            btnDeselectAllJurusan.addEventListener('click', () => {
+                document.querySelectorAll('.chk-jurusan').forEach(chk => chk.checked = false);
+            });
+        }
+
+        // Interaksi Pengaturan Radius & Koordinat GPS
+        document.querySelectorAll('.btn-radius-chip').forEach(chip => {
+            chip.addEventListener('click', function () {
+                const r = this.getAttribute('data-radius');
+                const inputR = document.getElementById('inputRadiusMeter');
+                const labelR = document.getElementById('labelRadiusDisplay');
+                if (inputR) inputR.value = r;
+                if (labelR) labelR.textContent = `${r} Meter`;
+            });
+        });
+
+        const inputRadius = document.getElementById('inputRadiusMeter');
+        if (inputRadius) {
+            inputRadius.addEventListener('input', function () {
+                const labelR = document.getElementById('labelRadiusDisplay');
+                if (labelR) labelR.textContent = `${this.value || 0} Meter`;
+            });
+        }
+
+        function updateGoogleMapsLink() {
+            const lat = document.getElementById('inputLatitude')?.value;
+            const lon = document.getElementById('inputLongitude')?.value;
+            const btnMaps = document.getElementById('btnOpenGoogleMaps');
+            if (btnMaps && lat && lon) {
+                btnMaps.href = `https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lon)}`;
+            }
+        }
+        document.getElementById('inputLatitude')?.addEventListener('input', updateGoogleMapsLink);
+        document.getElementById('inputLongitude')?.addEventListener('input', updateGoogleMapsLink);
+
+        // Gunakan Titik Dapodik Sekolah
+        const btnResetDapodik = document.getElementById('btnResetToDapodikLocation');
+        if (btnResetDapodik) {
+            btnResetDapodik.addEventListener('click', function () {
+                const labelDapodik = document.getElementById('labelDapodikCoord');
+                const lat = labelDapodik?.getAttribute('data-lat');
+                const lon = labelDapodik?.getAttribute('data-lon');
+                if (lat && lon) {
+                    const inLat = document.getElementById('inputLatitude');
+                    const inLon = document.getElementById('inputLongitude');
+                    if (inLat) inLat.value = lat;
+                    if (inLon) inLon.value = lon;
+                    updateGoogleMapsLink();
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Titik Dapodik Diterapkan',
+                        text: `Lintang: ${lat}, Bujur: ${lon}`,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Informasi', 'Data koordinat sekolah di Dapodik belum terisi.', 'warning');
+                }
+            });
+        }
+
+        // Deteksi Lokasi GPS Saya
+        const btnDetectGPS = document.getElementById('btnDetectMyLocation');
+        if (btnDetectGPS) {
+            btnDetectGPS.addEventListener('click', function () {
+                if (!navigator.geolocation) {
+                    Swal.fire('Tidak Didukung', 'Browser Anda tidak mendukung deteksi geolokasi GPS.', 'error');
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Mendeteksi Lokasi GPS...',
+                    text: 'Harap izinkan akses lokasi pada browser Anda.',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const lat = pos.coords.latitude.toFixed(8);
+                        const lon = pos.coords.longitude.toFixed(8);
+                        const inLat = document.getElementById('inputLatitude');
+                        const inLon = document.getElementById('inputLongitude');
+                        if (inLat) inLat.value = lat;
+                        if (inLon) inLon.value = lon;
+                        updateGoogleMapsLink();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Lokasi Terdeteksi!',
+                            text: `GPS: ${lat}, ${lon} (Akurasi: ±${Math.round(pos.coords.accuracy)}m)`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    },
+                    (err) => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Mendeteksi GPS',
+                            text: err.message || 'Izin lokasi ditolak atau sinyal GPS tidak tersedia.'
+                        });
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            });
+        }
+
         formPengaturan.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const formData = new FormData(this);
             const dataObj = {};
             const hariAktif = [];
+            const jurusanAktif = [];
 
             formData.forEach((val, key) => {
                 if (key === 'hari_aktif[]') {
                     hariAktif.push(val);
+                } else if (key === 'jurusan_aktif[]') {
+                    jurusanAktif.push(val);
                 } else {
                     dataObj[key] = val;
                 }
             });
             dataObj['hari_aktif'] = hariAktif;
+            dataObj['jurusan_aktif'] = jurusanAktif;
             dataObj['require_camera'] = document.getElementById('settingRequireCamera')?.checked ? 1 : 0;
             dataObj['allow_rfid'] = document.getElementById('settingAllowRfid')?.checked ? 1 : 0;
             dataObj['allow_qr'] = document.getElementById('settingAllowQr')?.checked ? 1 : 0;
+            dataObj['require_location'] = document.getElementById('settingRequireLocation')?.checked ? 1 : 0;
+            dataObj['radius_meter'] = parseInt(document.getElementById('inputRadiusMeter')?.value || '100', 10);
+            dataObj['latitude'] = document.getElementById('inputLatitude')?.value || null;
+            dataObj['longitude'] = document.getElementById('inputLongitude')?.value || null;
 
             try {
                 Swal.fire({
@@ -353,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: `Verifikasi ${jenis}`,
                 html: `
                     <div style="text-align: left; font-size: 0.9rem;">
-                        <p><strong>Nama Siswa:</strong> ${nama}</p>
+                        <p><strong>Nama Peserta Didik:</strong> ${nama}</p>
                         <p><strong>Rentang Tanggal:</strong> ${rentang}</p>
                         <p><strong>Alasan:</strong> ${alasan}</p>
                         <hr style="border-color: var(--border-color); margin: 12px 0;">
