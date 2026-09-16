@@ -112,9 +112,9 @@
                 </select>
 
                 @if ($q || $jenis || $status || $gender)
-                    <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline btn-responsive-icon"
                         style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                        <i class="fas fa-undo me-1"></i> Reset
+                        <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
                     </a>
                 @endif
             </div>
@@ -167,7 +167,7 @@
                 @forelse ($list as $item)
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                            data-label="Nama GTK">
+                            data-label="Nama">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div
                                     style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
@@ -175,6 +175,11 @@
                                 </div>
                                 <div>
                                     <div style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</div>
+                                    @if (!empty($item->nik))
+                                        <div style="font-size: 0.72rem; font-family: monospace; color: var(--text-muted); margin-top: 1px;">
+                                            NIK: <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">{{ $item->nik }}</span>
+                                        </div>
+                                    @endif
                                     @if ($item->email)
                                         <div style="font-size: 0.72rem; color: var(--text-muted);">
                                             {{ $item->email }}
@@ -184,11 +189,21 @@
                             </div>
                         </td>
                         <td style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
-                            data-label="NUPTK / NIP">
-                            <div>{{ $item->nuptk ?: '-' }}</div>
-                            @if ($item->nip)
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">NIP: {{ $item->nip }}</div>
-                            @endif
+                            data-label="NUPTK/NIP">
+                            <div class="cell-col-right">
+                                <div>
+                                    @if ($item->nuptk)
+                                        <span class="copyable" data-copy="{{ $item->nuptk }}" data-label="NUPTK" title="Klik untuk salin NUPTK">{{ $item->nuptk }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </div>
+                                @if ($item->nip)
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <span class="copyable" data-copy="{{ $item->nip }}" data-label="NIP" title="Klik untuk salin NIP">NIP: {{ $item->nip }}</span>
+                                    </div>
+                                @endif
+                            </div>
                         </td>
                         <td style="padding: 14px 18px; text-align: center;" data-label="L/P">
                             <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
@@ -197,7 +212,7 @@
                             </span>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-color);"
-                            data-label="Jenis PTK">
+                            data-label="Jenis">
                             {{ $item->jenis_ptk ?: '-' }}
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Status">
@@ -208,12 +223,14 @@
                             </span>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                            data-label="Pendidikan / Mapel">
-                            <div>{{ $item->pendidikan_terakhir ?: '-' }}</div>
-                            @if ($item->bidang_studi_terakhir)
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">
-                                    {{ $item->bidang_studi_terakhir }}</div>
-                            @endif
+                            data-label="Pendidikan">
+                            <div class="cell-col-right">
+                                <div style="color: var(--text-color); font-weight: 500;">{{ $item->pendidikan_terakhir ?: '-' }}</div>
+                                @if ($item->bidang_studi_terakhir)
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        {{ $item->bidang_studi_terakhir }}</div>
+                                @endif
+                            </div>
                         </td>
                         <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">

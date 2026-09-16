@@ -118,9 +118,9 @@
                 </select>
 
                 @if ($q || $tingkat || $jurusan)
-                    <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}" class="btn btn-outline btn-responsive-icon"
                         style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                        <i class="fas fa-undo me-1"></i> Reset
+                        <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
                     </a>
                 @endif
             </div>
@@ -170,7 +170,7 @@
                 @forelse ($list as $item)
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <td style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: 0.88rem;"
-                            data-label="Nama Rombel">
+                            data-label="Rombel">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div
                                     style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
@@ -192,11 +192,11 @@
                             </span>
                         </td>
                         <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
-                            data-label="Kompetensi Keahlian">
+                            data-label="Jurusan">
                             {{ $item->jurusan ?: '-' }}
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-color);"
-                            data-label="Wali Kelas">
+                            data-label="Wali">
                             @if ($item->wali_kelas)
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <i class="fas fa-user-tie"
@@ -211,7 +211,7 @@
                             {{ $item->ruang ?: '-' }}
                         </td>
                         <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
-                            data-label="Jml Peserta Didik">
+                            data-label="Siswa">
                             <span class="badge"
                                 style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
                                 <i class="fas fa-user-graduate me-1"></i>

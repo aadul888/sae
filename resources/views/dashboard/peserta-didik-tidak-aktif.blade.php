@@ -117,9 +117,9 @@
                 </select>
 
                 @if ($q || $status || $tahun)
-                    <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}" class="btn btn-outline btn-responsive-icon"
                         style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                        <i class="fas fa-undo me-1"></i> Reset
+                        <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
                     </a>
                 @endif
             </div>
@@ -174,7 +174,7 @@
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <td class="cell-pd-nama"
                             style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                            data-label="Nama Lengkap">
+                            data-label="Nama">
                             <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                 @if (!empty($item->foto_url))
                                     <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
@@ -185,11 +185,9 @@
                                             style="width: 100%; height: 100%; object-fit: cover;">
                                     </div>
                                 @else
-                                    <div class="pd-foto-thumb empty" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
-                                        style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem; flex-shrink: 0;">
-                                        <i class="fas fa-user" style="font-size: 0.82rem;"></i>
-                                        <span
-                                            style="font-size: 0.52rem; font-weight: 800; letter-spacing: 0.5px; margin-top: 2px;">ARSIP</span>
+                                    <div class="pd-foto-thumb empty"
+                                        style="width: 42px; height: 42px; border-radius: 10px; background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.05rem; flex-shrink: 0;">
+                                        <i class="fas fa-user-slash" style="opacity: 0.7;"></i>
                                     </div>
                                 @endif
                                 <div class="pd-info">
@@ -212,7 +210,9 @@
                                     @if ($item->nik)
                                         <div
                                             style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                            NIK: {{ $item->nik }}
+                                            <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">
+                                                NIK: {{ $item->nik }}
+                                            </span>
                                         </div>
                                     @endif
                                 </div>
@@ -220,11 +220,21 @@
                         </td>
                         <td class="cell-pd-nisn"
                             style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
-                            data-label="NISN / NIPD">
-                            <div>{{ $item->nisn ?: '-' }}</div>
-                            @if ($item->nipd)
-                                <div style="font-size: 0.72rem; color: var(--text-muted);">NIPD: {{ $item->nipd }}</div>
-                            @endif
+                            data-label="NISN/NIPD">
+                            <div class="cell-col-right">
+                                <div>
+                                    @if ($item->nisn)
+                                        <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN" title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </div>
+                                @if ($item->nipd)
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                        <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD" title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
+                                    </div>
+                                @endif
+                            </div>
                         </td>
                         <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
                             <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
@@ -234,7 +244,7 @@
                         </td>
                         <td class="cell-pd-rombel"
                             style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
-                            data-label="Rombel Terakhir">
+                            data-label="Rombel">
                             <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
                                 {{ $item->nama_rombel_terakhir ?: '-' }}
                             </span>
@@ -245,21 +255,32 @@
                             {{ $item->tingkat_pendidikan_terakhir ?: '-' }}
                         </td>
                         <td class="cell-pd-ttl" style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                            data-label="Status &amp; Tahun">
-                            <div style="font-weight: 600; color: var(--text-color);">
-                                {{ $item->status_keluar === 'Alumni' ? 'Lulus ' . ($item->tahun_lulus ?: '-') : $item->status_keluar }}
-                            </div>
-                            <div style="font-size: 0.72rem; color: var(--text-muted);">
-                                {{ $item->tanggal_keluar ? \Carbon\Carbon::parse($item->tanggal_keluar)->format('d/m/Y') : '-' }}
+                            data-label="Status">
+                            <div class="cell-col-right">
+                                <div style="font-weight: 600; color: var(--text-color);">
+                                    {{ $item->status_keluar === 'Alumni' ? 'Lulus ' . ($item->tahun_lulus ?: '-') : $item->status_keluar }}
+                                </div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                    {{ $item->tanggal_keluar ? \Carbon\Carbon::parse($item->tanggal_keluar)->format('d/m/Y') : '-' }}
+                                </div>
                             </div>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted); max-width: 220px;"
-                            data-label="Kontak &amp; Alamat">
-                            <div><i class="fas fa-phone me-1 text-primary" style="font-size: 0.75rem;"></i>
-                                {{ $item->nomor_telepon_seluler ?: '-' }}</div>
-                            <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.74rem;"
-                                title="{{ $item->alamat_jalan }}">
-                                <i class="fas fa-location-dot me-1 text-muted"></i> {{ $item->alamat_jalan ?: '-' }}
+                            data-label="Kontak">
+                            <div class="cell-col-right">
+                                @if ($item->nomor_telepon_seluler)
+                                    <div><i class="fas fa-phone-alt me-1 text-primary" style="font-size: 0.72rem;"></i>
+                                        <span class="copyable" data-copy="{{ $item->nomor_telepon_seluler }}" data-label="No HP" title="Klik untuk salin No HP">{{ $item->nomor_telepon_seluler }}</span>
+                                    </div>
+                                @else
+                                    <div>-</div>
+                                @endif
+                                @if ($item->alamat_jalan)
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.74rem;"
+                                        title="{{ $item->alamat_jalan }}">
+                                        <i class="fas fa-location-dot me-1 text-muted"></i> {{ $item->alamat_jalan }}
+                                    </div>
+                                @endif
                             </div>
                         </td>
                         <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">

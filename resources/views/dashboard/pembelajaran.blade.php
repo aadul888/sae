@@ -111,9 +111,9 @@
                 </select>
 
                 @if ($q || $rombel || $guru || $status)
-                    <a href="{{ route('dashboard.pembelajaran.index') }}" class="btn btn-outline"
+                    <a href="{{ route('dashboard.pembelajaran.index') }}" class="btn btn-outline btn-responsive-icon"
                         style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                        <i class="fas fa-undo me-1"></i> Reset
+                        <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
                     </a>
                 @endif
             </div>
@@ -162,7 +162,7 @@
                 @forelse ($list as $item)
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                            data-label="Mata Pelajaran">
+                            data-label="Mapel">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div
                                     style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
@@ -173,50 +173,63 @@
                                         {{ $item->nama_mata_pelajaran }}</div>
                                     @if ($item->mata_pelajaran_id)
                                         <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
-                                            ID: {{ $item->mata_pelajaran_id }}
+                                            <span class="copyable" data-copy="{{ $item->mata_pelajaran_id }}" data-label="ID Mapel" title="Klik untuk salin ID Mapel">
+                                                ID: {{ $item->mata_pelajaran_id }}
+                                            </span>
                                         </div>
                                     @endif
                                 </div>
                             </div>
                         </td>
-                        <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Rombel / Kelas">
-                            <div style="font-weight: 600; color: var(--text-color);">{{ $item->nama_rombel ?: '-' }}</div>
-                            @if ($item->tingkat)
-                                <span class="badge badge-outline"
-                                    style="font-size: 0.70rem; padding: 2px 6px; margin-top: 2px;">
-                                    {{ $item->tingkat }}
-                                </span>
-                            @endif
-                        </td>
-                        <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Guru Pengampu">
-                            @if ($item->nama_guru)
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span
-                                        class="badge {{ $item->guru_gender === 'P' ? 'badge-danger' : 'badge-primary' }}"
-                                        style="font-size: 0.68rem; padding: 2px 6px;">
-                                        {{ $item->guru_gender ?: 'PTK' }}
-                                    </span>
-                                    <span
-                                        style="font-weight: 600; color: var(--text-color);">{{ $item->nama_guru }}</span>
-                                </div>
-                                @if ($item->nuptk || $item->nip)
-                                    <div
-                                        style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                        {{ $item->nuptk ? 'NUPTK: ' . $item->nuptk : 'NIP: ' . $item->nip }}
+                        <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Kelas">
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right;">
+                                <div style="font-weight: 600; color: var(--text-color);">{{ $item->nama_rombel ?: '-' }}</div>
+                                @if ($item->tingkat)
+                                    <div style="margin-top: 2px;">
+                                        <span class="badge badge-outline" style="font-size: 0.70rem; padding: 2px 6px;">{{ $item->tingkat }}</span>
                                     </div>
                                 @endif
-                            @else
-                                <span style="color: var(--text-muted); font-style: italic;">Belum Ditugaskan</span>
-                            @endif
+                            </div>
                         </td>
-                        <td style="padding: 14px 18px; text-align: center;" data-label="Jam / Mg">
+                        <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Guru">
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right;">
+                                @if ($item->nama_guru)
+                                    <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                        <span
+                                            class="badge {{ $item->guru_gender === 'P' ? 'badge-danger' : 'badge-primary' }}"
+                                            style="font-size: 0.68rem; padding: 2px 6px;">
+                                            {{ $item->guru_gender ?: 'PTK' }}
+                                        </span>
+                                        <span
+                                            style="font-weight: 600; color: var(--text-color);">{{ $item->nama_guru }}</span>
+                                    </div>
+                                    @if ($item->nuptk || $item->nip)
+                                        <div
+                                            style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                            @if ($item->nuptk)
+                                                <span class="copyable" data-copy="{{ $item->nuptk }}" data-label="NUPTK" title="Klik untuk salin NUPTK">
+                                                    NUPTK: {{ $item->nuptk }}
+                                                </span>
+                                            @else
+                                                <span class="copyable" data-copy="{{ $item->nip }}" data-label="NIP" title="Klik untuk salin NIP">
+                                                    NIP: {{ $item->nip }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                @else
+                                    <span style="color: var(--text-muted); font-style: italic;">Belum Ditugaskan</span>
+                                @endif
+                            </div>
+                        </td>
+                        <td style="padding: 14px 18px; text-align: center;" data-label="Jam">
                             <span class="badge"
                                 style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.78rem; padding: 3px 10px; font-weight: 700;">
                                 {{ $item->jam_mengajar_per_minggu ?: 0 }} JP
                             </span>
                         </td>
-                        <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Status Kurikulum">
-                            <span class="badge badge-outline" style="font-size: 0.72rem; padding: 3px 8px;">
+                        <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Kurikulum">
+                            <span class="badge badge-outline" style="font-size: 0.72rem; padding: 3px 8px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle;" title="{{ $item->status_di_kurikulum_str ?: 'Wajib' }}">
                                 {{ $item->status_di_kurikulum_str ?: 'Wajib' }}
                             </span>
                         </td>

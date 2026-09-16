@@ -16,9 +16,10 @@
         </div>
         <div class="dash-banner-actions">
             @if ($canCreate)
-                <button type="button" class="btn btn-primary" id="btnTambahAgenda"
-                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-plus"></i> Tambah Agenda
+                <button type="button" class="btn btn-primary btn-responsive-icon" onclick="openAddModal()"
+                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600;"
+                    title="Tambah Agenda">
+                    <i class="fas fa-plus"></i> <span class="btn-responsive-text">Tambah Agenda</span>
                 </button>
             @endif
         </div>
@@ -207,43 +208,40 @@
                         ];
                     @endphp
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
-                        <td style="padding: 14px 18px; font-size: 0.85rem;">
-                            <div style="font-weight: 700; color: var(--text-color);">
-                                <i class="fas fa-calendar-day text-primary me-1"></i>
-                                {{ $item->tanggal_mulai->format('d/m/Y') }}
-                                @if (!$isSingleDay)
-                                    <span style="color: var(--text-muted); font-weight: 400;"> s.d. </span>
-                                    {{ $item->tanggal_selesai->format('d/m/Y') }}
-                                @endif
-                            </div>
-                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
-                                <i class="fas fa-hourglass-half me-1"></i> {{ $daysDiff }} hari pelaksanaan
+                        <td style="padding: 14px 18px; font-size: 0.85rem;" data-label="Tanggal">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; text-align: left; width: 100%;">
+                                <div style="font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-calendar-day text-primary"></i>
+                                    <span>{{ $item->tanggal_mulai->format('d/m/Y') }}@if (!$isSingleDay) s.d. {{ $item->tanggal_selesai->format('d/m/Y') }}@endif</span>
+                                </div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
+                                    <i class="fas fa-hourglass-half me-1"></i> {{ $daysDiff }} hari pelaksanaan
+                                </div>
                             </div>
                         </td>
 
-                        <td style="padding: 14px 18px;">
-                            <div
-                                style="font-weight: 700; color: var(--text-color); font-size: 0.9rem; margin-bottom: 4px;">
-                                <span
-                                    style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: {{ $item->warna }}; margin-right: 6px;"></span>
-                                {{ $item->nama_kegiatan }}
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <span class="badge"
-                                    style="background: {{ $styleBadge['bg'] }}; color: {{ $styleBadge['color'] }}; border: 1px solid {{ $styleBadge['border'] }}; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px;">
-                                    {{ $item->tipe_label }}
-                                </span>
-                                @if ($item->keterangan)
-                                    <span
-                                        style="font-size: 0.75rem; color: var(--text-muted); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                                        title="{{ $item->keterangan }}">
-                                        {{ $item->keterangan }}
+                        <td style="padding: 14px 18px;" data-label="Agenda">
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right; width: 100%; min-width: 0;">
+                                <div style="font-weight: 700; color: var(--text-color); font-size: 0.9rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: {{ $item->warna }}; flex-shrink: 0;"></span>
+                                    <span>{{ $item->nama_kegiatan }}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
+                                    <span class="badge"
+                                        style="background: {{ $styleBadge['bg'] }}; color: {{ $styleBadge['color'] }}; border: 1px solid {{ $styleBadge['border'] }}; font-size: 0.68rem; padding: 2px 7px; border-radius: 6px; white-space: nowrap;">
+                                        {{ $item->tipe_label }}
                                     </span>
-                                @endif
+                                    @if ($item->keterangan)
+                                        <span style="font-size: 0.74rem; color: var(--text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                                            title="{{ $item->keterangan }}">
+                                            {{ $item->keterangan }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </td>
 
-                        <td style="padding: 14px 18px;">
+                        <td style="padding: 14px 18px;" data-label="Presensi">
                             <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem;">
                                 <div>
                                     <span
@@ -293,16 +291,18 @@
                             </div>
                         </td>
 
-                        <td style="padding: 14px 18px; font-size: 0.8rem; color: var(--text-muted);">
-                            <div style="font-weight: 600; color: var(--text-color);">
-                                <i class="fas fa-user-pen me-1 text-primary"></i> {{ $item->created_by ?: 'Sistem' }}
-                            </div>
-                            <div style="font-size: 0.72rem; opacity: 0.85;">
-                                {{ $item->created_at ? $item->created_at->format('d/m/Y H:i') : '-' }}
+                        <td style="padding: 14px 18px; font-size: 0.8rem; color: var(--text-muted);" data-label="Petugas">
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right;">
+                                <div style="font-weight: 600; color: var(--text-color);">
+                                    <i class="fas fa-user-pen me-1 text-primary"></i> {{ $item->created_by ?: 'Sistem' }}
+                                </div>
+                                <div style="font-size: 0.72rem; opacity: 0.85;">
+                                    {{ $item->created_at ? $item->created_at->format('d/m/Y H:i') : '-' }}
+                                </div>
                             </div>
                         </td>
 
-                        <td style="padding: 14px 18px; text-align: right;">
+                        <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions" style="display: inline-flex; align-items: center; gap: 6px;">
                                 <button type="button" class="btn-icon btn-view-agenda"
                                     data-item='@json($item)' title="Lihat Detail Agenda">

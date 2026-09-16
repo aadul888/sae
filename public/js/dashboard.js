@@ -475,3 +475,27 @@ document.addEventListener("submit", function (e) {
     }
 });
 
+// Universal Delegated Click-to-Copy Handler (.copyable, [data-copy])
+document.addEventListener("click", function (e) {
+    const copyEl = e.target.closest(".copyable, [data-copy]");
+    if (!copyEl) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const raw = copyEl.getAttribute("data-copy") || copyEl.innerText.trim();
+    const textToCopy = raw.replace(/^(?:NIK|NISN|NIPD|NUPTK|NIP|ID)\s*:\s*/i, "").trim();
+    const label = copyEl.getAttribute("data-label") || "Teks";
+
+    if (!textToCopy || textToCopy === "-") return;
+
+    if (window.SAE && typeof window.SAE.copy === "function") {
+        window.SAE.copy(textToCopy, label);
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(textToCopy);
+    }
+
+    copyEl.classList.add("copied");
+    setTimeout(() => copyEl.classList.remove("copied"), 1800);
+});
+
+

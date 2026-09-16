@@ -117,14 +117,14 @@
                 @forelse ($list as $item)
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                         <td class="cell-kode" style="padding: 14px 18px; font-weight: 700; color: var(--primary); font-size: 0.86rem; font-family: monospace;"
-                            data-label="Kode Jurusan">
-                            <span class="badge badge-primary"
+                            data-label="Kode">
+                            <span class="badge badge-primary copyable" data-copy="{{ $item->kode }}" data-label="Kode Jurusan" title="Klik untuk salin kode"
                                 style="font-size: 0.76rem; padding: 4px 8px; font-family: monospace;">
                                 {{ $item->kode }}
                             </span>
                         </td>
                         <td class="cell-jurusan-main" style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.88rem;"
-                            data-label="Kompetensi Keahlian">
+                            data-label="Jurusan">
                             <div class="jurusan-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                 @if (!empty($item->logo_url))
                                     <div class="jurusan-logo-thumb"
@@ -134,7 +134,7 @@
                                         style="width: 44px; height: 44px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
                                         <img src="{{ $item->logo_url }}"
                                             alt="Logo {{ $item->nama }}"
-                                            style="max-width: 92%; max-height: 92%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
+                                            style="width: 100%; height: 100%; object-fit: contain; padding: 2px;">
                                     </div>
                                 @else
                                     <div class="jurusan-logo-thumb empty"
@@ -149,18 +149,6 @@
                                 <div class="jurusan-info">
                                     <div class="jurusan-title-row" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
                                         <span class="jurusan-nama">{{ $item->nama }}</span>
-                                        @if (!empty($item->logo_url))
-                                            <span class="badge" id="logoBadge_{{ $item->kode }}"
-                                                style="font-size: 0.64rem; background: rgba(16,185,129,0.12); color: #10b981; padding: 2px 6px;"
-                                                title="Logo PNG tersimpan persisten ({{ $item->logo_size ?? '' }})">
-                                                <i class="fas fa-check-circle me-1"></i>PNG {{ $item->logo_size ?? '' }}
-                                            </span>
-                                        @else
-                                            <span class="badge badge-outline" id="logoBadge_{{ $item->kode }}"
-                                                style="font-size: 0.62rem; color: var(--text-muted); opacity: 0.7; padding: 1px 5px;">
-                                                Belum ada logo
-                                            </span>
-                                        @endif
                                     </div>
                                     @if (!empty($item->rombel_list))
                                         <div class="jurusan-rombel-sub" style="font-size: 0.73rem; color: var(--text-muted); margin-top: 2px;">
@@ -171,13 +159,13 @@
                             </div>
                         </td>
                         <td class="cell-rombel" style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem;"
-                            data-label="Jml Rombel">
+                            data-label="Rombel">
                             <span class="badge badge-outline" style="font-size: 0.78rem; padding: 3px 10px;">
                                 <i class="fas fa-users-rectangle me-1" style="opacity: 0.7;"></i> {{ $item->total_rombel }}
                             </span>
                         </td>
                         <td class="cell-peserta-didik cell-siswa" style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: 0.88rem; color: #10b981;"
-                            data-label="Jml Peserta Didik">
+                            data-label="Siswa">
                             <span class="badge"
                                 style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.78rem; padding: 3px 10px;">
                                 <i class="fas fa-user-graduate me-1"></i>

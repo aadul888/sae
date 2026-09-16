@@ -23,11 +23,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (e.key === "Escape") window.closeTendikModal();
     });
 
-    // Detail Button
-    document.querySelectorAll(".btn-detail-tendik").forEach(function (btn) {
-        btn.addEventListener("click", async function () {
-            const id = this.getAttribute("data-id");
-            if (!id || !modal || !modalBody) return;
+    // Detail Button (Event Delegation)
+    document.addEventListener("click", async function (e) {
+        const btn = e.target.closest(".btn-detail-tendik");
+        if (!btn) return;
+        const id = btn.getAttribute("data-id");
+        if (!id || !modal || !modalBody) return;
 
             if (modalTitle)
                 modalTitle.textContent = "Profil Tenaga Kependidikan";
@@ -139,7 +140,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 modalBody.innerHTML = `<p style="text-align: center; color: var(--danger); padding: 20px;">Terjadi kesalahan memuat data.</p>`;
             }
         });
-    });
 
     // Filters and search
     const searchInput = document.getElementById("liveSearch");
