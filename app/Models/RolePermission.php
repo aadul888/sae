@@ -172,6 +172,19 @@ class RolePermission extends Model
                 ],
             ],
 
+            'Wali Kelas' => [
+                'menu_wali_kelas_aktif' => [
+                    'label' => 'Peserta Didik Aktif (Wali Kelas)',
+                    'icon' => 'fa-user-graduate',
+                    'roles' => ['admin', 'guru'],
+                ],
+                'menu_wali_kelas_tidak_aktif' => [
+                    'label' => 'Peserta Didik Tidak Aktif (Wali Kelas)',
+                    'icon' => 'fa-user-xmark',
+                    'roles' => ['admin', 'guru'],
+                ],
+            ],
+
             'Administrasi Tendik' => [
                 'menu_buku_tamu' => [
                     'label' => 'Buku Tamu',
@@ -440,7 +453,7 @@ class RolePermission extends Model
         $user = $userOrRole ?: session('user');
         if (!$user) return false;
 
-        $role = is_string($user) ? $user : ($user['role'] ?? ($user->role ?? ''));
+        $role = is_string($user) ? $user : (is_array($user) ? ($user['role'] ?? '') : ($user->role ?? ''));
         if ($role === 'admin') {
             return true;
         }
@@ -529,6 +542,42 @@ class RolePermission extends Model
 
         if ($ptkId && Schema::hasTable('rombongan_belajar')) {
             return DB::table('rombongan_belajar')->where('ptk_id', $ptkId)->value('nama');
+        }
+
+        return null;
+    }
+
+    /**
+     * Dapatkan data rombel lengkap yang diampu oleh Wali Kelas saat ini
+     */
+    public static function getWaliKelasRombelInfo(mixed $userOrRole = null): ?object
+    {
+        $user = $userOrRole ?: session('user');
+        if (!$user) return null;
+        $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+        if (!$userId && !$ptkId) return null;
+
+        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            $rombelId = DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('rtt.kode', 'WALI_KELAS')
+                ->where('ptt.is_active', true)
+                ->where('rtt.is_active', true)
+                ->where(function ($q) use ($userId, $ptkId) {
+                    if ($userId) $q->where('ptt.user_id', (string) $userId);
+                    if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
+                })
+                ->value('ptt.rombel_id');
+
+            if ($rombelId && Schema::hasTable('rombongan_belajar')) {
+                $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first();
+                if ($rombel) return $rombel;
+            }
+        }
+
+        if ($ptkId && Schema::hasTable('rombongan_belajar')) {
+            return DB::table('rombongan_belajar')->where('ptk_id', $ptkId)->first();
         }
 
         return null;
@@ -648,6 +697,8 @@ class RolePermission extends Model
                 // Modul wali kelas
                 if ($d->kode === 'WALI_KELAS') {
                     if (in_array($permissionKey, [
+                        'menu_wali_kelas_aktif',
+                        'menu_wali_kelas_tidak_aktif',
                         'menu_peserta_didik_aktif',
                         'menu_presensi_peserta_didik',
                         'menu_penilaian',

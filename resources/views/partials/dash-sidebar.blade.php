@@ -85,6 +85,11 @@
         $can('menu_rapor') ||
         $can('menu_validasi_berkas');
 
+    // Section: Wali Kelas (Khusus Admin sebagai pengelola & Guru dengan tugas tambahan Wali Kelas)
+    $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+    $hasWaliKelas = $isWaliOrAdmin && ($can('menu_wali_kelas_aktif') || $can('menu_wali_kelas_tidak_aktif'));
+    $waliKelasRombelName = $role === 'guru' ? \App\Models\RolePermission::getWaliKelasRombel($user) : null;
+
     // Kumpulkan modul sistem tambahan yang aktif tapi belum ter-render pada template bawaan
     $allKnownModules = \App\Models\RolePermission::getAllSystemModules();
     $renderedMenuKeys = [
@@ -96,6 +101,8 @@
         'menu_kalender_pendidikan',
         'menu_peserta_didik_aktif',
         'menu_peserta_didik_tidak_aktif',
+        'menu_wali_kelas_aktif',
+        'menu_wali_kelas_tidak_aktif',
         'menu_guru_aktif',
         'menu_guru_tidak_aktif',
         'menu_tendik_aktif',
@@ -506,6 +513,47 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-viewfinder"></i></span>
                             <span class="nav-label">Presensi Kelas</span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        @endif
+
+        {{-- Modul Khusus: Wali Kelas (Hanya untuk Admin & Guru dengan Tugas Tambahan Wali Kelas) --}}
+        @if ($hasWaliKelas)
+            @php
+                $isWaliKelasActive =
+                    request()->routeIs('dashboard.wali-kelas.peserta-didik-aktif*') ||
+                    request()->routeIs('dashboard.wali-kelas.peserta-didik-tidak-aktif*') ||
+                    request()->routeIs('dashboard.wali-kelas.*');
+            @endphp
+            <div class="dash-nav-group {{ $isWaliKelasActive ? 'open active-group' : '' }}">
+                <button type="button" class="dash-nav-toggle">
+                    <div class="dash-nav-toggle-main">
+                        <span class="nav-icon"><i class="fas fa-fw fa-chalkboard-user"></i></span>
+                        <span class="nav-label">Wali Kelas</span>
+                        @if ($waliKelasRombelName)
+                            <span class="badge badge-primary" style="font-size: 0.68rem; padding: 2px 6px; margin-left: 6px; border-radius: 4px; font-weight: 700;">
+                                {{ $waliKelasRombelName }}
+                            </span>
+                        @endif
+                    </div>
+                    <i class="fas fa-chevron-right arrow-icon"></i>
+                </button>
+                <div class="dash-nav-submenu">
+                    @if ($can('menu_wali_kelas_aktif'))
+                        <a href="{{ route('dashboard.wali-kelas.peserta-didik-aktif.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.peserta-didik-aktif*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-circle-check"></i></span>
+                            <span class="nav-label">Peserta Didik Aktif</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_wali_kelas_tidak_aktif'))
+                        <a href="{{ route('dashboard.wali-kelas.peserta-didik-tidak-aktif.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.peserta-didik-tidak-aktif*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-circle-xmark"></i></span>
+                            <span class="nav-label">Peserta Didik Tidak Aktif</span>
                         </a>
                     @endif
                 </div>

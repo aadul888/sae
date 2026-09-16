@@ -189,6 +189,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance,read');
     Route::get('/maintenance/download', [\App\Http\Controllers\MaintenanceController::class, 'downloadArchive'])->name('maintenance.download')->middleware('permission:menu_maintenance,read');
     Route::post('/maintenance/clean', [\App\Http\Controllers\MaintenanceController::class, 'cleanOldData'])->name('maintenance.clean')->middleware('permission:menu_maintenance,delete');
+
+    // Modul Wali Kelas (Peserta Didik Aktif & Tidak Aktif Terisolasi Per Kelas Binaan)
+    Route::prefix('wali-kelas')->name('wali-kelas.')->group(function () {
+        Route::get('/peserta-didik-aktif', [\App\Http\Controllers\WaliKelasController::class, 'pesertaDidikAktif'])->name('peserta-didik-aktif.index')->middleware('permission:menu_wali_kelas_aktif,read');
+        Route::get('/peserta-didik-tidak-aktif', [\App\Http\Controllers\WaliKelasController::class, 'pesertaDidikTidakAktif'])->name('peserta-didik-tidak-aktif.index')->middleware('permission:menu_wali_kelas_tidak_aktif,read');
+        Route::get('/peserta-didik/{id}', [\App\Http\Controllers\WaliKelasController::class, 'showPesertaDidik'])->name('peserta-didik.show')->middleware('permission:menu_wali_kelas_aktif,read');
+        Route::get('/peserta-didik-tidak-aktif/{id}', [\App\Http\Controllers\WaliKelasController::class, 'showPesertaDidikTidakAktif'])->name('peserta-didik-tidak-aktif.show')->middleware('permission:menu_wali_kelas_tidak_aktif,read');
+    });
 });
 
 // Admin shortcut redirect
