@@ -451,7 +451,32 @@ class RolePermission extends Model
     }
 
     /**
-     * Cek apakah pengguna saat ini adalah Wali Kelas atau Administrator
+     * Cek apakah pengguna saat ini adalah Peserta Didik yang ditunjuk sebagai Koordinator Kelas
+     */
+    public static function isKoordinator(mixed $userOrRole = null): bool
+    {
+        $user = $userOrRole ?: session('user');
+        if (!$user) return false;
+
+        if (is_array($user) && isset($user['is_koordinator'])) {
+            return (bool) $user['is_koordinator'];
+        }
+
+        $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
+        if (!$pdId) return false;
+
+        if (Schema::hasTable('peserta_didik_meta')) {
+            return (bool) DB::table('peserta_didik_meta')
+                ->where('peserta_didik_id', $pdId)
+                ->where('is_koordinator', true)
+                ->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Cek apakah pengguna saat ini adalah Wali Kelas atau Administrator (atau Koordinator Kelas)
      */
     public static function isWaliKelasOrAdmin(mixed $userOrRole = null, ?string $rombelNameOrId = null): bool
     {
@@ -461,6 +486,22 @@ class RolePermission extends Model
         $role = is_string($user) ? $user : (is_array($user) ? ($user['role'] ?? '') : ($user->role ?? ''));
         if ($role === 'admin') {
             return true;
+        }
+
+        // Jika peserta didik ditunjuk sebagai Koordinator Kelas
+        if ($role === 'peserta_didik') {
+            if (self::isKoordinator($user)) {
+                if (!$rombelNameOrId) return true;
+
+                $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
+                if ($pdId && Schema::hasTable('peserta_didik')) {
+                    $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+                    if ($pd && ($pd->rombongan_belajar_id === $rombelNameOrId || strcasecmp(trim((string)$pd->nama_rombel), trim((string)$rombelNameOrId)) === 0)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         if ($role !== 'guru') {
@@ -517,12 +558,23 @@ class RolePermission extends Model
     }
 
     /**
-     * Dapatkan nama rombel yang diampu oleh Wali Kelas saat ini
+     * Dapatkan nama rombel yang diampu oleh Wali Kelas atau Koordinator Kelas saat ini
      */
     public static function getWaliKelasRombel(mixed $userOrRole = null): ?string
     {
         $user = $userOrRole ?: session('user');
         if (!$user) return null;
+
+        $role = is_string($user) ? $user : (is_array($user) ? ($user['role'] ?? '') : ($user->role ?? ''));
+
+        // Jika Koordinator Kelas (Peserta Didik)
+        if ($role === 'peserta_didik' && self::isKoordinator($user)) {
+            $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
+            if ($pdId && Schema::hasTable('peserta_didik')) {
+                return DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->value('nama_rombel');
+            }
+        }
+
         $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         if (!$userId && !$ptkId) return null;
@@ -553,12 +605,27 @@ class RolePermission extends Model
     }
 
     /**
-     * Dapatkan data rombel lengkap yang diampu oleh Wali Kelas saat ini
+     * Dapatkan data rombel lengkap yang diampu oleh Wali Kelas atau Koordinator Kelas saat ini
      */
     public static function getWaliKelasRombelInfo(mixed $userOrRole = null): ?object
     {
         $user = $userOrRole ?: session('user');
         if (!$user) return null;
+
+        $role = is_string($user) ? $user : (is_array($user) ? ($user['role'] ?? '') : ($user->role ?? ''));
+
+        // Jika Koordinator Kelas (Peserta Didik)
+        if ($role === 'peserta_didik' && self::isKoordinator($user)) {
+            $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
+            if ($pdId && Schema::hasTable('peserta_didik')) {
+                $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+                if ($pd && $pd->rombongan_belajar_id && Schema::hasTable('rombongan_belajar')) {
+                    $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id)->first();
+                    if ($rombel) return $rombel;
+                }
+            }
+        }
+
         $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         if (!$userId && !$ptkId) return null;
@@ -611,6 +678,16 @@ class RolePermission extends Model
         $actionCol = 'can_' . $action;
         if (!in_array($actionCol, ['can_create', 'can_read', 'can_update', 'can_delete'])) {
             $actionCol = 'can_read';
+        }
+
+        // Khusus Peserta Didik yang ditunjuk sebagai Koordinator Kelas (Membantu tugas Wali Kelas)
+        if ($role === 'peserta_didik' && self::isKoordinator($user)) {
+            if (in_array($permissionKey, [
+                'menu_wali_kelas_aktif',
+                'menu_wali_kelas_presensi',
+            ], true)) {
+                return in_array($actionCol, ['can_read', 'can_create', 'can_update']);
+            }
         }
 
         // 1. Otoritas Utama: Izin peran tersimpan di database

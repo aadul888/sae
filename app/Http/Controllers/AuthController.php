@@ -160,8 +160,12 @@ class AuthController extends Controller
             }
             if (\Illuminate\Support\Facades\Schema::hasTable('peserta_didik_meta')) {
                 $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $user->peserta_didik_id)->first();
-                if ($meta && !empty($meta->foto_path)) {
-                    $userData['foto_url'] = $meta->foto_url;
+                if ($meta) {
+                    if (!empty($meta->foto_path)) {
+                        $userData['foto_url'] = $meta->foto_url;
+                    }
+                    $userData['is_koordinator'] = (bool) ($meta->is_koordinator ?? false);
+                    $userData['jabatan_koordinator'] = $meta->jabatan_koordinator ?? 'Koordinator Kelas';
                 }
             }
         }

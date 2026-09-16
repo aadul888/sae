@@ -145,6 +145,8 @@ class PesertaDidikAktifController extends Controller
             $item->foto_size = $meta?->formatted_foto_size;
             $item->foto_width = $meta?->foto_width;
             $item->foto_height = $meta?->foto_height;
+            $item->is_koordinator = (bool) ($meta?->is_koordinator ?? false);
+            $item->jabatan_koordinator = $meta?->jabatan_koordinator ?? 'Koordinator Kelas';
         }
 
         $list = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -556,6 +558,120 @@ class PesertaDidikAktifController extends Controller
             'success_count' => $successCount,
             'failed_count' => $failedCount,
             'data' => $results,
+        ]);
+    }
+
+    /**
+     * Reset password akun peserta didik ke default (NISN)
+     */
+    public function resetPassword(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+
+        // Hanya role berizin update pada menu_peserta_didik_aktif (Admin / wewenang resmi)
+        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk mereset password akun peserta didik.',
+            ], 403);
+        }
+
+        $pdId = $request->input('peserta_didik_id');
+        if (!$pdId) {
+            return response()->json(['status' => 'error', 'message' => 'ID Peserta Didik wajib disertakan.'], 400);
+        }
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+        if (!$pd) {
+            return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.'], 404);
+        }
+
+        $defaultPassword = trim((string) ($pd->nisn ?: ($pd->nipd ?: ($pd->nik ?: 'Sae12345!'))));
+        $username = trim((string) ($pd->nisn ?: ($pd->nipd ?: ($pd->nik ?: $pd->peserta_didik_id))));
+
+        // Cari akun pengguna di tabel pengguna
+        $account = \App\Models\User::where('peserta_didik_id', $pdId)->first();
+        if (!$account && !empty($pd->nisn)) {
+            $account = \App\Models\User::where('username', $pd->nisn)->first();
+        }
+
+        if ($account) {
+            $account->password = \Illuminate\Support\Facades\Hash::make($defaultPassword);
+            $account->password_updated_at = null;
+            if (!empty($account->raw_data)) {
+                $raw = json_decode($account->raw_data, true) ?: [];
+                unset($raw['password_updated_at'], $raw['is_password_updated']);
+                $account->raw_data = json_encode($raw, JSON_UNESCAPED_UNICODE);
+            }
+            $account->save();
+        } else {
+            // Buat akun baru jika belum pernah terdaftar
+            \App\Models\User::create([
+                'pengguna_id'         => (string) \Illuminate\Support\Str::uuid(),
+                'sekolah_id'          => $pd->sekolah_id ?? null,
+                'username'            => $username,
+                'nama'                => $pd->nama,
+                'peran_id_str'        => 'Peserta Didik',
+                'password'            => \Illuminate\Support\Facades\Hash::make($defaultPassword),
+                'peserta_didik_id'    => $pd->peserta_didik_id,
+                'password_updated_at' => null,
+            ]);
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Password untuk {$pd->nama} berhasil di-reset ke default ({$defaultPassword}). Peserta didik dapat login menggunakan NISN dan akan diminta membuat password baru saat aktivasi.",
+            'nisn'    => $defaultPassword,
+            'nama'    => $pd->nama,
+        ]);
+    }
+
+    /**
+     * Tunjuk atau cabut wewenang peserta didik sebagai Koordinator Kelas
+     */
+    public function toggleKoordinator(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+
+        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk menunjuk Koordinator Kelas.',
+            ], 403);
+        }
+
+        $pdId = $request->input('peserta_didik_id');
+        if (!$pdId) {
+            return response()->json(['status' => 'error', 'message' => 'ID Peserta Didik wajib disertakan.'], 400);
+        }
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+        if (!$pd) {
+            return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.'], 404);
+        }
+
+        $meta = \App\Models\PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $pdId]);
+        if (!$meta->exists) {
+            $meta->nisn = $pd->nisn;
+        }
+
+        $newStatus = !$meta->is_koordinator;
+        $meta->is_koordinator = $newStatus;
+        $meta->jabatan_koordinator = $newStatus ? ($request->input('jabatan') ?: 'Koordinator Kelas') : null;
+        $meta->koordinator_tmt = $newStatus ? now() : null;
+        $meta->save();
+
+        $rombelNama = $pd->nama_rombel ?: 'Kelas';
+        $actionStr = $newStatus ? "ditunjuk sebagai Koordinator Kelas ({$rombelNama})" : "status Koordinator Kelas dicabut";
+
+        return response()->json([
+            'status'         => 'success',
+            'is_koordinator' => $newStatus,
+            'jabatan'        => $meta->jabatan_koordinator,
+            'message'        => "Peserta Didik {$pd->nama} berhasil {$actionStr}. " . ($newStatus ? "Peserta didik kini memiliki hak akses membantu tugas Wali Kelas (presensi kelas)." : ""),
+            'nama'           => $pd->nama,
         ]);
     }
 }

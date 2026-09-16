@@ -17,6 +17,15 @@ class PesertaDidikMeta extends Model
         'foto_size',
         'foto_width',
         'foto_height',
+        'is_koordinator',
+        'jabatan_koordinator',
+        'koordinator_tmt',
+    ];
+
+    protected $casts = [
+        'is_koordinator' => 'boolean',
+        'koordinator_tmt' => 'datetime',
+        'rfid_registered_at' => 'datetime',
     ];
 
     protected $appends = [

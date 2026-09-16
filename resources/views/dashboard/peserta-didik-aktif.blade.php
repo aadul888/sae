@@ -206,6 +206,19 @@
                                 <div class="pd-info">
                                     <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                         <span class="pd-nama" style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
+                                        @if (!empty($item->is_koordinator))
+                                            <span class="badge badge-koordinator" id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                                style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                                title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
+                                                <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                            </span>
+                                        @else
+                                            <span class="badge badge-koordinator" id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                                style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; align-items: center; gap: 4px;"
+                                                title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
+                                                <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                            </span>
+                                        @endif
                                     </div>
                                     @if ($item->nik)
                                         <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
@@ -258,7 +271,7 @@
                         </td>
                         <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
-                                @if ($isAdmin)
+                                @if ($isAdmin || $canUpdate)
                                     @if ($canManageStudentPhotos)
                                     <button type="button" class="btn-icon"
                                         title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
@@ -276,6 +289,26 @@
                                         <i class="fas fa-address-card" style="color: #0284c7;"></i>
                                     </button>
                                     @endif
+                                    
+                                    {{-- Tombol Tunjuk / Cabut Koordinator Kelas --}}
+                                    <button type="button" class="btn-icon btn-toggle-koordinator {{ !empty($item->is_koordinator) ? 'is-active' : '' }}"
+                                        id="btnKoordinator_{{ $item->peserta_didik_id }}"
+                                        data-id="{{ $item->peserta_didik_id }}"
+                                        data-nama="{{ $item->nama }}"
+                                        data-rombel="{{ $item->nama_rombel ?: '-' }}"
+                                        data-status="{{ !empty($item->is_koordinator) ? '1' : '0' }}"
+                                        title="{{ !empty($item->is_koordinator) ? 'Cabut Wewenang Koordinator Kelas' : 'Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)' }}">
+                                        <i class="fas fa-crown" style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b;' : 'opacity: 0.55;' }}"></i>
+                                    </button>
+
+                                    {{-- Tombol Reset Password ke Default (NISN) --}}
+                                    <button type="button" class="btn-icon btn-reset-password"
+                                        data-id="{{ $item->peserta_didik_id }}"
+                                        data-nama="{{ $item->nama }}"
+                                        data-nisn="{{ $item->nisn ?: ($item->nipd ?: ($item->nik ?: 'NISN')) }}"
+                                        title="Reset Password Akun ke Default (NISN)">
+                                        <i class="fas fa-key" style="color: #f59e0b;"></i>
+                                    </button>
                                 @else
                                     <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
                                 @endif
