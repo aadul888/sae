@@ -4,6 +4,9 @@
 @section('dash_title', 'Guru & Tendik Aktif')
 
 @section('content')
+    @php
+        $isAdmin = $isAdmin ?? (((session('user')['role'] ?? (session('user')->role ?? '')) === 'admin'));
+    @endphp
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
@@ -214,10 +217,14 @@
                         </td>
                         <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
+                                @if ($isAdmin)
                                 <button type="button" class="btn-icon" title="Lihat Profil Lengkap"
                                     onclick="openBiodataGuruModal('{{ $item->ptk_id }}')">
                                     <i class="fas fa-id-card"></i>
                                 </button>
+                                @else
+                                <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
+                                @endif
                             </div>
                         </td>
                     </tr>

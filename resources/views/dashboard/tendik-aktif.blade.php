@@ -4,6 +4,9 @@
 @section('dash_title', 'Tendik Aktif')
 
 @section('content')
+    @php
+        $isAdmin = $isAdmin ?? (((session('user')['role'] ?? (session('user')->role ?? '')) === 'admin'));
+    @endphp
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
@@ -231,12 +234,16 @@
                             @endif
                         </td>
                         <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
+                            @if ($isAdmin)
                             <button type="button" class="btn btn-outline btn-detail-tendik"
                                 data-id="{{ $tendik->ptk_id }}"
                                 style="padding: 5px 10px; font-size: 0.78rem; border-radius: 6px;"
                                 title="Lihat Profil Lengkap">
                                 <i class="fas fa-eye me-1"></i> Detail
                             </button>
+                            @else
+                            <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
+                            @endif
                         </td>
                     </tr>
                 @empty

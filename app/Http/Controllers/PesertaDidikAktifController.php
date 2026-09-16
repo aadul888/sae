@@ -28,6 +28,7 @@ class PesertaDidikAktifController extends Controller
         $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete');
 
         // Cek wewenang unggah foto & kelola (Harus ada izin mutasi DAN Admin / Wali Kelas)
+        $isAdmin = ($role === 'admin');
         $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
         $canManageStudentPhotos = ($canUpdate || $canCreate) && $isWaliOrAdmin;
         $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
@@ -171,20 +172,21 @@ class PesertaDidikAktifController extends Controller
             'canRead',
             'canUpdate',
             'canDelete',
-            'isWaliOrAdmin'
+            'isWaliOrAdmin',
+            'isAdmin'
         ));
     }
 
     /**
-     * Detail peserta didik via JSON untuk modal
+     * Detail peserta didik via JSON untuk modal (Khusus Admin pada Manajemen Data)
      */
     public function show(Request $request, string|int $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if ($role === 'peserta_didik' || !\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Hanya Administrator yang memiliki wewenang melihat data lengkap peserta didik.'], 403);
         }
 
         $pesertaDidik = DB::table('peserta_didik')

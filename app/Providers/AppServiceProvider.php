@@ -23,8 +23,31 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' || app()->environment('production')) {
+        $isHttps = (
+            (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
+            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
+            (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
+            request()->isSecure() ||
+            request()->header('x-forwarded-proto') === 'https' ||
+            str_starts_with((string) config('app.url'), 'https://') ||
+            app()->environment('production')
+        );
+
+        if ($isHttps) {
             URL::forceScheme('https');
+            try {
+                request()->server->set('HTTPS', 'on');
+                request()->server->set('SERVER_PORT', 443);
+            } catch (\Throwable $e) {
+                // Ignore if request immutable
+            }
+            \Illuminate\Pagination\Paginator::currentPathResolver(function () {
+                $url = request()->url();
+                if (str_starts_with($url, 'http://')) {
+                    $url = 'https://' . substr($url, 7);
+                }
+                return $url;
+            });
         }
 
         if (!class_exists(\App\Support\SystemSignature::class) || !\App\Support\SystemSignature::verify()) {

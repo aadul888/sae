@@ -260,7 +260,12 @@ window.escapeHtml = function (str) {
  */
 window.refreshLiveTable = async function (url, options = {}) {
     if (!url) return;
-    const targetUrl = typeof url === "string" ? url : url.toString();
+    let targetUrl = typeof url === "string" ? url : url.toString();
+
+    // Anti Mixed-Content Normalizer: Paksa protokol HTTPS jika halaman saat ini HTTPS
+    if (window.location.protocol === "https:" && targetUrl.startsWith("http:")) {
+        targetUrl = targetUrl.replace(/^http:/, "https:");
+    }
 
     // 1. Locate the active table container in DOM
     const container =
@@ -283,6 +288,7 @@ window.refreshLiveTable = async function (url, options = {}) {
 
     try {
         const response = await fetch(targetUrl, {
+            credentials: "same-origin",
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
                 Accept: "text/html, application/xhtml+xml",
@@ -299,9 +305,11 @@ window.refreshLiveTable = async function (url, options = {}) {
         // 3. Swap container contents
         const curDataContainer = document.querySelector("#tableDataContainer");
         const newDataContainer = doc.querySelector("#tableDataContainer");
+        let tableAnchor = null;
 
         if (curDataContainer && newDataContainer) {
             curDataContainer.innerHTML = newDataContainer.innerHTML;
+            tableAnchor = curDataContainer;
         } else {
             // Find and swap the table card/container
             const curTable =
@@ -315,25 +323,25 @@ window.refreshLiveTable = async function (url, options = {}) {
 
             if (curTable && newTable) {
                 curTable.innerHTML = newTable.innerHTML;
+                tableAnchor = curTable;
             }
+        }
 
-            // Find and swap pagination
-            const curPagination = document.querySelector(
-                ".custom-pagination, .dash-pagination, .pagination",
-            );
-            const newPagination = doc.querySelector(
-                ".custom-pagination, .dash-pagination, .pagination",
-            );
+        // 3b. Swap pagination universally across ALL modules
+        const curPagination = document.querySelector(
+            ".custom-pagination, .dash-pagination, .pagination",
+        );
+        const newPagination = doc.querySelector(
+            ".custom-pagination, .dash-pagination, .pagination",
+        );
 
-            if (curPagination && newPagination) {
-                curPagination.outerHTML = newPagination.outerHTML;
-            } else if (curPagination && !newPagination) {
-                curPagination.style.display = "none";
-                curPagination.innerHTML = "";
-            } else if (!curPagination && newPagination) {
-                const anchor = curTable || container;
-                if (anchor) anchor.insertAdjacentElement("afterend", newPagination);
-            }
+        if (curPagination && newPagination) {
+            curPagination.outerHTML = newPagination.outerHTML;
+        } else if (curPagination && !newPagination) {
+            curPagination.remove();
+        } else if (!curPagination && newPagination) {
+            const anchor = tableAnchor || container;
+            if (anchor) anchor.insertAdjacentElement("afterend", newPagination);
         }
 
         // 4. Update badge / total entries count if present in the page
@@ -362,6 +370,12 @@ window.refreshLiveTable = async function (url, options = {}) {
         );
     } catch (err) {
         console.warn("[SAE LiveSearch] Refresh failed, using fallback:", err);
+        // Fallback navigasi penuh dengan proteksi protokol HTTPS
+        let fallbackUrl = targetUrl;
+        if (window.location.protocol === "https:" && fallbackUrl.startsWith("http:")) {
+            fallbackUrl = fallbackUrl.replace(/^http:/, "https:");
+        }
+        window.location.href = fallbackUrl;
     } finally {
         container.style.opacity = originalOpacity;
         container.style.pointerEvents = "auto";
@@ -381,7 +395,11 @@ document.addEventListener("click", function (e) {
         !pageLink.getAttribute("href").startsWith("javascript:")
     ) {
         e.preventDefault();
-        window.refreshLiveTable(pageLink.href);
+        let targetHref = pageLink.href;
+        if (window.location.protocol === "https:" && targetHref.startsWith("http:")) {
+            targetHref = targetHref.replace(/^http:/, "https:");
+        }
+        window.refreshLiveTable(targetHref);
     }
 });
 

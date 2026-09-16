@@ -4,6 +4,9 @@
 @section('dash_title', 'Peserta Didik Aktif')
 
 @section('content')
+    @php
+        $isAdmin = $isAdmin ?? (((session('user')['role'] ?? (session('user')->role ?? '')) === 'admin'));
+    @endphp
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
@@ -261,15 +264,20 @@
                                     <i class="fas fa-camera" style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
                                 </button>
                                 @endif
+                                @if ($isAdmin)
                                 <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
                                     onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
                                     <i class="fas fa-id-card"></i>
                                 </button>
+                                @endif
                                 @if(!empty($item->nisn) && $isWaliOrAdmin)
                                 <button type="button" class="btn-icon" title="Pratinjau / Cetak Kartu Pelajar Digital"
                                     onclick="openKartuPelajarModal('{{ $item->nisn }}')">
                                     <i class="fas fa-address-card" style="color: #0284c7;"></i>
                                 </button>
+                                @endif
+                                @if (!$canManageStudentPhotos && !$isAdmin && !(!empty($item->nisn) && $isWaliOrAdmin))
+                                <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
                                 @endif
                             </div>
                         </td>

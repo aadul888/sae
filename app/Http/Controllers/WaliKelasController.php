@@ -182,7 +182,7 @@ class WaliKelasController extends Controller
         }
 
         $query->orderBy($sort, $sortDir);
-        $list = $query->paginate($perPage)->withQueryString();
+        $list = $query->paginate($perPage)->appends($request->query());
 
         // Hubungkan metadata foto persisten
         if (Schema::hasTable('peserta_didik_meta') && $list->isNotEmpty()) {
@@ -338,7 +338,7 @@ class WaliKelasController extends Controller
         }
 
         $query->orderBy($sort, $sortDir);
-        $list = $query->paginate($perPage)->withQueryString();
+        $list = $query->paginate($perPage)->appends($request->query());
 
         foreach ($list as $item) {
             $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
@@ -368,21 +368,26 @@ class WaliKelasController extends Controller
     }
 
     /**
-     * API JSON Detail Peserta Didik Aktif (Dibatasi per kelas binaan)
+     * API JSON Detail Peserta Didik Aktif (Lengkap seperti di Admin, Dibatasi per kelas binaan)
      */
     public function showPesertaDidik(string $id)
     {
         $user = session('user');
-        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        if (!$user) return response()->json(['status' => 'error', 'success' => false, 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
         if (!RolePermission::isWaliKelasOrAdmin($user)) {
-            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+            return response()->json(['status' => 'error', 'success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
-        $student = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
+        $student = DB::table('peserta_didik')
+            ->where('peserta_didik_id', $id)
+            ->orWhere('nisn', $id)
+            ->orWhere('nipd', $id)
+            ->first();
+
         if (!$student) {
-            return response()->json(['success' => false, 'message' => 'Data peserta didik tidak ditemukan.'], 404);
+            return response()->json(['status' => 'error', 'success' => false, 'message' => 'Data peserta didik tidak ditemukan.'], 404);
         }
 
         // Keamanan Ketat: Jika guru, verifikasi siswa berada di kelas binaan miliknya
@@ -391,24 +396,80 @@ class WaliKelasController extends Controller
             $myRombelId = $myRombel?->rombongan_belajar_id;
             $myRombelName = $myRombel?->nama;
 
-            $isMatch = ($myRombelId && $student->rombongan_belajar_id === $myRombelId)
-                    || ($myRombelName && $student->nama_rombel === $myRombelName);
+            $studentRombelId = $student->rombongan_belajar_id;
+            if (!$studentRombelId && Schema::hasTable('anggota_rombel')) {
+                $studentRombelId = DB::table('anggota_rombel')
+                    ->where('peserta_didik_id', $student->peserta_didik_id)
+                    ->value('rombongan_belajar_id');
+            }
+
+            $isMatch = false;
+            if ($myRombelId && $studentRombelId && $studentRombelId === $myRombelId) {
+                $isMatch = true;
+            } elseif ($myRombelName && !empty($student->nama_rombel) && strcasecmp(trim($student->nama_rombel), trim($myRombelName)) === 0) {
+                $isMatch = true;
+            } elseif ($myRombelId && Schema::hasTable('anggota_rombel')) {
+                $isMatch = DB::table('anggota_rombel')
+                    ->where('rombongan_belajar_id', $myRombelId)
+                    ->where('peserta_didik_id', $student->peserta_didik_id)
+                    ->exists();
+            }
 
             if (!$isMatch) {
                 return response()->json([
+                    'status' => 'error',
                     'success' => false,
                     'message' => 'Anda tidak memiliki wewenang mengakses data siswa di luar kelas binaan Anda.'
                 ], 403);
             }
         }
 
-        $meta = PesertaDidikMeta::where('peserta_didik_id', $student->peserta_didik_id)->first();
+        $anggota = null;
+        if (Schema::hasTable('anggota_rombel')) {
+            $anggota = DB::table('anggota_rombel')
+                ->where('peserta_didik_id', $student->peserta_didik_id)
+                ->first();
+        }
+
+        $meta = null;
+        if (Schema::hasTable('peserta_didik_meta')) {
+            $meta = PesertaDidikMeta::where('peserta_didik_id', $student->peserta_didik_id)->first();
+        }
+
+        $rombelId = $student->rombongan_belajar_id ?? ($anggota->rombongan_belajar_id ?? null);
+        $pembelajaran = collect();
+        if (!empty($rombelId) && Schema::hasTable('pembelajaran')) {
+            $pembelajaran = DB::table('pembelajaran')
+                ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
+                ->where('pembelajaran.rombongan_belajar_id', $rombelId)
+                ->select(
+                    'pembelajaran.pembelajaran_id',
+                    'pembelajaran.nama_mata_pelajaran',
+                    'pembelajaran.mata_pelajaran_id_str',
+                    'pembelajaran.jam_mengajar_per_minggu',
+                    'pembelajaran.status_di_kurikulum_str',
+                    'gtk.nama as nama_guru',
+                    'gtk.nuptk',
+                    'gtk.nip'
+                )
+                ->orderBy('pembelajaran.nama_mata_pelajaran', 'asc')
+                ->get();
+        }
+
         $student->foto_url = $meta?->foto_url;
         $student->formatted_foto_size = $meta?->formatted_foto_size;
 
         return response()->json([
+            'status' => 'success',
             'success' => true,
-            'data'    => $student,
+            'data' => $student,
+            'anggota' => $anggota,
+            'meta' => $meta,
+            'foto_url' => $meta?->foto_url,
+            'foto_size' => $meta?->formatted_foto_size,
+            'pembelajaran' => $pembelajaran,
+            'total_mapel' => $pembelajaran->count(),
+            'total_jam' => $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
         ]);
     }
 
@@ -418,16 +479,20 @@ class WaliKelasController extends Controller
     public function showPesertaDidikTidakAktif(string $id)
     {
         $user = session('user');
-        if (!$user) return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        if (!$user) return response()->json(['status' => 'error', 'success' => false, 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
         if (!RolePermission::isWaliKelasOrAdmin($user)) {
-            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+            return response()->json(['status' => 'error', 'success' => false, 'message' => 'Akses ditolak.'], 403);
         }
 
-        $student = DB::table('peserta_didik_tidak_aktif')->where('id', $id)->first();
+        $student = DB::table('peserta_didik_tidak_aktif')
+            ->where('id', $id)
+            ->orWhere('peserta_didik_id', $id)
+            ->first();
+
         if (!$student) {
-            return response()->json(['success' => false, 'message' => 'Data peserta didik tidak ditemukan.'], 404);
+            return response()->json(['status' => 'error', 'success' => false, 'message' => 'Data peserta didik tidak ditemukan.'], 404);
         }
 
         // Keamanan Ketat: Jika guru, verifikasi riwayat rombel siswa
@@ -436,11 +501,12 @@ class WaliKelasController extends Controller
             $myRombelId = $myRombel?->rombongan_belajar_id;
             $myRombelName = $myRombel?->nama;
 
-            $isMatch = ($myRombelId && $student->rombongan_belajar_id === $myRombelId)
-                    || ($myRombelName && $student->nama_rombel_terakhir === $myRombelName);
+            $isMatch = ($myRombelId && !empty($student->rombongan_belajar_id) && $student->rombongan_belajar_id === $myRombelId)
+                    || ($myRombelName && !empty($student->nama_rombel_terakhir) && strcasecmp(trim($student->nama_rombel_terakhir), trim($myRombelName)) === 0);
 
             if (!$isMatch) {
                 return response()->json([
+                    'status' => 'error',
                     'success' => false,
                     'message' => 'Anda tidak memiliki wewenang mengakses data siswa di luar kelas binaan Anda.'
                 ], 403);
@@ -450,8 +516,9 @@ class WaliKelasController extends Controller
         $student->foto_url = !empty($student->foto_path) ? asset('storage/' . ltrim($student->foto_path, '/')) : null;
 
         return response()->json([
+            'status' => 'success',
             'success' => true,
-            'data'    => $student,
+            'data' => $student,
         ]);
     }
 }

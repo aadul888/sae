@@ -26,6 +26,7 @@ class PesertaDidikTidakAktifController extends Controller
         $canRead   = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'read');
         $canUpdate = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'update');
         $canDelete = RolePermission::canAccess($user, 'menu_peserta_didik_tidak_aktif', 'delete');
+        $isAdmin   = ($role === 'admin');
 
         $q       = trim($request->get('q', ''));
         $status  = trim($request->get('status', ''));
@@ -141,17 +142,22 @@ class PesertaDidikTidakAktifController extends Controller
             'canCreate',
             'canRead',
             'canUpdate',
-            'canDelete'
+            'canDelete',
+            'isAdmin'
         ));
     }
 
     /**
-     * Detail siswa tidak aktif untuk modal
+     * Detail siswa tidak aktif untuk modal (Khusus Admin pada Manajemen Data)
      */
     public function show(Request $request, string|int $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Hanya Administrator yang memiliki wewenang melihat data lengkap peserta didik.'], 403);
+        }
 
         $item = DB::table('peserta_didik_tidak_aktif')
             ->where('id', $id)

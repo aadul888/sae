@@ -1,21 +1,234 @@
 /**
  * Wali Kelas — Peserta Didik Aktif
- * Modular JavaScript untuk Datatable Baku SAE, Live Search Asinkron, Sortable Header, dan Modal Detail
+ * Modular JavaScript untuk Datatable Baku SAE, Live Search Asinkron, Sortable Header, dan Modal Detail Lengkap
  */
 
-document.addEventListener("DOMContentLoaded", function () {
-    const modalDetail = document.getElementById("modalDetailSiswa");
-    const modalBody = document.getElementById("modalDetailBody");
-    const btnCloseModal = document.getElementById("btnCloseModalDetail");
-    const btnTutupModal = document.getElementById("btnTutupModal");
+function escapeHtml(str) {
+    if (!str) return "-";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
+// ==========================================
+// 1. MODAL DETAIL BIODATA LENGKAP SISWA
+// ==========================================
+window.openBiodataPesertaDidikModal = async function (id) {
+    const modal = document.getElementById("biodataModal");
+    const bioNama = document.getElementById("bioNama");
+    const bioRombel = document.getElementById("bioRombel");
+    const bioLoading = document.getElementById("bioLoading");
+    const bioContent = document.getElementById("bioContent");
+
+    if (!modal) return;
+
+    bioNama.textContent = "Biodata Peserta Didik";
+    bioRombel.textContent = "Memuat data...";
+    bioLoading.style.display = "block";
+    bioContent.style.display = "none";
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+
+    try {
+        const res = await fetch(
+            "/dashboard/wali-kelas/peserta-didik/" + encodeURIComponent(id),
+            {
+                headers: {
+                    Accept: "application/json",
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            },
+        );
+        const json = await res.json();
+
+        bioLoading.style.display = "none";
+        bioContent.style.display = "block";
+
+        if ((json.status === "success" || json.success) && json.data) {
+            const d = json.data;
+            bioNama.textContent = d.nama || "Tanpa Nama";
+            bioRombel.textContent =
+                [d.nama_rombel, d.kurikulum_id_str]
+                    .filter(Boolean)
+                    .join(" • ") || "-";
+
+            const fotoBox = document.getElementById("bioFotoContainer");
+            if (fotoBox) {
+                const fUrl = json.foto_url || d.foto_url;
+                if (fUrl) {
+                    fotoBox.innerHTML = `<img src="${fUrl}?v=${Date.now()}" alt="Foto ${escapeHtml(d.nama)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                } else {
+                    fotoBox.innerHTML = `<i class="fas fa-user-graduate text-primary" style="font-size: 1.3rem;"></i>`;
+                }
+            }
+
+            document.getElementById("bioNisn").textContent =
+                [
+                    d.nisn ? "NISN: " + d.nisn : null,
+                    d.nipd ? "NIPD: " + d.nipd : null,
+                ]
+                    .filter(Boolean)
+                    .join(" / ") || "-";
+            document.getElementById("bioNik").textContent = d.nik || "-";
+            document.getElementById("bioJk").textContent =
+                d.jenis_kelamin === "L"
+                    ? "Laki-Laki (L)"
+                    : d.jenis_kelamin === "P"
+                      ? "Perempuan (P)"
+                      : "-";
+            document.getElementById("bioTtl").textContent =
+                [d.tempat_lahir, d.tanggal_lahir].filter(Boolean).join(", ") || "-";
+            document.getElementById("bioAgama").textContent =
+                d.agama_id_str || "-";
+            document.getElementById("bioAnak").textContent = d.anak_keberapa
+                ? "Anak ke-" + d.anak_keberapa
+                : "-";
+
+            const tb = d.tinggi_badan ? d.tinggi_badan + " cm" : null;
+            const bb = d.berat_badan ? d.berat_badan + " kg" : null;
+            document.getElementById("bioFisik").textContent =
+                [tb, bb].filter(Boolean).join(" • ") || "Belum dicatat";
+
+            document.getElementById("bioKhusus").textContent =
+                d.kebutuhan_khusus || "Tidak Ada";
+
+            const pendaftaranStr = [
+                d.jenis_pendaftaran_id_str ||
+                    (json.anggota
+                        ? json.anggota.jenis_pendaftaran_id_str
+                        : null) ||
+                    "Peserta Didik Baru",
+                d.sekolah_asal ? "Asal: " + d.sekolah_asal : null,
+            ]
+                .filter(Boolean)
+                .join(" • ");
+            document.getElementById("bioPendaftaran").textContent =
+                pendaftaranStr || "-";
+
+            document.getElementById("bioTglMasuk").textContent =
+                d.tanggal_masuk_sekolah || "-";
+
+            const regArr = [
+                d.registrasi_id ? "Reg: " + d.registrasi_id : null,
+                json.anggota && json.anggota.anggota_rombel_id
+                    ? "Anggota ID: " + json.anggota.anggota_rombel_id
+                    : d.anggota_rombel_id
+                      ? "Anggota ID: " + d.anggota_rombel_id
+                      : null,
+            ].filter(Boolean);
+            document.getElementById("bioRegId").textContent =
+                regArr.length > 0 ? regArr.join(" • ") : "-";
+
+            document.getElementById("bioAyah").textContent =
+                [d.nama_ayah, d.pekerjaan_ayah_id_str]
+                    .filter(Boolean)
+                    .join(" • Pekerjaan: ") || "-";
+            document.getElementById("bioIbu").textContent =
+                [d.nama_ibu, d.pekerjaan_ibu_id_str]
+                    .filter(Boolean)
+                    .join(" • Pekerjaan: ") || "-";
+            document.getElementById("bioWali").textContent =
+                [d.nama_wali, d.pekerjaan_wali_id_str]
+                    .filter(Boolean)
+                    .join(" • Pekerjaan: ") || "Tidak Ada (Ikut Orang Tua)";
+
+            const kontakArr = [
+                d.nomor_telepon_seluler
+                    ? "HP/WA: " + d.nomor_telepon_seluler
+                    : null,
+                d.nomor_telepon_rumah ? "Telp: " + d.nomor_telepon_rumah : null,
+                d.email ? "Email: " + d.email : null,
+            ].filter(Boolean);
+            document.getElementById("bioHp").textContent =
+                kontakArr.length > 0 ? kontakArr.join(" • ") : "-";
+
+            document.getElementById("bioAlamat").textContent =
+                d.alamat_jalan || "-";
+
+            // Render Mata Pelajaran di Kelas
+            const mapelSection = document.getElementById("bioMapelSection");
+            const mapelList = document.getElementById("bioMapelList");
+            const jmlMapel = document.getElementById("bioJmlMapel");
+            const pemList = json.pembelajaran || [];
+
+            if (mapelSection && mapelList) {
+                if (pemList.length > 0) {
+                    if (jmlMapel)
+                        jmlMapel.textContent =
+                            pemList.length +
+                            " Mapel (" +
+                            (json.total_jam || 0) +
+                            " JP)";
+                    mapelList.innerHTML = pemList
+                        .map(
+                            (p) => `
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 10px; font-weight: 600; color: var(--text-color);">${escapeHtml(p.nama_mata_pelajaran || p.mata_pelajaran_id_str || "-")}</td>
+                            <td style="padding: 6px 10px; color: var(--text-color); font-size: 0.78rem;">${escapeHtml(p.nama_guru || "Belum Ditugaskan")}</td>
+                            <td style="padding: 6px 10px; text-align: center; color: #f59e0b; font-weight: 700;">${escapeHtml(p.jam_mengajar_per_minggu || "0")} JP</td>
+                        </tr>
+                    `,
+                        )
+                        .join("");
+                    mapelSection.style.display = "block";
+                } else {
+                    mapelSection.style.display = "none";
+                }
+            }
+        } else {
+            throw new Error(json.message || "Gagal memuat biodata peserta didik.");
+        }
+    } catch (e) {
+        bioLoading.style.display = "none";
+        bioContent.style.display = "block";
+        bioRombel.textContent = e.message || "Gagal memuat biodata.";
+    }
+};
+
+window.closeBiodataModal = function () {
+    const modal = document.getElementById("biodataModal");
+    if (modal) {
+        modal.style.display = "none";
+        document.body.style.overflow = "";
+    }
+};
+
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        window.closeBiodataModal();
+    }
+});
+
+document.addEventListener("click", function (e) {
+    const modal = document.getElementById("biodataModal");
+    if (modal && e.target === modal) {
+        window.closeBiodataModal();
+    }
+});
+
+// Event Delegation untuk tombol detail siswa
+document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".btn-detail-siswa");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    if (id) {
+        window.openBiodataPesertaDidikModal(id);
+    }
+});
+
+// ==========================================
+// 2. FILTER & LIVE TABLE ENGINE
+// ==========================================
+document.addEventListener("DOMContentLoaded", function () {
     const perPageSelect = document.getElementById("perPageSelect");
     const filterGender = document.getElementById("filterGender");
     const adminRombelSelect = document.getElementById("adminRombelSelect");
     const liveSearchInput = document.getElementById("liveSearchInput");
     const clearSearchBtn = document.getElementById("clearSearchBtn");
 
-    // Fungsi pusat penyegaran tabel asinkron (AJAX)
     function applyFilter(overrideParams = {}) {
         const url = new URL(window.location.href);
 
@@ -107,185 +320,5 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         applyFilter({ sort: sortField, sort_dir: newDir });
-    });
-
-    // Modal Helpers
-    function closeModal() {
-        if (modalDetail) {
-            modalDetail.style.display = "none";
-            document.body.style.overflow = "";
-        }
-    }
-
-    function openModal() {
-        if (modalDetail) {
-            modalDetail.style.display = "flex";
-            document.body.style.overflow = "hidden";
-        }
-    }
-
-    if (btnCloseModal) btnCloseModal.addEventListener("click", closeModal);
-    if (btnTutupModal) btnTutupModal.addEventListener("click", closeModal);
-
-    if (modalDetail) {
-        modalDetail.addEventListener("click", function (e) {
-            if (e.target === modalDetail) {
-                closeModal();
-            }
-        });
-    }
-
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape" && modalDetail && modalDetail.style.display === "flex") {
-            closeModal();
-        }
-    });
-
-    function escapeHtml(str) {
-        if (!str) return "-";
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    // Event Delegation: Tombol Detail Siswa (Bekerja otomatis bahkan setelah table refreshed)
-    document.addEventListener("click", async function (e) {
-        const btn = e.target.closest(".btn-detail-siswa");
-        if (!btn) return;
-
-        const id = btn.getAttribute("data-id");
-        if (!id) return;
-
-        openModal();
-        modalBody.innerHTML = `
-            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary);"></i>
-                <p style="margin-top: 12px; font-size: 0.9rem;">Mengambil biodata siswa...</p>
-            </div>
-        `;
-
-        try {
-            const res = await fetch(`/dashboard/wali-kelas/peserta-didik/${encodeURIComponent(id)}`, {
-                headers: {
-                    Accept: "application/json",
-                    "X-Requested-With": "XMLHttpRequest",
-                },
-            });
-
-            const json = await res.json();
-            if (!json.success || !json.data) {
-                throw new Error(json.message || "Gagal memuat data peserta didik.");
-            }
-
-            const d = json.data;
-
-            const fotoHtml = d.foto_url
-                ? `<img src="${d.foto_url}" alt="${escapeHtml(d.nama)}" style="width: 100px; height: 120px; object-fit: cover; border-radius: 8px; border: 2px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.2);">`
-                : `<div style="width: 100px; height: 120px; border-radius: 8px; background: rgba(99,102,241,0.1); color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--border-color);">
-                    <i class="fas fa-user-graduate" style="font-size: 2.2rem; margin-bottom: 6px;"></i>
-                    <span style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Tanpa Foto</span>
-                   </div>`;
-
-            const jkLabel = d.jenis_kelamin === "L" ? "Laki-Laki (L)" : d.jenis_kelamin === "P" ? "Perempuan (P)" : "-";
-            const ttl = [d.tempat_lahir, d.tanggal_lahir].filter(Boolean).join(", ") || "-";
-
-            modalBody.innerHTML = `
-                <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start;">
-                    <div style="flex: 0 0 110px; text-align: center;">
-                        ${fotoHtml}
-                        <div style="margin-top: 10px;">
-                            <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-weight: 700; font-size: 0.72rem; padding: 4px 8px;">
-                                ${escapeHtml(d.nama_rombel || "-")}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div style="flex: 1; min-width: 280px;">
-                        <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                            ${escapeHtml(d.nama)}
-                        </h3>
-                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;">
-                            NISN: <strong style="color: var(--text-color); font-family: monospace;">${escapeHtml(d.nisn)}</strong> &bull; 
-                            NIPD: <strong style="color: var(--text-color); font-family: monospace;">${escapeHtml(d.nipd)}</strong> &bull; 
-                            NIK: <strong style="color: var(--text-color); font-family: monospace;">${escapeHtml(d.nik)}</strong>
-                        </div>
-
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; font-size: 0.85rem;">
-                            <div>
-                                <div style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Jenis Kelamin</div>
-                                <div style="color: var(--text-color); font-weight: 600;">${jkLabel}</div>
-                            </div>
-                            <div>
-                                <div style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Tempat, Tanggal Lahir</div>
-                                <div style="color: var(--text-color); font-weight: 600;">${escapeHtml(ttl)}</div>
-                            </div>
-                            <div>
-                                <div style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Agama</div>
-                                <div style="color: var(--text-color); font-weight: 600;">${escapeHtml(d.agama_id_str || d.agama || "-")}</div>
-                            </div>
-                            <div>
-                                <div style="color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">No. Telepon / HP</div>
-                                <div style="color: var(--text-color); font-weight: 600;">
-                                    <i class="fas fa-phone-alt me-1 text-primary" style="font-size: 0.75rem;"></i>
-                                    ${escapeHtml(d.nomor_telepon_seluler || d.no_hp || "-")}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0;">
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; font-size: 0.85rem;">
-                    <div style="background: rgba(0,0,0,0.15); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
-                            <i class="fas fa-users text-primary me-2"></i> Biodata Orang Tua / Wali
-                        </div>
-                        <div style="margin-bottom: 6px;">
-                            <span style="color: var(--text-muted);">Nama Ayah:</span>
-                            <strong style="color: var(--text-color); margin-left: 4px;">${escapeHtml(d.nama_ayah)}</strong>
-                        </div>
-                        <div style="margin-bottom: 6px;">
-                            <span style="color: var(--text-muted);">Nama Ibu:</span>
-                            <strong style="color: var(--text-color); margin-left: 4px;">${escapeHtml(d.nama_ibu)}</strong>
-                        </div>
-                        <div>
-                            <span style="color: var(--text-muted);">Nama Wali:</span>
-                            <strong style="color: var(--text-color); margin-left: 4px;">${escapeHtml(d.nama_wali)}</strong>
-                        </div>
-                    </div>
-
-                    <div style="background: rgba(0,0,0,0.15); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
-                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
-                            <i class="fas fa-map-location-dot text-primary me-2"></i> Tempat Tinggal & Kontak
-                        </div>
-                        <div style="margin-bottom: 6px;">
-                            <span style="color: var(--text-muted);">Alamat Jalan:</span>
-                            <div style="color: var(--text-color); font-weight: 500; margin-top: 2px;">
-                                ${escapeHtml(d.alamat_jalan || "Tidak ada rincian jalan")}
-                            </div>
-                        </div>
-                        <div>
-                            <span style="color: var(--text-muted);">Email:</span>
-                            <strong style="color: var(--text-color); margin-left: 4px;">${escapeHtml(d.email)}</strong>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } catch (err) {
-            if (typeof Swal !== "undefined") {
-                Swal.fire({
-                    icon: "error",
-                    title: "Gagal Mengambil Data",
-                    text: err.message || "Terjadi kesalahan saat memuat biodata siswa.",
-                });
-            } else {
-                alert("Error: " + err.message);
-            }
-            closeModal();
-        }
     });
 });

@@ -18,6 +18,7 @@ class GuruAktifController extends Controller
         if (!\App\Models\RolePermission::canAccess($role, 'menu_guru_aktif')) {
             return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Guru Aktif dinonaktifkan oleh Administrator.');
         }
+        $isAdmin = ($role === 'admin');
 
         $q       = trim($request->get('q', ''));
         $jenis   = trim($request->get('jenis', ''));
@@ -167,20 +168,21 @@ class GuruAktifController extends Controller
             'gender',
             'perPage',
             'sort',
-            'sortDir'
+            'sortDir',
+            'isAdmin'
         ));
     }
 
     /**
-     * Detail GTK via JSON untuk modal
+     * Detail GTK via JSON untuk modal (Khusus Admin pada Manajemen Data)
      */
     public function show(Request $request, string|int $id)
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        if (!\App\Models\RolePermission::canAccess($role, 'menu_guru_aktif')) {
-            return response()->json(['status' => 'error', 'message' => 'Akses ditolak oleh Administrator.'], 403);
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Hanya Administrator yang memiliki wewenang melihat data lengkap guru.'], 403);
         }
 
         $gtk = DB::table('gtk')
