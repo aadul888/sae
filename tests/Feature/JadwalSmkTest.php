@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\JadwalKbm;
 use App\Models\JadwalPengaturan;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class JadwalSmkTest extends TestCase
@@ -33,5 +34,19 @@ class JadwalSmkTest extends TestCase
         $sql = JadwalKbm::query()->excludePkl()->toSql();
         $this->assertStringContainsString('nama_mata_pelajaran', $sql);
         $this->assertStringContainsString('NOT LIKE', $sql);
+    }
+
+    public function test_run_auto_scheduler_simulation(): void
+    {
+        $service = new \App\Services\AutoSchedulerService();
+        $res = $service->generate([
+            'clear_existing' => true,
+            'max_jp_per_sesi' => 3,
+        ]);
+
+        $this->assertTrue($res['success']);
+        $this->assertGreaterThan(1500, $res['total_jp']);
+        $this->assertLessThan(50, $res['unallocated']);
+        $this->assertEquals(35, $res['total_rombel']);
     }
 }
