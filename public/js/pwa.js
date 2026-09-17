@@ -33,56 +33,36 @@
         return localStorage.getItem('sae_pwa_is_installed') === 'true';
     }
 
-    // Helper untuk mendeteksi apakah tema saat ini adalah Dark Mode
-    function isCurrentThemeDark() {
-        const themeAttr = document.documentElement.getAttribute('data-theme');
-        if (themeAttr === 'light') return false;
-        if (themeAttr === 'dark') return true;
-        try {
-            const savedTheme = localStorage.getItem('sae_theme');
-            if (savedTheme === 'light') return false;
-            if (savedTheme === 'dark') return true;
-        } catch (e) {}
-        // Default di SAE adalah Dark Mode (#0B0F19) kecuali prefer light eksplisit
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-            return false;
-        }
-        return true;
-    }
-
-    // Helper untuk memilih icon (Default/Light = Latar Putih dengan Logo SAE Berwarna; Dark Mode = Latar Gelap dengan Logo Putih)
+    // Helper untuk memilih icon (Standar 1-Jenis Universal: Latar Putih dengan Logo SAE Berwarna)
     function getPwaIconUrl(size = 96) {
-        const isDark = isCurrentThemeDark();
-        return isDark ? `/img/icons/icon-dark-${size}x${size}.png` : `/img/icons/icon-${size}x${size}.png`;
+        return `/img/icons/icon-${size}x${size}.png`;
     }
 
-    // 1. Sinkronisasi Warna Theme-Color & Ikon PWA dengan Tema Gelap/Terang
+    // 1. Sinkronisasi Warna Theme-Color & Ikon PWA Standar Universal
     function syncThemeColor() {
-        const isDark = isCurrentThemeDark();
-
         const metaThemeColor = document.getElementById('pwaThemeColorMeta');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', isDark ? '#0B0F19' : '#FFFFFF');
+            metaThemeColor.setAttribute('content', '#FFFFFF');
         }
 
         const manifestLink = document.getElementById('pwaManifestLink');
         if (manifestLink) {
-            manifestLink.setAttribute('href', `/manifest.json?theme=${isDark ? 'dark' : 'light'}&v=6`);
+            manifestLink.setAttribute('href', '/manifest.json?v=7');
         }
 
         const icon192 = document.getElementById('pwaIcon192');
         if (icon192) {
-            icon192.setAttribute('href', isDark ? '/img/icons/icon-dark-192x192.png?v=6' : '/img/icons/icon-192x192.png?v=6');
+            icon192.setAttribute('href', '/img/icons/icon-192x192.png?v=7');
         }
 
         const icon512 = document.getElementById('pwaIcon512');
         if (icon512) {
-            icon512.setAttribute('href', isDark ? '/img/icons/icon-dark-512x512.png?v=6' : '/img/icons/icon-512x512.png?v=6');
+            icon512.setAttribute('href', '/img/icons/icon-512x512.png?v=7');
         }
 
         const appleIcon = document.getElementById('pwaAppleTouchIcon');
         if (appleIcon) {
-            appleIcon.setAttribute('href', isDark ? '/img/icons/apple-touch-icon-dark.png?v=6' : '/img/icons/apple-touch-icon.png?v=6');
+            appleIcon.setAttribute('href', '/img/icons/apple-touch-icon.png?v=7');
         }
 
         const bannerIcon = document.querySelector('.sae-pwa-banner-icon');
@@ -91,9 +71,7 @@
         }
     }
 
-    // Amati perubahan atribut tema pada <html>
-    const themeObserver = new MutationObserver(syncThemeColor);
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    // Sinkronisasi awal aset PWA
     syncThemeColor();
 
     // 2. Registrasi Service Worker & Deteksi Pembaruan
@@ -266,7 +244,14 @@
 
     // Helper tunggal ter-debounce untuk notifikasi sukses instalasi (Mencegah notifikasi ganda)
     let hasNotifiedInstallSuccess = false;
+    let installFallbackTimer = null;
+
     function notifyInstallSuccess() {
+        if (installFallbackTimer) {
+            clearTimeout(installFallbackTimer);
+            installFallbackTimer = null;
+        }
+
         if (hasNotifiedInstallSuccess) {
             console.log('[SAE-PWA] Install success notification already shown, skipping duplicate.');
             return;
@@ -342,10 +327,15 @@
             return;
         }
 
-        // Tampilkan status visual loading pemasangan
+        // Tampilkan status visual loading pemasangan pada tombol
         if (installBtn) {
             installBtn.disabled = true;
             installBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memasang...';
+        }
+
+        // Tampilkan notifikasi awal: Memproses pemasangan (bukan tiba-tiba sukses)
+        if (window.SAE && typeof window.SAE.toast === 'function') {
+            window.SAE.toast('Memproses pemasangan aplikasi...', 'info', 2800);
         }
 
         const isSecure = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
@@ -368,7 +358,20 @@
 
                 if (choiceResult.outcome === 'accepted') {
                     console.log('[SAE-PWA] User accepted the install prompt');
-                    notifyInstallSuccess();
+                    // Langsung hilangkan banner penawaran di halaman
+                    if (banner) banner.remove();
+                    updateInstallUI(false);
+
+                    // Berikan notifikasi bahwa proses instalasi sedang berjalan di latar belakang OS
+                    if (window.SAE && typeof window.SAE.toast === 'function') {
+                        window.SAE.toast('Sedang memasang SAE ke layar utama perangkat...', 'info', 3500);
+                    }
+
+                    // Pasang timer fallback jika OS tidak memicu event appinstalled
+                    if (installFallbackTimer) clearTimeout(installFallbackTimer);
+                    installFallbackTimer = setTimeout(() => {
+                        notifyInstallSuccess();
+                    }, 4000);
                 }
             } catch (err) {
                 console.warn('[SAE-PWA] Error launching native prompt:', err);

@@ -226,6 +226,15 @@ window.SAE = {
             document.body.appendChild(container);
         }
 
+        // Anti-duplikasi toast: abaikan jika pesan yang sama persis sedang aktif ditampilkan
+        const cleanMsg = String(message).trim();
+        const activeSpans = container.querySelectorAll(".sae-toast span");
+        for (const span of activeSpans) {
+            if (span.textContent.trim() === cleanMsg) {
+                return;
+            }
+        }
+
         const icons = {
             success: "fa-circle-check text-success",
             danger: "fa-circle-xmark text-danger",
