@@ -21,59 +21,66 @@
 
         .guru-page {
             background: #fff;
-            max-width: 960px;
+            max-width: 1200px;
             margin: 0 auto 28px auto;
             padding: 24px 30px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             border-radius: 8px;
             page-break-after: always;
+            position: relative;
+            overflow: hidden;
         }
         .guru-page:last-child {
             page-break-after: avoid;
         }
 
-        /* Kop Surat */
-        .kop-surat {
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 440px;
+            height: 440px;
             display: flex;
             align-items: center;
-            border-bottom: 3px double #1f2937;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
         }
-        .kop-logo {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            margin-right: 16px;
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
         }
-        .kop-text {
-            flex: 1;
+
+        .doc-header {
             text-align: center;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 1;
         }
-        .kop-text h2 {
+        .doc-header .school-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #111827;
+        }
+        .doc-header .doc-title-main {
             font-size: 1.15rem;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 3px 0 2px 0;
         }
-        .kop-text h3 {
-            font-size: 0.92rem;
-            font-weight: 700;
-        }
-        .kop-text p {
-            font-size: 0.72rem;
+        .doc-header .doc-subtitle {
+            font-size: 0.82rem;
             color: #4b5563;
-        }
-
-        .doc-title {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .doc-title h1 {
-            font-size: 1.1rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            text-decoration: underline;
         }
 
         /* Bio Guru Box */
@@ -86,6 +93,8 @@
             border-radius: 6px;
             margin-bottom: 16px;
             font-size: 0.82rem;
+            position: relative;
+            z-index: 1;
         }
         .bio-item {
             margin-bottom: 4px;
@@ -97,26 +106,81 @@
             width: 110px;
         }
 
-        /* Table */
+        /* Table Matriks Jam x Hari */
         .table-guru {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
         }
         .table-guru th, .table-guru td {
             border: 1px solid #9ca3af;
-            padding: 6px 10px;
+            padding: 6px 8px;
             vertical-align: middle;
+            text-align: center;
         }
         .table-guru th {
             background-color: #f3f4f6;
             font-weight: 700;
-            text-align: center;
         }
-        .badge-hari {
+        .th-jam {
+            background-color: #f9fafb;
+            font-weight: 700;
+            width: 110px;
+        }
+        .cell-kbm {
+            background-color: #eff6ff;
+            line-height: 1.25;
+            padding: 6px 4px;
+        }
+        .cell-upacara {
+            background-color: #fef2f2 !important;
+            border-left: 3px solid #ef4444 !important;
+        }
+        .cell-pembiasaan {
+            background-color: #f0fdf4 !important;
+            border-left: 3px solid #10b981 !important;
+        }
+        .cell-istirahat {
+            background-color: #fffbeb !important;
+            border-left: 3px solid #f59e0b !important;
+        }
+        .routine-title {
+            font-weight: 700;
+            display: block;
+            font-size: 0.76rem;
+        }
+        .cell-upacara .routine-title { color: #b91c1c; }
+        .cell-pembiasaan .routine-title { color: #047857; }
+        .cell-istirahat .routine-title { color: #b45309; }
+        .routine-desc {
+            font-size: 0.67rem;
+            color: #4b5563;
+            display: block;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        .rombel-name {
             font-weight: 700;
             color: #1e3a8a;
+            display: block;
+            font-size: 0.78rem;
+        }
+        .mapel-name {
+            font-size: 0.70rem;
+            color: #374151;
+            display: block;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        .ruangan-badge {
+            font-size: 0.65rem;
+            color: #059669;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 1px;
         }
 
         /* Signatures */
@@ -126,6 +190,8 @@
             margin-top: 24px;
             font-size: 0.82rem;
             page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
         }
         .sig-box {
             text-align: center;
@@ -183,7 +249,7 @@
                 display: none !important;
             }
             @page {
-                size: portrait;
+                size: landscape;
                 margin: 10mm 12mm;
             }
         }
@@ -202,35 +268,27 @@
 
     @forelse ($guruList as $guru)
         @php
-            $guruSchedules = $schedules->get($guru->ptk_id, collect());
-            $totalJp = $guruSchedules->sum(fn($i) => max(1, $i->jam_ke_selesai - $i->jam_ke_mulai + 1));
+            $totalJp = $totalJpPerGuru[$guru->ptk_id] ?? 0;
+            $totalSesi = $totalSesiPerGuru[$guru->ptk_id] ?? 0;
         @endphp
         <div class="guru-page">
-            <div class="kop-surat">
-                @if (!empty($sekolah->logo))
-                    <img src="{{ asset($sekolah->logo) }}" alt="Logo" class="kop-logo">
-                @else
-                    <div class="kop-logo" style="display: flex; align-items: center; justify-content: center; background: #e5e7eb; border-radius: 8px;">
-                        <i class="fas fa-school" style="font-size: 1.8rem; color: #4b5563;"></i>
-                    </div>
-                @endif
-                <div class="kop-text">
-                    <h2>{{ $sekolah->nama ?? 'SEKOLAH MENENGAH KEJURUAN / ATAS' }}</h2>
-                    <h3>NPSN: {{ $sekolah->npsn ?? '-' }} &bull; STATUS: TERAKREDITASI</h3>
-                    <p>{{ $sekolah->alamat_jalan ?? '' }}, {{ $sekolah->kabupaten_kota ?? '' }}</p>
-                </div>
+            <!-- Watermark Logo SAE -->
+            <div class="watermark-sae">
+                <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
             </div>
 
-            <div class="doc-title">
-                <h1>JADWAL MENGAJAR GURU (KARTU GTK)</h1>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 2px;">Tahun Pelajaran {{ date('Y') }}/{{ date('Y') + 1 }}</p>
+            <!-- Header Dokumen Bersih (Tanpa Kop Surat) -->
+            <div class="doc-header">
+                <div class="school-name">{{ $sekolah->nama ?? 'SEKOLAH' }}</div>
+                <div class="doc-title-main">JADWAL MENGAJAR GURU (KARTU GTK)</div>
+                <div class="doc-subtitle">Tahun Pelajaran {{ date('Y') }}/{{ date('Y') + 1 }} &bull; Semester Genap</div>
             </div>
 
             <div class="bio-box">
                 <div>
                     <div class="bio-item">
                         <span class="bio-label">Nama Guru:</span>
-                        <strong>{{ $guru->nama }}</strong>
+                        <strong style="color: #1e3a8a; font-size: 0.9rem;">{{ $guru->nama }}</strong>
                     </div>
                     <div class="bio-item">
                         <span class="bio-label">NIP / NUPTK:</span>
@@ -244,79 +302,100 @@
                     </div>
                     <div class="bio-item">
                         <span class="bio-label">Jumlah Sesi:</span>
-                        <span>{{ $guruSchedules->count() }} Pertemuan KBM</span>
+                        <span>{{ $totalSesi }} Pertemuan KBM</span>
                     </div>
                 </div>
             </div>
 
+            <!-- Matriks Jam x Hari (Format Per Kelas dengan Pemetaan Rombel & Mapel) -->
             <table class="table-guru">
                 <thead>
                     <tr>
-                        <th style="width: 40px;">No</th>
-                        <th style="width: 80px;">Hari</th>
-                        <th style="width: 90px;">Jam Ke</th>
-                        <th style="width: 100px;">Waktu</th>
-                        <th style="width: 120px;">Kelas / Rombel</th>
-                        <th>Mata Pelajaran</th>
-                        <th style="width: 90px;">Ruangan</th>
+                        <th class="th-jam">Jam / Waktu</th>
+                        @foreach ($hariList as $h)
+                            <th>{{ strtoupper($h) }}</th>
+                        @endforeach
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($guruSchedules as $idx => $sch)
+                    @foreach ($slots as $slot)
                         @php
-                            $jpCount = max(1, $sch->jam_ke_selesai - $sch->jam_ke_mulai + 1);
+                            $sK = $slot['ke'];
                         @endphp
                         <tr>
-                            <td style="text-align: center;">{{ $idx + 1 }}</td>
-                            <td class="badge-hari" style="text-align: center;">{{ $sch->hari }}</td>
-                            <td style="text-align: center;">
-                                @if ($sch->jam_ke_mulai === $sch->jam_ke_selesai)
-                                    JP {{ $sch->jam_ke_mulai }}
-                                @else
-                                    JP {{ $sch->jam_ke_mulai }}-{{ $sch->jam_ke_selesai }}
+                            <td class="th-jam">
+                                <div><strong>JP {{ $sK }}</strong></div>
+                                <div style="font-size: 0.68rem; color: #6b7280;">{{ $slot['mulai'] }} - {{ $slot['selesai'] }}</div>
+                            </td>
+                            @foreach ($hariList as $h)
+                                @php
+                                    $item = $matrix[$guru->ptk_id][$h][$sK] ?? null;
+                                    $isOccupied = !empty($occupied[$guru->ptk_id][$h][$sK]);
+                                @endphp
+                                @if ($item)
+                                    @php
+                                        $rowSpan = $item->jam_ke_selesai - $item->jam_ke_mulai + 1;
+                                        $isUpacara = $item->mata_pelajaran_id === 'UPACARA';
+                                        $isPembiasaan = $item->mata_pelajaran_id === 'PEMBIASAAN';
+                                        $isIstirahat = $item->mata_pelajaran_id === 'ISTIRAHAT';
+
+                                        $cellClass = 'cell-kbm';
+                                        if ($isUpacara) $cellClass .= ' cell-upacara';
+                                        elseif ($isPembiasaan) $cellClass .= ' cell-pembiasaan';
+                                        elseif ($isIstirahat) $cellClass .= ' cell-istirahat';
+                                    @endphp
+                                    <td class="{{ $cellClass }}" rowspan="{{ $rowSpan }}">
+                                        @if ($isUpacara)
+                                            <span class="routine-title"><i class="fas fa-flag text-danger"></i> {{ $item->nama_mata_pelajaran }}</span>
+                                            <span class="routine-desc">Dewan Guru &amp; Siswa</span>
+                                            @if ($item->ruangan)
+                                                <span class="ruangan-badge">[{{ $item->ruangan }}]</span>
+                                            @endif
+                                        @elseif ($isPembiasaan)
+                                            <span class="routine-title"><i class="fas fa-hands-praying text-success"></i> {{ $item->nama_mata_pelajaran }}</span>
+                                            <span class="routine-desc">Wali Kelas &amp; Guru</span>
+                                        @elseif ($isIstirahat)
+                                            <span class="routine-title"><i class="fas fa-mug-hot text-warning"></i> {{ $item->nama_mata_pelajaran }}</span>
+                                            <span class="routine-desc">Jeda Istirahat</span>
+                                        @else
+                                            <span class="rombel-name">{{ $item->nama_rombel }}</span>
+                                            <span class="mapel-name">{{ $item->nama_mata_pelajaran }}</span>
+                                            @if ($item->ruangan)
+                                                <span class="ruangan-badge">[{{ $item->ruangan }}]</span>
+                                            @endif
+                                        @endif
+                                    </td>
+                                @elseif (!$isOccupied)
+                                    <td style="color: #9ca3af; font-size: 0.7rem;">-</td>
                                 @endif
-                                <span style="font-size: 0.68rem; color: #6b7280;">({{ $jpCount }} JP)</span>
-                            </td>
-                            <td style="text-align: center; font-size: 0.72rem;">
-                                {{ substr($sch->jam_mulai, 0, 5) }} - {{ substr($sch->jam_selesai, 0, 5) }}
-                            </td>
-                            <td style="font-weight: 700; color: #1f2937;">{{ $sch->nama_rombel }}</td>
-                            <td>{{ $sch->nama_mata_pelajaran }}</td>
-                            <td style="text-align: center; color: #059669; font-weight: 600;">
-                                {{ $sch->ruangan ?: 'Kelas' }}
-                            </td>
+                            @endforeach
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 16px; color: #9ca3af;">
-                                Belum ada jadwal mengajar yang tercatat untuk guru ini.
-                            </td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
 
+            <!-- Tanda Tangan: Kepala Sekolah di Kiri, Guru Pengampu di Kanan -->
             <div class="signature-container">
                 <div class="sig-box">
                     <p>Mengetahui,</p>
-                    <p style="font-weight: 600;">Waka Kurikulum</p>
+                    <p style="font-weight: 600;">Kepala Sekolah,</p>
                     <div class="sig-space"></div>
-                    <p class="sig-name">___________________________</p>
-                    <p style="font-size: 0.72rem; color: #6b7280;">NIP. -</p>
+                    <p class="sig-name">{{ $kepalaSekolah?->nama ?? '......................................................' }}</p>
+                    <p style="font-size: 0.72rem; color: #6b7280;">NIP. {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</p>
                 </div>
 
                 <div class="sig-box">
-                    <p>{{ $sekolah->kabupaten_kota ?? 'Tempat' }}, {{ date('d F Y') }}</p>
+                    <p>{{ $sekolah->kabupaten_kota ? str_replace(['Kabupaten ', 'Kota '], '', $sekolah->kabupaten_kota) : 'Tempat' }}, {{ now()->translatedFormat('d F Y') }}</p>
                     <p style="font-weight: 600;">Guru Pengampu,</p>
                     <div class="sig-space"></div>
                     <p class="sig-name">{{ $guru->nama }}</p>
-                    <p style="font-size: 0.72rem; color: #6b7280;">NIP. {{ $guru->nip ?: '-' }}</p>
+                    <p style="font-size: 0.72rem; color: #6b7280;">NIP. {{ $guru->nip ?: ($guru->nuptk ?: '-') }}</p>
                 </div>
             </div>
         </div>
     @empty
         <div class="guru-page" style="text-align: center; padding: 50px;">
-            <p style="color: #9ca3af;">Tidak ada guru yang ditemukan.</p>
+            <p style="color: #9ca3af;">Tidak ada data guru yang ditemukan.</p>
         </div>
     @endforelse
 

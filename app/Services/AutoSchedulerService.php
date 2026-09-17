@@ -40,6 +40,14 @@ class AutoSchedulerService
             $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         }
 
+        // Filter hari aktif: HANYA gunakan hari yang memiliki alokasi slot harian > 0 (Sabtu 0 JP mutlak diabaikan)
+        $hariList = array_values(array_filter($hariList, function ($h) use ($dailySlotCounts) {
+            return ($dailySlotCounts[$h] ?? 0) > 0;
+        }));
+        if (empty($hariList)) {
+            $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        }
+
         // 1. Tentukan Rombel yang Ditargetkan (Hanya Kelas Reguler)
         $rombelQuery = DB::table('rombongan_belajar')
             ->where(function ($w) {
@@ -79,10 +87,16 @@ class AutoSchedulerService
             }
         }
 
-        // Pastikan kapasitas slot harian di hari kerja reguler (Senin-Kamis) mendukung hingga 12 jam pelajaran
-        // jika ada kelas dengan target belajar >= 48 JP agar seluruh jam tertampung
+        // Pastikan kapasitas slot harian di hari kerja reguler (Senin-Kamis) mendukung hingga 13 jam pelajaran
+        // untuk kelas dengan target belajar >= 50 JP (Tingkat X) dan 12 jam untuk >= 48 JP agar seluruh jam tertampung di Senin-Jumat tanpa hari Sabtu
         $effectiveDailySlotCounts = $dailySlotCounts;
-        if ($maxRequiredJp >= 48) {
+        if ($maxRequiredJp >= 50) {
+            foreach (['Senin', 'Selasa', 'Rabu', 'Kamis'] as $h) {
+                if (in_array($h, $hariList, true)) {
+                    $effectiveDailySlotCounts[$h] = max(13, $effectiveDailySlotCounts[$h] ?? 11);
+                }
+            }
+        } elseif ($maxRequiredJp >= 48) {
             foreach (['Senin', 'Selasa', 'Rabu', 'Kamis'] as $h) {
                 if (in_array($h, $hariList, true)) {
                     $effectiveDailySlotCounts[$h] = max(12, $effectiveDailySlotCounts[$h] ?? 11);
@@ -165,10 +179,10 @@ class AutoSchedulerService
             $pembiasaanHari,
             $pembiasaanJamKe
         ) {
-            // Jika Fresh Start, hapus jadwal eksisting pada rombel terpilih (pertahankan kegiatan rutin)
+            // Jika Fresh Start, hapus jadwal eksisting pada rombel terpilih dan mapel pilihan terafiliasi (pertahankan kegiatan rutin)
             if ($clearExisting) {
                 DB::table('jadwal_kbm')
-                    ->whereIn('rombongan_belajar_id', $selectedRombelIds)
+                    ->whereIn('rombongan_belajar_id', $allFetchRombelIds)
                     ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
                     ->delete();
             }
@@ -183,6 +197,9 @@ class AutoSchedulerService
             $rombelDayMapel    = []; // [rombelId][hari][mapelId] = count
             $rombelPureKbmJp   = []; // [rombelId] = total JP KBM murni Dapodik
 
+            // Ambil daftar seluruh PTK untuk isolasi mutlak jam istirahat guru
+            $allPtkList = DB::table('gtk')->whereNotNull('ptk_id')->pluck('ptk_id')->toArray();
+
             // Inisialisasi: Tandai kegiatan rutin pada grid fisik agar KBM tidak menabrak slot tersebut
             foreach ($selectedRombelIds as $rId) {
                 if ($upacaraHari && $upacaraJamKe) {
@@ -191,10 +208,17 @@ class AutoSchedulerService
                 if ($pembiasaanHari && $pembiasaanJamKe) {
                     $rombelOccupied[$rId][$pembiasaanHari][$pembiasaanJamKe] = true;
                 }
-                if ($istirahatJamKe) {
-                    foreach (['Senin', 'Selasa', 'Rabu', 'Kamis'] as $h) {
-                        if (in_array($h, $hariList, true)) {
+            }
+
+            // Kunci mutlak (Hard Lock) slot istirahat pada seluruh rombel dan seluruh guru di hari kerja reguler
+            if ($istirahatJamKe) {
+                foreach (['Senin', 'Selasa', 'Rabu', 'Kamis'] as $h) {
+                    if (in_array($h, $hariList, true)) {
+                        foreach ($selectedRombelIds as $rId) {
                             $rombelOccupied[$rId][$h][$istirahatJamKe] = true;
+                        }
+                        foreach ($allPtkList as $gId) {
+                            $guruOccupied[$gId][$h][$istirahatJamKe] = true;
                         }
                     }
                 }
@@ -650,9 +674,11 @@ class AutoSchedulerService
             }
             if (!$free) continue;
 
-            // Pembelajaran non-PKL tidak boleh menyeberangi jam istirahat
-            if (!$isPkl && $istirahatJamKe && $startK < $istirahatJamKe && $endK >= $istirahatJamKe) {
-                continue;
+            // Jam istirahat terkunci secara mutlak untuk seluruh KBM (baik reguler maupun PKL) pada hari kerja Senin-Kamis
+            if ($istirahatJamKe && in_array($h, ['Senin', 'Selasa', 'Rabu', 'Kamis'], true)) {
+                if ($startK <= $istirahatJamKe && $endK >= $istirahatJamKe) {
+                    continue;
+                }
             }
 
             // Hitung skor contiguity:
@@ -773,9 +799,11 @@ class AutoSchedulerService
 
                 if ($targetStart < 1) continue;
 
-                // Jangan menyeberang istirahat mundur
-                if ($istirahatJamKe && $start > $istirahatJamKe && $targetStart <= $istirahatJamKe) {
-                    continue;
+                // Jangan pernah menabrak atau menyentuh jam istirahat
+                if ($istirahatJamKe && in_array($h, ['Senin', 'Selasa', 'Rabu', 'Kamis'], true)) {
+                    if ($targetStart <= $istirahatJamKe && $targetEnd >= $istirahatJamKe) {
+                        continue;
+                    }
                 }
 
                 // Cek apakah slot targetStart kosong untuk rombel

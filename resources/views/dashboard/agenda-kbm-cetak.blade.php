@@ -24,43 +24,57 @@
             max-width: 297mm;
             min-height: 210mm;
             margin: 0 auto;
-            padding: 20mm 15mm;
+            padding: 15mm 15mm;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
         }
-        .header-kop {
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 3px double #000;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px solid #1f2937;
             padding-bottom: 12px;
             margin-bottom: 16px;
-            text-align: center;
+            position: relative;
+            z-index: 1;
         }
-        .kop-text h2 {
+        .doc-header .school-name {
             font-size: 14pt;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: #111827;
         }
-        .kop-text h1 {
-            font-size: 16pt;
+        .doc-header .doc-title-main {
+            font-size: 13pt;
             font-weight: bold;
             text-transform: uppercase;
-            margin: 2px 0;
+            letter-spacing: 0.5px;
+            color: #1e3a8a;
+            margin: 4px 0 2px 0;
         }
-        .kop-text p {
-            font-size: 9pt;
-            margin: 0;
-        }
-        .doc-title {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .doc-title h3 {
-            font-size: 13pt;
-            text-decoration: underline;
-            text-transform: uppercase;
-            margin-bottom: 2px;
+        .doc-header .doc-subtitle {
+            font-size: 10pt;
+            color: #4b5563;
         }
         .doc-meta {
             display: grid;
@@ -138,19 +152,16 @@
     </div>
 
     <div class="paper">
-        <!-- Header Kop Surat -->
-        <div class="header-kop">
-            <div class="kop-text">
-                <h2>PEMERINTAH DAERAH PROVINSI / KABUPATEN</h2>
-                <h1>{{ $sekolah->nama ?? 'SATUAN PENDIDIKAN SAE' }}</h1>
-                <p>{{ $sekolah->alamat_jalan ?? 'Alamat Satuan Pendidikan' }} &bull; NPSN: {{ $sekolah->npsn ?? '-' }}</p>
-            </div>
+        <!-- Watermark Logo SAE -->
+        <div class="watermark-sae">
+            <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
         </div>
 
-        <!-- Judul Dokumen -->
-        <div class="doc-title">
-            <h3>JURNAL &amp; AGENDA KEGIATAN BELAJAR MENGAJAR (KBM)</h3>
-            <p style="font-size: 10pt;">Tahun Ajaran: {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}</p>
+        <!-- Header Dokumen Bersih (Tanpa Kop Surat) -->
+        <div class="doc-header">
+            <div class="school-name">{{ $sekolah->nama ?? 'SATUAN PENDIDIKAN' }}</div>
+            <div class="doc-title-main">JURNAL &amp; AGENDA KEGIATAN BELAJAR MENGAJAR (KBM)</div>
+            <div class="doc-subtitle">Tahun Ajaran: {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}</div>
         </div>
 
         <!-- Meta Info Guru & Rombel -->
@@ -232,13 +243,13 @@
         <div class="signatures">
             <div class="sig-box">
                 <div>Mengetahui,</div>
-                <div>Kepala Sekolah / Waka Kurikulum</div>
+                <div>Kepala Sekolah,</div>
                 <div class="sig-space"></div>
-                <div class="sig-name">...................................................</div>
-                <div>NIP. ..........................................</div>
+                <div class="sig-name">{{ $kepalaSekolah?->nama ?? '...................................................' }}</div>
+                <div>NIP. {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</div>
             </div>
             <div class="sig-box">
-                <div>Ditetapkan di Tempat,</div>
+                <div>{{ $sekolah->kabupaten_kota ? str_replace(['Kabupaten ', 'Kota '], '', $sekolah->kabupaten_kota) : 'Tempat' }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
                 <div>Guru Mata Pelajaran,</div>
                 <div class="sig-space"></div>
                 <div class="sig-name">{{ $guru->nama ?? 'Guru Pengampu' }}</div>

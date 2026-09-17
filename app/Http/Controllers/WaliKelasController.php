@@ -949,7 +949,10 @@ class WaliKelasController extends Controller
         }
 
         $kepalaSekolah = Schema::hasTable('gtk')
-            ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')->first()
+            ? DB::table('gtk')->where(function ($w) {
+                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
+            })->first()
             : null;
 
         $sekolahMeta = Schema::hasTable('sekolah_meta')

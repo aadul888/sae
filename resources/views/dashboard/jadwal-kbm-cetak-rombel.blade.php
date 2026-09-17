@@ -27,53 +27,60 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             border-radius: 8px;
             page-break-after: always;
+            position: relative;
+            overflow: hidden;
         }
         .rombel-page:last-child {
             page-break-after: avoid;
         }
 
-        /* Kop Surat */
-        .kop-surat {
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
             display: flex;
             align-items: center;
-            border-bottom: 3px double #1f2937;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
         }
-        .kop-logo {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
-            margin-right: 16px;
-        }
-        .kop-text {
-            flex: 1;
-            text-align: center;
-        }
-        .kop-text h2 {
-            font-size: 1.15rem;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        .kop-text h3 {
-            font-size: 0.92rem;
-            font-weight: 700;
-        }
-        .kop-text p {
-            font-size: 0.72rem;
-            color: #4b5563;
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
         }
 
-        .doc-title {
+        .doc-header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 1;
         }
-        .doc-title h1 {
+        .doc-header .school-name {
             font-size: 1.15rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            text-decoration: underline;
+            letter-spacing: 0.8px;
+            color: #111827;
+        }
+        .doc-header .doc-title-main {
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 3px 0 2px 0;
+        }
+        .doc-header .doc-subtitle {
+            font-size: 0.8rem;
+            color: #4b5563;
         }
 
         /* Info Rombel Box */
@@ -124,6 +131,26 @@
             line-height: 1.25;
             padding: 6px 4px;
         }
+        .cell-upacara {
+            background-color: #fef2f2 !important;
+            border-left: 3px solid #ef4444 !important;
+        }
+        .cell-pembiasaan {
+            background-color: #f0fdf4 !important;
+            border-left: 3px solid #10b981 !important;
+        }
+        .cell-istirahat {
+            background-color: #fffbeb !important;
+            border-left: 3px solid #f59e0b !important;
+        }
+        .routine-title {
+            font-weight: 700;
+            display: block;
+            font-size: 0.75rem;
+        }
+        .cell-upacara .routine-title { color: #b91c1c; }
+        .cell-pembiasaan .routine-title { color: #047857; }
+        .cell-istirahat .routine-title { color: #b45309; }
         .mapel-name {
             font-weight: 700;
             color: #1e3a8a;
@@ -220,24 +247,16 @@
 
     @forelse ($rombelList as $rombel)
         <div class="rombel-page">
-            <div class="kop-surat">
-                @if (!empty($sekolah->logo))
-                    <img src="{{ asset($sekolah->logo) }}" alt="Logo" class="kop-logo">
-                @else
-                    <div class="kop-logo" style="display: flex; align-items: center; justify-content: center; background: #e5e7eb; border-radius: 8px;">
-                        <i class="fas fa-school" style="font-size: 1.8rem; color: #4b5563;"></i>
-                    </div>
-                @endif
-                <div class="kop-text">
-                    <h2>{{ $sekolah->nama ?? 'SEKOLAH MENENGAH KEJURUAN / ATAS' }}</h2>
-                    <h3>NPSN: {{ $sekolah->npsn ?? '-' }} &bull; STATUS: TERAKREDITASI</h3>
-                    <p>{{ $sekolah->alamat_jalan ?? '' }}, {{ $sekolah->kabupaten_kota ?? '' }}</p>
-                </div>
+            <!-- Watermark Logo SAE -->
+            <div class="watermark-sae">
+                <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
             </div>
 
-            <div class="doc-title">
-                <h1>JADWAL PELAJARAN KELAS {{ strtoupper($rombel->nama) }}</h1>
-                <p style="font-size: 0.78rem; color: #6b7280; margin-top: 2px;">Tahun Pelajaran {{ date('Y') }}/{{ date('Y') + 1 }}</p>
+            <!-- Header Dokumen Bersih (Tanpa Kop Surat) -->
+            <div class="doc-header">
+                <div class="school-name">{{ $sekolah->nama ?? 'SEKOLAH' }}</div>
+                <div class="doc-title-main">JADWAL PELAJARAN KELAS {{ strtoupper($rombel->nama) }}</div>
+                <div class="doc-subtitle">Tahun Pelajaran {{ date('Y') }}/{{ date('Y') + 1 }} &bull; Semester Genap</div>
             </div>
 
             <div class="info-box">
@@ -291,12 +310,34 @@
                                 @if ($item)
                                     @php
                                         $rowSpan = $item->jam_ke_selesai - $item->jam_ke_mulai + 1;
+                                        $isUpacara = $item->mata_pelajaran_id === 'UPACARA';
+                                        $isPembiasaan = $item->mata_pelajaran_id === 'PEMBIASAAN';
+                                        $isIstirahat = $item->mata_pelajaran_id === 'ISTIRAHAT';
+
+                                        $cellClass = 'cell-kbm';
+                                        if ($isUpacara) $cellClass .= ' cell-upacara';
+                                        elseif ($isPembiasaan) $cellClass .= ' cell-pembiasaan';
+                                        elseif ($isIstirahat) $cellClass .= ' cell-istirahat';
                                     @endphp
-                                    <td class="cell-kbm" rowspan="{{ $rowSpan }}">
-                                        <span class="mapel-name">{{ $item->nama_mata_pelajaran }}</span>
-                                        <span class="guru-name">{{ $item->nama_guru ?? 'Guru Pengampu' }}</span>
-                                        @if ($item->ruangan)
-                                            <span style="font-size: 0.65rem; color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
+                                    <td class="{{ $cellClass }}" rowspan="{{ $rowSpan }}">
+                                        @if ($isUpacara)
+                                            <span class="routine-title"><i class="fas fa-flag text-danger"></i> {{ $item->nama_mata_pelajaran }}</span>
+                                            <span class="guru-name">Dewan Guru &amp; Siswa</span>
+                                            @if ($item->ruangan)
+                                                <span style="font-size: 0.65rem; color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
+                                            @endif
+                                        @elseif ($isPembiasaan)
+                                            <span class="routine-title"><i class="fas fa-hands-praying text-success"></i> {{ $item->nama_mata_pelajaran }}</span>
+                                            <span class="guru-name">Wali Kelas &amp; Guru</span>
+                                        @elseif ($isIstirahat)
+                                            <span class="routine-title"><i class="fas fa-mug-hot text-warning"></i> {{ $item->nama_mata_pelajaran }}</span>
+                                            <span class="guru-name">Jeda Istirahat</span>
+                                        @else
+                                            <span class="mapel-name">{{ $item->nama_mata_pelajaran }}</span>
+                                            <span class="guru-name">{{ $item->nama_guru ?? 'Guru Pengampu' }}</span>
+                                            @if ($item->ruangan)
+                                                <span style="font-size: 0.65rem; color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
+                                            @endif
                                         @endif
                                     </td>
                                 @elseif (!$isOccupied)
@@ -311,18 +352,18 @@
             <div class="signature-container">
                 <div class="sig-box">
                     <p>Mengetahui,</p>
+                    <p style="font-weight: 600;">Kepala Sekolah,</p>
+                    <div class="sig-space"></div>
+                    <p class="sig-name">{{ $kepalaSekolah?->nama ?? '......................................................' }}</p>
+                    <p style="font-size: 0.72rem; color: #6b7280;">NIP. {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</p>
+                </div>
+
+                <div class="sig-box">
+                    <p>{{ $sekolah->kabupaten_kota ? str_replace(['Kabupaten ', 'Kota '], '', $sekolah->kabupaten_kota) : 'Tempat' }}, {{ now()->translatedFormat('d F Y') }}</p>
                     <p style="font-weight: 600;">Wali Kelas {{ $rombel->nama }}</p>
                     <div class="sig-space"></div>
                     <p class="sig-name">{{ $rombel->nama_wali_kelas ?: '___________________________' }}</p>
                     <p style="font-size: 0.72rem; color: #6b7280;">NIP. {{ $rombel->nip_wali_kelas ?: '-' }}</p>
-                </div>
-
-                <div class="sig-box">
-                    <p>{{ $sekolah->kabupaten_kota ?? 'Tempat' }}, {{ date('d F Y') }}</p>
-                    <p style="font-weight: 600;">Kepala Sekolah,</p>
-                    <div class="sig-space"></div>
-                    <p class="sig-name">___________________________</p>
-                    <p style="font-size: 0.72rem; color: #6b7280;">NIP. -</p>
                 </div>
             </div>
         </div>

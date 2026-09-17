@@ -35,67 +35,42 @@
             background: #fff;
         }
 
-        /* Kop Surat Banner Resmi (Letterhead Hasil Upload) */
-        .kop-banner-wrap {
-            width: 100%;
-            text-align: center;
-            margin-bottom: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '4px' : '8px' }};
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 440px;
+            height: 440px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
         }
-        .kop-banner-img {
+        .watermark-sae img {
             width: 100%;
-            max-width: 100%;
             height: auto;
-            display: block;
-            margin: 0 auto;
+            filter: grayscale(100%);
         }
 
-        .kop-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 6px;
-        }
-        .kop-table td {
-            vertical-align: middle;
-            padding: 0;
-        }
-        .kop-logo {
-            width: 70px;
+        /* Header Dokumen Bersih (Tanpa Kop Surat) */
+        .doc-header {
             text-align: center;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+            margin-bottom: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '8px' : '12px' }};
+            position: relative;
+            z-index: 1;
         }
-        .kop-logo img {
-            width: 60px;
-            height: auto;
-        }
-        .kop-text {
-            text-align: center;
-            padding-right: 70px;
-        }
-        .kop-instansi {
-            font-size: 12px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #374151;
-            margin: 0;
-        }
-        .kop-sekolah {
-            font-size: 16px;
+        .doc-header .school-name {
+            font-size: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '13px' : '15px' }};
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #000;
-            margin: 2px 0;
-        }
-        .kop-alamat {
-            font-size: 9.5px;
-            color: #4b5563;
-            margin: 0;
-        }
-        .kop-divider {
-            border-top: 2.5px solid #000;
-            border-bottom: 1px solid #000;
-            height: 3px;
-            margin-bottom: 10px;
+            letter-spacing: 0.6px;
+            color: #111827;
         }
 
         .doc-title-wrap {
@@ -240,46 +215,15 @@
         </button>
     </div>
 
-    <div style="background: #fff; max-width: {{ ($tipe === 'bulan' || $tipe === 'semester' || $tipe === 'tahun') ? '297mm' : '210mm' }}; margin: 0 auto; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 6px;">
+    <div style="background: #fff; max-width: {{ ($tipe === 'bulan' || $tipe === 'semester' || $tipe === 'tahun') ? '297mm' : '210mm' }}; margin: 0 auto; padding: 12mm 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 6px; position: relative; overflow: hidden;">
+
+        <!-- Watermark Logo SAE -->
+        <div class="watermark-sae">
+            <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
+        </div>
 
     @php
-        $meta = $sekolahMeta ?? (class_exists(\App\Models\SekolahMeta::class) ? \App\Models\SekolahMeta::first() : null);
-
-        // 1. Cek berkas Kop Surat Resmi (Banner Letterhead) yang telah diunggah di Identitas Sekolah
-        $kopBase64 = null;
-        if (!empty($meta?->kop_path)) {
-            $storageKop = storage_path('app/public/' . $meta->kop_path);
-            if (file_exists($storageKop)) {
-                $kopBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($storageKop));
-            } elseif (file_exists(public_path('storage/' . $meta->kop_path))) {
-                $kopBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('storage/' . $meta->kop_path)));
-            }
-        }
-
-        // 2. Cek berkas Logo Resmi Sekolah (digunakan jika kop surat banner belum diunggah)
-        $logoBase64 = null;
-        if (!empty($meta?->logo_path)) {
-            $storageLogo = storage_path('app/public/' . $meta->logo_path);
-            if (file_exists($storageLogo)) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($storageLogo));
-            } elseif (file_exists(public_path('storage/' . $meta->logo_path))) {
-                $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents(public_path('storage/' . $meta->logo_path)));
-            }
-        }
-        if (!$logoBase64) {
-            $defaultLogos = [
-                public_path('img/logo-sekolah.png'),
-                public_path('img/logo-icon.png'),
-            ];
-            foreach ($defaultLogos as $def) {
-                if (file_exists($def)) {
-                    $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($def));
-                    break;
-                }
-            }
-        }
-
-        // 3. Resolusi NIP Wali Kelas jika belum didefinisikan
+        // Resolusi NIP Wali Kelas jika belum didefinisikan
         if (empty($waliNip) || $waliNip === '—') {
             $waliGtkObj = null;
             if (!empty($activeRombel?->ptk_id)) {
@@ -294,41 +238,11 @@
         }
     @endphp
 
-
-    <div style="padding: 10px;">
-        @if ($kopBase64)
-            <!-- KOP SURAT RESMI SEKOLAH (DARI BERKAS YANG DIUNGGAH DI SISTEM) -->
-            <div class="kop-banner-wrap">
-                <img src="{{ $kopBase64 }}" class="kop-banner-img" alt="Kop Surat Resmi Sekolah">
-            </div>
-        @else
-            <!-- KOP SURAT TEKS DENGAN LOGO RESMI SEKOLAH -->
-            <table class="kop-table">
-                <tr>
-                    <td class="kop-logo">
-                        @if ($logoBase64)
-                            <img src="{{ $logoBase64 }}" alt="Logo Sekolah">
-                        @endif
-                    </td>
-                    <td class="kop-text">
-                        <div class="kop-instansi">DINAS PENDIDIKAN DAN KEBUDAYAAN</div>
-                        <div class="kop-sekolah">{{ $sekolah?->nama ?? 'SATUAN PENDIDIKAN' }}</div>
-                        <div class="kop-alamat">
-                            NPSN: {{ $sekolah?->npsn ?? '-' }} &bull;
-                            {{ $sekolah?->alamat_jalan ?? '' }}
-                            {{ $sekolah?->desa_kelurahan ? 'Desa ' . $sekolah->desa_kelurahan . ',' : '' }}
-                            {{ $sekolah?->kecamatan ? 'Kec. ' . $sekolah->kecamatan . ',' : '' }}
-                            {{ $sekolah?->kabupaten_kota ?? '' }}
-                            {{ $sekolah?->kode_pos ? 'Kode Pos ' . $sekolah->kode_pos : '' }}
-                        </div>
-                        <div class="kop-alamat">
-                            Telp: {{ $sekolah?->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah?->email ?? '-' }} &bull; Website: {{ $sekolah?->website ?? '-' }}
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <div class="kop-divider"></div>
-        @endif
+    <div style="position: relative; z-index: 1;">
+        <!-- Header Dokumen Bersih (Tanpa Kop Surat) -->
+        <div class="doc-header">
+            <div class="school-name">{{ $sekolah?->nama ?? 'SATUAN PENDIDIKAN' }}</div>
+        </div>
 
         <!-- JUDUL LAPORAN BERDASARKAN TIPE -->
         <div class="doc-title-wrap">
@@ -691,6 +605,7 @@
                 </td>
             </tr>
         </table>
+        </div>
     </div>
 
 </body>

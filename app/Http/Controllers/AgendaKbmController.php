@@ -428,10 +428,15 @@ class AgendaKbmController extends Controller
         $items = $query->orderBy('tanggal', 'asc')->orderBy('pertemuan_ke', 'asc')->get();
 
         $sekolah = DB::table('sekolah')->first();
+        $kepalaSekolah = DB::table('gtk')
+            ->where(function ($w) {
+                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
+            })->first();
         $targetPtkId = ($isGuru && $ptkId) ? $ptkId : $request->filter_ptk_id;
         $guru = $targetPtkId ? DB::table('gtk')->where('ptk_id', $targetPtkId)->first() : null;
         $rombel = $request->filled('rombongan_belajar_id') ? DB::table('rombongan_belajar')->where('rombongan_belajar_id', $request->rombongan_belajar_id)->first() : null;
 
-        return view('dashboard.agenda-kbm-cetak', compact('items', 'sekolah', 'guru', 'rombel'));
+        return view('dashboard.agenda-kbm-cetak', compact('items', 'sekolah', 'guru', 'rombel', 'kepalaSekolah'));
     }
 }

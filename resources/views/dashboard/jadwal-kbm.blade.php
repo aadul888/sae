@@ -154,29 +154,26 @@
                     </span>
                     @foreach (\App\Models\JadwalKbm::HARI_LIST as $h)
                         @php
-                            $isDayActive = $selectedHari === $h;
-                            $count = $countPerHari[$h] ?? 0;
                             $hJp = $dailySlotCounts[$h] ?? ($h === 'Jumat' ? 5 : $pengaturan->total_slot_jp ?? 10);
+                            $isHariAktif = in_array($h, $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'], true) && ($hJp > 0);
                         @endphp
-                        <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['hari' => $h, 'view_mode' => 'grid'])) }}"
-                            class="btn {{ $isDayActive ? 'btn-primary' : 'btn-outline' }} btn-day-tab"
-                            data-hari="{{ $h }}"
-                            style="padding: 6px 14px; font-size: 0.82rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                            <span>{{ $h }}</span>
-                            @if ($hJp > 0)
+                        @if ($isHariAktif || $hJp > 0)
+                            @php
+                                $isDayActive = $selectedHari === $h;
+                                $count = $countPerHari[$h] ?? 0;
+                            @endphp
+                            <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['hari' => $h, 'view_mode' => 'grid'])) }}"
+                                class="btn {{ $isDayActive ? 'btn-primary' : 'btn-outline' }} btn-day-tab"
+                                data-hari="{{ $h }}"
+                                style="padding: 6px 14px; font-size: 0.82rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                                <span>{{ $h }}</span>
                                 <span class="badge"
                                     style="{{ $isDayActive ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--bg-hover); color: var(--text-muted);' }} font-size: 0.72rem; padding: 2px 6px; border-radius: 10px;"
                                     title="{{ $hJp }} JP ({{ $count }} jadwal)">
                                     {{ $hJp }} JP
                                 </span>
-                            @else
-                                <span class="badge"
-                                    style="{{ $isDayActive ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--bg-hover); color: var(--text-muted); opacity: 0.75;' }} font-size: 0.68rem; padding: 2px 6px; border-radius: 10px;"
-                                    title="0 JP (Libur / Tanpa Jam Pelajaran)">
-                                    Libur
-                                </span>
-                            @endif
-                        </a>
+                            </a>
+                        @endif
                     @endforeach
                 </div>
 
@@ -1409,11 +1406,20 @@
                     </label>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh)
+                            @php
+                                $dhSlot = $dailySlotCounts[$dh] ?? 0;
+                                $isDhLibur = ($dhSlot <= 0);
+                            @endphp
                             <label
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: pointer; background: var(--bg-hover); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: {{ $isDhLibur ? 'not-allowed' : 'pointer' }}; background: var(--bg-hover); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color); opacity: {{ $isDhLibur ? '0.6' : '1' }};"
+                                title="{{ $isDhLibur ? "Hari {$dh} diatur 0 JP (Libur / Tanpa Jam Pelajaran)" : "{$dh} ({$dhSlot} JP)" }}">
                                 <input type="checkbox" name="hari_aktif[]" value="{{ $dh }}"
-                                    {{ $dh !== 'Sabtu' ? 'checked' : '' }}>
-                                {{ $dh }}
+                                    {{ (!$isDhLibur && in_array($dh, $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'], true)) ? 'checked' : '' }}
+                                    {{ $isDhLibur ? 'disabled' : '' }}>
+                                <span>{{ $dh }}</span>
+                                @if ($isDhLibur)
+                                    <span style="font-size: 0.68rem; color: #ef4444; font-weight: 700;">(Libur)</span>
+                                @endif
                             </label>
                         @endforeach
                     </div>

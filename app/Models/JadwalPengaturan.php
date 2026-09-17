@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class JadwalPengaturan extends Model
 {
@@ -167,6 +168,20 @@ class JadwalPengaturan extends Model
             $totalSlots = $dailyCounts[$hari] ?? (int) $setting->total_slot_jp;
         } else {
             $totalSlots = (int) $setting->total_slot_jp;
+        }
+
+        // Pastikan tidak ada jam jadwal KBM aktif di database (misal kelas XII / PKL) yang terpotong
+        try {
+            $queryMax = DB::table('jadwal_kbm')->where('is_active', true);
+            if ($hari) {
+                $queryMax->where('hari', $hari);
+            }
+            $maxDbSlot = (int) $queryMax->max('jam_ke_selesai');
+            if ($maxDbSlot > $totalSlots) {
+                $totalSlots = min(16, $maxDbSlot);
+            }
+        } catch (\Throwable $e) {
+            // Abaikan jika query belum dapat dieksekusi
         }
 
         $totalSlots = max(0, min(16, (int) $totalSlots));
