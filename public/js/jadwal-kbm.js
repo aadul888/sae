@@ -820,7 +820,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             title: "Berhasil Disimpan!",
                             text:
                                 data.message ||
-                                "Pengaturan slot jam KBM telah diperbarui.",
+                                "Pengaturan jam pelajaran KBM telah diperbarui.",
                             timer: 1500,
                             showConfirmButton: false,
                         });
@@ -945,7 +945,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             Swal.fire({
                                 icon: "success",
                                 title: "Auto-Generate Selesai!",
-                                html: `<strong>${data.message}</strong><br><small style="color: #6b7280;">Total ${data.total_generated || 0} slot pelajaran telah dijadwalkan tanpa bentrok.</small>`,
+                                html: `<strong>${data.message}</strong><br><small style="color: #6b7280;">Total ${data.total_generated || 0} jadwal pelajaran telah dipetakan tanpa bentrok.</small>`,
                                 confirmButtonText: "Lihat Jadwal Sekarang",
                                 confirmButtonColor: "#6366f1",
                             }).then(() => {

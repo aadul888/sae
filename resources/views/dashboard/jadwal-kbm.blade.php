@@ -73,7 +73,7 @@
                 </button>
                 <button type="button" class="btn btn-outline" id="btnBukaPengaturanSlot"
                     style="padding: 8px 14px; font-size: 0.85rem;" title="Atur Jam Pelajaran, Durasi JP, dan Istirahat">
-                    <i class="fas fa-sliders me-1"></i> Atur Jam &amp; Slot
+                    <i class="fas fa-sliders me-1"></i> Atur Jam Pelajaran
                 </button>
             @endif
 
@@ -464,7 +464,7 @@
                                                 data-jam-selesai="{{ $slot['selesai'] }}"
                                                 style="width: 100%; height: 100%; min-height: 54px; border: 1px dashed var(--border-color); border-radius: 6px; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--text-muted); transition: all 0.2s ease;">
                                                 <i class="fas fa-plus" style="font-size: 0.75rem;"></i>
-                                                <span style="font-size: 0.65rem; font-weight: 600;">Isi Slot</span>
+                                                <span style="font-size: 0.65rem; font-weight: 600;">Isi Jadwal</span>
                                             </button>
                                         @else
                                             <div
@@ -482,7 +482,7 @@
                             <td colspan="{{ max(1, count($gridRombels) + 1) }}" style="padding: 48px 24px; text-align: center; color: var(--text-muted); background: var(--bg-card);">
                                 <i class="fas fa-calendar-xmark mb-3" style="font-size: 2.2rem; opacity: 0.4;"></i>
                                 <div style="font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 4px;">Tidak Ada KBM pada Hari {{ $selectedHari }}</div>
-                                <div style="font-size: 0.82rem; color: var(--text-muted);">Total JP untuk hari {{ $selectedHari }} diatur 0 JP (Libur). Klik tombol <strong>Atur Jam &amp; Slot</strong> untuk menyesuaikan jam pelajaran.</div>
+                                <div style="font-size: 0.82rem; color: var(--text-muted);">Total JP untuk hari {{ $selectedHari }} diatur 0 JP (Libur). Klik tombol <strong>Atur Jam Pelajaran</strong> untuk menyesuaikan jam pelajaran.</div>
                             </td>
                         </tr>
                     @endforelse
@@ -956,7 +956,7 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-color);">
-                    <i class="fas fa-sliders text-primary me-2"></i> Pengaturan Jam Pelajaran &amp; Slot
+                    <i class="fas fa-sliders text-primary me-2"></i> Pengaturan Jam Pelajaran &amp; Waktu KBM
                 </h3>
                 <button type="button" id="btnTutupModalPengaturan"
                     style="background: transparent; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">
@@ -1157,7 +1157,7 @@
                     </div>
                     <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 8px;">
                         <i class="fas fa-info-circle me-1"></i> Disisipkan ke seluruh hari KBM aktif pada jam ke- yang
-                        ditentukan. Slot jam pelajaran pada jam ini terkunci untuk istirahat siswa dan dewan guru.
+                        ditentukan. Waktu belajar pada jam ini terkunci untuk istirahat siswa dan dewan guru.
                     </small>
                 </div>
 
@@ -1360,10 +1360,10 @@
                             style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; cursor: pointer; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-hover);">
                             <input type="radio" name="clear_existing" value="0" style="margin-top: 2px;">
                             <div>
-                                <strong style="color: var(--text-color); display: block;">Hanya Isi Slot Kosong (Fill
+                                <strong style="color: var(--text-color); display: block;">Hanya Isi Jadwal Kosong (Fill
                                     Gaps)</strong>
                                 <span style="color: var(--text-muted); font-size: 0.74rem;">Mempertahankan jadwal yang
-                                    sudah Anda buat manual, dan hanya mengisi slot kosong yang tersisa.</span>
+                                    sudah Anda buat manual, dan hanya mengisi jam pelajaran yang masih kosong.</span>
                             </div>
                         </label>
                     </div>

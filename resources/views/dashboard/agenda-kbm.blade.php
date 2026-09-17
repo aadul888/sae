@@ -188,7 +188,7 @@
                         <i class="fas fa-calendar-days text-primary"></i> Pilih dari Jadwal KBM
                     </label>
                     <select id="selectJadwalKbm" style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
-                        <option value="">-- Pilih Slot Jadwal KBM --</option>
+                        <option value="">-- Pilih Jadwal KBM --</option>
                         @foreach ($jadwalList as $j)
                             <option value="{{ $j['id'] }}"
                                 data-rombel-id="{{ $j['rombongan_belajar_id'] }}"

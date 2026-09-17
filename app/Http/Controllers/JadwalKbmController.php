@@ -334,7 +334,7 @@ class JadwalKbmController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Pengaturan jam pelajaran & slot harian berhasil disimpan!',
+            'message' => 'Pengaturan jam pelajaran & waktu KBM berhasil disimpan!',
             'data'    => $pengaturan,
         ]);
     }

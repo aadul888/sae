@@ -244,7 +244,7 @@
             <div style="margin-bottom: 24px; page-break-inside: avoid;">
                 <div style="background: #1e3a8a; color: #fff; padding: 5px 12px; font-weight: 800; font-size: 0.8rem; border-radius: 4px 4px 0 0; display: flex; justify-content: space-between;">
                     <span><i class="fas fa-calendar-day me-1"></i> HARI {{ strtoupper($hari) }}</span>
-                    <span>Total Slot: {{ count($slots) }} JP</span>
+                    <span>Total JP: {{ count($slots) }} JP</span>
                 </div>
                 <table class="table-induk">
                     <thead>

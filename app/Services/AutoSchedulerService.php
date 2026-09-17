@@ -602,7 +602,7 @@ class AutoSchedulerService
 
             return [
                 'success'         => true,
-                'message'         => "Berhasil men-generate {$totalGenerated} jadwal KBM ({$totalJpCreated} JP) secara otomatis tanpa slot terlewat!",
+                'message'         => "Berhasil men-generate {$totalGenerated} jadwal KBM ({$totalJpCreated} JP) secara otomatis tanpa jam pelajaran terlewat!",
                 'total_generated' => $totalGenerated,
                 'total_jp'        => $totalJpCreated,
                 'total_rombel'    => count($selectedRombelIds),
