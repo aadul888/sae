@@ -50,16 +50,6 @@
             manifestLink.setAttribute('href', '/manifest.json?v=8');
         }
 
-        const icon192 = document.getElementById('pwaIcon192');
-        if (icon192) {
-            icon192.setAttribute('href', '/img/icons/sae-icon-192x192.png?v=8');
-        }
-
-        const icon512 = document.getElementById('pwaIcon512');
-        if (icon512) {
-            icon512.setAttribute('href', '/img/icons/sae-icon-512x512.png?v=8');
-        }
-
         const appleIcon = document.getElementById('pwaAppleTouchIcon');
         if (appleIcon) {
             appleIcon.setAttribute('href', '/img/icons/sae-apple-touch-icon.png?v=8');
