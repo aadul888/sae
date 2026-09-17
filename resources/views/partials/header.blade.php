@@ -18,6 +18,11 @@
                 <span>Layanan</span>
                 <i class="fas fa-chevron-down nav-chevron-icon" id="megaLayananChevron"></i>
             </button>
+            <button type="button" class="btn-pwa-install btn" id="btnPwaInstallNav" onclick="installSaePwa()"
+                style="display: none; padding: 0.45rem 0.9rem; font-size: 0.8rem; background: rgba(16,185,129,0.14); color: #10b981; border: 1px solid rgba(16,185,129,0.25); border-radius: 10px; align-items: center; gap: 6px; cursor: pointer;"
+                title="Instal Aplikasi SAE ke Perangkat">
+                <i class="fas fa-download"></i> <span>Instal App</span>
+            </button>
             <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Ganti Tema"
                 title="Ganti Mode Gelap / Terang">
                 <i class="fas fa-moon"></i>

@@ -28,6 +28,7 @@
     <link rel="stylesheet"
         href="{{ asset('css/presensi.css') }}?v={{ file_exists(public_path('css/presensi.css')) ? filemtime(public_path('css/presensi.css')) : time() }}">
     <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
+    @include('partials.pwa-head')
 </head>
 
 <body class="kiosk-wrapper">
@@ -364,6 +365,9 @@
     </script>
     <script
         src="{{ asset('js/sae-realtime.js') }}?v={{ file_exists(public_path('js/sae-realtime.js')) ? filemtime(public_path('js/sae-realtime.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/pwa.js') }}?v={{ file_exists(public_path('js/pwa.js')) ? filemtime(public_path('js/pwa.js')) : time() }}">
     </script>
 </body>
 

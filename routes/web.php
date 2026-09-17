@@ -28,6 +28,9 @@ Route::post('/install', [InstallController::class, 'process'])->name('install.pr
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/offline', function () {
+    return response()->view('offline');
+})->name('pwa.offline');
 Route::post('/api/check-nisn', [HomeController::class, 'checkNisn'])->name('api.check-nisn');
 
 // Kartu Pelajar Digital — Verifikasi Publik & Direct Scan (Privacy-by-Design)

@@ -55,6 +55,7 @@
     <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ $logoIconVer }}">
     <link rel="shortcut icon" href="{{ asset('favicon.png') }}?v={{ $faviconVer }}">
 
+    @include('partials.pwa-head')
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <script src="{{ asset('js/sae-logos.js') }}?v={{ $logoJsVer }}"></script>
     <link rel="stylesheet" href="{{ asset('css/sae.css') }}?v={{ @filemtime(public_path('css/sae.css')) ?: '1' }}">
@@ -75,6 +76,7 @@
     @include('partials.footer')
 
     <script src="{{ asset('js/sae.js') }}?v={{ @filemtime(public_path('js/sae.js')) ?: '1' }}"></script>
+    <script src="{{ asset('js/pwa.js') }}?v={{ @filemtime(public_path('js/pwa.js')) ?: '1' }}"></script>
     @yield('scripts')
 </body>
 

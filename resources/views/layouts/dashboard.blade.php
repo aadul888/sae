@@ -43,6 +43,8 @@
     <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ $dashLogoIconVer }}">
     <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ $dashLogoIconVer }}">
 
+    @include('partials.pwa-head')
+
     <!-- FontAwesome 6 Local -->
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <script src="{{ asset('js/sae-logos.js') }}?v={{ $dashLogoJsVer }}"></script>
@@ -93,6 +95,9 @@
         </script>
         <script
             src="{{ asset('js/sae-realtime.js') }}?v={{ file_exists(public_path('js/sae-realtime.js')) ? filemtime(public_path('js/sae-realtime.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/pwa.js') }}?v={{ file_exists(public_path('js/pwa.js')) ? filemtime(public_path('js/pwa.js')) : time() }}">
         </script>
         @stack('scripts')
 </body>
