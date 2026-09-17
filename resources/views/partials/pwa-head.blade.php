@@ -1,9 +1,17 @@
 <!-- Progressive Web App (PWA) Standard Manifest & Meta Tags -->
-<link rel="manifest" href="{{ asset('manifest.webmanifest') }}?v={{ @filemtime(public_path('manifest.webmanifest')) ?: '1' }}">
+<script>
+    window.__SAE_PWA__ = {
+        swUrl: "{{ url('sw.js', [], false) }}",
+        scope: "{{ url('/', [], false) }}/",
+        isSecure: window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    };
+</script>
+<link rel="manifest" href="{{ url('manifest.json', [], false) }}?v={{ @filemtime(public_path('manifest.json')) ?: '1' }}">
+<link rel="alternate" type="application/manifest+json" href="{{ url('manifest.webmanifest', [], false) }}?v={{ @filemtime(public_path('manifest.webmanifest')) ?: '1' }}">
 
 <!-- Explicit High-Resolution PWA Icons for Android Chrome & Homescreen -->
-<link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/icons/icon-192x192.png') }}?v={{ @filemtime(public_path('img/icons/icon-192x192.png')) ?: '1' }}">
-<link rel="icon" type="image/png" sizes="512x512" href="{{ asset('img/icons/icon-512x512.png') }}?v={{ @filemtime(public_path('img/icons/icon-512x512.png')) ?: '1' }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ url('img/icons/icon-192x192.png', [], false) }}?v={{ @filemtime(public_path('img/icons/icon-192x192.png')) ?: '1' }}">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ url('img/icons/icon-512x512.png', [], false) }}?v={{ @filemtime(public_path('img/icons/icon-512x512.png')) ?: '1' }}">
 
 <!-- Android / Chrome / HarmonyOS -->
 <meta name="mobile-web-app-capable" content="yes">
