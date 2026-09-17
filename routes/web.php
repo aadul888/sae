@@ -35,7 +35,7 @@ Route::get('/offline', function () {
 // PWA Dynamic Web App Manifest
 $pwaManifestHandler = function () {
     return response()->json([
-        'id' => '/?source=pwa',
+        'id' => '/?app=sae-pwa&v=2',
         'name' => 'SAE - Sistem Aplikasi Edukasi',
         'short_name' => 'SAE',
         'description' => 'Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.',

@@ -144,8 +144,8 @@
         if (isStandalone) return;
         if (document.getElementById('saePwaInstallBanner')) return;
 
-        // Cek apakah baru saja ditolak dalam 24 jam terakhir
-        const dismissedAt = localStorage.getItem('sae_pwa_install_dismissed');
+        // Cek apakah baru saja ditolak dalam 24 jam terakhir (versi 2)
+        const dismissedAt = localStorage.getItem('sae_pwa_install_dismissed_v2');
         if (dismissedAt) {
             const diffHours = (Date.now() - parseInt(dismissedAt, 10)) / (1000 * 60 * 60);
             if (diffHours < 24) {
@@ -196,7 +196,7 @@
                 banner.remove();
             }, 300);
         }
-        localStorage.setItem('sae_pwa_install_dismissed', Date.now().toString());
+        localStorage.setItem('sae_pwa_install_dismissed_v2', Date.now().toString());
     };
 
     // 5. Tangani Event Instalasi PWA (beforeinstallprompt)
@@ -273,24 +273,29 @@
 
         let guideHtml = '';
 
-        if (!isSecure && isAndroid) {
+        if (isAndroid) {
             guideHtml = `
                 <div style="text-align: left; font-size: 0.88rem; line-height: 1.6; color: var(--text-main, #f8fafc);">
-                    <div style="background: rgba(79, 110, 247, 0.1); border: 1px solid rgba(79, 110, 247, 0.25); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 10px;">
+                    <div style="background: rgba(79, 110, 247, 0.12); border: 1px solid rgba(79, 110, 247, 0.28); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 10px;">
                         <i class="fas fa-mobile-screen" style="color: var(--primary, #4f6ef7); font-size: 1.3rem; margin-top: 2px;"></i>
-                        <div style="font-size: 0.82rem; color: var(--text-muted, #94a3b8); line-height: 1.4;">
-                            Aplikasi SAE siap dipasang langsung ke layar beranda HP Anda!
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-main, #f8fafc); font-size: 0.88rem; margin-bottom: 3px;">
+                                Pasang Langsung ke Layar Utama HP
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); line-height: 1.4;">
+                                Jika aplikasi sebelumnya pernah dicopot (di-uninstall), Chrome menahan tombol 1-klik otomatis untuk sementara demi keamanan.
+                            </div>
                         </div>
                     </div>
-                    <p style="margin-bottom: 8px; font-weight: 700; color: var(--text-main, #f8fafc);">Langkah Pemasangan (Chrome Android):</p>
+                    <p style="margin-bottom: 8px; font-weight: 700; color: var(--text-main, #f8fafc);">Cara Pasang Kembali Sekarang (2 Langkah):</p>
                     <ol style="padding-left: 20px; margin-bottom: 14px;">
                         <li style="margin-bottom: 8px;">Ketuk menu <strong>titik tiga (⋮)</strong> di pojok kanan atas browser Chrome.</li>
-                        <li style="margin-bottom: 8px;">Pilih <strong>"Tambahkan ke Layar Utama"</strong> (atau <strong>"Instal Aplikasi"</strong>).</li>
-                        <li>Ketuk <strong>Instal / Tambahkan</strong> untuk mengonfirmasi.</li>
+                        <li style="margin-bottom: 8px;">Pilih menu <strong>"Tambahkan ke Layar Utama"</strong> (atau <strong>"Instal Aplikasi"</strong>).</li>
+                        <li>Ketuk <strong>Instal / Tambahkan</strong>.</li>
                     </ol>
-                    <p style="font-size: 0.76rem; color: var(--text-muted, #94a3b8); margin: 0; line-height: 1.4;">
-                        <em>Catatan: Karena saat ini dibuka melalui IP lokal (HTTP), Chrome membatasi dialog 1-klik otomatis, namun pemasangan via menu titik tiga tetap berfungsi penuh dan membuat ikon resmi di layar utama.</em>
-                    </p>
+                    <div style="background: rgba(255, 255, 255, 0.04); border-radius: 8px; padding: 8px 12px; font-size: 0.76rem; color: var(--text-muted, #94a3b8); line-height: 1.45;">
+                        <strong>💡 Tips Reset Cooldown:</strong> Anda juga dapat mengetuk ikon <strong>setelan/gembok</strong> di sebelah kiri kolom URL &gt; pilih <strong>"Setelan situs"</strong> &gt; ketuk <strong>"Hapus data &amp; reset"</strong>, lalu muat ulang halaman agar Chrome mengenali HP Anda seperti semula.
+                    </div>
                 </div>
             `;
         } else if (isIOS) {
