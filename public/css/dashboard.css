@@ -3981,6 +3981,55 @@ input:disabled + .slider-toggle-crud {
     background: rgba(99, 102, 241, 0.05);
 }
 
+/* Widget Jadwal Hari Ini KBM */
+.card-kbm-today-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.today-kbm-item {
+    border: 1px solid var(--border-color);
+    background: var(--bg-hover);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+.today-kbm-item.done {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.04);
+}
+.today-kbm-item .badge-jam {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 2px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.today-kbm-item .mapel-title {
+    font-weight: 700;
+    color: var(--text-color);
+    font-size: 0.88rem;
+    line-height: 1.35;
+    margin-bottom: 2px;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* Modal Responsif Mobile */
 @media (max-width: 767px) {
     .form-grid-2,
@@ -4010,8 +4059,15 @@ input:disabled + .slider-toggle-crud {
         flex: 1 !important;
         justify-content: center !important;
     }
+    .card-widget-kbm {
+        padding: 12px 12px !important;
+    }
     .card-kbm-today-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 100% !important;
+        gap: 10px !important;
+    }
+    .today-kbm-item {
+        padding: 10px 12px !important;
     }
     .dash-stat-grid {
         grid-template-columns: repeat(2, 1fr) !important;
@@ -4034,6 +4090,10 @@ input:disabled + .slider-toggle-crud {
     }
     .status-pill-group {
         grid-template-columns: 1fr !important;
+    }
+    .dash-stat-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
     }
 }
 

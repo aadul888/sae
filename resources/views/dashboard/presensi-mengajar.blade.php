@@ -99,7 +99,7 @@
     </div>
 
     <!-- 4. Quick Action Widget: Jadwal Mengajar Hari Ini -->
-    <div class="card" style="padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px; background: var(--bg-card);">
+    <div class="card card-widget-kbm" style="border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px; background: var(--bg-card); padding: 16px 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
@@ -117,29 +117,29 @@
         </div>
 
         @if (count($jadwalHariIni) > 0)
-            <div class="card-kbm-today-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
+            <div class="card-kbm-today-grid">
                 @foreach ($jadwalHariIni as $j)
                     @php
                         $key = 'jadwal_' . $j->id;
                         $presensiToday = $presensiHariIniKeyed[$key] ?? null;
                         $rombelNama = \Illuminate\Support\Facades\DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
                     @endphp
-                    <div style="border: 1px solid {{ $presensiToday ? 'rgba(16,185,129,0.3)' : 'var(--border-color)' }}; background: {{ $presensiToday ? 'rgba(16,185,129,0.03)' : 'var(--bg-hover)' }}; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;">
+                    <div class="today-kbm-item {{ $presensiToday ? 'done' : '' }}">
                         <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 6px;">
-                                <span class="badge badge-primary" style="font-size: 0.74rem; font-weight: 700; padding: 2px 7px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 6px; width: 100%;">
+                                <span class="badge badge-primary" style="font-size: 0.74rem; font-weight: 700; padding: 2px 7px; flex-shrink: 0;">
                                     <i class="fas fa-chalkboard me-1"></i>{{ $rombelNama }}
                                 </span>
-                                <span class="badge" style="background: var(--bg-card); border: 1px solid var(--border-color); font-size: 0.72rem; color: var(--text-muted);">
-                                    Jam {{ $j->jam_ke_mulai }}-{{ $j->jam_ke_selesai }} ({{ $j->durasi_jp }} JP)
+                                <span class="badge-jam">
+                                    <i class="far fa-clock me-1"></i>Jam {{ $j->jam_ke_mulai }}-{{ $j->jam_ke_selesai }} ({{ $j->durasi_jp }} JP)
                                 </span>
                             </div>
 
-                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $j->nama_mata_pelajaran }}">
+                            <div class="mapel-title" title="{{ $j->nama_mata_pelajaran }}">
                                 {{ $j->nama_mata_pelajaran }}
                             </div>
 
-                            <div style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+                            <div style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px;">
                                 <span><i class="far fa-clock me-1"></i>{{ $j->jam_waktu_range }}</span>
                                 @if ($j->ruangan)
                                     <span><i class="fas fa-location-dot me-1"></i>{{ $j->ruangan }}</span>
@@ -147,23 +147,23 @@
                             </div>
                         </div>
 
-                        <div style="border-top: 1px solid var(--border-color); padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;">
                             @if ($presensiToday)
-                                <div style="display: flex; align-items: center; gap: 6px;">
+                                <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
                                     {!! $presensiToday->status_badge !!}
-                                    <span style="font-size: 0.72rem; color: var(--text-muted);">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); white-space: nowrap;">
                                         {{ substr($presensiToday->jam_masuk, 0, 5) }}
                                     </span>
                                 </div>
-                                <button type="button" class="btn btn-outline btn-sm btn-edit-row" data-id="{{ $presensiToday->id }}" title="Edit Presensi" style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px;">
+                                <button type="button" class="btn btn-outline btn-sm btn-edit-row" data-id="{{ $presensiToday->id }}" title="Edit Presensi" style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px; flex-shrink: 0;">
                                     <i class="fas fa-pen"></i>
                                 </button>
                             @else
-                                <span style="font-size: 0.74rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                <span style="font-size: 0.74rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
                                     <i class="fas fa-clock"></i> Belum
                                 </span>
                                 @if ($canCreate)
-                                    <button type="button" class="btn btn-primary btn-sm btn-quick-checkin btn-responsive-icon"
+                                    <button type="button" class="btn btn-primary btn-sm btn-quick-checkin"
                                         data-jadwal-id="{{ $j->id }}"
                                         data-rombel-id="{{ $j->rombongan_belajar_id }}"
                                         data-rombel-nama="{{ $rombelNama }}"
@@ -174,9 +174,9 @@
                                         data-jam-selesai="{{ $j->jam_ke_selesai }}"
                                         data-ptk-id="{{ $j->ptk_id }}"
                                         title="Presensi Sekarang"
-                                        style="font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600;">
+                                        style="font-size: 0.76rem; padding: 5px 12px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
                                         <i class="fas fa-calendar-check"></i>
-                                        <span class="btn-responsive-text">Presensi</span>
+                                        <span>Presensi</span>
                                     </button>
                                 @endif
                             @endif
