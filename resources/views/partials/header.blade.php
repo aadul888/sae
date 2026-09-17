@@ -1,4 +1,4 @@
-<header>
+<header class="site-header-wrap">
     @php
         $navLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
         $navLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
@@ -14,10 +14,10 @@
             <i class="fas fa-bars"></i>
         </button>
         <div class="nav-links" id="navLinks">
-            <a href="{{ url('/') }}#fitur" class="nav-link">Layanan</a>
-            <a href="{{ url('/') }}#statistik" class="nav-link">Statistik</a>
-            <a href="{{ url('/') }}#nisn" class="nav-link">Cek NISN</a>
-            <a href="{{ route('presensi.scan') }}" class="nav-link"><i class="fas fa-qrcode me-1"></i> Presensi</a>
+            <button type="button" class="btn-mega-dropdown" id="btnMegaLayanan" onclick="toggleMegaLayanan(event)">
+                <span>Layanan</span>
+                <i class="fas fa-chevron-down nav-chevron-icon" id="megaLayananChevron"></i>
+            </button>
             <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Ganti Tema"
                 title="Ganti Mode Gelap / Terang">
                 <i class="fas fa-moon"></i>
@@ -27,4 +27,39 @@
             </a>
         </div>
     </nav>
+
+    <!-- Mega Dropdown Backdrop -->
+    <div id="megaMenuBackdrop" class="mega-dropdown-backdrop" style="display: none;" onclick="closeMegaLayanan()"></div>
+
+    <!-- Mega Dropdown Panel (Persis Tampilan Dropdown Disdik Jabar) -->
+    <div id="megaMenuLayanan" class="mega-dropdown-panel" style="display: none;">
+        <div class="mega-dropdown-inner">
+            <!-- Header Panel -->
+            <div class="mega-dropdown-header">
+                <div class="mega-dropdown-title">Layanan</div>
+                <button type="button" class="mega-dropdown-close" onclick="closeMegaLayanan()" aria-label="Tutup Dropdown">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Grid Kartu Aplikasi -->
+            <div class="mega-dropdown-grid">
+                <!-- 1. Presensi Live Scanner (Utama) -->
+                <a href="{{ route('presensi.scan') }}" class="mega-item-card">
+                    <div class="mega-item-icon" style="background: rgba(16, 185, 129, 0.14); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25);">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div class="mega-item-text">
+                        <div class="mega-item-title">
+                            <span>Terminal Scanner Presensi</span>
+                            <span class="badge-live-dot">LIVE</span>
+                        </div>
+                        <div class="mega-item-desc">
+                            Pemindaian absensi kartu RFID &amp; visual webcam live realtime peserta didik dan GTK.
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
 </header>

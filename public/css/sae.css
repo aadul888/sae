@@ -190,6 +190,18 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
 }
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff !important;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.35);
+}
+.btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+    color: #fff !important;
+}
 .btn-outline {
     background: var(--input-bg);
     color: var(--text-main);
@@ -599,8 +611,9 @@ select:-webkit-autofill {
     padding: 0.5rem 0.85rem;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     overflow: hidden;
+    position: relative;
 }
 .ticker-label {
     background: rgba(59, 130, 246, 0.2);
@@ -613,26 +626,264 @@ select:-webkit-autofill {
     align-items: center;
     gap: 5px;
     flex-shrink: 0;
+    z-index: 2;
 }
-.ticker-text {
+.ticker-track {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    mask-image: linear-gradient(to right, transparent, black 15px, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15px, black 95%, transparent);
+}
+.ticker-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 28px;
+    flex-shrink: 0;
+    animation: marqueeContinuous 35s linear infinite;
     color: var(--text-muted);
     font-size: 0.82rem;
-    white-space: nowrap;
-    display: inline-block;
-    animation: marquee 65s linear infinite;
+    padding-right: 28px;
 }
-.ticker-wrap:hover .ticker-text {
+.ticker-item {
+    display: inline-flex;
+    align-items: center;
+}
+.ticker-wrap:hover .ticker-content {
     animation-play-state: paused;
     cursor: default;
 }
-@keyframes marquee {
+@keyframes marqueeContinuous {
     0% {
-        transform: translateX(100%);
+        transform: translateX(0%);
     }
     100% {
         transform: translateX(-100%);
     }
 }
+
+/* ==========================================================================
+   Mega Dropdown Menu Layanan (Tema Terintegrasi Sistem SAE)
+   ========================================================================== */
+.site-header-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Tombol Dropdown di Navbar */
+.btn-mega-dropdown {
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    padding: 0.45rem 0.95rem;
+    font-family: inherit;
+    font-size: 0.875rem;
+    color: var(--text-main);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 12px;
+    transition: all var(--transition-speed) ease;
+}
+
+.btn-mega-dropdown:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+.btn-mega-dropdown.active {
+    background: var(--bg-hover);
+    border-color: var(--border-glow);
+    color: var(--primary) !important;
+}
+
+.btn-mega-dropdown.active .nav-chevron-icon {
+    transform: rotate(180deg);
+    color: var(--primary);
+}
+
+.nav-chevron-icon {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+/* Mega Dropdown Backdrop (Meredupkan Halaman di Bawahnya) */
+.mega-dropdown-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
+    animation: megaFadeIn 0.2s ease;
+}
+
+@keyframes megaFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Mega Dropdown Panel Floating Overlay (Menumpang di Atas Konten - Zero Shift) */
+.mega-dropdown-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1002;
+    background: var(--navbar-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid var(--border-glass);
+    animation: megaSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes megaSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mega-dropdown-inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 22px 5% 26px;
+}
+
+/* Header Panel */
+.mega-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.mega-dropdown-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+}
+
+.mega-dropdown-close {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-glass);
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all var(--transition-speed) ease;
+}
+
+.mega-dropdown-close:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: rotate(90deg);
+}
+
+/* Grid Kartu Aplikasi */
+.mega-dropdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 400px));
+    gap: 14px;
+}
+
+.mega-item-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    text-decoration: none;
+    transition: all var(--transition-speed) ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.mega-item-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-glow);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.mega-item-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.mega-item-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.mega-item-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 3px;
+}
+
+.badge-live-dot {
+    font-size: 0.62rem;
+    font-weight: 800;
+    background: var(--success);
+    color: #ffffff;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.mega-item-desc {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Responsif Mobile & Tablet */
+@media (max-width: 992px) {
+    .mega-dropdown-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
 
 /* Hero */
 .hero {
@@ -1010,6 +1261,66 @@ select:-webkit-autofill {
     }
     .nav-links.active {
         display: flex;
+    }
+    .btn-mega-dropdown {
+        width: 100%;
+        justify-content: center;
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+    }
+    .theme-toggle-btn {
+        margin: 0 auto;
+    }
+    .nav-links .btn-primary {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+
+    /* Mega Dropdown Panel Responsive Mobile */
+    .mega-dropdown-panel {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        max-height: calc(100vh - 65px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        background: var(--navbar-mobile-bg);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+        z-index: 1002;
+    }
+    .mega-dropdown-inner {
+        padding: 16px 16px 40px;
+    }
+    .mega-dropdown-header {
+        margin-bottom: 14px;
+    }
+    .mega-dropdown-title {
+        font-size: 1.2rem;
+    }
+    .mega-dropdown-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+    }
+    .mega-item-card {
+        padding: 12px 14px;
+    }
+    .mega-item-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+    }
+    .mega-item-title {
+        font-size: 0.92rem;
+    }
+    .mega-item-desc {
+        font-size: 0.76rem;
     }
     .nav-link {
         width: 100%;

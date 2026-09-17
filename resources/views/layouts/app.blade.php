@@ -74,7 +74,7 @@
 
     @include('partials.footer')
 
-    <script src="{{ asset('js/sae.js') }}"></script>
+    <script src="{{ asset('js/sae.js') }}?v={{ @filemtime(public_path('js/sae.js')) ?: '1' }}"></script>
     @yield('scripts')
 </body>
 

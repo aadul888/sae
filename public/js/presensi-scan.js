@@ -102,8 +102,9 @@ document.addEventListener('DOMContentLoaded', function () {
         btnToggleSpeech.addEventListener('click', function () {
             isSpeechEnabled = !isSpeechEnabled;
             this.innerHTML = isSpeechEnabled
-                ? '<i class="fas fa-volume-high"></i> Suara Aktif'
-                : '<i class="fas fa-volume-xmark"></i> Suara Nonaktif';
+                ? '<i class="fas fa-volume-high"></i>'
+                : '<i class="fas fa-volume-xmark"></i>';
+            this.setAttribute('title', isSpeechEnabled ? 'Suara Aktif (Klik untuk membisukan)' : 'Suara Nonaktif (Klik untuk mengaktifkan)');
             this.classList.toggle('btn-outline', !isSpeechEnabled);
             this.classList.toggle('btn-primary', isSpeechEnabled);
         });
@@ -149,13 +150,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (videoEl) {
                 videoEl.srcObject = videoStream;
+                const statusEl = document.getElementById('cameraStatusBadge');
+                if (statusEl) {
+                    statusEl.innerHTML = '<i class="fas fa-video"></i>';
+                    statusEl.className = 'badge-status-icon status-ok';
+                    statusEl.setAttribute('title', 'Kamera Siap / Aktif');
+                }
             }
         } catch (err) {
             console.warn('Gagal membuka kamera / izin ditolak:', err);
             const statusEl = document.getElementById('cameraStatusBadge');
             if (statusEl) {
-                statusEl.innerHTML = '<i class="fas fa-video-slash"></i> Kamera Nonaktif';
-                statusEl.className = 'badge badge-warning';
+                statusEl.innerHTML = '<i class="fas fa-video-slash"></i>';
+                statusEl.className = 'badge-status-icon status-err';
+                statusEl.setAttribute('title', 'Kamera Nonaktif / Izin Ditolak');
             }
         }
     }
@@ -219,11 +227,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (gpsBadge) {
                 if (inRadius) {
-                    gpsBadge.className = 'badge badge-success';
-                    gpsBadge.innerHTML = `<i class="fas fa-location-dot"></i> GPS: Radius OK (${currentDistance}m)`;
+                    gpsBadge.className = 'badge-status-icon status-ok';
+                    gpsBadge.innerHTML = '<i class="fas fa-location-dot"></i>';
+                    gpsBadge.setAttribute('title', `GPS: Radius OK (${currentDistance}m)`);
                 } else {
-                    gpsBadge.className = 'badge badge-danger';
-                    gpsBadge.innerHTML = `<i class="fas fa-triangle-exclamation"></i> GPS: Luar Radius (${currentDistance}m / maks ${schoolRadius}m)`;
+                    gpsBadge.className = 'badge-status-icon status-err';
+                    gpsBadge.innerHTML = '<i class="fas fa-triangle-exclamation"></i>';
+                    gpsBadge.setAttribute('title', `GPS: Luar Radius (${currentDistance}m / maks ${schoolRadius}m)`);
                 }
             }
 
@@ -234,8 +244,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             if (gpsBadge) {
-                gpsBadge.className = 'badge badge-primary';
-                gpsBadge.innerHTML = `<i class="fas fa-location-dot"></i> GPS: Aktif (&plusmn;${Math.round(accuracy)}m)`;
+                gpsBadge.className = 'badge-status-icon status-ok';
+                gpsBadge.innerHTML = '<i class="fas fa-location-dot"></i>';
+                gpsBadge.setAttribute('title', `GPS: Aktif (±${Math.round(accuracy)}m)`);
             }
             if (gpsDistanceText) {
                 gpsDistanceText.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
@@ -251,11 +262,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (gpsBadge) {
             if (err.code === 1) {
-                gpsBadge.className = 'badge badge-danger';
-                gpsBadge.innerHTML = '<i class="fas fa-location-slash"></i> GPS: Izin Ditolak';
+                gpsBadge.className = 'badge-status-icon status-err';
+                gpsBadge.innerHTML = '<i class="fas fa-location-slash"></i>';
+                gpsBadge.setAttribute('title', 'GPS: Izin Lokasi Ditolak');
             } else {
-                gpsBadge.className = 'badge badge-warning';
-                gpsBadge.innerHTML = '<i class="fas fa-location-crosshairs"></i> GPS: Mencari Sinyal...';
+                gpsBadge.className = 'badge-status-icon status-warn';
+                gpsBadge.innerHTML = '<i class="fas fa-location-crosshairs"></i>';
+                gpsBadge.setAttribute('title', 'GPS: Mencari Sinyal...');
             }
         }
 
@@ -274,8 +287,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!navigator.geolocation) {
             if (gpsBadge) {
-                gpsBadge.className = 'badge badge-warning';
-                gpsBadge.innerHTML = '<i class="fas fa-location-slash"></i> GPS: Tidak Didukung';
+                gpsBadge.className = 'badge-status-icon status-err';
+                gpsBadge.innerHTML = '<i class="fas fa-location-slash"></i>';
+                gpsBadge.setAttribute('title', 'GPS: Tidak Didukung Browser');
             }
             if (gpsDistanceText) {
                 gpsDistanceText.textContent = 'Browser tidak mendukung GPS';
@@ -613,4 +627,15 @@ document.addEventListener('DOMContentLoaded', function () {
             feedList.removeChild(feedList.lastChild);
         }
     }
+
+    // Otomatis kunci sesi kiosk saat pengguna meninggalkan/berpindah dari halaman scanner presensi
+    window.addEventListener('pagehide', function () {
+        if (navigator.sendBeacon) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const formData = new FormData();
+            formData.append('_token', csrfToken || '');
+            navigator.sendBeacon('/presensi/kiosk/lock', formData);
+        }
+    });
 });
+

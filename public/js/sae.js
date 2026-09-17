@@ -94,6 +94,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (navToggle && navLinks) {
         navToggle.addEventListener("click", () => {
+            if (typeof window.closeMegaLayanan === "function") {
+                window.closeMegaLayanan();
+            }
             navLinks.classList.toggle("active");
         });
     }
@@ -523,3 +526,84 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 });
+
+// Global Controller Mega Dropdown Layanan (Gaya Disdik Jabar)
+window.toggleMegaLayanan = function (event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    const panel = document.getElementById("megaMenuLayanan");
+    const btn = document.getElementById("btnMegaLayanan");
+    if (!panel) return;
+
+    const isVisible = panel.style.display === "block";
+    if (isVisible) {
+        window.closeMegaLayanan();
+    } else {
+        window.openMegaLayanan();
+    }
+};
+
+window.openMegaLayanan = function () {
+    const panel = document.getElementById("megaMenuLayanan");
+    const btn = document.getElementById("btnMegaLayanan");
+    const backdrop = document.getElementById("megaMenuBackdrop");
+    const navLinks = document.getElementById("navLinks");
+
+    // Di mobile, tutup menu hamburger agar tidak bertumpuk di atas kartu layanan
+    if (navLinks && navLinks.classList.contains("active")) {
+        navLinks.classList.remove("active");
+    }
+
+    if (panel) {
+        panel.style.display = "block";
+        if (btn) btn.classList.add("active");
+    }
+    if (backdrop) {
+        backdrop.style.display = "block";
+    }
+    if (window.innerWidth <= 768) {
+        document.body.style.overflow = "hidden";
+    }
+};
+
+window.closeMegaLayanan = function () {
+    const panel = document.getElementById("megaMenuLayanan");
+    const btn = document.getElementById("btnMegaLayanan");
+    const backdrop = document.getElementById("megaMenuBackdrop");
+
+    if (panel) {
+        panel.style.display = "none";
+        if (btn) btn.classList.remove("active");
+    }
+    if (backdrop) {
+        backdrop.style.display = "none";
+    }
+    document.body.style.overflow = "";
+};
+
+// Aliases for compatibility
+window.openLayananModal = window.openMegaLayanan;
+window.closeLayananModal = window.closeMegaLayanan;
+
+// Klik di luar header atau pada backdrop untuk menutup dropdown
+document.addEventListener("click", function (e) {
+    const header = document.querySelector(".site-header-wrap");
+    const backdrop = document.getElementById("megaMenuBackdrop");
+    if (backdrop && e.target === backdrop) {
+        window.closeMegaLayanan();
+        return;
+    }
+    if (header && !header.contains(e.target)) {
+        window.closeMegaLayanan();
+    }
+});
+
+// Tutup dengan tombol Escape
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        window.closeMegaLayanan();
+    }
+});
+

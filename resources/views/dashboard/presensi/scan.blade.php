@@ -15,6 +15,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- SAE Design System & Presensi CSS with Cache Busting -->
+    <script>
+        (function() {
+            const t = localStorage.getItem('sae_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        })();
+    </script>
     <link rel="stylesheet"
         href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
     <link rel="stylesheet"
@@ -28,8 +34,15 @@
     <!-- Kiosk Header Bar -->
     <header class="kiosk-header">
         <div class="kiosk-header-left">
-            <img src="{{ asset('img/logo-dark.png') }}" alt="SAE Logo" class="kiosk-logo"
-                onerror="this.src='/img/logo-dark.png';">
+            @php
+                $kioskLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
+                $kioskLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
+            @endphp
+            <a href="{{ route('presensi.kiosk.lock') }}?redirect={{ urlencode(url('/')) }}" title="Kembali ke Beranda" style="display: inline-flex; align-items: center; text-decoration: none;">
+                <img src="{{ $kioskLogoDark }}" alt="SAE Logo" class="kiosk-logo" id="navLogo"
+                    data-dark="{{ $kioskLogoDark }}" data-light="{{ $kioskLogoLight }}"
+                    onerror="this.onerror=null; this.src='/img/logo-dark.png';">
+            </a>
             <div class="kiosk-title-wrap">
                 <h1 class="kiosk-header-title">
                     <span>Terminal Scanner Presensi</span>
@@ -50,18 +63,16 @@
             </div>
 
             <div class="kiosk-header-actions">
-                <button type="button" id="btnToggleSpeech" class="btn btn-primary btn-kiosk-action">
-                    <i class="fas fa-volume-high"></i> <span class="btn-text">Suara Aktif</span>
+                <button type="button" id="themeToggleBtn" class="btn btn-outline btn-kiosk-action theme-toggle-btn"
+                    aria-label="Ganti Tema" title="Ganti Mode Gelap / Terang">
+                    <i class="fas fa-moon"></i>
                 </button>
-                @if (!empty($isKioskSession))
-                    <a href="{{ route('presensi.kiosk.lock') }}" id="btnKioskLock" class="btn btn-danger btn-kiosk-action" title="Kunci dan keluar dari mode terminal">
-                        <i class="fas fa-lock"></i> <span class="btn-text">Kunci Terminal</span>
-                    </a>
-                @else
-                    <a href="{{ route('dashboard.presensi.index') }}" class="btn btn-outline btn-kiosk-action">
-                        <i class="fas fa-arrow-left"></i> <span class="btn-text">Dashboard</span>
-                    </a>
-                @endif
+                <button type="button" id="btnToggleSpeech" class="btn btn-primary btn-kiosk-action" title="Suara Aktif (Klik untuk membisukan)">
+                    <i class="fas fa-volume-high"></i>
+                </button>
+                <a href="{{ route('presensi.kiosk.lock') }}" id="btnKioskLock" class="btn btn-danger btn-kiosk-action" title="Kunci Sistem (Power Off Terminal)">
+                    <i class="fas fa-power-off"></i>
+                </a>
             </div>
         </div>
     </header>
@@ -113,29 +124,24 @@
         <!-- Left Column: Camera Viewfinder & Scanner Station -->
         <div class="kiosk-scanner-card">
             <!-- Mode Switcher (Modern Segmented Bar) -->
+            <!-- Mode Switcher (Modern Segmented Bar - Icon Only) -->
             <div class="kiosk-mode-pills">
-                <label class="kiosk-mode-pill">
+                <label class="kiosk-mode-pill" title="Mode Otomatis (Masuk/Pulang Otomatis)">
                     <input type="radio" name="kiosk_mode" value="auto" checked>
                     <span class="pill-content">
                         <i class="fas fa-rotate"></i>
-                        <span class="pill-label-desktop">Mode Otomatis</span>
-                        <span class="pill-label-mobile">Otomatis</span>
                     </span>
                 </label>
-                <label class="kiosk-mode-pill">
+                <label class="kiosk-mode-pill" title="Presensi Masuk">
                     <input type="radio" name="kiosk_mode" value="masuk">
                     <span class="pill-content">
                         <i class="fas fa-right-to-bracket"></i>
-                        <span class="pill-label-desktop">Presensi Masuk</span>
-                        <span class="pill-label-mobile">Masuk</span>
                     </span>
                 </label>
-                <label class="kiosk-mode-pill">
+                <label class="kiosk-mode-pill" title="Presensi Pulang">
                     <input type="radio" name="kiosk_mode" value="pulang">
                     <span class="pill-content">
                         <i class="fas fa-right-from-bracket"></i>
-                        <span class="pill-label-desktop">Presensi Pulang</span>
-                        <span class="pill-label-mobile">Pulang</span>
                     </span>
                 </label>
             </div>
@@ -149,18 +155,15 @@
                     <div class="scanner-laser-line"></div>
                 </div>
 
-                <div style="position: absolute; bottom: 12px; left: 14px; display: flex; gap: 6px; flex-wrap: wrap;">
-                    <span id="cameraStatusBadge" class="badge badge-success"
-                        style="font-size: 0.72rem; padding: 4px 8px; backdrop-filter: blur(4px);">
-                        <i class="fas fa-video"></i> Kamera Siap
+                <div class="kiosk-status-indicators">
+                    <span id="cameraStatusBadge" class="badge-status-icon status-ok" title="Kamera Siap">
+                        <i class="fas fa-video"></i>
                     </span>
-                    <span class="badge badge-primary"
-                        style="font-size: 0.72rem; padding: 4px 8px; backdrop-filter: blur(4px);">
-                        <i class="fas fa-wifi"></i> RFID Online
+                    <span id="rfidStatusBadge" class="badge-status-icon status-ok" title="RFID Online (Siap Memindai)">
+                        <i class="fas fa-wifi"></i>
                     </span>
-                    <span id="gpsStatusBadge" class="badge badge-secondary"
-                        style="font-size: 0.72rem; padding: 4px 8px; backdrop-filter: blur(4px); background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); color: #fff;">
-                        <i class="fas fa-location-crosshairs"></i> GPS: Menghubungkan...
+                    <span id="gpsStatusBadge" class="badge-status-icon status-warn" title="GPS: Menghubungkan...">
+                        <i class="fas fa-location-crosshairs"></i>
                     </span>
                 </div>
             </div>
@@ -180,11 +183,7 @@
             <input type="text" id="kioskScannerInput" class="kiosk-hidden-input" autocomplete="off"
                 inputmode="none" tabindex="-1">
 
-            <!-- Direct Hardware Scanner Badge (Manual Input Blocked) -->
-            <div style="margin-top: 20px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 50px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.82rem; color: #34d399; font-weight: 700;">
-                <i class="fas fa-shield-halved text-success"></i>
-                <span>Mode Pemindai Langsung &bull; Input Manual Dinonaktifkan</span>
-            </div>
+
         </div>
 
         <!-- Right Column: Status Summary & Live Recent Scans Feed -->
@@ -250,18 +249,7 @@
                         </div>
                     </div>
                 </div>
-                @if ($schoolLat && $schoolLon)
-                    <div
-                        style="margin-top: 10px; font-size: 0.74rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px;">
-                        <span><i class="fas fa-map-pin text-danger me-1"></i> Titik Sekolah:
-                            {{ number_format($schoolLat, 5) }}, {{ number_format($schoolLon, 5) }}</span>
-                        <a href="https://maps.google.com/?q={{ $schoolLat }},{{ $schoolLon }}" target="_blank"
-                            rel="noopener noreferrer"
-                            style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 0.72rem;">
-                            Buka Peta <i class="fas fa-external-link-alt ms-1" style="font-size: 0.65rem;"></i>
-                        </a>
-                    </div>
-                @endif
+
             </div>
 
             <!-- Recent Scans Live Feed -->
@@ -368,6 +356,9 @@
 
     <!-- Vendor Scripts & Presensi Scan Logic -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <script
+        src="{{ asset('js/sae.js') }}?v={{ file_exists(public_path('js/sae.js')) ? filemtime(public_path('js/sae.js')) : time() }}">
+    </script>
     <script
         src="{{ asset('js/presensi-scan.js') }}?v={{ file_exists(public_path('js/presensi-scan.js')) ? filemtime(public_path('js/presensi-scan.js')) : time() }}">
     </script>

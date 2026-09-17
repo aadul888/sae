@@ -297,7 +297,17 @@ class PresensiController extends Controller
     public function kioskLock(Request $request)
     {
         session()->forget(['kiosk_access_granted', 'kiosk_login_at']);
-        return redirect()->route('presensi.kiosk.auth')->with('info', 'Terminal presensi telah dikunci.');
+        session()->save();
+
+        if ($request->expectsJson() || $request->wantsJson() || $request->isJson() || $request->header('Sec-Fetch-Mode') === 'cors') {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Terminal presensi telah dikunci.',
+            ]);
+        }
+
+        $redirectTo = $request->query('redirect', route('presensi.kiosk.auth'));
+        return redirect($redirectTo)->with('info', 'Terminal presensi telah dikunci.');
     }
 
     /**
