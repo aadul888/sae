@@ -34,17 +34,17 @@ Route::get('/offline', function () {
 
 // PWA Dynamic Web App Manifest
 $pwaManifestHandler = function () {
-    $theme = request('theme', 'dark');
-    $isLight = ($theme === 'light');
+    $theme = request('theme', 'light');
+    $isDark = ($theme === 'dark');
 
-    $prefix = $isLight ? '/img/icons/icon-light-' : '/img/icons/icon-';
-    $bgColor = $isLight ? '#FFFFFF' : '#0B0F19';
-    $themeColor = $isLight ? '#FFFFFF' : '#0B0F19';
-    $maskableIcon = $isLight ? '/img/icons/icon-light-maskable-512x512.png' : '/img/icons/icon-maskable-512x512.png';
-    $shortcutIcon = $isLight ? '/img/icons/icon-light-96x96.png' : '/img/icons/icon-96x96.png';
+    $prefix = $isDark ? '/img/icons/icon-dark-' : '/img/icons/icon-';
+    $bgColor = $isDark ? '#0B0F19' : '#FFFFFF';
+    $themeColor = $isDark ? '#0B0F19' : '#FFFFFF';
+    $maskableIcon = $isDark ? '/img/icons/icon-dark-maskable-512x512.png' : '/img/icons/icon-maskable-512x512.png';
+    $shortcutIcon = $isDark ? '/img/icons/icon-dark-96x96.png' : '/img/icons/icon-96x96.png';
 
     return response()->json([
-        'id' => '/?app=sae-v3&theme=' . ($isLight ? 'light' : 'dark'),
+        'id' => '/?app=sae-v4&theme=' . ($isDark ? 'dark' : 'light'),
         'name' => 'SAE - Sistem Aplikasi Edukasi',
         'short_name' => 'SAE',
         'description' => 'Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.',

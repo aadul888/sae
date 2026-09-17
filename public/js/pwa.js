@@ -33,39 +33,39 @@
         return localStorage.getItem('sae_pwa_is_installed') === 'true';
     }
 
-    // Helper untuk memilih icon sesuai tema aktif (Dark = Logo Putih di atas Gelap; Light = Logo Berwarna di atas Terang)
+    // Helper untuk memilih icon (Default = Putih dengan Logo SAE Berwarna; Dark Mode = Gelap dengan Logo Putih)
     function getPwaIconUrl(size = 96) {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        return isLight ? `/img/icons/icon-light-${size}x${size}.png` : `/img/icons/icon-${size}x${size}.png`;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        return isDark ? `/img/icons/icon-dark-${size}x${size}.png` : `/img/icons/icon-${size}x${size}.png`;
     }
 
     // 1. Sinkronisasi Warna Theme-Color & Ikon PWA dengan Tema Gelap/Terang
     function syncThemeColor() {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
         const metaThemeColor = document.getElementById('pwaThemeColorMeta');
         if (metaThemeColor) {
-            metaThemeColor.setAttribute('content', isLight ? '#FFFFFF' : '#0B0F19');
+            metaThemeColor.setAttribute('content', isDark ? '#0B0F19' : '#FFFFFF');
         }
 
         const manifestLink = document.getElementById('pwaManifestLink');
         if (manifestLink) {
-            manifestLink.setAttribute('href', `/manifest.json?theme=${isLight ? 'light' : 'dark'}&v=3`);
+            manifestLink.setAttribute('href', `/manifest.json?theme=${isDark ? 'dark' : 'light'}&v=4`);
         }
 
         const icon192 = document.getElementById('pwaIcon192');
         if (icon192) {
-            icon192.setAttribute('href', isLight ? '/img/icons/icon-light-192x192.png?v=3' : '/img/icons/icon-192x192.png?v=3');
+            icon192.setAttribute('href', isDark ? '/img/icons/icon-dark-192x192.png?v=4' : '/img/icons/icon-192x192.png?v=4');
         }
 
         const icon512 = document.getElementById('pwaIcon512');
         if (icon512) {
-            icon512.setAttribute('href', isLight ? '/img/icons/icon-light-512x512.png?v=3' : '/img/icons/icon-512x512.png?v=3');
+            icon512.setAttribute('href', isDark ? '/img/icons/icon-dark-512x512.png?v=4' : '/img/icons/icon-512x512.png?v=4');
         }
 
         const appleIcon = document.getElementById('pwaAppleTouchIcon');
         if (appleIcon) {
-            appleIcon.setAttribute('href', isLight ? '/img/icons/apple-touch-icon-light.png?v=3' : '/img/icons/apple-touch-icon.png?v=3');
+            appleIcon.setAttribute('href', isDark ? '/img/icons/apple-touch-icon-dark.png?v=4' : '/img/icons/apple-touch-icon.png?v=4');
         }
 
         const bannerIcon = document.querySelector('.sae-pwa-banner-icon');
