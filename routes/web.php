@@ -226,9 +226,15 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/presensi/kelas/status', [\App\Http\Controllers\PresensiController::class, 'updateStatusKelas'])->name('presensi.kelas.status')->middleware('permission:menu_presensi_peserta_didik,update');
     Route::post('/presensi/kelas/auto-alpha', [\App\Http\Controllers\PresensiController::class, 'tandaiAlphaRombel'])->name('presensi.kelas.auto-alpha')->middleware('permission:menu_presensi_peserta_didik,update');
 
-    // Portal Peserta Didik — Riwayat Presensi Saya
-    Route::get('/presensi/saya', [\App\Http\Controllers\PresensiController::class, 'riwayatSaya'])->name('presensi.riwayat-saya')->middleware('permission:menu_riwayat_rfid,read');
-    Route::post('/presensi/saya/izin', [\App\Http\Controllers\PresensiController::class, 'pengajuanIzin'])->name('presensi.saya.izin')->middleware('permission:menu_riwayat_rfid,create');
+    // Layanan Digital — Notifikasi Transaksi Pengguna
+    Route::post('/notifikasi-transaksi/mark-all-read', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'markAllTransactionsRead'])->name('notifikasi-transaksi.mark-all-read');
+    Route::post('/notifikasi-transaksi/{id}/mark-read', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'markTransactionRead'])->name('notifikasi-transaksi.mark-read');
+
+    // Portal Peserta Didik — Modul Riwayat Presensi & Cetak Laporan (Bulan, Semester, Tahun)
+    Route::get('/peserta-didik/presensi', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('peserta-didik.presensi.index');
+    Route::get('/peserta-didik/presensi/cetak', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'cetak'])->name('peserta-didik.presensi.cetak');
+    Route::get('/presensi/saya', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('presensi.riwayat-saya')->middleware('permission:menu_riwayat_rfid,read');
+    Route::post('/presensi/saya/izin', [\App\Http\Controllers\PresensiController::class, 'pengajuanIzin'])->name('peserta-didik.presensi.izin')->middleware('permission:menu_riwayat_rfid,create');
 
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian,read');

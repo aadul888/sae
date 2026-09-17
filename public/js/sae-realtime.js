@@ -230,6 +230,14 @@
         if (eventName === "presensi.scanned") {
             const feed = document.getElementById("kioskRecentFeed");
             if (feed) {
+                const timeStr = data.jam ? data.jam.substring(0, 5) : "--:--";
+                const scanKey = `${data.nisn || data.peserta_didik_id || data.nama}_${timeStr}`;
+
+                // Cegah penambahan ganda jika scanKey sudah ada di feed
+                if (feed.querySelector(`[data-scan-key="${scanKey}"]`)) {
+                    return;
+                }
+
                 const emptyNotice = feed.querySelector(
                     'div[style*="text-align: center"]',
                 );
@@ -245,6 +253,7 @@
 
                 const item = document.createElement("div");
                 item.className = "recent-scan-item";
+                item.setAttribute("data-scan-key", scanKey);
                 item.style.animation = "fadeInUp 0.3s ease-out";
                 item.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -256,7 +265,7 @@
                     </div>
                     <div style="text-align: right;">
                         <div style="font-weight: 700; font-family: monospace; font-size: 0.85rem; color: var(--text-color);">
-                            ${data.jam || "--:--"} WIB
+                            ${timeStr} WIB
                         </div>
                         <div>${statusBadge}</div>
                     </div>

@@ -592,20 +592,31 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 8. Update Recent Scans Feed
+    // 8. Update Recent Scans Feed with Anti-Duplicate Filter
     function addRecentScanFeed(d) {
         const feedList = document.getElementById('kioskRecentFeed');
-        if (!feedList) return;
+        if (!feedList || !d) return;
 
-        const timeStr = d.jam_pulang || d.jam_masuk || '--:--';
+        const timeStr = (d.jam_pulang ? d.jam_pulang.substring(0, 5) : (d.jam_masuk ? d.jam_masuk.substring(0, 5) : '--:--'));
+        const scanKey = `${d.nisn || d.peserta_didik_id || d.nama}_${timeStr}`;
+
+        // Cegah duplikasi jika item dengan scanKey yang sama sudah ada di feed
+        if (feedList.querySelector(`[data-scan-key="${scanKey}"]`)) {
+            return;
+        }
+
+        // Hapus empty state placeholder jika ada
+        const emptyNotice = feedList.querySelector('.empty-recent-feed, div[style*="text-align: center"]');
+        if (emptyNotice) emptyNotice.remove();
+
         const badgeHtml = d.status === 'H'
             ? '<span class="badge badge-success" style="font-size: 0.7rem;">Hadir</span>'
             : (d.status === 'T'
-                ? `<span class="badge badge-warning" style="font-size: 0.7rem;">+${d.menit_terlambat}m</span>`
+                ? `<span class="badge badge-warning" style="font-size: 0.7rem;">+${d.menit_terlambat || 0}m</span>`
                 : `<span class="badge badge-primary" style="font-size: 0.7rem;">${d.status}</span>`);
 
         const itemHtml = `
-            <div class="recent-scan-item" style="animation: slideInDown 0.3s ease;">
+            <div class="recent-scan-item" data-scan-key="${scanKey}" style="animation: slideInDown 0.3s ease;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <img src="${d.foto_url || '/img/logo-dark.png'}" class="recent-scan-avatar" onerror="this.src='/img/logo-dark.png';">
                     <div>

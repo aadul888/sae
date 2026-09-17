@@ -126,21 +126,28 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($presensi_terakhir as $p)
+                            @forelse ($presensi_terakhir as $p)
                                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
                                     <td style="padding: 10px; font-weight: 600; color: var(--text-color);">
                                         {{ $p['tanggal'] }}
                                     </td>
-                                    <td style="padding: 10px; color: #10b981;">{{ $p['jam_masuk'] }}</td>
-                                    <td style="padding: 10px; color: var(--text-muted);">{{ $p['jam_pulang'] }}</td>
+                                    <td style="padding: 10px; color: #10b981; font-family: monospace; font-weight: 600;">{{ $p['jam_masuk'] }}</td>
+                                    <td style="padding: 10px; color: var(--text-muted); font-family: monospace;">{{ $p['jam_pulang'] }}</td>
                                     <td style="padding: 10px;">
                                         <span
-                                            style="background: rgba(16,185,129,0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                            style="background: {{ $p['badge_bg'] ?? 'rgba(16,185,129,0.15)' }}; color: {{ $p['badge_color'] ?? '#10b981' }}; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
                                             {{ $p['status'] }}
                                         </span>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="4" style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 0.82rem;">
+                                        <i class="fas fa-id-card mb-2" style="font-size: 1.4rem; opacity: 0.35; display: block;"></i>
+                                        Belum ada riwayat tap presensi tercatat.
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>

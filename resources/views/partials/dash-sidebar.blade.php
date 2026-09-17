@@ -587,6 +587,7 @@
         @if ($hasPortalPesertaDidik)
             @php
                 $isPortalPesertaDidikActive =
+                    request()->routeIs('dashboard.peserta-didik.presensi*') ||
                     request()->routeIs('dashboard.presensi.riwayat-saya*') ||
                     request()->routeIs('dashboard.riwayat-rfid*') ||
                     request()->routeIs('dashboard.jadwal-pelajaran*') ||
@@ -602,11 +603,11 @@
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
-                    @if ($can('menu_riwayat_rfid'))
-                        <a href="{{ route('dashboard.presensi.riwayat-saya') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
-                            <span class="nav-label">Riwayat Presensi RFID</span>
+                    @if ($can('menu_riwayat_rfid') || $role === 'peserta_didik')
+                        <a href="{{ route('dashboard.peserta-didik.presensi.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.presensi*') || request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
+                            <span class="nav-label">Riwayat Presensi Harian</span>
                         </a>
                     @endif
 

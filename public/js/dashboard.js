@@ -171,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Quick Mark All Read button in notification dropdown
+    // Quick Mark All Read button in notification dropdown (Pengumuman)
     const btnQuickMark = document.getElementById("btnQuickMarkAllRead");
     if (btnQuickMark) {
         btnQuickMark.addEventListener("click", async (e) => {
@@ -198,21 +198,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const data = await res.json();
                 if (data.status === "success") {
-                    const bellDot = document.getElementById("bellNotifDot");
-                    if (bellDot) bellDot.remove();
-
-                    const headerBadge =
-                        document.getElementById("headerNotifBadge");
-                    if (headerBadge) headerBadge.remove();
+                    const pengumumanBadge = document.getElementById("badgePengumumanCount");
+                    if (pengumumanBadge) pengumumanBadge.remove();
 
                     btnQuickMark.remove();
 
                     document
-                        .querySelectorAll(".dash-notif-dot")
+                        .querySelectorAll("#paneNotifPengumuman .dash-notif-dot")
                         .forEach((dot) => dot.remove());
                     document
-                        .querySelectorAll(".dash-notif-item.unread-item")
+                        .querySelectorAll("#paneNotifPengumuman .dash-notif-item.unread-item")
                         .forEach((el) => el.classList.remove("unread-item"));
+
+                    // Cek jika kedua tab sudah 0 unread, hilangkan dot bell
+                    const transBadge = document.getElementById("badgeTransaksiCount");
+                    if (!transBadge) {
+                        const bellDot = document.getElementById("bellNotifDot");
+                        if (bellDot) bellDot.remove();
+                    }
 
                     if (window.SAE && typeof window.SAE.toast === "function") {
                         window.SAE.toast(
@@ -221,7 +224,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         );
                     }
 
-                    // Jika saat ini di halaman informasi feed, refresh atau update UI
                     if (
                         window.updateFeedAllRead &&
                         typeof window.updateFeedAllRead === "function"
@@ -235,6 +237,125 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Tab Switcher Notification Dropdown (Tab Pengumuman vs Tab Transaksi)
+    const tabHeaderPengumuman = document.getElementById("tabHeaderPengumuman");
+    const tabHeaderTransaksi = document.getElementById("tabHeaderTransaksi");
+    const paneNotifPengumuman = document.getElementById("paneNotifPengumuman");
+    const paneNotifTransaksi = document.getElementById("paneNotifTransaksi");
+
+    if (tabHeaderPengumuman && tabHeaderTransaksi) {
+        tabHeaderPengumuman.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            tabHeaderPengumuman.classList.add("active");
+            tabHeaderPengumuman.style.color = "var(--primary)";
+            tabHeaderPengumuman.style.borderBottomColor = "var(--primary)";
+
+            tabHeaderTransaksi.classList.remove("active");
+            tabHeaderTransaksi.style.color = "var(--text-muted)";
+            tabHeaderTransaksi.style.borderBottomColor = "transparent";
+
+            if (paneNotifPengumuman) paneNotifPengumuman.style.display = "block";
+            if (paneNotifTransaksi) paneNotifTransaksi.style.display = "none";
+        });
+
+        tabHeaderTransaksi.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            tabHeaderTransaksi.classList.add("active");
+            tabHeaderTransaksi.style.color = "var(--primary)";
+            tabHeaderTransaksi.style.borderBottomColor = "var(--primary)";
+
+            tabHeaderPengumuman.classList.remove("active");
+            tabHeaderPengumuman.style.color = "var(--text-muted)";
+            tabHeaderPengumuman.style.borderBottomColor = "transparent";
+
+            if (paneNotifPengumuman) paneNotifPengumuman.style.display = "none";
+            if (paneNotifTransaksi) paneNotifTransaksi.style.display = "block";
+        });
+    }
+
+    // Quick Mark All Read Transaksi
+    const btnQuickMarkTrans = document.getElementById("btnQuickMarkAllTransRead");
+    if (btnQuickMarkTrans) {
+        btnQuickMarkTrans.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const csrfToken =
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content") || "";
+
+            try {
+                btnQuickMarkTrans.style.opacity = "0.5";
+                btnQuickMarkTrans.disabled = true;
+
+                const res = await fetch("/dashboard/notifikasi-transaksi/mark-all-read", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                });
+
+                const data = await res.json();
+                if (data.status === "success") {
+                    const transBadge = document.getElementById("badgeTransaksiCount");
+                    if (transBadge) transBadge.remove();
+
+                    btnQuickMarkTrans.remove();
+
+                    document
+                        .querySelectorAll("#paneNotifTransaksi .dash-notif-dot")
+                        .forEach((dot) => dot.remove());
+                    document
+                        .querySelectorAll("#paneNotifTransaksi .dash-notif-item.unread-item")
+                        .forEach((el) => el.classList.remove("unread-item"));
+
+                    const pengumumanBadge = document.getElementById("badgePengumumanCount");
+                    if (!pengumumanBadge) {
+                        const bellDot = document.getElementById("bellNotifDot");
+                        if (bellDot) bellDot.remove();
+                    }
+
+                    if (window.SAE && typeof window.SAE.toast === "function") {
+                        window.SAE.toast(
+                            data.message || "Aktivitas presensi telah ditandai sudah dibaca.",
+                            "success",
+                        );
+                    }
+                }
+            } catch (err) {
+                btnQuickMarkTrans.style.opacity = "1";
+                btnQuickMarkTrans.disabled = false;
+            }
+        });
+    }
+
+    // Single Click Transaksi Mark Read
+    document.querySelectorAll("#paneNotifTransaksi .dash-notif-item").forEach((item) => {
+        item.addEventListener("click", function () {
+            const transId = this.getAttribute("data-trans-id");
+            if (!transId) return;
+
+            const csrfToken =
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content") || "";
+
+            fetch(`/dashboard/notifikasi-transaksi/${transId}/mark-read`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+            }).catch(() => {});
+        });
+    });
 
     // Global Modal Backdrop Close & ESC Handler
     document.querySelectorAll(".modal-backdrop").forEach((modal) => {

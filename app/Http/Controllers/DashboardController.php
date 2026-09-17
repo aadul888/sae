@@ -218,22 +218,85 @@ class DashboardController extends Controller
         }
 
         $stats = [
-            'presensi_bulan_ini' => 98.2,
-            'hadir_hari'         => 22,
-            'izin_hari'          => 1,
+            'presensi_bulan_ini' => 100,
+            'hadir_hari'         => 0,
+            'izin_hari'          => 0,
             'sakit_hari'         => 0,
             'alpa_hari'          => 0,
             'poin_prestasi'      => 45,
             'poin_pelanggaran'   => 0
         ];
 
-        $presensi_terakhir = [
-            ['tanggal' => '05 Sep 2026', 'jam_masuk' => '06:42 WIB', 'jam_pulang' => '--:--', 'status' => 'Hadir (Tap RFID)', 'badge' => 'success'],
-            ['tanggal' => '04 Sep 2026', 'jam_masuk' => '06:40 WIB', 'jam_pulang' => '15:30 WIB', 'status' => 'Hadir', 'badge' => 'success'],
-            ['tanggal' => '03 Sep 2026', 'jam_masuk' => '06:48 WIB', 'jam_pulang' => '15:35 WIB', 'status' => 'Hadir', 'badge' => 'success'],
-            ['tanggal' => '02 Sep 2026', 'jam_masuk' => '06:38 WIB', 'jam_pulang' => '15:30 WIB', 'status' => 'Hadir', 'badge' => 'success'],
-            ['tanggal' => '01 Sep 2026', 'jam_masuk' => '06:50 WIB', 'jam_pulang' => '15:32 WIB', 'status' => 'Hadir', 'badge' => 'success'],
-        ];
+        $presensi_terakhir = [];
+
+        if ($pd && Schema::hasTable('presensi_harian')) {
+            $currentMonth = now()->format('Y-m');
+            $riwayatBulanIni = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->where('tanggal', 'like', "{$currentMonth}%")
+                ->get();
+
+            $hadirCount = $riwayatBulanIni->whereIn('status', ['H', 'T'])->count();
+            $izinCount = $riwayatBulanIni->where('status', 'I')->count();
+            $sakitCount = $riwayatBulanIni->where('status', 'S')->count();
+            $alpaCount = $riwayatBulanIni->where('status', 'A')->count();
+            $totalSesi = $riwayatBulanIni->count();
+
+            $persen = $totalSesi > 0 ? round(($hadirCount / $totalSesi) * 100, 1) : 100;
+
+            $stats['presensi_bulan_ini'] = $persen;
+            $stats['hadir_hari'] = $hadirCount;
+            $stats['izin_hari'] = $izinCount;
+            $stats['sakit_hari'] = $sakitCount;
+            $stats['alpa_hari'] = $alpaCount;
+
+            // 5 Presensi Terakhir Riil
+            $latestLogs = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->orderBy('tanggal', 'desc')
+                ->limit(5)
+                ->get();
+
+            foreach ($latestLogs as $log) {
+                $statusLabel = 'Hadir';
+                $badgeColor = '#10b981';
+                $badgeBg = 'rgba(16,185,129,0.15)';
+
+                if ($log->status === 'T') {
+                    $statusLabel = 'Terlambat' . ($log->menit_terlambat ? " +{$log->menit_terlambat}m" : '');
+                    $badgeColor = '#f59e0b';
+                    $badgeBg = 'rgba(245,158,11,0.15)';
+                } elseif ($log->status === 'I') {
+                    $statusLabel = 'Izin';
+                    $badgeColor = 'var(--primary)';
+                    $badgeBg = 'rgba(99,102,241,0.15)';
+                } elseif ($log->status === 'S') {
+                    $statusLabel = 'Sakit';
+                    $badgeColor = '#8b5cf6';
+                    $badgeBg = 'rgba(139,92,246,0.15)';
+                } elseif ($log->status === 'D') {
+                    $statusLabel = 'Dispen';
+                    $badgeColor = 'var(--accent)';
+                    $badgeBg = 'rgba(6,182,212,0.15)';
+                } elseif ($log->status === 'A') {
+                    $statusLabel = 'Alpha';
+                    $badgeColor = '#ef4444';
+                    $badgeBg = 'rgba(239,68,68,0.15)';
+                } else {
+                    $statusLabel = $log->metode_masuk === 'rfid' ? 'Hadir (Tap RFID)' : 'Hadir';
+                }
+
+                $jamMasukStr = $log->jam_masuk ? substr($log->jam_masuk, 0, 5) . ' WIB' : '--:--';
+                $jamPulangStr = $log->jam_pulang ? substr($log->jam_pulang, 0, 5) . ' WIB' : '--:--';
+
+                $presensi_terakhir[] = [
+                    'tanggal'     => \Carbon\Carbon::parse($log->tanggal)->translatedFormat('d M Y'),
+                    'jam_masuk'   => $jamMasukStr,
+                    'jam_pulang'  => $jamPulangStr,
+                    'status'      => $statusLabel,
+                    'badge_color' => $badgeColor,
+                    'badge_bg'    => $badgeBg,
+                ];
+            }
+        }
 
         $jadwal_pelajaran = [];
         if ($pembelajaran->isNotEmpty()) {

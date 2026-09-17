@@ -666,6 +666,34 @@ class PresensiController extends Controller
             $presensi->save();
         }
 
+        // Catat notifikasi transaksi personal untuk peserta didik
+        try {
+            $userPengguna = \App\Models\User::where('peserta_didik_id', $siswa->peserta_didik_id)->first();
+            $jamStr = substr($actionType === 'pulang' ? $presensi->jam_pulang : $presensi->jam_masuk, 0, 5);
+            $notifJudul = $actionType === 'pulang' ? 'Presensi Pulang Tercatat' : ($presensi->status === 'T' ? 'Presensi Masuk (Terlambat)' : 'Presensi Masuk Berhasil');
+            $notifTipe = $actionType === 'pulang' ? 'info' : ($presensi->status === 'T' ? 'warning' : 'success');
+            $notifIcon = $actionType === 'pulang' ? 'fa-solid fa-door-open' : ($presensi->status === 'T' ? 'fa-solid fa-clock-rotate-left' : 'fa-solid fa-calendar-check');
+            $pesanNotif = $actionType === 'pulang'
+                ? "Presensi pulang Anda berhasil dicatat pada pukul {$jamStr} WIB."
+                : ($presensi->status === 'T'
+                    ? "Presensi masuk Anda tercatat pada pukul {$jamStr} WIB (Terlambat {$presensi->menit_terlambat} menit)."
+                    : "Presensi masuk Anda tercatat tepat waktu pada pukul {$jamStr} WIB.");
+
+            \App\Models\NotifikasiTransaksi::create([
+                'pengguna_id' => $userPengguna ? $userPengguna->pengguna_id : null,
+                'peserta_didik_id' => $siswa->peserta_didik_id,
+                'kategori' => 'presensi',
+                'judul' => $notifJudul,
+                'pesan' => $pesanNotif,
+                'tipe' => $notifTipe,
+                'icon' => $notifIcon,
+                'url' => route('dashboard.peserta-didik.presensi.index'),
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $th) {
+            \Illuminate\Support\Facades\Log::warning('Gagal membuat notifikasi transaksi presensi: ' . $th->getMessage());
+        }
+
         $formattedData = $this->formatSiswaResponseData($siswa, $presensi);
 
         \App\Services\RealtimeService::trigger('presensi.scanned', [
