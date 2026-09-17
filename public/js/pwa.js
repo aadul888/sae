@@ -33,15 +33,32 @@
         return localStorage.getItem('sae_pwa_is_installed') === 'true';
     }
 
-    // Helper untuk memilih icon (Default = Putih dengan Logo SAE Berwarna; Dark Mode = Gelap dengan Logo Putih)
+    // Helper untuk mendeteksi apakah tema saat ini adalah Dark Mode
+    function isCurrentThemeDark() {
+        const themeAttr = document.documentElement.getAttribute('data-theme');
+        if (themeAttr === 'light') return false;
+        if (themeAttr === 'dark') return true;
+        try {
+            const savedTheme = localStorage.getItem('sae_theme');
+            if (savedTheme === 'light') return false;
+            if (savedTheme === 'dark') return true;
+        } catch (e) {}
+        // Default di SAE adalah Dark Mode (#0B0F19) kecuali prefer light eksplisit
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+            return false;
+        }
+        return true;
+    }
+
+    // Helper untuk memilih icon (Default/Light = Latar Putih dengan Logo SAE Berwarna; Dark Mode = Latar Gelap dengan Logo Putih)
     function getPwaIconUrl(size = 96) {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const isDark = isCurrentThemeDark();
         return isDark ? `/img/icons/icon-dark-${size}x${size}.png` : `/img/icons/icon-${size}x${size}.png`;
     }
 
     // 1. Sinkronisasi Warna Theme-Color & Ikon PWA dengan Tema Gelap/Terang
     function syncThemeColor() {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const isDark = isCurrentThemeDark();
 
         const metaThemeColor = document.getElementById('pwaThemeColorMeta');
         if (metaThemeColor) {
@@ -50,22 +67,22 @@
 
         const manifestLink = document.getElementById('pwaManifestLink');
         if (manifestLink) {
-            manifestLink.setAttribute('href', `/manifest.json?theme=${isDark ? 'dark' : 'light'}&v=4`);
+            manifestLink.setAttribute('href', `/manifest.json?theme=${isDark ? 'dark' : 'light'}&v=6`);
         }
 
         const icon192 = document.getElementById('pwaIcon192');
         if (icon192) {
-            icon192.setAttribute('href', isDark ? '/img/icons/icon-dark-192x192.png?v=4' : '/img/icons/icon-192x192.png?v=4');
+            icon192.setAttribute('href', isDark ? '/img/icons/icon-dark-192x192.png?v=6' : '/img/icons/icon-192x192.png?v=6');
         }
 
         const icon512 = document.getElementById('pwaIcon512');
         if (icon512) {
-            icon512.setAttribute('href', isDark ? '/img/icons/icon-dark-512x512.png?v=4' : '/img/icons/icon-512x512.png?v=4');
+            icon512.setAttribute('href', isDark ? '/img/icons/icon-dark-512x512.png?v=6' : '/img/icons/icon-512x512.png?v=6');
         }
 
         const appleIcon = document.getElementById('pwaAppleTouchIcon');
         if (appleIcon) {
-            appleIcon.setAttribute('href', isDark ? '/img/icons/apple-touch-icon-dark.png?v=4' : '/img/icons/apple-touch-icon.png?v=4');
+            appleIcon.setAttribute('href', isDark ? '/img/icons/apple-touch-icon-dark.png?v=6' : '/img/icons/apple-touch-icon.png?v=6');
         }
 
         const bannerIcon = document.querySelector('.sae-pwa-banner-icon');
@@ -247,6 +264,40 @@
         localStorage.setItem('sae_pwa_install_dismissed_v3', Date.now().toString());
     };
 
+    // Helper tunggal ter-debounce untuk notifikasi sukses instalasi (Mencegah notifikasi ganda)
+    let hasNotifiedInstallSuccess = false;
+    function notifyInstallSuccess() {
+        if (hasNotifiedInstallSuccess) {
+            console.log('[SAE-PWA] Install success notification already shown, skipping duplicate.');
+            return;
+        }
+        hasNotifiedInstallSuccess = true;
+        setTimeout(() => {
+            hasNotifiedInstallSuccess = false;
+        }, 10000);
+
+        localStorage.setItem('sae_pwa_is_installed', 'true');
+        localStorage.setItem('sae_pwa_installed_at', Date.now().toString());
+
+        // Langsung hilangkan penawaran pasang aplikasi di halaman
+        const banner = document.getElementById('saePwaInstallBanner');
+        if (banner) banner.remove();
+        updateInstallUI(false);
+
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Aplikasi Terpasang!',
+                text: 'SAE telah berhasil dipasang ke layar utama perangkat Anda.',
+                confirmButtonColor: '#4f6ef7',
+                confirmButtonText: '<i class="fas fa-check"></i> Siap Digunakan',
+                timer: 3500,
+                background: 'var(--bg-card, #131b2e)',
+                color: 'var(--text-main, #f8fafc)'
+            });
+        }
+    }
+
     // 5. Tangani Event Instalasi PWA (beforeinstallprompt)
     window.addEventListener('beforeinstallprompt', (e) => {
         // Mencegah mini-infobar default browser agar banner kustom SAE yang tampil rapi
@@ -317,26 +368,7 @@
 
                 if (choiceResult.outcome === 'accepted') {
                     console.log('[SAE-PWA] User accepted the install prompt');
-                    localStorage.setItem('sae_pwa_is_installed', 'true');
-                    localStorage.setItem('sae_pwa_installed_at', Date.now().toString());
-
-                    // Langsung hilangkan penawaran pasang aplikasi
-                    if (banner) banner.remove();
-                    updateInstallUI(false);
-
-                    // Berikan notifikasi sukses pemasangan yang jelas & tegas
-                    if (window.Swal) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Aplikasi Terpasang!',
-                            text: 'SAE telah berhasil dipasang ke layar utama perangkat Anda.',
-                            confirmButtonColor: '#4f6ef7',
-                            confirmButtonText: '<i class="fas fa-check"></i> Siap Digunakan',
-                            timer: 3500,
-                            background: 'var(--bg-card, #131b2e)',
-                            color: 'var(--text-main, #f8fafc)'
-                        });
-                    }
+                    notifyInstallSuccess();
                 }
             } catch (err) {
                 console.warn('[SAE-PWA] Error launching native prompt:', err);
@@ -413,25 +445,8 @@
     // Event saat aplikasi telah berhasil diinstal (baik via prompt native maupun menu browser!)
     window.addEventListener('appinstalled', () => {
         console.log('[SAE-PWA] Application was successfully installed!');
-        localStorage.setItem('sae_pwa_is_installed', 'true');
-        localStorage.setItem('sae_pwa_installed_at', Date.now().toString());
         deferredPrompt = null;
-        updateInstallUI(false);
-
-        const banner = document.getElementById('saePwaInstallBanner');
-        if (banner) banner.remove();
-
-        if (window.Swal) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Aplikasi Terpasang!',
-                text: 'SAE telah berhasil dipasang ke layar utama perangkat Anda.',
-                timer: 3500,
-                showConfirmButton: false,
-                background: 'var(--bg-card, #131b2e)',
-                color: 'var(--text-main, #f8fafc)'
-            });
-        }
+        notifyInstallSuccess();
     });
 
     // Helper untuk mengaktifkan/menonaktifkan tombol instalasi di UI

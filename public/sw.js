@@ -1,10 +1,10 @@
 /* ==========================================================================
    SAE (Sistem Aplikasi Edukasi) — Progressive Web App Service Worker
-   Version: 1.0.5
+   Version: 1.0.7
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = 'sae-pwa-v1.0.5';
+const CACHE_NAME = 'sae-pwa-v1.0.7';
 const OFFLINE_URL = '/offline';
 
 // Aset inti yang di-precache saat instalasi service worker
@@ -17,6 +17,8 @@ const PRECACHE_ASSETS = [
     '/img/logo-icon.png',
     '/img/icons/icon-192x192.png',
     '/img/icons/icon-512x512.png',
+    '/img/icons/icon-dark-192x192.png',
+    '/img/icons/icon-dark-512x512.png',
     '/img/icons/icon-light-192x192.png',
     '/img/icons/icon-light-512x512.png',
     '/vendor/fontawesome/css/all.min.css'

@@ -284,6 +284,8 @@ class UpdateService
                         $logs[] = "[GIT SUCCESS] Repositori berhasil disinkronkan ke commit " . substr($checkHead, 0, 7);
                     }
                 }
+            } else {
+                $logs[] = "[GIT PERMISSION BYPASS] Melewati git pull/reset karena repository lokal terkendala hak akses filesystem.";
             }
 
             // 1f. Jika git pull gagal atau permission error: otomatis fallback deploy ZIP dari GitHub

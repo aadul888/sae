@@ -44,7 +44,7 @@ $pwaManifestHandler = function () {
     $shortcutIcon = $isDark ? '/img/icons/icon-dark-96x96.png' : '/img/icons/icon-96x96.png';
 
     return response()->json([
-        'id' => '/?app=sae-v4&theme=' . ($isDark ? 'dark' : 'light'),
+        'id' => '/?app=sae-v6&theme=' . ($isDark ? 'dark' : 'light'),
         'name' => 'SAE - Sistem Aplikasi Edukasi',
         'short_name' => 'SAE',
         'description' => 'Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.',
