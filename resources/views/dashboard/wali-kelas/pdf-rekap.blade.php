@@ -216,14 +216,31 @@
             text-decoration: underline;
             color: #000;
         }
-        .sig-nip {
-            color: #4b5563;
-            font-size: 9px;
-            margin-top: 2px;
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+            }
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body style="background: #f1f5f9; min-height: 100vh; padding: 20px 0;">
+
+    <!-- Action Toolbar (Hanya Muncul di Layar, Tersembunyi saat Dicetak) -->
+    <div class="no-print" style="position: fixed; top: 16px; right: 24px; z-index: 999999; display: flex; gap: 10px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px); padding: 10px 16px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15);">
+        <button type="button" onclick="window.print()" style="background: #4f46e5; color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);">
+            <i class="fas fa-print"></i> Cetak / Simpan PDF
+        </button>
+        <button type="button" onclick="window.close()" style="background: rgba(255,255,255,0.18); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-times"></i> Tutup
+        </button>
+    </div>
+
+    <div style="background: #fff; max-width: {{ ($tipe === 'bulan' || $tipe === 'semester' || $tipe === 'tahun') ? '297mm' : '210mm' }}; margin: 0 auto; padding: 15mm; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 6px;">
 
     @php
         $meta = $sekolahMeta ?? (class_exists(\App\Models\SekolahMeta::class) ? \App\Models\SekolahMeta::first() : null);

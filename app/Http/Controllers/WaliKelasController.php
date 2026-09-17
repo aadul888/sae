@@ -10,7 +10,6 @@ use App\Models\PesertaDidikMeta;
 use App\Models\PresensiHarian;
 use App\Models\PresensiPengaturan;
 use App\Models\KalenderPendidikan;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
 class WaliKelasController extends Controller
@@ -1189,19 +1188,7 @@ class WaliKelasController extends Controller
                 break;
         }
 
-        // Jika user meminta preview cetak browser (HTML print dialog)
-        if ($request->get('preview') == 1 || $request->get('format') === 'html') {
-            return view('dashboard.wali-kelas.pdf-rekap', $viewData);
-        }
-
-        // Render PDF menggunakan DomPDF
-        try {
-            $pdf = Pdf::loadView('dashboard.wali-kelas.pdf-rekap', $viewData)
-                ->setPaper($paper, $orientation);
-            return $pdf->download($fileName);
-        } catch (\Throwable $e) {
-            // Fallback anggun jika error library PDF: alihkan ke preview cetak HTML
-            return view('dashboard.wali-kelas.pdf-rekap', $viewData);
-        }
+        // Render langsung ke view cetak resmi (ringan, ramah printer fisik, dan bisa Save as PDF via browser)
+        return view('dashboard.wali-kelas.pdf-rekap', $viewData);
     }
 }

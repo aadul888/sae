@@ -24,8 +24,8 @@
         </div>
         <div class="dash-banner-actions">
             @if ($hasRombel && $activeRombel)
-                <button type="button" id="btnOpenModalPdf" class="btn btn-outline btn-responsive-icon" style="border-color: #ef4444; color: #ef4444; padding: 8px 16px; font-size: 0.84rem; font-weight: 600;" title="Unduh Laporan Presensi PDF">
-                    <i class="fas fa-file-pdf"></i> <span class="btn-responsive-text">Unduh Laporan PDF</span>
+                <button type="button" id="btnOpenModalPdf" class="btn btn-outline btn-responsive-icon" style="border-color: var(--primary); color: var(--primary); padding: 8px 16px; font-size: 0.84rem; font-weight: 600;" title="Cetak Laporan Presensi">
+                    <i class="fas fa-print"></i> <span class="btn-responsive-text">Cetak Laporan</span>
                 </button>
             @endif
         </div>
@@ -484,7 +484,7 @@
         <div class="card" style="width: 100%; max-width: 520px; margin: 16px; padding: 24px; border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--bg-card);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin: 0;">
-                    <i class="fas fa-file-pdf text-danger me-2"></i> Unduh Laporan Presensi PDF
+                    <i class="fas fa-print text-primary me-2"></i> Cetak Laporan Presensi Kelas
                 </h3>
                 <button type="button" id="btnCloseModalPdf" class="btn-icon" style="background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer;">
                     <i class="fas fa-times"></i>
@@ -574,11 +574,8 @@
                     <button type="button" class="btn btn-outline" onclick="document.getElementById('modalDownloadPdf').style.display='none'" style="padding: 8px 16px; font-size: 0.84rem;">
                         Batal
                     </button>
-                    <button type="submit" name="preview" value="1" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.84rem; border-color: var(--primary); color: var(--primary);">
-                        <i class="fas fa-eye me-1"></i> Pratinjau
-                    </button>
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.84rem; font-weight: 600; background: #ef4444; border-color: #ef4444;">
-                        <i class="fas fa-file-arrow-down me-1"></i> Unduh PDF
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.84rem; font-weight: 600;">
+                        <i class="fas fa-print me-1"></i> Buka Lembar Cetak
                     </button>
                 </div>
             </form>
