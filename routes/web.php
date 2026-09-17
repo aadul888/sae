@@ -230,11 +230,16 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/notifikasi-transaksi/mark-all-read', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'markAllTransactionsRead'])->name('notifikasi-transaksi.mark-all-read');
     Route::post('/notifikasi-transaksi/{id}/mark-read', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'markTransactionRead'])->name('notifikasi-transaksi.mark-read');
 
+    // Portal Peserta Didik — Modul Surat Izin & Sakit Mandiri
+    Route::get('/peserta-didik/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'index'])->name('peserta-didik.izin.index');
+    Route::post('/peserta-didik/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'store'])->name('peserta-didik.izin.store');
+    Route::delete('/peserta-didik/izin/{id}', [\App\Http\Controllers\PesertaDidikIzinController::class, 'destroy'])->name('peserta-didik.izin.destroy');
+
     // Portal Peserta Didik — Modul Riwayat Presensi & Cetak Laporan (Bulan, Semester, Tahun)
     Route::get('/peserta-didik/presensi', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('peserta-didik.presensi.index');
     Route::get('/peserta-didik/presensi/cetak', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'cetak'])->name('peserta-didik.presensi.cetak');
     Route::get('/presensi/saya', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('presensi.riwayat-saya')->middleware('permission:menu_riwayat_rfid,read');
-    Route::post('/presensi/saya/izin', [\App\Http\Controllers\PresensiController::class, 'pengajuanIzin'])->name('peserta-didik.presensi.izin')->middleware('permission:menu_riwayat_rfid,create');
+    Route::post('/peserta-didik/saya/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'store'])->name('peserta-didik.presensi.izin');
 
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian,read');

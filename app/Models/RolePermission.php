@@ -209,6 +209,11 @@ class RolePermission extends Model
             ],
 
             'Portal Peserta Didik' => [
+                'menu_surat_izin_pd' => [
+                    'label' => 'Surat Izin & Sakit (Peserta Didik)',
+                    'icon' => 'fa-envelope-open-text',
+                    'roles' => ['peserta_didik', 'admin'],
+                ],
                 'menu_riwayat_rfid' => [
                     'label' => 'Riwayat Presensi RFID',
                     'icon' => 'fa-id-card-clip',

@@ -254,8 +254,9 @@ class PesertaDidikPresensiController extends Controller
 
         $range = $this->resolveDateRange($periodeTipe, $bulan, $tahun, $semester, $tahunAjaran);
 
-        // Ambil Data Profil Sekolah untuk Kop Resmi
+        // Ambil Data Profil Sekolah & Kop Surat Resmi
         $sekolah = DB::table('sekolah')->first();
+        $sekolahMeta = \App\Models\SekolahMeta::first();
 
         // Ambil Kepala Sekolah
         $kepsek = DB::table('gtk')
@@ -303,6 +304,7 @@ class PesertaDidikPresensiController extends Controller
         return view('dashboard.peserta-didik-presensi-cetak', compact(
             'siswa',
             'sekolah',
+            'sekolahMeta',
             'kepsek',
             'periodeTipe',
             'bulan',

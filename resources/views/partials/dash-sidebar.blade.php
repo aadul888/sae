@@ -81,6 +81,7 @@
 
     // Section: Portal Peserta Didik
     $hasPortalPesertaDidik =
+        $can('menu_surat_izin_pd') ||
         $can('menu_riwayat_rfid') ||
         $can('menu_jadwal_pelajaran') ||
         $can('menu_rapor') ||
@@ -122,6 +123,7 @@
         'menu_buku_tamu',
         'menu_inventaris',
         'menu_agenda',
+        'menu_surat_izin_pd',
         'menu_riwayat_rfid',
         'menu_jadwal_pelajaran',
         'menu_rapor',
@@ -587,6 +589,7 @@
         @if ($hasPortalPesertaDidik)
             @php
                 $isPortalPesertaDidikActive =
+                    request()->routeIs('dashboard.peserta-didik.izin*') ||
                     request()->routeIs('dashboard.peserta-didik.presensi*') ||
                     request()->routeIs('dashboard.presensi.riwayat-saya*') ||
                     request()->routeIs('dashboard.riwayat-rfid*') ||
@@ -603,6 +606,14 @@
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
+                    @if ($can('menu_surat_izin_pd') || $role === 'peserta_didik')
+                        <a href="{{ route('dashboard.peserta-didik.izin.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.izin*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-envelope-open-text"></i></span>
+                            <span class="nav-label">Surat Izin &amp; Sakit</span>
+                        </a>
+                    @endif
+
                     @if ($can('menu_riwayat_rfid') || $role === 'peserta_didik')
                         <a href="{{ route('dashboard.peserta-didik.presensi.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.presensi*') || request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">

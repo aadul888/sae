@@ -29,12 +29,12 @@
             </a>
 
             @if ($canCreate)
-                <button type="button" class="btn btn-primary btn-responsive-icon" id="btnBukaModalIzin"
-                    title="Ajukan Surat Izin atau Sakit"
+                <a href="{{ route('dashboard.peserta-didik.izin.index') }}" class="btn btn-primary btn-responsive-icon"
+                    title="Buka Modul Surat Izin & Sakit"
                     style="padding: 8px 14px; font-size: 0.82rem; border-radius: 8px; font-weight: 600;">
                     <i class="fas fa-file-signature"></i>
                     <span class="btn-responsive-text">Ajukan Surat Izin</span>
-                </button>
+                </a>
             @endif
         </div>
     </div>
@@ -414,77 +414,6 @@
         </div>
     </div>
 
-    <!-- 8. Modal Pengajuan Izin / Sakit Mandiri (z-index 99999 !important) -->
-    <div id="modalPengajuanIzin" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card" style="max-width: 500px; width: 92%; margin: auto; padding: 22px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-color); margin: 0;">
-                    <i class="fas fa-file-signature text-primary me-2"></i> Pengajuan Surat Izin / Sakit
-                </h3>
-                <button type="button" id="btnCloseModalIzin" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <form id="formPengajuanIzin" enctype="multipart/form-data">
-                <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
-                        Jenis Permohonan:
-                    </label>
-                    <select name="jenis" required class="form-control" style="width: 100%; padding: 8px 12px; font-size: 0.85rem; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                        <option value="izin">Izin (Keperluan Keluarga / Khusus)</option>
-                        <option value="sakit">Sakit (Wajib Lampirkan Surat Dokter)</option>
-                        <option value="dispen">Dispensasi (Lomba / Tugas Sekolah)</option>
-                    </select>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
-                            Mulai Tanggal:
-                        </label>
-                        <input type="date" name="tanggal_mulai" value="{{ now()->toDateString() }}" required class="form-control"
-                            style="width: 100%; font-size: 0.85rem; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 10px;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
-                            Sampai Tanggal:
-                        </label>
-                        <input type="date" name="tanggal_selesai" value="{{ now()->toDateString() }}" required class="form-control"
-                            style="width: 100%; font-size: 0.85rem; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 10px;">
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
-                        Alasan &amp; Keterangan Lengkap:
-                    </label>
-                    <textarea name="alasan" rows="3" required placeholder="Jelaskan alasan izin atau kondisi sakit Anda..." class="form-control"
-                        style="width: 100%; font-size: 0.85rem; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px;"></textarea>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 5px;">
-                        Unggah Bukti Surat / Foto Surat Dokter:
-                    </label>
-                    <input type="file" name="lampiran" accept=".jpg,.jpeg,.png,.pdf" class="form-control"
-                        style="width: 100%; font-size: 0.82rem; padding: 7px; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px;">
-                    <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 4px;">
-                        Format: JPG, PNG, atau PDF (Maksimal 4 MB).
-                    </small>
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" id="btnCancelModalIzin" class="btn btn-outline" style="padding: 8px 18px; font-size: 0.85rem; border-radius: 8px;">
-                        Batal
-                    </button>
-                    <button type="submit" class="btn btn-primary" style="padding: 8px 22px; font-size: 0.85rem; font-weight: 700; border-radius: 8px;">
-                        Kirim Permohonan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')

@@ -10,41 +10,37 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Times New Roman', Times, serif;
-        }
-
-        @page {
-            size: A4 portrait;
-            margin: 12mm 15mm 15mm 15mm;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
         }
 
         body {
-            color: #000;
-            background: #f1f5f9;
+            background-color: #f3f4f6;
             padding: 24px;
-            font-size: 10.5pt;
-            line-height: 1.35;
         }
 
-        .paper {
+        .cetak-page {
             background: #fff;
-            max-width: 210mm;
-            min-height: 297mm;
-            margin: 0 auto;
-            padding: 15mm 18mm;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 8px;
             position: relative;
             overflow: hidden;
         }
 
-        /* Watermark Samar */
+        /* Watermark Logo SAE */
         .watermark-sae {
-            position: fixed;
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 380px;
-            height: 380px;
+            width: 400px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             opacity: 0.04;
             pointer-events: none;
             z-index: 0;
@@ -55,144 +51,165 @@
             filter: grayscale(100%);
         }
 
-        /* Kop Surat Resmi Satuan Pendidikan */
-        .kop-surat {
+        /* Kop Surat Sekolah Resmi */
+        .kop-container {
+            margin-bottom: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 6px;
+        }
+        .kop-fallback {
             display: flex;
             align-items: center;
-            border-bottom: 3px double #000;
+            gap: 16px;
+            border-bottom: 3px double #1f2937;
             padding-bottom: 8px;
+            text-align: center;
+        }
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .kop-text-wrap {
+            flex: 1;
+        }
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Judul Dokumen (Sesuai Modul Jadwal KBM) */
+        .doc-header {
+            text-align: center;
             margin-bottom: 16px;
             position: relative;
             z-index: 1;
         }
-        .kop-logo {
-            width: 75px;
-            height: 75px;
-            object-fit: contain;
-            margin-right: 16px;
-            flex-shrink: 0;
-        }
-        .kop-teks {
-            flex: 1;
-            text-align: center;
-        }
-        .kop-yayasan {
-            font-size: 11pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .kop-sekolah {
-            font-size: 15pt;
-            font-weight: bold;
+        .doc-header .doc-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            margin: 2px 0;
+            color: #1e3a8a;
+            margin: 0 0 2px 0;
         }
-        .kop-npsn {
-            font-size: 9.5pt;
-            font-weight: bold;
-        }
-        .kop-alamat {
-            font-size: 8.5pt;
-            color: #222;
-            line-height: 1.25;
-            margin-top: 2px;
+        .doc-header .doc-subtitle {
+            font-size: 0.82rem;
+            color: #4b5563;
+            font-weight: 600;
         }
 
-        /* Judul Dokumen */
-        .doc-title-wrap {
-            text-align: center;
-            margin-bottom: 14px;
+        /* Info Box Identitas Siswa (Sesuai Modul Jadwal KBM) */
+        .info-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
             position: relative;
             z-index: 1;
         }
-        .doc-title {
-            font-size: 12.5pt;
-            font-weight: bold;
+        .info-item {
+            margin-bottom: 4px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            display: inline-block;
+            width: 140px;
+        }
+        .info-val {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Tabel Rekapitulasi Statistik */
+        .table-rekap {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .table-rekap th, .table-rekap td {
+            border: 1px solid #d1d5db;
+            padding: 6px 8px;
+            text-align: center;
+        }
+        .table-rekap th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #374151;
             text-transform: uppercase;
+            font-size: 0.72rem;
+        }
+
+        /* Tabel Rincian Kehadiran Harian */
+        .table-presensi {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+        .table-presensi th, .table-presensi td {
+            border: 1px solid #d1d5db;
+            padding: 6px 10px;
+            vertical-align: middle;
+        }
+        .table-presensi th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #374151;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 0.72rem;
             letter-spacing: 0.5px;
-            text-decoration: underline;
-            margin-bottom: 3px;
-        }
-        .doc-subtitle {
-            font-size: 10pt;
-            font-style: italic;
-        }
-
-        /* Tabel Metadata Siswa */
-        .meta-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-            font-size: 9.5pt;
-            position: relative;
-            z-index: 1;
-        }
-        .meta-table td {
-            padding: 3px 4px;
-            vertical-align: top;
-        }
-        .meta-label {
-            width: 130px;
-            font-weight: bold;
-        }
-
-        /* Tabel Rekapitulasi Metrik */
-        .rekap-box {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 14px;
-            font-size: 9pt;
-            position: relative;
-            z-index: 1;
-        }
-        .rekap-box th, .rekap-box td {
-            border: 1px solid #333;
-            padding: 5px 6px;
-            text-align: center;
-        }
-        .rekap-box th {
-            background: #f1f5f9;
-            font-weight: bold;
-        }
-
-        /* Tabel Detail Harian */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 9pt;
-            margin-bottom: 18px;
-            position: relative;
-            z-index: 1;
-        }
-        .data-table th, .data-table td {
-            border: 1px solid #333;
-            padding: 4px 6px;
-        }
-        .data-table th {
-            background: #e2e8f0;
-            text-align: center;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 8.5pt;
         }
         .text-center { text-align: center; }
         .font-mono { font-family: 'Courier New', Courier, monospace; }
 
-        /* Area Tanda Tangan */
-        .ttd-container {
+        /* Tanda Tangan 3 Pihak */
+        .ttd-box {
             width: 100%;
-            margin-top: 14px;
+            margin-top: 20px;
             page-break-inside: avoid;
             position: relative;
             z-index: 1;
+        }
+        .ttd-date {
+            text-align: right;
+            font-size: 0.82rem;
+            color: #374151;
+            margin-bottom: 10px;
         }
         .ttd-table {
             width: 100%;
             border-collapse: collapse;
             text-align: center;
-            font-size: 9.5pt;
+            font-size: 0.82rem;
         }
         .ttd-table td {
             padding: 4px;
@@ -202,174 +219,186 @@
             height: 60px;
         }
         .ttd-name {
-            font-weight: bold;
+            font-weight: 700;
             text-decoration: underline;
+            color: #111827;
+        }
+        .ttd-nip {
+            font-size: 0.76rem;
+            color: #4b5563;
         }
 
-        /* Floating Action Bar (Hanya muncul di layar browser) */
-        .print-actions {
+        /* Bar Navigasi Cetak / Kembali Melayang (Sesuai Modul Jadwal KBM) */
+        .no-print-bar {
             position: fixed;
-            bottom: 24px;
+            top: 16px;
             right: 24px;
             display: flex;
             gap: 10px;
             z-index: 9999;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(17, 24, 39, 0.85);
             backdrop-filter: blur(8px);
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: 40px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
         }
-        .print-btn {
-            background: #6366f1;
-            color: #fff;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            cursor: pointer;
+        .btn-action {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            text-decoration: none;
-            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4);
-        }
-        .print-btn:hover { background: #4f46e5; }
-        .close-btn {
-            background: #475569;
-            color: #fff;
+            padding: 7px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
             border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
             cursor: pointer;
             text-decoration: none;
         }
-        .close-btn:hover { background: #334155; }
+        .btn-print { background: #2563eb; color: #fff; }
+        .btn-print:hover { background: #1d4ed8; }
+        .btn-back { background: #4b5563; color: #fff; }
+        .btn-back:hover { background: #374151; }
 
         @media print {
             body {
                 background: #fff;
                 padding: 0;
             }
-            .paper {
+            .cetak-page {
                 box-shadow: none;
                 padding: 0;
                 max-width: 100%;
-                min-height: auto;
+                margin: 0;
+                border-radius: 0;
             }
-            .print-actions {
+            .no-print-bar {
                 display: none !important;
+            }
+            @page {
+                size: portrait;
+                margin: 10mm 12mm 12mm 12mm;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Floating Print Controls -->
-    <div class="print-actions">
-        <button type="button" class="print-btn" onclick="window.print()">
-            <i class="fas fa-print"></i> Cetak / Simpan PDF
-        </button>
-        <button type="button" class="close-btn" onclick="window.close()">
-            <i class="fas fa-times"></i> Tutup
+    <!-- Bar Aksi Cetak & Kembali Melayang -->
+    <div class="no-print-bar">
+        <a href="{{ route('dashboard.peserta-didik.presensi.index') }}" class="btn-action btn-back">
+            <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
+        </a>
+        <button onclick="window.print()" class="btn-action btn-print">
+            <i class="fas fa-print"></i> Cetak Dokumen (Print / PDF)
         </button>
     </div>
 
-    <div class="paper">
-        <!-- Watermark -->
+    <div class="cetak-page">
+        <!-- Watermark Logo SAE -->
         <div class="watermark-sae">
-            <img src="{{ asset('img/logo-dark.png') }}" alt="Watermark SAE">
+            <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
         </div>
 
-        <!-- 1. Kop Satuan Pendidikan Resmi -->
-        <div class="kop-surat">
-            @php
-                $logoSekolahUrl = !empty($sekolah?->logo_path) ? asset('storage/' . ltrim($sekolah->logo_path, '/')) : asset('img/logo-dark.png');
-            @endphp
-            <img src="{{ $logoSekolahUrl }}" alt="Logo Sekolah" class="kop-logo" onerror="this.src='/img/logo-dark.png'">
-            <div class="kop-teks">
-                <div class="kop-yayasan">PEMERINTAH PROVINSI / YAYASAN PENDIDIKAN</div>
-                <div class="kop-sekolah">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
-                <div class="kop-npsn">NPSN: {{ $sekolah->npsn ?? '-' }} &bull; KODE POS: {{ $sekolah->kode_pos ?? '-' }}</div>
-                <div class="kop-alamat">
-                    {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan No. 1' }},
-                    Desa/Kel. {{ $sekolah->desa_kelurahan ?? '-' }},
-                    Kec. {{ $sekolah->kecamatan ?? '-' }},
-                    {{ $sekolah->kabupaten_kota ?? '-' }},
-                    {{ $sekolah->provinsi ?? '-' }}<br>
-                    Telepon: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }} &bull; Website: {{ $sekolah->website ?? '-' }}
+        <!-- 1. KOP SURAT RESMI SEKOLAH YANG SUDAH DISIAPKAN -->
+        <div class="kop-container">
+            @if (!empty($sekolahMeta?->kop_url))
+                <!-- Menggunakan File Gambar Kop Surat Resmi yang sudah diunggah -->
+                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}" class="kop-image">
+            @else
+                <!-- Fallback Kop Standar jika belum ada file gambar kop -->
+                <div class="kop-fallback">
+                    @php
+                        $logoUrl = !empty($sekolahMeta?->logo_url) ? $sekolahMeta->logo_url : asset('img/logo-dark.png');
+                    @endphp
+                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo" onerror="this.src='/img/logo-dark.png'">
+                    <div class="kop-text-wrap">
+                        <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
+                        <div class="kop-subtitle">
+                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat: {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
+                            {{ $sekolah->kabupaten_kota ?? '' }}, {{ $sekolah->provinsi ?? '' }}<br>
+                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }} &bull; Website: {{ $sekolah->website ?? '-' }}
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <!-- 2. Header Judul Dokumen (Format Bersih Jadwal KBM) -->
+        <div class="doc-header">
+            <div class="doc-title-main">REKAPITULASI PRESENSI KEHADIRAN PESERTA DIDIK</div>
+            <div class="doc-subtitle">Periode: {{ $range['label'] }}</div>
+        </div>
+
+        <!-- 3. Info Box Identitas Siswa -->
+        <div class="info-box">
+            <div>
+                <div class="info-item">
+                    <span class="info-label">Nama Siswa:</span>
+                    <span class="info-val">{{ $siswa->nama ?? '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">NISN / NIPD:</span>
+                    <span class="info-val font-mono">{{ ($siswa->nisn ?? null) ?: '-' }} / {{ ($siswa->nipd ?? null) ?: '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Jenis Kelamin:</span>
+                    <span>{{ ($siswa->jenis_kelamin ?? '') === 'L' ? 'Laki-Laki' : (($siswa->jenis_kelamin ?? '') === 'P' ? 'Perempuan' : '-') }}</span>
+                </div>
+            </div>
+            <div>
+                <div class="info-item">
+                    <span class="info-label">Kelas / Rombel:</span>
+                    <span class="info-val" style="color: #1e3a8a;">{{ ($siswa->nama_rombel ?? null) ?: '-' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Program Keahlian:</span>
+                    <span>{{ ($siswa->jurusan_id_str ?? null) ?: 'Umum' }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Wali Kelas:</span>
+                    <span class="info-val">{{ ($siswa->wali_nama ?? null) ?: '-' }}</span>
                 </div>
             </div>
         </div>
 
-        <!-- 2. Judul Dokumen -->
-        <div class="doc-title-wrap">
-            <div class="doc-title">REKAPITULASI PRESENSI KEHADIRAN PESERTA DIDIK</div>
-            <div class="doc-subtitle">Periode: {{ $range['label'] }}</div>
-        </div>
-
-        <!-- 3. Metadata Identitas Siswa -->
-        <table class="meta-table">
-            <tr>
-                <td class="meta-label">Nama Peserta Didik</td>
-                <td>: <strong>{{ $siswa->nama }}</strong></td>
-                <td class="meta-label">Rombongan Belajar</td>
-                <td>: {{ $siswa->nama_rombel ?: '-' }}</td>
-            </tr>
-            <tr>
-                <td class="meta-label">NISN / NIPD</td>
-                <td>: {{ $siswa->nisn ?: '-' }} / {{ $siswa->nipd ?: '-' }}</td>
-                <td class="meta-label">Kompetensi Keahlian</td>
-                <td>: {{ $siswa->jurusan_id_str ?: 'Umum' }}</td>
-            </tr>
-            <tr>
-                <td class="meta-label">Jenis Kelamin</td>
-                <td>: {{ $siswa->jenis_kelamin === 'L' ? 'Laki-Laki' : ($siswa->jenis_kelamin === 'P' ? 'Perempuan' : '-') }}</td>
-                <td class="meta-label">Wali Kelas</td>
-                <td>: {{ $siswa->wali_nama ?: '-' }}</td>
-            </tr>
-        </table>
-
-        <!-- 4. Tabel Rekapitulasi Kehadiran (Statistik) -->
-        <table class="rekap-box">
+        <!-- 4. Tabel Rekapitulasi Statistik Kehadiran -->
+        <table class="table-rekap">
             <thead>
                 <tr>
                     <th>Hadir Tepat (H)</th>
                     <th>Terlambat (T)</th>
                     <th>Izin (I)</th>
                     <th>Sakit (S)</th>
-                    <th>Dispensasi (D)</th>
+                    <th>Dispen (D)</th>
                     <th>Alpha (A)</th>
-                    <th>Total Hari</th>
-                    <th>% Kehadiran</th>
+                    <th>Total Belajar</th>
+                    <th>Tingkat Hadir (%)</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td><strong>{{ $stats['hadir'] }}</strong> hari</td>
-                    <td><strong>{{ $stats['terlambat'] }}</strong> hari ({{ $stats['menit_terlambat'] }} mnt)</td>
+                    <td><strong>{{ $stats['terlambat'] }}</strong> hari ({{ $stats['menit_terlambat'] }}m)</td>
                     <td><strong>{{ $stats['izin'] }}</strong> hari</td>
                     <td><strong>{{ $stats['sakit'] }}</strong> hari</td>
                     <td><strong>{{ $stats['dispen'] }}</strong> hari</td>
-                    <td><strong style="color: red;">{{ $stats['alpha'] }}</strong> hari</td>
+                    <td><strong style="color: #ef4444;">{{ $stats['alpha'] }}</strong> hari</td>
                     <td><strong>{{ $stats['total'] }}</strong> hari</td>
-                    <td><strong style="font-size: 11pt; color: #16a34a;">{{ $stats['persen'] }}%</strong></td>
+                    <td><strong style="font-size: 0.88rem; color: #16a34a;">{{ $stats['persen'] }}%</strong></td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- 5. Tabel Detail Harian -->
-        <table class="data-table">
+        <!-- 5. Tabel Rincian Presensi Harian -->
+        <table class="table-presensi">
             <thead>
                 <tr>
-                    <th style="width: 30px;">No</th>
-                    <th style="width: 75px;">Tanggal</th>
-                    <th style="width: 65px;">Hari</th>
-                    <th style="width: 70px;">Masuk</th>
-                    <th style="width: 70px;">Pulang</th>
-                    <th style="width: 75px;">Status</th>
+                    <th style="width: 32px;">No</th>
+                    <th style="width: 80px;">Tanggal</th>
+                    <th style="width: 75px;">Hari</th>
+                    <th style="width: 75px;">Masuk</th>
+                    <th style="width: 75px;">Pulang</th>
+                    <th style="width: 85px;">Status</th>
                     <th>Keterangan</th>
                 </tr>
             </thead>
@@ -387,24 +416,24 @@
                         </td>
                         <td class="text-center">
                             @if ($l->status === 'H')
-                                <strong>Hadir</strong>
+                                <span style="font-weight: 700; color: #059669;">Hadir</span>
                             @elseif ($l->status === 'T')
-                                <strong>Terlambat</strong> (+{{ $l->menit_terlambat }}m)
+                                <span style="font-weight: 700; color: #d97706;">Terlambat (+{{ $l->menit_terlambat }}m)</span>
                             @elseif ($l->status === 'I')
-                                <strong>Izin</strong>
+                                <span style="font-weight: 700; color: #2563eb;">Izin</span>
                             @elseif ($l->status === 'S')
-                                <strong>Sakit</strong>
+                                <span style="font-weight: 700; color: #7c3aed;">Sakit</span>
                             @elseif ($l->status === 'D')
-                                <strong>Dispen</strong>
+                                <span style="font-weight: 700; color: #0891b2;">Dispen</span>
                             @else
-                                <strong style="color: red;">Alpha</strong>
+                                <span style="font-weight: 700; color: #dc2626;">Alpha</span>
                             @endif
                         </td>
                         <td>{{ $l->keterangan ?: '-' }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center" style="padding: 16px; color: #666;">
+                        <td colspan="7" class="text-center" style="padding: 16px; color: #6b7280;">
                             Tidak ada catatan presensi pada rentang periode ini.
                         </td>
                     </tr>
@@ -412,9 +441,9 @@
             </tbody>
         </table>
 
-        <!-- 6. Area Tanda Tangan Resmi 3 Pihak -->
-        <div class="ttd-container">
-            <div style="text-align: right; margin-bottom: 8px; font-size: 9.5pt;">
+        <!-- 6. Tanda Tangan Resmi 3 Pihak -->
+        <div class="ttd-box">
+            <div class="ttd-date">
                 {{ $sekolah->kabupaten_kota ? str_replace(['Kabupaten ', 'Kota '], '', $sekolah->kabupaten_kota) : 'Ditetapkan' }},
                 {{ now()->translatedFormat('d F Y') }}
             </div>
@@ -423,21 +452,21 @@
                 <tr>
                     <td style="width: 33%;">
                         Mengetahui,<br>
-                        Orang Tua / Wali Peserta Didik
+                        Orang Tua / Wali Murid
                         <div class="ttd-space"></div>
                         <div class="ttd-name">...................................................</div>
                     </td>
                     <td style="width: 33%;">
                         Wali Kelas
                         <div class="ttd-space"></div>
-                        <div class="ttd-name">{{ $siswa->wali_nama ?: '...................................................' }}</div>
-                        <div>NIP. {{ $siswa->wali_nip ?: '-' }}</div>
+                        <div class="ttd-name">{{ ($siswa->wali_nama ?? null) ?: '...................................................' }}</div>
+                        <div class="ttd-nip">NIP. {{ ($siswa->wali_nip ?? null) ?: '-' }}</div>
                     </td>
                     <td style="width: 34%;">
                         Kepala Sekolah
                         <div class="ttd-space"></div>
                         <div class="ttd-name">{{ $kepsek?->nama ?: '...................................................' }}</div>
-                        <div>NIP. {{ $kepsek?->nip ?: '-' }}</div>
+                        <div class="ttd-nip">NIP. {{ $kepsek?->nip ?: '-' }}</div>
                     </td>
                 </tr>
             </table>
@@ -446,10 +475,9 @@
 
     <script>
         window.addEventListener('load', function () {
-            // Berikan sedikit jeda render sebelum mencetak
             setTimeout(function () {
                 window.print();
-            }, 500);
+            }, 400);
         });
     </script>
 </body>
