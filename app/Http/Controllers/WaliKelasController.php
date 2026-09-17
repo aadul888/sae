@@ -10,6 +10,8 @@ use App\Models\PesertaDidikMeta;
 use App\Models\PresensiHarian;
 use App\Models\PresensiPengaturan;
 use App\Models\KalenderPendidikan;
+use App\Models\PresensiIzin;
+use App\Models\NotifikasiTransaksi;
 use Carbon\Carbon;
 
 class WaliKelasController extends Controller
@@ -750,28 +752,103 @@ class WaliKelasController extends Controller
             ->select('peserta_didik_id', 'nama', 'nisn')
             ->get();
 
-        return view('dashboard.wali-kelas.presensi', [
-            'hasRombel'    => true,
-            'isAdmin'      => $ctx['isAdmin'],
-            'rombelList'   => $ctx['rombelList'],
-            'activeRombel' => $activeRombel,
-            'waliNama'     => $ctx['waliNama'],
-            'tanggal'      => $tanggal,
-            'statusHari'   => $statusHari,
-            'pengaturan'   => $pengaturan,
-            'list'         => $list,
-            'allSiswa'     => $allSiswa,
-            'total'        => $list->total(),
-            'totalSiswa'   => $totalSiswa,
-            'summary'      => $summary,
-            'q'            => $q,
-            'statusFilter' => $statusFilter,
-            'perPage'      => $perPage,
-            'sort'         => $sort,
-            'sortDir'      => $sortDir,
-            'canUpdate'    => $canUpdate,
-        ]);
+        // Data Tab Izin & Sakit Kelas Binaan
+        $activeTab = $request->get('tab', 'harian');
+        if (!in_array($activeTab, ['harian', 'izin'], true)) {
+            $activeTab = 'harian';
+        }
 
+        $baseIzinQuery = DB::table('presensi_izin as pi')
+            ->join('peserta_didik as pd', 'pi.peserta_didik_id', '=', 'pd.peserta_didik_id')
+            ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+            ->where(function ($w) use ($targetRombelId) {
+                $w->where('pi.rombongan_belajar_id', $targetRombelId)
+                  ->orWhere('pd.rombongan_belajar_id', $targetRombelId);
+            });
+
+        $pendingIzinCount = (clone $baseIzinQuery)->where('pi.status', 'menunggu')->count();
+        $totalIzinCount = (clone $baseIzinQuery)->count();
+
+        $izinSummary = [
+            'total'     => $totalIzinCount,
+            'menunggu'  => $pendingIzinCount,
+            'disetujui' => (clone $baseIzinQuery)->where('pi.status', 'disetujui')->count(),
+            'ditolak'   => (clone $baseIzinQuery)->where('pi.status', 'ditolak')->count(),
+        ];
+
+        $qIzin = trim((string) $request->get('q_izin', ''));
+        $statusIzinFilter = trim((string) $request->get('status_izin', ''));
+        $jenisIzinFilter = trim((string) $request->get('jenis_izin', ''));
+
+        $izinQuery = (clone $baseIzinQuery)
+            ->select(
+                'pi.id',
+                'pi.peserta_didik_id',
+                'pi.nisn',
+                'pi.jenis',
+                'pi.tanggal_mulai',
+                'pi.tanggal_selesai',
+                'pi.alasan',
+                'pi.lampiran_path',
+                'pi.status',
+                'pi.disetujui_oleh',
+                'pi.catatan_petugas',
+                'pi.created_at',
+                'pd.nama as siswa_nama',
+                'pd.nipd as siswa_nipd',
+                'pd.jenis_kelamin as siswa_jk',
+                'pdm.foto_path'
+            );
+
+        if ($qIzin !== '') {
+            $izinQuery->where(function ($sq) use ($qIzin) {
+                $sq->where('pd.nama', 'like', "%{$qIzin}%")
+                   ->orWhere('pd.nisn', 'like', "%{$qIzin}%")
+                   ->orWhere('pi.alasan', 'like', "%{$qIzin}%")
+                   ->orWhere('pi.catatan_petugas', 'like', "%{$qIzin}%");
+            });
+        }
+
+        if ($statusIzinFilter !== '') {
+            $izinQuery->where('pi.status', $statusIzinFilter);
+        }
+
+        if ($jenisIzinFilter !== '') {
+            $izinQuery->where('pi.jenis', $jenisIzinFilter);
+        }
+
+        $izinList = $izinQuery->orderBy('pi.created_at', 'desc')->paginate($perPage, ['*'], 'page_izin')->withQueryString();
+
+        return view('dashboard.wali-kelas.presensi', [
+            'hasRombel'        => true,
+            'isAdmin'          => $ctx['isAdmin'],
+            'rombelList'       => $ctx['rombelList'],
+            'activeRombel'     => $activeRombel,
+            'waliNama'         => $ctx['waliNama'],
+            'tanggal'          => $tanggal,
+            'statusHari'       => $statusHari,
+            'pengaturan'       => $pengaturan,
+            'list'             => $list,
+            'allSiswa'         => $allSiswa,
+            'total'            => $list->total(),
+            'totalSiswa'       => $totalSiswa,
+            'summary'          => $summary,
+            'q'                => $q,
+            'statusFilter'     => $statusFilter,
+            'perPage'          => $perPage,
+            'sort'             => $sort,
+            'sortDir'          => $sortDir,
+            'canUpdate'        => $canUpdate,
+            // Tab Izin Data
+            'activeTab'        => $activeTab,
+            'pendingIzinCount' => $pendingIzinCount,
+            'totalIzinCount'   => $totalIzinCount,
+            'izinSummary'      => $izinSummary,
+            'izinList'         => $izinList,
+            'qIzin'            => $qIzin,
+            'statusIzinFilter' => $statusIzinFilter,
+            'jenisIzinFilter'  => $jenisIzinFilter,
+        ]);
     }
 
     /**
@@ -912,6 +989,66 @@ class WaliKelasController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => "Presensi manual ({$presensi->status_label}) untuk {$siswa->nama} berhasil dicatat dan telah dikunci.",
+        ]);
+    }
+
+    /**
+     * Verifikasi / Approval Pengajuan Surat Izin Siswa Kelas Binaan
+     */
+    public function verifikasiIzin(Request $request, $id)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+
+        if (!RolePermission::isWaliKelasOrAdmin($user) || !RolePermission::canAccess($user, 'menu_wali_kelas_presensi', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses verifikasi izin.'], 403);
+        }
+
+        $request->validate([
+            'status'  => 'required|string|in:disetujui,ditolak',
+            'catatan' => 'nullable|string|max:500',
+        ]);
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        $activeRombel = $ctx['activeRombel'];
+
+        $izin = PresensiIzin::findOrFail($id);
+
+        if (!$ctx['isAdmin']) {
+            $targetRombelId = $activeRombel?->rombongan_belajar_id;
+            $siswaRombelId = DB::table('peserta_didik')->where('peserta_didik_id', $izin->peserta_didik_id)->value('rombongan_belajar_id');
+            if ($izin->rombongan_belajar_id !== $targetRombelId && $siswaRombelId !== $targetRombelId) {
+                return response()->json(['status' => 'error', 'message' => 'Peserta didik ini berada di luar rombel binaan Anda.'], 403);
+            }
+        }
+
+        $verifiedBy = is_array($user) ? ($user['nama'] ?? 'Wali Kelas') : ($user->nama ?? 'Wali Kelas');
+
+        $izin->status = $request->input('status');
+        $izin->disetujui_oleh = $verifiedBy;
+        $izin->catatan_petugas = $request->input('catatan');
+        $izin->save();
+
+        if ($izin->status === 'disetujui') {
+            $izin->applyToDailyAttendance($verifiedBy);
+        }
+
+        // Buat notifikasi transaksi ke murid
+        try {
+            NotifikasiTransaksi::create([
+                'peserta_didik_id' => $izin->peserta_didik_id,
+                'judul' => 'Surat ' . $izin->jenis_label . ' ' . ucfirst($izin->status),
+                'pesan' => 'Permohonan surat ' . strtolower($izin->jenis_label) . ' Anda telah diverifikasi (' . $izin->status . ') oleh ' . $verifiedBy . ($izin->catatan_petugas ? ': ' . $izin->catatan_petugas : '.'),
+                'tipe' => 'izin',
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Permohonan surat ' . $izin->jenis_label . ' berhasil ' . ($izin->status === 'disetujui' ? 'disetujui' : 'ditolak') . '.',
         ]);
     }
 

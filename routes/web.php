@@ -318,6 +318,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/presensi', [\App\Http\Controllers\WaliKelasController::class, 'presensi'])->name('presensi.index')->middleware('permission:menu_wali_kelas_presensi,read');
         Route::post('/presensi/manual', [\App\Http\Controllers\WaliKelasController::class, 'simpanPresensiManual'])->name('presensi.manual')->middleware('permission:menu_wali_kelas_presensi,update');
         Route::get('/presensi/pdf/{tipe}', [\App\Http\Controllers\WaliKelasController::class, 'downloadPdf'])->name('presensi.pdf')->middleware('permission:menu_wali_kelas_presensi,read');
+        Route::post('/presensi/izin/{id}/verifikasi', [\App\Http\Controllers\WaliKelasController::class, 'verifikasiIzin'])->name('presensi.izin.verifikasi')->middleware('permission:menu_wali_kelas_presensi,update');
     });
 
     // Realtime Server-Sent Events (SSE) & Polling Fallback
