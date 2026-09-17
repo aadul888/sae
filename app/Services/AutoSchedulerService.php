@@ -354,7 +354,7 @@ class AutoSchedulerService
             $unallocatedPass1 = [];
 
             // ==========================================
-            // PASS 1: PENEMPATAN BLOK UTAMA (CONTIGUOUS PREFERRED)
+            // PASS 1: PENEMPATAN BLOK UTAMA (STRICT ZERO-GAP & PRE-BREAK BRIDGE)
             // ==========================================
             foreach ($sessionsToSchedule as $sess) {
                 $rId   = $sess['rombongan_belajar_id'];
@@ -370,8 +370,6 @@ class AutoSchedulerService
                 }
 
                 $placed = false;
-
-                // Urutkan hari berdasarkan beban slot terendah
                 $sortedHari = $hariList;
                 usort($sortedHari, function ($h1, $h2) use ($rId, $rombelOccupied) {
                     return count($rombelOccupied[$rId][$h1] ?? []) <=> count($rombelOccupied[$rId][$h2] ?? []);
@@ -394,38 +392,12 @@ class AutoSchedulerService
                         $rId, $h, $dur, $rombelOccupied, $effectiveDailySlotCounts, $istirahatJamKe, false, $isPkl
                     );
 
-                    foreach ($candidateSlots as $startK) {
-                        $endK = $startK + $dur - 1;
-
-                        if ($this->isTeacherUnavailable($gPref, $h, $startK, $endK)) {
-                            continue;
-                        }
-
-                        $slotFree = true;
-                        if ($gId && !$isPkl) {
-                            for ($checkK = $startK; $checkK <= $endK; $checkK++) {
-                                if (!empty($guruOccupied[$gId][$h][$checkK])) {
-                                    $slotFree = false;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if ($slotFree) {
-                            for ($occK = $startK; $occK <= $endK; $occK++) {
-                                $rombelOccupied[$rId][$h][$occK] = true;
-                                if ($gId && !$isPkl) {
-                                    $guruOccupied[$gId][$h][$occK] = true;
-                                }
-                            }
-
-                            $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
-                            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
-                            if ($gId && !$isPkl) {
-                                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
-                            }
-
-                            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $startK, $endK, $slots, $rombelMap, 'Auto-Generated');
+                    foreach ($candidateSlots as $cand) {
+                        if ($this->tryPlaceCandidate(
+                            $sess, $cand, $rId, $h, $gPref, $rombelOccupied, $guruOccupied,
+                            $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $batchInserts,
+                            $slots, $rombelMap, 'Auto-Generated'
+                        )) {
                             $placed = true;
                             break;
                         }
@@ -440,9 +412,9 @@ class AutoSchedulerService
             }
 
             // ==========================================
-            // PASS 2: ELASTIC DECOMPOSITION & GAP FILLING
+            // PASS 2: ELASTIC DECOMPOSITION (2+2 atau 2+1)
             // ==========================================
-            // Memecah blok >= 3 JP yang belum dapat slot menjadi sub-blok fleksibel (2+2 atau 2+1)
+            // Memecah blok >= 3 JP yang belum dapat slot menjadi sub-blok fleksibel
             $unallocatedPass2 = [];
             $splittablePass2 = [];
             foreach ($unallocatedPass1 as $u) {
@@ -461,7 +433,6 @@ class AutoSchedulerService
             foreach ($splittablePass2 as $sess) {
                 $rId   = $sess['rombongan_belajar_id'];
                 $gId   = $sess['ptk_id'];
-                $mId   = $sess['mata_pelajaran_id'];
                 $dur   = $sess['duration'];
                 $isPkl = $sess['is_pkl'];
 
@@ -484,43 +455,16 @@ class AutoSchedulerService
                         if ($gPref->max_jp_per_hari && (($guruDayJp[$gId][$h] ?? 0) + $dur > $gPref->max_jp_per_hari)) continue;
                     }
 
-                    // Izinkan celah (allow gaps)
                     $candidates = $this->findCandidateSlots(
-                        $rId, $h, $dur, $rombelOccupied, $effectiveDailySlotCounts, $istirahatJamKe, true, $isPkl
+                        $rId, $h, $dur, $rombelOccupied, $effectiveDailySlotCounts, $istirahatJamKe, false, $isPkl
                     );
 
-                    foreach ($candidates as $startK) {
-                        $endK = $startK + $dur - 1;
-
-                        if ($this->isTeacherUnavailable($gPref, $h, $startK, $endK)) {
-                            continue;
-                        }
-
-                        $slotFree = true;
-                        if ($gId && !$isPkl) {
-                            for ($checkK = $startK; $checkK <= $endK; $checkK++) {
-                                if (!empty($guruOccupied[$gId][$h][$checkK])) {
-                                    $slotFree = false;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if ($slotFree) {
-                            for ($occK = $startK; $occK <= $endK; $occK++) {
-                                $rombelOccupied[$rId][$h][$occK] = true;
-                                if ($gId && !$isPkl) {
-                                    $guruOccupied[$gId][$h][$occK] = true;
-                                }
-                            }
-
-                            $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
-                            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
-                            if ($gId && !$isPkl) {
-                                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
-                            }
-
-                            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $startK, $endK, $slots, $rombelMap, 'Auto-Generated (Elastic)');
+                    foreach ($candidates as $cand) {
+                        if ($this->tryPlaceCandidate(
+                            $sess, $cand, $rId, $h, $gPref, $rombelOccupied, $guruOccupied,
+                            $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $batchInserts,
+                            $slots, $rombelMap, 'Auto-Generated (Pass 2)'
+                        )) {
                             $placed = true;
                             break;
                         }
@@ -535,9 +479,9 @@ class AutoSchedulerService
             }
 
             // ==========================================
-            // PASS 3: EXHAUSTIVE UNIT PLACEMENT (1 JP)
+            // PASS 3: CONTIGUOUS 1 JP UNIT PLACEMENT
             // ==========================================
-            // Sesi yang masih tersisa dipecah menjadi unit 1 JP individual dan ditempatkan ke slot kosong yang tersisa
+            // Sesi yang masih tersisa dipecah menjadi unit 1 JP individual dan ditempatkan secara contiguous
             $splittablePass3 = [];
             foreach ($unallocatedPass2 as $u) {
                 for ($i = 0; $i < $u['duration']; $i++) {
@@ -549,7 +493,6 @@ class AutoSchedulerService
             foreach ($splittablePass3 as $sess) {
                 $rId   = $sess['rombongan_belajar_id'];
                 $gId   = $sess['ptk_id'];
-                $mId   = $sess['mata_pelajaran_id'];
                 $isPkl = $sess['is_pkl'];
 
                 $targetRombelMax = $rombelTargetJp[$rId] ?? 50;
@@ -575,28 +518,12 @@ class AutoSchedulerService
                         $rId, $h, 1, $rombelOccupied, $effectiveDailySlotCounts, $istirahatJamKe, true, $isPkl
                     );
 
-                    foreach ($candidates as $startK) {
-                        if ($this->isTeacherUnavailable($gPref, $h, $startK, $startK)) {
-                            continue;
-                        }
-
-                        $free = true;
-                        if ($gId && !$isPkl && !empty($guruOccupied[$gId][$h][$startK])) {
-                            $free = false;
-                        }
-
-                        if ($free) {
-                            $rombelOccupied[$rId][$h][$startK] = true;
-                            if ($gId && !$isPkl) {
-                                $guruOccupied[$gId][$h][$startK] = true;
-                            }
-
-                            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                            if ($gId && !$isPkl) {
-                                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + 1;
-                            }
-
-                            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $startK, $startK, $slots, $rombelMap, 'Auto-Generated (Gap Fill)');
+                    foreach ($candidates as $cand) {
+                        if ($this->tryPlaceCandidate(
+                            $sess, $cand, $rId, $h, $gPref, $rombelOccupied, $guruOccupied,
+                            $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $batchInserts,
+                            $slots, $rombelMap, 'Auto-Generated (Gap Fill 1 JP)'
+                        )) {
                             $placed = true;
                             break;
                         }
@@ -613,8 +540,6 @@ class AutoSchedulerService
             // ==========================================
             // PASS 4: SMART COMPACTION (HOLE ELIMINATION)
             // ==========================================
-            // Padatkan jadwal ke jam-jam awal (shift left) sehingga kelas yang jam Dapodik-nya kurang
-            // otomatis memiliki jam kosong yang rapi di akhir hari (pulang lebih awal) tanpa lubang di tengah.
             $this->compactRombelSchedules($batchInserts, $rombelOccupied, $guruOccupied, $effectiveDailySlotCounts, $istirahatJamKe, $slots);
 
             // 6. Bulk Insert Hasil Generate ke Database (Chunk per 200 rows)
@@ -642,9 +567,9 @@ class AutoSchedulerService
     }
 
     /**
-     * Cari seluruh kandidat slot waktu yang valid untuk rombel pada hari tertentu dengan scoring kedekatan
+     * Cari seluruh kandidat slot waktu yang valid untuk rombel pada hari tertentu secara STRICT ZERO-GAP
      *
-     * @return int[] Array of start positions terurut berdasarkan skor prioritas
+     * @return array Array kandidat slot [ ['start' => int, 'end' => int, 'split' => bool] | ['start_pagi' => int, ...] ]
      */
     private function findCandidateSlots(
         string $rId,
@@ -659,65 +584,205 @@ class AutoSchedulerService
         $dayMax = $dailySlotCounts[$h] ?? 12;
         $rOcc = $rombelOccupied[$rId][$h] ?? [];
 
+        $morningMax = ($h === 'Jumat' || !$istirahatJamKe) ? $dayMax : ($istirahatJamKe - 1);
+
+        // Cari slot kosong pertama di sesi pagi
+        $morningStart = 1;
+        while (!empty($rOcc[$morningStart]) && $morningStart <= $morningMax) {
+            $morningStart++;
+        }
+
+        $morningIsFull = ($morningStart > $morningMax);
         $candidates = [];
 
-        for ($startK = 1; $startK <= ($dayMax - $dur + 1); $startK++) {
-            $endK = $startK + $dur - 1;
+        // 1. Sesi Pagi: Isi rapat dari slot pagi berikutnya
+        if (!$morningIsFull) {
+            $remMorning = $morningMax - $morningStart + 1;
 
-            // Pastikan seluruh rentang slot rombel belum terisi
-            $free = true;
-            for ($k = $startK; $k <= $endK; $k++) {
-                if (!empty($rOcc[$k])) {
-                    $free = false;
+            if ($dur <= $remMorning) {
+                $endK = $morningStart + $dur - 1;
+                $free = true;
+                for ($k = $morningStart; $k <= $endK; $k++) {
+                    if (!empty($rOcc[$k])) { $free = false; break; }
+                }
+                if ($free) {
+                    $candidates[] = [
+                        'start' => $morningStart,
+                        'end'   => $endK,
+                        'split' => false,
+                    ];
+                }
+            } elseif ($h !== 'Jumat' && $remMorning >= 1 && $istirahatJamKe) {
+                // Bridge across break: Isi sisa pagi hingga JP 7, sisanya lanjut di JP 9
+                $pagiFit = $remMorning;
+                $siangFit = $dur - $pagiFit;
+                $ss = $istirahatJamKe + 1;
+                $es = $ss + $siangFit - 1;
+
+                if ($es <= $dayMax) {
+                    $free = true;
+                    for ($k = $morningStart; $k <= $morningMax; $k++) {
+                        if (!empty($rOcc[$k])) { $free = false; break; }
+                    }
+                    for ($k = $ss; $k <= $es; $k++) {
+                        if (!empty($rOcc[$k])) { $free = false; break; }
+                    }
+                    if ($free) {
+                        $candidates[] = [
+                            'start_pagi'  => $morningStart,
+                            'end_pagi'    => $morningMax,
+                            'start_siang' => $ss,
+                            'end_siang'   => $es,
+                            'dur_pagi'    => $pagiFit,
+                            'dur_siang'   => $siangFit,
+                            'split'       => true,
+                        ];
+                    }
+                }
+            }
+        }
+
+        // 2. Sesi Siang (Hanya jika pagi sudah penuh atau hari Senin-Kamis):
+        // Wajib menempel rapat mulai JP 9 atau setelah sesi siang sebelumnya
+        if ($h !== 'Jumat' && $istirahatJamKe && $morningIsFull) {
+            $afternoonStart = $istirahatJamKe + 1;
+            while (!empty($rOcc[$afternoonStart]) && $afternoonStart <= $dayMax) {
+                $afternoonStart++;
+            }
+
+            $endK = $afternoonStart + $dur - 1;
+            if ($endK <= $dayMax) {
+                $free = true;
+                for ($k = $afternoonStart; $k <= $endK; $k++) {
+                    if (!empty($rOcc[$k])) { $free = false; break; }
+                }
+                if ($free) {
+                    $candidates[] = [
+                        'start' => $afternoonStart,
+                        'end'   => $endK,
+                        'split' => false,
+                    ];
+                }
+            }
+        }
+
+        // 3. Fallback Cadangan (Jika allowGaps aktif):
+        if (empty($candidates) && $allowGaps) {
+            for ($startK = 1; $startK <= ($dayMax - $dur + 1); $startK++) {
+                $endK = $startK + $dur - 1;
+                if ($istirahatJamKe && $startK <= $istirahatJamKe && $endK >= $istirahatJamKe) continue;
+
+                $free = true;
+                for ($k = $startK; $k <= $endK; $k++) {
+                    if (!empty($rOcc[$k])) { $free = false; break; }
+                }
+                if ($free) {
+                    $candidates[] = [
+                        'start' => $startK,
+                        'end'   => $endK,
+                        'split' => false,
+                    ];
                     break;
                 }
             }
-            if (!$free) continue;
+        }
 
-            // Jam istirahat terkunci secara mutlak untuk seluruh KBM (baik reguler maupun PKL) pada hari kerja Senin-Kamis
-            if ($istirahatJamKe && in_array($h, ['Senin', 'Selasa', 'Rabu', 'Kamis'], true)) {
-                if ($startK <= $istirahatJamKe && $endK >= $istirahatJamKe) {
-                    continue;
+        return $candidates;
+    }
+
+    /**
+     * Eksekusi penempatan kandidat sesi ke matriks occupied dan batch inserts
+     */
+    private function tryPlaceCandidate(
+        array $sess,
+        array $cand,
+        string $rId,
+        string $h,
+        ?object $gPref,
+        array &$rombelOccupied,
+        array &$guruOccupied,
+        array &$rombelDayMapel,
+        array &$rombelPureKbmJp,
+        array &$guruDayJp,
+        array &$batchInserts,
+        array $slots,
+        $rombelMap,
+        string $keterangan
+    ): bool {
+        $gId   = $sess['ptk_id'];
+        $mId   = $sess['mata_pelajaran_id'];
+        $dur   = $sess['duration'];
+        $isPkl = $sess['is_pkl'];
+
+        if (!$cand['split']) {
+            $startK = $cand['start'];
+            $endK   = $cand['end'];
+
+            if ($this->isTeacherUnavailable($gPref, $h, $startK, $endK)) {
+                return false;
+            }
+
+            if ($gId && !$isPkl) {
+                for ($k = $startK; $k <= $endK; $k++) {
+                    if (!empty($guruOccupied[$gId][$h][$k])) {
+                        return false;
+                    }
                 }
             }
 
-            // Hitung skor contiguity:
-            // 1. Menempel setelah pelajaran sebelumnya (atau awal jam 1 / jam 2 setelah Upacara)
-            $isTouchPrev = ($startK === 1) || !empty($rOcc[$startK - 1]) || ($istirahatJamKe && $startK === ($istirahatJamKe + 1));
-            // 2. Menempel sebelum pelajaran berikutnya
-            $isTouchNext = ($endK === $dayMax) || !empty($rOcc[$endK + 1]);
-
-            $score = 0;
-            if ($isTouchPrev && $isTouchNext) {
-                $score = 120; // Sempurna: menutup celah di antara 2 pelajaran
-            } elseif ($isTouchPrev) {
-                $score = 100; // Sambungan alami ke bawah
-            } elseif ($isTouchNext) {
-                $score = 70;  // Nempel ke pelajaran berikutnya
-            } else {
-                $score = 40;  // Slot alternatif di tengah
+            for ($k = $startK; $k <= $endK; $k++) {
+                $rombelOccupied[$rId][$h][$k] = true;
+                if ($gId && !$isPkl) {
+                    $guruOccupied[$gId][$h][$k] = true;
+                }
             }
 
-            // Berikan bonus preferensi sesi pagi agar jadwal terisi padat dari pagi
-            if ($istirahatJamKe && $endK < $istirahatJamKe) {
-                $score += 60;
+            $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
+            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
+            if ($gId && !$isPkl) {
+                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
             }
 
-            // Jika mode strict contiguous, tolak slot yang tidak menyambung
-            if (!$allowGaps && $score < 70) {
-                continue;
+            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $startK, $endK, $slots, $rombelMap, $keterangan);
+            return true;
+        } else {
+            $sp = $cand['start_pagi'];
+            $ep = $cand['end_pagi'];
+            $ss = $cand['start_siang'];
+            $es = $cand['end_siang'];
+
+            if ($this->isTeacherUnavailable($gPref, $h, $sp, $ep) || $this->isTeacherUnavailable($gPref, $h, $ss, $es)) {
+                return false;
             }
 
-            $candidates[] = [
-                'start' => $startK,
-                'score' => $score,
-            ];
+            if ($gId && !$isPkl) {
+                for ($k = $sp; $k <= $ep; $k++) {
+                    if (!empty($guruOccupied[$gId][$h][$k])) return false;
+                }
+                for ($k = $ss; $k <= $es; $k++) {
+                    if (!empty($guruOccupied[$gId][$h][$k])) return false;
+                }
+            }
+
+            for ($k = $sp; $k <= $ep; $k++) {
+                $rombelOccupied[$rId][$h][$k] = true;
+                if ($gId && !$isPkl) $guruOccupied[$gId][$h][$k] = true;
+            }
+            for ($k = $ss; $k <= $es; $k++) {
+                $rombelOccupied[$rId][$h][$k] = true;
+                if ($gId && !$isPkl) $guruOccupied[$gId][$h][$k] = true;
+            }
+
+            $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
+            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
+            if ($gId && !$isPkl) {
+                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
+            }
+
+            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $sp, $ep, $slots, $rombelMap, $keterangan . ' (Pagi)');
+            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $ss, $es, $slots, $rombelMap, $keterangan . ' (Lanjutan Siang)');
+            return true;
         }
-
-        // Urutkan kandidat dari skor tertinggi ke terendah
-        usort($candidates, fn($a, $b) => $b['score'] <=> $a['score']);
-
-        return array_column($candidates, 'start');
     }
 
     /**
@@ -741,11 +806,15 @@ class AutoSchedulerService
             return $a['jam_ke_mulai'] <=> $b['jam_ke_mulai'];
         });
 
-        // Iterasi pergeseran hingga stabil
-        for ($iter = 0; $iter < 10; $iter++) {
+        // 1. Multi-Step Flush Left Compaction
+        for ($iter = 0; $iter < 12; $iter++) {
             $anyMoved = false;
 
             foreach ($batchInserts as &$item) {
+                if (in_array($item['mata_pelajaran_id'], ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)) {
+                    continue;
+                }
+
                 $rId   = $item['rombongan_belajar_id'];
                 $h     = $item['hari'];
                 $gId   = $item['ptk_id'];
@@ -753,7 +822,7 @@ class AutoSchedulerService
                 $end   = (int) $item['jam_ke_selesai'];
                 $dur   = $end - $start + 1;
 
-                // 1. Cross-Break Compaction: Coba lompat dari sesi siang ke sesi pagi jika pagi ada slot kosong yang muat
+                // Cross-Break Compaction: Coba lompat dari sesi siang ke sesi pagi jika pagi ada slot kosong yang muat
                 if ($istirahatJamKe && $start > $istirahatJamKe) {
                     $morningMax = $istirahatJamKe - 1;
                     for ($mStart = 1; $mStart <= ($morningMax - $dur + 1); $mStart++) {
@@ -793,46 +862,46 @@ class AutoSchedulerService
                     if ($anyMoved) continue;
                 }
 
-                // 2. Linear Step Compaction: Geser mundur 1 slot jika slot (start - 1) kosong
-                $targetStart = $start - 1;
-                $targetEnd   = $end - 1;
+                // Multi-step shift left dalam segmen yang sama
+                $minAllowed = ($istirahatJamKe && $start > $istirahatJamKe) ? ($istirahatJamKe + 1) : 1;
+                for ($targetStart = $minAllowed; $targetStart < $start; $targetStart++) {
+                    $targetEnd = $targetStart + $dur - 1;
 
-                if ($targetStart < 1) continue;
-
-                // Jangan pernah menabrak atau menyentuh jam istirahat
-                if ($istirahatJamKe && in_array($h, ['Senin', 'Selasa', 'Rabu', 'Kamis'], true)) {
-                    if ($targetStart <= $istirahatJamKe && $targetEnd >= $istirahatJamKe) {
+                    if ($istirahatJamKe && $start <= $istirahatJamKe && $targetEnd >= $istirahatJamKe) {
                         continue;
                     }
+
+                    $canFit = true;
+                    for ($k = $targetStart; $k <= $targetEnd; $k++) {
+                        if ($k < $start && !empty($rombelOccupied[$rId][$h][$k])) {
+                            $canFit = false;
+                            break;
+                        }
+                        if ($gId && $k < $start && !empty($guruOccupied[$gId][$h][$k])) {
+                            $canFit = false;
+                            break;
+                        }
+                    }
+
+                    if ($canFit) {
+                        for ($k = $start; $k <= $end; $k++) {
+                            unset($rombelOccupied[$rId][$h][$k]);
+                            if ($gId) unset($guruOccupied[$gId][$h][$k]);
+                        }
+                        for ($k = $targetStart; $k <= $targetEnd; $k++) {
+                            $rombelOccupied[$rId][$h][$k] = true;
+                            if ($gId) $guruOccupied[$gId][$h][$k] = true;
+                        }
+
+                        $item['jam_ke_mulai'] = $targetStart;
+                        $item['jam_ke_selesai'] = $targetEnd;
+                        $item['jam_mulai'] = $slots[$targetStart]['mulai'] ? (strlen($slots[$targetStart]['mulai']) === 5 ? $slots[$targetStart]['mulai'] . ':00' : $slots[$targetStart]['mulai']) : $item['jam_mulai'];
+                        $item['jam_selesai'] = $slots[$targetEnd]['selesai'] ? (strlen($slots[$targetEnd]['selesai']) === 5 ? $slots[$targetEnd]['selesai'] . ':00' : $slots[$targetEnd]['selesai']) : $item['jam_selesai'];
+
+                        $anyMoved = true;
+                        break;
+                    }
                 }
-
-                // Cek apakah slot targetStart kosong untuk rombel
-                if (!empty($rombelOccupied[$rId][$h][$targetStart])) {
-                    continue;
-                }
-
-                // Cek apakah guru bebas di targetStart
-                if ($gId && !empty($guruOccupied[$gId][$h][$targetStart])) {
-                    continue;
-                }
-
-                // Geser maju 1 jam!
-                for ($k = $start; $k <= $end; $k++) {
-                    unset($rombelOccupied[$rId][$h][$k]);
-                    if ($gId) unset($guruOccupied[$gId][$h][$k]);
-                }
-
-                for ($k = $targetStart; $k <= $targetEnd; $k++) {
-                    $rombelOccupied[$rId][$h][$k] = true;
-                    if ($gId) $guruOccupied[$gId][$h][$k] = true;
-                }
-
-                $item['jam_ke_mulai'] = $targetStart;
-                $item['jam_ke_selesai'] = $targetEnd;
-                $item['jam_mulai'] = $slots[$targetStart]['mulai'] ? (strlen($slots[$targetStart]['mulai']) === 5 ? $slots[$targetStart]['mulai'] . ':00' : $slots[$targetStart]['mulai']) : $item['jam_mulai'];
-                $item['jam_selesai'] = $slots[$targetEnd]['selesai'] ? (strlen($slots[$targetEnd]['selesai']) === 5 ? $slots[$targetEnd]['selesai'] . ':00' : $slots[$targetEnd]['selesai']) : $item['jam_selesai'];
-
-                $anyMoved = true;
             }
             unset($item);
 

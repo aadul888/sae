@@ -637,31 +637,101 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // ==========================================
-    // MODAL PENGATURAN JAM & SLOT KBM
+    // MODAL TERPADU: PENGATURAN WAKTU & AUTO-GENERATE
     // ==========================================
-    const modalPengaturan = document.getElementById("modalPengaturanSlot");
-    const formPengaturan = document.getElementById("formPengaturanSlot");
+    const modalAturDanGenerate = document.getElementById("modalAturDanGenerate");
+    const formAturDanGenerate = document.getElementById("formAturDanGenerate");
     const btnBukaPengaturan = document.getElementById("btnBukaPengaturanSlot");
-    const btnTutupPengaturan = document.getElementById(
-        "btnTutupModalPengaturan",
-    );
-    const btnBatalPengaturan = document.getElementById("btnBatalPengaturan");
-    const btnSimpanPengaturan = document.getElementById("btnSimpanPengaturan");
+    const btnBukaAuto = document.getElementById("btnBukaAutoGenerate");
+    const btnTutupAturDanGenerate = document.getElementById("btnTutupModalAturDanGenerate");
+    const btnBatalAturDanGenerate = document.getElementById("btnBatalAturDanGenerate");
+    const btnSimpanPengaturanOnly = document.getElementById("btnSimpanPengaturanOnly");
+    const btnSimpanDanGenerate = document.getElementById("btnSimpanDanGenerate");
 
-    function bukaModalPengaturan() {
-        if (!modalPengaturan) return;
-        modalPengaturan.style.display = "flex";
+    function bukaModalAturDanGenerate() {
+        if (!modalAturDanGenerate) return;
+        modalAturDanGenerate.style.display = "flex";
         updateRealtimeModalJamSelesai();
     }
 
-    function tutupModalPengaturan() {
-        if (!modalPengaturan) return;
-        modalPengaturan.style.display = "none";
+    function tutupModalAturDanGenerate() {
+        if (!modalAturDanGenerate) return;
+        modalAturDanGenerate.style.display = "none";
     }
 
-    // ==========================================
-    // REALTIME CALCULATOR MODAL PENGATURAN SLOT
-    // ==========================================
+    if (btnBukaPengaturan) btnBukaPengaturan.addEventListener("click", bukaModalAturDanGenerate);
+    if (btnBukaAuto) btnBukaAuto.addEventListener("click", bukaModalAturDanGenerate);
+    if (btnTutupAturDanGenerate) btnTutupAturDanGenerate.addEventListener("click", tutupModalAturDanGenerate);
+    if (btnBatalAturDanGenerate) btnBatalAturDanGenerate.addEventListener("click", tutupModalAturDanGenerate);
+
+    if (modalAturDanGenerate) {
+        window.addEventListener("click", function (e) {
+            if (e.target === modalAturDanGenerate) tutupModalAturDanGenerate();
+        });
+    }
+
+    // TOGGLE INTERAKTIF SKEMA HARI SEKOLAH (5 HARI VS 6 HARI)
+    function applySkemaHari(skema) {
+        const cards = document.querySelectorAll(".skema-option-card");
+        cards.forEach((card) => {
+            const radio = card.querySelector('input[type="radio"]');
+            if (radio && radio.value === skema) {
+                radio.checked = true;
+                card.classList.add("active");
+                card.style.borderColor = "var(--primary)";
+                card.style.background = "rgba(99, 102, 241, 0.06)";
+            } else if (radio) {
+                radio.checked = false;
+                card.classList.remove("active");
+                card.style.borderColor = "var(--border-color)";
+                card.style.background = "var(--bg-card)";
+            }
+        });
+
+        // Set alokasi slot default berdasarkan skema
+        if (skema === "5_hari") {
+            ["Senin", "Selasa", "Rabu", "Kamis"].forEach((dh) => {
+                const inp = document.querySelector(`.input-slot-harian[data-hari="${dh}"]`);
+                if (inp) inp.value = 13;
+            });
+            const jumat = document.querySelector('.input-slot-harian[data-hari="Jumat"]');
+            if (jumat) jumat.value = 6;
+            const sabtu = document.querySelector('.input-slot-harian[data-hari="Sabtu"]');
+            if (sabtu) sabtu.value = 0;
+
+            const sabtuCard = document.querySelector('.slot-day-card[data-hari="Sabtu"]');
+            if (sabtuCard) {
+                sabtuCard.style.opacity = "0.5";
+            }
+        } else {
+            ["Senin", "Selasa", "Rabu", "Kamis"].forEach((dh) => {
+                const inp = document.querySelector(`.input-slot-harian[data-hari="${dh}"]`);
+                if (inp) inp.value = 10;
+            });
+            const jumat = document.querySelector('.input-slot-harian[data-hari="Jumat"]');
+            if (jumat) jumat.value = 6;
+            const sabtu = document.querySelector('.input-slot-harian[data-hari="Sabtu"]');
+            if (sabtu) sabtu.value = 6;
+
+            const sabtuCard = document.querySelector('.slot-day-card[data-hari="Sabtu"]');
+            if (sabtuCard) {
+                sabtuCard.style.opacity = "1";
+            }
+        }
+
+        updateRealtimeModalJamSelesai();
+    }
+
+    document.querySelectorAll(".skema-option-card").forEach((card) => {
+        card.addEventListener("click", function () {
+            const radio = this.querySelector('input[name="skema_hari"]');
+            if (radio) {
+                applySkemaHari(radio.value);
+            }
+        });
+    });
+
+    // REALTIME CALCULATOR JAM SELESAI
     function updateRealtimeModalJamSelesai() {
         const jamMulaiInput = document.getElementById("setJamMulai");
         const durasiInput = document.getElementById("setDurasiJp");
@@ -669,12 +739,12 @@ document.addEventListener("DOMContentLoaded", function () {
         const durasiVal = parseInt(durasiInput?.value) || 45;
 
         const istirahatAktif = !!document.getElementById("setIstirahatAktif")?.checked;
-        const istirahatJamKe = parseInt(document.getElementById("setIstirahatJamKe")?.value) || 0;
-        const istirahatDurasi = parseInt(document.getElementById("setIstirahatDurasi")?.value) || durasiVal;
+        const istirahatJamKe = parseInt(document.getElementById("setIstirahatJamKe")?.value) || 8;
+        const istirahatDurasi = parseInt(document.getElementById("setIstirahatDurasi")?.value) || 30;
 
         const parts = jamMulaiVal.split(":");
         const startHour = parseInt(parts[0]) || 7;
-        const startMin = parseInt(parts[1]) || 0;
+        const startMin = parseInt(parts[1]) || 15;
         const baseMinutes = startHour * 60 + startMin;
 
         document.querySelectorAll(".input-slot-harian").forEach((input) => {
@@ -686,8 +756,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const jp = (rawVal === "" || isNaN(rawVal)) ? 0 : parseInt(rawVal);
 
             if (jp <= 0) {
-                selesaiSpan.textContent = "-";
-                selesaiSpan.style.color = "var(--text-muted)";
+                selesaiSpan.textContent = "(Libur)";
+                selesaiSpan.style.color = "#ef4444";
                 return;
             }
 
@@ -705,7 +775,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Listener realtime input & change di modal pengaturan slot
     document.addEventListener("input", function (e) {
         if (
             e.target.matches(".input-slot-harian") ||
@@ -726,74 +795,35 @@ document.addEventListener("DOMContentLoaded", function () {
             e.target.id === "setIstirahatAktif" ||
             e.target.id === "setIstirahatJamKe" ||
             e.target.id === "setIstirahatDurasi" ||
-            e.target.matches(".check-hari-aktif")
+            e.target.name === "skema_hari"
         ) {
             updateRealtimeModalJamSelesai();
         }
     });
 
-    // Sinkronkan slot dinamis ketika table/page di-refresh via AJAX
-    function refreshDynamicSlots(newDoc = null) {
-        const docTarget = newDoc || document;
-        const targetModal = docTarget.getElementById("modalJadwalKbm");
-        if (targetModal && targetModal.dataset.slots) {
-            try {
-                const rawSlots = JSON.parse(targetModal.dataset.slots);
-                if (Array.isArray(rawSlots) && rawSlots.length > 0) {
-                    const dynamicMap = {};
-                    rawSlots.forEach((s) => {
-                        const k = parseInt(s.jam_ke);
-                        if (k) {
-                            dynamicMap[k] = { mulai: s.mulai, selesai: s.selesai };
-                        }
-                    });
-                    slotMapping = dynamicMap;
-                    if (modal) modal.dataset.slots = targetModal.dataset.slots;
-                }
-            } catch (err) {
-                console.warn("Gagal refresh slot dinamis:", err);
-            }
+    // Helper Refresh Halaman / Tabel
+    function triggerPageRefresh() {
+        if (window.SAERealtime && typeof window.SAERealtime.refreshCards === "function") {
+            window.SAERealtime.refreshCards({ refreshTable: true });
+        } else if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(window.location.href);
+        } else {
+            window.location.reload();
         }
     }
 
-    window.addEventListener("sae:tableRefreshed", function (e) {
-        if (e.detail && e.detail.doc) {
-            refreshDynamicSlots(e.detail.doc);
-        }
-    });
+    // AKSI 1: SIMPAN PENGATURAN SAJA
+    if (btnSimpanPengaturanOnly) {
+        btnSimpanPengaturanOnly.addEventListener("click", function () {
+            if (!formAturDanGenerate) return;
 
-    if (btnBukaPengaturan)
-        btnBukaPengaturan.addEventListener("click", bukaModalPengaturan);
-    if (btnTutupPengaturan)
-        btnTutupPengaturan.addEventListener("click", tutupModalPengaturan);
-    if (btnBatalPengaturan)
-        btnBatalPengaturan.addEventListener("click", tutupModalPengaturan);
+            btnSimpanPengaturanOnly.disabled = true;
+            btnSimpanPengaturanOnly.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
 
-    if (modalPengaturan) {
-        window.addEventListener("click", function (e) {
-            if (e.target === modalPengaturan) tutupModalPengaturan();
-        });
-    }
-
-    if (formPengaturan) {
-        formPengaturan.addEventListener("submit", function (e) {
-            e.preventDefault();
-            if (btnSimpanPengaturan) {
-                btnSimpanPengaturan.disabled = true;
-                btnSimpanPengaturan.innerHTML =
-                    '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
-            }
-
-            const routeUrl =
-                modalPengaturan?.dataset?.routePengaturan ||
-                "/dashboard/master-data/jadwal-kbm/pengaturan";
-            const token =
-                document
-                    .querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute("content") ||
-                document.querySelector('input[name="_token"]')?.value;
-
-            const formData = new FormData(formPengaturan);
+            const routeUrl = modalAturDanGenerate?.dataset?.routePengaturan || "/dashboard/master-data/jadwal-kbm/pengaturan";
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ||
+                          formAturDanGenerate.querySelector('input[name="_token"]')?.value;
+            const formData = new FormData(formAturDanGenerate);
 
             fetch(routeUrl, {
                 method: "POST",
@@ -805,36 +835,21 @@ document.addEventListener("DOMContentLoaded", function () {
             })
                 .then(async (res) => {
                     const data = await res.json();
-                    if (!res.ok) {
-                        throw new Error(
-                            data.message || "Gagal menyimpan pengaturan.",
-                        );
-                    }
+                    if (!res.ok) throw new Error(data.message || "Gagal menyimpan pengaturan.");
                     return data;
                 })
                 .then((data) => {
-                    tutupModalPengaturan();
+                    tutupModalAturDanGenerate();
                     if (window.Swal) {
                         Swal.fire({
                             icon: "success",
-                            title: "Berhasil Disimpan!",
-                            text:
-                                data.message ||
-                                "Pengaturan jam pelajaran KBM telah diperbarui.",
+                            title: "Pengaturan Disimpan!",
+                            text: data.message || "Pengaturan waktu KBM dan skema hari berhasil diperbarui.",
                             timer: 1500,
                             showConfirmButton: false,
                         });
                     }
-                    if (
-                        window.SAERealtime &&
-                        typeof window.SAERealtime.refreshCards === "function"
-                    ) {
-                        window.SAERealtime.refreshCards({ refreshTable: true });
-                    } else if (typeof window.refreshLiveTable === "function") {
-                        window.refreshLiveTable(window.location.href);
-                    } else {
-                        window.location.reload();
-                    }
+                    triggerPageRefresh();
                 })
                 .catch((err) => {
                     if (window.Swal) {
@@ -848,71 +863,32 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 })
                 .finally(() => {
-                    if (btnSimpanPengaturan) {
-                        btnSimpanPengaturan.disabled = false;
-                        btnSimpanPengaturan.innerHTML =
-                            '<i class="fas fa-save me-1"></i> Simpan Pengaturan';
-                    }
+                    btnSimpanPengaturanOnly.disabled = false;
+                    btnSimpanPengaturanOnly.innerHTML = '<i class="fas fa-save me-1"></i> Simpan Pengaturan Saja';
                 });
         });
     }
 
-    // ==========================================
-    // MODAL TOMBOL SAKTI (AUTO-GENERATE JADWAL)
-    // ==========================================
-    const modalAuto = document.getElementById("modalAutoGenerate");
-    const formAuto = document.getElementById("formAutoGenerate");
-    const btnBukaAuto = document.getElementById("btnBukaAutoGenerate");
-    const btnTutupAuto = document.getElementById("btnTutupModalAuto");
-    const btnBatalAuto = document.getElementById("btnBatalAuto");
-    const btnEksekusiAuto = document.getElementById("btnEksekusiAuto");
-
-    function bukaModalAuto() {
-        if (!modalAuto) return;
-        modalAuto.style.display = "flex";
-    }
-
-    function tutupModalAuto() {
-        if (!modalAuto) return;
-        modalAuto.style.display = "none";
-    }
-
-    if (btnBukaAuto) btnBukaAuto.addEventListener("click", bukaModalAuto);
-    if (btnTutupAuto) btnTutupAuto.addEventListener("click", tutupModalAuto);
-    if (btnBatalAuto) btnBatalAuto.addEventListener("click", tutupModalAuto);
-
-    if (modalAuto) {
-        window.addEventListener("click", function (e) {
-            if (e.target === modalAuto) tutupModalAuto();
-        });
-    }
-
-    if (formAuto) {
-        formAuto.addEventListener("submit", function (e) {
+    // AKSI 2: SIMPAN & MULAI GENERATE OTOMATIS
+    if (formAturDanGenerate) {
+        formAturDanGenerate.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            const routeUrl =
-                modalAuto?.dataset?.routeAutoGenerate ||
-                "/dashboard/master-data/jadwal-kbm/auto-generate";
-            const token =
-                document
-                    .querySelector('meta[name="csrf-token"]')
-                    ?.getAttribute("content") ||
-                document.querySelector('input[name="_token"]')?.value;
-
-            const formData = new FormData(formAuto);
+            const routeUrl = modalAturDanGenerate?.dataset?.routeAutoGenerate || "/dashboard/master-data/jadwal-kbm/auto-generate";
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ||
+                          formAturDanGenerate.querySelector('input[name="_token"]')?.value;
+            const formData = new FormData(formAturDanGenerate);
 
             const executeAutoSchedule = () => {
-                if (btnEksekusiAuto) {
-                    btnEksekusiAuto.disabled = true;
-                    btnEksekusiAuto.innerHTML =
-                        '<i class="fas fa-spinner fa-spin me-1"></i> Mengoptimalkan...';
+                if (btnSimpanDanGenerate) {
+                    btnSimpanDanGenerate.disabled = true;
+                    btnSimpanDanGenerate.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengoptimalkan...';
                 }
 
                 if (window.Swal) {
                     Swal.fire({
-                        title: "Menjalankan Tombol Sakti...",
-                        html: '<div style="font-size: 0.9rem; color: #6b7280; margin-top: 8px;">Sistem AI Constraint Solver sedang memetakan data pembelajaran seluruh rombel dan guru secara optimal tanpa bentrok...</div>',
+                        title: "Menyusun Jadwal Otomatis...",
+                        html: '<div style="font-size: 0.88rem; color: #6b7280; margin-top: 8px;">AI Zero-Gap Scheduler sedang menyinkronkan pengaturan waktu dan menyusun jadwal seluruh kelas secara berkesinambungan tanpa bentrok...</div>',
                         allowOutsideClick: false,
                         allowEscapeKey: false,
                         didOpen: () => {
@@ -931,67 +907,31 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                     .then(async (res) => {
                         const data = await res.json();
-                        if (!res.ok) {
-                            throw new Error(
-                                data.message ||
-                                    "Gagal menjalankan generate jadwal otomatis.",
-                            );
-                        }
+                        if (!res.ok) throw new Error(data.message || "Gagal menjalankan auto-generate jadwal.");
                         return data;
                     })
                     .then((data) => {
-                        tutupModalAuto();
+                        tutupModalAturDanGenerate();
                         if (window.Swal) {
                             Swal.fire({
                                 icon: "success",
-                                title: "Auto-Generate Selesai!",
-                                html: `<strong>${data.message}</strong><br><small style="color: #6b7280;">Total ${data.total_generated || 0} jadwal pelajaran telah dipetakan tanpa bentrok.</small>`,
+                                title: "Auto-Generate Sukses!",
+                                html: `<strong>${data.message}</strong><br><small style="color: #6b7280;">Total ${data.total_generated || 0} jadwal (${data.total_jp || 0} JP) telah dipetakan secara optimal tanpa celah jam kosong.</small>`,
                                 confirmButtonText: "Lihat Jadwal Sekarang",
                                 confirmButtonColor: "#6366f1",
                             }).then(() => {
-                                if (
-                                    window.SAERealtime &&
-                                    typeof window.SAERealtime.refreshCards ===
-                                        "function"
-                                ) {
-                                    window.SAERealtime.refreshCards({
-                                        refreshTable: true,
-                                    });
-                                } else if (
-                                    typeof window.refreshLiveTable ===
-                                    "function"
-                                ) {
-                                    window.refreshLiveTable(
-                                        window.location.href,
-                                    );
-                                } else {
-                                    window.location.reload();
-                                }
+                                triggerPageRefresh();
                             });
                         } else {
                             alert(data.message || "Generate jadwal selesai!");
-                            if (
-                                window.SAERealtime &&
-                                typeof window.SAERealtime.refreshCards ===
-                                    "function"
-                            ) {
-                                window.SAERealtime.refreshCards({
-                                    refreshTable: true,
-                                });
-                            } else if (
-                                typeof window.refreshLiveTable === "function"
-                            ) {
-                                window.refreshLiveTable(window.location.href);
-                            } else {
-                                window.location.reload();
-                            }
+                            triggerPageRefresh();
                         }
                     })
                     .catch((err) => {
                         if (window.Swal) {
                             Swal.fire({
                                 icon: "error",
-                                title: "Gagal Auto-Generate",
+                                title: "Gagal Generate",
                                 text: err.message,
                             });
                         } else {
@@ -999,21 +939,20 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                     })
                     .finally(() => {
-                        if (btnEksekusiAuto) {
-                            btnEksekusiAuto.disabled = false;
-                            btnEksekusiAuto.innerHTML =
-                                '<i class="fas fa-wand-magic-sparkles me-1"></i> Mulai Generate Otomatis';
+                        if (btnSimpanDanGenerate) {
+                            btnSimpanDanGenerate.disabled = false;
+                            btnSimpanDanGenerate.innerHTML = '<i class="fas fa-wand-magic-sparkles me-1"></i> Simpan &amp; Mulai Generate Otomatis';
                         }
                     });
             };
 
             if (window.Swal) {
                 Swal.fire({
-                    title: "Jalankan Auto-Generate?",
-                    text: "Sistem akan membaca beban mengajar guru dari data Pembelajaran dan menyusun jadwal ke seluruh hari secara otomatis.",
+                    title: "Simpan & Generate Jadwal?",
+                    text: "Sistem akan menyimpan pengaturan waktu ini dan menyusun ulang seluruh jadwal KBM secara optimal dan tanpa bentrok.",
                     icon: "question",
                     showCancelButton: true,
-                    confirmButtonText: "Ya, Jalankan Sekarang!",
+                    confirmButtonText: "Ya, Generate Sekarang!",
                     cancelButtonText: "Batal",
                     confirmButtonColor: "#6366f1",
                     cancelButtonColor: "#6b7280",
@@ -1023,7 +962,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 });
             } else {
-                if (confirm("Jalankan Auto-Generate Jadwal?")) {
+                if (confirm("Simpan pengaturan dan jalankan auto-generate sekarang?")) {
                     executeAutoSchedule();
                 }
             }

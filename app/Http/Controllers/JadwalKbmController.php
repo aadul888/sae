@@ -260,22 +260,43 @@ class JadwalKbmController extends Controller
             'pembiasaan'             => 'nullable|array',
         ]);
 
+        $skemaHari = $request->input('skema_hari', '5_hari');
+        if (!in_array($skemaHari, ['5_hari', '6_hari'], true)) {
+            $skemaHari = '5_hari';
+        }
+
         $jamMulai = strlen($validated['jam_mulai_kbm']) === 5 ? "{$validated['jam_mulai_kbm']}:00" : $validated['jam_mulai_kbm'];
 
         $slotHarian = [];
         $maxDailySlot = 0;
+        $presetSlots = JadwalPengaturan::getPresetSlotHarian($skemaHari);
+
         if ($request->has('slot_harian') && is_array($request->input('slot_harian'))) {
             foreach ($request->input('slot_harian') as $dh => $val) {
                 $rawJp = $val['total_jp'] ?? null;
-                $jpVal = ($rawJp === '' || $rawJp === null) ? 0 : max(0, min(16, (int) $rawJp));
+                $jpVal = ($rawJp === '' || $rawJp === null) ? ($presetSlots[$dh]['total_jp'] ?? 0) : max(0, min(16, (int) $rawJp));
                 $slotHarian[$dh] = ['total_jp' => $jpVal];
                 if ($jpVal > $maxDailySlot) {
                     $maxDailySlot = $jpVal;
                 }
             }
+        } else {
+            $slotHarian = $presetSlots;
+            $maxDailySlot = max(array_map(fn($v) => $v['total_jp'], $slotHarian));
         }
 
-        $totalSlotJp = (int) ($validated['total_slot_jp'] ?? ($maxDailySlot > 0 ? $maxDailySlot : 10));
+        // Tentukan hari aktif otomatis berdasarkan skema_hari dan kuota slot
+        if ($skemaHari === '5_hari') {
+            $slotHarian['Sabtu']['total_jp'] = 0;
+            $hariAktif = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        } else {
+            if (($slotHarian['Sabtu']['total_jp'] ?? 0) <= 0) {
+                $slotHarian['Sabtu']['total_jp'] = 6;
+            }
+            $hariAktif = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        }
+
+        $totalSlotJp = (int) ($validated['total_slot_jp'] ?? ($maxDailySlot > 0 ? $maxDailySlot : 13));
 
         // Alokasi Target JP per Tingkat SMK (X=50, XI=48, XII=46)
         $jpTingkat = [
@@ -317,11 +338,10 @@ class JadwalKbmController extends Controller
             'jam_mulai_kbm' => $jamMulai,
             'durasi_per_jp' => $validated['durasi_per_jp'],
             'total_slot_jp' => $totalSlotJp,
+            'skema_hari'    => $skemaHari,
             'slot_harian'   => $slotHarian,
             'jp_tingkat'    => $jpTingkat,
-            'hari_aktif'    => array_values(array_filter($request->input('hari_aktif', []), function ($h) use ($slotHarian) {
-                return (isset($slotHarian[$h]['total_jp']) ? (int) $slotHarian[$h]['total_jp'] : 0) > 0;
-            })),
+            'hari_aktif'    => $hariAktif,
             'istirahat'     => $istirahatConfig,
             'upacara'       => $upacaraConfig,
             'pembiasaan'    => $pembiasaanConfig,
@@ -336,13 +356,13 @@ class JadwalKbmController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Pengaturan jam pelajaran & waktu KBM berhasil disimpan!',
+            'message' => 'Pengaturan jam pelajaran & skema ' . ($skemaHari === '6_hari' ? '6 Hari' : '5 Hari') . ' berhasil disimpan!',
             'data'    => $pengaturan,
         ]);
     }
 
     /**
-     * Tombol Sakti: Auto-Generate Jadwal KBM untuk Seluruh Hari Tanpa Bentrok
+     * Tombol Sakti: Auto-Generate Jadwal KBM untuk Seluruh Hari Tanpa Bentrok (Mendukung Sinkronisasi Form Terpadu)
      */
     public function autoGenerate(Request $request, AutoSchedulerService $scheduler)
     {
@@ -352,11 +372,22 @@ class JadwalKbmController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin auto-generate jadwal.'], 403);
         }
 
+        // Jika form terpadu mengirimkan konfigurasi waktu sekaligus, sinkronkan terlebih dahulu
+        if ($request->has('jam_mulai_kbm') && $request->has('durasi_per_jp')) {
+            $this->simpanPengaturan($request);
+        }
+
+        $pengaturan = JadwalPengaturan::getSettings();
+        $skemaHari = $request->input('skema_hari', $pengaturan->skema_hari ?? '5_hari');
+        $hariAktif = ($skemaHari === '6_hari')
+            ? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+            : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
         $options = [
             'clear_existing'        => $request->boolean('clear_existing', true),
             'tingkat'               => $request->input('tingkat') ?: null,
             'rombongan_belajar_ids' => $request->input('rombongan_belajar_ids', []),
-            'hari_aktif'            => $request->input('hari_aktif'),
+            'hari_aktif'            => $hariAktif,
             'max_jp_per_sesi'       => (int) $request->input('max_jp_per_sesi', 3),
         ];
 

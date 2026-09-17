@@ -944,25 +944,117 @@
         </div>
     </div>
 
-    <!-- Modal Pengaturan Jam Pelajaran & Durasi per JP -->
-    <div id="modalPengaturanSlot" class="sae-modal"
+    <!-- Modal Terpadu: Pengaturan Waktu KBM & Auto-Generate Jadwal KBM -->
+    @php
+        $currentSkema = $pengaturan->skema_hari ?? '5_hari';
+        $dailySlotsMap = \App\Models\JadwalPengaturan::getDailySlotCounts();
+        $jpTingkatSettings = \App\Models\JadwalPengaturan::getJpTingkat();
+        $breaks = $pengaturan->istirahat ?? [
+            ['aktif' => true, 'jam_ke' => 8, 'durasi_menit' => 30, 'nama' => 'Istirahat'],
+        ];
+        $b1 = $breaks[0] ?? ['aktif' => true, 'jam_ke' => 8, 'durasi_menit' => 30, 'nama' => 'Istirahat'];
+        $isB1Active = !isset($b1['aktif']) || !empty($b1['aktif']);
+        $upacaraConfig = $pengaturan->upacara ?? [
+            'aktif' => true,
+            'hari' => 'Senin',
+            'jam_ke' => 1,
+            'durasi_menit' => 45,
+            'nama' => 'Upacara Bendera',
+        ];
+        $pembiasaanConfig = $pengaturan->pembiasaan ?? [
+            'aktif' => true,
+            'hari' => 'Jumat',
+            'jam_ke' => 1,
+            'durasi_menit' => 40,
+            'nama' => 'Pembiasaan',
+        ];
+    @endphp
+    <div id="modalAturDanGenerate" class="sae-modal"
         data-route-pengaturan="{{ route('dashboard.jadwal-kbm.pengaturan') }}"
+        data-route-auto-generate="{{ route('dashboard.jadwal-kbm.auto-generate') }}"
         style="display: none; position: fixed; inset: 0; z-index: 99999 !important; background: rgba(0,0,0,0.55); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
         <div class="card"
-            style="width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; margin: 16px; padding: 24px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
+            style="width: 100%; max-width: 660px; max-height: 92vh; overflow-y: auto; margin: 16px; padding: 24px; border-radius: 14px; box-shadow: 0 25px 30px -5px rgba(0,0,0,0.35);">
+            <!-- Modal Header -->
             <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-color);">
-                    <i class="fas fa-sliders text-primary me-2"></i> Pengaturan Jam Pelajaran &amp; Waktu KBM
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.18rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <span style="background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        <i class="fas fa-wand-magic-sparkles"></i> Atur Waktu &amp; Generate Jadwal KBM
+                    </span>
                 </h3>
-                <button type="button" id="btnTutupModalPengaturan"
+                <button type="button" id="btnTutupModalAturDanGenerate"
                     style="background: transparent; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <form id="formPengaturanSlot">
+            <!-- Banner Sinkronisasi -->
+            <div
+                style="padding: 10px 14px; background: rgba(99,102,241,0.08); border-left: 4px solid var(--primary); border-radius: 6px; margin-bottom: 16px; font-size: 0.8rem; color: var(--text-color); line-height: 1.45;">
+                <strong>Formulir Terpadu:</strong> Pengaturan jam pelajaran dan eksekusi AI scheduler otomatis tersinkronisasi. Pilih skema hari sekolah, sesuaikan jam belajar, lalu Anda dapat <strong>Menyimpan Pengaturan Saja</strong> atau langsung <strong>Generate Jadwal Otomatis</strong> tanpa bentrok dan jam kosong tertata rapi.
+            </div>
+
+            <form id="formAturDanGenerate">
                 @csrf
+
+                <!-- SEKSI 1: PILIHAN SKEMA HARI SEKOLAH (5 HARI VS 6 HARI) -->
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-color);">
+                        <i class="fas fa-calendar-check text-primary me-1"></i> Skema Hari Sekolah <span style="color: #ef4444;">*</span>
+                    </label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <!-- Opsi 5 Hari -->
+                        <label class="skema-option-card {{ $currentSkema === '5_hari' ? 'active' : '' }}"
+                            style="display: block; position: relative; border: 2px solid {{ $currentSkema === '5_hari' ? 'var(--primary)' : 'var(--border-color)' }}; border-radius: 10px; padding: 12px; background: {{ $currentSkema === '5_hari' ? 'rgba(99, 102, 241, 0.06)' : 'var(--bg-card)' }}; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="skema_hari" value="5_hari" {{ $currentSkema === '5_hari' ? 'checked' : '' }} style="position: absolute; top: 12px; right: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <i class="fas fa-calendar-week text-primary" style="font-size: 1.1rem;"></i>
+                                <strong style="font-size: 0.88rem; color: var(--text-color);">5 Hari Sekolah</strong>
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px;">
+                                Senin – Jumat (SMK Negeri / Full Day)
+                            </div>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.65rem; padding: 2px 6px;">
+                                    Senin–Kamis 13 JP
+                                </span>
+                                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.65rem; padding: 2px 6px;">
+                                    Jumat 6 JP
+                                </span>
+                                <span class="badge" style="background: rgba(239,68,68,0.12); color: #ef4444; font-size: 0.65rem; padding: 2px 6px;">
+                                    Sabtu Libur
+                                </span>
+                            </div>
+                        </label>
+
+                        <!-- Opsi 6 Hari -->
+                        <label class="skema-option-card {{ $currentSkema === '6_hari' ? 'active' : '' }}"
+                            style="display: block; position: relative; border: 2px solid {{ $currentSkema === '6_hari' ? 'var(--primary)' : 'var(--border-color)' }}; border-radius: 10px; padding: 12px; background: {{ $currentSkema === '6_hari' ? 'rgba(99, 102, 241, 0.06)' : 'var(--bg-card)' }}; cursor: pointer; transition: all 0.2s ease;">
+                            <input type="radio" name="skema_hari" value="6_hari" {{ $currentSkema === '6_hari' ? 'checked' : '' }} style="position: absolute; top: 12px; right: 12px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <i class="fas fa-calendar-days text-warning" style="font-size: 1.1rem;"></i>
+                                <strong style="font-size: 0.88rem; color: var(--text-color);">6 Hari Sekolah</strong>
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px;">
+                                Senin – Sabtu (Umum SMK Swasta)
+                            </div>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.65rem; padding: 2px 6px;">
+                                    Senin–Kamis 10 JP
+                                </span>
+                                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.65rem; padding: 2px 6px;">
+                                    Jumat 6 JP
+                                </span>
+                                <span class="badge" style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.65rem; padding: 2px 6px;">
+                                    Sabtu 6 JP (Aktif)
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- SEKSI 2: WAKTU MULAI & DURASI PER JP -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
                     <div class="form-group">
                         <label for="setJamMulai"
@@ -988,452 +1080,176 @@
                     </div>
                 </div>
 
-                <!-- Konfigurasi Jam Selesai & Total JP per Hari (Bisa Beda Hari) -->
-                <div
-                    style="margin-bottom: 16px; padding: 12px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-color);">
-                    <div
-                        style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                        <span><i class="fas fa-business-time text-primary me-1"></i> Jam Selesai &amp; Total JP per
-                            Hari</span>
-                        <small style="color: var(--text-muted); font-size: 0.72rem;">Sesuaikan hari yang selesai lebih awal
-                            (misal Jumat)</small>
+                <!-- SEKSI 3: PREVIEW & OVERRIDE SLOT HARIAN -->
+                <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-color);">
+                    <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                        <span><i class="fas fa-clock text-primary me-1"></i> Alokasi Slot Jam &amp; Waktu Pulang Harian</span>
+                        <small style="color: var(--text-muted); font-size: 0.72rem;">Otomatis menyesuaikan skema hari</small>
                     </div>
-                    @php
-                        $dailySlotsMap = \App\Models\JadwalPengaturan::getDailySlotCounts();
-                    @endphp
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
-                        @foreach (\App\Models\JadwalKbm::HARI_LIST as $dh)
+                    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;">
+                        @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh)
                             @php
-                                $curJp =
-                                    $dailySlotsMap[$dh] ?? ($dh === 'Jumat' ? 5 : $pengaturan->total_slot_jp ?? 10);
+                                $curJp = $dailySlotsMap[$dh] ?? ($dh === 'Jumat' ? 6 : ($dh === 'Sabtu' ? 0 : 13));
                                 $curSelesai = \App\Models\JadwalPengaturan::calculateJamSelesai($curJp);
                             @endphp
-                            <div
-                                style="background: var(--bg-card); padding: 8px 6px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
-                                <strong
-                                    style="font-size: 0.8rem; color: var(--text-color); display: block; margin-bottom: 4px;">{{ $dh }}</strong>
-                                <div
-                                    style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-bottom: 4px;">
+                            <div class="slot-day-card" data-hari="{{ $dh }}"
+                                style="background: var(--bg-card); padding: 8px 4px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                                <strong style="font-size: 0.78rem; color: var(--text-color); display: block; margin-bottom: 4px;">{{ $dh }}</strong>
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 2px; margin-bottom: 4px;">
                                     <input type="number" name="slot_harian[{{ $dh }}][total_jp]"
                                         value="{{ $curJp }}" min="0" max="16" placeholder="0" class="form-control input-slot-harian"
                                         data-hari="{{ $dh }}"
-                                        style="width: 50px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.8rem; text-align: center; font-weight: 700;">
-                                    <span style="font-size: 0.72rem; color: var(--text-muted);">JP</span>
+                                        style="width: 44px; padding: 4px 2px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.78rem; text-align: center; font-weight: 700;">
+                                    <span style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
                                 </div>
-                                <div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">
+                                <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600;">
                                     Selesai: <span class="badge-jam-selesai" data-hari="{{ $dh }}"
-                                        style="color: {{ $curJp > 0 ? 'var(--primary)' : 'var(--text-muted)' }}; font-weight: 700;">{{ $curJp > 0 ? $curSelesai : '-' }}</span>
+                                        style="color: {{ $curJp > 0 ? 'var(--primary)' : '#ef4444' }}; font-weight: 700;">
+                                        {{ $curJp > 0 ? $curSelesai : '(Libur)' }}
+                                    </span>
                                 </div>
                             </div>
                         @endforeach
                     </div>
-                    <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 8px;">
-                        <i class="fas fa-info-circle me-1"></i> Contoh: Hari Jumat diatur <strong>5 JP (selesai sebelum
-                            Sholat Jumat)</strong>, sedangkan Sabtu diatur <strong>0 JP (Libur)</strong>.
-                    </small>
                 </div>
 
-                <!-- Konfigurasi Alokasi Target JP per Tingkat (Standar Kurikulum SMK) -->
-                @php
-                    $jpTingkatSettings = \App\Models\JadwalPengaturan::getJpTingkat();
-                @endphp
+                <!-- SEKSI 4: WAKTU ISTIRAHAT & KEGIATAN RUTIN -->
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; margin-bottom: 16px;">
+                    <!-- Istirahat -->
+                    <div style="padding: 12px; background: rgba(245, 158, 11, 0.04); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.25);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin: 0;">
+                                <input type="checkbox" id="setIstirahatAktif" name="istirahat[0][aktif]" value="1" {{ $isB1Active ? 'checked' : '' }}>
+                                <span><i class="fas fa-mug-hot text-warning me-1"></i> Istirahat KBM</span>
+                            </label>
+                            <span class="badge" style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.65rem; font-weight: 700;">Kunci Slot</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <div>
+                                <span style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di Jam Ke-:</span>
+                                <input type="number" id="setIstirahatJamKe" name="istirahat[0][jam_ke]"
+                                    value="{{ $b1['jam_ke'] ?? 8 }}" min="1" max="16"
+                                    style="width: 100%; padding: 5px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;" required>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi (Mnt):</span>
+                                <input type="number" id="setIstirahatDurasi" name="istirahat[0][durasi_menit]"
+                                    value="{{ $b1['durasi_menit'] ?? 30 }}" min="5" max="90"
+                                    style="width: 100%; padding: 5px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;" required>
+                            </div>
+                        </div>
+                        <input type="hidden" name="istirahat[0][nama]" value="Istirahat">
+                    </div>
+
+                    <!-- Upacara & Pembiasaan Compact -->
+                    <div style="padding: 12px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            <i class="fas fa-flag text-danger me-1"></i> Rutin Pagi
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; cursor: pointer; margin-bottom: 4px;">
+                            <input type="checkbox" name="upacara[aktif]" value="1" {{ !empty($upacaraConfig['aktif']) ? 'checked' : '' }}>
+                            <span>Senin: Upacara JP 1 (45 mnt)</span>
+                        </label>
+                        <input type="hidden" name="upacara[hari]" value="Senin">
+                        <input type="hidden" name="upacara[jam_ke]" value="1">
+                        <input type="hidden" name="upacara[durasi_menit]" value="45">
+
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 0.76rem; cursor: pointer;">
+                            <input type="checkbox" name="pembiasaan[aktif]" value="1" {{ !empty($pembiasaanConfig['aktif']) ? 'checked' : '' }}>
+                            <span>Jumat: Pembiasaan JP 1 (40 mnt)</span>
+                        </label>
+                        <input type="hidden" name="pembiasaan[hari]" value="Jumat">
+                        <input type="hidden" name="pembiasaan[jam_ke]" value="1">
+                        <input type="hidden" name="pembiasaan[durasi_menit]" value="40">
+                        <input type="hidden" name="pembiasaan[nama]" value="Pembiasaan">
+                    </div>
+                </div>
+
+                <!-- SEKSI 5: TARGET ALOKASI JP PER TINGKAT (SMK) -->
                 <div style="margin-bottom: 16px; padding: 12px; background: rgba(99, 102, 241, 0.04); border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.25);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <span style="font-weight: 700; font-size: 0.84rem; color: var(--text-color);">
                             <i class="fas fa-graduation-cap text-primary me-1"></i> Target Alokasi JP per Tingkat (SMK)
                         </span>
                         <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.68rem; font-weight: 700;">
-                            Struktur SMK
+                            Kurikulum Merdeka SMK
                         </span>
                     </div>
-                    <p style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 10px; line-height: 1.35;">
-                        Batas maksimal alokasi JP per minggu per rombel. Pada kelas XII mencakup alokasi mapel PKL (Praktek Kerja Lapangan).
-                    </p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                         <div style="background: var(--bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
-                            <strong style="font-size: 0.8rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat X</strong>
+                            <strong style="font-size: 0.78rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat X</strong>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <input type="number" name="jp_tingkat[10]" value="{{ $jpTingkatSettings['10'] ?? 50 }}" min="20" max="80" class="form-control"
-                                    style="width: 60px; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.84rem; text-align: center; font-weight: 700;" required>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">JP/mgg</span>
+                                    style="width: 55px; padding: 3px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.82rem; text-align: center; font-weight: 700;" required>
+                                <span style="font-size: 0.72rem; color: var(--text-muted);">JP/mgg</span>
                             </div>
-                            <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 3px;">Standar: 50 JP</span>
                         </div>
                         <div style="background: var(--bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
-                            <strong style="font-size: 0.8rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat XI</strong>
+                            <strong style="font-size: 0.78rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat XI</strong>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <input type="number" name="jp_tingkat[11]" value="{{ $jpTingkatSettings['11'] ?? 48 }}" min="20" max="80" class="form-control"
-                                    style="width: 60px; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.84rem; text-align: center; font-weight: 700;" required>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">JP/mgg</span>
+                                    style="width: 55px; padding: 3px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.82rem; text-align: center; font-weight: 700;" required>
+                                <span style="font-size: 0.72rem; color: var(--text-muted);">JP/mgg</span>
                             </div>
-                            <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 3px;">Standar: 48 JP</span>
                         </div>
                         <div style="background: var(--bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
-                            <strong style="font-size: 0.8rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat XII</strong>
+                            <strong style="font-size: 0.78rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat XII</strong>
                             <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
                                 <input type="number" name="jp_tingkat[12]" value="{{ $jpTingkatSettings['12'] ?? 46 }}" min="20" max="80" class="form-control"
-                                    style="width: 60px; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.84rem; text-align: center; font-weight: 700;" required>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">JP/mgg</span>
+                                    style="width: 55px; padding: 3px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.82rem; text-align: center; font-weight: 700;" required>
+                                <span style="font-size: 0.72rem; color: var(--text-muted);">JP/mgg</span>
                             </div>
-                            <span style="font-size: 0.68rem; color: #10b981; font-weight: 600; display: block; margin-top: 3px;">46 JP (Inc. PKL)</span>
                         </div>
-                    </div>
-                    <small style="color: var(--text-muted); font-size: 0.7rem; display: block; margin-top: 8px;">
-                        <i class="fas fa-shield-halved text-success me-1"></i> Jadwal PKL tetap dipetakan di jadwal induk &amp; rombel, namun otomatis disembunyikan dari akun guru karena presensi &amp; KBM PKL dilakukan via aplikasi terpisah (<strong>ePKL</strong>).
-                    </small>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label
-                        style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-color);">
-                        Hari KBM Aktif
-                    </label>
-                    @php
-                        $activeHariList = $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-                    @endphp
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        @foreach (\App\Models\JadwalKbm::HARI_LIST as $h)
-                            <label
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: pointer; background: var(--bg-hover); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
-                                <input type="checkbox" name="hari_aktif[]" class="check-hari-aktif" data-hari="{{ $h }}" value="{{ $h }}"
-                                    {{ in_array($h, $activeHariList, true) ? 'checked' : '' }}>
-                                {{ $h }}
-                            </label>
-                        @endforeach
                     </div>
                 </div>
 
-                <!-- Waktu Istirahat Sekolah (Sisipkan Otomatis) -->
-                @php
-                    $breaks = $pengaturan->istirahat ?? [
-                        ['aktif' => true, 'jam_ke' => 5, 'durasi_menit' => 30, 'nama' => 'Istirahat'],
-                    ];
-                    $b1 = $breaks[0] ?? ['aktif' => true, 'jam_ke' => 5, 'durasi_menit' => 30, 'nama' => 'Istirahat'];
-                    $isB1Active = !isset($b1['aktif']) || !empty($b1['aktif']);
-                @endphp
-                <div
-                    style="margin-bottom: 14px; padding: 12px; background: rgba(245, 158, 11, 0.04); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.25);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label
-                            style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin: 0;">
-                            <input type="checkbox" id="setIstirahatAktif" name="istirahat[0][aktif]" value="1"
-                                {{ $isB1Active ? 'checked' : '' }}>
-                            <span><i class="fas fa-mug-hot text-warning me-1"></i> Sisipkan Otomatis Waktu Istirahat</span>
-                        </label>
-                        <span class="badge"
-                            style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.68rem; font-weight: 700;">Rutin
-                            Sekolah</span>
+                <!-- SEKSI 6: OPSI GENERATE OTOMATIS -->
+                <div style="margin-bottom: 20px; padding: 12px; background: rgba(16, 185, 129, 0.04); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                    <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-sliders text-success"></i> Opsi Eksekusi Auto-Scheduler
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
                         <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Nama
-                                Kegiatan:</span>
-                            <input type="text" id="setIstirahatNama" name="istirahat[0][nama]" value="{{ $b1['nama'] ?? 'Istirahat' }}"
-                                placeholder="Istirahat"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color);">
-                        </div>
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di
-                                Jam Ke-:</span>
-                            <input type="number" id="setIstirahatJamKe" name="istirahat[0][jam_ke]"
-                                value="{{ $b1['jam_ke'] ?? ($b1['setelah_jp'] ?? 5) }}" min="1" max="16"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;"
-                                required>
-                        </div>
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi
-                                (Mnt):</span>
-                            <input type="number" id="setIstirahatDurasi" name="istirahat[0][durasi_menit]"
-                                value="{{ $b1['durasi_menit'] ?? 30 }}" min="5" max="90"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;"
-                                required>
-                        </div>
-                    </div>
-                    <small style="color: var(--text-muted); font-size: 0.72rem; display: block; margin-top: 8px;">
-                        <i class="fas fa-info-circle me-1"></i> Disisipkan ke seluruh hari KBM aktif pada jam ke- yang
-                        ditentukan. Waktu belajar pada jam ini terkunci untuk istirahat siswa dan dewan guru.
-                    </small>
-                </div>
-
-                <!-- Upacara Bendera Otomatis -->
-                @php
-                    $upacaraConfig = $pengaturan->upacara ?? [
-                        'aktif' => true,
-                        'hari' => 'Senin',
-                        'jam_ke' => 1,
-                        'durasi_menit' => 45,
-                        'nama' => 'Upacara Bendera',
-                    ];
-                @endphp
-                <div
-                    style="margin-bottom: 14px; padding: 12px; background: rgba(239, 68, 68, 0.04); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.25);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label
-                            style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin: 0;">
-                            <input type="checkbox" name="upacara[aktif]" value="1"
-                                {{ !empty($upacaraConfig['aktif']) ? 'checked' : '' }}>
-                            <span><i class="fas fa-flag text-danger me-1"></i> Sisipkan Otomatis Upacara Bendera</span>
-                        </label>
-                        <span class="badge"
-                            style="background: rgba(239,68,68,0.12); color: #ef4444; font-size: 0.68rem; font-weight: 700;">Rutin
-                            Sekolah</span>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 8px;">
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Hari
-                                Upacara:</span>
-                            <select name="upacara[hari]" class="form-control"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color);">
-                                @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh)
-                                    <option value="{{ $dh }}"
-                                        {{ ($upacaraConfig['hari'] ?? 'Senin') === $dh ? 'selected' : '' }}>
-                                        {{ $dh }}</option>
-                                @endforeach
+                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mode Pembuatan:</label>
+                            <select name="clear_existing" class="form-control" style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
+                                <option value="1" selected>Fresh Start (Bersihkan &amp; Buat Ulang)</option>
+                                <option value="0">Hanya Isi Jadwal Kosong (Fill Gaps)</option>
                             </select>
                         </div>
                         <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di
-                                Jam Ke-:</span>
-                            <input type="number" name="upacara[jam_ke]" value="{{ $upacaraConfig['jam_ke'] ?? 1 }}"
-                                min="1" max="10"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
-                        </div>
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi
-                                (Mnt):</span>
-                            <input type="number" name="upacara[durasi_menit]"
-                                value="{{ $upacaraConfig['durasi_menit'] ?? 45 }}" min="15" max="90"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pembiasaan Rutin (Jumat / Hari Tertentu) -->
-                @php
-                    $pembiasaanConfig = $pengaturan->pembiasaan ?? [
-                        'aktif' => true,
-                        'hari' => 'Jumat',
-                        'jam_ke' => 1,
-                        'durasi_menit' => 40,
-                        'nama' => 'Pembiasaan',
-                    ];
-                @endphp
-                <div
-                    style="margin-bottom: 16px; padding: 12px; background: rgba(16, 185, 129, 0.04); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label
-                            style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.84rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin: 0;">
-                            <input type="checkbox" name="pembiasaan[aktif]" value="1"
-                                {{ !empty($pembiasaanConfig['aktif']) ? 'checked' : '' }}>
-                            <span><i class="fas fa-hands-praying text-success me-1"></i> Sisipkan Kegiatan Pembiasaan
-                                Rutin</span>
-                        </label>
-                        <span class="badge"
-                            style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.68rem; font-weight: 700;">Rutin
-                            Sekolah</span>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; margin-top: 8px;">
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Nama
-                                Kegiatan:</span>
-                            <input type="text" name="pembiasaan[nama]"
-                                value="{{ $pembiasaanConfig['nama'] ?? 'Pembiasaan' }}" placeholder="Pembiasaan"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color);">
-                        </div>
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Hari
-                                Rutin:</span>
-                            <select name="pembiasaan[hari]" class="form-control"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color);">
-                                @foreach (['Jumat', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu'] as $dh)
-                                    <option value="{{ $dh }}"
-                                        {{ ($pembiasaanConfig['hari'] ?? 'Jumat') === $dh ? 'selected' : '' }}>
-                                        {{ $dh }}</option>
-                                @endforeach
+                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Cakupan Tingkat:</label>
+                            <select name="tingkat" class="form-control" style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
+                                <option value="">Semua Tingkat (Seluruh Rombel)</option>
+                                <option value="10">Hanya Kelas X</option>
+                                <option value="11">Hanya Kelas XI</option>
+                                <option value="12">Hanya Kelas XII</option>
                             </select>
                         </div>
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di
-                                Jam Ke-:</span>
-                            <input type="number" name="pembiasaan[jam_ke]"
-                                value="{{ $pembiasaanConfig['jam_ke'] ?? 1 }}" min="1" max="10"
-                                style="width: 100%; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
-                        </div>
-                        <div>
-                            <span
-                                style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi
-                                (Mnt):</span>
-                            <input type="number" name="pembiasaan[durasi_menit]"
-                                value="{{ $pembiasaanConfig['durasi_menit'] ?? 40 }}" min="15" max="90"
-                                style="width: 50px; padding: 5px 8px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
-                        </div>
                     </div>
-                </div>
-
-                <div
-                    style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-                    <button type="button" id="btnBatalPengaturan" class="btn btn-outline"
-                        style="padding: 9px 18px; font-size: 0.85rem;">
-                        Batal
-                    </button>
-                    <button type="submit" id="btnSimpanPengaturan" class="btn btn-primary"
-                        style="padding: 9px 20px; font-size: 0.85rem;">
-                        <i class="fas fa-save me-1"></i> Simpan Pengaturan
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Tombol Sakti: Auto-Generate Jadwal KBM -->
-    <div id="modalAutoGenerate" class="sae-modal"
-        data-route-auto-generate="{{ route('dashboard.jadwal-kbm.auto-generate') }}"
-        style="display: none; position: fixed; inset: 0; z-index: 99999 !important; background: rgba(0,0,0,0.55); align-items: center; justify-content: center; backdrop-filter: blur(3px);">
-        <div class="card"
-            style="width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; margin: 16px; padding: 24px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3
-                    style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                    <span
-                        style="background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                        <i class="fas fa-wand-magic-sparkles"></i> Tombol Sakti Auto-Generate
-                    </span>
-                </h3>
-                <button type="button" id="btnTutupModalAuto"
-                    style="background: transparent; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div
-                style="padding: 12px 14px; background: rgba(99,102,241,0.08); border-left: 4px solid var(--primary); border-radius: 6px; margin-bottom: 14px; font-size: 0.82rem; color: var(--text-color); line-height: 1.4;">
-                <strong>AI Constraint Solver:</strong> Sistem akan memetakan seluruh mata pelajaran dan guru dari data
-                <strong>Pembelajaran Dapodik</strong> ke hari dan jam pelajaran secara otomatis dengan <strong>zero-conflict
-                    (tanpa bentrok guru atau kelas)</strong>.
-            </div>
-
-            <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
-                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; padding: 4px 8px; border-radius: 4px;">
-                    <i class="fas fa-check-circle me-1"></i> Target X: 50 JP
-                </span>
-                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; padding: 4px 8px; border-radius: 4px;">
-                    <i class="fas fa-check-circle me-1"></i> Target XI: 48 JP
-                </span>
-                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.72rem; padding: 4px 8px; border-radius: 4px;">
-                    <i class="fas fa-check-circle me-1"></i> Target XII: 46 JP (Inc. PKL)
-                </span>
-            </div>
-
-            <form id="formAutoGenerate">
-                @csrf
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label
-                        style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Mode Pembuatan Jadwal <span style="color: #ef4444;">*</span>
-                    </label>
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <label
-                            style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; cursor: pointer; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-hover);">
-                            <input type="radio" name="clear_existing" value="1" checked style="margin-top: 2px;">
-                            <div>
-                                <strong style="color: var(--text-color); display: block;">Bersihkan &amp; Buat Ulang Semua
-                                    (Fresh Start - Direkomendasikan)</strong>
-                                <span style="color: var(--text-muted); font-size: 0.74rem;">Menghapus jadwal sebelumnya
-                                    pada rombel yang dipilih dan menyusun ulang seluruh jadwal dari nol secara
-                                    optimal.</span>
-                            </div>
-                        </label>
-                        <label
-                            style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.82rem; cursor: pointer; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-hover);">
-                            <input type="radio" name="clear_existing" value="0" style="margin-top: 2px;">
-                            <div>
-                                <strong style="color: var(--text-color); display: block;">Hanya Isi Jadwal Kosong (Fill
-                                    Gaps)</strong>
-                                <span style="color: var(--text-muted); font-size: 0.74rem;">Mempertahankan jadwal yang
-                                    sudah Anda buat manual, dan hanya mengisi jam pelajaran yang masih kosong.</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
-                    <div class="form-group">
-                        <label for="autoTingkat"
-                            style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Cakupan Tingkat Kelas
-                        </label>
-                        <select id="autoTingkat" name="tingkat" class="form-control"
-                            style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
-                            <option value="">Semua Tingkat (Seluruh Rombel)</option>
-                            <option value="10">Hanya Kelas X</option>
-                            <option value="11">Hanya Kelas XI</option>
-                            <option value="12">Hanya Kelas XII</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="autoMaxJp"
-                            style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Maks. JP per Pertemuan
-                        </label>
-                        <select id="autoMaxJp" name="max_jp_per_sesi" class="form-control"
-                            style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
+                    <div>
+                        <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Maksimal JP per Sesi:</label>
+                        <select name="max_jp_per_sesi" class="form-control" style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
                             <option value="2">Maks 2 JP (Mapel teori dipecah)</option>
-                            <option value="3" selected>Maks 3 JP (Standar seimbang)</option>
+                            <option value="3" selected>Maks 3 JP (Standar seimbang - Direkomendasikan)</option>
                             <option value="4">Maks 4 JP (Sesi blok 4 JP)</option>
                             <option value="5">Maks 5 JP (Sesi blok 5 JP)</option>
-                            <option value="6">Maks 6 JP (Sesi blok produktif 6 JP)</option>
-                            <option value="8">Maks 8 JP (Sesi blok penuh 8 JP)</option>
-                            <option value="9">Maks 9 JP (Full Praktik Sehari - Maks 9 JP)</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label
-                        style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Pilihan Hari Belajar
-                    </label>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh)
-                            @php
-                                $dhSlot = $dailySlotCounts[$dh] ?? 0;
-                                $isDhLibur = ($dhSlot <= 0);
-                            @endphp
-                            <label
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; cursor: {{ $isDhLibur ? 'not-allowed' : 'pointer' }}; background: var(--bg-hover); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color); opacity: {{ $isDhLibur ? '0.6' : '1' }};"
-                                title="{{ $isDhLibur ? "Hari {$dh} diatur 0 JP (Libur / Tanpa Jam Pelajaran)" : "{$dh} ({$dhSlot} JP)" }}">
-                                <input type="checkbox" name="hari_aktif[]" value="{{ $dh }}"
-                                    {{ (!$isDhLibur && in_array($dh, $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'], true)) ? 'checked' : '' }}
-                                    {{ $isDhLibur ? 'disabled' : '' }}>
-                                <span>{{ $dh }}</span>
-                                @if ($isDhLibur)
-                                    <span style="font-size: 0.68rem; color: #ef4444; font-weight: 700;">(Libur)</span>
-                                @endif
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
-
-                <div
-                    style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-                    <button type="button" id="btnBatalAuto" class="btn btn-outline"
-                        style="padding: 9px 18px; font-size: 0.85rem;">
+                <!-- MODAL FOOTER DENGAN DUA TOMBOL AKSI -->
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                    <button type="button" id="btnBatalAturDanGenerate" class="btn btn-outline"
+                        style="padding: 9px 16px; font-size: 0.85rem;">
                         Batal
                     </button>
-                    <button type="submit" id="btnEksekusiAuto" class="btn"
-                        style="padding: 9px 22px; font-size: 0.85rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);">
-                        <i class="fas fa-wand-magic-sparkles me-1"></i> Mulai Generate Otomatis
+                    <button type="button" id="btnSimpanPengaturanOnly" class="btn btn-outline"
+                        style="padding: 9px 18px; font-size: 0.85rem; border-color: var(--primary); color: var(--primary); font-weight: 700;">
+                        <i class="fas fa-save me-1"></i> Simpan Pengaturan Saja
+                    </button>
+                    <button type="submit" id="btnSimpanDanGenerate" class="btn"
+                        style="padding: 9px 22px; font-size: 0.85rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 14px rgba(99,102,241,0.35);">
+                        <i class="fas fa-wand-magic-sparkles me-1"></i> Simpan &amp; Mulai Generate Otomatis
                     </button>
                 </div>
             </form>

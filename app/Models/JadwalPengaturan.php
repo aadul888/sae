@@ -17,6 +17,7 @@ class JadwalPengaturan extends Model
         'jam_mulai_kbm',
         'durasi_per_jp',
         'total_slot_jp',
+        'skema_hari',
         'slot_harian',
         'jp_tingkat',
         'hari_aktif',
@@ -126,6 +127,44 @@ class JadwalPengaturan extends Model
             }
         }
         return $defaults;
+    }
+
+    /**
+     * Dapatkan preset distribusi slot harian berdasarkan skema hari (5 hari atau 6 hari)
+     */
+    public static function getPresetSlotHarian(string $skema = '5_hari'): array
+    {
+        if ($skema === '6_hari') {
+            return [
+                'Senin'  => ['total_jp' => 10],
+                'Selasa' => ['total_jp' => 10],
+                'Rabu'   => ['total_jp' => 10],
+                'Kamis'  => ['total_jp' => 10],
+                'Jumat'  => ['total_jp' => 6],
+                'Sabtu'  => ['total_jp' => 6],
+            ];
+        }
+
+        // 5 Hari (Full Day): Senin-Kamis 13 JP agar 50 JP Tingkat X tertampung rapi tanpa Sabtu
+        return [
+            'Senin'  => ['total_jp' => 13],
+            'Selasa' => ['total_jp' => 13],
+            'Rabu'   => ['total_jp' => 13],
+            'Kamis'  => ['total_jp' => 13],
+            'Jumat'  => ['total_jp' => 6],
+            'Sabtu'  => ['total_jp' => 0],
+        ];
+    }
+
+    /**
+     * Dapatkan daftar hari aktif berdasarkan skema
+     */
+    public static function getPresetHariAktif(string $skema = '5_hari'): array
+    {
+        if ($skema === '6_hari') {
+            return ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        }
+        return ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
     }
 
     /**

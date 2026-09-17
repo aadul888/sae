@@ -39,6 +39,7 @@ class JadwalKbm extends Model
         'jam_ke_range',
         'jam_waktu_range',
         'durasi_jp',
+        'is_pkl',
     ];
 
     public const HARI_LIST = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -211,6 +212,11 @@ class JadwalKbm extends Model
     public function isPkl(): bool
     {
         return self::isMapelPkl($this->nama_mata_pelajaran);
+    }
+
+    public function getIsPklAttribute(): bool
+    {
+        return $this->isPkl();
     }
 
     /**
