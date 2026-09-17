@@ -38,8 +38,6 @@ class PesertaDidikPresensiController extends Controller
                     'pdm.foto_path',
                     'pdm.rfid_uid',
                     'wali.nama as wali_nama',
-                    'wali.gelar_depan as wali_gelar_depan',
-                    'wali.gelar_belakang as wali_gelar_belakang',
                     'wali.nip as wali_nip',
                     'wali.nuptk as wali_nuptk'
                 )
@@ -58,8 +56,6 @@ class PesertaDidikPresensiController extends Controller
                     'pdm.foto_path',
                     'pdm.rfid_uid',
                     'wali.nama as wali_nama',
-                    'wali.gelar_depan as wali_gelar_depan',
-                    'wali.gelar_belakang as wali_gelar_belakang',
                     'wali.nip as wali_nip',
                     'wali.nuptk as wali_nuptk'
                 )
@@ -239,9 +235,9 @@ class PesertaDidikPresensiController extends Controller
         $kepsek = DB::table('gtk')
             ->where(function ($q) {
                 $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
-                  ->orWhere('tugas_tambahan', 'like', '%Kepala Sekolah%');
+                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
             })
-            ->select('nama', 'gelar_depan', 'gelar_belakang', 'nip')
+            ->select('nama', 'nip')
             ->first();
 
         // Ambil Seluruh Baris Presensi
