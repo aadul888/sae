@@ -6,12 +6,12 @@
         isSecure: window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1'
     };
 </script>
-<link rel="manifest" id="pwaManifestLink" href="{{ url('manifest.json', [], false) }}?v=2">
-<link rel="alternate" type="application/manifest+json" href="{{ url('manifest.webmanifest', [], false) }}?v=2">
+<link rel="manifest" id="pwaManifestLink" href="{{ url('manifest.json', [], false) }}?v=3">
+<link rel="alternate" type="application/manifest+json" href="{{ url('manifest.webmanifest', [], false) }}?v=3">
 
 <!-- Explicit High-Resolution PWA Icons for Android Chrome & Homescreen -->
-<link rel="icon" id="pwaIcon192" type="image/png" sizes="192x192" href="{{ url('img/icons/icon-192x192.png', [], false) }}?v=2">
-<link rel="icon" id="pwaIcon512" type="image/png" sizes="512x512" href="{{ url('img/icons/icon-512x512.png', [], false) }}?v=2">
+<link rel="icon" id="pwaIcon192" type="image/png" sizes="192x192" href="{{ url('img/icons/icon-192x192.png', [], false) }}?v=3">
+<link rel="icon" id="pwaIcon512" type="image/png" sizes="512x512" href="{{ url('img/icons/icon-512x512.png', [], false) }}?v=3">
 
 <!-- Android / Chrome / HarmonyOS -->
 <meta name="mobile-web-app-capable" content="yes">

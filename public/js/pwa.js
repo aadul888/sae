@@ -21,16 +21,16 @@
         console.log('[SAE-PWA] Running in Standalone Application Mode');
     }
 
-    // Helper: Periksa apakah aplikasi sudah pernah dipasang di perangkat ini
+    // Helper: Periksa apakah aplikasi sudah terpasang
     function isAppAlreadyInstalled() {
         if (isStandalone) {
-            localStorage.setItem('sae_pwa_is_installed', 'true');
             return true;
         }
-        if (localStorage.getItem('sae_pwa_is_installed') === 'true') {
-            return true;
+        // Jika browser menangkap deferredPrompt, ini bukti bahwa aplikasi BELUM terpasang di perangkat
+        if (deferredPrompt) {
+            return false;
         }
-        return false;
+        return localStorage.getItem('sae_pwa_is_installed') === 'true';
     }
 
     // Helper untuk memilih icon sesuai tema aktif (Dark = Logo Putih di atas Gelap; Light = Logo Berwarna di atas Terang)
@@ -50,22 +50,22 @@
 
         const manifestLink = document.getElementById('pwaManifestLink');
         if (manifestLink) {
-            manifestLink.setAttribute('href', `/manifest.json?theme=${isLight ? 'light' : 'dark'}&v=2`);
+            manifestLink.setAttribute('href', `/manifest.json?theme=${isLight ? 'light' : 'dark'}&v=3`);
         }
 
         const icon192 = document.getElementById('pwaIcon192');
         if (icon192) {
-            icon192.setAttribute('href', isLight ? '/img/icons/icon-light-192x192.png?v=2' : '/img/icons/icon-192x192.png?v=2');
+            icon192.setAttribute('href', isLight ? '/img/icons/icon-light-192x192.png?v=3' : '/img/icons/icon-192x192.png?v=3');
         }
 
         const icon512 = document.getElementById('pwaIcon512');
         if (icon512) {
-            icon512.setAttribute('href', isLight ? '/img/icons/icon-light-512x512.png?v=2' : '/img/icons/icon-512x512.png?v=2');
+            icon512.setAttribute('href', isLight ? '/img/icons/icon-light-512x512.png?v=3' : '/img/icons/icon-512x512.png?v=3');
         }
 
         const appleIcon = document.getElementById('pwaAppleTouchIcon');
         if (appleIcon) {
-            appleIcon.setAttribute('href', isLight ? '/img/icons/apple-touch-icon-light.png?v=2' : '/img/icons/apple-touch-icon.png?v=2');
+            appleIcon.setAttribute('href', isLight ? '/img/icons/apple-touch-icon-light.png?v=3' : '/img/icons/apple-touch-icon.png?v=3');
         }
 
         const bannerIcon = document.querySelector('.sae-pwa-banner-icon');
@@ -183,20 +183,21 @@
 
     // 4. Penawaran Instalasi Aplikasi Halaman (In-Page Install Offer Banner)
     function showInstallPromptBanner() {
-        // Jangan pernah tampilkan banner jika aplikasi sudah terinstal di perangkat
-        if (isAppAlreadyInstalled()) {
-            console.log('[SAE-PWA] Install banner suppressed: app already installed on device.');
+        // Jangan pernah tampilkan banner jika sedang di mode Standalone atau aplikasi sudah terpasang
+        if (isStandalone || isAppAlreadyInstalled()) {
+            const existingBanner = document.getElementById('saePwaInstallBanner');
+            if (existingBanner) existingBanner.remove();
             return;
         }
 
         if (document.getElementById('saePwaInstallBanner')) return;
 
-        // Cek apakah baru saja ditolak dalam 24 jam terakhir (versi 2)
-        const dismissedAt = localStorage.getItem('sae_pwa_install_dismissed_v2');
+        // Cek apakah baru saja ditutup dalam 24 jam terakhir (versi 3)
+        const dismissedAt = localStorage.getItem('sae_pwa_install_dismissed_v3');
         if (dismissedAt) {
             const diffHours = (Date.now() - parseInt(dismissedAt, 10)) / (1000 * 60 * 60);
             if (diffHours < 24) {
-                return; // Jangan ganggu pengguna jika sudah menolak dalam 24 jam
+                return;
             }
         }
 
@@ -243,7 +244,7 @@
                 banner.remove();
             }, 300);
         }
-        localStorage.setItem('sae_pwa_install_dismissed_v2', Date.now().toString());
+        localStorage.setItem('sae_pwa_install_dismissed_v3', Date.now().toString());
     };
 
     // 5. Tangani Event Instalasi PWA (beforeinstallprompt)
@@ -253,12 +254,16 @@
         deferredPrompt = e;
         console.log('[SAE-PWA] Native beforeinstallprompt captured and ready!');
 
-        if (!isAppAlreadyInstalled()) {
+        // Browser memicu event ini menandakan aplikasi BELUM terpasang (atau baru saja di-uninstall).
+        // Hapus flag stale dari penyimpanan lokal agar status instalasi kembali segar:
+        localStorage.removeItem('sae_pwa_is_installed');
+        localStorage.removeItem('sae_pwa_installed_at');
+
+        if (!isStandalone) {
             updateInstallUI(true);
-            // Tampilkan penawaran halaman setelah jeda 1 detik
             setTimeout(() => {
                 showInstallPromptBanner();
-            }, 1000);
+            }, 800);
         }
     });
 
@@ -268,14 +273,33 @@
         const installBtn = banner ? banner.querySelector('.btn-pwa-action-install') : document.querySelector('.btn-pwa-install');
         const originalBtnHtml = installBtn ? installBtn.innerHTML : '';
 
+        // Jika user sedang berada di dalam aplikasi terpasang (Standalone)
+        if (isStandalone) {
+            if (banner) banner.remove();
+            updateInstallUI(false);
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Aplikasi Sudah Terpasang',
+                    text: 'SAE sudah aktif dalam mode layar utama perangkat Anda.',
+                    timer: 2500,
+                    showConfirmButton: false,
+                    background: 'var(--bg-card, #131b2e)',
+                    color: 'var(--text-main, #f8fafc)'
+                });
+            }
+            return;
+        }
+
+        // Tampilkan status visual loading pemasangan
         if (installBtn) {
             installBtn.disabled = true;
-            installBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyiapkan...';
+            installBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memasang...';
         }
 
         const isSecure = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
-        // Jika deferredPrompt belum ada tetapi konteks aman (HTTPS/localhost), tunggu sejenak untuk menangkap event
+        // Jika deferredPrompt belum ada tetapi konteks aman, beri waktu sejenak (polling hingga 2.5 detik)
         if (!deferredPrompt && isSecure) {
             let attempts = 0;
             while (!deferredPrompt && attempts < 5) {
@@ -284,19 +308,35 @@
             }
         }
 
-        // Jika deferredPrompt siap, panggil dialog instalasi native browser
+        // 1. Jika Native Prompt Tersedia (Chrome Android / Chromium Desktop)
         if (deferredPrompt) {
             try {
                 deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log('[SAE-PWA] User response to install prompt:', outcome);
+                const choiceResult = await deferredPrompt.userChoice;
+                console.log('[SAE-PWA] User response to install prompt:', choiceResult.outcome);
 
-                if (outcome === 'accepted') {
+                if (choiceResult.outcome === 'accepted') {
                     console.log('[SAE-PWA] User accepted the install prompt');
                     localStorage.setItem('sae_pwa_is_installed', 'true');
                     localStorage.setItem('sae_pwa_installed_at', Date.now().toString());
+
+                    // Langsung hilangkan penawaran pasang aplikasi
                     if (banner) banner.remove();
                     updateInstallUI(false);
+
+                    // Berikan notifikasi sukses pemasangan yang jelas & tegas
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Aplikasi Terpasang!',
+                            text: 'SAE telah berhasil dipasang ke layar utama perangkat Anda.',
+                            confirmButtonColor: '#4f6ef7',
+                            confirmButtonText: '<i class="fas fa-check"></i> Siap Digunakan',
+                            timer: 3500,
+                            background: 'var(--bg-card, #131b2e)',
+                            color: 'var(--text-main, #f8fafc)'
+                        });
+                    }
                 }
             } catch (err) {
                 console.warn('[SAE-PWA] Error launching native prompt:', err);
@@ -316,69 +356,49 @@
             installBtn.innerHTML = originalBtnHtml;
         }
 
-        // Jika deferredPrompt tidak tersedia (misal: koneksi HTTP lokal di Android, iOS Safari, dll.)
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isAndroid = /Android/i.test(navigator.userAgent);
+        // 2. Jika Native Prompt Tidak Tersedia Langsung (misal: iOS Safari atau menu browser manual)
+        // Hilangkan banner penawaran agar tidak menumpuk
+        if (banner) banner.remove();
 
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        let guideTitle = 'Pasang Aplikasi SAE';
         let guideHtml = '';
 
-        if (isAndroid) {
+        if (isIOS) {
+            guideTitle = 'Pasang di iPhone / iPad';
             guideHtml = `
                 <div style="text-align: left; font-size: 0.88rem; line-height: 1.6; color: var(--text-main, #f8fafc);">
-                    <div style="background: rgba(79, 110, 247, 0.12); border: 1px solid rgba(79, 110, 247, 0.28); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 10px;">
-                        <i class="fas fa-mobile-screen" style="color: var(--primary, #4f6ef7); font-size: 1.3rem; margin-top: 2px;"></i>
-                        <div>
-                            <div style="font-weight: 700; color: var(--text-main, #f8fafc); font-size: 0.88rem; margin-bottom: 3px;">
-                                Pasang Langsung ke Layar Utama HP
-                            </div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); line-height: 1.4;">
-                                Jika aplikasi sebelumnya pernah dicopot (di-uninstall), Chrome menahan tombol 1-klik otomatis untuk sementara demi keamanan.
-                            </div>
-                        </div>
-                    </div>
-                    <p style="margin-bottom: 8px; font-weight: 700; color: var(--text-main, #f8fafc);">Cara Pasang Kembali Sekarang (2 Langkah):</p>
-                    <ol style="padding-left: 20px; margin-bottom: 14px;">
-                        <li style="margin-bottom: 8px;">Ketuk menu <strong>titik tiga (⋮)</strong> di pojok kanan atas browser Chrome.</li>
-                        <li style="margin-bottom: 8px;">Pilih menu <strong>"Tambahkan ke Layar Utama"</strong> (atau <strong>"Instal Aplikasi"</strong>).</li>
-                        <li>Ketuk <strong>Instal / Tambahkan</strong>.</li>
+                    <p style="margin-bottom: 8px;">Langkah cepat di Safari iOS:</p>
+                    <ol style="padding-left: 20px; margin-bottom: 10px;">
+                        <li style="margin-bottom: 6px;">Ketuk ikon <strong>Bagikan (Share 📤)</strong> di bilah navigasi Safari.</li>
+                        <li style="margin-bottom: 6px;">Pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>.</li>
+                        <li>Ketuk <strong>Tambah</strong> di sudut kanan atas.</li>
                     </ol>
-                    <div style="background: rgba(255, 255, 255, 0.04); border-radius: 8px; padding: 8px 12px; font-size: 0.76rem; color: var(--text-muted, #94a3b8); line-height: 1.45;">
-                        <strong>💡 Tips Reset Cooldown:</strong> Anda juga dapat mengetuk ikon <strong>setelan/gembok</strong> di sebelah kiri kolom URL &gt; pilih <strong>"Setelan situs"</strong> &gt; ketuk <strong>"Hapus data &amp; reset"</strong>, lalu muat ulang halaman agar Chrome mengenali HP Anda seperti semula.
-                    </div>
-                </div>
-            `;
-        } else if (isIOS) {
-            guideHtml = `
-                <div style="text-align: left; font-size: 0.88rem; line-height: 1.6; color: var(--text-main, #f8fafc);">
-                    <p style="margin-bottom: 10px; font-weight: 700; color: var(--text-main, #f8fafc);">Langkah Pemasangan di iPhone / iPad:</p>
-                    <ol style="padding-left: 20px; margin-bottom: 14px;">
-                        <li style="margin-bottom: 8px;">Ketuk ikon <strong>Bagikan (Share 📤)</strong> di bilah navigasi Safari.</li>
-                        <li style="margin-bottom: 8px;">Gulir ke bawah dan pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>.</li>
-                        <li>Ketuk <strong>Tambah</strong> di pojok kanan atas.</li>
-                    </ol>
-                    <p style="font-size: 0.76rem; color: var(--text-muted, #94a3b8); margin: 0;">Ikon aplikasi SAE akan langsung muncul di beranda iOS Anda.</p>
                 </div>
             `;
         } else {
+            guideTitle = 'Pasang ke Layar Utama';
             guideHtml = `
                 <div style="text-align: left; font-size: 0.88rem; line-height: 1.6; color: var(--text-main, #f8fafc);">
-                    <p style="margin-bottom: 10px;">Untuk memasang aplikasi SAE di perangkat Anda:</p>
-                    <ol style="padding-left: 20px; margin-bottom: 14px;">
-                        <li style="margin-bottom: 8px;">Buka menu peramban browser Anda (<strong>titik tiga ⋮</strong>).</li>
-                        <li style="margin-bottom: 8px;">Pilih <strong>"Instal Aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</li>
-                        <li>Konfirmasi pemasangan.</li>
-                    </ol>
+                    <p style="margin-bottom: 10px; color: var(--text-main, #f8fafc);">
+                        Untuk menyelesaikan pemasangan ke layar utama:
+                    </p>
+                    <div style="background: rgba(79, 110, 247, 0.1); border: 1px solid rgba(79, 110, 247, 0.25); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;">
+                        <div style="margin-bottom: 6px;">1. Ketuk tombol menu <strong>titik tiga (⋮)</strong> di sudut kanan atas browser.</div>
+                        <div>2. Pilih menu <strong>"Instal aplikasi"</strong> atau <strong>"Tambahkan ke Layar Utama"</strong>.</div>
+                    </div>
                 </div>
             `;
         }
 
         if (window.Swal) {
             Swal.fire({
-                title: 'Pasang Aplikasi SAE',
+                icon: 'info',
+                title: guideTitle,
                 html: guideHtml,
                 imageUrl: getPwaIconUrl(96),
-                imageWidth: 54,
-                imageHeight: 54,
+                imageWidth: 52,
+                imageHeight: 52,
                 imageAlt: 'SAE App Icon',
                 confirmButtonText: '<i class="fas fa-check"></i> Saya Mengerti',
                 confirmButtonColor: '#4f6ef7',
@@ -388,11 +408,9 @@
         } else {
             alert('Buka menu browser (titik tiga) lalu pilih "Tambahkan ke Layar Utama" / "Instal Aplikasi" untuk memasang SAE.');
         }
-
-        if (banner) banner.remove();
     };
 
-    // Event saat aplikasi telah berhasil diinstal (baik via prompt maupun via menu browser!)
+    // Event saat aplikasi telah berhasil diinstal (baik via prompt native maupun menu browser!)
     window.addEventListener('appinstalled', () => {
         console.log('[SAE-PWA] Application was successfully installed!');
         localStorage.setItem('sae_pwa_is_installed', 'true');
@@ -407,7 +425,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Aplikasi Terpasang!',
-                text: 'SAE telah berhasil ditambahkan ke layar utama perangkat Anda.',
+                text: 'SAE telah berhasil dipasang ke layar utama perangkat Anda.',
                 timer: 3500,
                 showConfirmButton: false,
                 background: 'var(--bg-card, #131b2e)',
@@ -421,7 +439,7 @@
         const isInstalled = isAppAlreadyInstalled();
         const installBtns = document.querySelectorAll('.btn-pwa-install, #btnPwaInstallNav');
         installBtns.forEach(btn => {
-            if (available && !isInstalled) {
+            if (available && !isInstalled && !isStandalone) {
                 btn.style.display = 'inline-flex';
             } else {
                 btn.style.display = 'none';
@@ -431,15 +449,25 @@
 
     // Inisialisasi awal UI instalasi
     document.addEventListener('DOMContentLoaded', () => {
+        if (isStandalone) {
+            updateInstallUI(false);
+            const banner = document.getElementById('saePwaInstallBanner');
+            if (banner) banner.remove();
+            return;
+        }
+
         // Cek jika browser mendukung pemeriksaan aplikasi terkait yang sudah terpasang
         if ('getInstalledRelatedApps' in navigator) {
             navigator.getInstalledRelatedApps().then((relatedApps) => {
                 if (relatedApps && relatedApps.length > 0) {
-                    console.log('[SAE-PWA] App is already installed on device (relatedApps confirmed).');
+                    console.log('[SAE-PWA] App is confirmed installed on device.');
                     localStorage.setItem('sae_pwa_is_installed', 'true');
                     updateInstallUI(false);
                     const banner = document.getElementById('saePwaInstallBanner');
                     if (banner) banner.remove();
+                } else {
+                    // Jika relatedApps kosong, pastikan flag stale dibersihkan
+                    localStorage.removeItem('sae_pwa_is_installed');
                 }
             }).catch(() => {});
         }
@@ -449,10 +477,7 @@
         // Jika belum terinstal, rencanakan pemunculan penawaran instalasi
         if (!isAppAlreadyInstalled()) {
             const isSecure = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-            
-            // Pada konteks aman (HTTPS/localhost), beri jeda waktu untuk beforeinstallprompt tertangkap terlebih dahulu (4.5 detik)
-            // Pada konteks insecure (HTTP LAN), munculkan banner setelah 3.5 detik dengan panduan menu
-            const delay = isSecure ? 4500 : 3500;
+            const delay = isSecure ? 3000 : 2500;
             setTimeout(() => {
                 if (!isAppAlreadyInstalled()) {
                     showInstallPromptBanner();

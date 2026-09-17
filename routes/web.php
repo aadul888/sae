@@ -44,7 +44,7 @@ $pwaManifestHandler = function () {
     $shortcutIcon = $isLight ? '/img/icons/icon-light-96x96.png' : '/img/icons/icon-96x96.png';
 
     return response()->json([
-        'id' => '/?app=sae-pwa&v=2&theme=' . ($isLight ? 'light' : 'dark'),
+        'id' => '/?app=sae-v3&theme=' . ($isLight ? 'light' : 'dark'),
         'name' => 'SAE - Sistem Aplikasi Edukasi',
         'short_name' => 'SAE',
         'description' => 'Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.',
@@ -94,7 +94,9 @@ $pwaManifestHandler = function () {
         ],
     ], 200, [
         'Content-Type' => 'application/manifest+json; charset=utf-8',
-        'Cache-Control' => 'public, max-age=86400',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0',
     ]);
 };
 Route::get('/manifest.webmanifest', $pwaManifestHandler)->name('pwa.manifest');
