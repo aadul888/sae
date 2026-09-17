@@ -43,27 +43,61 @@
             </p>
         </div>
     @else
-        <!-- Navigasi 2 Tab Baku SAE: Presensi Harian & Izin & Sakit -->
-        <div class="dash-tab-nav" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 2px;">
-            <a href="{{ route('dashboard.wali-kelas.presensi.index', array_merge(request()->except('page_izin'), ['tab' => 'harian'])) }}"
-               class="dash-tab-link {{ $activeTab === 'harian' ? 'active' : '' }}"
-               style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; border-radius: 10px 10px 0 0; text-decoration: none; transition: all 0.2s ease; color: {{ $activeTab === 'harian' ? 'var(--primary)' : 'var(--text-muted)' }}; border-bottom: 2px solid {{ $activeTab === 'harian' ? 'var(--primary)' : 'transparent' }}; background: {{ $activeTab === 'harian' ? 'rgba(99,102,241,0.08)' : 'transparent' }};">
-                <i class="fas fa-calendar-day"></i> Presensi Harian
-                <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 6px;">{{ $totalSiswa }} Siswa</span>
+        <!-- Desktop Segmented Tabs (Baku SAE seperti modul pengguna) -->
+        <div class="dash-tabs-nav dash-desktop-tabs" style="margin-bottom: 20px;">
+            <a href="{{ request()->fullUrlWithQuery(['tab' => 'harian', 'page_izin' => null]) }}"
+                class="btn {{ $activeTab === 'harian' ? 'btn-primary' : 'btn-outline' }}">
+                <i class="fas fa-calendar-day me-1"></i> Presensi Harian ({{ $totalSiswa }})
             </a>
-
-            <a href="{{ route('dashboard.wali-kelas.presensi.index', array_merge(request()->except('page'), ['tab' => 'izin'])) }}"
-               class="dash-tab-link {{ $activeTab === 'izin' ? 'active' : '' }}"
-               style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; border-radius: 10px 10px 0 0; text-decoration: none; transition: all 0.2s ease; color: {{ $activeTab === 'izin' ? 'var(--primary)' : 'var(--text-muted)' }}; border-bottom: 2px solid {{ $activeTab === 'izin' ? 'var(--primary)' : 'transparent' }}; background: {{ $activeTab === 'izin' ? 'rgba(99,102,241,0.08)' : 'transparent' }};">
-                <i class="fas fa-envelope-open-text"></i> Surat Izin &amp; Sakit
+            <a href="{{ request()->fullUrlWithQuery(['tab' => 'izin', 'page' => null]) }}"
+                class="btn {{ $activeTab === 'izin' ? 'btn-primary' : 'btn-outline' }}">
+                <i class="fas fa-envelope-open-text me-1"></i> Surat Izin &amp; Sakit
                 @if ($pendingIzinCount > 0)
-                    <span class="badge" style="background: rgba(245,158,11,0.18); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4); font-size: 0.72rem; padding: 2px 7px; font-weight: 800; border-radius: 20px;">
-                        {{ $pendingIzinCount }} Menunggu
-                    </span>
+                    <span class="badge badge-warning badge-sm ms-1">{{ $pendingIzinCount }} Menunggu</span>
                 @else
-                    <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 6px;">{{ $totalIzinCount }}</span>
+                    <span class="badge {{ $activeTab === 'izin' ? 'badge-primary' : 'badge-outline' }} badge-sm ms-1">{{ $totalIzinCount }}</span>
                 @endif
             </a>
+        </div>
+
+        <!-- Mobile Custom Dropdown Selector (Baku SAE seperti modul pengguna) -->
+        <div class="dash-mobile-tab-select-wrap" style="margin-bottom: 20px;">
+            <div class="dash-custom-dropdown">
+                <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                    <div class="custom-dropdown-trigger-label">
+                        <i class="fas {{ $activeTab === 'harian' ? 'fa-calendar-day' : 'fa-envelope-open-text' }} text-primary me-2"></i>
+                        <span>{{ $activeTab === 'harian' ? 'Presensi Harian' : 'Surat Izin & Sakit' }}</span>
+                        @if ($activeTab === 'izin' && $pendingIzinCount > 0)
+                            <span class="badge badge-warning badge-sm ms-2">{{ $pendingIzinCount }} Menunggu</span>
+                        @else
+                            <span class="badge badge-primary badge-sm ms-2">{{ $activeTab === 'harian' ? $totalSiswa : $totalIzinCount }}</span>
+                        @endif
+                    </div>
+                    <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                </button>
+                <div class="custom-dropdown-menu" role="listbox">
+                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'harian', 'page_izin' => null]) }}"
+                        class="custom-dropdown-item {{ $activeTab === 'harian' ? 'active' : '' }}">
+                        <div class="dropdown-item-left">
+                            <i class="fas fa-calendar-day text-primary me-2"></i>
+                            <span>Presensi Harian</span>
+                        </div>
+                        <span class="badge {{ $activeTab === 'harian' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $totalSiswa }}</span>
+                    </a>
+                    <a href="{{ request()->fullUrlWithQuery(['tab' => 'izin', 'page' => null]) }}"
+                        class="custom-dropdown-item {{ $activeTab === 'izin' ? 'active' : '' }}">
+                        <div class="dropdown-item-left">
+                            <i class="fas fa-envelope-open-text text-primary me-2"></i>
+                            <span>Surat Izin &amp; Sakit</span>
+                        </div>
+                        @if ($pendingIzinCount > 0)
+                            <span class="badge badge-warning badge-sm">{{ $pendingIzinCount }} Menunggu</span>
+                        @else
+                            <span class="badge {{ $activeTab === 'izin' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $totalIzinCount }}</span>
+                        @endif
+                    </a>
+                </div>
+            </div>
         </div>
 
         @if ($activeTab === 'harian')
@@ -657,7 +691,7 @@
                                                 <span class="pd-nama" style="font-weight: 700; color: var(--text-color);">{{ $iz->siswa_nama }}</span>
                                             </div>
                                             <div style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
-                                                NISN: {{ $iz->siswa_nisn ?: '-' }}
+                                                NISN: {{ $iz->siswa_nisn ?? ($iz->nisn ?? '-') }}
                                             </div>
                                         </div>
                                     </div>

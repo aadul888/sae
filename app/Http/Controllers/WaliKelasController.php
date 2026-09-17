@@ -571,6 +571,11 @@ class WaliKelasController extends Controller
         $ctx = $this->resolveWaliKelasContext($request, $user);
         $activeRombel = $ctx['activeRombel'];
 
+        $activeTab = $request->get('tab', 'harian');
+        if (!in_array($activeTab, ['harian', 'izin'], true)) {
+            $activeTab = 'harian';
+        }
+
         $tanggal = $request->get('tanggal', now()->toDateString());
         $q = trim($request->get('q', ''));
         $statusFilter = trim($request->get('status_filter', ''));
@@ -583,27 +588,35 @@ class WaliKelasController extends Controller
 
         if (!$activeRombel) {
             return view('dashboard.wali-kelas.presensi', [
-                'hasRombel'    => false,
-                'isAdmin'      => $ctx['isAdmin'],
-                'rombelList'   => $ctx['rombelList'],
-                'activeRombel' => null,
-                'waliNama'     => $ctx['waliNama'],
-                'tanggal'      => $tanggal,
-                'statusHari'   => $statusHari,
-                'pengaturan'   => $pengaturan,
-                'list'         => new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage),
-                'total'        => 0,
-                'totalSiswa'   => 0,
-                'summary'      => [
+                'hasRombel'        => false,
+                'isAdmin'          => $ctx['isAdmin'],
+                'rombelList'       => $ctx['rombelList'],
+                'activeRombel'     => null,
+                'waliNama'         => $ctx['waliNama'],
+                'tanggal'          => $tanggal,
+                'statusHari'       => $statusHari,
+                'pengaturan'       => $pengaturan,
+                'list'             => new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage),
+                'total'            => 0,
+                'totalSiswa'       => 0,
+                'summary'          => [
                     'total' => 0, 'hadir' => 0, 'terlambat' => 0, 'izin' => 0,
                     'sakit' => 0, 'alpha' => 0, 'pulang' => 0, 'belum' => 0, 'persen' => 0
                 ],
-                'q'            => $q,
-                'statusFilter' => $statusFilter,
-                'perPage'      => $perPage,
-                'sort'         => $sort,
-                'sortDir'      => $sortDir,
-                'canUpdate'    => $canUpdate,
+                'q'                => $q,
+                'statusFilter'     => $statusFilter,
+                'perPage'          => $perPage,
+                'sort'             => $sort,
+                'sortDir'          => $sortDir,
+                'canUpdate'        => $canUpdate,
+                'activeTab'        => $activeTab,
+                'pendingIzinCount' => 0,
+                'totalIzinCount'   => 0,
+                'izinSummary'      => ['total' => 0, 'menunggu' => 0, 'disetujui' => 0, 'ditolak' => 0],
+                'izinList'         => new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage, 1, ['path' => $request->url(), 'query' => $request->query()]),
+                'qIzin'            => '',
+                'statusIzinFilter' => '',
+                'jenisIzinFilter'  => '',
             ]);
         }
 
@@ -795,6 +808,7 @@ class WaliKelasController extends Controller
                 'pi.catatan_petugas',
                 'pi.created_at',
                 'pd.nama as siswa_nama',
+                'pd.nisn as siswa_nisn',
                 'pd.nipd as siswa_nipd',
                 'pd.jenis_kelamin as siswa_jk',
                 'pdm.foto_path'
