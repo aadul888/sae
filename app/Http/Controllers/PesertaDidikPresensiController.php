@@ -187,8 +187,30 @@ class PesertaDidikPresensiController extends Controller
             'persen' => $persenKehadiran,
         ];
 
+        // Filter Live Search & Per Page
+        $q = trim((string) $request->input('q', ''));
+        if ($q !== '') {
+            $query->where(function ($sq) use ($q) {
+                $sq->where('keterangan', 'like', "%{$q}%")
+                   ->orWhere('status', 'like', "%{$q}%")
+                   ->orWhere('metode_masuk', 'like', "%{$q}%")
+                   ->orWhere('tanggal', 'like', "%{$q}%");
+            });
+        }
+
+        $perPage = (int) $request->input('per_page', 15);
+        if (!in_array($perPage, [10, 15, 25, 50, 100])) {
+            $perPage = 15;
+        }
+
         // Paginasi Data
-        $logs = (clone $query)->orderBy('tanggal', 'desc')->paginate(15)->withQueryString();
+        $logs = (clone $query)->orderBy('tanggal', 'desc')->paginate($perPage)->withQueryString();
+
+        // RBAC Permissions
+        $userSession = session('user');
+        $userRole = is_array($userSession) ? ($userSession['role'] ?? '') : ($userSession->role ?? '');
+        $canCreate = \App\Models\RolePermission::canAccess($userSession ?: $userRole, 'menu_riwayat_rfid', 'create') || $userRole === 'peserta_didik';
+        $canRead = \App\Models\RolePermission::canAccess($userSession ?: $userRole, 'menu_riwayat_rfid', 'read') || $userRole === 'peserta_didik';
 
         return view('dashboard.peserta-didik-presensi', compact(
             'siswa',
@@ -200,7 +222,11 @@ class PesertaDidikPresensiController extends Controller
             'tahunAjaran',
             'range',
             'stats',
-            'logs'
+            'logs',
+            'q',
+            'perPage',
+            'canCreate',
+            'canRead'
         ));
     }
 
