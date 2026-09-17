@@ -175,4 +175,124 @@ class KalenderPendidikan extends Model
                 });
         });
     }
+
+    /**
+     * Hitung jumlah Hari Efektif Belajar dalam rentang tanggal tertentu,
+     * memperhitungkan konfigurasi hari kerja mingguan (PresensiPengaturan) dan libur kalender.
+     */
+    public static function hitungHariEfektif(string $startDate, string $endDate, string $role = 'pd'): int
+    {
+        if ($startDate > $endDate) return 0;
+
+        $pengaturan = PresensiPengaturan::getPengaturan();
+        $start = \Carbon\Carbon::parse($startDate);
+        $end = \Carbon\Carbon::parse($endDate);
+
+        $column = match (strtolower($role)) {
+            'guru' => 'libur_guru',
+            'tendik' => 'libur_tendik',
+            default => 'libur_pd',
+        };
+
+        // Ambil seluruh agenda libur dalam rentang ini dalam 1 query
+        $liburAgendas = static::betweenDates($startDate, $endDate)
+            ->where(function ($q) use ($column) {
+                $q->where($column, true)
+                    ->orWhere('mode_presensi', 'libur');
+            })
+            ->select('tanggal_mulai', 'tanggal_selesai')
+            ->get();
+
+        $count = 0;
+        $curr = $start->copy();
+
+        while ($curr->lte($end)) {
+            // 1. Cek apakah hari kerja mingguan aktif (Senin - Jumat / Sabtu)
+            if ($pengaturan->isHariAktif($curr)) {
+                $dateStr = $curr->format('Y-m-d');
+                $isLibur = false;
+                foreach ($liburAgendas as $ag) {
+                    $agMulai = is_string($ag->tanggal_mulai) ? substr($ag->tanggal_mulai, 0, 10) : $ag->tanggal_mulai->format('Y-m-d');
+                    $agSelesai = is_string($ag->tanggal_selesai) ? substr($ag->tanggal_selesai, 0, 10) : $ag->tanggal_selesai->format('Y-m-d');
+                    if ($agMulai <= $dateStr && $agSelesai >= $dateStr) {
+                        $isLibur = true;
+                        break;
+                    }
+                }
+                if (!$isLibur) {
+                    $count++;
+                }
+            }
+            $curr->addDay();
+        }
+
+        return $count;
+    }
+
+    /**
+     * Hitung jumlah Hari Efektif Belajar yang SUDAH BERJALAN (dibatasi hingga tanggal hari ini / limitDate)
+     * Digunakan sebagai pembagi (denominator) persentase kehadiran yang akurat.
+     */
+    public static function hitungHariEfektifBerjalan(string $startDate, string $endDate, ?string $limitDate = null, string $role = 'pd'): int
+    {
+        $limit = $limitDate ?: now()->toDateString();
+        if ($startDate > $limit) {
+            return 0;
+        }
+
+        $effectiveEnd = min($endDate, $limit);
+        return static::hitungHariEfektif($startDate, $effectiveEnd, $role);
+    }
+
+    /**
+     * Resolusi rentang tanggal akademik berdasarkan Tahun Ajaran, Semester, atau Bulan
+     */
+    public static function resolvePeriodeDates(?string $tahunAjaran = null, ?string $semester = null, ?string $bulan = null, ?string $tahun = null): array
+    {
+        $now = now();
+        $currYear = (int) $now->year;
+        $defaultTa = ($now->month >= 7) ? "{$currYear}/" . ($currYear + 1) : ($currYear - 1) . "/{$currYear}";
+        $ta = $tahunAjaran ?: $defaultTa;
+
+        $parts = explode('/', $ta);
+        $startYear = isset($parts[0]) && is_numeric($parts[0]) ? (int) $parts[0] : $currYear;
+        $endYear = isset($parts[1]) && is_numeric($parts[1]) ? (int) $parts[1] : $startYear + 1;
+
+        // Default 1 Tahun Ajaran penuh (2 Semester)
+        $startDate = "{$startYear}-07-01";
+        $endDate = "{$endYear}-06-30";
+        $label = "Tahun Pelajaran {$ta}";
+
+        if ($semester === '1') {
+            $startDate = "{$startYear}-07-01";
+            $endDate = "{$startYear}-12-31";
+            $label = "Semester Ganjil (1) TP {$ta}";
+        } elseif ($semester === '2') {
+            $startDate = "{$endYear}-01-01";
+            $endDate = "{$endYear}-06-30";
+            $label = "Semester Genap (2) TP {$ta}";
+        }
+
+        if (!empty($bulan)) {
+            $b = (int) $bulan;
+            // Jika bulan 7..12 gunakan startYear, jika bulan 1..6 gunakan endYear
+            $calYear = ($b >= 7) ? $startYear : $endYear;
+            if (!empty($tahun) && is_numeric($tahun)) {
+                $calYear = (int) $tahun;
+            }
+            $startCarbon = \Carbon\Carbon::createFromDate($calYear, $b, 1)->startOfMonth();
+            $endCarbon = $startCarbon->copy()->endOfMonth();
+            $startDate = $startCarbon->toDateString();
+            $endDate = $endCarbon->toDateString();
+            $label = "Bulan " . $startCarbon->translatedFormat('F Y');
+        }
+
+        return [
+            'start'        => $startDate,
+            'end'          => $endDate,
+            'tahun_ajaran' => $ta,
+            'semester'     => $semester ?: 'semua',
+            'label'        => $label,
+        ];
+    }
 }

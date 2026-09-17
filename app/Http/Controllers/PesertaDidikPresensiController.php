@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\KalenderPendidikan;
 use App\Models\NotifikasiTransaksi;
 use App\Models\PresensiHarian;
 use App\Services\QrCodeService;
@@ -158,7 +159,7 @@ class PesertaDidikPresensiController extends Controller
         $query = PresensiHarian::where('peserta_didik_id', $siswa->peserta_didik_id)
             ->whereBetween('tanggal', [$range['start'], $range['end']]);
 
-        // Rekapitulasi Statistik
+        // Rekapitulasi Statistik Berbasis Hari Efektif Kalender Pendidikan
         $allRecords = (clone $query)->get();
         $countHadir = $allRecords->where('status', 'H')->count();
         $countTerlambat = $allRecords->where('status', 'T')->count();
@@ -170,9 +171,15 @@ class PesertaDidikPresensiController extends Controller
         $totalHadirFisik = $countHadir + $countTerlambat;
         $totalMenitTerlambat = $allRecords->where('status', 'T')->sum('menit_terlambat');
 
-        $persenKehadiran = $totalRecord > 0 
-            ? round((($totalHadirFisik + $countDispen) / $totalRecord) * 100, 1) 
-            : 100.0;
+        // Hari Efektif Belajar (HEB) dari Kalender Pendidikan
+        $hariEfektifTotal = KalenderPendidikan::hitungHariEfektif($range['start'], $range['end'], 'pd');
+        $hariEfektifBerjalan = KalenderPendidikan::hitungHariEfektifBerjalan($range['start'], $range['end'], now()->toDateString(), 'pd');
+
+        $totalKehadiran = $totalHadirFisik + $countDispen;
+        $denominator = $hariEfektifBerjalan > 0 ? $hariEfektifBerjalan : $totalRecord;
+        $persenKehadiran = $denominator > 0 
+            ? min(100.0, round(($totalKehadiran / $denominator) * 100, 1)) 
+            : ($totalRecord > 0 ? round(($totalKehadiran / $totalRecord) * 100, 1) : 100.0);
 
         $stats = [
             'hadir' => $countHadir,
@@ -184,6 +191,8 @@ class PesertaDidikPresensiController extends Controller
             'total' => $totalRecord,
             'total_hadir' => $totalHadirFisik,
             'menit_terlambat' => $totalMenitTerlambat,
+            'hari_efektif' => $hariEfektifTotal,
+            'hari_efektif_berjalan' => $hariEfektifBerjalan,
             'persen' => $persenKehadiran,
         ];
 
@@ -273,7 +282,7 @@ class PesertaDidikPresensiController extends Controller
             ->orderBy('tanggal', 'asc')
             ->get();
 
-        // Rekapitulasi Statistik
+        // Rekapitulasi Statistik Berbasis Hari Efektif Kalender Pendidikan
         $countHadir = $logs->where('status', 'H')->count();
         $countTerlambat = $logs->where('status', 'T')->count();
         $countIzin = $logs->where('status', 'I')->count();
@@ -284,9 +293,15 @@ class PesertaDidikPresensiController extends Controller
         $totalHadirFisik = $countHadir + $countTerlambat;
         $totalMenitTerlambat = $logs->where('status', 'T')->sum('menit_terlambat');
 
-        $persenKehadiran = $totalRecord > 0 
-            ? round((($totalHadirFisik + $countDispen) / $totalRecord) * 100, 1) 
-            : 100.0;
+        // Hari Efektif Belajar (HEB) dari Kalender Pendidikan
+        $hariEfektifTotal = KalenderPendidikan::hitungHariEfektif($range['start'], $range['end'], 'pd');
+        $hariEfektifBerjalan = KalenderPendidikan::hitungHariEfektifBerjalan($range['start'], $range['end'], now()->toDateString(), 'pd');
+
+        $totalKehadiran = $totalHadirFisik + $countDispen;
+        $denominator = $hariEfektifBerjalan > 0 ? $hariEfektifBerjalan : $totalRecord;
+        $persenKehadiran = $denominator > 0 
+            ? min(100.0, round(($totalKehadiran / $denominator) * 100, 1)) 
+            : ($totalRecord > 0 ? round(($totalKehadiran / $totalRecord) * 100, 1) : 100.0);
 
         $stats = [
             'hadir' => $countHadir,
@@ -298,6 +313,8 @@ class PesertaDidikPresensiController extends Controller
             'total' => $totalRecord,
             'total_hadir' => $totalHadirFisik,
             'menit_terlambat' => $totalMenitTerlambat,
+            'hari_efektif' => $hariEfektifTotal,
+            'hari_efektif_berjalan' => $hariEfektifBerjalan,
             'persen' => $persenKehadiran,
         ];
 

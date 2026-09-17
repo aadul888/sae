@@ -1144,15 +1144,26 @@ class WaliKelasController extends Controller
                     ->orderBy('tanggal', 'asc')
                     ->get();
 
+                $carbonBulanObj = Carbon::parse($bulan . '-01');
+                $hebBulan = KalenderPendidikan::hitungHariEfektifBerjalan(
+                    $carbonBulanObj->copy()->startOfMonth()->toDateString(),
+                    $carbonBulanObj->copy()->endOfMonth()->toDateString(),
+                    now()->toDateString(),
+                    'pd'
+                );
+
                 $stats = [
-                    'total'     => $logs->count(),
-                    'hadir'     => $logs->where('status', 'H')->count(),
-                    'terlambat' => $logs->where('status', 'T')->count(),
-                    'izin'      => $logs->where('status', 'I')->count(),
-                    'sakit'     => $logs->where('status', 'S')->count(),
-                    'alpha'     => $logs->where('status', 'A')->count(),
+                    'total'        => $logs->count(),
+                    'hadir'        => $logs->where('status', 'H')->count(),
+                    'terlambat'    => $logs->where('status', 'T')->count(),
+                    'izin'         => $logs->where('status', 'I')->count(),
+                    'sakit'        => $logs->where('status', 'S')->count(),
+                    'dispen'       => $logs->where('status', 'D')->count(),
+                    'alpha'        => $logs->where('status', 'A')->count(),
+                    'hari_efektif' => $hebBulan,
                 ];
-                $stats['persen'] = $stats['total'] > 0 ? round((($stats['hadir'] + $stats['terlambat']) / $stats['total']) * 100, 1) : 0;
+                $denoSiswa = $hebBulan > 0 ? $hebBulan : $stats['total'];
+                $stats['persen'] = $denoSiswa > 0 ? min(100.0, round((($stats['hadir'] + $stats['terlambat'] + $stats['dispen']) / $denoSiswa) * 100, 1)) : 0;
 
                 $viewData['siswa'] = $siswa;
                 $viewData['bulan'] = $bulan;
@@ -1202,6 +1213,13 @@ class WaliKelasController extends Controller
                     ->get()
                     ->groupBy('peserta_didik_id');
 
+                $hebBulan = KalenderPendidikan::hitungHariEfektifBerjalan(
+                    $carbonBulan->copy()->startOfMonth()->toDateString(),
+                    $carbonBulan->copy()->endOfMonth()->toDateString(),
+                    now()->toDateString(),
+                    'pd'
+                );
+
                 $matrix = [];
                 foreach ($siswaList as $s) {
                     $sLogs = $logsBulan->get($s->peserta_didik_id, collect());
@@ -1215,14 +1233,16 @@ class WaliKelasController extends Controller
                     $t = $sLogs->where('status', 'T')->count();
                     $i = $sLogs->where('status', 'I')->count();
                     $sakit = $sLogs->where('status', 'S')->count();
+                    $d = $sLogs->where('status', 'D')->count();
                     $a = $sLogs->where('status', 'A')->count();
                     $total = $sLogs->count();
-                    $persen = $total > 0 ? round((($h + $t) / $total) * 100, 1) : 0;
+                    $denoBulan = $hebBulan > 0 ? $hebBulan : $total;
+                    $persen = $denoBulan > 0 ? min(100.0, round((($h + $t + $d) / $denoBulan) * 100, 1)) : 0;
 
                     $matrix[] = [
                         'siswa'   => $s,
                         'days'    => $daysMap,
-                        'rekap'   => ['h' => $h, 't' => $t, 'i' => $i, 's' => $sakit, 'a' => $a, 'persen' => $persen],
+                        'rekap'   => ['h' => $h, 't' => $t, 'i' => $i, 's' => $sakit, 'd' => $d, 'a' => $a, 'persen' => $persen],
                     ];
                 }
 
@@ -1262,6 +1282,10 @@ class WaliKelasController extends Controller
                     ->get()
                     ->groupBy('peserta_didik_id');
 
+                $startDateSem = ($semester === 1) ? "{$tahun}-07-01" : "{$tahun}-01-01";
+                $endDateSem = ($semester === 1) ? "{$tahun}-12-31" : "{$tahun}-06-30";
+                $hebSem = KalenderPendidikan::hitungHariEfektifBerjalan($startDateSem, $endDateSem, now()->toDateString(), 'pd');
+
                 $rekapSemester = [];
                 foreach ($siswaList as $s) {
                     $sLogs = $logsSemester->get($s->peserta_didik_id, collect());
@@ -1269,9 +1293,11 @@ class WaliKelasController extends Controller
                     $t = $sLogs->where('status', 'T')->count();
                     $i = $sLogs->where('status', 'I')->count();
                     $sakit = $sLogs->where('status', 'S')->count();
+                    $d = $sLogs->where('status', 'D')->count();
                     $a = $sLogs->where('status', 'A')->count();
                     $total = $sLogs->count();
-                    $persen = $total > 0 ? round((($h + $t) / $total) * 100, 1) : 0;
+                    $denoSem = $hebSem > 0 ? $hebSem : $total;
+                    $persen = $denoSem > 0 ? min(100.0, round((($h + $t + $d) / $denoSem) * 100, 1)) : 0;
 
                     $rekapSemester[] = [
                         'siswa' => $s,
@@ -1279,6 +1305,7 @@ class WaliKelasController extends Controller
                         't'     => $t,
                         'i'     => $i,
                         's'     => $sakit,
+                        'd'     => $d,
                         'a'     => $a,
                         'total' => $total,
                         'persen'=> $persen,

@@ -31,18 +31,50 @@ class KalenderPendidikanController extends Controller
         $q            = trim($request->get('q', ''));
         $tipe         = trim($request->get('tipe', ''));
         $modePresensi = trim($request->get('mode_presensi', ''));
-        $bulan        = trim($request->get('bulan', ''));
-        $tahun        = trim($request->get('tahun', ''));
         $dampak       = trim($request->get('dampak', ''));
         $perPage      = (int) $request->get('perPage', 15);
         if (!in_array($perPage, [10, 15, 25, 50, 100], true)) {
             $perPage = 15;
         }
 
+        // Filter Tahun Pelajaran & Semester (2 Semester per Tahun Ajaran)
+        $now = now();
+        $currYear = (int) $now->year;
+        $defaultTa = ($now->month >= 7) ? "{$currYear}/" . ($currYear + 1) : ($currYear - 1) . "/{$currYear}";
+        $tahunAjaran  = trim($request->get('tahun_ajaran', $defaultTa));
+        $semester     = trim($request->get('semester', 'semua')); // 'semua' | '1' | '2'
+        $bulan        = trim($request->get('bulan', ''));
+
+        // Resolusi Rentang Tanggal Kalender Akademik
+        $periode = KalenderPendidikan::resolvePeriodeDates($tahunAjaran, $semester, $bulan);
+        $periodStart = $periode['start'];
+        $periodEnd   = $periode['end'];
+
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'tanggal_mulai';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
-        $query = KalenderPendidikan::query();
+        // Hitung Hari Efektif Belajar (HEB) dalam Periode Kalender Terpilih
+        $hariEfektif = KalenderPendidikan::hitungHariEfektif($periodStart, $periodEnd, 'pd');
+        $hariEfektifTerlewati = KalenderPendidikan::hitungHariEfektifBerjalan($periodStart, $periodEnd, now()->toDateString(), 'pd');
+
+        // Scoped query dasar sesuai periode akademik terpilih
+        $basePeriodQuery = KalenderPendidikan::betweenDates($periodStart, $periodEnd);
+
+        // Dynamic summary counts menyesuaikan filter periode akademik
+        $totalAgenda   = (clone $basePeriodQuery)->count();
+        $totalLiburPd  = (clone $basePeriodQuery)->where(function ($sq) {
+            $sq->where('libur_pd', true)->orWhere('mode_presensi', 'libur');
+        })->count();
+        $totalDaring   = (clone $basePeriodQuery)->where(function ($sq) {
+            $sq->where('mode_presensi', 'daring')->orWhere('tipe', 'pembelajaran_daring');
+        })->count();
+        $totalLiburGtk = (clone $basePeriodQuery)->where(function ($sq) {
+            $sq->where('libur_guru', true)->orWhere('libur_tendik', true);
+        })->count();
+        $totalUjian    = (clone $basePeriodQuery)->where('tipe', 'ujian_asesmen')->count();
+
+        // Query tabel data agenda
+        $query = (clone $basePeriodQuery);
 
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
@@ -60,22 +92,10 @@ class KalenderPendidikanController extends Controller
             $query->where('mode_presensi', $modePresensi);
         }
 
-        if ($bulan !== '') {
-            $query->where(function ($sub) use ($bulan) {
-                $sub->whereMonth('tanggal_mulai', $bulan)
-                    ->orWhereMonth('tanggal_selesai', $bulan);
-            });
-        }
-
-        if ($tahun !== '') {
-            $query->where(function ($sub) use ($tahun) {
-                $sub->whereYear('tanggal_mulai', $tahun)
-                    ->orWhereYear('tanggal_selesai', $tahun);
-            });
-        }
-
         if ($dampak === 'libur_pd') {
-            $query->where('libur_pd', true);
+            $query->where(function ($sq) {
+                $sq->where('libur_pd', true)->orWhere('mode_presensi', 'libur');
+            });
         } elseif ($dampak === 'libur_guru') {
             $query->where('libur_guru', true);
         } elseif ($dampak === 'libur_tendik') {
@@ -84,19 +104,18 @@ class KalenderPendidikanController extends Controller
             $query->where('libur_pd', true)->where('libur_guru', true)->where('libur_tendik', true);
         }
 
-        // Summary counts
-        $totalAgenda   = KalenderPendidikan::count();
-        $totalLiburPd  = KalenderPendidikan::where('libur_pd', true)->count();
-        $totalDaring   = KalenderPendidikan::where('mode_presensi', 'daring')->orWhere('tipe', 'pembelajaran_daring')->count();
-        $totalLiburGtk = KalenderPendidikan::where(function ($q) {
-            $q->where('libur_guru', true)->orWhere('libur_tendik', true);
-        })->count();
-        $totalUjian    = KalenderPendidikan::where('tipe', 'ujian_asesmen')->count();
-
         $list = $query->orderBy($sort, $sortDir)->paginate($perPage)->withQueryString();
+
+        // Daftar opsi Tahun Pelajaran
+        $taOptions = [];
+        for ($y = $currYear + 1; $y >= $currYear - 2; $y--) {
+            $taOptions[] = "{$y}/" . ($y + 1);
+        }
 
         return view('dashboard.kalender-pendidikan', compact(
             'list',
+            'hariEfektif',
+            'hariEfektifTerlewati',
             'totalAgenda',
             'totalLiburPd',
             'totalDaring',
@@ -109,7 +128,10 @@ class KalenderPendidikanController extends Controller
             'tipe',
             'modePresensi',
             'bulan',
-            'tahun',
+            'tahunAjaran',
+            'semester',
+            'periode',
+            'taOptions',
             'dampak',
             'perPage',
             'sort',

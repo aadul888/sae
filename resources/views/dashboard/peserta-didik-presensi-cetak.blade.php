@@ -369,7 +369,7 @@
                     <th>Sakit (S)</th>
                     <th>Dispen (D)</th>
                     <th>Alpha (A)</th>
-                    <th>Total Belajar</th>
+                    <th>Hari Efektif</th>
                     <th>Tingkat Hadir (%)</th>
                 </tr>
             </thead>
@@ -381,7 +381,7 @@
                     <td><strong>{{ $stats['sakit'] }}</strong> hari</td>
                     <td><strong>{{ $stats['dispen'] }}</strong> hari</td>
                     <td><strong style="color: #ef4444;">{{ $stats['alpha'] }}</strong> hari</td>
-                    <td><strong>{{ $stats['total'] }}</strong> hari</td>
+                    <td><strong>{{ $stats['hari_efektif_berjalan'] ?? $stats['total'] }}</strong> hari</td>
                     <td><strong style="font-size: 0.88rem; color: #16a34a;">{{ $stats['persen'] }}%</strong></td>
                 </tr>
             </tbody>

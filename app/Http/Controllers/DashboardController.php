@@ -238,15 +238,26 @@ class DashboardController extends Controller
             $hadirCount = $riwayatBulanIni->whereIn('status', ['H', 'T'])->count();
             $izinCount = $riwayatBulanIni->where('status', 'I')->count();
             $sakitCount = $riwayatBulanIni->where('status', 'S')->count();
-            $alpaCount = $riwayatBulanIni->where('status', 'A')->count();
+            $dispenCount = $riwayatBulanIni->where('status', 'D')->count();
             $totalSesi = $riwayatBulanIni->count();
+            $totalKehadiran = $hadirCount + $dispenCount;
 
-            $persen = $totalSesi > 0 ? round(($hadirCount / $totalSesi) * 100, 1) : 100;
+            // Hari Efektif Belajar bulan ini s/d hari ini dari Kalender Pendidikan
+            $hebBulanIni = \App\Models\KalenderPendidikan::hitungHariEfektifBerjalan(
+                now()->startOfMonth()->toDateString(),
+                now()->endOfMonth()->toDateString(),
+                now()->toDateString(),
+                'pd'
+            );
+            $denominator = $hebBulanIni > 0 ? $hebBulanIni : $totalSesi;
+            $persen = $denominator > 0 ? min(100.0, round(($totalKehadiran / $denominator) * 100, 1)) : 100;
 
             $stats['presensi_bulan_ini'] = $persen;
+            $stats['hari_efektif_bulan_ini'] = $hebBulanIni;
             $stats['hadir_hari'] = $hadirCount;
             $stats['izin_hari'] = $izinCount;
             $stats['sakit_hari'] = $sakitCount;
+            $stats['dispen_hari'] = $dispenCount;
             $stats['alpa_hari'] = $alpaCount;
 
             // 5 Presensi Terakhir Riil

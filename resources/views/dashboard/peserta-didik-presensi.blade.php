@@ -32,6 +32,18 @@
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <i class="fas fa-percent"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                    {{ $stats['persen'] }}%
+                </div>
+                <div class="dash-stat-label">Kehadiran ({{ $stats['total_hadir'] }}/{{ $stats['hari_efektif_berjalan'] }} Hari Efektif)</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
