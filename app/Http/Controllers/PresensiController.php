@@ -540,13 +540,27 @@ class PresensiController extends Controller
             $presensi->save();
         }
 
+        $formattedData = $this->formatSiswaResponseData($siswa, $presensi);
+
+        \App\Services\RealtimeService::trigger('presensi.scanned', [
+            'nama'            => $siswa->nama,
+            'nisn'            => $siswa->nisn,
+            'rombel'          => $siswa->nama_rombel ?? '-',
+            'foto_url'        => $formattedData['foto_url'] ?? null,
+            'jam'             => substr($actionType === 'pulang' ? $presensi->jam_pulang : $presensi->jam_masuk, 0, 5),
+            'status'          => $presensi->status,
+            'status_label'    => $formattedData['status_label'] ?? 'Hadir',
+            'action'          => $actionType,
+            'menit_terlambat' => $presensi->menit_terlambat ?? 0,
+        ]);
+
         return response()->json([
             'status' => 'success',
             'action' => $actionType,
             'title' => 'Presensi Berhasil',
             'message' => $messageDetail,
             'speech_text' => $speechGreeting,
-            'data' => $this->formatSiswaResponseData($siswa, $presensi),
+            'data' => $formattedData,
         ]);
     }
 

@@ -66,6 +66,11 @@ class RolePermission extends Model
                     'icon' => 'fa-book-bookmark',
                     'roles' => ['admin', 'guru'],
                 ],
+                'menu_jadwal_kbm' => [
+                    'label' => 'Jadwal KBM',
+                    'icon' => 'fa-calendar-alt',
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
+                ],
                 'menu_kalender_pendidikan' => [
                     'label' => 'Kalender Pendidikan',
                     'icon' => 'fa-calendar-days',
@@ -163,11 +168,6 @@ class RolePermission extends Model
                 'menu_penilaian' => [
                     'label' => 'Penilaian Peserta Didik',
                     'icon' => 'fa-graduation-cap',
-                    'roles' => ['admin', 'guru'],
-                ],
-                'menu_presensi_peserta_didik' => [
-                    'label' => 'Presensi Kelas',
-                    'icon' => 'fa-users-viewfinder',
                     'roles' => ['admin', 'guru'],
                 ],
             ],
@@ -797,6 +797,7 @@ class RolePermission extends Model
                     if (in_array($permissionKey, [
                         'menu_rombel',
                         'menu_pembelajaran',
+                        'menu_jadwal_kbm',
                         'menu_kompetensi_keahlian',
                         'menu_presensi_mengajar',
                         'menu_agenda_kbm',
@@ -888,6 +889,7 @@ class RolePermission extends Model
                 'menu_kompetensi_keahlian',
                 'menu_rombel',
                 'menu_pembelajaran',
+                'menu_jadwal_kbm',
                 'menu_kalender_pendidikan',
                 'menu_peserta_didik_aktif',
                 'menu_guru_aktif',
@@ -930,6 +932,7 @@ class RolePermission extends Model
                 'menu_guru_aktif',
                 'menu_rombel',
                 'menu_pembelajaran',
+                'menu_jadwal_kbm',
                 'menu_kalender_pendidikan',
             ],
             'tendik' => [
@@ -944,6 +947,7 @@ class RolePermission extends Model
                 'menu_inventaris',
                 'menu_agenda',
                 'menu_pengumuman',
+                'menu_jadwal_kbm',
                 'menu_kalender_pendidikan',
             ],
             'peserta_didik' => [
@@ -952,6 +956,7 @@ class RolePermission extends Model
                 'menu_formulir',
                 'menu_e_izin',
                 'menu_jadwal_pelajaran',
+                'menu_jadwal_kbm',
                 'menu_rapor',
                 'menu_validasi_berkas',
                 'menu_pengumuman',

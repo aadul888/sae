@@ -33,11 +33,11 @@
             </div>
         </div>
         <div class="dash-banner-actions">
-            @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_peserta_didik'))
-                <button class="btn btn-primary"
-                    style="padding: 9px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669);">
-                    <i class="fas fa-qrcode"></i> Buka Presensi Kelas
-                </button>
+            @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
+                <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary"
+                    style="padding: 9px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-calendar-check"></i> Catat Presensi Mengajar
+                </a>
             @endif
         </div>
     </div>

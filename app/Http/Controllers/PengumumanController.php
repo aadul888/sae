@@ -363,6 +363,14 @@ class PengumumanController extends Controller
             'penulis_nama' => $authorName,
         ]);
 
+        \App\Services\RealtimeService::trigger('pengumuman.created', [
+            'id'           => $pengumuman->id,
+            'judul'        => $pengumuman->judul,
+            'target'       => $pengumuman->target,
+            'target_peran' => $pengumuman->target_peran,
+            'penulis_nama' => $pengumuman->penulis_nama,
+        ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -422,6 +430,11 @@ class PengumumanController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
+        \App\Services\RealtimeService::trigger('pengumuman.updated', [
+            'id'    => $pengumuman->id,
+            'judul' => $pengumuman->judul,
+        ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'status' => 'success',
@@ -454,6 +467,11 @@ class PengumumanController extends Controller
 
         $pengumuman->is_active = !$pengumuman->is_active;
         $pengumuman->save();
+
+        \App\Services\RealtimeService::trigger('pengumuman.updated', [
+            'id'        => $pengumuman->id,
+            'is_active' => (bool) $pengumuman->is_active,
+        ]);
 
         return response()->json([
             'status' => 'success',
@@ -490,7 +508,13 @@ class PengumumanController extends Controller
             return back()->with('error', 'Pengumuman tidak ditemukan.');
         }
 
+        $deletedId = $pengumuman->id;
         $pengumuman->delete();
+
+        \App\Services\RealtimeService::trigger('pengumuman.updated', [
+            'id'      => $deletedId,
+            'deleted' => true,
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json([

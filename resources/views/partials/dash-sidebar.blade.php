@@ -42,6 +42,7 @@
         $can('menu_kompetensi_keahlian') ||
         $can('menu_rombel') ||
         $can('menu_pembelajaran') ||
+        $can('menu_jadwal_kbm') ||
         $can('menu_kalender_pendidikan');
 
     // Manajemen Data Submenus
@@ -87,8 +88,12 @@
 
     // Section: Wali Kelas (Khusus Admin sebagai pengelola & Guru dengan tugas tambahan Wali Kelas)
     $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
-    $hasWaliKelas = $isWaliOrAdmin && ($can('menu_wali_kelas_aktif') || $can('menu_wali_kelas_tidak_aktif') || $can('menu_wali_kelas_presensi'));
-    $waliKelasRombelName = in_array($role, ['guru', 'peserta_didik'], true) ? \App\Models\RolePermission::getWaliKelasRombel($user) : null;
+    $hasWaliKelas =
+        $isWaliOrAdmin &&
+        ($can('menu_wali_kelas_aktif') || $can('menu_wali_kelas_tidak_aktif') || $can('menu_wali_kelas_presensi'));
+    $waliKelasRombelName = in_array($role, ['guru', 'peserta_didik'], true)
+        ? \App\Models\RolePermission::getWaliKelasRombel($user)
+        : null;
 
     // Kumpulkan modul sistem tambahan yang aktif tapi belum ter-render pada template bawaan
     $allKnownModules = \App\Models\RolePermission::getAllSystemModules();
@@ -258,6 +263,7 @@
                         request()->routeIs('dashboard.kompetensi-keahlian*') ||
                         request()->routeIs('dashboard.rombel*') ||
                         request()->routeIs('dashboard.pembelajaran*') ||
+                        request()->routeIs('dashboard.jadwal-kbm*') ||
                         request()->routeIs('dashboard.kalender-pendidikan*');
                 @endphp
                 <div class="dash-nav-group {{ $isMasterDataActive ? 'open active-group' : '' }}">
@@ -311,6 +317,14 @@
                                 class="dash-nav-sublink {{ request()->routeIs('dashboard.pembelajaran*') ? 'active' : '' }}">
                                 <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
                                 <span class="nav-label">Pembelajaran</span>
+                            </a>
+                        @endif
+
+                        @if ($can('menu_jadwal_kbm'))
+                            <a href="{{ route('dashboard.jadwal-kbm.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-alt"></i></span>
+                                <span class="nav-label">Jadwal KBM</span>
                             </a>
                         @endif
 
@@ -470,15 +484,17 @@
         @endif
 
         {{-- Layanan Guru (Collapsible - Di Atas Layanan Digital) --}}
-        @if ($hasAkademikGuru)
-            @php
-                $isAkademikActive =
-                    request()->routeIs('dashboard.presensi-mengajar*') ||
-                    request()->routeIs('dashboard.agenda-kbm*') ||
-                    request()->routeIs('dashboard.penilaian*') ||
-                    request()->routeIs('dashboard.presensi.kelas*') ||
-                    request()->routeIs('dashboard.presensi-peserta-didik*');
-            @endphp
+        @php
+            $hasAkademik =
+                $can('menu_presensi_mengajar') ||
+                $can('menu_agenda_kbm') ||
+                $can('menu_penilaian');
+            $isAkademikActive =
+                request()->routeIs('dashboard.presensi-mengajar*') ||
+                request()->routeIs('dashboard.agenda-kbm*') ||
+                request()->routeIs('dashboard.penilaian*');
+        @endphp
+        @if ($hasAkademik)
             <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
                     <div class="dash-nav-toggle-main">
@@ -489,14 +505,16 @@
                 </button>
                 <div class="dash-nav-submenu">
                     @if ($can('menu_presensi_mengajar'))
-                        <a href="#" class="dash-nav-sublink">
+                        <a href="{{ route('dashboard.presensi-mengajar.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
                             <span class="nav-label">Presensi Mengajar</span>
                         </a>
                     @endif
 
                     @if ($can('menu_agenda_kbm'))
-                        <a href="#" class="dash-nav-sublink">
+                        <a href="{{ route('dashboard.agenda-kbm.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.agenda-kbm*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
                             <span class="nav-label">Jurnal &amp; Agenda KBM</span>
                         </a>
@@ -506,14 +524,6 @@
                         <a href="#" class="dash-nav-sublink">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-graduation-cap"></i></span>
                             <span class="nav-label">Penilaian Peserta Didik</span>
-                        </a>
-                    @endif
-
-                    @if ($can('menu_presensi_peserta_didik'))
-                        <a href="{{ route('dashboard.presensi.kelas') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-viewfinder"></i></span>
-                            <span class="nav-label">Presensi Kelas</span>
                         </a>
                     @endif
                 </div>
@@ -600,8 +610,9 @@
                         </a>
                     @endif
 
-                    @if ($can('menu_jadwal_pelajaran'))
-                        <a href="#" class="dash-nav-sublink">
+                    @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm'))
+                        <a href="{{ route('dashboard.jadwal-kbm.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                             <span class="nav-label">Jadwal Pelajaran</span>
                         </a>
@@ -635,10 +646,12 @@
             <div class="dash-nav-group {{ $isWaliKelasActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
                     <div class="dash-nav-toggle-main">
-                        <span class="nav-icon"><i class="fas fa-fw {{ $role === 'peserta_didik' ? 'fa-crown text-warning' : 'fa-chalkboard-user' }}"></i></span>
+                        <span class="nav-icon"><i
+                                class="fas fa-fw {{ $role === 'peserta_didik' ? 'fa-crown text-warning' : 'fa-chalkboard-user' }}"></i></span>
                         <span class="nav-label">{{ $role === 'peserta_didik' ? 'Koordinator' : 'Wali Kelas' }}</span>
                         @if ($waliKelasRombelName)
-                            <span class="badge badge-primary" style="font-size: 0.68rem; padding: 2px 6px; margin-left: 6px; border-radius: 4px; font-weight: 700;">
+                            <span class="badge badge-primary"
+                                style="font-size: 0.68rem; padding: 2px 6px; margin-left: 6px; border-radius: 4px; font-weight: 700;">
                                 {{ $waliKelasRombelName }}
                             </span>
                         @endif

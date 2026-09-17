@@ -171,56 +171,70 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-        // Quick Mark All Read button in notification dropdown
-        const btnQuickMark = document.getElementById("btnQuickMarkAllRead");
-        if (btnQuickMark) {
-            btnQuickMark.addEventListener("click", async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
+    // Quick Mark All Read button in notification dropdown
+    const btnQuickMark = document.getElementById("btnQuickMarkAllRead");
+    if (btnQuickMark) {
+        btnQuickMark.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+            const csrfToken =
+                document
+                    .querySelector('meta[name="csrf-token"]')
+                    ?.getAttribute("content") || "";
 
-                try {
-                    btnQuickMark.style.opacity = "0.5";
-                    btnQuickMark.disabled = true;
+            try {
+                btnQuickMark.style.opacity = "0.5";
+                btnQuickMark.disabled = true;
 
-                    const res = await fetch("/dashboard/informasi/mark-all-read", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Accept": "application/json",
-                            "X-CSRF-TOKEN": csrfToken,
-                        },
-                    });
+                const res = await fetch("/dashboard/informasi/mark-all-read", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                });
 
-                    const data = await res.json();
-                    if (data.status === "success") {
-                        const bellDot = document.getElementById("bellNotifDot");
-                        if (bellDot) bellDot.remove();
+                const data = await res.json();
+                if (data.status === "success") {
+                    const bellDot = document.getElementById("bellNotifDot");
+                    if (bellDot) bellDot.remove();
 
-                        const headerBadge = document.getElementById("headerNotifBadge");
-                        if (headerBadge) headerBadge.remove();
+                    const headerBadge =
+                        document.getElementById("headerNotifBadge");
+                    if (headerBadge) headerBadge.remove();
 
-                        btnQuickMark.remove();
+                    btnQuickMark.remove();
 
-                        document.querySelectorAll(".dash-notif-dot").forEach((dot) => dot.remove());
-                        document.querySelectorAll(".dash-notif-item.unread-item").forEach((el) => el.classList.remove("unread-item"));
+                    document
+                        .querySelectorAll(".dash-notif-dot")
+                        .forEach((dot) => dot.remove());
+                    document
+                        .querySelectorAll(".dash-notif-item.unread-item")
+                        .forEach((el) => el.classList.remove("unread-item"));
 
-                        if (window.SAE && typeof window.SAE.toast === "function") {
-                            window.SAE.toast(data.message || "Semua pengumuman telah dibaca.", "success");
-                        }
-
-                        // Jika saat ini di halaman informasi feed, refresh atau update UI
-                        if (window.updateFeedAllRead && typeof window.updateFeedAllRead === "function") {
-                            window.updateFeedAllRead();
-                        }
+                    if (window.SAE && typeof window.SAE.toast === "function") {
+                        window.SAE.toast(
+                            data.message || "Semua pengumuman telah dibaca.",
+                            "success",
+                        );
                     }
-                } catch (err) {
-                    btnQuickMark.style.opacity = "1";
-                    btnQuickMark.disabled = false;
+
+                    // Jika saat ini di halaman informasi feed, refresh atau update UI
+                    if (
+                        window.updateFeedAllRead &&
+                        typeof window.updateFeedAllRead === "function"
+                    ) {
+                        window.updateFeedAllRead();
+                    }
                 }
-            });
-        }
+            } catch (err) {
+                btnQuickMark.style.opacity = "1";
+                btnQuickMark.disabled = false;
+            }
+        });
+    }
 
     // Global Modal Backdrop Close & ESC Handler
     document.querySelectorAll(".modal-backdrop").forEach((modal) => {
@@ -263,7 +277,10 @@ window.refreshLiveTable = async function (url, options = {}) {
     let targetUrl = typeof url === "string" ? url : url.toString();
 
     // Anti Mixed-Content Normalizer: Paksa protokol HTTPS jika halaman saat ini HTTPS
-    if (window.location.protocol === "https:" && targetUrl.startsWith("http:")) {
+    if (
+        window.location.protocol === "https:" &&
+        targetUrl.startsWith("http:")
+    ) {
         targetUrl = targetUrl.replace(/^http:/, "https:");
     }
 
@@ -303,6 +320,12 @@ window.refreshLiveTable = async function (url, options = {}) {
         const doc = new DOMParser().parseFromString(html, "text/html");
 
         // 3. Swap container contents
+        const curTabBarContainer = document.querySelector("#jadwalTabBarContainer");
+        const newTabBarContainer = doc.querySelector("#jadwalTabBarContainer");
+        if (curTabBarContainer && newTabBarContainer) {
+            curTabBarContainer.innerHTML = newTabBarContainer.innerHTML;
+        }
+
         const curDataContainer = document.querySelector("#tableDataContainer");
         const newDataContainer = doc.querySelector("#tableDataContainer");
         let tableAnchor = null;
@@ -310,7 +333,14 @@ window.refreshLiveTable = async function (url, options = {}) {
         if (curDataContainer && newDataContainer) {
             curDataContainer.innerHTML = newDataContainer.innerHTML;
             tableAnchor = curDataContainer;
-        } else {
+        }
+
+        const curGridContainer = document.querySelector("#gridMatrixContainer");
+        const newGridContainer = doc.querySelector("#gridMatrixContainer");
+        if (curGridContainer && newGridContainer) {
+            curGridContainer.innerHTML = newGridContainer.innerHTML;
+            tableAnchor = curGridContainer;
+        } else if (!curDataContainer && !curGridContainer) {
             // Find and swap the table card/container
             const curTable =
                 document.querySelector(
@@ -359,6 +389,17 @@ window.refreshLiveTable = async function (url, options = {}) {
             }
         });
 
+        // 4b. Update Card Rekap / Stat Grid jika ada pada modul
+        const curStatGrid = document.querySelector(
+            ".dash-stat-grid, .form-stat-grid",
+        );
+        const newStatGrid = doc.querySelector(
+            ".dash-stat-grid, .form-stat-grid",
+        );
+        if (curStatGrid && newStatGrid) {
+            curStatGrid.innerHTML = newStatGrid.innerHTML;
+        }
+
         // 5. Update browser URL silently without page reload
         window.history.replaceState(null, "", targetUrl);
 
@@ -372,7 +413,10 @@ window.refreshLiveTable = async function (url, options = {}) {
         console.warn("[SAE LiveSearch] Refresh failed, using fallback:", err);
         // Fallback navigasi penuh dengan proteksi protokol HTTPS
         let fallbackUrl = targetUrl;
-        if (window.location.protocol === "https:" && fallbackUrl.startsWith("http:")) {
+        if (
+            window.location.protocol === "https:" &&
+            fallbackUrl.startsWith("http:")
+        ) {
             fallbackUrl = fallbackUrl.replace(/^http:/, "https:");
         }
         window.location.href = fallbackUrl;
@@ -396,7 +440,10 @@ document.addEventListener("click", function (e) {
     ) {
         e.preventDefault();
         let targetHref = pageLink.href;
-        if (window.location.protocol === "https:" && targetHref.startsWith("http:")) {
+        if (
+            window.location.protocol === "https:" &&
+            targetHref.startsWith("http:")
+        ) {
             targetHref = targetHref.replace(/^http:/, "https:");
         }
         window.refreshLiveTable(targetHref);
@@ -442,7 +489,10 @@ document.addEventListener("input", function (e) {
         clearTimeout(globalLiveSearchTimer);
         globalLiveSearchTimer = setTimeout(() => {
             const formData = new FormData(form);
-            const url = new URL(form.action || window.location.href, window.location.origin);
+            const url = new URL(
+                form.action || window.location.href,
+                window.location.origin,
+            );
             for (const [key, val] of formData.entries()) {
                 if (val) url.searchParams.set(key, val);
                 else url.searchParams.delete(key);
@@ -465,7 +515,10 @@ document.addEventListener("submit", function (e) {
         e.preventDefault();
         clearTimeout(globalLiveSearchTimer);
         const formData = new FormData(form);
-        const url = new URL(form.action || window.location.href, window.location.origin);
+        const url = new URL(
+            form.action || window.location.href,
+            window.location.origin,
+        );
         for (const [key, val] of formData.entries()) {
             if (val) url.searchParams.set(key, val);
             else url.searchParams.delete(key);
@@ -483,7 +536,9 @@ document.addEventListener("click", function (e) {
     e.stopPropagation();
 
     const raw = copyEl.getAttribute("data-copy") || copyEl.innerText.trim();
-    const textToCopy = raw.replace(/^(?:NIK|NISN|NIPD|NUPTK|NIP|ID)\s*:\s*/i, "").trim();
+    const textToCopy = raw
+        .replace(/^(?:NIK|NISN|NIPD|NUPTK|NIP|ID)\s*:\s*/i, "")
+        .trim();
     const label = copyEl.getAttribute("data-label") || "Teks";
 
     if (!textToCopy || textToCopy === "-") return;
@@ -497,5 +552,3 @@ document.addEventListener("click", function (e) {
     copyEl.classList.add("copied");
     setTimeout(() => copyEl.classList.remove("copied"), 1800);
 });
-
-
