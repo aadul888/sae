@@ -392,6 +392,189 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        // Interaksi Pengaturan Kode Akses Kiosk Publik
+        const btnToggleShowCode = document.getElementById('btnToggleShowKodeAkses');
+        const inputKodeAkses = document.getElementById('inputKodeAksesKiosk');
+        const btnCopyCode = document.getElementById('btnCopyKodeAkses');
+        const btnGenerateCode = document.getElementById('btnGenerateRandomCode');
+
+        function copyKodeAksesToClipboard(code, silent = false) {
+            if (!code) return;
+            const successNotice = () => {
+                if (!silent) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Kode Akses Disalin!',
+                        text: `Kode "${code}" berhasil disalin ke clipboard.`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(code).then(successNotice).catch(() => fallbackClipboard(code, successNotice));
+            } else {
+                fallbackClipboard(code, successNotice);
+            }
+        }
+
+        function fallbackClipboard(text, callback) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                if (callback) callback();
+            } catch (err) {
+                console.error('Fallback clipboard copy failed:', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        async function saveKodeAksesAjax(code) {
+            const cleanCode = (code || '').trim().toUpperCase().replace(/\s/g, '');
+            if (!cleanCode || cleanCode.length < 3) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Kode Terlalu Pendek',
+                    text: 'Kode akses minimal terdiri dari 3 karakter.'
+                });
+                return;
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            try {
+                if (btnGenerateCode) {
+                    btnGenerateCode.disabled = true;
+                    btnGenerateCode.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acak...';
+                }
+
+                const resp = await fetch('/dashboard/presensi/pengaturan/kode-akses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ kode_akses: cleanCode })
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok || data.status !== 'success') {
+                    throw new Error(data.message || 'Gagal menyimpan kode akses.');
+                }
+
+                // Update DOM state
+                if (inputKodeAkses) {
+                    inputKodeAkses.value = data.kode_akses;
+                }
+
+                // Salin otomatis ke clipboard tanpa double alert (silent = true)
+                copyKodeAksesToClipboard(data.kode_akses, true);
+
+                // Cukup 1 alert/toast tunggal
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Kode Baru Disimpan!',
+                    text: `Kode "${data.kode_akses}" berhasil diacak, disimpan, dan disalin ke clipboard.`,
+                    timer: 2500,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Menyimpan Kode',
+                    text: err.message || 'Terjadi kesalahan sistem saat memperbarui kode akses.'
+                });
+            } finally {
+                if (btnGenerateCode) {
+                    btnGenerateCode.disabled = false;
+                    btnGenerateCode.innerHTML = '<i class="fas fa-dice"></i> Acak';
+                }
+            }
+        }
+
+        if (inputKodeAkses) {
+            inputKodeAkses.addEventListener('input', function () {
+                this.value = this.value.toUpperCase().replace(/\s/g, '');
+            });
+        }
+
+        if (btnToggleShowCode && inputKodeAkses) {
+            btnToggleShowCode.addEventListener('click', function () {
+                const isPass = inputKodeAkses.type === 'password';
+                inputKodeAkses.type = isPass ? 'text' : 'password';
+                this.innerHTML = isPass ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+            });
+        }
+
+        if (btnCopyCode && inputKodeAkses) {
+            btnCopyCode.addEventListener('click', function () {
+                const val = inputKodeAkses.value.trim().toUpperCase().replace(/\s/g, '');
+                if (!val) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Kode Kosong',
+                        text: 'Silakan ketik atau acak kode akses terlebih dahulu.'
+                    });
+                    return;
+                }
+                copyKodeAksesToClipboard(val, false);
+            });
+        }
+
+        if (btnGenerateCode && inputKodeAkses) {
+            btnGenerateCode.addEventListener('click', function () {
+                const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                let res = '';
+                for (let i = 0; i < 6; i++) {
+                    res += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                inputKodeAkses.value = res;
+                inputKodeAkses.type = 'text';
+                if (btnToggleShowCode) btnToggleShowCode.innerHTML = '<i class="fas fa-eye-slash"></i>';
+
+                // Otomatis tersimpan ke database & disalin ke clipboard dengan 1 alert tunggal
+                saveKodeAksesAjax(res);
+            });
+        }
+
+        const btnCopyKiosk = document.getElementById('btnCopyKioskUrl');
+        if (btnCopyKiosk) {
+            btnCopyKiosk.addEventListener('click', function () {
+                const url = this.getAttribute('data-url');
+                if (url) {
+                    const notify = () => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Tautan Kiosk Disalin!',
+                            text: 'URL terminal scanner berhasil disalin ke clipboard.',
+                            timer: 2000,
+                            showConfirmButton: false,
+                            toast: true,
+                            position: 'top-end'
+                        });
+                    };
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(url).then(notify).catch(() => fallbackClipboard(url, notify));
+                    } else {
+                        fallbackClipboard(url, notify);
+                    }
+                }
+            });
+        }
+
         formPengaturan.addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -411,6 +594,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
             dataObj['hari_aktif'] = hariAktif;
             dataObj['jurusan_aktif'] = jurusanAktif;
+            dataObj['kode_akses'] = (inputKodeAkses ? inputKodeAkses.value : '').trim().toUpperCase().replace(/\s/g, '');
             dataObj['require_camera'] = document.getElementById('settingRequireCamera')?.checked ? 1 : 0;
             dataObj['allow_rfid'] = document.getElementById('settingAllowRfid')?.checked ? 1 : 0;
             dataObj['allow_qr'] = document.getElementById('settingAllowQr')?.checked ? 1 : 0;

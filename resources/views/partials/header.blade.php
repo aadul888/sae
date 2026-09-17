@@ -17,6 +17,7 @@
             <a href="{{ url('/') }}#fitur" class="nav-link">Layanan</a>
             <a href="{{ url('/') }}#statistik" class="nav-link">Statistik</a>
             <a href="{{ url('/') }}#nisn" class="nav-link">Cek NISN</a>
+            <a href="{{ route('presensi.scan') }}" class="nav-link"><i class="fas fa-qrcode me-1"></i> Presensi</a>
             <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Ganti Tema"
                 title="Ganti Mode Gelap / Terang">
                 <i class="fas fa-moon"></i>

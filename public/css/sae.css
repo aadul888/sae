@@ -616,10 +616,14 @@ select:-webkit-autofill {
 }
 .ticker-text {
     color: var(--text-muted);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     white-space: nowrap;
     display: inline-block;
-    animation: marquee 25s linear infinite;
+    animation: marquee 65s linear infinite;
+}
+.ticker-wrap:hover .ticker-text {
+    animation-play-state: paused;
+    cursor: default;
 }
 @keyframes marquee {
     0% {

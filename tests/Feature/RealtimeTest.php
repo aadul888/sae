@@ -97,6 +97,9 @@ class RealtimeTest extends TestCase
         });
 
         $this->assertTrue($hasDataChangedOrPengumuman, 'Event mutasi data harus di-broadcast');
+
+        // Bersihkan data uji agar tidak mencemari database operasional
+        \App\Models\Pengumuman::where('judul', 'Pengumuman Uji Broadcast')->delete();
     }
 
     public function test_jadwal_kbm_accessible_by_roles_and_broadcasts(): void
@@ -150,5 +153,11 @@ class RealtimeTest extends TestCase
         });
 
         $this->assertTrue($hasJadwalEvent, 'Event jadwal.changed harus ter-trigger di RealtimeService');
+    }
+
+    protected function tearDown(): void
+    {
+        \App\Models\Pengumuman::where('judul', 'LIKE', '%Uji Broadcast%')->delete();
+        parent::tearDown();
     }
 }

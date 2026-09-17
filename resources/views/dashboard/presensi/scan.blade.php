@@ -53,9 +53,15 @@
                 <button type="button" id="btnToggleSpeech" class="btn btn-primary btn-kiosk-action">
                     <i class="fas fa-volume-high"></i> <span class="btn-text">Suara Aktif</span>
                 </button>
-                <a href="{{ route('dashboard.presensi.index') }}" class="btn btn-outline btn-kiosk-action">
-                    <i class="fas fa-arrow-left"></i> <span class="btn-text">Dashboard</span>
-                </a>
+                @if (!empty($isKioskSession))
+                    <a href="{{ route('presensi.kiosk.lock') }}" id="btnKioskLock" class="btn btn-danger btn-kiosk-action" title="Kunci dan keluar dari mode terminal">
+                        <i class="fas fa-lock"></i> <span class="btn-text">Kunci Terminal</span>
+                    </a>
+                @else
+                    <a href="{{ route('dashboard.presensi.index') }}" class="btn btn-outline btn-kiosk-action">
+                        <i class="fas fa-arrow-left"></i> <span class="btn-text">Dashboard</span>
+                    </a>
+                @endif
             </div>
         </div>
     </header>
@@ -174,17 +180,11 @@
             <input type="text" id="kioskScannerInput" class="kiosk-hidden-input" autocomplete="off"
                 inputmode="none" tabindex="-1">
 
-            <!-- Manual Barcode/NISN Input Fallback -->
-            <form id="formManualScan"
-                style="display: flex; gap: 8px; margin-top: 18px; width: 100%; max-width: 440px;">
-                <input type="text" id="manualScanInput" placeholder="Ketik NISN atau scan manual..."
-                    class="form-control"
-                    style="flex: 1; padding: 9px 14px; font-size: 0.85rem; font-family: monospace;">
-                <button type="submit" class="btn btn-primary"
-                    style="padding: 9px 20px; font-size: 0.85rem; font-weight: 600;">
-                    Scan
-                </button>
-            </form>
+            <!-- Direct Hardware Scanner Badge (Manual Input Blocked) -->
+            <div style="margin-top: 20px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 50px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); font-size: 0.82rem; color: #34d399; font-weight: 700;">
+                <i class="fas fa-shield-halved text-success"></i>
+                <span>Mode Pemindai Langsung &bull; Input Manual Dinonaktifkan</span>
+            </div>
         </div>
 
         <!-- Right Column: Status Summary & Live Recent Scans Feed -->

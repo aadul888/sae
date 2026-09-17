@@ -298,9 +298,10 @@ document.addEventListener('DOMContentLoaded', function () {
     initGeolocation();
 
     // 5. Global RFID / Barcode Scanner Listener (Keyboard Wedge)
+    // 5. Global RFID / Barcode Scanner Listener (Hardware Keyboard Wedge Only)
     const hiddenInput = document.getElementById('kioskScannerInput');
     let scanBuffer = '';
-    let lastKeyTime = Date.now();
+    let keyTimestamps = [];
     let isProcessing = false;
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 768;
 
@@ -315,39 +316,106 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('click', ensureFocus);
     }
 
-    // Scanner Keyboard Wedge Listener
+    // Hardware Scanner Wedge Listener with Strict Anti-Manual Typing Filter
     window.addEventListener('keydown', function (e) {
-        const currentTime = Date.now();
+        const now = Date.now();
 
-        // Jika karakter dikirim dengan interval cepat khas scanner (< 50ms)
         if (e.key === 'Enter') {
             e.preventDefault();
-            const identifier = hiddenInput ? hiddenInput.value.trim() : scanBuffer.trim();
-            if (identifier && !isProcessing) {
-                processScanAttendance(identifier);
+            const rawIdentifier = (hiddenInput ? hiddenInput.value : scanBuffer).trim();
+
+            if (rawIdentifier && !isProcessing) {
+                // Evaluasi kecepatan ketikan:
+                // Scanner fisik mengirim karakter dengan interval sangat cepat (rata-rata < 45ms per char).
+                // Ketikan manual manusia memiliki interval > 120ms per char.
+                const charCount = keyTimestamps.length;
+                let isHardwareScan = true;
+
+                if (charCount >= 4) {
+                    const totalDuration = keyTimestamps[charCount - 1] - keyTimestamps[0];
+                    const avgInterval = totalDuration / (charCount - 1);
+
+                    // Jika rata-rata interval > 65ms atau total waktu > 500ms untuk input pendek, deteksi sebagai ketikan manual manusia
+                    if (avgInterval > 65 || totalDuration > 700) {
+                        isHardwareScan = false;
+                    }
+                }
+
+                if (!isHardwareScan) {
+                    playSound('warning');
+                    showNoticeCard(
+                        'Input Manual Dinonaktifkan',
+                        'Sistem hanya menerima pemindaian fisik dari pembaca RFID atau scanner barcode/QR.',
+                        'warning'
+                    );
+                    speakGreeting('Input manual dinonaktifkan. Silakan tempelkan kartu pada pemindai.');
+                } else {
+                    processScanAttendance(rawIdentifier);
+                }
             }
+
             if (hiddenInput) hiddenInput.value = '';
             scanBuffer = '';
+            keyTimestamps = [];
         } else if (e.key.length === 1) {
-            // Buffer karakter
-            if (currentTime - lastKeyTime > 200) {
+            // Bersihkan buffer jika jeda dengan tombol sebelumnya terlalu lama (> 180ms berarti ketikan manual lambat)
+            if (keyTimestamps.length > 0 && (now - keyTimestamps[keyTimestamps.length - 1]) > 180) {
                 scanBuffer = '';
+                keyTimestamps = [];
             }
             scanBuffer += e.key;
-            lastKeyTime = currentTime;
+            keyTimestamps.push(now);
         }
     });
 
-    // Form manual scan submit (jika di-klik Enter atau tombol Cari)
-    const formManual = document.getElementById('formManualScan');
-    if (formManual) {
-        formManual.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const inputVal = document.getElementById('manualScanInput')?.value.trim();
-            if (inputVal && !isProcessing) {
-                processScanAttendance(inputVal);
-                document.getElementById('manualScanInput').value = '';
+    // 5.1. Live Camera Barcode & QR Scanner (Native Web BarcodeDetector API)
+    if ('BarcodeDetector' in window) {
+        const barcodeDetector = new BarcodeDetector({
+            formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'data_matrix']
+        });
+
+        let isCameraScanning = false;
+        setInterval(async () => {
+            if (!videoEl || !videoStream || isProcessing || isCameraScanning) return;
+            if (videoEl.readyState < 2) return;
+
+            isCameraScanning = true;
+            try {
+                const barcodes = await barcodeDetector.detect(videoEl);
+                if (barcodes && barcodes.length > 0 && !isProcessing) {
+                    const detectedRaw = barcodes[0].rawValue;
+                    if (detectedRaw && detectedRaw.trim().length >= 3) {
+                        processScanAttendance(detectedRaw.trim());
+                    }
+                }
+            } catch (err) {
+                // Camera frame not ready
+            } finally {
+                isCameraScanning = false;
             }
+        }, 300);
+    }
+
+    // 5.2. Handler Tombol Kunci Terminal Kiosk
+    const btnKioskLock = document.getElementById('btnKioskLock');
+    if (btnKioskLock) {
+        btnKioskLock.addEventListener('click', function (e) {
+            e.preventDefault();
+            const lockUrl = this.getAttribute('href');
+            Swal.fire({
+                title: 'Kunci Terminal Kiosk?',
+                text: 'Layar pemindai akan dikunci. Diperlukan kode akses untuk membukanya kembali.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#4b5563',
+                confirmButtonText: '<i class="fas fa-lock me-1"></i> Kunci Sekarang',
+                cancelButtonText: 'Batal'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location.href = lockUrl;
+                }
+            });
         });
     }
 
@@ -390,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const modeVal = modeEl ? modeEl.value : 'auto';
 
         try {
-            const response = await fetch('/dashboard/presensi/scan/process', {
+            const response = await fetch('/presensi/scan/process', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

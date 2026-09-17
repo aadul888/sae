@@ -31,6 +31,7 @@ class PresensiPengaturan extends Model
         'radius_meter',
         'is_active',
         'auto_alpha_time',
+        'kode_akses',
     ];
 
     protected $casts = [
@@ -66,6 +67,7 @@ class PresensiPengaturan extends Model
             'allow_qr' => true,
             'is_active' => true,
             'auto_alpha_time' => '09:00:00',
+            'kode_akses' => 'SAE123',
         ]);
     }
 

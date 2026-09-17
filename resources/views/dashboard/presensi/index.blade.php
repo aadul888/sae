@@ -1036,7 +1036,68 @@
                 </div>
             </div>
 
-            <!-- Row 3: Kompetensi Keahlian (Jurusan) yang Diizinkan Presensi (Full Width Card) -->
+            <!-- Row 3: Terminal Kiosk Publik & Otorisasi Kode Akses (Permintaan Khusus) -->
+            <div class="card" style="padding: 24px; border-radius: 14px; margin-bottom: 20px; border-left: 4px solid var(--primary); background: rgba(99, 102, 241, 0.03);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0 0 4px 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-key text-primary"></i> Akses Terminal Kiosk Publik &amp; Keamanan Scanner
+                        </h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0; max-width: 680px;">
+                            Layar pemindai absensi dapat dibuka di perangkat gerbang/lobi sekolah secara publik menggunakan <strong>Kode Akses</strong> tanpa perlu login akun admin. Input manual NISN telah dinonaktifkan demi keaslian kehadiran fisik.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="{{ route('presensi.scan') }}" target="_blank" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-arrow-up-right-from-square"></i> Buka Terminal Scan
+                        </a>
+                        <button type="button" id="btnCopyKioskUrl" class="btn btn-outline" data-url="{{ url('/scan') }}" style="padding: 8px 16px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-copy"></i> Salin URL Kiosk
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+                    <!-- Input Kode Akses -->
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                        <label style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            Kode Akses Terminal Kiosk:
+                        </label>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <div style="position: relative; flex: 1; min-width: 140px;">
+                                <input type="password" id="inputKodeAksesKiosk" name="kode_akses" value="{{ $pengaturan->kode_akses ?? 'SAE123' }}" class="form-control" style="width: 100%; font-family: monospace; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.1em; padding-right: 42px; text-transform: uppercase;" placeholder="SAE123" required autocomplete="off" spellcheck="false">
+                                <button type="button" id="btnToggleShowKodeAkses" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem;" title="Lihat/Sembunyikan Kode">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <button type="button" id="btnCopyKodeAkses" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" title="Salin kode akses ke clipboard">
+                                <i class="fas fa-copy"></i> Salin
+                            </button>
+                            <button type="button" id="btnGenerateRandomCode" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" title="Buat kode acak baru & otomatis simpan">
+                                <i class="fas fa-dice"></i> Acak
+                            </button>
+                        </div>
+                        <small style="color: var(--text-muted); font-size: 0.73rem; display: block; margin-top: 8px;">
+                            Berikan kode ini kepada petugas gerbang/satpam untuk membuka terminal pemindai di pos jaga.
+                        </small>
+                    </div>
+
+                    <!-- Informasi URL & Status Proteksi -->
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: center;">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">
+                            <i class="fas fa-link text-primary me-1"></i> Tautan Publik Kiosk Gerbang:
+                        </div>
+                        <div style="font-family: monospace; font-size: 0.85rem; color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 8px; word-break: break-all;">
+                            {{ url('/scan') }}
+                        </div>
+                        <div style="font-size: 0.74rem; color: #10b981; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-check-circle"></i> Input manual dikunci otomatis (Hanya RFID USB &amp; Kamera Barcode/QR).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 4: Kompetensi Keahlian (Jurusan) yang Diizinkan Presensi (Full Width Card) -->
             <div class="card" style="padding: 24px; border-radius: 14px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                     <div>

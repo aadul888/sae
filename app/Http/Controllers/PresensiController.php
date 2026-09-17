@@ -218,17 +218,115 @@ class PresensiController extends Controller
     }
 
     /**
+     * Halaman Publik: Verifikasi Kode Akses Terminal Kiosk
+     */
+    public function kioskAuth(Request $request)
+    {
+        $isUserAllowed = false;
+        if (session()->has('user')) {
+            $user = \App\Models\User::find(session('user.id'));
+            if ($user && \App\Models\RolePermission::canAccess($user, 'menu_rfid', 'read')) {
+                $isUserAllowed = true;
+            }
+        }
+        $isKioskAllowed = session('kiosk_access_granted') === true;
+
+        if ($isUserAllowed || $isKioskAllowed) {
+            return redirect()->route('presensi.scan');
+        }
+
+        $sekolah = PresensiPengaturan::getSekolah();
+        return view('dashboard.presensi.kiosk-auth', compact('sekolah'));
+    }
+
+    /**
+     * Endpoint API: Buka Akses Terminal Kiosk dengan Kode Akses
+     */
+    public function kioskUnlock(Request $request)
+    {
+        $request->validate([
+            'kode_akses' => 'required|string|max:50',
+        ]);
+
+        $pengaturan = PresensiPengaturan::getPengaturan();
+        $expectedCode = str_replace(' ', '', strtoupper(trim($pengaturan->kode_akses ?: 'SAE123')));
+        $inputCode = str_replace(' ', '', strtoupper(trim($request->input('kode_akses'))));
+
+        if ($inputCode !== $expectedCode) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Kode akses terminal salah. Silakan periksa kembali atau tanyakan kode resmi kepada administrator sekolah.',
+            ], 422);
+        }
+
+        session([
+            'kiosk_access_granted' => true,
+            'kiosk_login_at'       => now()->toIso8601String(),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Akses terminal berhasil dibuka. Mengalihkan ke scanner...',
+            'redirect_url' => route('presensi.scan'),
+        ]);
+    }
+
+    /**
+     * API: Update Cepat Kode Akses Terminal Kiosk oleh Admin
+     */
+    public function updateKodeAkses(Request $request)
+    {
+        $request->validate([
+            'kode_akses' => 'required|string|min:3|max:50',
+        ]);
+
+        $newCode = str_replace(' ', '', strtoupper(trim($request->input('kode_akses'))));
+        $pengaturan = PresensiPengaturan::getPengaturan();
+        $pengaturan->update(['kode_akses' => $newCode]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Kode akses terminal kiosk berhasil diperbarui menjadi [{$newCode}] dan telah tersimpan di database.",
+            'kode_akses' => $newCode,
+        ]);
+    }
+
+    /**
+     * Kunci Kembali Terminal Kiosk (Keluar dari Mode Publik)
+     */
+    public function kioskLock(Request $request)
+    {
+        session()->forget(['kiosk_access_granted', 'kiosk_login_at']);
+        return redirect()->route('presensi.kiosk.auth')->with('info', 'Terminal presensi telah dikunci.');
+    }
+
+    /**
      * Layar Penuh Kiosk Terminal Pemindai Presensi (Scanner Station)
      */
     public function scanKiosk(Request $request)
     {
+        $isUserAllowed = false;
+        if (session()->has('user')) {
+            $user = \App\Models\User::find(session('user.id'));
+            if ($user && \App\Models\RolePermission::canAccess($user, 'menu_rfid', 'read')) {
+                $isUserAllowed = true;
+            }
+        }
+        $isKioskAllowed = session('kiosk_access_granted') === true;
+
+        // Jika belum login admin dan belum memasukkan kode akses, arahkan ke layar input kode akses
+        if (!$isUserAllowed && !$isKioskAllowed) {
+            return redirect()->route('presensi.kiosk.auth');
+        }
+
+        $isKioskSession = $isKioskAllowed && !$isUserAllowed;
         $pengaturan = PresensiPengaturan::getPengaturan();
         $today = now()->toDateString();
         $statusHari = KalenderPendidikan::getStatusHari($today, 'pd');
         $isLibur = $statusHari['mode'] === 'libur';
         $agendaLibur = $statusHari['agenda'];
 
-        // Recent Scans (5 scan terakhir)
+        // Recent Scans (6 scan terakhir)
         $recentScans = DB::table('presensi_harian as ph')
             ->join('peserta_didik as pd', 'ph.peserta_didik_id', '=', 'pd.peserta_didik_id')
             ->leftJoin('rombongan_belajar as rb', 'ph.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
@@ -270,15 +368,33 @@ class PresensiController extends Controller
             'schoolLat',
             'schoolLon',
             'schoolRadius',
-            'requireLocation'
+            'requireLocation',
+            'isKioskSession'
         ));
     }
 
     /**
-     * API Endpoint: Proses Pemindaian Tap RFID / QR Code / NISN
+     * API Endpoint: Proses Pemindaian Tap RFID / QR Code / Barcode
      */
     public function processScan(Request $request)
     {
+        $isUserAllowed = false;
+        if (session()->has('user')) {
+            $user = \App\Models\User::find(session('user.id'));
+            if ($user && \App\Models\RolePermission::canAccess($user, 'menu_rfid', 'read')) {
+                $isUserAllowed = true;
+            }
+        }
+        $isKioskAllowed = session('kiosk_access_granted') === true;
+
+        if (!$isUserAllowed && !$isKioskAllowed) {
+            return response()->json([
+                'status' => 'error',
+                'title' => 'Akses Ditolak',
+                'message' => 'Sesi terminal telah berakhir atau belum terautentikasi. Silakan masukkan kode akses.',
+            ], 403);
+        }
+
         $request->validate([
             'identifier' => 'required|string|max:255',
             'mode' => 'nullable|string|in:auto,masuk,pulang',
@@ -1111,6 +1227,7 @@ class PresensiController extends Controller
             'latitude' => 'nullable|numeric|between:-90,90',
             'longitude' => 'nullable|numeric|between:-180,180',
             'radius_meter' => 'nullable|integer|min:10|max:50000',
+            'kode_akses' => 'nullable|string|min:3|max:50',
         ]);
 
         $pengaturan = PresensiPengaturan::getPengaturan();
@@ -1130,11 +1247,12 @@ class PresensiController extends Controller
             'latitude' => $request->filled('latitude') ? (float) $request->input('latitude') : null,
             'longitude' => $request->filled('longitude') ? (float) $request->input('longitude') : null,
             'radius_meter' => (int) $request->input('radius_meter', 100),
+            'kode_akses' => $request->filled('kode_akses') ? str_replace(' ', '', strtoupper(trim($request->input('kode_akses')))) : ($pengaturan->kode_akses ?: 'SAE123'),
         ]);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Konfigurasi jadwal dan aturan presensi sekolah berhasil disimpan.',
+            'message' => 'Konfigurasi jadwal, aturan, dan kode akses terminal presensi berhasil disimpan.',
         ]);
     }
 

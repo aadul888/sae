@@ -41,6 +41,14 @@ Route::post('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'subm
 Route::get('/f/{slug}/sukses/{respon}', [\App\Http\Controllers\FormulirController::class, 'successPublic'])->name('formulir.success');
 Route::get('/formulir/{slug}', [\App\Http\Controllers\FormulirController::class, 'showPublic']);
 
+// Terminal Kiosk Presensi Publik (Proteksi Kode Akses & Direct Scan)
+Route::get('/scan', [\App\Http\Controllers\PresensiController::class, 'scanKiosk'])->name('scan');
+Route::get('/presensi/scan', [\App\Http\Controllers\PresensiController::class, 'scanKiosk'])->name('presensi.scan');
+Route::get('/presensi/scan/auth', [\App\Http\Controllers\PresensiController::class, 'kioskAuth'])->name('presensi.kiosk.auth');
+Route::post('/presensi/scan/unlock', [\App\Http\Controllers\PresensiController::class, 'kioskUnlock'])->name('presensi.kiosk.unlock');
+Route::get('/presensi/scan/lock', [\App\Http\Controllers\PresensiController::class, 'kioskLock'])->name('presensi.kiosk.lock');
+Route::post('/presensi/scan/process', [\App\Http\Controllers\PresensiController::class, 'processScan'])->name('presensi.scan.process');
+
 // Auth Routes (Multi-User)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -140,11 +148,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Layanan Digital — Presensi & RFID Realtime
     Route::get('/presensi', [\App\Http\Controllers\PresensiController::class, 'index'])->name('presensi.index')->middleware('permission:menu_rfid,read');
-    Route::get('/presensi/scan', [\App\Http\Controllers\PresensiController::class, 'scanKiosk'])->name('presensi.scan')->middleware('permission:menu_rfid,read');
-    Route::post('/presensi/scan/process', [\App\Http\Controllers\PresensiController::class, 'processScan'])->name('presensi.scan.process')->middleware('permission:menu_rfid,read');
+    Route::get('/presensi/scan', [\App\Http\Controllers\PresensiController::class, 'scanKiosk'])->name('presensi.scan');
+    Route::post('/presensi/scan/process', [\App\Http\Controllers\PresensiController::class, 'processScan'])->name('presensi.scan.process');
     Route::get('/presensi/live-log', [\App\Http\Controllers\PresensiController::class, 'getLiveLog'])->name('presensi.live-log')->middleware('permission:menu_rfid,read');
     Route::post('/presensi/rfid/assign', [\App\Http\Controllers\PresensiController::class, 'assignRfid'])->name('presensi.rfid.assign')->middleware('permission:menu_rfid,update');
     Route::post('/presensi/pengaturan', [\App\Http\Controllers\PresensiController::class, 'updatePengaturan'])->name('presensi.pengaturan.update')->middleware('permission:menu_rfid,update');
+    Route::post('/presensi/pengaturan/kode-akses', [\App\Http\Controllers\PresensiController::class, 'updateKodeAkses'])->name('presensi.pengaturan.kode-akses')->middleware('permission:menu_rfid,update');
     Route::get('/presensi/export', [\App\Http\Controllers\PresensiController::class, 'export'])->name('presensi.export')->middleware('permission:menu_rfid,read');
     Route::post('/presensi/izin/{id}/verifikasi', [\App\Http\Controllers\PresensiController::class, 'verifikasiIzin'])->name('presensi.izin.verifikasi')->middleware('permission:menu_rfid,update');
 
