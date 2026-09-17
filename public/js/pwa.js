@@ -17,18 +17,60 @@
 
     if (isStandalone) {
         document.documentElement.classList.add('pwa-standalone');
+        localStorage.setItem('sae_pwa_is_installed', 'true');
         console.log('[SAE-PWA] Running in Standalone Application Mode');
     }
 
-    // 1. Sinkronisasi Warna Theme-Color dengan Tema Gelap/Terang
+    // Helper: Periksa apakah aplikasi sudah pernah dipasang di perangkat ini
+    function isAppAlreadyInstalled() {
+        if (isStandalone) {
+            localStorage.setItem('sae_pwa_is_installed', 'true');
+            return true;
+        }
+        if (localStorage.getItem('sae_pwa_is_installed') === 'true') {
+            return true;
+        }
+        return false;
+    }
+
+    // Helper untuk memilih icon sesuai tema aktif (Dark = Logo Putih di atas Gelap; Light = Logo Berwarna di atas Terang)
+    function getPwaIconUrl(size = 96) {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        return isLight ? `/img/icons/icon-light-${size}x${size}.png` : `/img/icons/icon-${size}x${size}.png`;
+    }
+
+    // 1. Sinkronisasi Warna Theme-Color & Ikon PWA dengan Tema Gelap/Terang
     function syncThemeColor() {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+
         const metaThemeColor = document.getElementById('pwaThemeColorMeta');
-        if (!metaThemeColor) return;
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        if (currentTheme === 'light') {
-            metaThemeColor.setAttribute('content', '#FFFFFF');
-        } else {
-            metaThemeColor.setAttribute('content', '#0B0F19');
+        if (metaThemeColor) {
+            metaThemeColor.setAttribute('content', isLight ? '#FFFFFF' : '#0B0F19');
+        }
+
+        const manifestLink = document.getElementById('pwaManifestLink');
+        if (manifestLink) {
+            manifestLink.setAttribute('href', `/manifest.json?theme=${isLight ? 'light' : 'dark'}&v=2`);
+        }
+
+        const icon192 = document.getElementById('pwaIcon192');
+        if (icon192) {
+            icon192.setAttribute('href', isLight ? '/img/icons/icon-light-192x192.png?v=2' : '/img/icons/icon-192x192.png?v=2');
+        }
+
+        const icon512 = document.getElementById('pwaIcon512');
+        if (icon512) {
+            icon512.setAttribute('href', isLight ? '/img/icons/icon-light-512x512.png?v=2' : '/img/icons/icon-512x512.png?v=2');
+        }
+
+        const appleIcon = document.getElementById('pwaAppleTouchIcon');
+        if (appleIcon) {
+            appleIcon.setAttribute('href', isLight ? '/img/icons/apple-touch-icon-light.png?v=2' : '/img/icons/apple-touch-icon.png?v=2');
+        }
+
+        const bannerIcon = document.querySelector('.sae-pwa-banner-icon');
+        if (bannerIcon) {
+            bannerIcon.src = getPwaIconUrl(96);
         }
     }
 
@@ -81,7 +123,7 @@
         });
     }
 
-    // 3. Menampilkan Toast Notifikasi Pembaruan
+    // 3. Menampilkan Toast Notifikasi Pembaruan Aplikasi
     function showUpdateNotification() {
         if (document.getElementById('saePwaUpdateBanner')) return;
 
@@ -141,7 +183,12 @@
 
     // 4. Penawaran Instalasi Aplikasi Halaman (In-Page Install Offer Banner)
     function showInstallPromptBanner() {
-        if (isStandalone) return;
+        // Jangan pernah tampilkan banner jika aplikasi sudah terinstal di perangkat
+        if (isAppAlreadyInstalled()) {
+            console.log('[SAE-PWA] Install banner suppressed: app already installed on device.');
+            return;
+        }
+
         if (document.getElementById('saePwaInstallBanner')) return;
 
         // Cek apakah baru saja ditolak dalam 24 jam terakhir (versi 2)
@@ -159,7 +206,7 @@
 
         banner.innerHTML = `
             <div class="sae-pwa-banner-header">
-                <img src="/img/icons/icon-96x96.png" class="sae-pwa-banner-icon" alt="SAE App Icon" onerror="this.src='/img/logo-icon.png'">
+                <img src="${getPwaIconUrl(96)}" class="sae-pwa-banner-icon" alt="SAE App Icon" onerror="this.src='/img/logo-icon.png'">
                 <div class="sae-pwa-banner-info">
                     <div class="sae-pwa-banner-title">
                         <span>Pasang Aplikasi SAE</span>
@@ -206,7 +253,7 @@
         deferredPrompt = e;
         console.log('[SAE-PWA] Native beforeinstallprompt captured and ready!');
 
-        if (!isStandalone) {
+        if (!isAppAlreadyInstalled()) {
             updateInstallUI(true);
             // Tampilkan penawaran halaman setelah jeda 1 detik
             setTimeout(() => {
@@ -246,6 +293,8 @@
 
                 if (outcome === 'accepted') {
                     console.log('[SAE-PWA] User accepted the install prompt');
+                    localStorage.setItem('sae_pwa_is_installed', 'true');
+                    localStorage.setItem('sae_pwa_installed_at', Date.now().toString());
                     if (banner) banner.remove();
                     updateInstallUI(false);
                 }
@@ -327,7 +376,7 @@
             Swal.fire({
                 title: 'Pasang Aplikasi SAE',
                 html: guideHtml,
-                imageUrl: '/img/icons/icon-96x96.png',
+                imageUrl: getPwaIconUrl(96),
                 imageWidth: 54,
                 imageHeight: 54,
                 imageAlt: 'SAE App Icon',
@@ -346,6 +395,8 @@
     // Event saat aplikasi telah berhasil diinstal (baik via prompt maupun via menu browser!)
     window.addEventListener('appinstalled', () => {
         console.log('[SAE-PWA] Application was successfully installed!');
+        localStorage.setItem('sae_pwa_is_installed', 'true');
+        localStorage.setItem('sae_pwa_installed_at', Date.now().toString());
         deferredPrompt = null;
         updateInstallUI(false);
 
@@ -367,9 +418,10 @@
 
     // Helper untuk mengaktifkan/menonaktifkan tombol instalasi di UI
     function updateInstallUI(available) {
+        const isInstalled = isAppAlreadyInstalled();
         const installBtns = document.querySelectorAll('.btn-pwa-install, #btnPwaInstallNav');
         installBtns.forEach(btn => {
-            if (available && !isStandalone) {
+            if (available && !isInstalled) {
                 btn.style.display = 'inline-flex';
             } else {
                 btn.style.display = 'none';
@@ -379,21 +431,140 @@
 
     // Inisialisasi awal UI instalasi
     document.addEventListener('DOMContentLoaded', () => {
+        // Cek jika browser mendukung pemeriksaan aplikasi terkait yang sudah terpasang
+        if ('getInstalledRelatedApps' in navigator) {
+            navigator.getInstalledRelatedApps().then((relatedApps) => {
+                if (relatedApps && relatedApps.length > 0) {
+                    console.log('[SAE-PWA] App is already installed on device (relatedApps confirmed).');
+                    localStorage.setItem('sae_pwa_is_installed', 'true');
+                    updateInstallUI(false);
+                    const banner = document.getElementById('saePwaInstallBanner');
+                    if (banner) banner.remove();
+                }
+            }).catch(() => {});
+        }
+
         updateInstallUI(false);
 
-        // Jika belum standalone, rencanakan pemunculan penawaran instalasi
-        if (!isStandalone) {
+        // Jika belum terinstal, rencanakan pemunculan penawaran instalasi
+        if (!isAppAlreadyInstalled()) {
             const isSecure = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
             
             // Pada konteks aman (HTTPS/localhost), beri jeda waktu untuk beforeinstallprompt tertangkap terlebih dahulu (4.5 detik)
             // Pada konteks insecure (HTTP LAN), munculkan banner setelah 3.5 detik dengan panduan menu
             const delay = isSecure ? 4500 : 3500;
             setTimeout(() => {
-                if (!isStandalone) {
+                if (!isAppAlreadyInstalled()) {
                     showInstallPromptBanner();
                 }
             }, delay);
         }
     });
+
+    // Helper konversi Base64 VAPID Key untuk Web Push
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    /**
+     * ==========================================================================
+     * 6. SAE Web Push & Local Notification API (Keamanan & Integritas Terpadu)
+     * Siap untuk integrasi:
+     * - Presensi Murid -> Orang Tua / Wali
+     * - E-Izin Keluar-Masuk Sekolah -> Wali Kelas / Guru Piket
+     * - Pengumuman & Siaran Broadcast Sekolah
+     * ==========================================================================
+     */
+    window.SaeNotification = {
+        // Cek apakah browser & OS mendukung Web Notification
+        isSupported: function () {
+            return ('Notification' in window) && ('serviceWorker' in navigator);
+        },
+
+        // Status izin saat ini: 'default', 'granted', 'denied', 'unsupported'
+        getPermissionStatus: function () {
+            if (!this.isSupported()) return 'unsupported';
+            return Notification.permission;
+        },
+
+        // Meminta izin notifikasi secara aman
+        requestPermission: async function () {
+            if (!this.isSupported()) {
+                return { status: 'unsupported', isGranted: false, message: 'Perangkat ini belum mendukung Web Notification.' };
+            }
+            try {
+                const permission = await Notification.requestPermission();
+                return { status: permission, isGranted: permission === 'granted' };
+            } catch (err) {
+                console.warn('[SAE-Notification] Gagal meminta izin notifikasi:', err);
+                return { status: 'error', isGranted: false, error: err };
+            }
+        },
+
+        // Menampilkan notifikasi lokal melalui Service Worker
+        showLocal: async function (title, options = {}) {
+            if (!this.isSupported()) return false;
+
+            if (Notification.permission !== 'granted') {
+                const req = await this.requestPermission();
+                if (!req.isGranted) return false;
+            }
+
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const defaultIcon = getPwaIconUrl(192);
+                const defaultBadge = getPwaIconUrl(96);
+
+                const notificationOptions = {
+                    body: options.body || '',
+                    icon: options.icon || defaultIcon,
+                    badge: options.badge || defaultBadge,
+                    image: options.image || undefined,
+                    tag: options.tag || 'sae-notify-' + Date.now(),
+                    renotify: options.renotify !== false,
+                    vibrate: options.vibrate || [200, 100, 200],
+                    data: options.data || { url: '/' },
+                    actions: options.actions || [
+                        { action: 'open', title: 'Buka' },
+                        { action: 'close', title: 'Tutup' }
+                    ]
+                };
+
+                await reg.showNotification(title, notificationOptions);
+                return true;
+            } catch (err) {
+                console.warn('[SAE-Notification] Gagal menampilkan notifikasi:', err);
+                return false;
+            }
+        },
+
+        // Mendaftarkan Subscription Push Token (VAPID) untuk backend Web Push
+        subscribePush: async function (vapidPublicKey) {
+            if (!this.isSupported()) return null;
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                let subscription = await reg.pushManager.getSubscription();
+
+                if (!subscription && vapidPublicKey) {
+                    const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+                    subscription = await reg.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: convertedVapidKey
+                    });
+                }
+                return subscription;
+            } catch (err) {
+                console.warn('[SAE-Notification] Gagal subscribe Web Push:', err);
+                return null;
+            }
+        }
+    };
 
 })();

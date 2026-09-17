@@ -34,8 +34,17 @@ Route::get('/offline', function () {
 
 // PWA Dynamic Web App Manifest
 $pwaManifestHandler = function () {
+    $theme = request('theme', 'dark');
+    $isLight = ($theme === 'light');
+
+    $prefix = $isLight ? '/img/icons/icon-light-' : '/img/icons/icon-';
+    $bgColor = $isLight ? '#FFFFFF' : '#0B0F19';
+    $themeColor = $isLight ? '#FFFFFF' : '#0B0F19';
+    $maskableIcon = $isLight ? '/img/icons/icon-light-maskable-512x512.png' : '/img/icons/icon-maskable-512x512.png';
+    $shortcutIcon = $isLight ? '/img/icons/icon-light-96x96.png' : '/img/icons/icon-96x96.png';
+
     return response()->json([
-        'id' => '/?app=sae-pwa&v=2',
+        'id' => '/?app=sae-pwa&v=2&theme=' . ($isLight ? 'light' : 'dark'),
         'name' => 'SAE - Sistem Aplikasi Edukasi',
         'short_name' => 'SAE',
         'description' => 'Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.',
@@ -43,22 +52,22 @@ $pwaManifestHandler = function () {
         'scope' => '/',
         'display' => 'standalone',
         'orientation' => 'any',
-        'background_color' => '#0B0F19',
-        'theme_color' => '#4F6EF7',
+        'background_color' => $bgColor,
+        'theme_color' => $themeColor,
         'lang' => 'id',
         'dir' => 'ltr',
         'categories' => ['education', 'productivity'],
         'icons' => [
-            ['src' => '/img/icons/icon-72x72.png', 'sizes' => '72x72', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-128x128.png', 'sizes' => '128x128', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-144x144.png', 'sizes' => '144x144', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-152x152.png', 'sizes' => '152x152', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-192x192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-192x192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
-            ['src' => '/img/icons/icon-384x384.png', 'sizes' => '384x384', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-512x512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-maskable-512x512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ['src' => $prefix . '72x72.png', 'sizes' => '72x72', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $prefix . '96x96.png', 'sizes' => '96x96', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $prefix . '128x128.png', 'sizes' => '128x128', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $prefix . '144x144.png', 'sizes' => '144x144', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $prefix . '152x152.png', 'sizes' => '152x152', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $prefix . '192x192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $prefix . '192x192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ['src' => $prefix . '384x384.png', 'sizes' => '384x384', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $prefix . '512x512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $maskableIcon, 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
         ],
         'shortcuts' => [
             [
@@ -66,21 +75,21 @@ $pwaManifestHandler = function () {
                 'short_name' => 'Presensi',
                 'description' => 'Terminal pemindaian RFID & visual scanner live',
                 'url' => '/presensi/scan?source=pwa_shortcut',
-                'icons' => [['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96']],
+                'icons' => [['src' => $shortcutIcon, 'sizes' => '96x96']],
             ],
             [
                 'name' => 'Portal Masuk',
                 'short_name' => 'Login',
                 'description' => 'Login portal akun sekolah terintegrasi',
                 'url' => '/login?source=pwa_shortcut',
-                'icons' => [['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96']],
+                'icons' => [['src' => $shortcutIcon, 'sizes' => '96x96']],
             ],
             [
                 'name' => 'Pengecekan NISN',
                 'short_name' => 'Cek NISN',
                 'description' => 'Validasi status keaktifan peserta didik',
                 'url' => '/#nisn',
-                'icons' => [['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96']],
+                'icons' => [['src' => $shortcutIcon, 'sizes' => '96x96']],
             ],
         ],
     ], 200, [

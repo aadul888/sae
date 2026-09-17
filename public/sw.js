@@ -1,10 +1,10 @@
 /* ==========================================================================
    SAE (Sistem Aplikasi Edukasi) — Progressive Web App Service Worker
-   Version: 1.0.2
+   Version: 1.0.3
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = 'sae-pwa-v1.0.2';
+const CACHE_NAME = 'sae-pwa-v1.0.3';
 const OFFLINE_URL = '/offline';
 
 // Aset inti yang di-precache saat instalasi service worker
@@ -12,6 +12,7 @@ const PRECACHE_ASSETS = [
     OFFLINE_URL,
     '/manifest.json',
     '/manifest.webmanifest',
+    '/manifest-light.json',
     '/css/sae.css',
     '/css/dashboard.css',
     '/js/sae.js',
@@ -19,6 +20,8 @@ const PRECACHE_ASSETS = [
     '/img/logo-icon.png',
     '/img/icons/icon-192x192.png',
     '/img/icons/icon-512x512.png',
+    '/img/icons/icon-light-192x192.png',
+    '/img/icons/icon-light-512x512.png',
     '/vendor/fontawesome/css/all.min.css'
 ];
 
@@ -154,3 +157,74 @@ self.addEventListener('message', (event) => {
         self.skipWaiting();
     }
 });
+
+// 6. Push Event: Menerima Pesan Web Push dari Server (Presensi Siswa, E-Izin Wali Kelas, Broadcast Sekolah)
+self.addEventListener('push', (event) => {
+    let data = {};
+    if (event.data) {
+        try {
+            data = event.data.json();
+        } catch (e) {
+            data = { title: 'SAE Notifikasi', body: event.data.text() };
+        }
+    } else {
+        data = { title: 'SAE Notifikasi', body: 'Ada informasi dan pembaruan terbaru dari sekolah.' };
+    }
+
+    const title = data.title || 'SAE - Sistem Aplikasi Edukasi';
+    const options = {
+        body: data.body || '',
+        icon: data.icon || '/img/icons/icon-192x192.png',
+        badge: data.badge || '/img/icons/icon-96x96.png',
+        image: data.image || undefined,
+        tag: data.tag || 'sae-push-' + Date.now(),
+        renotify: data.renotify !== false,
+        vibrate: data.vibrate || [200, 100, 200],
+        data: data.data || { url: '/' },
+        actions: data.actions || [
+            { action: 'open', title: 'Buka Aplikasi' },
+            { action: 'close', title: 'Tutup' }
+        ]
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options)
+    );
+});
+
+// 7. Notification Click Event: Navigasi Cerdas saat Notifikasi Diketuk
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    if (event.action === 'close') {
+        return;
+    }
+
+    const targetUrl = (event.notification.data && event.notification.data.url) 
+        ? event.notification.data.url 
+        : '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            // Jika ada jendela atau tab SAE yang sedang terbuka, fokuskan dan arahkan
+            for (const client of clientList) {
+                if (client.url.includes(self.location.origin) && 'focus' in client) {
+                    if ('navigate' in client && targetUrl !== '/') {
+                        client.navigate(targetUrl);
+                    }
+                    return client.focus();
+                }
+            }
+            // Jika tidak ada jendela yang terbuka, buka jendela/tab baru
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
+        })
+    );
+});
+
+// 8. Notification Close Event
+self.addEventListener('notificationclose', (event) => {
+    // Hook aman untuk analitik atau pembersihan data
+});
+

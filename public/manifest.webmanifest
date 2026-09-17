@@ -1,5 +1,5 @@
 {
-  "id": "/?app=sae-pwa&v=2",
+  "id": "/?app=sae-pwa&v=2&theme=dark",
   "name": "SAE - Sistem Aplikasi Edukasi",
   "short_name": "SAE",
   "description": "Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.",
@@ -8,7 +8,7 @@
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0B0F19",
-  "theme_color": "#4F6EF7",
+  "theme_color": "#0B0F19",
   "lang": "id",
   "dir": "ltr",
   "categories": [
