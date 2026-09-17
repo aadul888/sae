@@ -1,165 +1,134 @@
 @extends('layouts.dashboard')
 
 @section('title', 'Surat Izin & Sakit Peserta Didik — SAE')
+@section('dash_title', 'Surat Izin & Sakit')
 
 @section('content')
-    <!-- 1. Header Banner & Action Button -->
-    <div class="dash-header-banner" style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+    <!-- 1. Header Banner & Action Buttons (Sesuai Standar Modul SAE) -->
+    <div class="dash-banner">
         <div>
-            <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-color); margin: 0 0 4px 0; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-envelope-open-text text-primary"></i> Surat Izin &amp; Sakit
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+                <i class="fas fa-envelope-open-text text-primary me-2"></i> Surat Izin &amp; Sakit
             </h2>
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">
+            <p style="color: var(--text-muted); font-size: 0.85rem;">
                 Permohonan dan riwayat surat izin, surat keterangan sakit dokter, serta dispensasi resmi peserta didik.
             </p>
         </div>
-
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <div class="dash-banner-actions">
+            <a href="{{ route('dashboard.peserta-didik.presensi.index') }}" class="btn btn-outline"
+                style="padding: 9px 16px; font-size: 0.85rem;" title="Lihat Riwayat Presensi Lengkap">
+                <i class="fas fa-calendar-check me-1"></i> Riwayat Presensi
+            </a>
             @if ($canCreate)
-                <button type="button" class="btn btn-primary btn-responsive-icon" id="btnBukaModalIzin"
-                    title="Ajukan Surat Izin atau Sakit Baru"
-                    style="padding: 8px 16px; font-size: 0.84rem; border-radius: 8px; font-weight: 700;">
-                    <i class="fas fa-plus"></i>
-                    <span class="btn-responsive-text">Ajukan Permohonan</span>
+                <button type="button" class="btn btn-primary" id="btnBukaModalIzin"
+                    style="padding: 9px 16px; font-size: 0.85rem; font-weight: 700;" title="Ajukan Surat Izin atau Sakit Baru">
+                    <i class="fas fa-plus me-1"></i> Ajukan Permohonan
                 </button>
             @endif
-
-            <a href="{{ route('dashboard.peserta-didik.presensi.index') }}" class="btn btn-outline btn-responsive-icon"
-                title="Lihat Riwayat Presensi Lengkap"
-                style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px;">
-                <i class="fas fa-calendar-check text-accent"></i>
-                <span class="btn-responsive-text">Riwayat Presensi</span>
-            </a>
         </div>
     </div>
 
-    <!-- 2. Stat Grid Baku SAE (4 Kartu Ringkasan) -->
-    <div class="dash-stat-grid" id="dashStatGrid" style="margin-bottom: 20px;">
-        <div class="card stat-card" style="margin-bottom: 0; padding: 16px 18px; border-left: 4px solid var(--primary);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Total Pengajuan
-                    </div>
-                    <div style="font-size: 1.6rem; font-weight: 800; color: var(--text-color); margin-top: 4px;">
-                        {{ $statTotal }}
-                    </div>
-                </div>
-                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                    <i class="fas fa-folder-open"></i>
-                </div>
+    <!-- 2. Stat Grid Baku SAE (Konsisten 100% dengan Modul Peserta Didik Aktif) -->
+    <div class="dash-stat-grid" id="dashStatGrid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
+                <i class="fas fa-folder-open"></i>
             </div>
-            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 6px;">
-                Semua surat yang pernah diajukan
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    {{ number_format($statTotal, 0, ',', '.') }}
+                </div>
+                <div class="dash-stat-label">Total Pengajuan</div>
             </div>
         </div>
 
-        <div class="card stat-card" style="margin-bottom: 0; padding: 16px 18px; border-left: 4px solid #f59e0b;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Menunggu Validasi
-                    </div>
-                    <div style="font-size: 1.6rem; font-weight: 800; color: #f59e0b; margin-top: 4px;">
-                        {{ $statMenunggu }}
-                    </div>
-                </div>
-                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(245,158,11,0.12); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                    <i class="fas fa-hourglass-half"></i>
-                </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <i class="fas fa-hourglass-half"></i>
             </div>
-            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 6px;">
-                Menunggu peninjauan Wali Kelas
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    {{ number_format($statMenunggu, 0, ',', '.') }}
+                </div>
+                <div class="dash-stat-label">Menunggu Validasi</div>
             </div>
         </div>
 
-        <div class="card stat-card" style="margin-bottom: 0; padding: 16px 18px; border-left: 4px solid #10b981;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Telah Disetujui
-                    </div>
-                    <div style="font-size: 1.6rem; font-weight: 800; color: #10b981; margin-top: 4px;">
-                        {{ $statDisetujui }}
-                    </div>
-                </div>
-                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                    <i class="fas fa-check-circle"></i>
-                </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <i class="fas fa-circle-check"></i>
             </div>
-            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 6px;">
-                Tercatat resmi di presensi harian
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    {{ number_format($statDisetujui, 0, ',', '.') }}
+                </div>
+                <div class="dash-stat-label">Telah Disetujui</div>
             </div>
         </div>
 
-        <div class="card stat-card" style="margin-bottom: 0; padding: 16px 18px; border-left: 4px solid #ef4444;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Permohonan Ditolak
-                    </div>
-                    <div style="font-size: 1.6rem; font-weight: 800; color: #ef4444; margin-top: 4px;">
-                        {{ $statDitolak }}
-                    </div>
-                </div>
-                <div style="width: 38px; height: 38px; border-radius: 10px; background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                    <i class="fas fa-times-circle"></i>
-                </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <i class="fas fa-circle-xmark"></i>
             </div>
-            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 6px;">
-                Permohonan ditolak oleh sekolah
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem;">
+                    {{ number_format($statDitolak, 0, ',', '.') }}
+                </div>
+                <div class="dash-stat-label">Permohonan Ditolak</div>
             </div>
         </div>
     </div>
 
-    <!-- 3. Toolbar Tabel (Live Search, Filter, & Paging Entries) -->
-    <div class="card" style="padding: 14px 18px; margin-bottom: 16px;">
-        <form id="filterIzinForm" method="GET" action="{{ route('dashboard.peserta-didik.izin.index') }}"
-            style="display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-            
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1; min-width: 260px;">
-                <!-- Live Search Box -->
-                <div class="live-search-wrap" style="flex: 1; min-width: 200px; max-width: 320px; position: relative;">
-                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
-                    <input type="text" name="q" id="inputSearchIzin" value="{{ request('q') }}"
-                        placeholder="Cari alasan atau catatan..." class="form-control"
-                        style="padding-left: 36px !important; font-size: 0.84rem; height: 38px; width: 100%;">
-                    @if (request('q'))
-                        <button type="button" class="btn-clear-search" id="btnClearSearch"
-                            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer;">
-                            <i class="fas fa-times"></i>
-                        </button>
+    <!-- 3. Toolbar & Filter (Konsisten 100% dengan Modul Peserta Didik Aktif) -->
+    <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <form id="filterIzinForm" method="GET" action="{{ route('dashboard.peserta-didik.izin.index') }}">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                
+                <!-- Kiri: Filter Controls -->
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <!-- Dropdown Paging Baris -->
+                    <div class="toolbar-entries">
+                        <label for="filterPerPage" style="margin: 0;">Tampilkan</label>
+                        <select name="per_page" id="filterPerPage" class="per-page-select">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    <!-- Filter Jenis Permohonan -->
+                    <select name="jenis" id="filterJenis" class="toolbar-filter-select">
+                        <option value="">Semua Jenis</option>
+                        <option value="izin" {{ request('jenis') === 'izin' ? 'selected' : '' }}>Izin</option>
+                        <option value="sakit" {{ request('jenis') === 'sakit' ? 'selected' : '' }}>Sakit</option>
+                        <option value="dispen" {{ request('jenis') === 'dispen' ? 'selected' : '' }}>Dispensasi</option>
+                    </select>
+
+                    <!-- Filter Status Validasi -->
+                    <select name="status" id="filterStatus" class="toolbar-filter-select">
+                        <option value="">Semua Status</option>
+                        <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu Validasi</option>
+                        <option value="disetujui" {{ request('status') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                        <option value="ditolak" {{ request('status') === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                    </select>
+
+                    @if (request('q') || request('jenis') || request('status'))
+                        <a href="{{ route('dashboard.peserta-didik.izin.index') }}"
+                            class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
+                            <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
+                        </a>
                     @endif
                 </div>
 
-                <!-- Filter Jenis -->
-                <select name="jenis" id="filterJenis" class="form-control"
-                    style="font-size: 0.84rem; height: 38px; width: auto; min-width: 130px;">
-                    <option value="">Semua Jenis</option>
-                    <option value="izin" {{ request('jenis') === 'izin' ? 'selected' : '' }}>Izin</option>
-                    <option value="sakit" {{ request('jenis') === 'sakit' ? 'selected' : '' }}>Sakit</option>
-                    <option value="dispen" {{ request('jenis') === 'dispen' ? 'selected' : '' }}>Dispensasi</option>
-                </select>
-
-                <!-- Filter Status -->
-                <select name="status" id="filterStatus" class="form-control"
-                    style="font-size: 0.84rem; height: 38px; width: auto; min-width: 140px;">
-                    <option value="">Semua Status</option>
-                    <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                    <option value="disetujui" {{ request('status') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                    <option value="ditolak" {{ request('status') === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <label style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Baris:</label>
-                <select name="per_page" id="filterPerPage" class="form-control"
-                    style="font-size: 0.84rem; height: 38px; width: 75px;">
-                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-                    <option value="15" {{ $perPage == 15 ? 'selected' : '' }}>15</option>
-                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-                </select>
+                <!-- Kanan: Live Search Box Baku SAE -->
+                <div class="live-search-wrap">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" name="q" id="inputSearchIzin" placeholder="Cari alasan atau catatan..." value="{{ request('q') }}" autocomplete="off">
+                    <button type="button" id="btnClearSearch" class="clear-search {{ request('q') ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </form>
     </div>

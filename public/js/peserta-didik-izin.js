@@ -307,6 +307,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (inputSearchIzin) {
         inputSearchIzin.addEventListener('input', function () {
+            if (btnClearSearch) {
+                if (this.value.trim()) {
+                    btnClearSearch.classList.add('visible');
+                } else {
+                    btnClearSearch.classList.remove('visible');
+                }
+            }
             clearTimeout(searchDebounceTimer);
             searchDebounceTimer = setTimeout(applyFilter, 450);
         });
@@ -315,6 +322,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnClearSearch) {
         btnClearSearch.addEventListener('click', function () {
             if (inputSearchIzin) inputSearchIzin.value = '';
+            btnClearSearch.classList.remove('visible');
             applyFilter();
         });
     }

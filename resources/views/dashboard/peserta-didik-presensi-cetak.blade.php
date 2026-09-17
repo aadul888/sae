@@ -53,7 +53,7 @@
 
         /* Kop Surat Sekolah Resmi */
         .kop-container {
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             position: relative;
             z-index: 1;
         }
@@ -62,8 +62,6 @@
             max-height: 125px;
             object-fit: contain;
             display: block;
-            border-bottom: 2px solid #1f2937;
-            padding-bottom: 6px;
         }
         .kop-fallback {
             display: flex;
