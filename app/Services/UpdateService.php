@@ -11,7 +11,7 @@ use ZipArchive;
 
 class UpdateService
 {
-    const CURRENT_VERSION = '1.0.3';
+    const CURRENT_VERSION = '1.0.4';
     const GITHUB_REPO = 'aadul888/sae';
 
     /**
@@ -103,11 +103,17 @@ class UpdateService
      */
     protected function getLocalCommit($setting = null): string
     {
+        $dbHash = $setting->last_commit_hash ?? '';
+
         if (is_dir(base_path('.git'))) {
             $basePath = base_path();
             @shell_exec('GIT_TERMINAL_PROMPT=0 git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
             $cliHash = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse HEAD 2>&1') ?: '');
             if (preg_match('/^[a-f0-9]{40}$/i', $cliHash)) {
+                // Jika database menyimpan commit hash valid yang berbeda dari CLI (karena Git CLI terkendala permission)
+                if (!empty($dbHash) && $cliHash !== $dbHash) {
+                    return $dbHash;
+                }
                 return $cliHash;
             }
 
@@ -116,19 +122,19 @@ class UpdateService
             if (is_file($headPath)) {
                 $headContent = trim((string) @file_get_contents($headPath));
                 if (preg_match('/^[a-f0-9]{40}$/i', $headContent)) {
-                    return $headContent;
+                    return !empty($dbHash) ? $dbHash : $headContent;
                 }
                 if (str_starts_with($headContent, 'ref: ')) {
                     $ref = trim(substr($headContent, 5));
                     $refFile = base_path('.git/' . $ref);
                     if (is_file($refFile)) {
-                        return trim((string) @file_get_contents($refFile));
+                        return !empty($dbHash) ? $dbHash : trim((string) @file_get_contents($refFile));
                     }
                 }
             }
         }
 
-        return $setting->last_commit_hash ?? '';
+        return $dbHash;
     }
 
     /**
@@ -237,52 +243,70 @@ class UpdateService
                 $logs[] = "[GIT FETCH] " . $fetchOut;
             }
 
-            // 1d. Coba pull terlebih dahulu
-            $pullOutput = @shell_exec($envPrefix . ' ' . $gitCmd . ' pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1');
-            $pullText = trim($pullOutput ?: 'No output');
-            $logs[] = "[GIT PULL ($branch)] " . $pullText;
+            // Deteksi kendala permission fatal pada repository git (misal direktori .git/objects dimiliki root)
+            $hasFetchPermissionError = !empty($fetchOut) && (
+                str_contains($fetchOut, 'insufficient permission') ||
+                str_contains($fetchOut, 'Permission denied') ||
+                str_contains($fetchOut, 'failed to write object') ||
+                str_contains($fetchOut, 'unpack-objects failed') ||
+                str_contains($fetchOut, 'fatal: unable to access')
+            );
 
-            $gitPullSuccess = ($pullOutput !== null && !str_contains($pullText, 'fatal:') && !str_contains($pullText, 'error:') && !str_contains($pullText, 'Aborting'));
+            if ($hasFetchPermissionError) {
+                $logs[] = "[GIT PERMISSION NOTICE] Akses tulis direktori .git/objects ditolak sistem (dimiliki root/user lain).";
+                $logs[] = "[GIT PERMISSION TIP] Solusi di terminal server: jalankan 'chown -R www:www " . $basePath . "' agar Git CLI berfungsi kembali.";
+            }
 
-            // 1e. Jika git pull gagal karena untracked working tree files, merge conflict, dll:
-            // Lakukan sinkronisasi pasti dengan hard reset ke origin/$branch (standar deployment server)
-            if (!$gitPullSuccess) {
-                $logs[] = "[GIT SYNC] Terdeteksi kendala merge/untracked files. Melakukan hard reset ke origin/$branch...";
-                $resetOut = trim(@shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
-                $logs[] = "[GIT RESET --HARD] " . $resetOut;
+            $gitPullSuccess = false;
 
-                // Bersihkan untracked files sisa yang tidak terdaftar di git
-                @shell_exec($envPrefix . ' ' . $gitCmd . ' clean -fd 2>&1');
+            // 1d. Coba pull hanya jika fetch tidak mengalami error permission fatal
+            if (!$hasFetchPermissionError) {
+                $pullOutput = @shell_exec($envPrefix . ' ' . $gitCmd . ' pull --no-rebase origin ' . escapeshellarg($branch) . ' 2>&1');
+                $pullText = trim($pullOutput ?: 'No output');
+                $logs[] = "[GIT PULL ($branch)] " . $pullText;
 
-                // Verifikasi apakah HEAD sekarang sudah sesuai dengan origin
-                $checkHead = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
-                $checkOrigin = trim(@shell_exec($gitCmd . ' rev-parse origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
+                $pullHasError = str_contains($pullText, 'fatal:') || str_contains($pullText, 'error:') || str_contains($pullText, 'Aborting') || str_contains($pullText, 'insufficient permission');
+                $gitPullSuccess = ($pullOutput !== null && !$pullHasError);
 
-                if ($checkHead && $checkOrigin && $checkHead === $checkOrigin) {
-                    $gitPullSuccess = true;
-                    $logs[] = "[GIT SUCCESS] Repositori berhasil disinkronkan ke commit " . substr($checkHead, 0, 7);
+                // 1e. Jika git pull gagal karena untracked working tree files, merge conflict, dll:
+                if (!$gitPullSuccess) {
+                    $logs[] = "[GIT SYNC] Terdeteksi kendala merge/untracked files. Melakukan hard reset ke origin/$branch...";
+                    $resetOut = trim(@shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
+                    $logs[] = "[GIT RESET --HARD] " . $resetOut;
+
+                    @shell_exec($envPrefix . ' ' . $gitCmd . ' clean -fd 2>&1');
+
+                    $checkHead = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
+                    $checkOrigin = trim(@shell_exec($gitCmd . ' rev-parse origin/' . escapeshellarg($branch) . ' 2>&1') ?: '');
+
+                    if ($checkHead && $checkOrigin && $checkHead === $checkOrigin && !str_contains($resetOut, 'fatal:') && !str_contains($resetOut, 'error:')) {
+                        $gitPullSuccess = true;
+                        $logs[] = "[GIT SUCCESS] Repositori berhasil disinkronkan ke commit " . substr($checkHead, 0, 7);
+                    }
                 }
             }
 
-            // 1f. Jika git pull dan git reset tetap gagal (misal masalah network/kredensial/permission fatal), baru fallback ZIP
+            // 1f. Jika git pull gagal atau permission error: otomatis fallback deploy ZIP dari GitHub
             if (!$gitPullSuccess) {
-                $logs[] = "[FALLBACK] Git sync gagal, mencoba fallback deploy ZIP...";
+                $logs[] = "[FALLBACK] Git sync terkendala, otomatis beralih ke Fallback ZIP Deployment dari GitHub...";
                 $this->ensurePermissions();
                 $zipResult = $this->deployFromGitHubZip($branch);
                 foreach ($zipResult['logs'] as $zl) {
                     $logs[] = $zl;
                 }
-                if (!$zipResult['success']) {
+                if ($zipResult['success']) {
+                    $newCommit = $zipResult['sha'] ?? null;
+                    $logs[] = "[FALLBACK SUCCESS] Berhasil menyinkronkan file kode ke commit GitHub: " . ($newCommit ? substr($newCommit, 0, 7) : 'terbaru');
+                } else {
                     $success = false;
-                }
-                if (!empty($zipResult['sha'])) {
-                    @shell_exec($envPrefix . ' ' . $gitCmd . ' reset --hard ' . escapeshellarg($zipResult['sha']) . ' 2>&1');
                 }
             }
 
-            $newCommit = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
             if (empty($newCommit) || str_contains($newCommit, 'fatal:')) {
-                $newCommit = $zipResult['sha'] ?? null;
+                $newCommit = trim(@shell_exec($gitCmd . ' rev-parse HEAD 2>&1') ?: '');
+                if (empty($newCommit) || str_contains($newCommit, 'fatal:')) {
+                    $newCommit = $zipResult['sha'] ?? null;
+                }
             }
         } else {
             // Standalone / Non-Git mode: Unduh ZIP dari GitHub & timpa file
