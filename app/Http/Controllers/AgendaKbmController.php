@@ -137,11 +137,20 @@ class AgendaKbmController extends Controller
         }
         $jadwalList = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get()->map(function ($j) {
             $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
+            $jamMulaiWaktu = !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '';
+            $jamSelesaiWaktu = !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '';
+            $jamWaktuRange = ($jamMulaiWaktu && $jamSelesaiWaktu) ? "{$jamMulaiWaktu} - {$jamSelesaiWaktu}" : '';
+            $durasiJp = max(1, ((int) ($j->jam_ke_selesai ?? 1)) - ((int) ($j->jam_ke_mulai ?? 1)) + 1);
+
             return [
                 'id' => $j->id,
                 'hari' => $j->hari,
                 'jam_ke_mulai' => $j->jam_ke_mulai,
                 'jam_ke_selesai' => $j->jam_ke_selesai,
+                'jam_mulai' => $jamMulaiWaktu,
+                'jam_selesai' => $jamSelesaiWaktu,
+                'jam_waktu_range' => $jamWaktuRange,
+                'durasi_jp' => $durasiJp,
                 'rombongan_belajar_id' => $j->rombongan_belajar_id,
                 'rombel_nama' => $rombelNama,
                 'nama_mata_pelajaran' => $j->nama_mata_pelajaran,
@@ -172,6 +181,8 @@ class AgendaKbmController extends Controller
             ));
         }
 
+        $hariIni = $this->getIndoDayName();
+
         return view('dashboard.agenda-kbm', compact(
             'stats',
             'items',
@@ -180,6 +191,7 @@ class AgendaKbmController extends Controller
             'guruList',
             'isGuru',
             'ptkId',
+            'hariIni',
             'canCreate',
             'canRead',
             'canUpdate',
@@ -247,7 +259,25 @@ class AgendaKbmController extends Controller
             return back()->with('error', 'PTK / Guru pengampu KBM tidak valid atau belum terikat.');
         }
 
-        $hari = $validated['hari'] ?: $this->getIndoDayName($validated['tanggal']);
+        $hari = !empty($validated['hari']) ? $validated['hari'] : $this->getIndoDayName($validated['tanggal']);
+
+        // Jika jadwal_kbm_id disertakan, sinkronkan jam_ke_mulai dan jam_ke_selesai langsung dari master jadwal KBM
+        if (!empty($validated['jadwal_kbm_id'])) {
+            $jadwalRef = JadwalKbm::find($validated['jadwal_kbm_id']);
+            if ($jadwalRef) {
+                $validated['jam_ke_mulai'] = (int) $jadwalRef->jam_ke_mulai;
+                $validated['jam_ke_selesai'] = (int) $jadwalRef->jam_ke_selesai;
+                if (!empty($jadwalRef->hari)) {
+                    $hari = $jadwalRef->hari;
+                }
+                if (empty($validated['rombongan_belajar_id'])) {
+                    $validated['rombongan_belajar_id'] = $jadwalRef->rombongan_belajar_id;
+                }
+                if (empty($validated['nama_mata_pelajaran'])) {
+                    $validated['nama_mata_pelajaran'] = $jadwalRef->nama_mata_pelajaran;
+                }
+            }
+        }
 
         // Jika tidak ada presensi_mengajar_id yang dikirim, cari apakah ada presensi mengajar guru yang cocok pada tanggal & rombel tersebut
         $presensiId = $validated['presensi_mengajar_id'] ?? null;

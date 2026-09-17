@@ -188,7 +188,7 @@
                         <i class="fas fa-calendar-days text-primary"></i> Pilih dari Jadwal KBM
                     </label>
                     <select id="selectJadwalKbm" style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
-                        <option value="">-- Pilih Jadwal KBM --</option>
+                        <option value="">-- Pilih dari Jadwal KBM (Otomatis) --</option>
                         @foreach ($jadwalList as $j)
                             <option value="{{ $j['id'] }}"
                                 data-rombel-id="{{ $j['rombongan_belajar_id'] }}"
@@ -198,8 +198,10 @@
                                 data-hari="{{ $j['hari'] }}"
                                 data-jam-mulai="{{ $j['jam_ke_mulai'] }}"
                                 data-jam-selesai="{{ $j['jam_ke_selesai'] }}"
+                                data-jam-waktu="{{ $j['jam_waktu_range'] }}"
+                                data-durasi-jp="{{ $j['durasi_jp'] }}"
                                 data-ptk-id="{{ $j['ptk_id'] }}">
-                                [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }})
+                                [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }})
                             </option>
                         @endforeach
                     </select>
@@ -259,19 +261,38 @@
 
                 <div class="form-grid-2">
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                            <i class="fas fa-play"></i> Jam Mulai
+                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-play text-primary"></i> Jam Mulai (Ke-)
+                            </span>
+                            <span id="badgeAutoJamMulai" style="font-size: 0.68rem; color: #10b981; font-weight: 600; display: none;">
+                                <i class="fas fa-lock me-1"></i> Otomatis
+                            </span>
                         </label>
-                        <input type="number" id="inputJamKeMulai" name="jam_ke_mulai" min="0" max="20" value="1"
-                            style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                        <input type="number" id="inputJamKeMulai" name="jam_ke_mulai" min="0" max="20" value="1" readonly
+                            style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                     </div>
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                            <i class="fas fa-stop"></i> Jam Selesai
+                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-stop text-primary"></i> Jam Selesai (Ke-)
+                            </span>
+                            <span id="labelDurasiJp" style="font-size: 0.68rem; color: var(--text-muted); display: none;">
+                                - JP
+                            </span>
                         </label>
-                        <input type="number" id="inputJamKeSelesai" name="jam_ke_selesai" min="0" max="20" value="2"
-                            style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                        <input type="number" id="inputJamKeSelesai" name="jam_ke_selesai" min="0" max="20" value="2" readonly
+                            style="width: 100%; height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                     </div>
+                </div>
+
+                <!-- Info Banner Waktu Nyata KBM dari Jadwal -->
+                <div id="wrapWaktuKbm" style="display: none; margin-bottom: 12px; margin-top: -4px; padding: 7px 12px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: 0.75rem; color: var(--text-color); justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i class="far fa-clock text-primary"></i>
+                        <span>Waktu KBM: <strong id="textWaktuKbm" style="color: var(--primary);">-</strong></span>
+                    </div>
+                    <span id="badgeHariJadwal" class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.7rem; padding: 2px 7px; font-weight: 600;">-</span>
                 </div>
 
                 <!-- Materi Pokok -->

@@ -83,30 +83,99 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(err => console.error('Error fetching next pertemuan:', err));
     };
 
-    // Handle pemilihan Jadwal KBM di Form Modal
-    if (selectJadwalKbm) {
-        selectJadwalKbm.addEventListener('change', () => {
-            const opt = selectJadwalKbm.selectedOptions[0];
-            if (!opt || !opt.value) {
-                if (inputJadwalKbmId) inputJadwalKbmId.value = '';
-                return;
-            }
+    const badgeAutoJamMulai = document.getElementById('badgeAutoJamMulai');
+    const labelDurasiJp = document.getElementById('labelDurasiJp');
+    const wrapWaktuKbm = document.getElementById('wrapWaktuKbm');
+    const textWaktuKbm = document.getElementById('textWaktuKbm');
+    const badgeHariJadwal = document.getElementById('badgeHariJadwal');
 
+    // Helper: Terapkan data jadwal KBM secara otomatis dan kunci jam mulai/selesai
+    const applyJadwalKbmOtomatis = (opt) => {
+        if (opt && opt.value) {
             if (inputJadwalKbmId) inputJadwalKbmId.value = opt.value;
             if (inputRombel && opt.dataset.rombelId) inputRombel.value = opt.dataset.rombelId;
             if (inputMapel && opt.dataset.mapel) inputMapel.value = opt.dataset.mapel;
             if (inputPembelajaranId) inputPembelajaranId.value = opt.dataset.pembelajaranId || '';
             if (inputMataPelajaranId) inputMataPelajaranId.value = opt.dataset.mapelId || '';
-            if (inputJamKeMulai && opt.dataset.jamMulai) inputJamKeMulai.value = opt.dataset.jamMulai;
-            if (inputJamKeSelesai && opt.dataset.jamSelesai) inputJamKeSelesai.value = opt.dataset.jamSelesai;
+
+            // Jam Ke Mulai & Selesai otomatis terisi dan terkunci (readonly)
+            if (inputJamKeMulai && opt.dataset.jamMulai) {
+                inputJamKeMulai.value = opt.dataset.jamMulai;
+                inputJamKeMulai.readOnly = true;
+                inputJamKeMulai.style.cursor = 'not-allowed';
+            }
+            if (inputJamKeSelesai && opt.dataset.jamSelesai) {
+                inputJamKeSelesai.value = opt.dataset.jamSelesai;
+                inputJamKeSelesai.readOnly = true;
+                inputJamKeSelesai.style.cursor = 'not-allowed';
+            }
+
+            // Indikator visual otomatis
+            if (badgeAutoJamMulai) badgeAutoJamMulai.style.display = 'inline-flex';
+            if (labelDurasiJp) {
+                const durasi = opt.dataset.durasiJp || (Math.max(1, (parseInt(opt.dataset.jamSelesai) || 1) - (parseInt(opt.dataset.jamMulai) || 1) + 1));
+                labelDurasiJp.textContent = `${durasi} JP`;
+                labelDurasiJp.style.display = 'inline';
+            }
+
+            // Banner Waktu KBM Nyata
+            if (wrapWaktuKbm && textWaktuKbm) {
+                const jamWaktu = opt.dataset.jamWaktu;
+                const durasi = opt.dataset.durasiJp || '';
+                textWaktuKbm.textContent = jamWaktu ? `${jamWaktu} (${durasi} JP)` : `Jam Pelajaran Ke-${opt.dataset.jamMulai} s.d. ${opt.dataset.jamSelesai}`;
+                if (badgeHariJadwal) badgeHariJadwal.textContent = opt.dataset.hari || 'Jadwal Terpilih';
+                wrapWaktuKbm.style.display = 'flex';
+            }
 
             fetchNextPertemuan(opt.dataset.rombelId, opt.dataset.pembelajaranId);
+        } else {
+            // Mode Manual / Tanpa Jadwal
+            if (inputJadwalKbmId) inputJadwalKbmId.value = '';
+            if (inputJamKeMulai) {
+                inputJamKeMulai.readOnly = false;
+                inputJamKeMulai.style.cursor = 'auto';
+            }
+            if (inputJamKeSelesai) {
+                inputJamKeSelesai.readOnly = false;
+                inputJamKeSelesai.style.cursor = 'auto';
+            }
+            if (badgeAutoJamMulai) badgeAutoJamMulai.style.display = 'none';
+            if (labelDurasiJp) labelDurasiJp.style.display = 'none';
+            if (wrapWaktuKbm) wrapWaktuKbm.style.display = 'none';
+        }
+    };
+
+    // Handle pemilihan Jadwal KBM di Form Modal
+    if (selectJadwalKbm) {
+        selectJadwalKbm.addEventListener('change', () => {
+            const opt = selectJadwalKbm.selectedOptions[0];
+            applyJadwalKbmOtomatis(opt);
         });
     }
 
+    // Handle perubahan Kelas -> Otomatis cocokkan dengan opsi Jadwal KBM jika ada
     if (inputRombel) {
         inputRombel.addEventListener('change', () => {
-            fetchNextPertemuan(inputRombel.value, inputPembelajaranId?.value || '');
+            const rombelId = inputRombel.value;
+            if (selectJadwalKbm && rombelId) {
+                let foundMatch = false;
+                for (let i = 1; i < selectJadwalKbm.options.length; i++) {
+                    const opt = selectJadwalKbm.options[i];
+                    if (opt.dataset.rombelId === rombelId) {
+                        selectJadwalKbm.value = opt.value;
+                        applyJadwalKbmOtomatis(opt);
+                        foundMatch = true;
+                        break;
+                    }
+                }
+                if (!foundMatch) {
+                    applyJadwalKbmOtomatis(null);
+                    fetchNextPertemuan(rombelId, inputPembelajaranId?.value || '');
+                }
+            } else {
+                applyJadwalKbmOtomatis(null);
+                fetchNextPertemuan(rombelId, inputPembelajaranId?.value || '');
+            }
         });
     }
 
@@ -117,15 +186,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputJadwalKbmId) inputJadwalKbmId.value = '';
         if (inputPembelajaranId) inputPembelajaranId.value = '';
         if (inputMataPelajaranId) inputMataPelajaranId.value = '';
-        if (selectJadwalKbm) selectJadwalKbm.value = '';
         if (wrapJadwalSelector) wrapJadwalSelector.style.display = 'block';
 
+        if (inputTanggal) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            inputTanggal.value = todayStr;
+        }
         if (inputPertemuanKe) inputPertemuanKe.value = 1;
         if (inputStatusKbm) inputStatusKbm.value = 'Terlaksana';
 
         if (modalTitle) {
             modalTitle.innerHTML = '<i class="fas fa-book-open-reader text-primary"></i> Tambah Jurnal & Agenda KBM';
         }
+
+        // Otomatis pilih jadwal KBM hari ini jika tersedia
+        const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const currentDayName = dayNames[new Date().getDay()];
+
+        let autoSelectedOpt = null;
+        if (selectJadwalKbm) {
+            for (let i = 1; i < selectJadwalKbm.options.length; i++) {
+                const opt = selectJadwalKbm.options[i];
+                if (opt.dataset.hari === currentDayName) {
+                    autoSelectedOpt = opt;
+                    break;
+                }
+            }
+
+            if (autoSelectedOpt) {
+                selectJadwalKbm.value = autoSelectedOpt.value;
+                applyJadwalKbmOtomatis(autoSelectedOpt);
+            } else {
+                selectJadwalKbm.value = '';
+                applyJadwalKbmOtomatis(null);
+            }
+        }
+
         if (modalForm) modalForm.style.display = 'flex';
     };
 
@@ -371,8 +467,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (inputTanggal) inputTanggal.value = d.tanggal;
             if (inputPertemuanKe) inputPertemuanKe.value = d.pertemuan_ke;
             if (inputStatusKbm) inputStatusKbm.value = d.status_kbm;
-            if (inputJamKeMulai) inputJamKeMulai.value = d.jam_ke_mulai;
-            if (inputJamKeSelesai) inputJamKeSelesai.value = d.jam_ke_selesai;
+            if (inputJamKeMulai) {
+                inputJamKeMulai.value = d.jam_ke_mulai;
+                inputJamKeMulai.readOnly = true;
+                inputJamKeMulai.style.cursor = 'not-allowed';
+            }
+            if (inputJamKeSelesai) {
+                inputJamKeSelesai.value = d.jam_ke_selesai;
+                inputJamKeSelesai.readOnly = true;
+                inputJamKeSelesai.style.cursor = 'not-allowed';
+            }
+            if (badgeAutoJamMulai) badgeAutoJamMulai.style.display = 'inline-flex';
+            if (wrapWaktuKbm) wrapWaktuKbm.style.display = 'none';
             if (inputMateriPokok) inputMateriPokok.value = d.materi_pokok;
             if (inputUraianKegiatan) inputUraianKegiatan.value = d.uraian_kegiatan;
             if (inputPenugasan) inputPenugasan.value = d.penugasan ?? '';
