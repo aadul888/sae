@@ -35,7 +35,7 @@ Route::get('/offline', function () {
 // PWA Dynamic Web App Manifest (Universal 1-Jenis: Ikon Berwarna Latar Putih)
 $pwaManifestHandler = function () {
     return response()->json([
-        'id' => '/?app=sae-v7',
+        'id' => '/?app=sae-v8',
         'name' => 'SAE - Sistem Aplikasi Edukasi',
         'short_name' => 'SAE',
         'description' => 'Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.',
@@ -49,16 +49,16 @@ $pwaManifestHandler = function () {
         'dir' => 'ltr',
         'categories' => ['education', 'productivity'],
         'icons' => [
-            ['src' => '/img/icons/icon-72x72.png', 'sizes' => '72x72', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-128x128.png', 'sizes' => '128x128', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-144x144.png', 'sizes' => '144x144', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-152x152.png', 'sizes' => '152x152', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-192x192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-192x192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
-            ['src' => '/img/icons/icon-384x384.png', 'sizes' => '384x384', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-512x512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
-            ['src' => '/img/icons/icon-maskable-512x512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ['src' => '/img/icons/sae-icon-72x72.png?v=8', 'sizes' => '72x72', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-icon-96x96.png?v=8', 'sizes' => '96x96', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-icon-128x128.png?v=8', 'sizes' => '128x128', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-icon-144x144.png?v=8', 'sizes' => '144x144', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-icon-152x152.png?v=8', 'sizes' => '152x152', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-icon-192x192.png?v=8', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-icon-192x192.png?v=8', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ['src' => '/img/icons/sae-icon-384x384.png?v=8', 'sizes' => '384x384', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-icon-512x512.png?v=8', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/img/icons/sae-maskable-512x512.png?v=8', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
         ],
         'shortcuts' => [
             [
@@ -66,21 +66,21 @@ $pwaManifestHandler = function () {
                 'short_name' => 'Presensi',
                 'description' => 'Terminal pemindaian RFID & visual scanner live',
                 'url' => '/presensi/scan?source=pwa_shortcut',
-                'icons' => [['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96']],
+                'icons' => [['src' => '/img/icons/sae-icon-96x96.png?v=8', 'sizes' => '96x96']],
             ],
             [
                 'name' => 'Portal Masuk',
                 'short_name' => 'Login',
                 'description' => 'Login portal akun sekolah terintegrasi',
                 'url' => '/login?source=pwa_shortcut',
-                'icons' => [['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96']],
+                'icons' => [['src' => '/img/icons/sae-icon-96x96.png?v=8', 'sizes' => '96x96']],
             ],
             [
                 'name' => 'Pengecekan NISN',
                 'short_name' => 'Cek NISN',
                 'description' => 'Validasi status keaktifan peserta didik',
                 'url' => '/#nisn',
-                'icons' => [['src' => '/img/icons/icon-96x96.png', 'sizes' => '96x96']],
+                'icons' => [['src' => '/img/icons/sae-icon-96x96.png?v=8', 'sizes' => '96x96']],
             ],
         ],
     ], 200, [

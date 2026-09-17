@@ -35,7 +35,7 @@
 
     // Helper untuk memilih icon (Standar 1-Jenis Universal: Latar Putih dengan Logo SAE Berwarna)
     function getPwaIconUrl(size = 96) {
-        return `/img/icons/icon-${size}x${size}.png`;
+        return `/img/icons/sae-icon-${size}x${size}.png?v=8`;
     }
 
     // 1. Sinkronisasi Warna Theme-Color & Ikon PWA Standar Universal
@@ -47,22 +47,22 @@
 
         const manifestLink = document.getElementById('pwaManifestLink');
         if (manifestLink) {
-            manifestLink.setAttribute('href', '/manifest.json?v=7');
+            manifestLink.setAttribute('href', '/manifest.json?v=8');
         }
 
         const icon192 = document.getElementById('pwaIcon192');
         if (icon192) {
-            icon192.setAttribute('href', '/img/icons/icon-192x192.png?v=7');
+            icon192.setAttribute('href', '/img/icons/sae-icon-192x192.png?v=8');
         }
 
         const icon512 = document.getElementById('pwaIcon512');
         if (icon512) {
-            icon512.setAttribute('href', '/img/icons/icon-512x512.png?v=7');
+            icon512.setAttribute('href', '/img/icons/sae-icon-512x512.png?v=8');
         }
 
         const appleIcon = document.getElementById('pwaAppleTouchIcon');
         if (appleIcon) {
-            appleIcon.setAttribute('href', '/img/icons/apple-touch-icon.png?v=7');
+            appleIcon.setAttribute('href', '/img/icons/sae-apple-touch-icon.png?v=8');
         }
 
         const bannerIcon = document.querySelector('.sae-pwa-banner-icon');
@@ -263,6 +263,11 @@
 
         localStorage.setItem('sae_pwa_is_installed', 'true');
         localStorage.setItem('sae_pwa_installed_at', Date.now().toString());
+
+        // Bersihkan notifikasi proses sebelumnya agar tidak menumpuk ganda di layar
+        if (window.SAE && typeof window.SAE.clearToasts === 'function') {
+            window.SAE.clearToasts();
+        }
 
         // Langsung hilangkan penawaran pasang aplikasi di halaman
         const banner = document.getElementById('saePwaInstallBanner');

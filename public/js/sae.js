@@ -217,6 +217,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Global UI Alert, Confirm & Toast Helper
 window.SAE = {
+    clearToasts() {
+        const container = document.getElementById("saeToastContainer");
+        if (container) {
+            container.innerHTML = "";
+        }
+    },
+
     toast(message, type = "info", duration = 3200) {
         let container = document.getElementById("saeToastContainer");
         if (!container) {
@@ -226,14 +233,9 @@ window.SAE = {
             document.body.appendChild(container);
         }
 
-        // Anti-duplikasi toast: abaikan jika pesan yang sama persis sedang aktif ditampilkan
-        const cleanMsg = String(message).trim();
-        const activeSpans = container.querySelectorAll(".sae-toast span");
-        for (const span of activeSpans) {
-            if (span.textContent.trim() === cleanMsg) {
-                return;
-            }
-        }
+        // Hapus toast sebelumnya agar tidak menumpuk ganda di layar
+        const existingToasts = container.querySelectorAll(".sae-toast");
+        existingToasts.forEach((t) => t.remove());
 
         const icons = {
             success: "fa-circle-check text-success",

@@ -395,6 +395,7 @@ class UpdateService
             }
 
             // Pastikan folder-folder target deploy dapat ditulis
+            @shell_exec("chmod -R 777 " . escapeshellarg(public_path('img')) . " 2>/dev/null");
             @shell_exec("chmod -R 775 " . escapeshellarg(app_path()) . " " . escapeshellarg(resource_path()) . " " . escapeshellarg(database_path()) . " " . escapeshellarg(public_path()) . " " . escapeshellarg(base_path('routes')) . " 2>/dev/null");
         }
     }
