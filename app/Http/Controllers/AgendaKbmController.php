@@ -127,10 +127,13 @@ class AgendaKbmController extends Controller
             'tertunda'   => (clone $statsBase)->whereIn('status_kbm', ['Tertunda', 'Digantikan'])->count(),
         ];
 
-        // Daftar Jadwal Guru untuk Form Modal
+        // Daftar Jadwal Guru untuk Form Modal (Kecualikan PKL untuk guru)
         $jadwalQuery = JadwalKbm::where('is_active', true);
-        if ($isGuru && $ptkId) {
-            $jadwalQuery->where('ptk_id', $ptkId);
+        if ($isGuru) {
+            $jadwalQuery->excludePkl();
+            if ($ptkId) {
+                $jadwalQuery->where('ptk_id', $ptkId);
+            }
         }
         $jadwalList = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get()->map(function ($j) {
             $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;

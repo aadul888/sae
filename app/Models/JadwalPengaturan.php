@@ -17,6 +17,7 @@ class JadwalPengaturan extends Model
         'durasi_per_jp',
         'total_slot_jp',
         'slot_harian',
+        'jp_tingkat',
         'hari_aktif',
         'istirahat',
         'upacara',
@@ -27,6 +28,7 @@ class JadwalPengaturan extends Model
         'durasi_per_jp' => 'integer',
         'total_slot_jp' => 'integer',
         'slot_harian' => 'array',
+        'jp_tingkat' => 'array',
         'hari_aktif' => 'array',
         'istirahat' => 'array',
         'upacara' => 'array',
@@ -52,6 +54,11 @@ class JadwalPengaturan extends Model
                     'Kamis'  => ['total_jp' => 10],
                     'Jumat'  => ['total_jp' => 5],
                     'Sabtu'  => ['total_jp' => 5],
+                ],
+                'jp_tingkat' => [
+                    '10' => 50,
+                    '11' => 48,
+                    '12' => 46,
                 ],
                 'hari_aktif' => ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'],
                 'istirahat' => [
@@ -88,7 +95,36 @@ class JadwalPengaturan extends Model
             $setting->save();
         }
 
+        // Inisialisasi jp_tingkat standar SMK jika masih null
+        if (empty($setting->jp_tingkat)) {
+            $setting->jp_tingkat = [
+                '10' => 50,
+                '11' => 48,
+                '12' => 46,
+            ];
+            $setting->save();
+        }
+
         return $setting;
+    }
+
+    /**
+     * Ambil pemetaan target JP per tingkat (SMK: X=50, XI=48, XII=46)
+     */
+    public static function getJpTingkat(): array
+    {
+        $setting = self::getSettings();
+        $defaults = [
+            '10' => 50,
+            '11' => 48,
+            '12' => 46,
+        ];
+        if (!empty($setting->jp_tingkat) && is_array($setting->jp_tingkat)) {
+            foreach ($setting->jp_tingkat as $k => $v) {
+                $defaults[(string) $k] = (int) $v;
+            }
+        }
+        return $defaults;
     }
 
     /**

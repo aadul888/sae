@@ -78,6 +78,19 @@ class JadwalKbmController extends Controller
             $query->where('j.ptk_id', $guruId);
         }
 
+        // Saring mapel PKL jika role guru (presensi & KBM PKL via ePKL terpisah)
+        if ($role === 'guru') {
+            $query->where(function ($w) {
+                $w->whereNull('j.nama_mata_pelajaran')
+                  ->orWhere(function ($sub) {
+                      $sub->where('j.nama_mata_pelajaran', 'NOT LIKE', 'PKL%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '% PKL%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '%PRAKTIK KERJA%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '%PRAKTEK KERJA%');
+                  });
+            });
+        }
+
         if ($q !== '') {
             $query->where(function ($w) use ($q) {
                 $w->where('j.nama_mata_pelajaran', 'LIKE', "%{$q}%")
@@ -136,7 +149,7 @@ class JadwalKbmController extends Controller
             ->get();
 
         // Data Matriks Grid untuk Hari Terpilih
-        $daySchedules = DB::table('jadwal_kbm as j')
+        $daySchedulesQuery = DB::table('jadwal_kbm as j')
             ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
             ->where('j.hari', $selectedHari)
             ->where('j.is_active', true)
@@ -144,8 +157,21 @@ class JadwalKbmController extends Controller
                 'j.*',
                 'g.nama as nama_guru',
                 'g.nip as nip_guru'
-            )
-            ->get();
+            );
+
+        if ($role === 'guru') {
+            $daySchedulesQuery->where(function ($w) {
+                $w->whereNull('j.nama_mata_pelajaran')
+                  ->orWhere(function ($sub) {
+                      $sub->where('j.nama_mata_pelajaran', 'NOT LIKE', 'PKL%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '% PKL%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '%PRAKTIK KERJA%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '%PRAKTEK KERJA%');
+                  });
+            });
+        }
+
+        $daySchedules = $daySchedulesQuery->get();
 
         $gridMatrix = [];
         $gridOccupied = [];
@@ -227,6 +253,7 @@ class JadwalKbmController extends Controller
             'total_slot_jp'          => 'nullable|integer|min:0|max:16',
             'slot_harian'            => 'nullable|array',
             'slot_harian.*.total_jp' => 'nullable|integer|min:0|max:16',
+            'jp_tingkat'             => 'nullable|array',
             'hari_aktif'             => 'nullable|array',
             'istirahat'              => 'nullable|array',
             'upacara'                => 'nullable|array',
@@ -249,6 +276,13 @@ class JadwalKbmController extends Controller
         }
 
         $totalSlotJp = (int) ($validated['total_slot_jp'] ?? ($maxDailySlot > 0 ? $maxDailySlot : 10));
+
+        // Alokasi Target JP per Tingkat SMK (X=50, XI=48, XII=46)
+        $jpTingkat = [
+            '10' => max(20, min(80, (int) ($request->input('jp_tingkat.10', 50)))),
+            '11' => max(20, min(80, (int) ($request->input('jp_tingkat.11', 48)))),
+            '12' => max(20, min(80, (int) ($request->input('jp_tingkat.12', 46)))),
+        ];
 
         $upacaraConfig = [
             'aktif'        => !empty($request->input('upacara.aktif')),
@@ -284,6 +318,7 @@ class JadwalKbmController extends Controller
             'durasi_per_jp' => $validated['durasi_per_jp'],
             'total_slot_jp' => $totalSlotJp,
             'slot_harian'   => $slotHarian,
+            'jp_tingkat'    => $jpTingkat,
             'hari_aktif'    => $request->input('hari_aktif', []),
             'istirahat'     => $istirahatConfig,
             'upacara'       => $upacaraConfig,
@@ -574,6 +609,15 @@ class JadwalKbmController extends Controller
         $schedules = DB::table('jadwal_kbm as j')
             ->leftJoin('rombongan_belajar as r', 'j.rombongan_belajar_id', '=', 'r.rombongan_belajar_id')
             ->where('j.is_active', true)
+            ->where(function ($w) {
+                $w->whereNull('j.nama_mata_pelajaran')
+                  ->orWhere(function ($sub) {
+                      $sub->where('j.nama_mata_pelajaran', 'NOT LIKE', 'PKL%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '% PKL%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '%PRAKTIK KERJA%')
+                          ->where('j.nama_mata_pelajaran', 'NOT LIKE', '%PRAKTEK KERJA%');
+                  });
+            })
             ->select('j.*', 'r.nama as nama_rombel')
             ->orderByRaw("FIELD(j.hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
             ->orderBy('j.jam_ke_mulai', 'asc')

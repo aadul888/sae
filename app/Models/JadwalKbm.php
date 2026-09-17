@@ -189,4 +189,40 @@ class JadwalKbm extends Model
             'conflict_with' => null,
         ];
     }
+
+    /**
+     * Memeriksa apakah suatu mata pelajaran termasuk PKL (Praktek Kerja Lapangan)
+     */
+    public static function isMapelPkl(?string $namaMapel): bool
+    {
+        if (!$namaMapel) {
+            return false;
+        }
+        $name = strtoupper(trim($namaMapel));
+        return str_starts_with($name, 'PKL')
+            || str_contains($name, ' PKL')
+            || str_contains($name, 'PRAKTEK KERJA')
+            || str_contains($name, 'PRAKTIK KERJA');
+    }
+
+    /**
+     * Helper instance isPkl
+     */
+    public function isPkl(): bool
+    {
+        return self::isMapelPkl($this->nama_mata_pelajaran);
+    }
+
+    /**
+     * Scope query untuk mengecualikan mapel PKL (digunakan khusus untuk view / presensi guru)
+     */
+    public function scopeExcludePkl($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('nama_mata_pelajaran', 'NOT LIKE', 'PKL%')
+              ->where('nama_mata_pelajaran', 'NOT LIKE', '% PKL%')
+              ->where('nama_mata_pelajaran', 'NOT LIKE', '%PRAKTIK KERJA%')
+              ->where('nama_mata_pelajaran', 'NOT LIKE', '%PRAKTEK KERJA%');
+        });
+    }
 }

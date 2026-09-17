@@ -1036,6 +1036,56 @@
                     </small>
                 </div>
 
+                <!-- Konfigurasi Alokasi Target JP per Tingkat (Standar Kurikulum SMK) -->
+                @php
+                    $jpTingkatSettings = \App\Models\JadwalPengaturan::getJpTingkat();
+                @endphp
+                <div style="margin-bottom: 16px; padding: 12px; background: rgba(99, 102, 241, 0.04); border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.25);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: 700; font-size: 0.84rem; color: var(--text-color);">
+                            <i class="fas fa-graduation-cap text-primary me-1"></i> Target Alokasi JP per Tingkat (SMK)
+                        </span>
+                        <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.68rem; font-weight: 700;">
+                            Struktur SMK
+                        </span>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 10px; line-height: 1.35;">
+                        Batas maksimal alokasi JP per minggu per rombel. Pada kelas XII mencakup alokasi mapel PKL (Praktek Kerja Lapangan).
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div style="background: var(--bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                            <strong style="font-size: 0.8rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat X</strong>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <input type="number" name="jp_tingkat[10]" value="{{ $jpTingkatSettings['10'] ?? 50 }}" min="20" max="80" class="form-control"
+                                    style="width: 60px; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.84rem; text-align: center; font-weight: 700;" required>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">JP/mgg</span>
+                            </div>
+                            <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 3px;">Standar: 50 JP</span>
+                        </div>
+                        <div style="background: var(--bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                            <strong style="font-size: 0.8rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat XI</strong>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <input type="number" name="jp_tingkat[11]" value="{{ $jpTingkatSettings['11'] ?? 48 }}" min="20" max="80" class="form-control"
+                                    style="width: 60px; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.84rem; text-align: center; font-weight: 700;" required>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">JP/mgg</span>
+                            </div>
+                            <span style="font-size: 0.68rem; color: var(--text-muted); display: block; margin-top: 3px;">Standar: 48 JP</span>
+                        </div>
+                        <div style="background: var(--bg-card); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
+                            <strong style="font-size: 0.8rem; color: var(--text-color); display: block; margin-bottom: 4px;">Tingkat XII</strong>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                <input type="number" name="jp_tingkat[12]" value="{{ $jpTingkatSettings['12'] ?? 46 }}" min="20" max="80" class="form-control"
+                                    style="width: 60px; padding: 4px 6px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.84rem; text-align: center; font-weight: 700;" required>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">JP/mgg</span>
+                            </div>
+                            <span style="font-size: 0.68rem; color: #10b981; font-weight: 600; display: block; margin-top: 3px;">46 JP (Inc. PKL)</span>
+                        </div>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 0.7rem; display: block; margin-top: 8px;">
+                        <i class="fas fa-shield-halved text-success me-1"></i> Jadwal PKL tetap dipetakan di jadwal induk &amp; rombel, namun otomatis disembunyikan dari akun guru karena presensi &amp; KBM PKL dilakukan via aplikasi terpisah (<strong>ePKL</strong>).
+                    </small>
+                </div>
+
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label
                         style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-color);">
@@ -1269,10 +1319,22 @@
             </div>
 
             <div
-                style="padding: 12px 14px; background: rgba(99,102,241,0.08); border-left: 4px solid var(--primary); border-radius: 6px; margin-bottom: 20px; font-size: 0.82rem; color: var(--text-color); line-height: 1.4;">
+                style="padding: 12px 14px; background: rgba(99,102,241,0.08); border-left: 4px solid var(--primary); border-radius: 6px; margin-bottom: 14px; font-size: 0.82rem; color: var(--text-color); line-height: 1.4;">
                 <strong>AI Constraint Solver:</strong> Sistem akan memetakan seluruh mata pelajaran dan guru dari data
                 <strong>Pembelajaran Dapodik</strong> ke hari dan jam pelajaran secara otomatis dengan <strong>zero-conflict
                     (tanpa bentrok guru atau kelas)</strong>.
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; padding: 4px 8px; border-radius: 4px;">
+                    <i class="fas fa-check-circle me-1"></i> Target X: 50 JP
+                </span>
+                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; padding: 4px 8px; border-radius: 4px;">
+                    <i class="fas fa-check-circle me-1"></i> Target XI: 48 JP
+                </span>
+                <span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.72rem; padding: 4px 8px; border-radius: 4px;">
+                    <i class="fas fa-check-circle me-1"></i> Target XII: 46 JP (Inc. PKL)
+                </span>
             </div>
 
             <form id="formAutoGenerate">

@@ -23,6 +23,7 @@ class AutoSchedulerService
         $slots = JadwalPengaturan::getSlots();
         $totalSlots = count($slots);
         $dailySlotCounts = JadwalPengaturan::getDailySlotCounts();
+        $jpTingkat = $options['jp_tingkat'] ?? JadwalPengaturan::getJpTingkat();
 
         $istirahatJamKe = null;
         if (!empty($pengaturan->istirahat) && is_array($pengaturan->istirahat)) {
@@ -65,6 +66,13 @@ class AutoSchedulerService
 
         $selectedRombelIds = $rombels->pluck('rombongan_belajar_id')->toArray();
         $rombelMap = $rombels->keyBy('rombongan_belajar_id');
+
+        // Petakan batas target JP per rombel berdasarkan tingkat pendidikan (SMK: X=50, XI=48, XII=46)
+        $rombelTargetJp = [];
+        foreach ($rombels as $r) {
+            $tStr = (string) ($r->tingkat_pendidikan_id ?? '');
+            $rombelTargetJp[$r->rombongan_belajar_id] = (int) ($jpTingkat[$tStr] ?? 50);
+        }
 
         // Petakan Rombel Pilihan yang terafiliasi dengan masing-masing Rombel Reguler
         $allPilihanRombels = DB::table('rombongan_belajar')
@@ -109,6 +117,7 @@ class AutoSchedulerService
             $clearExisting,
             $selectedRombelIds,
             $rombelMap,
+            $rombelTargetJp,
             $allFetchRombelIds,
             $pilihanToRegMap,
             $hariList,
@@ -270,6 +279,12 @@ class AutoSchedulerService
                 $mId = $sess['mata_pelajaran_id'];
                 $dur = $sess['duration'];
 
+                // Batasi alokasi JP agar rombel tidak melampaui target per tingkat (X=50, XI=48, XII=46)
+                $targetRombelMax = $rombelTargetJp[$rId] ?? 50;
+                if ((array_sum($rombelDayJp[$rId] ?? []) + $dur) > $targetRombelMax) {
+                    continue;
+                }
+
                 $placed = false;
 
                 // Urutkan hari berdasarkan beban JP rombel terendah untuk menjaga keseimbangan
@@ -380,6 +395,12 @@ class AutoSchedulerService
 
                 // Fallback: jika belum dapat slot, coba abaikan batasan duplicate mapel harian
                 if (!$placed) {
+                    $targetRombelMax = $rombelTargetJp[$rId] ?? 50;
+                    if ((array_sum($rombelDayJp[$rId] ?? []) + $dur) > $targetRombelMax) {
+                        $unallocatedSessions[] = $sess;
+                        continue;
+                    }
+
                     foreach ($sortedHari as $h) {
                         $gPref = $gId ? ($guruPreferences[$gId] ?? null) : null;
                         if ($gPref) {
@@ -488,6 +509,13 @@ class AutoSchedulerService
                     $rId = $sess['rombongan_belajar_id'];
                     $gId = $sess['ptk_id'];
                     $mId = $sess['mata_pelajaran_id'];
+
+                    $targetRombelMax = $rombelTargetJp[$rId] ?? 50;
+                    if ((array_sum($rombelDayJp[$rId] ?? []) + 1) > $targetRombelMax) {
+                        $unallocated++;
+                        continue;
+                    }
+
                     $placed = false;
 
                     $sortedHari = $hariList;

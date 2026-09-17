@@ -61,10 +61,11 @@ class PresensiMengajarController extends Controller
         $hariIni = $this->getIndoDayName();
         $tanggalHariIni = Carbon::today()->toDateString();
 
-        // 1. Ambil Jadwal Mengajar Hari Ini untuk Widget Cepat Guru
+        // 1. Ambil Jadwal Mengajar Hari Ini untuk Widget Cepat Guru (Kecualikan PKL karena presensi via ePKL)
         $jadwalHariIniQuery = JadwalKbm::query()
             ->where('is_active', true)
-            ->where('hari', $hariIni);
+            ->where('hari', $hariIni)
+            ->excludePkl();
 
         if ($isGuru && $ptkId) {
             $jadwalHariIniQuery->where('ptk_id', $ptkId);
@@ -155,10 +156,13 @@ class PresensiMengajarController extends Controller
             'total_jp'      => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->sum('total_jp'),
         ];
 
-        // 4. Data Master untuk Dropdown Modal & Filter
+        // 4. Data Master untuk Dropdown Modal & Filter (Kecualikan PKL untuk guru)
         $jadwalQuery = JadwalKbm::where('is_active', true);
-        if ($isGuru && $ptkId) {
-            $jadwalQuery->where('ptk_id', $ptkId);
+        if ($isGuru) {
+            $jadwalQuery->excludePkl();
+            if ($ptkId) {
+                $jadwalQuery->where('ptk_id', $ptkId);
+            }
         }
         $jadwalList = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get()->map(function ($j) {
             $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
