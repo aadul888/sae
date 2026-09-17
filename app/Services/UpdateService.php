@@ -357,8 +357,12 @@ class UpdateService
             $logs[] = "[VERSION ERROR] " . $e->getMessage();
         }
 
-        // 4. Clear Caches & Optimize
+        // 4. Clear Caches, Symlink Storage & Optimize
         try {
+            if (!file_exists(public_path('storage'))) {
+                Artisan::call('storage:link');
+                $logs[] = "[STORAGE] Symlink public/storage dibuat.";
+            }
             Artisan::call('optimize:clear');
             $logs[] = "[OPTIMIZE] " . trim(Artisan::output());
         } catch (\Throwable $e) {

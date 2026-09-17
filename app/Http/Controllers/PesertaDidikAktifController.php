@@ -253,6 +253,7 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
         $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
         $isAdmin = ($role === 'admin');
@@ -332,6 +333,7 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete');
         $isAdmin = ($role === 'admin');
         if (!$canDelete || !$isAdmin) {
@@ -446,6 +448,7 @@ class PesertaDidikAktifController extends Controller
     {
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
         $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
         $isAdmin = ($role === 'admin');

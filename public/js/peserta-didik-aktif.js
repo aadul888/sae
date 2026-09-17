@@ -354,7 +354,12 @@ window.handleSubmitFoto = async function () {
             updateRowFotoUI(pdId, json.data.foto_url, json.data.foto_size);
             window.closeUploadFotoModal();
         } else {
-            throw new Error(json.message || "Gagal mengunggah foto.");
+            let errorMsg = json.message || "Gagal mengunggah foto.";
+            if (json.errors) {
+                const allErr = Object.values(json.errors).flat();
+                if (allErr.length > 0) errorMsg = allErr.join("<br>");
+            }
+            throw new Error(errorMsg);
         }
     } catch (err) {
         if (window.SAE && typeof window.SAE.toast === "function") {
@@ -363,13 +368,13 @@ window.handleSubmitFoto = async function () {
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<i class="fas fa-cloud-arrow-up me-1"></i> Simpan Foto';
+            btnSubmit.innerHTML = '<i class="fas fa-cloud-arrow-up me-1"></i> Simpan Pasfoto';
         }
     }
 };
 
 window.handleDeleteFoto = async function () {
-    const pdId = currentSelectedPdId;
+    const pdId = currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
     if (!pdId) return;
 
     const confirmed = window.SAE && typeof window.SAE.confirm === "function"
