@@ -31,6 +31,64 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/offline', function () {
     return response()->view('offline');
 })->name('pwa.offline');
+
+// PWA Dynamic Web App Manifest
+$pwaManifestHandler = function () {
+    return response()->json([
+        'id' => 'sae-pwa-app',
+        'name' => 'SAE - Sistem Aplikasi Edukasi',
+        'short_name' => 'SAE',
+        'description' => 'Platform sistem informasi edukasi terpadu: absensi cerdas RFID/webcam, manajemen GTK, siswa, dan layanan administrasi sekolah.',
+        'start_url' => url('/?source=pwa'),
+        'scope' => url('/') . '/',
+        'display' => 'standalone',
+        'orientation' => 'any',
+        'background_color' => '#0B0F19',
+        'theme_color' => '#4F6EF7',
+        'lang' => 'id',
+        'dir' => 'ltr',
+        'categories' => ['education', 'productivity'],
+        'icons' => [
+            ['src' => asset('img/icons/icon-72x72.png'), 'sizes' => '72x72', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => asset('img/icons/icon-96x96.png'), 'sizes' => '96x96', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => asset('img/icons/icon-128x128.png'), 'sizes' => '128x128', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => asset('img/icons/icon-144x144.png'), 'sizes' => '144x144', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => asset('img/icons/icon-152x152.png'), 'sizes' => '152x152', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => asset('img/icons/icon-192x192.png'), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any maskable'],
+            ['src' => asset('img/icons/icon-384x384.png'), 'sizes' => '384x384', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => asset('img/icons/icon-512x512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => asset('img/icons/icon-maskable-512x512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+        ],
+        'shortcuts' => [
+            [
+                'name' => 'Terminal Presensi',
+                'short_name' => 'Presensi',
+                'description' => 'Terminal pemindaian RFID & visual scanner live',
+                'url' => route('presensi.scan') . '?source=pwa_shortcut',
+                'icons' => [['src' => asset('img/icons/icon-96x96.png'), 'sizes' => '96x96']],
+            ],
+            [
+                'name' => 'Portal Masuk',
+                'short_name' => 'Login',
+                'description' => 'Login portal akun sekolah terintegrasi',
+                'url' => route('login') . '?source=pwa_shortcut',
+                'icons' => [['src' => asset('img/icons/icon-96x96.png'), 'sizes' => '96x96']],
+            ],
+            [
+                'name' => 'Pengecekan NISN',
+                'short_name' => 'Cek NISN',
+                'description' => 'Validasi status keaktifan peserta didik',
+                'url' => url('/#nisn'),
+                'icons' => [['src' => asset('img/icons/icon-96x96.png'), 'sizes' => '96x96']],
+            ],
+        ],
+    ], 200, [
+        'Content-Type' => 'application/manifest+json; charset=utf-8',
+        'Cache-Control' => 'public, max-age=86400',
+    ]);
+};
+Route::get('/manifest.webmanifest', $pwaManifestHandler)->name('pwa.manifest');
+Route::get('/manifest.json', $pwaManifestHandler);
 Route::post('/api/check-nisn', [HomeController::class, 'checkNisn'])->name('api.check-nisn');
 
 // Kartu Pelajar Digital — Verifikasi Publik & Direct Scan (Privacy-by-Design)

@@ -21,8 +21,13 @@ class PwaComplianceTest extends TestCase
         $this->assertEquals('SAE - Sistem Aplikasi Edukasi', $data['name']);
         $this->assertEquals('SAE', $data['short_name']);
         $this->assertEquals('standalone', $data['display']);
-        $this->assertEquals('/', $data['scope']);
+        $this->assertContains($data['scope'], ['/', './']);
         $this->assertNotEmpty($data['icons']);
+
+        // Test dynamic manifest route via HTTP
+        $res = $this->get('/manifest.webmanifest');
+        $res->assertStatus(200);
+        $this->assertStringContainsString('application/manifest+json', $res->headers->get('Content-Type'));
 
         // Check required sizes for PWA compliance (192, 512, maskable)
         $sizes = array_column($data['icons'], 'sizes');

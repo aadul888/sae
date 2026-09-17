@@ -83,11 +83,18 @@
         if (document.getElementById('saePwaUpdateBanner')) return;
 
         const banner = document.createElement('div');
-        banner.id = 'saePwaUpdateBanner';
+        const isMobileScreen = window.innerWidth <= 768;
+        const bottomOffset = isMobileScreen 
+            ? 'calc(80px + env(safe-area-inset-bottom, 12px))' 
+            : 'max(24px, env(safe-area-inset-bottom, 24px))';
+        const rightOffset = isMobileScreen ? '12px' : '24px';
+        const leftOffset = isMobileScreen ? '12px' : 'auto';
+
         banner.style.cssText = `
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: ${bottomOffset};
+            right: ${rightOffset};
+            left: ${leftOffset};
             z-index: 1000001;
             background: var(--bg-card, #131b2e);
             border: 1px solid var(--border-glow, rgba(79,110,247,0.4));
@@ -95,11 +102,11 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border-radius: 14px;
-            padding: 14px 18px;
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            gap: 14px;
-            max-width: 380px;
+            gap: 12px;
+            max-width: ${isMobileScreen ? 'none' : '380px'};
             animation: pwaSlideUp 0.3s ease;
         `;
 
@@ -129,32 +136,110 @@
         });
     }
 
-    // 4. Tangani Event Instalasi PWA (beforeinstallprompt)
+    // 4. Penawaran Instalasi Aplikasi Halaman (In-Page Install Offer Banner)
+    function showInstallPromptBanner() {
+        if (isStandalone) return;
+        if (document.getElementById('saePwaInstallBanner')) return;
+
+        // Cek apakah baru saja ditolak dalam 24 jam terakhir
+        const dismissedAt = localStorage.getItem('sae_pwa_install_dismissed');
+        if (dismissedAt) {
+            const diffHours = (Date.now() - parseInt(dismissedAt, 10)) / (1000 * 60 * 60);
+            if (diffHours < 24) {
+                return; // Jangan ganggu pengguna jika sudah menolak dalam 24 jam
+            }
+        }
+
+        const banner = document.createElement('div');
+        banner.className = 'sae-pwa-banner';
+        banner.id = 'saePwaInstallBanner';
+
+        banner.innerHTML = `
+            <div class="sae-pwa-banner-header">
+                <img src="/img/icons/icon-96x96.png" class="sae-pwa-banner-icon" alt="SAE App Icon" onerror="this.src='/img/logo-icon.png'">
+                <div class="sae-pwa-banner-info">
+                    <div class="sae-pwa-banner-title">
+                        <span>Pasang Aplikasi SAE</span>
+                        <span class="sae-pwa-banner-badge">Resmi</span>
+                    </div>
+                    <div class="sae-pwa-banner-desc">
+                        Akses lebih cepat, terminal presensi realtime, dan hemat kuota langsung di layar utama.
+                    </div>
+                </div>
+                <button type="button" class="sae-pwa-banner-close" onclick="dismissPwaInstallPrompt()" aria-label="Tutup">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sae-pwa-banner-actions">
+                <button type="button" class="btn-pwa-action-dismiss" onclick="dismissPwaInstallPrompt()">
+                    Nanti Saja
+                </button>
+                <button type="button" class="btn-pwa-action-install" onclick="installSaePwa()">
+                    <i class="fas fa-download"></i> Pasang Sekarang
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(banner);
+    }
+
+    // Fungsi Global untuk Menutup Penawaran Instalasi
+    window.dismissPwaInstallPrompt = function () {
+        const banner = document.getElementById('saePwaInstallBanner');
+        if (banner) {
+            banner.style.opacity = '0';
+            banner.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                banner.remove();
+            }, 300);
+        }
+        localStorage.setItem('sae_pwa_install_dismissed', Date.now().toString());
+    };
+
+    // 5. Tangani Event Instalasi PWA (beforeinstallprompt)
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Mencegah prompt bawaan browser muncul seketika
+        // Mencegah prompt mini-infobar default browser agar penawaran kustom kita yang tampil rapi
         e.preventDefault();
         deferredPrompt = e;
         console.log('[SAE-PWA] beforeinstallprompt event captured');
 
-        // Tampilkan tombol instalasi jika belum dalam mode standalone
         if (!isStandalone) {
             updateInstallUI(true);
+            // Tampilkan penawaran halaman setelah jeda 1.5 detik
+            setTimeout(() => {
+                showInstallPromptBanner();
+            }, 1500);
         }
     });
 
     // Fungsi Global untuk Memanggil Prompt Instalasi Native
     window.installSaePwa = async function () {
+        const banner = document.getElementById('saePwaInstallBanner');
+
         if (!deferredPrompt) {
+            // Panduan alternatif jika browser belum memicu prompt otomatis (misal iOS Safari / Chrome tertentu)
             if (window.Swal) {
                 Swal.fire({
+                    title: 'Pasang Aplikasi SAE',
+                    html: `
+                        <div style="text-align: left; font-size: 0.9rem; line-height: 1.6; color: var(--text-main, #f8fafc);">
+                            <p style="margin-bottom: 12px;">Untuk menambahkan aplikasi SAE ke layar utama perangkat Anda:</p>
+                            <ol style="padding-left: 20px; margin-bottom: 12px;">
+                                <li style="margin-bottom: 6px;">Ketuk menu browser (<strong>titik tiga ⋮</strong> di Chrome atau ikon <strong>Bagikan 📤</strong> di Safari).</li>
+                                <li style="margin-bottom: 6px;">Pilih <strong>"Tambahkan ke Layar Utama"</strong> (Add to Home Screen) atau <strong>"Instal Aplikasi"</strong>.</li>
+                                <li>Konfirmasi dengan menekan <strong>Tambahkan / Instal</strong>.</li>
+                            </ol>
+                            <p style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); margin: 0;">Ikon SAE akan langsung terpasang di beranda handphone Anda.</p>
+                        </div>
+                    `,
                     icon: 'info',
-                    title: 'Instal Aplikasi SAE',
-                    text: 'Untuk menginstal di perangkat Anda, gunakan menu browser (titik tiga atau tombol Share) lalu pilih "Tambahkan ke Layar Utama" (Add to Home Screen).',
+                    confirmButtonText: 'Mengerti',
                     confirmButtonColor: '#4f6ef7'
                 });
             } else {
-                alert('Gunakan menu browser lalu pilih "Tambahkan ke Layar Utama" / "Add to Home Screen" untuk menginstal SAE.');
+                alert('Untuk memasang di perangkat Anda, buka menu browser (titik tiga atau tombol Share) lalu pilih "Tambahkan ke Layar Utama" (Add to Home Screen).');
             }
+            if (banner) banner.remove();
             return;
         }
 
@@ -167,6 +252,7 @@
         }
         deferredPrompt = null;
         updateInstallUI(false);
+        if (banner) banner.remove();
     };
 
     // Event saat aplikasi telah berhasil diinstal
@@ -174,6 +260,9 @@
         console.log('[SAE-PWA] Application was successfully installed!');
         deferredPrompt = null;
         updateInstallUI(false);
+
+        const banner = document.getElementById('saePwaInstallBanner');
+        if (banner) banner.remove();
 
         if (window.Swal) {
             Swal.fire({
@@ -201,6 +290,13 @@
     // Inisialisasi awal UI instalasi
     document.addEventListener('DOMContentLoaded', () => {
         updateInstallUI(false);
+
+        // Munculkan penawaran halaman secara elegan setelah 3 detik jika belum standalone
+        if (!isStandalone) {
+            setTimeout(() => {
+                showInstallPromptBanner();
+            }, 3000);
+        }
     });
 
 })();

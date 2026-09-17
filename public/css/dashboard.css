@@ -1095,14 +1095,18 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 68px;
+    min-height: 64px;
+    height: calc(64px + env(safe-area-inset-bottom, 12px));
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 10px);
     background: var(--navbar-mobile-bg);
     border-top: 1px solid var(--border-glass);
     z-index: 1050;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     align-items: center;
     justify-content: space-around;
-    padding: 0 10px;
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
 }
 
 .mobile-nav-item {
@@ -1115,6 +1119,7 @@
     color: var(--text-muted);
     transition: all 0.2s ease;
     padding: 6px 0;
+    margin-bottom: 4px;
     position: relative;
 }
 
@@ -1250,8 +1255,10 @@
         width: 100%;
         box-sizing: border-box;
         z-index: 990;
-        padding: 0 16px;
-        height: 64px;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        height: calc(64px + env(safe-area-inset-top, 0px));
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
     }
@@ -1263,7 +1270,10 @@
         text-overflow: ellipsis;
     }
     .dash-body {
-        padding: 78px 12px 96px; /* 64px header + 14px top gap, extra bottom padding for mobile bottom nav */
+        padding-top: calc(78px + env(safe-area-inset-top, 0px));
+        padding-left: max(12px, env(safe-area-inset-left, 0px));
+        padding-right: max(12px, env(safe-area-inset-right, 0px));
+        padding-bottom: calc(105px + env(safe-area-inset-bottom, 16px));
     }
     .dash-banner {
         padding: 16px 14px;

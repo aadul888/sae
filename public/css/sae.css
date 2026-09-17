@@ -1242,6 +1242,14 @@ select:-webkit-autofill {
 }
 
 @media (max-width: 768px) {
+    .site-header-wrap {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+    .navbar {
+        padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+        padding-left: max(5%, env(safe-area-inset-left, 0px));
+        padding-right: max(5%, env(safe-area-inset-right, 0px));
+    }
     .nav-toggle {
         display: block;
     }
@@ -1576,5 +1584,167 @@ select:-webkit-autofill {
 }
 .live-search-wrap .clear-search.visible {
     display: inline-flex;
+}
+
+/* ==========================================================================
+   PWA Install Prompt Offer Banner (Penawaran Instalasi Aplikasi Halaman)
+   ========================================================================== */
+.sae-pwa-banner {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    left: auto;
+    width: 390px;
+    max-width: calc(100vw - 32px);
+    background: var(--bg-card);
+    border: 1px solid var(--border-glow);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+    z-index: 999999 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: pwaBannerSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+@keyframes pwaBannerSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.sae-pwa-banner-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sae-pwa-banner-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    flex-shrink: 0;
+}
+
+.sae-pwa-banner-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sae-pwa-banner-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sae-pwa-banner-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.sae-pwa-banner-desc {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+    margin-top: 2px;
+}
+
+.sae-pwa-banner-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: color 0.15s ease, background 0.15s ease;
+    align-self: flex-start;
+}
+
+.sae-pwa-banner-close:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.sae-pwa-banner-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 4px;
+}
+
+.sae-pwa-banner-actions .btn-pwa-action-install {
+    background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(79, 110, 247, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sae-pwa-banner-actions .btn-pwa-action-install:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(79, 110, 247, 0.45);
+}
+
+.sae-pwa-banner-actions .btn-pwa-action-dismiss {
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-glass);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sae-pwa-banner-actions .btn-pwa-action-dismiss:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+/* Responsif Mobile untuk PWA Banner */
+@media (max-width: 768px) {
+    .sae-pwa-banner {
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-width: none;
+        bottom: calc(76px + env(safe-area-inset-bottom, 10px));
+        border-radius: 16px;
+        padding: 14px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+    }
 }
 
