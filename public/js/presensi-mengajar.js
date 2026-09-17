@@ -13,6 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalTitle = document.getElementById('modalPresensiTitle');
     const presensiId = document.getElementById('presensiId');
     const wrapGuruPengganti = document.getElementById('wrapGuruPengganti');
+    const wrapWaktuKbm = document.getElementById('wrapWaktuKbm');
+    const textWaktuKbm = document.getElementById('textWaktuKbm');
+    const badgeHariJadwal = document.getElementById('badgeHariJadwal');
+    const labelDurasiJp = document.getElementById('labelDurasiJp');
 
     // Form inputs
     const selectJadwalKbm = document.getElementById('selectJadwalKbm');
@@ -26,8 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputJamKeSelesai = document.getElementById('inputJamKeSelesai');
     const inputJamMasuk = document.getElementById('inputJamMasuk');
     const inputJamKeluar = document.getElementById('inputJamKeluar');
-    const inputSiswaHadir = document.getElementById('inputJumlahSiswaHadir');
-    const inputSiswaTidakHadir = document.getElementById('inputJumlahSiswaTidakHadir');
     const inputGuruPengganti = document.getElementById('inputNamaGuruPengganti');
     const inputKeterangan = document.getElementById('inputKeterangan');
     const btnSavePresensi = document.getElementById('btnSavePresensi');
@@ -61,11 +63,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Toggle wrap guru pengganti berdasarkan status radio
+    // Banner helper waktu KBM
+    const applyWaktuKbm = (waktuRange, hari, durasiJp) => {
+        if (wrapWaktuKbm && textWaktuKbm) {
+            if (waktuRange) {
+                textWaktuKbm.textContent = `${waktuRange} (${durasiJp || 1} JP)`;
+                if (badgeHariJadwal) badgeHariJadwal.textContent = hari || 'Jadwal';
+                wrapWaktuKbm.style.display = 'flex';
+            } else {
+                wrapWaktuKbm.style.display = 'none';
+            }
+        }
+        if (labelDurasiJp && durasiJp) {
+            labelDurasiJp.textContent = `${durasiJp} JP`;
+            labelDurasiJp.style.display = 'inline';
+        }
+    };
+
+    const resetWaktuKbm = () => {
+        if (wrapWaktuKbm) wrapWaktuKbm.style.display = 'none';
+        if (labelDurasiJp) {
+            labelDurasiJp.textContent = '- JP';
+            labelDurasiJp.style.display = 'none';
+        }
+    };
+
+    // Toggle wrap guru pengganti dan update active class pada segmented pill item
     const checkStatusRadio = () => {
-        const checked = document.querySelector('input[name="status"]:checked')?.value;
+        const checkedRadio = document.querySelector('input[name="status"]:checked');
+        const checkedVal = checkedRadio?.value || 'H';
+
+        document.querySelectorAll('.status-pill-item').forEach(item => {
+            const input = item.querySelector('input[type="radio"]');
+            if (input && input.checked) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
         if (wrapGuruPengganti) {
-            wrapGuruPengganti.style.display = (checked === 'D') ? 'block' : 'none';
+            wrapGuruPengganti.style.display = (checkedVal === 'D') ? 'block' : 'none';
         }
     };
 
@@ -75,10 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle auto-fill dari select jadwal KBM
     if (selectJadwalKbm) {
-        selectJadwalKbm.addEventListener('change', (e) => {
+        selectJadwalKbm.addEventListener('change', () => {
             const opt = selectJadwalKbm.selectedOptions[0];
             if (!opt || !opt.value) {
                 if (inputJadwalKbmId) inputJadwalKbmId.value = '';
+                resetWaktuKbm();
                 return;
             }
 
@@ -89,6 +128,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (inputMataPelajaranId) inputMataPelajaranId.value = opt.dataset.mapelId || '';
             if (inputJamKeMulai && opt.dataset.jamMulai) inputJamKeMulai.value = opt.dataset.jamMulai;
             if (inputJamKeSelesai && opt.dataset.jamSelesai) inputJamKeSelesai.value = opt.dataset.jamSelesai;
+
+            // Jam masuk & selesai otomatis dari jadwal
+            if (inputJamMasuk && opt.dataset.jamMasuk) {
+                inputJamMasuk.value = opt.dataset.jamMasuk;
+            }
+            if (inputJamKeluar && opt.dataset.jamKeluar) {
+                inputJamKeluar.value = opt.dataset.jamKeluar;
+            }
+
+            applyWaktuKbm(opt.dataset.jamWaktu, opt.dataset.hari, opt.dataset.durasiJp);
         });
     }
 
@@ -100,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputPembelajaranId) inputPembelajaranId.value = '';
         if (inputMataPelajaranId) inputMataPelajaranId.value = '';
         if (selectJadwalKbm) selectJadwalKbm.value = '';
+        resetWaktuKbm();
 
         // Reset radio ke Hadir (H)
         const radioH = document.querySelector('input[name="status"][value="H"]');
@@ -123,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnOpenCreate.addEventListener('click', openCreateModal);
     }
 
-    // Quick Check-in Hari Ini
+    // Quick Check-in Hari Ini (Klik tombol Presensi pada Kartu Jadwal)
     document.querySelectorAll('.btn-quick-checkin').forEach(btn => {
         btn.addEventListener('click', () => {
             openCreateModal();
@@ -136,6 +186,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (inputMataPelajaranId) inputMataPelajaranId.value = d.mapelId || '';
             if (inputJamKeMulai && d.jamMulai) inputJamKeMulai.value = d.jamMulai;
             if (inputJamKeSelesai && d.jamSelesai) inputJamKeSelesai.value = d.jamSelesai;
+
+            // Jam masuk & selesai otomatis dari jadwal KBM
+            if (inputJamMasuk && d.jamMasuk) {
+                inputJamMasuk.value = d.jamMasuk;
+            }
+            if (inputJamKeluar && d.jamKeluar) {
+                inputJamKeluar.value = d.jamKeluar;
+            }
+
+            applyWaktuKbm(d.jamWaktu, d.hari, d.durasiJp);
         });
     });
 
@@ -372,6 +432,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const d = res.data;
             if (presensiId) presensiId.value = d.id;
+            if (inputJadwalKbmId) inputJadwalKbmId.value = d.jadwal_kbm_id || '';
+            if (selectJadwalKbm) selectJadwalKbm.value = d.jadwal_kbm_id || '';
             if (inputRombel) inputRombel.value = d.rombongan_belajar_id;
             if (inputMapel) inputMapel.value = d.nama_mata_pelajaran;
             if (inputTanggal) inputTanggal.value = d.tanggal;
@@ -379,10 +441,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (inputJamKeSelesai) inputJamKeSelesai.value = d.jam_ke_selesai;
             if (inputJamMasuk) inputJamMasuk.value = d.jam_masuk ? d.jam_masuk.substring(0, 5) : '';
             if (inputJamKeluar) inputJamKeluar.value = d.jam_keluar ? d.jam_keluar.substring(0, 5) : '';
-            if (inputSiswaHadir) inputSiswaHadir.value = d.jumlah_siswa_hadir ?? '';
-            if (inputSiswaTidakHadir) inputSiswaTidakHadir.value = d.jumlah_siswa_tidak_hadir ?? '';
             if (inputGuruPengganti) inputGuruPengganti.value = d.nama_guru_pengganti ?? '';
             if (inputKeterangan) inputKeterangan.value = d.keterangan ?? '';
+
+            if (d.jam_masuk && d.jam_keluar) {
+                applyWaktuKbm(`${d.jam_masuk.substring(0, 5)} - ${d.jam_keluar.substring(0, 5)}`, d.hari, d.total_jp);
+            } else {
+                resetWaktuKbm();
+            }
 
             // Set radio status
             const statusRadio = document.querySelector(`input[name="status"][value="${d.status}"]`);

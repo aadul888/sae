@@ -3961,34 +3961,88 @@ input:disabled + .slider-toggle-crud {
     margin-bottom: 14px;
 }
 
-/* Status Radio Pills */
+/* Status Radio Pills Modern (Segmented & Touch-Friendly) */
 .status-pill-group {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    width: 100%;
+    background: var(--bg-hover);
+    padding: 5px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    box-sizing: border-box;
+}
+@media (max-width: 480px) {
+    .status-pill-group {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+    }
 }
 .status-pill-item {
-    flex: 1;
-    min-width: 80px;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-hover);
+    position: relative;
+    padding: 8px 4px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: transparent;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    font-size: 0.8rem;
+    gap: 5px;
+    font-size: 0.78rem;
     font-weight: 600;
-    transition: all 0.15s ease;
+    transition: all 0.18s ease;
+    user-select: none;
+    text-align: center;
+    color: var(--text-muted);
 }
 .status-pill-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
     margin: 0;
 }
 .status-pill-item:hover {
-    border-color: var(--primary);
-    background: rgba(99, 102, 241, 0.05);
+    background: var(--bg-card);
+    color: var(--text-color);
+}
+.status-pill-item.active,
+.status-pill-item:has(input[type="radio"]:checked) {
+    background: var(--bg-card);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.status-pill-item[data-status="H"]:has(input:checked),
+.status-pill-item[data-status="H"].active {
+    border-color: rgba(16, 185, 129, 0.45);
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+.status-pill-item[data-status="I"]:has(input:checked),
+.status-pill-item[data-status="I"].active {
+    border-color: rgba(99, 102, 241, 0.45);
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--primary);
+}
+.status-pill-item[data-status="S"]:has(input:checked),
+.status-pill-item[data-status="S"].active {
+    border-color: rgba(245, 158, 11, 0.45);
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+.status-pill-item[data-status="T"]:has(input:checked),
+.status-pill-item[data-status="T"].active {
+    border-color: rgba(100, 116, 139, 0.45);
+    background: rgba(100, 116, 139, 0.12);
+    color: #64748b;
+}
+.status-pill-item[data-status="D"]:has(input:checked),
+.status-pill-item[data-status="D"].active {
+    border-color: rgba(239, 68, 68, 0.45);
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
 }
 
 /* Widget Jadwal Hari Ini KBM */

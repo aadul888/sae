@@ -25,13 +25,6 @@
                 <i class="fas fa-calendar-day text-primary"></i>
                 <span>{{ $hariIni }}, {{ \Carbon\Carbon::parse($tanggalHariIni)->translatedFormat('d M Y') }}</span>
             </div>
-
-            @if ($canCreate)
-                <button type="button" class="btn btn-primary btn-responsive-icon" style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981, #059669);" id="btnOpenCreateModal" title="Catat Presensi Mengajar">
-                    <i class="fas fa-calendar-plus"></i>
-                    <span class="btn-responsive-text">Catat Presensi</span>
-                </button>
-            @endif
         </div>
     </div>
 
@@ -172,6 +165,11 @@
                                         data-mapel-id="{{ $j->mata_pelajaran_id }}"
                                         data-jam-mulai="{{ $j->jam_ke_mulai }}"
                                         data-jam-selesai="{{ $j->jam_ke_selesai }}"
+                                        data-jam-masuk="{{ !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '' }}"
+                                        data-jam-keluar="{{ !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '' }}"
+                                        data-jam-waktu="{{ $j->jam_waktu_range }}"
+                                        data-durasi-jp="{{ $j->durasi_jp }}"
+                                        data-hari="{{ $j->hari }}"
                                         data-ptk-id="{{ $j->ptk_id }}"
                                         title="Presensi Sekarang"
                                         style="font-size: 0.76rem; padding: 5px 12px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
@@ -187,7 +185,7 @@
         @else
             <div style="text-align: center; padding: 18px 12px; background: var(--bg-hover); border-radius: 8px; color: var(--text-muted); font-size: 0.82rem;">
                 <i class="fas fa-coffee" style="font-size: 1.5rem; margin-bottom: 6px; display: block; opacity: 0.5;"></i>
-                Tidak ada jadwal KBM hari {{ $hariIni }}. Gunakan tombol tambah untuk KBM jam tambahan.
+                Tidak ada jadwal KBM aktif untuk Anda pada hari {{ $hariIni }}.
             </div>
         @endif
     </div>
@@ -300,8 +298,12 @@
                                 data-hari="{{ $j['hari'] }}"
                                 data-jam-mulai="{{ $j['jam_ke_mulai'] }}"
                                 data-jam-selesai="{{ $j['jam_ke_selesai'] }}"
+                                data-jam-masuk="{{ !empty($j['jam_mulai']) ? substr($j['jam_mulai'], 0, 5) : '' }}"
+                                data-jam-keluar="{{ !empty($j['jam_selesai']) ? substr($j['jam_selesai'], 0, 5) : '' }}"
+                                data-jam-waktu="{{ $j['jam_waktu_range'] ?? '' }}"
+                                data-durasi-jp="{{ $j['durasi_jp'] }}"
                                 data-ptk-id="{{ $j['ptk_id'] }}">
-                                [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }})
+                                [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }})
                             </option>
                         @endforeach
                     </select>
@@ -339,46 +341,70 @@
                             style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                            <i class="fas fa-play text-primary"></i> Jam Mulai <span style="color: #ef4444;">*</span>
+                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-play text-primary"></i> Jam Mulai
+                            </span>
+                            <span id="badgeAutoJamMulai" style="font-size: 0.68rem; color: #10b981; font-weight: 600;">
+                                <i class="fas fa-lock me-1"></i> Otomatis
+                            </span>
                         </label>
-                        <input type="number" id="inputJamKeMulai" name="jam_ke_mulai" min="0" max="20" value="1" required
-                            style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                        <input type="number" id="inputJamKeMulai" name="jam_ke_mulai" min="0" max="20" value="1" readonly required
+                            style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                            <i class="fas fa-stop text-primary"></i> Jam Selesai <span style="color: #ef4444;">*</span>
+                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <i class="fas fa-stop text-primary"></i> Jam Selesai
+                            </span>
+                            <span id="labelDurasiJp" style="font-size: 0.68rem; color: var(--text-muted);">
+                                - JP
+                            </span>
                         </label>
-                        <input type="number" id="inputJamKeSelesai" name="jam_ke_selesai" min="0" max="20" value="2" required
-                            style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                        <input type="number" id="inputJamKeSelesai" name="jam_ke_selesai" min="0" max="20" value="2" readonly required
+                            style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                     </div>
                 </div>
 
-                <!-- Pilihan Status Kehadiran (Pill Buttons Touch-Friendly) -->
-                <div style="margin-bottom: 12px;">
+                <!-- Info Banner Waktu KBM Nyata dari Jadwal -->
+                <div id="wrapWaktuKbm" style="display: none; margin-bottom: 12px; margin-top: -4px; padding: 7px 12px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: 0.75rem; color: var(--text-color); justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i class="far fa-clock text-primary"></i>
+                        <span>Waktu Sesuai Jadwal: <strong id="textWaktuKbm" style="color: var(--primary);">-</strong></span>
+                    </div>
+                    <span id="badgeHariJadwal" class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.7rem; padding: 2px 7px; font-weight: 600;">-</span>
+                </div>
+
+                <!-- Pilihan Status Kehadiran (Segmented Pill Buttons Touch-Friendly) -->
+                <div style="margin-bottom: 14px;">
                     <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                        <i class="fas fa-signal text-primary"></i> Status Kehadiran <span style="color: #ef4444;">*</span>
+                        <i class="fas fa-signal text-primary"></i> Status Kehadiran Guru <span style="color: #ef4444;">*</span>
                     </label>
                     <div class="status-pill-group">
-                        <label class="status-pill-item">
+                        <label class="status-pill-item active" data-status="H">
                             <input type="radio" name="status" value="H" checked>
-                            <span style="color: #10b981;"><i class="fas fa-check-circle me-1"></i>Hadir</span>
+                            <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                            <span>Hadir</span>
                         </label>
-                        <label class="status-pill-item">
+                        <label class="status-pill-item" data-status="I">
                             <input type="radio" name="status" value="I">
-                            <span style="color: var(--primary);"><i class="fas fa-file-signature me-1"></i>Izin</span>
+                            <i class="fas fa-file-signature" style="color: var(--primary);"></i>
+                            <span>Izin</span>
                         </label>
-                        <label class="status-pill-item">
+                        <label class="status-pill-item" data-status="S">
                             <input type="radio" name="status" value="S">
-                            <span style="color: #f59e0b;"><i class="fas fa-notes-medical me-1"></i>Sakit</span>
+                            <i class="fas fa-notes-medical" style="color: #f59e0b;"></i>
+                            <span>Sakit</span>
                         </label>
-                        <label class="status-pill-item">
+                        <label class="status-pill-item" data-status="T">
                             <input type="radio" name="status" value="T">
-                            <span style="color: var(--text-muted);"><i class="fas fa-briefcase me-1"></i>Tugas</span>
+                            <i class="fas fa-briefcase" style="color: #64748b;"></i>
+                            <span>Tugas</span>
                         </label>
-                        <label class="status-pill-item">
+                        <label class="status-pill-item" data-status="D">
                             <input type="radio" name="status" value="D">
-                            <span style="color: #ef4444;"><i class="fas fa-user-clock me-1"></i>Inval</span>
+                            <i class="fas fa-user-clock" style="color: #ef4444;"></i>
+                            <span>Inval</span>
                         </label>
                     </div>
                 </div>
@@ -386,40 +412,37 @@
                 <!-- Input Guru Pengganti (Muncul jika status Inval) -->
                 <div id="wrapGuruPengganti" style="display: none; margin-bottom: 12px; padding: 10px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px;">
                     <label style="font-size: 0.78rem; font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                        <i class="fas fa-user-clock"></i> Nama Guru Pengganti (Inval)
+                        <i class="fas fa-user-clock"></i> Nama Guru Pengganti (Inval) <span style="color: #ef4444;">*</span>
                     </label>
-                    <input type="text" id="inputNamaGuruPengganti" name="nama_guru_pengganti" placeholder="Nama Guru Pengganti..."
+                    <input type="text" id="inputNamaGuruPengganti" name="nama_guru_pengganti" placeholder="Ketik nama guru pengganti..."
                         style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                 </div>
 
-                <div class="form-grid-4">
+                <!-- Jam Masuk & Jam Selesai Sesuai Jadwal (Grid 2 Kolom) -->
+                <div class="form-grid-2" style="margin-bottom: 12px;">
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                            <i class="far fa-clock"></i> Masuk
+                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <i class="far fa-clock text-primary"></i> Jam Masuk
+                            </span>
+                            <span id="badgeAutoJamMasuk" style="font-size: 0.68rem; color: #10b981; font-weight: 600;">
+                                <i class="fas fa-check-double me-1"></i> Sesuai Jadwal
+                            </span>
                         </label>
                         <input type="time" id="inputJamMasuk" name="jam_masuk" value="{{ date('H:i') }}"
-                            style="width: 100%; height: 36px; padding: 0 6px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem; box-sizing: border-box;">
+                            style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 600; box-sizing: border-box;">
                     </div>
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                            <i class="far fa-clock"></i> Selesai
+                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                            <span style="display: flex; align-items: center; gap: 4px;">
+                                <i class="far fa-clock text-primary"></i> Jam Selesai
+                            </span>
+                            <span id="badgeAutoJamKeluar" style="font-size: 0.68rem; color: #10b981; font-weight: 600;">
+                                <i class="fas fa-check-double me-1"></i> Sesuai Jadwal
+                            </span>
                         </label>
                         <input type="time" id="inputJamKeluar" name="jam_keluar"
-                            style="width: 100%; height: 36px; padding: 0 6px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                            <i class="fas fa-user-check text-success"></i> Siswa Hadir
-                        </label>
-                        <input type="number" id="inputJumlahSiswaHadir" name="jumlah_siswa_hadir" min="0" placeholder="0"
-                            style="width: 100%; height: 36px; padding: 0 6px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem; box-sizing: border-box;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-bottom: 4px;">
-                            <i class="fas fa-user-xmark text-danger"></i> Siswa Absen
-                        </label>
-                        <input type="number" id="inputJumlahSiswaTidakHadir" name="jumlah_siswa_tidak_hadir" min="0" placeholder="0"
-                            style="width: 100%; height: 36px; padding: 0 6px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem; box-sizing: border-box;">
+                            style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 600; box-sizing: border-box;">
                     </div>
                 </div>
 
@@ -427,7 +450,7 @@
                     <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                         <i class="fas fa-pen-fancy text-primary"></i> Catatan Sesi KBM
                     </label>
-                    <textarea id="inputKeterangan" name="keterangan" rows="2" placeholder="Catatan opsional KBM, topik selingan, kendala teknis..."
+                    <textarea id="inputKeterangan" name="keterangan" rows="2" placeholder="Catatan opsional KBM, topik bahasan, kendala teknis..."
                         style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box; resize: vertical;"></textarea>
                 </div>
 

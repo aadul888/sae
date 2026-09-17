@@ -173,6 +173,7 @@ class PresensiMengajarController extends Controller
                 'jam_ke_selesai' => $j->jam_ke_selesai,
                 'jam_mulai' => $j->jam_mulai,
                 'jam_selesai' => $j->jam_selesai,
+                'jam_waktu_range' => $j->jam_waktu_range,
                 'durasi_jp' => $j->durasi_jp,
                 'rombongan_belajar_id' => $j->rombongan_belajar_id,
                 'rombel_nama' => $rombelNama,
@@ -269,6 +270,36 @@ class PresensiMengajarController extends Controller
             return back()->with('error', 'PTK / Guru pengampu KBM tidak valid atau belum terikat.');
         }
 
+        // Sinkronkan jam & jadwal KBM jika jadwal_kbm_id disertakan
+        if (!empty($validated['jadwal_kbm_id'])) {
+            $jadwal = JadwalKbm::find($validated['jadwal_kbm_id']);
+            if ($jadwal) {
+                $validated['jam_ke_mulai'] = $jadwal->jam_ke_mulai;
+                $validated['jam_ke_selesai'] = $jadwal->jam_ke_selesai;
+                if (empty($validated['jam_masuk']) && $jadwal->jam_mulai) {
+                    $validated['jam_masuk'] = $jadwal->jam_mulai;
+                }
+                if (empty($validated['jam_keluar']) && $jadwal->jam_selesai) {
+                    $validated['jam_keluar'] = $jadwal->jam_selesai;
+                }
+            }
+        }
+
+        // Otomatisasi jumlah peserta didik dari data rombel KBM
+        $totalSiswaRombel = DB::table('anggota_rombel')
+            ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
+            ->count();
+
+        if (!isset($validated['jumlah_siswa_hadir']) || $validated['jumlah_siswa_hadir'] === null) {
+            if ($validated['status'] === 'H') {
+                $validated['jumlah_siswa_hadir'] = $totalSiswaRombel;
+                $validated['jumlah_siswa_tidak_hadir'] = 0;
+            } else {
+                $validated['jumlah_siswa_hadir'] = 0;
+                $validated['jumlah_siswa_tidak_hadir'] = $totalSiswaRombel;
+            }
+        }
+
         $hari = $validated['hari'] ?: $this->getIndoDayName($validated['tanggal']);
         $totalJp = max(1, (int) $validated['jam_ke_selesai'] - (int) $validated['jam_ke_mulai'] + 1);
 
@@ -302,8 +333,8 @@ class PresensiMengajarController extends Controller
             'status'                => $validated['status'],
             'jam_masuk'             => !empty($validated['jam_masuk']) ? $validated['jam_masuk'] : Carbon::now()->format('H:i:s'),
             'jam_keluar'            => $validated['jam_keluar'] ?? null,
-            'jumlah_siswa_hadir'    => $validated['jumlah_siswa_hadir'] ?? null,
-            'jumlah_siswa_tidak_hadir' => $validated['jumlah_siswa_tidak_hadir'] ?? null,
+            'jumlah_siswa_hadir'    => $validated['jumlah_siswa_hadir'],
+            'jumlah_siswa_tidak_hadir' => $validated['jumlah_siswa_tidak_hadir'],
             'guru_pengganti_ptk_id' => $validated['guru_pengganti_ptk_id'] ?? null,
             'nama_guru_pengganti'   => $validated['nama_guru_pengganti'] ?? null,
             'keterangan'            => $validated['keterangan'] ?? null,
@@ -398,6 +429,19 @@ class PresensiMengajarController extends Controller
             'nama_guru_pengganti'      => 'nullable|string|max:150',
             'keterangan'               => 'nullable|string|max:500',
         ]);
+
+        if (!isset($validated['jumlah_siswa_hadir']) || $validated['jumlah_siswa_hadir'] === null) {
+            $totalSiswaRombel = DB::table('anggota_rombel')
+                ->where('rombongan_belajar_id', $presensi->rombongan_belajar_id)
+                ->count();
+            if ($validated['status'] === 'H') {
+                $validated['jumlah_siswa_hadir'] = $presensi->jumlah_siswa_hadir ?? $totalSiswaRombel;
+                $validated['jumlah_siswa_tidak_hadir'] = $presensi->jumlah_siswa_tidak_hadir ?? 0;
+            } else {
+                $validated['jumlah_siswa_hadir'] = 0;
+                $validated['jumlah_siswa_tidak_hadir'] = $totalSiswaRombel;
+            }
+        }
 
         $presensi->update($validated);
 
