@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (btnSavePresensi) {
                     btnSavePresensi.disabled = false;
-                    btnSavePresensi.innerHTML = '<i class="fas fa-check me-1"></i> Simpan Presensi';
+                    btnSavePresensi.innerHTML = '<i class="fas fa-check me-1"></i> Simpan';
                 }
 
                 if (data.status === 'success') {
@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error submit presensi:', err);
                 if (btnSavePresensi) {
                     btnSavePresensi.disabled = false;
-                    btnSavePresensi.innerHTML = '<i class="fas fa-check me-1"></i> Simpan Presensi';
+                    btnSavePresensi.innerHTML = '<i class="fas fa-check me-1"></i> Simpan';
                 }
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({

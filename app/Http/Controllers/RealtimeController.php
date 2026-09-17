@@ -33,31 +33,21 @@ class RealtimeController extends Controller
                 ob_end_flush();
             }
 
-            $currentLastId = $lastId;
-            $startTime = time();
-            $maxExecution = 25; // Reconnect otomatis setiap 25 detik agar aman dari batas timeout webserver
+            // Kirim retry directive agar browser tahu interval reconnect jika memakai EventSource
+            echo "retry: 4000\n";
 
-            while ((time() - $startTime) < $maxExecution) {
-                if (connection_aborted()) {
-                    break;
+            $newEvents = RealtimeService::getEventsSince($lastId);
+            if (!empty($newEvents)) {
+                foreach ($newEvents as $event) {
+                    echo "id: {$event['id']}\n";
+                    echo "event: {$event['event']}\n";
+                    echo "data: " . json_encode($event) . "\n\n";
                 }
-
-                $newEvents = RealtimeService::getEventsSince($currentLastId);
-                if (!empty($newEvents)) {
-                    foreach ($newEvents as $event) {
-                        $currentLastId = $event['id'];
-                        echo "id: {$event['id']}\n";
-                        echo "event: {$event['event']}\n";
-                        echo "data: " . json_encode($event) . "\n\n";
-                    }
-                    flush();
-                } else {
-                    echo ": keepalive\n\n";
-                    flush();
-                }
-
-                usleep(1000000); // Poll cache setiap 1 detik
+            } else {
+                echo ": keepalive\n\n";
             }
+            flush();
+            // Langsung akhiri agar PHP-FPM worker segera kembali ke pool dan tidak menahan thread
         });
 
         $response->headers->set('Content-Type', 'text/event-stream');

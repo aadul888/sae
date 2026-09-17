@@ -11,17 +11,12 @@ return new class extends Migration
         if (!Schema::hasTable('jadwal_guru_preferensi')) {
             Schema::create('jadwal_guru_preferensi', function (Blueprint $table) {
                 $table->id();
-                $table->char('ptk_id', 36)->index();
+                $table->string('ptk_id', 50)->index();
                 $table->json('hari_off')->nullable()->comment('Daftar hari tidak bisa mengajar (misal: ["Senin", "Jumat"])');
                 $table->json('jam_unavailable')->nullable()->comment('Detail jam tidak bersedia mengajar');
                 $table->unsignedSmallInteger('max_jp_per_hari')->nullable()->comment('Batas maksimal JP per hari');
                 $table->string('keterangan', 255)->nullable();
                 $table->timestamps();
-
-                $table->foreign('ptk_id')
-                    ->references('ptk_id')
-                    ->on('gtk')
-                    ->onDelete('cascade');
             });
         }
     }

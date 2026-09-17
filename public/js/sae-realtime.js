@@ -340,6 +340,7 @@
     }
 
     async function pollOnce() {
+        if (document.hidden) return; // Jangan lakukan polling jika tab sedang di-minimize/background
         try {
             const url = lastEventId
                 ? `${pollUrl}?last_id=${encodeURIComponent(lastEventId)}`
@@ -364,18 +365,23 @@
     function startPolling() {
         if (pollTimer) return;
         pollOnce();
-        pollTimer = setInterval(pollOnce, 8000); // Polling setiap 8 detik jika SSE tidak aktif
+        pollTimer = setInterval(pollOnce, 5000); // Polling ringan setiap 5 detik
     }
 
-    // Jalankan realtime saat DOM siap
+    // Auto pause/resume saat tab aktif/tidak aktif agar server hemat memori & CPU
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            pollOnce();
+        }
+    });
+
+    // Jalankan realtime saat DOM siap (Gunakan polling ringan yang aman bagi semua webserver)
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", () => {
-            startSSE();
-            setInterval(() => updateRekapCards({ refreshTable: false }), 10000);
+            startPolling();
         });
     } else {
-        startSSE();
-        setInterval(() => updateRekapCards({ refreshTable: false }), 10000);
+        startPolling();
     }
 
     // Expose API publik untuk script lain

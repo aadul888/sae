@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 if (btnSaveAgenda) {
                     btnSaveAgenda.disabled = false;
-                    btnSaveAgenda.innerHTML = '<i class="fas fa-check me-1"></i> Simpan Agenda KBM';
+                    btnSaveAgenda.innerHTML = '<i class="fas fa-check me-1"></i> Simpan';
                 }
 
                 if (data.status === 'success') {
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error submit agenda:', err);
                 if (btnSaveAgenda) {
                     btnSaveAgenda.disabled = false;
-                    btnSaveAgenda.innerHTML = '<i class="fas fa-check me-1"></i> Simpan Agenda KBM';
+                    btnSaveAgenda.innerHTML = '<i class="fas fa-check me-1"></i> Simpan';
                 }
                 if (typeof Swal !== 'undefined') {
                     Swal.fire({
