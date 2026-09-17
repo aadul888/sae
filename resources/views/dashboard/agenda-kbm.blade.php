@@ -52,7 +52,16 @@
     @endif
 
     <!-- 3. Stat Grid Baku SAE (Minimalis & Compact) -->
-    <div class="dash-stat-grid" style="margin-bottom: 20px;">
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <i class="fas fa-calendar-days"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="color: #10b981;">{{ number_format($stats['hari_efektif'] ?? 0) }} <span style="font-size: 0.72rem; font-weight: 500;">Hari</span></div>
+                <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
+            </div>
+        </div>
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
                 <i class="fas fa-book-bookmark"></i>
@@ -90,6 +99,42 @@
             </div>
         </div>
     </div>
+
+    @php
+        $isHariLiburAgenda = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false);
+    @endphp
+    @if ($isHariLiburAgenda || !empty($agendaHariIni))
+        <!-- Banner Peringatan / Info Kalender Pendidikan Hari Ini -->
+        <div class="card" style="padding: 12px 18px; margin-bottom: 20px; border-radius: 12px; border: 1px solid {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: {{ $isHariLiburAgenda ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isHariLiburAgenda ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                    <i class="fas {{ $isHariLiburAgenda ? 'fa-umbrella-beach' : 'fa-calendar-star' }}"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
+                        @if ($isHariLiburAgenda)
+                            <span style="color: #ef4444;">Informasi Kalender: Hari Ini Libur Sekolah</span>
+                            <span class="badge" style="background: #ef4444; color: #fff; font-size: 0.7rem; padding: 2px 7px; margin-left: 6px;">KBM Off</span>
+                        @else
+                            <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
+                        @endif
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                        @if (!empty($agendaHariIni))
+                            <strong>{{ $agendaHariIni->nama_agenda }}</strong> @if($agendaHariIni->keterangan) &mdash; {{ $agendaHariIni->keterangan }} @endif
+                        @else
+                            {{ $statusHariIni['keterangan'] ?? 'Kegiatan KBM reguler disesuaikan dengan kalender pendidikan.' }}
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;">
+                    <i class="fas fa-calendar-alt me-1"></i> Detail Kalender
+                </a>
+            </div>
+        </div>
+    @endif
 
     <!-- 4. Main Card Datatable Riwayat Jurnal & Agenda -->
     <div class="card" style="padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px;">
@@ -206,6 +251,9 @@
                         @endforeach
                     </select>
                 </div>
+
+                <!-- Alert Info Kalender Pendidikan pada Tanggal Terpilih -->
+                <div id="infoKalenderTanggalAgenda" style="display: none; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem;"></div>
 
                 <div class="form-grid-2">
                     <div>

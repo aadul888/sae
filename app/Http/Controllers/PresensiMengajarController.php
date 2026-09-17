@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgendaKbm;
 use App\Models\JadwalKbm;
+use App\Models\KalenderPendidikan;
 use App\Models\PresensiMengajar;
 use App\Models\RolePermission;
 use Carbon\Carbon;
@@ -140,20 +141,32 @@ class PresensiMengajarController extends Controller
         $perPage = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
         $items = $query->paginate($perPage)->withQueryString();
 
-        // 3. Ringkasan Statistik
+        // 3. Ringkasan Statistik & Hari Efektif Belajar Kalender Pendidikan
         $statsBaseQuery = PresensiMengajar::query();
         if ($isGuru && $ptkId) {
             $statsBaseQuery->where('ptk_id', $ptkId);
         }
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
+        $currentMonthStart = Carbon::now()->startOfMonth()->toDateString();
+        $currentMonthEnd = Carbon::now()->endOfMonth()->toDateString();
+
+        $hebBulanIni = KalenderPendidikan::hitungHariEfektif($currentMonthStart, $currentMonthEnd, 'gtk');
+        $hebBulanBerjalan = KalenderPendidikan::hitungHariEfektifBerjalan($currentMonthStart, $currentMonthEnd, now()->toDateString(), 'gtk');
+
+        $statusHariIni = KalenderPendidikan::getStatusHari($tanggalHariIni, 'gtk');
+        $agendaHariIni = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $tanggalHariIni)
+            ->whereDate('tanggal_selesai', '>=', $tanggalHariIni)
+            ->first();
 
         $stats = [
-            'total_sesi'    => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->count(),
-            'total_hadir'   => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->count(),
-            'total_izin'    => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->whereIn('status', ['I', 'S'])->count(),
-            'total_inval'   => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->whereIn('status', ['T', 'D'])->count(),
-            'total_jp'      => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->sum('total_jp'),
+            'total_sesi'           => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->count(),
+            'total_hadir'          => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->count(),
+            'total_izin'           => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->whereIn('status', ['I', 'S'])->count(),
+            'total_inval'          => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->whereIn('status', ['T', 'D'])->count(),
+            'total_jp'             => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->sum('total_jp'),
+            'hari_efektif'         => $hebBulanIni,
+            'hari_efektif_berjalan'=> $hebBulanBerjalan,
         ];
 
         // 4. Data Master untuk Dropdown Modal & Filter (Kecualikan PKL untuk guru)
@@ -218,6 +231,8 @@ class PresensiMengajarController extends Controller
             'ptkId',
             'hariIni',
             'tanggalHariIni',
+            'statusHariIni',
+            'agendaHariIni',
             'canCreate',
             'canRead',
             'canUpdate',
@@ -225,6 +240,28 @@ class PresensiMengajarController extends Controller
             'sort',
             'sortDir'
         ));
+    }
+
+    /**
+     * Cek Status Kalender Pendidikan Berdasarkan Tanggal (AJAX Helper)
+     */
+    public function cekKalenderTanggal(Request $request): JsonResponse
+    {
+        $tanggal = $request->input('tanggal', now()->toDateString());
+        $status = KalenderPendidikan::getStatusHari($tanggal, 'gtk');
+        $agenda = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal)
+            ->first();
+
+        return response()->json([
+            'status'        => 'success',
+            'tanggal'       => $tanggal,
+            'is_libur'      => (bool) ($status['is_libur'] ?? false),
+            'nama_agenda'   => $agenda->nama_agenda ?? null,
+            'tipe'          => $agenda->tipe ?? null,
+            'keterangan'    => $agenda->keterangan ?? ($status['keterangan'] ?? null),
+            'mode_presensi' => $status['mode_presensi'] ?? 'normal',
+        ]);
     }
 
     /**
@@ -318,6 +355,16 @@ class PresensiMengajarController extends Controller
             return back()->with('error', $msg);
         }
 
+        // Deteksi agenda kalender pendidikan untuk auto-keterangan jika kosong
+        $agendaTanggal = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $validated['tanggal'])
+            ->whereDate('tanggal_selesai', '>=', $validated['tanggal'])
+            ->first();
+
+        $keteranganAkhir = $validated['keterangan'] ?? null;
+        if (empty($keteranganAkhir) && $agendaTanggal) {
+            $keteranganAkhir = "[Agenda: {$agendaTanggal->nama_agenda}]" . ($agendaTanggal->keterangan ? " - {$agendaTanggal->keterangan}" : '');
+        }
+
         $presensi = PresensiMengajar::create([
             'jadwal_kbm_id'         => $validated['jadwal_kbm_id'] ?? null,
             'ptk_id'                => $finalPtkId,
@@ -337,7 +384,7 @@ class PresensiMengajarController extends Controller
             'jumlah_siswa_tidak_hadir' => $validated['jumlah_siswa_tidak_hadir'],
             'guru_pengganti_ptk_id' => $validated['guru_pengganti_ptk_id'] ?? null,
             'nama_guru_pengganti'   => $validated['nama_guru_pengganti'] ?? null,
-            'keterangan'            => $validated['keterangan'] ?? null,
+            'keterangan'            => $keteranganAkhir,
             'created_by'            => is_array($user) ? ($user['username'] ?? 'guru') : ($user->username ?? 'guru'),
         ]);
 

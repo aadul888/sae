@@ -223,7 +223,61 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (modalForm) modalForm.style.display = 'flex';
+
+        if (inputTanggal && inputTanggal.value) {
+            checkKalenderDateAgenda(inputTanggal.value);
+        }
     };
+
+    const infoKalenderAgendaBox = document.getElementById('infoKalenderTanggalAgenda');
+    const checkKalenderDateAgenda = async (dateVal) => {
+        if (!infoKalenderAgendaBox || !dateVal) return;
+        try {
+            const res = await fetch(`/dashboard/agenda-kbm/cek-kalender?tanggal=${encodeURIComponent(dateVal)}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.is_libur) {
+                infoKalenderAgendaBox.style.display = 'block';
+                infoKalenderAgendaBox.style.background = 'rgba(239, 68, 68, 0.12)';
+                infoKalenderAgendaBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                infoKalenderAgendaBox.style.color = '#ef4444';
+                infoKalenderAgendaBox.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> <strong>Perhatian:</strong> Tanggal <b>${data.tanggal}</b> adalah <strong>${data.nama_agenda || 'Hari Libur'}</strong> di Kalender Pendidikan (${data.keterangan || 'KBM Reguler Diliburkan'}).`;
+            } else if (data.nama_agenda) {
+                infoKalenderAgendaBox.style.display = 'block';
+                infoKalenderAgendaBox.style.background = 'rgba(99, 102, 241, 0.12)';
+                infoKalenderAgendaBox.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+                infoKalenderAgendaBox.style.color = 'var(--primary)';
+                infoKalenderAgendaBox.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <div><i class="fas fa-flag me-1"></i> <strong>Agenda Kalender:</strong> ${data.nama_agenda}${data.keterangan ? ' &mdash; ' + data.keterangan : ''}</div>
+                    <button type="button" id="btnPakaiAgendaKalender" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.72rem; border-color: var(--primary); color: var(--primary);">Gunakan Materi</button>
+                </div>`;
+                const btnPakai = document.getElementById('btnPakaiAgendaKalender');
+                if (btnPakai) {
+                    btnPakai.addEventListener('click', () => {
+                        if (inputMateriPokok && !inputMateriPokok.value) {
+                            inputMateriPokok.value = data.nama_agenda;
+                        }
+                        if (inputUraianKegiatan && !inputUraianKegiatan.value) {
+                            inputUraianKegiatan.value = `Kegiatan agenda sekolah: ${data.nama_agenda}. ${data.keterangan || ''}`;
+                        }
+                        showToast('Agenda kalender diterapkan ke jurnal KBM.', 'info');
+                    });
+                }
+            } else {
+                infoKalenderAgendaBox.style.display = 'none';
+            }
+        } catch (e) {
+            infoKalenderAgendaBox.style.display = 'none';
+        }
+    };
+
+    if (inputTanggal) {
+        inputTanggal.addEventListener('change', (e) => {
+            checkKalenderDateAgenda(e.target.value);
+        });
+    }
 
     if (btnOpenCreate) {
         btnOpenCreate.addEventListener('click', openCreateModal);

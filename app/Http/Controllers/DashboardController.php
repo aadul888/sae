@@ -127,34 +127,75 @@ class DashboardController extends Controller
         $rombelIds = $pembelajaran->pluck('rombongan_belajar_id')->filter()->unique()->toArray();
         $totalPdDiampu = (!empty($rombelIds) && Schema::hasTable('peserta_didik')) ? DB::table('peserta_didik')->whereIn('rombongan_belajar_id', $rombelIds)->count() : 0;
 
+        // Integrasi Kalender Pendidikan Hari Ini & Hari Efektif Belajar
+        $tanggalHariIni = now()->toDateString();
+        $statusHariIni = \App\Models\KalenderPendidikan::getStatusHari($tanggalHariIni, 'gtk');
+        $agendaHariIni = \App\Models\KalenderPendidikan::whereDate('tanggal_mulai', '<=', $tanggalHariIni)
+            ->whereDate('tanggal_selesai', '>=', $tanggalHariIni)
+            ->first();
+
+        $hebBulanIni = \App\Models\KalenderPendidikan::hitungHariEfektif(now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString(), 'gtk');
+        $hebBulanBerjalan = \App\Models\KalenderPendidikan::hitungHariEfektifBerjalan(now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString(), $tanggalHariIni, 'gtk');
+
         $stats = [
-            'total_jam_ajar'      => $totalJamAjar ?: 24,
-            'kelas_diampu'        => $kelasDiampu ?: 5,
-            'total_peserta_didik' => $totalPdDiampu ?: 175,
-            'presensi_masuk'      => '06:45 WIB',
-            'status_presensi'     => 'Hadir Tepat Waktu'
+            'total_jam_ajar'        => $totalJamAjar ?: 24,
+            'kelas_diampu'          => $kelasDiampu ?: 5,
+            'total_peserta_didik'   => $totalPdDiampu ?: 175,
+            'presensi_masuk'        => '06:45 WIB',
+            'status_presensi'       => 'Hadir Tepat Waktu',
+            'hari_efektif_bulan_ini'=> $hebBulanIni,
+            'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];
 
+        // Ambil Jadwal KBM Riil Hari Ini dari Master Jadwal
+        $dayMap = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
+        $hariIni = $dayMap[now()->format('l')] ?? 'Senin';
+
         $jadwal_hari_ini = [];
-        if ($pembelajaran->isNotEmpty()) {
-            foreach ($pembelajaran as $idx => $pem) {
-                $jadwal_hari_ini[] = [
-                    'jam' => sprintf('%02d:30 - %02d:00', 7 + ($idx * 2), 9 + ($idx * 2)),
-                    'kelas' => $pem->nama_rombel ?: 'Rombel',
-                    'mapel' => $pem->nama_mata_pelajaran ?: 'Mata Pelajaran',
-                    'ruang' => $pem->ruang ?: 'Ruang Kelas',
-                    'status' => $idx === 0 ? 'Berlangsung' : 'Mendatang'
-                ];
+        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false);
+
+        if (Schema::hasTable('jadwal_kbm')) {
+            $jadwalRiil = \App\Models\JadwalKbm::where('is_active', true)
+                ->where('hari', $hariIni)
+                ->when($gtk, fn($q) => $q->where('ptk_id', $gtk->ptk_id))
+                ->excludePkl()
+                ->orderBy('jam_ke_mulai')
+                ->get();
+
+            if ($jadwalRiil->isNotEmpty()) {
+                foreach ($jadwalRiil as $j) {
+                    $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
+                    $jamRange = (!empty($j->jam_mulai) && !empty($j->jam_selesai))
+                        ? substr($j->jam_mulai, 0, 5) . ' - ' . substr($j->jam_selesai, 0, 5)
+                        : "Jam Ke {$j->jam_ke_mulai}-{$j->jam_ke_selesai}";
+
+                    $jadwal_hari_ini[] = [
+                        'jam'    => $jamRange,
+                        'kelas'  => $rombelNama,
+                        'mapel'  => $j->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                        'ruang'  => $j->ruangan ?: 'Ruang Kelas',
+                        'status' => $isLiburHariIni ? 'Libur KBM' : 'Terjadwal'
+                    ];
+                }
             }
-        } else {
-            $jadwal_hari_ini = [
-                ['jam' => '07:30 - 09:00', 'kelas' => 'XII RPL 1', 'mapel' => 'Pemrograman Web & Mobile', 'ruang' => 'Lab Komputer 2', 'status' => 'Berlangsung'],
-                ['jam' => '09:15 - 10:45', 'kelas' => 'XII RPL 2', 'mapel' => 'Basis Data Lanjut', 'ruang' => 'Lab Komputer 1', 'status' => 'Mendatang'],
-                ['jam' => '11:00 - 12:30', 'kelas' => 'XI RPL 1', 'mapel' => 'Pemrograman Berorientasi Objek', 'ruang' => 'Lab Komputer 3', 'status' => 'Mendatang'],
-            ];
         }
 
-        return view('dashboard.guru', compact('stats', 'jadwal_hari_ini', 'gtk'));
+        // Fallback jika belum ada jadwal KBM tersimpan
+        if (empty($jadwal_hari_ini)) {
+            if ($pembelajaran->isNotEmpty()) {
+                foreach ($pembelajaran as $idx => $pem) {
+                    $jadwal_hari_ini[] = [
+                        'jam'    => sprintf('%02d:30 - %02d:00', 7 + ($idx * 2), 9 + ($idx * 2)),
+                        'kelas'  => $pem->nama_rombel ?: 'Rombel',
+                        'mapel'  => $pem->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                        'ruang'  => $pem->ruang ?: 'Ruang Kelas',
+                        'status' => $isLiburHariIni ? 'Libur KBM' : ($idx === 0 ? 'Berlangsung' : 'Mendatang')
+                    ];
+                }
+            }
+        }
+
+        return view('dashboard.guru', compact('stats', 'jadwal_hari_ini', 'gtk', 'statusHariIni', 'agendaHariIni', 'hariIni'));
     }
 
     public function tendik()

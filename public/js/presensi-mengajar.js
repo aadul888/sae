@@ -167,7 +167,46 @@ document.addEventListener('DOMContentLoaded', () => {
             modalTitle.innerHTML = '<i class="fas fa-calendar-check text-primary"></i> Catat Presensi Mengajar';
         }
         if (modalForm) modalForm.style.display = 'flex';
+
+        if (inputTanggal && inputTanggal.value) {
+            checkKalenderDate(inputTanggal.value);
+        }
     };
+
+    const infoKalenderBox = document.getElementById('infoKalenderTanggalPresensi');
+    const checkKalenderDate = async (dateVal) => {
+        if (!infoKalenderBox || !dateVal) return;
+        try {
+            const res = await fetch(`/dashboard/presensi-mengajar/cek-kalender?tanggal=${encodeURIComponent(dateVal)}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.is_libur) {
+                infoKalenderBox.style.display = 'block';
+                infoKalenderBox.style.background = 'rgba(239, 68, 68, 0.12)';
+                infoKalenderBox.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+                infoKalenderBox.style.color = '#ef4444';
+                infoKalenderBox.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> <strong>Perhatian:</strong> Tanggal <b>${data.tanggal}</b> adalah <strong>${data.nama_agenda || 'Hari Libur'}</strong> di Kalender Pendidikan (${data.keterangan || 'KBM Reguler Diliburkan'}).`;
+            } else if (data.nama_agenda) {
+                infoKalenderBox.style.display = 'block';
+                infoKalenderBox.style.background = 'rgba(99, 102, 241, 0.12)';
+                infoKalenderBox.style.border = '1px solid rgba(99, 102, 241, 0.3)';
+                infoKalenderBox.style.color = 'var(--primary)';
+                infoKalenderBox.innerHTML = `<i class="fas fa-flag me-1"></i> <strong>Agenda Kalender:</strong> ${data.nama_agenda}${data.keterangan ? ' &mdash; ' + data.keterangan : ''}`;
+            } else {
+                infoKalenderBox.style.display = 'none';
+            }
+        } catch (e) {
+            infoKalenderBox.style.display = 'none';
+        }
+    };
+
+    if (inputTanggal) {
+        inputTanggal.addEventListener('change', (e) => {
+            checkKalenderDate(e.target.value);
+        });
+    }
 
     if (btnOpenCreate) {
         btnOpenCreate.addEventListener('click', openCreateModal);

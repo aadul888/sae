@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JadwalKbm;
 use App\Models\JadwalPengaturan;
+use App\Models\KalenderPendidikan;
 use App\Models\RolePermission;
 use App\Services\AutoSchedulerService;
 use App\Services\RealtimeService;
@@ -194,12 +195,28 @@ class JadwalKbmController extends Controller
             ->pluck('total', 'hari')
             ->toArray();
 
+        // Integrasi Kalender Pendidikan & Hari Efektif Belajar
+        $currentYear = (int) date('Y');
+        $tahunAjaranAktif = (date('n') >= 7) ? "{$currentYear}/" . ($currentYear + 1) : ($currentYear - 1) . "/{$currentYear}";
+        $semesterAktif = (date('n') >= 7) ? '1' : '2';
+        $periodeSem = KalenderPendidikan::resolvePeriodeDates($tahunAjaranAktif, $semesterAktif);
+        $hariEfektifSemester = KalenderPendidikan::hitungHariEfektif($periodeSem['start'], $periodeSem['end'], 'pd');
+        $hariEfektifBerjalan = KalenderPendidikan::hitungHariEfektifBerjalan($periodeSem['start'], $periodeSem['end'], now()->toDateString(), 'pd');
+
+        $tanggalHariIni = now()->toDateString();
+        $statusHariIni = KalenderPendidikan::getStatusHari($tanggalHariIni, 'all');
+        $agendaHariIni = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $tanggalHariIni)
+            ->whereDate('tanggal_selesai', '>=', $tanggalHariIni)
+            ->first();
+
         // Statistik Ringkasan
         $summary = [
-            'total_jadwal' => DB::table('jadwal_kbm')->count(),
-            'total_rombel' => DB::table('jadwal_kbm')->distinct('rombongan_belajar_id')->count('rombongan_belajar_id'),
-            'total_guru'   => DB::table('jadwal_kbm')->whereNotNull('ptk_id')->distinct('ptk_id')->count('ptk_id'),
-            'total_jp'     => DB::table('jadwal_kbm')->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)')),
+            'total_jadwal'          => DB::table('jadwal_kbm')->count(),
+            'total_rombel'          => DB::table('jadwal_kbm')->distinct('rombongan_belajar_id')->count('rombongan_belajar_id'),
+            'total_guru'            => DB::table('jadwal_kbm')->whereNotNull('ptk_id')->distinct('ptk_id')->count('ptk_id'),
+            'total_jp'              => DB::table('jadwal_kbm')->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)')),
+            'hari_efektif_semester' => $hariEfektifSemester,
+            'hari_efektif_berjalan' => $hariEfektifBerjalan,
         ];
 
         // Ambil konfigurasi slot dinamis (menyesuaikan hari yang sedang dibuka)
@@ -232,7 +249,11 @@ class JadwalKbmController extends Controller
             'canCreate',
             'canRead',
             'canUpdate',
-            'canDelete'
+            'canDelete',
+            'statusHariIni',
+            'agendaHariIni',
+            'tahunAjaranAktif',
+            'semesterAktif'
         ));
     }
 

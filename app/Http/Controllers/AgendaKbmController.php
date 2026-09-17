@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AgendaKbm;
 use App\Models\JadwalKbm;
+use App\Models\KalenderPendidikan;
 use App\Models\PresensiMengajar;
 use App\Models\RolePermission;
 use Carbon\Carbon;
@@ -115,16 +116,29 @@ class AgendaKbmController extends Controller
         $perPage = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
         $items = $query->paginate($perPage)->withQueryString();
 
-        // Statistik Counter
+        // Statistik Counter & Hari Efektif Belajar Kalender Pendidikan
         $statsBase = AgendaKbm::query();
         if ($isGuru && $ptkId) {
             $statsBase->where('ptk_id', $ptkId);
         }
+
+        $currentMonthStart = Carbon::now()->startOfMonth()->toDateString();
+        $currentMonthEnd = Carbon::now()->endOfMonth()->toDateString();
+        $hebBulanIni = KalenderPendidikan::hitungHariEfektif($currentMonthStart, $currentMonthEnd, 'gtk');
+        $hebBulanBerjalan = KalenderPendidikan::hitungHariEfektifBerjalan($currentMonthStart, $currentMonthEnd, now()->toDateString(), 'gtk');
+
+        $statusHariIni = KalenderPendidikan::getStatusHari(now()->toDateString(), 'gtk');
+        $agendaHariIni = KalenderPendidikan::whereDate('tanggal_mulai', '<=', now()->toDateString())
+            ->whereDate('tanggal_selesai', '>=', now()->toDateString())
+            ->first();
+
         $stats = [
-            'total'      => (clone $statsBase)->count(),
-            'terlaksana' => (clone $statsBase)->where('status_kbm', 'Terlaksana')->count(),
-            'sebagian'   => (clone $statsBase)->where('status_kbm', 'Sebagian')->count(),
-            'tertunda'   => (clone $statsBase)->whereIn('status_kbm', ['Tertunda', 'Digantikan'])->count(),
+            'total'                 => (clone $statsBase)->count(),
+            'terlaksana'            => (clone $statsBase)->where('status_kbm', 'Terlaksana')->count(),
+            'sebagian'              => (clone $statsBase)->where('status_kbm', 'Sebagian')->count(),
+            'tertunda'              => (clone $statsBase)->whereIn('status_kbm', ['Tertunda', 'Digantikan'])->count(),
+            'hari_efektif'          => $hebBulanIni,
+            'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];
 
         // Daftar Jadwal Guru untuk Form Modal (Kecualikan PKL untuk guru)
@@ -192,6 +206,8 @@ class AgendaKbmController extends Controller
             'isGuru',
             'ptkId',
             'hariIni',
+            'statusHariIni',
+            'agendaHariIni',
             'canCreate',
             'canRead',
             'canUpdate',
@@ -199,6 +215,28 @@ class AgendaKbmController extends Controller
             'sort',
             'sortDir'
         ));
+    }
+
+    /**
+     * Cek Status Kalender Pendidikan Berdasarkan Tanggal (AJAX Helper)
+     */
+    public function cekKalenderTanggal(Request $request): JsonResponse
+    {
+        $tanggal = $request->input('tanggal', now()->toDateString());
+        $status = KalenderPendidikan::getStatusHari($tanggal, 'gtk');
+        $agenda = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $tanggal)
+            ->whereDate('tanggal_selesai', '>=', $tanggal)
+            ->first();
+
+        return response()->json([
+            'status'        => 'success',
+            'tanggal'       => $tanggal,
+            'is_libur'      => (bool) ($status['is_libur'] ?? false),
+            'nama_agenda'   => $agenda->nama_agenda ?? null,
+            'tipe'          => $agenda->tipe ?? null,
+            'keterangan'    => $agenda->keterangan ?? ($status['keterangan'] ?? null),
+            'mode_presensi' => $status['mode_presensi'] ?? 'normal',
+        ]);
     }
 
     /**

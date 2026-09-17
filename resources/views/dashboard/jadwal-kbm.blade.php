@@ -90,8 +90,66 @@
         </div>
     </div>
 
+    <!-- Banner Integrasi Kalender Pendidikan -->
+    <div class="card" style="padding: 12px 18px; margin-bottom: 18px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            @php
+                $isLibur = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false) || ($statusHariIni['libur_pd'] ?? false);
+                $bgIcon = $isLibur ? 'rgba(239,68,68,0.12)' : (!empty($agendaHariIni) ? 'rgba(99,102,241,0.12)' : 'rgba(16,185,129,0.12)');
+                $colIcon = $isLibur ? '#ef4444' : (!empty($agendaHariIni) ? 'var(--primary)' : '#10b981');
+                $iconClass = $isLibur ? 'fa-umbrella-beach' : (!empty($agendaHariIni) ? 'fa-calendar-star' : 'fa-calendar-check');
+            @endphp
+            <div style="width: 40px; height: 40px; border-radius: 10px; background: {{ $bgIcon }}; color: {{ $colIcon }}; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                <i class="fas {{ $iconClass }}"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <span>Kalender Akademik: TA {{ $tahunAjaranAktif }} (Semester {{ $semesterAktif == '1' ? '1 Ganjil' : '2 Genap' }})</span>
+                    @if ($isLibur)
+                        <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                            <i class="fas fa-ban me-1"></i> Libur Sekolah / KBM Off
+                        </span>
+                    @elseif (!empty($agendaHariIni))
+                        <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                            <i class="fas fa-flag me-1"></i> Agenda Khusus
+                        </span>
+                    @else
+                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                            <i class="fas fa-check me-1"></i> Hari Efektif Belajar (HEB)
+                        </span>
+                    @endif
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    @if (!empty($agendaHariIni))
+                        <strong>Hari Ini ({{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}):</strong> {{ $agendaHariIni->nama_agenda }}
+                        @if ($agendaHariIni->keterangan) &bull; {{ $agendaHariIni->keterangan }} @endif
+                    @else
+                        <strong>Hari Ini:</strong> {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }} &bull; KBM reguler berlangsung sesuai jam pelajaran aktif.
+                    @endif
+                </div>
+            </div>
+        </div>
+        <div>
+            <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.8rem;" title="Lihat Detail Kalender Pendidikan">
+                <i class="fas fa-calendar-alt me-1"></i> Buka Kalender Pendidikan
+            </a>
+        </div>
+    </div>
+
     <!-- Summary Stats Grid -->
-    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <i class="fas fa-calendar-days"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                    {{ number_format($summary['hari_efektif_semester'] ?? 0, 0, ',', '.') }} <span style="font-size: 0.72rem; font-weight: 500;">Hari</span>
+                </div>
+                <div class="dash-stat-label">HEB Semester (Jalan: {{ $summary['hari_efektif_berjalan'] ?? 0 }})</div>
+            </div>
+        </div>
+
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                 <i class="fas fa-calendar-check"></i>

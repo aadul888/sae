@@ -43,9 +43,19 @@
     </div>
 
     <!-- Stats Counter -->
-    <div class="dash-stat-grid">
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <i class="fas fa-calendar-days"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="color: #10b981;">{{ $stats['hari_efektif_bulan_ini'] ?? 0 }} Hari</div>
+                <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
@@ -55,7 +65,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
+            <div class="dash-stat-icon" style="background: rgba(14,165,233,0.15); color: #0ea5e9;">
                 <i class="fas fa-chalkboard"></i>
             </div>
             <div class="dash-stat-info">
@@ -85,6 +95,42 @@
             </div>
         </div>
     </div>
+
+    @php
+        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false);
+    @endphp
+    @if ($isLiburHariIni || !empty($agendaHariIni))
+        <!-- Banner Peringatan / Info Kalender Pendidikan Hari Ini -->
+        <div class="card" style="padding: 12px 18px; margin-bottom: 20px; border-radius: 12px; border: 1px solid {{ $isLiburHariIni ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isLiburHariIni ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 38px; height: 38px; border-radius: 10px; background: {{ $isLiburHariIni ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isLiburHariIni ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                    <i class="fas {{ $isLiburHariIni ? 'fa-umbrella-beach' : 'fa-calendar-star' }}"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
+                        @if ($isLiburHariIni)
+                            <span style="color: #ef4444;">Perhatian: Hari Ini Libur Sekolah</span>
+                            <span class="badge" style="background: #ef4444; color: #fff; font-size: 0.7rem; padding: 2px 7px; margin-left: 6px;">KBM Off</span>
+                        @else
+                            <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
+                        @endif
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                        @if (!empty($agendaHariIni))
+                            <strong>{{ $agendaHariIni->nama_agenda }}</strong> @if($agendaHariIni->keterangan) &mdash; {{ $agendaHariIni->keterangan }} @endif
+                        @else
+                            {{ $statusHariIni['keterangan'] ?? 'Kegiatan KBM reguler disesuaikan dengan kalender pendidikan.' }}
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;">
+                    <i class="fas fa-calendar-alt me-1"></i> Detail Kalender
+                </a>
+            </div>
+        </div>
+    @endif
 
     <!-- Schedule Today -->
     <div class="card">
