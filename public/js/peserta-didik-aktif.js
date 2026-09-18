@@ -207,7 +207,8 @@ window.openUploadFotoModal = function (id, nama, nisn, fotoUrl, fotoSize) {
     if (fileInput) fileInput.value = "";
     if (hiddenId) hiddenId.value = id;
     if (title) title.textContent = "Pasfoto: " + (nama || "Peserta Didik");
-    if (subtitle) subtitle.textContent = "NISN: " + (nisn || "-") + " • ID: " + id;
+    if (subtitle)
+        subtitle.textContent = "NISN: " + (nisn || "-") + " • ID: " + id;
 
     if (fotoUrl) {
         if (previewImg) {
@@ -248,9 +249,15 @@ function handleFilePreview(file) {
 
     // Validasi ekstensi dan MIME khusus PNG
     const ext = file.name.split(".").pop().toLowerCase();
-    if (ext !== "png" || (file.type && file.type !== "image/png" && file.type !== "image/x-png")) {
+    if (
+        ext !== "png" ||
+        (file.type && file.type !== "image/png" && file.type !== "image/x-png")
+    ) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast("Pasfoto peserta didik wajib berformat PNG (.png) untuk kebutuhan kartu pelajar digital.", "warning");
+            window.SAE.toast(
+                "Pasfoto peserta didik wajib berformat PNG (.png) untuk kebutuhan kartu pelajar digital.",
+                "warning",
+            );
         } else {
             alert("File harus berformat PNG (.png).");
         }
@@ -262,7 +269,10 @@ function handleFilePreview(file) {
     // Validasi ukuran maksimal (5 MB)
     if (file.size > 5 * 1024 * 1024) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast("Ukuran file pasfoto maksimal 5 MB sebelum dikompresi.", "danger");
+            window.SAE.toast(
+                "Ukuran file pasfoto maksimal 5 MB sebelum dikompresi.",
+                "danger",
+            );
         } else {
             alert("Ukuran file maksimal 5 MB.");
         }
@@ -316,7 +326,10 @@ window.handleSubmitFoto = async function () {
 
     if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast("Silakan pilih berkas foto PNG terlebih dahulu.", "warning");
+            window.SAE.toast(
+                "Silakan pilih berkas foto PNG terlebih dahulu.",
+                "warning",
+            );
         }
         return;
     }
@@ -326,29 +339,39 @@ window.handleSubmitFoto = async function () {
     formData.append("peserta_didik_id", pdId);
     formData.append("foto", file);
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+    const csrfToken =
+        document.querySelector('meta[name="csrf-token"]')?.content || "";
 
     if (btnSubmit) {
         btnSubmit.disabled = true;
-        btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengompresi & Menyimpan...';
+        btnSubmit.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-1"></i> Mengompresi & Menyimpan...';
     }
 
     try {
-        const res = await fetch("/dashboard/manajemen-data/peserta-didik-aktif/upload-foto", {
-            method: "POST",
-            headers: {
-                "X-CSRF-TOKEN": csrfToken,
-                "Accept": "application/json",
+        const res = await fetch(
+            "/dashboard/manajemen-data/peserta-didik-aktif/upload-foto",
+            {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                    Accept: "application/json",
+                },
+                body: formData,
             },
-            body: formData,
-        });
+        );
 
         const json = await res.json();
 
         if (json.status === "success") {
             if (window.SAE && typeof window.SAE.toast === "function") {
-                const savingsTxt = json.data.savings ? ` (Hemat ${json.data.savings}%)` : "";
-                window.SAE.toast(`Foto ${json.data.nama || "peserta didik"} berhasil disimpan! Ukuran: ${json.data.foto_size}${savingsTxt}`, "success");
+                const savingsTxt = json.data.savings
+                    ? ` (Hemat ${json.data.savings}%)`
+                    : "";
+                window.SAE.toast(
+                    `Foto ${json.data.nama || "peserta didik"} berhasil disimpan! Ukuran: ${json.data.foto_size}${savingsTxt}`,
+                    "success",
+                );
             }
 
             updateRowFotoUI(pdId, json.data.foto_url, json.data.foto_size);
@@ -363,57 +386,70 @@ window.handleSubmitFoto = async function () {
         }
     } catch (err) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast(err.message || "Terjadi kesalahan saat mengunggah foto.", "danger");
+            window.SAE.toast(
+                err.message || "Terjadi kesalahan saat mengunggah foto.",
+                "danger",
+            );
         }
     } finally {
         if (btnSubmit) {
             btnSubmit.disabled = false;
-            btnSubmit.innerHTML = '<i class="fas fa-cloud-arrow-up me-1"></i> Simpan Pasfoto';
+            btnSubmit.innerHTML =
+                '<i class="fas fa-cloud-arrow-up me-1"></i> Simpan Pasfoto';
         }
     }
 };
 
 window.handleDeleteFoto = async function () {
-    const pdId = currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
+    const pdId =
+        currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
     if (!pdId) return;
 
-    const confirmed = window.SAE && typeof window.SAE.confirm === "function"
-        ? await window.SAE.confirm(
-              "Foto peserta didik ini akan dihapus permanen dari sistem.",
-              "Hapus Pasfoto Peserta Didik?",
-              "danger",
-              "Ya, Hapus!",
-              "Batal"
-          )
-        : confirm("Hapus foto peserta didik ini?");
+    const confirmed =
+        window.SAE && typeof window.SAE.confirm === "function"
+            ? await window.SAE.confirm(
+                  "Foto peserta didik ini akan dihapus permanen dari sistem.",
+                  "Hapus Pasfoto Peserta Didik?",
+                  "danger",
+                  "Ya, Hapus!",
+                  "Batal",
+              )
+            : confirm("Hapus foto peserta didik ini?");
 
     if (!confirmed) return;
 
     const btnDelete = document.getElementById("btnDeleteFoto");
     if (btnDelete) {
         btnDelete.disabled = true;
-        btnDelete.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menghapus...';
+        btnDelete.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-1"></i> Menghapus...';
     }
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+    const csrfToken =
+        document.querySelector('meta[name="csrf-token"]')?.content || "";
 
     try {
         const res = await fetch(
-            "/dashboard/manajemen-data/peserta-didik-aktif/" + encodeURIComponent(pdId) + "/delete-foto",
+            "/dashboard/manajemen-data/peserta-didik-aktif/" +
+                encodeURIComponent(pdId) +
+                "/delete-foto",
             {
                 method: "DELETE",
                 headers: {
                     "X-CSRF-TOKEN": csrfToken,
-                    "Accept": "application/json",
+                    Accept: "application/json",
                 },
-            }
+            },
         );
 
         const json = await res.json();
 
         if (json.status === "success") {
             if (window.SAE && typeof window.SAE.toast === "function") {
-                window.SAE.toast("Pasfoto peserta didik berhasil dihapus.", "success");
+                window.SAE.toast(
+                    "Pasfoto peserta didik berhasil dihapus.",
+                    "success",
+                );
             }
             updateRowFotoUI(pdId, "", "");
             window.closeUploadFotoModal();
@@ -422,12 +458,16 @@ window.handleDeleteFoto = async function () {
         }
     } catch (err) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast(err.message || "Terjadi kesalahan saat menghapus foto.", "danger");
+            window.SAE.toast(
+                err.message || "Terjadi kesalahan saat menghapus foto.",
+                "danger",
+            );
         }
     } finally {
         if (btnDelete) {
             btnDelete.disabled = false;
-            btnDelete.innerHTML = '<i class="fas fa-trash-can me-1"></i> Hapus Foto';
+            btnDelete.innerHTML =
+                '<i class="fas fa-trash-can me-1"></i> Hapus Foto';
         }
     }
 };
@@ -440,10 +480,12 @@ function updateRowFotoUI(id, fotoUrl, fotoSize) {
     if (thumbContainer) {
         if (fotoUrl) {
             thumbContainer.className = "pd-foto-thumb";
-            thumbContainer.style.background = "repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px";
+            thumbContainer.style.background =
+                "repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px";
             thumbContainer.style.border = "1.5px solid var(--border-color)";
             thumbContainer.style.color = "";
-            thumbContainer.title = "Klik untuk melihat / mengubah pasfoto peserta didik";
+            thumbContainer.title =
+                "Klik untuk melihat / mengubah pasfoto peserta didik";
             thumbContainer.innerHTML = `
                 <img src="${fotoUrl}?v=${Date.now()}"
                      alt="Foto Peserta Didik"
@@ -453,7 +495,8 @@ function updateRowFotoUI(id, fotoUrl, fotoSize) {
             thumbContainer.style.background = "rgba(99,102,241,0.08)";
             thumbContainer.style.border = "1.5px dashed rgba(99,102,241,0.4)";
             thumbContainer.style.color = "var(--primary)";
-            thumbContainer.title = "Klik untuk mengunggah pasfoto peserta didik (PNG)";
+            thumbContainer.title =
+                "Klik untuk mengunggah pasfoto peserta didik (PNG)";
             thumbContainer.innerHTML = `
                 <i class="fas fa-camera" style="font-size: 0.82rem;"></i>
                 <span style="font-size: 0.52rem; font-weight: 800; letter-spacing: 0.5px; margin-top: 2px;">PNG</span>`;
@@ -467,8 +510,8 @@ function updateRowFotoUI(id, fotoUrl, fotoSize) {
             badgeContainer.style.background = "rgba(16,185,129,0.12)";
             badgeContainer.style.color = "#10b981";
             badgeContainer.style.padding = "2px 6px";
-            badgeContainer.title = `Foto PNG tersimpan persisten (${fotoSize || ''})`;
-            badgeContainer.innerHTML = `<i class="fas fa-check-circle me-1"></i>PNG ${fotoSize || ''}`;
+            badgeContainer.title = `Foto PNG tersimpan persisten (${fotoSize || ""})`;
+            badgeContainer.innerHTML = `<i class="fas fa-check-circle me-1"></i>PNG ${fotoSize || ""}`;
         } else {
             badgeContainer.className = "badge badge-outline";
             badgeContainer.style.background = "";
@@ -573,7 +616,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
                 e.stopPropagation();
                 previewContainer.style.borderColor = "#6366f1";
-                previewContainer.style.boxShadow = "0 0 16px rgba(99,102,241,0.45)";
+                previewContainer.style.boxShadow =
+                    "0 0 16px rgba(99,102,241,0.45)";
             });
         });
 
@@ -582,7 +626,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
                 e.stopPropagation();
                 previewContainer.style.borderColor = "var(--border-color)";
-                previewContainer.style.boxShadow = "0 4px 16px rgba(0,0,0,0.35)";
+                previewContainer.style.boxShadow =
+                    "0 4px 16px rgba(0,0,0,0.35)";
             });
         });
 
@@ -741,7 +786,9 @@ window.openBulkUploadFotoModal = function (defaultRombel) {
 
 window.closeBulkUploadFotoModal = function () {
     if (isBulkUploading) {
-        const leave = confirm("Proses unggah masal sedang berlangsung. Yakin ingin menutup?");
+        const leave = confirm(
+            "Proses unggah masal sedang berlangsung. Yakin ingin menutup?",
+        );
         if (!leave) return;
     }
 
@@ -766,7 +813,8 @@ window.handleBulkRombelChange = async function (rombelName) {
     if (progressWrap) progressWrap.style.display = "none";
     if (btnStart) {
         btnStart.disabled = true;
-        document.getElementById("btnStartBulkUploadText").textContent = "Mulai Unggah & Kompresi Masal (0 Foto)";
+        document.getElementById("btnStartBulkUploadText").textContent =
+            "Mulai Unggah & Kompresi Masal (0 Foto)";
     }
 
     if (!rombelName) {
@@ -784,10 +832,11 @@ window.handleBulkRombelChange = async function (rombelName) {
 
     try {
         const res = await fetch(
-            "/dashboard/manajemen-data/peserta-didik-aktif/rombel-members?rombel=" + encodeURIComponent(rombelName),
+            "/dashboard/manajemen-data/peserta-didik-aktif/rombel-members?rombel=" +
+                encodeURIComponent(rombelName),
             {
                 headers: { Accept: "application/json" },
-            }
+            },
         );
         const json = await res.json();
 
@@ -797,8 +846,10 @@ window.handleBulkRombelChange = async function (rombelName) {
             // Update statistik rombel
             const totalPdEl = document.getElementById("bulkTotalPdCount");
             if (totalPdEl) totalPdEl.textContent = json.total || 0;
-            document.getElementById("bulkSudahFotoCount").textContent = json.total_with_foto || 0;
-            document.getElementById("bulkBelumFotoCount").textContent = json.total_without_foto || 0;
+            document.getElementById("bulkSudahFotoCount").textContent =
+                json.total_with_foto || 0;
+            document.getElementById("bulkBelumFotoCount").textContent =
+                json.total_without_foto || 0;
             if (statsBadge) statsBadge.style.display = "flex";
 
             if (dropzoneWrap) dropzoneWrap.style.display = "block";
@@ -806,11 +857,16 @@ window.handleBulkRombelChange = async function (rombelName) {
 
             renderBulkStudentsTable();
         } else {
-            throw new Error(json.message || "Gagal memuat peserta didik rombel.");
+            throw new Error(
+                json.message || "Gagal memuat peserta didik rombel.",
+            );
         }
     } catch (err) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast(err.message || "Gagal memuat peserta didik.", "danger");
+            window.SAE.toast(
+                err.message || "Gagal memuat peserta didik.",
+                "danger",
+            );
         } else {
             alert(err.message);
         }
@@ -906,7 +962,28 @@ window.handleBulkFilesSelection = function (files) {
     if (!files || files.length === 0) return;
     if (bulkStudents.length === 0) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast("Pilih kelas terlebih dahulu sebelum memilih berkas foto!", "warning");
+            window.SAE.toast(
+                "Pilih kelas terlebih dahulu sebelum memilih berkas foto!",
+                "warning",
+            );
+        }
+        return;
+    }
+
+    const zipFiles = Array.from(files).filter((file) =>
+        file.name.toLowerCase().endsWith(".zip"),
+    );
+    if (zipFiles.length > 0) {
+        handleBulkZipUpload(zipFiles[0]);
+        if (
+            zipFiles.length > 1 &&
+            window.SAE &&
+            typeof window.SAE.toast === "function"
+        ) {
+            window.SAE.toast(
+                "Hanya 1 file ZIP diproses dalam sekali unggah.",
+                "warning",
+            );
         }
         return;
     }
@@ -923,13 +1000,20 @@ window.handleBulkFilesSelection = function (files) {
     Array.from(files).forEach(function (file) {
         // Cek ekstensi dan MIME
         const ext = file.name.split(".").pop().toLowerCase();
-        if (ext !== "png" && file.type !== "image/png" && file.type !== "image/x-png") {
+        if (
+            ext !== "png" &&
+            file.type !== "image/png" &&
+            file.type !== "image/x-png"
+        ) {
             nonPngCount++;
             return;
         }
 
         const rawFilename = file.name;
-        const nameWithoutExt = rawFilename.substring(0, rawFilename.lastIndexOf("."));
+        const nameWithoutExt = rawFilename.substring(
+            0,
+            rawFilename.lastIndexOf("."),
+        );
         const cleanFile = cleanStr(nameWithoutExt);
 
         let matchedStudent = null;
@@ -937,7 +1021,11 @@ window.handleBulkFilesSelection = function (files) {
 
         // 1. Cek kecocokan NISN
         for (const s of bulkStudents) {
-            if (s.nisn && cleanStr(s.nisn) && cleanFile.includes(cleanStr(s.nisn))) {
+            if (
+                s.nisn &&
+                cleanStr(s.nisn) &&
+                cleanFile.includes(cleanStr(s.nisn))
+            ) {
                 matchedStudent = s;
                 matchedBy = "NISN";
                 break;
@@ -947,7 +1035,11 @@ window.handleBulkFilesSelection = function (files) {
         // 2. Cek kecocokan NIPD
         if (!matchedStudent) {
             for (const s of bulkStudents) {
-                if (s.nipd && cleanStr(s.nipd) && cleanFile.includes(cleanStr(s.nipd))) {
+                if (
+                    s.nipd &&
+                    cleanStr(s.nipd) &&
+                    cleanFile.includes(cleanStr(s.nipd))
+                ) {
                     matchedStudent = s;
                     matchedBy = "NIPD";
                     break;
@@ -958,7 +1050,11 @@ window.handleBulkFilesSelection = function (files) {
         // 3. Cek kecocokan NIK
         if (!matchedStudent) {
             for (const s of bulkStudents) {
-                if (s.nik && cleanStr(s.nik) && cleanFile.includes(cleanStr(s.nik))) {
+                if (
+                    s.nik &&
+                    cleanStr(s.nik) &&
+                    cleanFile.includes(cleanStr(s.nik))
+                ) {
                     matchedStudent = s;
                     matchedBy = "NIK";
                     break;
@@ -970,7 +1066,11 @@ window.handleBulkFilesSelection = function (files) {
         if (!matchedStudent) {
             for (const s of bulkStudents) {
                 const sNameClean = cleanStr(s.nama);
-                if (sNameClean.length >= 4 && (cleanFile.includes(sNameClean) || sNameClean.includes(cleanFile))) {
+                if (
+                    sNameClean.length >= 4 &&
+                    (cleanFile.includes(sNameClean) ||
+                        sNameClean.includes(cleanFile))
+                ) {
                     matchedStudent = s;
                     matchedBy = "Nama Peserta Didik";
                     break;
@@ -1005,20 +1105,106 @@ window.handleBulkFilesSelection = function (files) {
 
     if (nonPngCount > 0) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast(`${nonPngCount} file diabaikan karena bukan format PNG.`, "warning");
+            window.SAE.toast(
+                `${nonPngCount} file diabaikan karena bukan format PNG.`,
+                "warning",
+            );
         }
     }
 
     if (newlyMatched > 0) {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast(`${newlyMatched} pasfoto berhasil dipetakan ke peserta didik di kelas ini!`, "success");
+            window.SAE.toast(
+                `${newlyMatched} pasfoto berhasil dipetakan ke peserta didik di kelas ini!`,
+                "success",
+            );
         }
     } else {
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast("Tidak ada nama berkas yang cocok dengan NISN/Nama/No Urut peserta didik kelas ini.", "warning");
+            window.SAE.toast(
+                "Tidak ada nama berkas yang cocok dengan NISN/Nama/No Urut peserta didik kelas ini.",
+                "warning",
+            );
         }
     }
 };
+
+async function handleBulkZipUpload(file) {
+    const csrfToken =
+        document.querySelector('meta[name="csrf-token"]')?.content || "";
+    const btnStart = document.getElementById("btnStartBulkUpload");
+    const progressWrap = document.getElementById("bulkProgressContainer");
+    const progressBar = document.getElementById("bulkProgressBar");
+    const progressPercent = document.getElementById("bulkProgressPercent");
+    const progressDetail = document.getElementById("bulkProgressDetail");
+    const progressTitle = document.getElementById("bulkProgressTitle");
+
+    const formData = new FormData();
+    formData.append("zip", file);
+
+    isBulkUploading = true;
+    if (btnStart) btnStart.disabled = true;
+    if (progressWrap) progressWrap.style.display = "block";
+    if (progressBar) progressBar.style.width = "25%";
+    if (progressPercent) progressPercent.textContent = "25%";
+    if (progressDetail)
+        progressDetail.textContent = `Mengunggah ZIP ${file.name}...`;
+    if (progressTitle)
+        progressTitle.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-1"></i> Membaca ZIP & menyimpan pasfoto...';
+
+    try {
+        const res = await fetch(
+            "/dashboard/manajemen-data/peserta-didik-aktif/bulk-upload-foto",
+            {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                    Accept: "application/json",
+                },
+                body: formData,
+            },
+        );
+
+        const json = await res.json();
+        if (json.status !== "success")
+            throw new Error(json.message || "Gagal memproses ZIP.");
+
+        (json.data || []).forEach((item) => {
+            if (item.status === "success") {
+                updateRowFotoUI(
+                    item.peserta_didik_id,
+                    item.foto_url,
+                    item.foto_size,
+                );
+            }
+        });
+
+        if (progressBar) progressBar.style.width = "100%";
+        if (progressPercent) progressPercent.textContent = "100%";
+        if (progressDetail)
+            progressDetail.textContent = `${json.success_count || 0} berhasil, ${json.failed_count || 0} gagal`;
+        if (progressTitle)
+            progressTitle.innerHTML = `<i class="fas fa-circle-check text-success me-1"></i> ${escapeHtml(json.message)}`;
+
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast(
+                json.message,
+                (json.failed_count || 0) > 0 ? "warning" : "success",
+            );
+        }
+    } catch (err) {
+        if (progressTitle)
+            progressTitle.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Gagal memproses ZIP`;
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast(err.message || "Gagal memproses ZIP.", "danger");
+        }
+    } finally {
+        isBulkUploading = false;
+        if (btnStart)
+            btnStart.disabled = Object.keys(bulkFileMatches).length === 0;
+    }
+}
 
 window.handleManualSingleFile = function (input, pdId) {
     if (!input || !input.files || !input.files[0]) return;
@@ -1076,12 +1262,14 @@ function updateBulkSummaryUI() {
         if (filesBadge) filesBadge.textContent = `${matchedCount} Foto Siap`;
         if (btnReset) btnReset.style.display = "inline-flex";
         if (btnStart) btnStart.disabled = false;
-        if (btnText) btnText.textContent = `Mulai Unggah & Kompresi Masal (${matchedCount} Foto)`;
+        if (btnText)
+            btnText.textContent = `Mulai Unggah & Kompresi Masal (${matchedCount} Foto)`;
     } else {
         if (summaryBanner) summaryBanner.style.display = "none";
         if (btnReset) btnReset.style.display = "none";
         if (btnStart) btnStart.disabled = true;
-        if (btnText) btnText.textContent = `Mulai Unggah & Kompresi Masal (0 Foto)`;
+        if (btnText)
+            btnText.textContent = `Mulai Unggah & Kompresi Masal (0 Foto)`;
     }
 }
 
@@ -1105,7 +1293,8 @@ window.executeBulkUploadQueue = async function () {
     let completed = 0;
     let failed = 0;
     const total = matchedEntries.length;
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+    const csrfToken =
+        document.querySelector('meta[name="csrf-token"]')?.content || "";
 
     const updateProgress = () => {
         const pct = Math.round((completed / total) * 100);
@@ -1128,19 +1317,24 @@ window.executeBulkUploadQueue = async function () {
         formData.append("foto", match.file);
 
         try {
-            const res = await fetch("/dashboard/manajemen-data/peserta-didik-aktif/upload-foto", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                    "Accept": "application/json",
+            const res = await fetch(
+                "/dashboard/manajemen-data/peserta-didik-aktif/upload-foto",
+                {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        Accept: "application/json",
+                    },
+                    body: formData,
                 },
-                body: formData,
-            });
+            );
 
             const json = await res.json();
             if (json.status === "success") {
                 if (statusCell) {
-                    const savingsStr = json.data.savings ? ` (Hemat ${json.data.savings}%)` : "";
+                    const savingsStr = json.data.savings
+                        ? ` (Hemat ${json.data.savings}%)`
+                        : "";
                     statusCell.innerHTML = `<span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;" title="${json.data.foto_size}${savingsStr}"><i class="fas fa-check-double me-1"></i> ${json.data.foto_size}</span>`;
                 }
                 // Update baris tabel utama jika ada
@@ -1171,7 +1365,7 @@ window.executeBulkUploadQueue = async function () {
                     const item = queue.shift();
                     await uploadSingle(item);
                 }
-            })()
+            })(),
         );
     }
 
@@ -1185,13 +1379,14 @@ window.executeBulkUploadQueue = async function () {
     if (window.SAE && typeof window.SAE.toast === "function") {
         window.SAE.toast(
             `Unggah masal selesai! ${completed - failed} pasfoto berhasil dikompresi dan disimpan.${failed > 0 ? " (" + failed + " berkas gagal)" : ""}`,
-            failed > 0 ? "warning" : "success"
+            failed > 0 ? "warning" : "success",
         );
     }
 
     if (btnStart) {
         btnStart.disabled = false;
-        document.getElementById("btnStartBulkUploadText").textContent = "Selesai";
+        document.getElementById("btnStartBulkUploadText").textContent =
+            "Selesai";
     }
 };
 
@@ -1242,10 +1437,11 @@ document.addEventListener("click", async function (e) {
 
     const result = await Swal.fire({
         title: "Reset Password Akun?",
-        html: `Apakah Anda yakin ingin mereset password akun untuk <b>${pdNama}</b>?<br><br>` +
-              `<div style="font-size: 0.85rem; padding: 10px 14px; background: rgba(245,158,11,0.1); border: 1px dashed rgba(245,158,11,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;">` +
-              `<i class="fas fa-info-circle text-warning me-1"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +
-              `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>`,
+        html:
+            `Apakah Anda yakin ingin mereset password akun untuk <b>${pdNama}</b>?<br><br>` +
+            `<div style="font-size: 0.85rem; padding: 10px 14px; background: rgba(245,158,11,0.1); border: 1px dashed rgba(245,158,11,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;">` +
+            `<i class="fas fa-info-circle text-warning me-1"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +
+            `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#f59e0b",
@@ -1265,16 +1461,20 @@ document.addEventListener("click", async function (e) {
     });
 
     try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
-        const res = await fetch("/dashboard/manajemen-data/peserta-didik-aktif/reset-password", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "X-CSRF-TOKEN": csrfToken,
+        const csrfToken =
+            document.querySelector('meta[name="csrf-token"]')?.content || "";
+        const res = await fetch(
+            "/dashboard/manajemen-data/peserta-didik-aktif/reset-password",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ peserta_didik_id: pdId }),
             },
-            body: JSON.stringify({ peserta_didik_id: pdId }),
-        });
+        );
 
         const data = await res.json();
 
@@ -1288,7 +1488,9 @@ document.addEventListener("click", async function (e) {
         } else {
             Swal.fire({
                 title: "Gagal Mereset",
-                text: data.message || "Terjadi kesalahan sistem saat mereset password.",
+                text:
+                    data.message ||
+                    "Terjadi kesalahan sistem saat mereset password.",
                 icon: "error",
                 confirmButtonColor: "#ef4444",
             });
@@ -1319,7 +1521,9 @@ document.addEventListener("click", async function (e) {
     const confirmBtnIcon = isCurrent ? "fa-user-slash" : "fa-crown";
 
     const result = await Swal.fire({
-        title: isCurrent ? "Cabut Status Koordinator?" : "Tunjuk Koordinator Kelas?",
+        title: isCurrent
+            ? "Cabut Status Koordinator?"
+            : "Tunjuk Koordinator Kelas?",
         html: isCurrent
             ? `Apakah Anda yakin ingin mencabut wewenang Koordinator Kelas untuk <b>${pdNama}</b> (${pdRombel})?<br><br>` +
               `<small style="color: var(--text-muted);">Akses bantuan Wali Kelas (presensi kelas & daftar peserta didik kelas) akan dinonaktifkan untuk akun ini.</small>`
@@ -1332,7 +1536,7 @@ document.addEventListener("click", async function (e) {
         showCancelButton: true,
         confirmButtonColor: confirmBtnColor,
         cancelButtonColor: "#64748b",
-        confirmButtonText: `<i class="fas ${confirmBtnIcon} me-1"></i> Ya, ${isCurrent ? 'Cabut' : 'Tunjuk'}`,
+        confirmButtonText: `<i class="fas ${confirmBtnIcon} me-1"></i> Ya, ${isCurrent ? "Cabut" : "Tunjuk"}`,
         cancelButtonText: "Batal",
         reverseButtons: true,
     });
@@ -1347,16 +1551,20 @@ document.addEventListener("click", async function (e) {
     });
 
     try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
-        const res = await fetch("/dashboard/manajemen-data/peserta-didik-aktif/toggle-koordinator", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "X-CSRF-TOKEN": csrfToken,
+        const csrfToken =
+            document.querySelector('meta[name="csrf-token"]')?.content || "";
+        const res = await fetch(
+            "/dashboard/manajemen-data/peserta-didik-aktif/toggle-koordinator",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ peserta_didik_id: pdId }),
             },
-            body: JSON.stringify({ peserta_didik_id: pdId }),
-        });
+        );
 
         const data = await res.json();
 
@@ -1365,7 +1573,9 @@ document.addEventListener("click", async function (e) {
 
             // Update status tombol & UI badge
             btnKoord.dataset.status = newStatus ? "1" : "0";
-            btnKoord.title = newStatus ? "Cabut Wewenang Koordinator Kelas" : "Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)";
+            btnKoord.title = newStatus
+                ? "Cabut Wewenang Koordinator Kelas"
+                : "Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)";
 
             const icon = btnKoord.querySelector("i");
             if (icon) {
@@ -1394,7 +1604,9 @@ document.addEventListener("click", async function (e) {
         } else {
             Swal.fire({
                 title: "Gagal Memperbarui",
-                text: data.message || "Terjadi kesalahan sistem saat memperbarui status koordinator.",
+                text:
+                    data.message ||
+                    "Terjadi kesalahan sistem saat memperbarui status koordinator.",
                 icon: "error",
                 confirmButtonColor: "#ef4444",
             });
@@ -1408,4 +1620,3 @@ document.addEventListener("click", async function (e) {
         });
     }
 });
-

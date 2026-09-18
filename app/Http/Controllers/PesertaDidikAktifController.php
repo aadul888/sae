@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use ZipArchive;
 
 class PesertaDidikAktifController extends Controller
 {
@@ -464,6 +467,10 @@ class PesertaDidikAktifController extends Controller
             return $this->uploadFoto($request, $optimizer);
         }
 
+        if ($request->hasFile('zip')) {
+            return $this->bulkUploadFotoZip($request, $optimizer);
+        }
+
         // Jika upload batch multipart (files + mappings)
         $files = $request->file('files', []);
         $mappingsRaw = $request->input('mappings', '[]');
@@ -558,6 +565,113 @@ class PesertaDidikAktifController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => "Proses masal selesai: {$successCount} foto berhasil disimpan, {$failedCount} gagal.",
+            'success_count' => $successCount,
+            'failed_count' => $failedCount,
+            'data' => $results,
+        ]);
+    }
+
+    private function bulkUploadFotoZip(Request $request, \App\Services\ImageOptimizerService $optimizer)
+    {
+        $request->validate([
+            'zip' => 'required|file|mimes:zip|max:51200',
+        ], [
+            'zip.required' => 'File ZIP wajib diunggah.',
+            'zip.mimes' => 'Format arsip harus berupa ZIP (.zip).',
+            'zip.max' => 'Ukuran file ZIP maksimal adalah 50 MB.',
+        ]);
+
+        if (!class_exists(ZipArchive::class)) {
+            return response()->json(['status' => 'error', 'message' => 'Ekstensi PHP ZipArchive belum aktif di server.'], 500);
+        }
+
+        $zipFile = $request->file('zip');
+        $zip = new ZipArchive();
+        if ($zip->open($zipFile->getRealPath()) !== true) {
+            return response()->json(['status' => 'error', 'message' => 'File ZIP tidak dapat dibuka atau rusak.'], 422);
+        }
+
+        $tempDir = storage_path('app/temp/foto_zip_' . uniqid('', true));
+        File::makeDirectory($tempDir, 0755, true, true);
+
+        $successCount = 0;
+        $failedCount = 0;
+        $results = [];
+
+        try {
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $entry = $zip->getNameIndex($i);
+                $basename = basename(str_replace('\\', '/', $entry));
+
+                if ($basename === '' || str_ends_with($entry, '/') || strtolower(pathinfo($basename, PATHINFO_EXTENSION)) !== 'png') {
+                    continue;
+                }
+
+                $nisn = pathinfo($basename, PATHINFO_FILENAME);
+                $student = DB::table('peserta_didik')->where('nisn', $nisn)->first();
+                if (!$student) {
+                    $failedCount++;
+                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => "NISN {$nisn} tidak ditemukan."];
+                    continue;
+                }
+
+                $stream = $zip->getStream($entry);
+                if (!$stream) {
+                    $failedCount++;
+                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => 'Berkas PNG di dalam ZIP tidak dapat dibaca.'];
+                    continue;
+                }
+
+                $tmpPath = $tempDir . DIRECTORY_SEPARATOR . uniqid('foto_', true) . '.png';
+                file_put_contents($tmpPath, stream_get_contents($stream));
+                fclose($stream);
+
+                try {
+                    $uploaded = new UploadedFile($tmpPath, $basename, 'image/png', null, true);
+                    $meta = \App\Models\PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $student->peserta_didik_id]);
+                    if ($meta->foto_path) {
+                        $optimizer->deleteFile($meta->foto_path);
+                    }
+
+                    $prefix = 'foto_' . ($student->nisn ?: preg_replace('/[^a-zA-Z0-9_-]/', '', $student->peserta_didik_id));
+                    $optResult = $optimizer->optimizeAndSavePng(
+                        $uploaded,
+                        \App\Services\ImageOptimizerService::ASSET_DIR_FOTO_PESERTA_DIDIK,
+                        $prefix,
+                        1000
+                    );
+
+                    $meta->nisn = $student->nisn;
+                    $meta->foto_path = $optResult['path'];
+                    $meta->foto_size = $optResult['size'];
+                    $meta->foto_width = $optResult['width'];
+                    $meta->foto_height = $optResult['height'];
+                    $meta->save();
+
+                    $successCount++;
+                    $results[] = [
+                        'peserta_didik_id' => $student->peserta_didik_id,
+                        'nama' => $student->nama,
+                        'nisn' => $student->nisn,
+                        'filename' => $basename,
+                        'status' => 'success',
+                        'foto_url' => $meta->foto_url,
+                        'foto_size' => $meta->formatted_foto_size,
+                        'savings' => $optResult['savings_percent'],
+                    ];
+                } catch (\Throwable $e) {
+                    $failedCount++;
+                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => $e->getMessage()];
+                }
+            }
+        } finally {
+            $zip->close();
+            File::deleteDirectory($tempDir);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Proses ZIP selesai: {$successCount} foto berhasil disimpan, {$failedCount} gagal.",
             'success_count' => $successCount,
             'failed_count' => $failedCount,
             'data' => $results,

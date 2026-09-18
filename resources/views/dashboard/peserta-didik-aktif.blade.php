@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $isAdmin = $isAdmin ?? (((session('user')['role'] ?? (session('user')->role ?? '')) === 'admin'));
+        $isAdmin = $isAdmin ?? (session('user')['role'] ?? (session('user')->role ?? '')) === 'admin';
     @endphp
     <div class="dash-banner">
         <div>
@@ -18,9 +18,10 @@
         </div>
         <div class="dash-banner-actions">
             @if (\App\Models\RolePermission::canAccess($user ?? session('user'), 'menu_dapodik'))
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
-                <i class="fas fa-cloud-arrow-down me-1"></i> Tarik Data Dapodik
-            </a>
+                <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline"
+                    style="padding: 9px 16px; font-size: 0.85rem;">
+                    <i class="fas fa-cloud-arrow-down me-1"></i> Tarik Data Dapodik
+                </a>
             @endif
         </div>
     </div>
@@ -107,20 +108,23 @@
                 </select>
 
                 @if ($q || $rombel || $gender)
-                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline btn-responsive-icon"
-                        style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
+                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
+                        class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;"
+                        title="Reset filter">
                         <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
                     </a>
                 @endif
 
                 @if ($isAdmin)
-                    <button type="button" class="btn btn-primary btn-responsive-icon" onclick="openBulkUploadFotoModal('{{ $rombel }}')"
+                    <button type="button" class="btn btn-primary btn-responsive-icon"
+                        onclick="openBulkUploadFotoModal('{{ $rombel }}')"
                         style="padding: 7px 14px; font-size: 0.82rem; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
                         title="Unggah Foto Masal Kelas">
                         <i class="fas fa-images"></i> <span class="btn-responsive-text">Unggah Foto Masal</span>
                     </button>
 
-                    <button type="button" class="btn btn-outline btn-responsive-icon" onclick="openCetakRombelModal('{{ $rombel }}')"
+                    <button type="button" class="btn btn-outline btn-responsive-icon"
+                        onclick="openCetakRombelModal('{{ $rombel }}')"
                         style="padding: 7px 14px; font-size: 0.82rem; border-color: #0284c7; color: #0284c7;"
                         title="Cetak Kartu Pelajar Masal">
                         <i class="fas fa-id-card"></i> <span class="btn-responsive-text">Cetak Kartu Masal</span>
@@ -175,45 +179,45 @@
             <tbody>
                 @forelse ($list as $item)
                     <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                        <td class="cell-pd-nama" style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                        <td class="cell-pd-nama"
+                            style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
                             data-label="Nama Lengkap">
                             <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                 @if (!empty($item->foto_url))
                                     <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
-                                        @if ($canManageStudentPhotos)
-                                        onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url }}', '{{ $item->foto_size ?? '' }}')"
+                                        @if ($canManageStudentPhotos) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url }}', '{{ $item->foto_size ?? '' }}')"
                                         title="Klik untuk melihat / mengubah pasfoto peserta didik"
                                         @else
-                                        title="Pasfoto {{ $item->nama }}"
-                                        @endif
+                                        title="Pasfoto {{ $item->nama }}" @endif
                                         style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
-                                        <img src="{{ $item->foto_url }}"
-                                            alt="Foto {{ $item->nama }}"
+                                        <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
                                             style="width: 100%; height: 100%; object-fit: cover;">
                                     </div>
                                 @else
                                     <div class="pd-foto-thumb empty" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
-                                        @if ($canManageStudentPhotos)
-                                        onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '', '')"
+                                        @if ($canManageStudentPhotos) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '', '')"
                                         title="Klik untuk mengunggah pasfoto peserta didik"
                                         @else
-                                        title="Belum ada pasfoto"
-                                        @endif
+                                        title="Belum ada pasfoto" @endif
                                         style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; {{ $canManageStudentPhotos ? 'cursor: pointer;' : 'cursor: default;' }} transition: all 0.2s ease;">
                                         <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                     </div>
                                 @endif
                                 <div class="pd-info">
-                                    <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                        <span class="pd-nama" style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
+                                    <div class="pd-title-row"
+                                        style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span class="pd-nama"
+                                            style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
                                         @if (!empty($item->is_koordinator))
-                                            <span class="badge badge-koordinator" id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                            <span class="badge badge-koordinator"
+                                                id="badgeKoordinator_{{ $item->peserta_didik_id }}"
                                                 style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
                                                 title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
                                                 <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
                                             </span>
                                         @else
-                                            <span class="badge badge-koordinator" id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                            <span class="badge badge-koordinator"
+                                                id="badgeKoordinator_{{ $item->peserta_didik_id }}"
                                                 style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; align-items: center; gap: 4px;"
                                                 title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
                                                 <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
@@ -221,8 +225,10 @@
                                         @endif
                                     </div>
                                     @if ($item->nik)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">
+                                        <div
+                                            style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                            <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
+                                                title="Klik untuk salin NIK">
                                                 NIK: {{ $item->nik }}
                                             </span>
                                         </div>
@@ -230,19 +236,22 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="cell-pd-nisn" style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                        <td class="cell-pd-nisn"
+                            style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
                             data-label="NISN/NIPD">
                             <div class="cell-col-right">
                                 <div>
                                     @if ($item->nisn)
-                                        <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN" title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                        <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
+                                            title="Klik untuk salin NISN">{{ $item->nisn }}</span>
                                     @else
                                         -
                                     @endif
                                 </div>
                                 @if ($item->nipd)
                                     <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                        <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD" title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
+                                        <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
+                                            title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                     </div>
                                 @endif
                             </div>
@@ -253,13 +262,15 @@
                                 {{ $item->jenis_kelamin ?: '-' }}
                             </span>
                         </td>
-                        <td class="cell-pd-rombel" style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                        <td class="cell-pd-rombel"
+                            style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
                             data-label="Rombel">
                             <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
                                 {{ $item->nama_rombel ?: '-' }}
                             </span>
                         </td>
-                        <td class="cell-pd-tingkat" style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                        <td class="cell-pd-tingkat"
+                            style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
                             data-label="Tingkat">
                             {{ $item->tingkat_pendidikan_id ?: '-' }}
                         </td>
@@ -273,38 +284,40 @@
                             <div class="table-actions">
                                 @if ($isAdmin || $canUpdate)
                                     @if ($canManageStudentPhotos)
-                                    <button type="button" class="btn-icon"
-                                        title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
-                                        onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
-                                        <i class="fas fa-camera" style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
-                                    </button>
+                                        <button type="button" class="btn-icon"
+                                            title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
+                                            onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
+                                            <i class="fas fa-camera"
+                                                style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
+                                        </button>
                                     @endif
                                     <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
                                         onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
                                         <i class="fas fa-id-card"></i>
                                     </button>
-                                    @if(!empty($item->nisn))
-                                    <button type="button" class="btn-icon" title="Pratinjau / Cetak Kartu Pelajar Digital"
-                                        onclick="openKartuPelajarModal('{{ $item->nisn }}')">
-                                        <i class="fas fa-address-card" style="color: #0284c7;"></i>
-                                    </button>
+                                    @if (!empty($item->nisn))
+                                        <button type="button" class="btn-icon"
+                                            title="Pratinjau / Cetak Kartu Pelajar Digital"
+                                            onclick="openKartuPelajarModal('{{ $item->nisn }}')">
+                                            <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                        </button>
                                     @endif
-                                    
+
                                     {{-- Tombol Tunjuk / Cabut Koordinator Kelas --}}
-                                    <button type="button" class="btn-icon btn-toggle-koordinator {{ !empty($item->is_koordinator) ? 'is-active' : '' }}"
+                                    <button type="button"
+                                        class="btn-icon btn-toggle-koordinator {{ !empty($item->is_koordinator) ? 'is-active' : '' }}"
                                         id="btnKoordinator_{{ $item->peserta_didik_id }}"
-                                        data-id="{{ $item->peserta_didik_id }}"
-                                        data-nama="{{ $item->nama }}"
+                                        data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
                                         data-rombel="{{ $item->nama_rombel ?: '-' }}"
                                         data-status="{{ !empty($item->is_koordinator) ? '1' : '0' }}"
                                         title="{{ !empty($item->is_koordinator) ? 'Cabut Wewenang Koordinator Kelas' : 'Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)' }}">
-                                        <i class="fas fa-crown" style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b;' : 'opacity: 0.55;' }}"></i>
+                                        <i class="fas fa-crown"
+                                            style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b;' : 'opacity: 0.55;' }}"></i>
                                     </button>
 
                                     {{-- Tombol Reset Password ke Default (NISN) --}}
                                     <button type="button" class="btn-icon btn-reset-password"
-                                        data-id="{{ $item->peserta_didik_id }}"
-                                        data-nama="{{ $item->nama }}"
+                                        data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
                                         data-nisn="{{ $item->nisn ?: ($item->nipd ?: ($item->nik ?: 'NISN')) }}"
                                         title="Reset Password Akun ke Default (NISN)">
                                         <i class="fas fa-key" style="color: #f59e0b;"></i>
@@ -381,7 +394,8 @@
                         <i class="fas fa-user-graduate text-primary" style="font-size: 1.3rem;"></i>
                     </div>
                     <div>
-                        <h3 id="bioNama" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                        <h3 id="bioNama"
+                            style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
                             Biodata Peserta Didik</h3>
                         <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
                     </div>
@@ -542,7 +556,8 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                    <div
+                        style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
                         <i class="fas fa-camera"></i>
                     </div>
                     <div>
@@ -550,7 +565,8 @@
                             style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
                             Unggah Pasfoto Peserta Didik
                         </h3>
-                        <div id="fotoModalSubtitle" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                        <div id="fotoModalSubtitle"
+                            style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
                             -
                         </div>
                     </div>
@@ -565,14 +581,18 @@
                 <input type="hidden" id="fotoUploadPdId" value="">
 
                 {{-- Info Box Persistensi & Kartu Pelajar --}}
-                <div style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 0.78rem; line-height: 1.5; color: var(--text-color);">
+                <div
+                    style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 0.78rem; line-height: 1.5; color: var(--text-color);">
                     <div style="font-weight: 700; color: var(--primary); margin-bottom: 4px;">
                         <i class="fas fa-shield-halved me-1"></i> Perlindungan Dapodik & Standar Gambar:
                     </div>
                     <ul style="margin: 0; padding-left: 18px; color: var(--text-muted);">
-                        <li>Pasfoto disimpan secara <strong>persisten</strong> di tabel metadata dan <strong>tidak akan terhapus</strong> ketika melakukan tarik data Dapodik.</li>
-                        <li>Wajib format <strong>PNG</strong> (akan digunakan untuk kartu pelajar digital & sistem presensi).</li>
-                        <li>Sistem melakukan <strong>kompresi otomatis lossless</strong> sehingga file ringan tanpa mengurangi ketajaman.</li>
+                        <li>Pasfoto disimpan secara <strong>persisten</strong> di tabel metadata dan <strong>tidak akan
+                                terhapus</strong> ketika melakukan tarik data Dapodik.</li>
+                        <li>Wajib format <strong>PNG</strong> (akan digunakan untuk kartu pelajar digital & sistem
+                            presensi).</li>
+                        <li>Sistem melakukan <strong>kompresi otomatis lossless</strong> sehingga file ringan tanpa
+                            mengurangi ketajaman.</li>
                     </ul>
                 </div>
 
@@ -585,12 +605,14 @@
                         style="width: 126px; height: 168px; margin: 0 auto; border-radius: 12px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 10px 10px; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: 0 4px 16px rgba(0,0,0,0.35);">
                         <img id="fotoPreviewImg" src="" alt="Pratinjau Foto"
                             style="display: none; width: 100%; height: 100%; object-fit: cover;">
-                        <div id="fotoPreviewPlaceholder" style="color: var(--text-muted); font-size: 0.8rem; padding: 10px;">
+                        <div id="fotoPreviewPlaceholder"
+                            style="color: var(--text-muted); font-size: 0.8rem; padding: 10px;">
                             <i class="fas fa-user-graduate mb-2" style="font-size: 2.2rem; opacity: 0.4;"></i>
                             <div style="font-size: 0.72rem;">Belum ada pasfoto</div>
                         </div>
                     </div>
-                    <div id="fotoFileSpecs" style="display: none; font-size: 0.74rem; color: #10b981; margin-top: 8px; font-weight: 600;">
+                    <div id="fotoFileSpecs"
+                        style="display: none; font-size: 0.74rem; color: #10b981; margin-top: 8px; font-weight: 600;">
                         -
                     </div>
                 </div>
@@ -601,14 +623,16 @@
                     <div id="fotoDropZone"
                         style="border: 2px dashed rgba(99,102,241,0.4); border-radius: 12px; padding: 20px 14px; text-align: center; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.01);"
                         onclick="document.getElementById('fotoFileInput').click()">
-                        <i class="fas fa-file-image" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
+                        <i class="fas fa-file-image"
+                            style="font-size: 1.8rem; color: var(--primary); margin-bottom: 8px;"></i>
                         <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
                             Pilih file atau seret file PNG ke sini
                         </div>
                         <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
                             Hanya file <strong>.PNG</strong> (Maks. 5 MB)
                         </div>
-                        <input type="file" id="fotoFileInput" name="foto" accept=".png,image/png" style="display: none;">
+                        <input type="file" id="fotoFileInput" name="foto" accept=".png,image/png"
+                            style="display: none;">
                     </div>
                 </form>
             </div>
@@ -616,10 +640,10 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
                 @if ($canDelete)
-                <button type="button" id="btnDeleteFoto" onclick="handleDeleteFoto()" class="btn btn-danger"
-                    style="display: none; padding: 8px 14px; font-size: 0.8rem;">
-                    <i class="fas fa-trash-can me-1"></i> Hapus Pasfoto
-                </button>
+                    <button type="button" id="btnDeleteFoto" onclick="handleDeleteFoto()" class="btn btn-danger"
+                        style="display: none; padding: 8px 14px; font-size: 0.8rem;">
+                        <i class="fas fa-trash-can me-1"></i> Hapus Pasfoto
+                    </button>
                 @endif
                 <div style="display: flex; gap: 8px; margin-left: auto;">
                     <button type="button" onclick="closeUploadFotoModal()" class="btn btn-outline"
@@ -638,7 +662,7 @@
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(6px);">
         <div class="card"
             style="max-width: 960px; width: 95%; max-height: 92vh; display: flex; flex-direction: column; margin: 0; border-radius: 16px; padding: 22px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);">
-            
+
             {{-- Header Modal --}}
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
@@ -652,12 +676,14 @@
                             Unggah Pasfoto Masal per Kelas
                         </h3>
                         <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                            Dukungan unggah sekaligus satu kelas (36 - 52 peserta didik) dengan pencocokan otomatis cerdas format PNG
+                            Dukungan unggah sekaligus satu kelas (36 - 52 peserta didik) dengan pencocokan otomatis cerdas
+                            format PNG
                         </div>
                     </div>
                 </div>
                 <button type="button" onclick="closeBulkUploadFotoModal()"
-                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;" title="Tutup Modal">
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;"
+                    title="Tutup Modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -665,28 +691,34 @@
             {{-- Body Modal (Scrollable) --}}
             <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
                 {{-- STEP 1: Pilih Kelas / Rombel --}}
-                <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 12px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
                     <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 250px;">
-                        <label for="bulkRombelSelect" style="margin: 0; font-weight: 700; font-size: 0.85rem; color: var(--text-color); white-space: nowrap;">
+                        <label for="bulkRombelSelect"
+                            style="margin: 0; font-weight: 700; font-size: 0.85rem; color: var(--text-color); white-space: nowrap;">
                             <i class="fas fa-chalkboard text-primary me-1"></i> Pilih Kelas:
                         </label>
                         <select id="bulkRombelSelect" class="form-select toolbar-filter-select"
                             onchange="handleBulkRombelChange(this.value)" style="min-width: 200px; flex: 1;">
                             <option value="">-- Pilih Rombel Kelas --</option>
                             @foreach ($filterRombel as $r)
-                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}</option>
+                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
+                                    {{ $r }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div id="bulkRombelStatsBadge" style="display: none; align-items: center; gap: 8px;">
-                        <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.78rem; padding: 5px 10px;">
+                        <span class="badge"
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.78rem; padding: 5px 10px;">
                             <i class="fas fa-users me-1"></i> <span id="bulkTotalPdCount">0</span> Peserta Didik
                         </span>
-                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.78rem; padding: 5px 10px;">
+                        <span class="badge"
+                            style="background: rgba(16,185,129,0.15); color: #10b981; font-size: 0.78rem; padding: 5px 10px;">
                             <i class="fas fa-check-circle me-1"></i> <span id="bulkSudahFotoCount">0</span> Sudah Ada Foto
                         </span>
-                        <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 0.78rem; padding: 5px 10px;">
+                        <span class="badge"
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 0.78rem; padding: 5px 10px;">
                             <i class="fas fa-clock me-1"></i> <span id="bulkBelumFotoCount">0</span> Belum
                         </span>
                     </div>
@@ -696,27 +728,34 @@
                 <div id="bulkDropZoneWrapper" style="display: none; margin-bottom: 14px;">
                     <div id="bulkDropZone"
                         style="border: 2px dashed rgba(99,102,241,0.45); border-radius: 14px; padding: 22px; text-align: center; cursor: pointer; background: rgba(99,102,241,0.03); transition: all 0.25s ease;">
-                        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 8px;">
+                        <div
+                            style="width: 48px; height: 48px; border-radius: 50%; background: rgba(99,102,241,0.15); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 8px;">
                             <i class="fas fa-cloud-arrow-up"></i>
                         </div>
                         <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color); margin-bottom: 4px;">
                             Pilih atau Tarik Seluruh Foto PNG Kelas Ini ke Sini
                         </div>
-                        <div style="font-size: 0.76rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 12px auto; line-height: 1.45;">
-                            Unggah 36 hingga 52 file PNG sekaligus. Beri nama file berupa <strong>NISN</strong> (contoh: <code>0071234567.png</code>), <strong>Nama Peserta Didik</strong>, atau <strong>Nomor Urut Absen</strong> (<code>01.png</code> s.d. <code>36.png</code>) untuk pencocokan otomatis 100%.
+                        <div
+                            style="font-size: 0.76rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 12px auto; line-height: 1.45;">
+                            Unggah 36 hingga 52 file PNG sekaligus, atau satu file <strong>ZIP</strong> berisi langsung
+                            <code>nisn.png</code> tanpa folder. Beri nama file berupa <strong>NISN</strong> (contoh:
+                            <code>0071234567.png</code>), <strong>Nama Peserta Didik</strong>, atau <strong>Nomor Urut
+                                Absen</strong> (<code>01.png</code> s.d. <code>36.png</code>) untuk pencocokan otomatis
+                            100%.
                         </div>
 
                         <div style="display: inline-flex; align-items: center; gap: 8px;">
                             <label for="bulkFilesInput" class="btn btn-primary"
                                 style="padding: 8px 18px; font-size: 0.82rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="fas fa-folder-open"></i> Pilih Berkas Foto Sekaligus
+                                <i class="fas fa-folder-open"></i> Pilih PNG / ZIP Foto Sekaligus
                             </label>
-                            <button type="button" id="btnClearBulkMatches" onclick="resetBulkMatches()" class="btn btn-outline"
-                                style="display: none; padding: 8px 14px; font-size: 0.82rem;">
+                            <button type="button" id="btnClearBulkMatches" onclick="resetBulkMatches()"
+                                class="btn btn-outline" style="display: none; padding: 8px 14px; font-size: 0.82rem;">
                                 <i class="fas fa-rotate-left me-1"></i> Reset Berkas
                             </button>
                         </div>
-                        <input type="file" id="bulkFilesInput" multiple accept="image/png" style="display: none;">
+                        <input type="file" id="bulkFilesInput" multiple accept="image/png,.png,application/zip,.zip"
+                            style="display: none;">
                     </div>
                 </div>
 
@@ -726,13 +765,15 @@
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <i class="fas fa-circle-check text-success" style="font-size: 1.2rem;"></i>
                         <div>
-                            <span id="bulkMatchSummaryText" style="font-weight: 600;">36 foto berhasil dicocokkan otomatis.</span>
+                            <span id="bulkMatchSummaryText" style="font-weight: 600;">36 foto berhasil dicocokkan
+                                otomatis.</span>
                             <div id="bulkMatchHint" style="font-size: 0.74rem; color: var(--text-muted);">
                                 Anda dapat meninjau pratinjau setiap peserta didik di bawah sebelum menekan tombol simpan.
                             </div>
                         </div>
                     </div>
-                    <span id="bulkFilesCountBadge" class="badge badge-primary" style="font-size: 0.75rem; padding: 4px 8px;">
+                    <span id="bulkFilesCountBadge" class="badge badge-primary"
+                        style="font-size: 0.75rem; padding: 4px 8px;">
                         0 Berkas Siap
                     </span>
                 </div>
@@ -744,46 +785,62 @@
                         <span id="bulkProgressTitle" style="font-weight: 700; font-size: 0.84rem; color: var(--primary);">
                             <i class="fas fa-spinner fa-spin me-1"></i> Mengompresi &amp; Menyimpan Pasfoto...
                         </span>
-                        <span id="bulkProgressPercent" style="font-weight: 800; font-size: 0.85rem; color: var(--text-color);">
+                        <span id="bulkProgressPercent"
+                            style="font-weight: 800; font-size: 0.85rem; color: var(--text-color);">
                             0%
                         </span>
                     </div>
-                    <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
+                    <div
+                        style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden;">
                         <div id="bulkProgressBar"
-                            style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.25s ease; border-radius: 10px;"></div>
+                            style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.25s ease; border-radius: 10px;">
+                        </div>
                     </div>
-                    <div id="bulkProgressDetail" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; text-align: right;">
+                    <div id="bulkProgressDetail"
+                        style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; text-align: right;">
                         0 dari 0 foto selesai
                     </div>
                 </div>
 
                 {{-- Loading Spinner State --}}
-                <div id="bulkLoadingSpinner" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+                <div id="bulkLoadingSpinner"
+                    style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
                     <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.6rem; color: var(--primary);"></i>
                     <div style="margin-top: 8px; font-size: 0.86rem;">Memuat daftar peserta didik rombel...</div>
                 </div>
 
                 {{-- Empty State (Belum Pilih Rombel) --}}
                 <div id="bulkEmptyState" style="text-align: center; padding: 50px 20px; color: var(--text-muted);">
-                    <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; opacity: 0.45; margin-bottom: 12px;">
+                    <div
+                        style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); display: inline-flex; align-items: center; justify-content: center; font-size: 1.6rem; opacity: 0.45; margin-bottom: 12px;">
                         <i class="fas fa-chalkboard-user"></i>
                     </div>
-                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Pilih Rombel Kelas Terlebih Dahulu</h4>
-                    <p style="font-size: 0.78rem; max-width: 420px; margin: 0 auto;">Pilih rombel kelas pada pilihan di atas untuk menampilkan daftar peserta didik dan mencocokkan foto masal sekaligus.</p>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Pilih
+                        Rombel Kelas Terlebih Dahulu</h4>
+                    <p style="font-size: 0.78rem; max-width: 420px; margin: 0 auto;">Pilih rombel kelas pada pilihan di
+                        atas untuk menampilkan daftar peserta didik dan mencocokkan foto masal sekaligus.</p>
                 </div>
 
                 {{-- STEP 3: Tabel Peserta Didik Rombel & Pemetaan Berkas Foto --}}
                 <div id="bulkTableWrapper" style="display: none; overflow-x: auto;">
-                    <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 0;">
+                    <table class="table"
+                        style="width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 0;">
                         <thead>
                             <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
-                                <th style="padding: 10px 12px; width: 45px; text-align: center; color: var(--text-muted);">No</th>
-                                <th style="padding: 10px 12px; width: 60px; text-align: center; color: var(--text-muted);">Foto Lama</th>
+                                <th style="padding: 10px 12px; width: 45px; text-align: center; color: var(--text-muted);">
+                                    No</th>
+                                <th style="padding: 10px 12px; width: 60px; text-align: center; color: var(--text-muted);">
+                                    Foto Lama</th>
                                 <th style="padding: 10px 12px; color: var(--text-muted);">Nama Lengkap &amp; NISN</th>
-                                <th style="padding: 10px 12px; color: var(--text-muted); width: 220px;">Berkas Foto Baru</th>
-                                <th style="padding: 10px 12px; width: 90px; text-align: center; color: var(--text-muted);">Pratinjau</th>
-                                <th style="padding: 10px 12px; width: 120px; text-align: center; color: var(--text-muted);">Status</th>
-                                <th style="padding: 10px 12px; width: 60px; text-align: right; color: var(--text-muted);">Aksi</th>
+                                <th style="padding: 10px 12px; color: var(--text-muted); width: 220px;">Berkas Foto Baru
+                                </th>
+                                <th style="padding: 10px 12px; width: 90px; text-align: center; color: var(--text-muted);">
+                                    Pratinjau</th>
+                                <th
+                                    style="padding: 10px 12px; width: 120px; text-align: center; color: var(--text-muted);">
+                                    Status</th>
+                                <th style="padding: 10px 12px; width: 60px; text-align: right; color: var(--text-muted);">
+                                    Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="bulkStudentsTableBody"></tbody>
@@ -800,8 +857,9 @@
                 </button>
 
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <button type="button" id="btnStartBulkUpload" onclick="executeBulkUploadQueue()" class="btn btn-primary"
-                        disabled style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                    <button type="button" id="btnStartBulkUpload" onclick="executeBulkUploadQueue()"
+                        class="btn btn-primary" disabled
+                        style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-cloud-arrow-up"></i>
                         <span id="btnStartBulkUploadText">Mulai Unggah &amp; Kompresi Masal (0 Foto)</span>
                     </button>

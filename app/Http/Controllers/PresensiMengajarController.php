@@ -61,6 +61,7 @@ class PresensiMengajarController extends Controller
 
         $hariIni = $this->getIndoDayName();
         $tanggalHariIni = Carbon::today()->toDateString();
+        $statusHariIni = KalenderPendidikan::getStatusHari($tanggalHariIni, 'gtk');
 
         // 1. Ambil Jadwal Mengajar Hari Ini untuk Widget Cepat Guru (Kecualikan PKL karena presensi via ePKL)
         $jadwalHariIniQuery = JadwalKbm::query()
@@ -72,7 +73,9 @@ class PresensiMengajarController extends Controller
             $jadwalHariIniQuery->where('ptk_id', $ptkId);
         }
 
-        $jadwalHariIni = $jadwalHariIniQuery->orderBy('jam_ke_mulai', 'asc')->get();
+        $jadwalHariIni = ($statusHariIni['mode'] ?? null) === 'libur'
+            ? collect()
+            : $jadwalHariIniQuery->orderBy('jam_ke_mulai', 'asc')->get();
 
         // Cari presensi yang sudah dicatat hari ini
         $presensiHariIniKeyed = PresensiMengajar::where('tanggal', $tanggalHariIni)
@@ -154,7 +157,6 @@ class PresensiMengajarController extends Controller
         $hebBulanIni = KalenderPendidikan::hitungHariEfektif($currentMonthStart, $currentMonthEnd, 'gtk');
         $hebBulanBerjalan = KalenderPendidikan::hitungHariEfektifBerjalan($currentMonthStart, $currentMonthEnd, now()->toDateString(), 'gtk');
 
-        $statusHariIni = KalenderPendidikan::getStatusHari($tanggalHariIni, 'gtk');
         $agendaHariIni = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $tanggalHariIni)
             ->whereDate('tanggal_selesai', '>=', $tanggalHariIni)
             ->first();
@@ -166,7 +168,7 @@ class PresensiMengajarController extends Controller
             'total_inval'          => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->whereIn('status', ['T', 'D'])->count(),
             'total_jp'             => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->sum('total_jp'),
             'hari_efektif'         => $hebBulanIni,
-            'hari_efektif_berjalan'=> $hebBulanBerjalan,
+            'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];
 
         // 4. Data Master untuk Dropdown Modal & Filter (Kecualikan PKL untuk guru)
@@ -215,7 +217,11 @@ class PresensiMengajarController extends Controller
         // Jika request asinkron AJAX (Live Search / Filter / Sorting Table)
         if ($request->ajax() && $request->has('ajax_table')) {
             return view('dashboard.presensi-mengajar-table', compact(
-                'items', 'canUpdate', 'canDelete', 'sort', 'sortDir'
+                'items',
+                'canUpdate',
+                'canDelete',
+                'sort',
+                'sortDir'
             ));
         }
 
@@ -305,6 +311,16 @@ class PresensiMengajarController extends Controller
         $finalPtkId = ($isGuru && $sessionPtkId) ? $sessionPtkId : ($validated['ptk_id'] ?? $sessionPtkId);
         if (!$finalPtkId) {
             return back()->with('error', 'PTK / Guru pengampu KBM tidak valid atau belum terikat.');
+        }
+
+        $statusKalender = KalenderPendidikan::getStatusHari($validated['tanggal'], 'gtk');
+        if (($statusKalender['mode'] ?? null) === 'libur') {
+            $namaAgenda = $statusKalender['nama_agenda'] ?? ($statusKalender['agenda']?->nama_kegiatan ?? 'Kalender Pendidikan');
+            $msg = "Hari ini libur guru ({$namaAgenda}). Presensi mengajar tidak dapat dicatat.";
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+            return back()->with('error', $msg);
         }
 
         // Sinkronkan jam & jadwal KBM jika jadwal_kbm_id disertakan

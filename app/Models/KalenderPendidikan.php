@@ -73,21 +73,39 @@ class KalenderPendidikan extends Model
     }
 
     /**
-     * Cek apakah suatu tanggal adalah hari libur untuk role tertentu (pd, guru, tendik)
+     * Accessor nama agenda / nama kegiatan
+     */
+    public function getNamaAgendaAttribute(): string
+    {
+        return $this->attributes['nama_kegiatan'] ?? ($this->attributes['nama_agenda'] ?? '');
+    }
+
+    /**
+     * Cek apakah suatu tanggal adalah hari libur untuk role tertentu (pd, guru, tendik, all)
      */
     public static function isLibur(string $date, string $role = 'pd'): bool
     {
         $column = match (strtolower($role)) {
-            'guru' => 'libur_guru',
+            'guru', 'gtk' => 'libur_guru',
             'tendik' => 'libur_tendik',
+            'all', 'semua' => null,
             default => 'libur_pd',
         };
 
         return static::where('tanggal_mulai', '<=', $date)
             ->where('tanggal_selesai', '>=', $date)
             ->where(function ($q) use ($column) {
-                $q->where($column, true)
-                    ->orWhere('mode_presensi', 'libur');
+                if ($column) {
+                    $q->where($column, true)
+                      ->orWhere('mode_presensi', 'libur')
+                      ->orWhere('tipe', 'like', '%libur%');
+                } else {
+                    $q->where('libur_pd', true)
+                      ->orWhere('libur_guru', true)
+                      ->orWhere('libur_tendik', true)
+                      ->orWhere('mode_presensi', 'libur')
+                      ->orWhere('tipe', 'like', '%libur%');
+                }
             })
             ->exists();
     }
@@ -111,7 +129,45 @@ class KalenderPendidikan extends Model
      */
     public static function getStatusHari(string $date, string $role = 'pd'): array
     {
-        // 1. Cek agenda aktif pada tanggal tersebut
+        // 1. Cek apakah ada agenda libur pada tanggal tersebut
+        $liburAgenda = static::where('tanggal_mulai', '<=', $date)
+            ->where('tanggal_selesai', '>=', $date)
+            ->where(function ($q) use ($role) {
+                $column = match (strtolower($role)) {
+                    'guru', 'gtk' => 'libur_guru',
+                    'tendik' => 'libur_tendik',
+                    'all', 'semua' => null,
+                    default => 'libur_pd',
+                };
+                if ($column) {
+                    $q->where($column, true)
+                      ->orWhere('mode_presensi', 'libur')
+                      ->orWhere('tipe', 'like', '%libur%');
+                } else {
+                    $q->where('libur_pd', true)
+                      ->orWhere('libur_guru', true)
+                      ->orWhere('libur_tendik', true)
+                      ->orWhere('mode_presensi', 'libur')
+                      ->orWhere('tipe', 'like', '%libur%');
+                }
+            })
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($liburAgenda) {
+            $namaKeg = $liburAgenda->nama_kegiatan ?: ($liburAgenda->nama_agenda ?: 'Hari Libur');
+            return [
+                'mode'        => 'libur',
+                'is_libur'    => true,
+                'label'       => 'Hari Libur Sekolah',
+                'badge'       => self::MODE_PRESENSI_BADGES['libur'] ?? '<span class="badge badge-danger"><i class="fas fa-umbrella-beach me-1"></i> Libur</span>',
+                'agenda'      => $liburAgenda,
+                'nama_agenda' => $namaKeg,
+                'keterangan'  => $liburAgenda->keterangan ?: 'Libur Sekolah / KBM Reguler Ditiadakan',
+            ];
+        }
+
+        // 2. Ambil agenda umum lainnya jika ada
         $agenda = static::where('tanggal_mulai', '<=', $date)
             ->where('tanggal_selesai', '>=', $date)
             ->orderBy('id', 'desc')
@@ -119,45 +175,38 @@ class KalenderPendidikan extends Model
 
         if (!$agenda) {
             return [
-                'mode' => 'luring',
-                'label' => 'Hari Efektif (Luring)',
-                'badge' => self::MODE_PRESENSI_BADGES['luring'],
-                'agenda' => null,
-            ];
-        }
-
-        // 2. Evaluasi apakah libur
-        $liburCol = match (strtolower($role)) {
-            'guru' => $agenda->libur_guru,
-            'tendik' => $agenda->libur_tendik,
-            default => $agenda->libur_pd,
-        };
-
-        if ($liburCol || $agenda->mode_presensi === 'libur') {
-            return [
-                'mode' => 'libur',
-                'label' => 'Hari Libur Sekolah',
-                'badge' => self::MODE_PRESENSI_BADGES['libur'],
-                'agenda' => $agenda,
+                'mode'        => 'luring',
+                'is_libur'    => false,
+                'label'       => 'Hari Efektif (Luring)',
+                'badge'       => self::MODE_PRESENSI_BADGES['luring'] ?? '<span class="badge badge-success"><i class="fas fa-school me-1"></i> Luring</span>',
+                'agenda'      => null,
+                'nama_agenda' => null,
+                'keterangan'  => null,
             ];
         }
 
         // 3. Evaluasi apakah daring
         if ($agenda->mode_presensi === 'daring' || $agenda->tipe === 'pembelajaran_daring') {
             return [
-                'mode' => 'daring',
-                'label' => 'Pembelajaran Daring (PJJ)',
-                'badge' => self::MODE_PRESENSI_BADGES['daring'],
-                'agenda' => $agenda,
+                'mode'        => 'daring',
+                'is_libur'    => false,
+                'label'       => 'Pembelajaran Daring (PJJ)',
+                'badge'       => self::MODE_PRESENSI_BADGES['daring'] ?? '<span class="badge badge-info"><i class="fas fa-laptop-code me-1"></i> Daring (PJJ)</span>',
+                'agenda'      => $agenda,
+                'nama_agenda' => $agenda->nama_kegiatan ?: ($agenda->nama_agenda ?: ''),
+                'keterangan'  => $agenda->keterangan ?? null,
             ];
         }
 
-        // 4. Default: Luring
+        // 4. Default: Luring dengan Agenda Khusus
         return [
-            'mode' => 'luring',
-            'label' => 'Hari Efektif (Luring)',
-            'badge' => self::MODE_PRESENSI_BADGES['luring'],
-            'agenda' => $agenda,
+            'mode'        => 'luring',
+            'is_libur'    => false,
+            'label'       => 'Hari Efektif (Luring)',
+            'badge'       => self::MODE_PRESENSI_BADGES['luring'] ?? '<span class="badge badge-success"><i class="fas fa-school me-1"></i> Luring</span>',
+            'agenda'      => $agenda,
+            'nama_agenda' => $agenda->nama_kegiatan ?: ($agenda->nama_agenda ?: ''),
+            'keterangan'  => $agenda->keterangan ?? null,
         ];
     }
 

@@ -143,7 +143,7 @@ class DashboardController extends Controller
             'total_peserta_didik'   => $totalPdDiampu ?: 175,
             'presensi_masuk'        => '06:45 WIB',
             'status_presensi'       => 'Hadir Tepat Waktu',
-            'hari_efektif_bulan_ini'=> $hebBulanIni,
+            'hari_efektif_bulan_ini' => $hebBulanIni,
             'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];
 
@@ -154,7 +154,7 @@ class DashboardController extends Controller
         $jadwal_hari_ini = [];
         $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false);
 
-        if (Schema::hasTable('jadwal_kbm')) {
+        if (!$isLiburHariIni && Schema::hasTable('jadwal_kbm')) {
             $jadwalRiil = \App\Models\JadwalKbm::where('is_active', true)
                 ->where('hari', $hariIni)
                 ->when($gtk, fn($q) => $q->where('ptk_id', $gtk->ptk_id))
@@ -174,14 +174,14 @@ class DashboardController extends Controller
                         'kelas'  => $rombelNama,
                         'mapel'  => $j->nama_mata_pelajaran ?: 'Mata Pelajaran',
                         'ruang'  => $j->ruangan ?: 'Ruang Kelas',
-                        'status' => $isLiburHariIni ? 'Libur KBM' : 'Terjadwal'
+                        'status' => 'Terjadwal'
                     ];
                 }
             }
         }
 
         // Fallback jika belum ada jadwal KBM tersimpan
-        if (empty($jadwal_hari_ini)) {
+        if (!$isLiburHariIni && empty($jadwal_hari_ini)) {
             if ($pembelajaran->isNotEmpty()) {
                 foreach ($pembelajaran as $idx => $pem) {
                     $jadwal_hari_ini[] = [
@@ -189,7 +189,7 @@ class DashboardController extends Controller
                         'kelas'  => $pem->nama_rombel ?: 'Rombel',
                         'mapel'  => $pem->nama_mata_pelajaran ?: 'Mata Pelajaran',
                         'ruang'  => $pem->ruang ?: 'Ruang Kelas',
-                        'status' => $isLiburHariIni ? 'Libur KBM' : ($idx === 0 ? 'Berlangsung' : 'Mendatang')
+                        'status' => $idx === 0 ? 'Berlangsung' : 'Mendatang'
                     ];
                 }
             }
@@ -280,6 +280,7 @@ class DashboardController extends Controller
             $izinCount = $riwayatBulanIni->where('status', 'I')->count();
             $sakitCount = $riwayatBulanIni->where('status', 'S')->count();
             $dispenCount = $riwayatBulanIni->where('status', 'D')->count();
+            $alpaCount = $riwayatBulanIni->where('status', 'A')->count();
             $totalSesi = $riwayatBulanIni->count();
             $totalKehadiran = $hadirCount + $dispenCount;
 
