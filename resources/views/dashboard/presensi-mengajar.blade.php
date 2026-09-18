@@ -3,11 +3,120 @@
 @section('title', 'Presensi Mengajar — SAE')
 @section('dash_title', 'Presensi Mengajar')
 
+@push('styles')
+    <style>
+        #modalFormPresensi .modal-card-responsive {
+            max-width: 540px !important;
+            padding: 14px !important;
+            border-radius: 12px !important;
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        #modalFormPresensi.pm-keyboard-open {
+            align-items: flex-start !important;
+            overflow-y: auto !important;
+            touch-action: pan-y !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #modalFormPresensi.pm-keyboard-open .modal-card-responsive {
+            margin: 8px auto calc(var(--pm-keyboard-offset, 0px) + 16px) !important;
+            max-height: none !important;
+        }
+
+        #modalFormPresensi .pm-modal-head {
+            margin-bottom: 10px !important;
+            padding-bottom: 8px !important;
+        }
+
+        #modalFormPresensi .pm-field,
+        #modalFormPresensi .form-grid-2,
+        #modalFormPresensi .form-grid-3 {
+            margin-bottom: 8px !important;
+        }
+
+        #modalFormPresensi .form-grid-2,
+        #modalFormPresensi .form-grid-3 {
+            gap: 8px !important;
+        }
+
+        #modalFormPresensi label {
+            font-size: 0.72rem !important;
+            margin-bottom: 3px !important;
+        }
+
+        #modalFormPresensi input,
+        #modalFormPresensi select {
+            height: 32px !important;
+            font-size: 0.78rem !important;
+            border-radius: 7px !important;
+        }
+
+        #modalFormPresensi textarea {
+            min-height: 46px !important;
+            font-size: 0.78rem !important;
+            border-radius: 7px !important;
+        }
+
+        #modalFormPresensi #infoKalenderTanggalPresensi,
+        #modalFormPresensi #wrapWaktuKbm,
+        #modalFormPresensi #wrapGuruPengganti {
+            margin-bottom: 8px !important;
+            padding: 6px 9px !important;
+            font-size: 0.72rem !important;
+            border-radius: 7px !important;
+        }
+
+        #modalFormPresensi .status-pill-group {
+            display: flex !important;
+            gap: 4px !important;
+            padding: 4px !important;
+        }
+
+        #modalFormPresensi .status-pill-item {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 6px 3px !important;
+            font-size: 0.72rem !important;
+            gap: 3px !important;
+        }
+
+        #modalFormPresensi .pm-actions {
+            padding-top: 8px !important;
+        }
+
+        @media (max-width: 520px) {
+            #modalFormPresensi {
+                padding: 8px !important;
+            }
+
+            #modalFormPresensi .modal-card-responsive {
+                max-height: 94vh !important;
+                padding: 12px !important;
+            }
+
+            #modalFormPresensi .form-grid-2,
+            #modalFormPresensi .form-grid-3 {
+                grid-template-columns: 1fr !important;
+            }
+
+            #modalFormPresensi .pm-grid-jam,
+            #modalFormPresensi .pm-grid-waktu {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+    </style>
+@endpush
+
 @section('content')
     <!-- 1. Header Banner & Actions -->
-    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
+    <div class="dash-banner"
+        style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+            <div
+                style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div>
@@ -21,7 +130,8 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.78rem; font-weight: 600; color: var(--text-color);">
+            <div
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.78rem; font-weight: 600; color: var(--text-color);">
                 <i class="fas fa-calendar-day text-primary"></i>
                 <span>{{ $hariIni }}, {{ \Carbon\Carbon::parse($tanggalHariIni)->translatedFormat('d M Y') }}</span>
             </div>
@@ -30,13 +140,15 @@
 
     <!-- 2. Flash Messages -->
     @if (session('success'))
-        <div style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+        <div
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
-        <div style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+        <div
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -49,7 +161,8 @@
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ number_format($stats['hari_efektif'] ?? 0) }} <span style="font-size: 0.72rem; font-weight: 500;">Hari</span></div>
+                <div class="dash-stat-value" style="color: #10b981;">{{ number_format($stats['hari_efektif'] ?? 0) }} <span
+                        style="font-size: 0.72rem; font-weight: 500;">Hari</span></div>
                 <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
         </div>
@@ -94,7 +207,8 @@
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_jp'] ?? 0) }} <span style="font-size: 0.72rem; font-weight: 500;">JP</span></div>
+                <div class="dash-stat-value">{{ number_format($stats['total_jp'] ?? 0) }} <span
+                        style="font-size: 0.72rem; font-weight: 500;">JP</span></div>
                 <div class="dash-stat-label">Beban JP</div>
             </div>
         </div>
@@ -105,23 +219,30 @@
     @endphp
     @if ($isHariLibur || !empty($agendaHariIni))
         <!-- Banner Peringatan / Info Kalender Pendidikan Hari Ini -->
-        <div class="card" style="padding: 12px 18px; margin-bottom: 20px; border-radius: 12px; border: 1px solid {{ $isHariLibur ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isHariLibur ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div class="card"
+            style="padding: 12px 18px; margin-bottom: 20px; border-radius: 12px; border: 1px solid {{ $isHariLibur ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isHariLibur ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 38px; height: 38px; border-radius: 10px; background: {{ $isHariLibur ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isHariLibur ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
-                    <i class="fas {{ $isHariLibur ? 'fa-umbrella-beach' : 'fa-calendar-star' }}"></i>
+                <div
+                    style="width: 38px; height: 38px; border-radius: 10px; background: {{ $isHariLibur ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isHariLibur ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                    <i class="fas {{ $isHariLibur ? 'fa-umbrella-beach' : 'fa-calendar-day' }}"></i>
                 </div>
                 <div>
                     <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
                         @if ($isHariLibur)
                             <span style="color: #ef4444;">Perhatian: Hari Ini Libur Sekolah</span>
-                            <span class="badge" style="background: #ef4444; color: #fff; font-size: 0.7rem; padding: 2px 7px; margin-left: 6px;">KBM Off</span>
+                            <span class="badge"
+                                style="background: #ef4444; color: #fff; font-size: 0.7rem; padding: 2px 7px; margin-left: 6px;">KBM
+                                Off</span>
                         @else
                             <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
                         @endif
                     </div>
                     <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
                         @if (!empty($agendaHariIni))
-                            <strong>{{ $agendaHariIni->nama_agenda }}</strong> @if($agendaHariIni->keterangan) &mdash; {{ $agendaHariIni->keterangan }} @endif
+                            <strong>{{ $agendaHariIni->nama_agenda }}</strong>
+                            @if ($agendaHariIni->keterangan)
+                                &mdash; {{ $agendaHariIni->keterangan }}
+                            @endif
                         @else
                             {{ $statusHariIni['keterangan'] ?? 'Kegiatan KBM reguler disesuaikan dengan kalender pendidikan.' }}
                         @endif
@@ -129,7 +250,8 @@
                 </div>
             </div>
             <div>
-                <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;">
+                <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline"
+                    style="padding: 6px 12px; font-size: 0.78rem;">
                     <i class="fas fa-calendar-alt me-1"></i> Detail Kalender
                 </a>
             </div>
@@ -137,10 +259,13 @@
     @endif
 
     <!-- 4. Quick Action Widget: Jadwal Mengajar Hari Ini -->
-    <div class="card card-widget-kbm" style="border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px; background: var(--bg-card); padding: 16px 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+    <div class="card card-widget-kbm"
+        style="border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px; background: var(--bg-card); padding: 16px 18px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+                <div
+                    style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
                     <i class="fas fa-calendar-day"></i>
                 </div>
                 <div>
@@ -149,27 +274,41 @@
                     </h3>
                 </div>
             </div>
-            <span class="badge" style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.75rem; padding: 3px 8px; font-weight: 700;">
+            <span class="badge"
+                style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.75rem; padding: 3px 8px; font-weight: 700;">
                 {{ count($jadwalHariIni) }} Sesi
             </span>
         </div>
 
-        @if (count($jadwalHariIni) > 0)
+        @if ($isHariLibur)
+            <div
+                style="text-align: center; padding: 22px 14px; background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.25); border-radius: 10px; color: var(--text-muted); font-size: 0.84rem;">
+                <i class="fas fa-umbrella-beach" style="font-size: 2rem; color: #ef4444; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                <strong style="color: #ef4444; font-size: 0.92rem; display: block; margin-bottom: 2px;">Hari Ini Libur Sekolah — KBM Reguler Ditiadakan</strong>
+                <span>Sesuai Kalender Pendidikan, Anda tidak memiliki jadwal mengajar aktif untuk hari ini.</span>
+            </div>
+        @elseif (count($jadwalHariIni) > 0)
             <div class="card-kbm-today-grid">
                 @foreach ($jadwalHariIni as $j)
                     @php
                         $key = 'jadwal_' . $j->id;
                         $presensiToday = $presensiHariIniKeyed[$key] ?? null;
-                        $rombelNama = \Illuminate\Support\Facades\DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
+                        $rombelNama =
+                            \Illuminate\Support\Facades\DB::table('rombongan_belajar')
+                                ->where('rombongan_belajar_id', $j->rombongan_belajar_id)
+                                ->value('nama') ?? $j->rombongan_belajar_id;
                     @endphp
                     <div class="today-kbm-item {{ $presensiToday ? 'done' : '' }}">
                         <div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 6px; width: 100%;">
-                                <span class="badge badge-primary" style="font-size: 0.74rem; font-weight: 700; padding: 2px 7px; flex-shrink: 0;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 6px; width: 100%;">
+                                <span class="badge badge-primary"
+                                    style="font-size: 0.74rem; font-weight: 700; padding: 2px 7px; flex-shrink: 0;">
                                     <i class="fas fa-chalkboard me-1"></i>{{ $rombelNama }}
                                 </span>
                                 <span class="badge-jam">
-                                    <i class="far fa-clock me-1"></i>Jam {{ $j->jam_ke_mulai }}-{{ $j->jam_ke_selesai }} ({{ $j->durasi_jp }} JP)
+                                    <i class="far fa-clock me-1"></i>Jam {{ $j->jam_ke_mulai }}-{{ $j->jam_ke_selesai }}
+                                    ({{ $j->durasi_jp }} JP)
                                 </span>
                             </div>
 
@@ -177,7 +316,8 @@
                                 {{ $j->nama_mata_pelajaran }}
                             </div>
 
-                            <div style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                            <div
+                                style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px;">
                                 <span><i class="far fa-clock me-1"></i>{{ $j->jam_waktu_range }}</span>
                                 @if ($j->ruangan)
                                     <span><i class="fas fa-location-dot me-1"></i>{{ $j->ruangan }}</span>
@@ -185,7 +325,8 @@
                             </div>
                         </div>
 
-                        <div style="border-top: 1px solid var(--border-color); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;">
+                        <div
+                            style="border-top: 1px solid var(--border-color); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;">
                             @if ($presensiToday)
                                 <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
                                     {!! $presensiToday->status_badge !!}
@@ -193,11 +334,14 @@
                                         {{ substr($presensiToday->jam_masuk, 0, 5) }}
                                     </span>
                                 </div>
-                                <button type="button" class="btn btn-outline btn-sm btn-edit-row" data-id="{{ $presensiToday->id }}" title="Edit Presensi" style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px; flex-shrink: 0;">
+                                <button type="button" class="btn btn-outline btn-sm btn-edit-row"
+                                    data-id="{{ $presensiToday->id }}" title="Edit Presensi"
+                                    style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px; flex-shrink: 0;">
                                     <i class="fas fa-pen"></i>
                                 </button>
                             @else
-                                <span style="font-size: 0.74rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                                <span
+                                    style="font-size: 0.74rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
                                     <i class="fas fa-clock"></i> Belum
                                 </span>
                                 @if ($canCreate)
@@ -212,10 +356,8 @@
                                         data-jam-selesai="{{ $j->jam_ke_selesai }}"
                                         data-jam-masuk="{{ !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '' }}"
                                         data-jam-keluar="{{ !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '' }}"
-                                        data-jam-waktu="{{ $j->jam_waktu_range }}"
-                                        data-durasi-jp="{{ $j->durasi_jp }}"
-                                        data-hari="{{ $j->hari }}"
-                                        data-ptk-id="{{ $j->ptk_id }}"
+                                        data-jam-waktu="{{ $j->jam_waktu_range }}" data-durasi-jp="{{ $j->durasi_jp }}"
+                                        data-hari="{{ $j->hari }}" data-ptk-id="{{ $j->ptk_id }}"
                                         title="Presensi Sekarang"
                                         style="font-size: 0.76rem; padding: 5px 12px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
                                         <i class="fas fa-calendar-check"></i>
@@ -228,7 +370,8 @@
                 @endforeach
             </div>
         @else
-            <div style="text-align: center; padding: 18px 12px; background: var(--bg-hover); border-radius: 8px; color: var(--text-muted); font-size: 0.82rem;">
+            <div
+                style="text-align: center; padding: 18px 12px; background: var(--bg-hover); border-radius: 8px; color: var(--text-muted); font-size: 0.82rem;">
                 <i class="fas fa-coffee" style="font-size: 1.5rem; margin-bottom: 6px; display: block; opacity: 0.5;"></i>
                 Tidak ada jadwal KBM aktif untuk Anda pada hari {{ $hariIni }}.
             </div>
@@ -236,13 +379,16 @@
     </div>
 
     <!-- 5. Main Card Datatable Riwayat Presensi -->
-    <div class="card" style="padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+    <div class="card"
+        style="padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px;">
         <!-- Toolbar Filter & Search Responsif -->
-        <div class="toolbar-row" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+        <div class="toolbar-row"
+            style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 220px;">
                 <div class="live-search-wrap" style="width: 100%;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearchInput" placeholder="Cari mapel, kelas, catatan..." value="{{ request('q') }}" autocomplete="off">
+                    <input type="text" id="liveSearchInput" placeholder="Cari mapel, kelas, catatan..."
+                        value="{{ request('q') }}" autocomplete="off">
                     <button type="button" class="clear-search" title="Hapus pencarian">
                         <i class="fas fa-times"></i>
                     </button>
@@ -251,23 +397,28 @@
 
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <!-- Filter Tanggal -->
-                <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}" title="Tanggal Mulai" class="toolbar-filter-select"
+                <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}"
+                    title="Tanggal Mulai" class="toolbar-filter-select"
                     style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.78rem;">
-                <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}" title="Tanggal Selesai" class="toolbar-filter-select"
+                <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}"
+                    title="Tanggal Selesai" class="toolbar-filter-select"
                     style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.78rem;">
 
                 <!-- Filter Rombel -->
-                <select id="filterRombel" class="toolbar-filter-select" style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
+                <select id="filterRombel" class="toolbar-filter-select"
+                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
                     <option value="">Semua Kelas</option>
                     @foreach ($rombelList as $r)
-                        <option value="{{ $r->rombongan_belajar_id }}" {{ request('rombongan_belajar_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
+                        <option value="{{ $r->rombongan_belajar_id }}"
+                            {{ request('rombongan_belajar_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
                             {{ $r->nama }}
                         </option>
                     @endforeach
                 </select>
 
                 <!-- Filter Status -->
-                <select id="filterStatus" class="toolbar-filter-select" style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
+                <select id="filterStatus" class="toolbar-filter-select"
+                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
                     <option value="">Semua Status</option>
                     <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir</option>
                     <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
@@ -277,10 +428,12 @@
                 </select>
 
                 @if (!$isGuru && count($guruList) > 0)
-                    <select id="filterPtk" class="toolbar-filter-select" style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem; max-width: 150px;">
+                    <select id="filterPtk" class="toolbar-filter-select"
+                        style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem; max-width: 150px;">
                         <option value="">Semua Guru</option>
                         @foreach ($guruList as $g)
-                            <option value="{{ $g->ptk_id }}" {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
+                            <option value="{{ $g->ptk_id }}"
+                                {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
                                 {{ $g->nama }}
                             </option>
                         @endforeach
@@ -288,33 +441,41 @@
                 @endif
 
                 <!-- Per Page -->
-                <select id="perPageSelect" class="per-page-select" style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
+                <select id="perPageSelect" class="per-page-select"
+                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
                     <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
                     <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
                     <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
                     <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
                 </select>
 
-                <button type="button" id="btnResetFilter" class="btn btn-outline" title="Reset Filter" style="height: 36px; width: 36px; padding: 0; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
+                <button type="button" id="btnResetFilter" class="btn btn-outline" title="Reset Filter"
+                    style="height: 36px; width: 36px; padding: 0; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
                     <i class="fas fa-rotate-left"></i>
                 </button>
             </div>
         </div>
 
         <!-- Datatable Container Baku SAE -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 0; border: 1px solid var(--border-color); overflow: hidden; border-radius: 10px;">
+        <div class="card table-responsive-stack" id="tableDataContainer"
+            style="padding: 0; margin-bottom: 0; border: 1px solid var(--border-color); overflow: hidden; border-radius: 10px;">
             @include('dashboard.presensi-mengajar-table')
         </div>
     </div>
 
     <!-- 6. Modal Form Catat Presensi Mengajar (z-index: 99999 !important) -->
-    <div id="modalFormPresensi" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow-y: auto;">
-        <div class="card modal-card-responsive" style="max-width: 600px; width: 100%; max-height: 92vh; overflow-y: auto; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                <h3 id="modalPresensiTitle" style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+    <div id="modalFormPresensi" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow: hidden; overscroll-behavior: contain; touch-action: none;">
+        <div class="card modal-card-responsive"
+            style="max-width: 600px; width: 100%; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
+            <div class="pm-modal-head"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h3 id="modalPresensiTitle"
+                    style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-calendar-check text-primary"></i> Presensi Mengajar
                 </h3>
-                <button type="button" class="btn-close-modal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                <button type="button" class="btn-close-modal"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -328,38 +489,40 @@
                 <input type="hidden" id="inputPtkId" name="ptk_id" value="{{ $ptkId }}">
 
                 <!-- Selector Sumber Jadwal -->
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                <div class="pm-field" style="margin-bottom: 12px;">
+                    <label
+                        style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                         <i class="fas fa-calendar-days text-primary"></i> Pilih dari Jadwal Terdaftar
                     </label>
-                    <select id="selectJadwalKbm" style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                    <select id="selectJadwalKbm"
+                        style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                         <option value="">-- Pilih Jadwal KBM --</option>
                         @foreach ($jadwalList as $j)
-                            <option value="{{ $j['id'] }}"
-                                data-rombel-id="{{ $j['rombongan_belajar_id'] }}"
+                            <option value="{{ $j['id'] }}" data-rombel-id="{{ $j['rombongan_belajar_id'] }}"
                                 data-mapel="{{ $j['nama_mata_pelajaran'] }}"
                                 data-pembelajaran-id="{{ $j['pembelajaran_id'] }}"
-                                data-mapel-id="{{ $j['mata_pelajaran_id'] }}"
-                                data-hari="{{ $j['hari'] }}"
-                                data-jam-mulai="{{ $j['jam_ke_mulai'] }}"
-                                data-jam-selesai="{{ $j['jam_ke_selesai'] }}"
+                                data-mapel-id="{{ $j['mata_pelajaran_id'] }}" data-hari="{{ $j['hari'] }}"
+                                data-jam-mulai="{{ $j['jam_ke_mulai'] }}" data-jam-selesai="{{ $j['jam_ke_selesai'] }}"
                                 data-jam-masuk="{{ !empty($j['jam_mulai']) ? substr($j['jam_mulai'], 0, 5) : '' }}"
                                 data-jam-keluar="{{ !empty($j['jam_selesai']) ? substr($j['jam_selesai'], 0, 5) : '' }}"
                                 data-jam-waktu="{{ $j['jam_waktu_range'] ?? '' }}"
-                                data-durasi-jp="{{ $j['durasi_jp'] }}"
-                                data-ptk-id="{{ $j['ptk_id'] }}">
-                                [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }})
+                                data-durasi-jp="{{ $j['durasi_jp'] }}" data-ptk-id="{{ $j['ptk_id'] }}">
+                                [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam
+                                {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }})
                             </option>
                         @endforeach
                     </select>
                 </div>
 
                 <!-- Alert Info Kalender Pendidikan pada Tanggal Terpilih -->
-                <div id="infoKalenderTanggalPresensi" style="display: none; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem;"></div>
+                <div id="infoKalenderTanggalPresensi"
+                    style="display: none; margin-bottom: 12px; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem;">
+                </div>
 
                 <div class="form-grid-2">
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                        <label
+                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-chalkboard text-primary"></i> Kelas <span style="color: #ef4444;">*</span>
                         </label>
                         <select id="inputRombonganBelajarId" name="rombongan_belajar_id" required
@@ -372,24 +535,29 @@
                     </div>
 
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                        <label
+                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-book text-primary"></i> Mata Pelajaran <span style="color: #ef4444;">*</span>
                         </label>
-                        <input type="text" id="inputNamaMataPelajaran" name="nama_mata_pelajaran" required placeholder="Mata Pelajaran..."
+                        <input type="text" id="inputNamaMataPelajaran" name="nama_mata_pelajaran" required
+                            placeholder="Mata Pelajaran..."
                             style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                     </div>
                 </div>
 
-                <div class="form-grid-3">
+                <div class="form-grid-3 pm-grid-jam">
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                            <i class="fas fa-calendar-day text-primary"></i> Tanggal <span style="color: #ef4444;">*</span>
+                        <label
+                            style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <i class="fas fa-calendar-day text-primary"></i> Tanggal <span
+                                style="color: #ef4444;">*</span>
                         </label>
                         <input type="date" id="inputTanggal" name="tanggal" value="{{ $tanggalHariIni }}" required
                             style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                     </div>
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <label
+                            style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                             <span style="display: flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-play text-primary"></i> Jam Mulai
                             </span>
@@ -397,11 +565,13 @@
                                 <i class="fas fa-lock me-1"></i> Otomatis
                             </span>
                         </label>
-                        <input type="number" id="inputJamKeMulai" name="jam_ke_mulai" min="0" max="20" value="1" readonly required
+                        <input type="number" id="inputJamKeMulai" name="jam_ke_mulai" min="0" max="20"
+                            value="1" readonly required
                             style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                     </div>
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <label
+                            style="font-size: 0.74rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                             <span style="display: flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-stop text-primary"></i> Jam Selesai
                             </span>
@@ -409,24 +579,30 @@
                                 - JP
                             </span>
                         </label>
-                        <input type="number" id="inputJamKeSelesai" name="jam_ke_selesai" min="0" max="20" value="2" readonly required
+                        <input type="number" id="inputJamKeSelesai" name="jam_ke_selesai" min="0"
+                            max="20" value="2" readonly required
                             style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 700; box-sizing: border-box; cursor: not-allowed;">
                     </div>
                 </div>
 
                 <!-- Info Banner Waktu KBM Nyata dari Jadwal -->
-                <div id="wrapWaktuKbm" style="display: none; margin-bottom: 12px; margin-top: -4px; padding: 7px 12px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: 0.75rem; color: var(--text-color); justify-content: space-between; align-items: center;">
+                <div id="wrapWaktuKbm"
+                    style="display: none; margin-bottom: 12px; margin-top: -4px; padding: 7px 12px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); font-size: 0.75rem; color: var(--text-color); justify-content: space-between; align-items: center;">
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <i class="far fa-clock text-primary"></i>
-                        <span>Waktu Sesuai Jadwal: <strong id="textWaktuKbm" style="color: var(--primary);">-</strong></span>
+                        <span>Waktu Sesuai Jadwal: <strong id="textWaktuKbm"
+                                style="color: var(--primary);">-</strong></span>
                     </div>
-                    <span id="badgeHariJadwal" class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.7rem; padding: 2px 7px; font-weight: 600;">-</span>
+                    <span id="badgeHariJadwal" class="badge"
+                        style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.7rem; padding: 2px 7px; font-weight: 600;">-</span>
                 </div>
 
                 <!-- Pilihan Status Kehadiran (Segmented Pill Buttons Touch-Friendly) -->
-                <div style="margin-bottom: 14px;">
-                    <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-                        <i class="fas fa-signal text-primary"></i> Status Kehadiran Guru <span style="color: #ef4444;">*</span>
+                <div class="pm-field" style="margin-bottom: 14px;">
+                    <label
+                        style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                        <i class="fas fa-signal text-primary"></i> Status Kehadiran Guru <span
+                            style="color: #ef4444;">*</span>
                     </label>
                     <div class="status-pill-group">
                         <label class="status-pill-item active" data-status="H">
@@ -458,18 +634,23 @@
                 </div>
 
                 <!-- Input Guru Pengganti (Muncul jika status Inval) -->
-                <div id="wrapGuruPengganti" style="display: none; margin-bottom: 12px; padding: 10px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px;">
-                    <label style="font-size: 0.78rem; font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                        <i class="fas fa-user-clock"></i> Nama Guru Pengganti (Inval) <span style="color: #ef4444;">*</span>
+                <div id="wrapGuruPengganti"
+                    style="display: none; margin-bottom: 12px; padding: 10px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: 8px;">
+                    <label
+                        style="font-size: 0.78rem; font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                        <i class="fas fa-user-clock"></i> Nama Guru Pengganti (Inval) <span
+                            style="color: #ef4444;">*</span>
                     </label>
-                    <input type="text" id="inputNamaGuruPengganti" name="nama_guru_pengganti" placeholder="Ketik nama guru pengganti..."
+                    <input type="text" id="inputNamaGuruPengganti" name="nama_guru_pengganti"
+                        placeholder="Ketik nama guru pengganti..."
                         style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                 </div>
 
                 <!-- Jam Masuk & Jam Selesai Sesuai Jadwal (Grid 2 Kolom) -->
-                <div class="form-grid-2" style="margin-bottom: 12px;">
+                <div class="form-grid-2 pm-grid-waktu" style="margin-bottom: 12px;">
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <label
+                            style="font-size: 0.74rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                             <span style="display: flex; align-items: center; gap: 4px;">
                                 <i class="far fa-clock text-primary"></i> Jam Masuk
                             </span>
@@ -481,7 +662,8 @@
                             style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 600; box-sizing: border-box;">
                     </div>
                     <div>
-                        <label style="font-size: 0.74rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <label
+                            style="font-size: 0.74rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
                             <span style="display: flex; align-items: center; gap: 4px;">
                                 <i class="far fa-clock text-primary"></i> Jam Selesai
                             </span>
@@ -494,19 +676,24 @@
                     </div>
                 </div>
 
-                <div style="margin-bottom: 16px;">
-                    <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                <div class="pm-field" style="margin-bottom: 16px;">
+                    <label
+                        style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                         <i class="fas fa-pen-fancy text-primary"></i> Catatan Sesi KBM
                     </label>
-                    <textarea id="inputKeterangan" name="keterangan" rows="2" placeholder="Catatan opsional KBM, topik bahasan, kendala teknis..."
+                    <textarea id="inputKeterangan" name="keterangan" rows="2"
+                        placeholder="Catatan opsional KBM, topik bahasan, kendala teknis..."
                         style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box; resize: vertical;"></textarea>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
-                    <button type="button" class="btn btn-outline btn-close-modal" style="padding: 7px 14px; font-size: 0.82rem; border-radius: 8px;">
+                <div class="pm-actions"
+                    style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                    <button type="button" class="btn btn-outline btn-close-modal"
+                        style="padding: 7px 14px; font-size: 0.82rem; border-radius: 8px;">
                         Batal
                     </button>
-                    <button type="submit" id="btnSavePresensi" class="btn btn-primary" style="padding: 7px 18px; font-size: 0.82rem; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981, #059669);">
+                    <button type="submit" id="btnSavePresensi" class="btn btn-primary"
+                        style="padding: 7px 18px; font-size: 0.82rem; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981, #059669);">
                         <i class="fas fa-check me-1"></i> Simpan
                     </button>
                 </div>
@@ -515,13 +702,18 @@
     </div>
 
     <!-- 7. Modal Detail Presensi Mengajar (z-index: 99999 !important) -->
-    <div id="modalDetailPresensi" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px;">
-        <div class="card modal-card-responsive" style="max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                <h3 style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+    <div id="modalDetailPresensi" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow: hidden; overscroll-behavior: contain; touch-action: none;">
+        <div class="card modal-card-responsive"
+            style="max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h3
+                    style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-circle-info text-primary"></i> Rincian Presensi
                 </h3>
-                <button type="button" class="btn-close-detail" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                <button type="button" class="btn-close-detail"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -530,8 +722,10 @@
                 <!-- Konten dinamis via JS -->
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 14px;">
-                <button type="button" class="btn btn-outline btn-close-detail" style="padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+            <div
+                style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 14px;">
+                <button type="button" class="btn btn-outline btn-close-detail"
+                    style="padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
                     Tutup
                 </button>
             </div>
@@ -541,4 +735,22 @@
 
 @push('scripts')
     <script src="{{ asset('js/presensi-mengajar.js') }}"></script>
+    <script>
+        (() => {
+            const modal = document.getElementById('modalFormPresensi');
+            if (!modal || !window.visualViewport) return;
+
+            const syncKeyboardSpace = () => {
+                const offset = Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport
+                    .offsetTop);
+                modal.classList.toggle('pm-keyboard-open', offset > 80);
+                modal.style.setProperty('--pm-keyboard-offset', `${offset}px`);
+            };
+
+            window.visualViewport.addEventListener('resize', syncKeyboardSpace);
+            window.visualViewport.addEventListener('scroll', syncKeyboardSpace);
+            modal.addEventListener('focusin', syncKeyboardSpace);
+            modal.addEventListener('focusout', () => setTimeout(syncKeyboardSpace, 200));
+        })();
+    </script>
 @endpush

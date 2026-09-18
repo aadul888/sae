@@ -20,14 +20,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Sidebar Submenu Accordion Handler (Level 1 & Nested Level 2)
+    // Standar SAE: Hanya membuka menu yang dibuka saat ini saja (Accordion Single-Open)
     document.querySelectorAll(".dash-nav-toggle").forEach((btn) => {
         btn.addEventListener("click", function (e) {
             e.preventDefault();
             const group = this.closest(".dash-nav-group");
-            if (group) {
-                const isOpen = group.classList.contains("open");
-                group.classList.toggle("open", !isOpen);
-            }
+            if (!group) return;
+
+            const isOpen = group.classList.contains("open");
+
+            // Tutup semua grup lain agar hanya menu yang dibuka saat ini saja yang terbuka
+            document.querySelectorAll(".dash-nav-group.open").forEach((otherGroup) => {
+                if (otherGroup !== group) {
+                    otherGroup.classList.remove("open");
+                }
+            });
+
+            group.classList.toggle("open", !isOpen);
         });
     });
 
@@ -36,12 +45,41 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             e.stopPropagation();
             const nestedGroup = this.closest(".dash-nav-nested-group");
-            if (nestedGroup) {
-                const isOpen = nestedGroup.classList.contains("open");
-                nestedGroup.classList.toggle("open", !isOpen);
+            if (!nestedGroup) return;
+
+            const isOpen = nestedGroup.classList.contains("open");
+
+            // Tutup sibling nested group di dalam grup induk yang sama
+            const parentGroup = nestedGroup.closest(".dash-nav-group");
+            if (parentGroup) {
+                parentGroup.querySelectorAll(".dash-nav-nested-group.open").forEach((otherNested) => {
+                    if (otherNested !== nestedGroup) {
+                        otherNested.classList.remove("open");
+                    }
+                });
             }
+
+            nestedGroup.classList.toggle("open", !isOpen);
         });
     });
+
+    // Inisialisasi awal pada DOMContentLoaded: Pastikan hanya grup aktif yang terbuka jika ada lebih dari 1 grup yang terbuka
+    const openGroups = document.querySelectorAll(".dash-nav-group.open");
+    if (openGroups.length > 1) {
+        const activeGroup = document.querySelector(".dash-nav-group.active-group");
+        if (activeGroup) {
+            openGroups.forEach((g) => {
+                if (g !== activeGroup) {
+                    g.classList.remove("open");
+                }
+            });
+        } else {
+            // Jika tidak ada active-group, pertahankan hanya yang pertama
+            openGroups.forEach((g, idx) => {
+                if (idx > 0) g.classList.remove("open");
+            });
+        }
+    }
 
     // Auto-scroll Active Segmented Tab into view on Mobile
     const tabContainers = document.querySelectorAll(

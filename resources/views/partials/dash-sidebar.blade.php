@@ -262,11 +262,16 @@
             @if ($hasMasterData)
                 @php
                     $isMasterDataActive =
-                        request()->routeIs('dashboard.kompetensi-keahlian*') ||
-                        request()->routeIs('dashboard.rombel*') ||
-                        request()->routeIs('dashboard.pembelajaran*') ||
-                        request()->routeIs('dashboard.jadwal-kbm*') ||
-                        request()->routeIs('dashboard.kalender-pendidikan*');
+                        request()->routeIs('dashboard.kompetensi-keahlian.*') ||
+                        request()->routeIs('dashboard.kompetensi-keahlian') ||
+                        request()->routeIs('dashboard.rombel.*') ||
+                        request()->routeIs('dashboard.rombel') ||
+                        request()->routeIs('dashboard.pembelajaran.*') ||
+                        request()->routeIs('dashboard.pembelajaran') ||
+                        request()->routeIs('dashboard.jadwal-kbm.*') ||
+                        request()->routeIs('dashboard.jadwal-kbm') ||
+                        request()->routeIs('dashboard.kalender-pendidikan.*') ||
+                        request()->routeIs('dashboard.kalender-pendidikan');
                 @endphp
                 <div class="dash-nav-group {{ $isMasterDataActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
@@ -492,9 +497,12 @@
                 $can('menu_agenda_kbm') ||
                 $can('menu_penilaian');
             $isAkademikActive =
-                request()->routeIs('dashboard.presensi-mengajar*') ||
-                request()->routeIs('dashboard.agenda-kbm*') ||
-                request()->routeIs('dashboard.penilaian*');
+                request()->routeIs('dashboard.presensi-mengajar.*') ||
+                request()->routeIs('dashboard.presensi-mengajar') ||
+                request()->routeIs('dashboard.agenda-kbm.*') ||
+                request()->routeIs('dashboard.agenda-kbm') ||
+                request()->routeIs('dashboard.penilaian.*') ||
+                request()->routeIs('dashboard.penilaian');
         @endphp
         @if ($hasAkademik)
             <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
@@ -540,9 +548,13 @@
                 $can('menu_agenda') ||
                 $can('menu_berkas_peserta_didik');
             $isAdministrasiTendikActive =
-                request()->routeIs('dashboard.buku-tamu*') ||
-                request()->routeIs('dashboard.inventaris*') ||
-                request()->routeIs('dashboard.agenda*');
+                request()->routeIs('dashboard.buku-tamu.*') ||
+                request()->routeIs('dashboard.buku-tamu') ||
+                request()->routeIs('dashboard.inventaris.*') ||
+                request()->routeIs('dashboard.inventaris') ||
+                request()->routeIs('dashboard.agenda-sekolah.*') ||
+                request()->routeIs('dashboard.agenda-sekolah') ||
+                (request()->routeIs('dashboard.agenda.*') && !request()->routeIs('dashboard.agenda-kbm.*'));
         @endphp
         @if ($hasAdministrasiTendik)
             <div class="dash-nav-group {{ $isAdministrasiTendikActive ? 'open active-group' : '' }}">
@@ -589,13 +601,19 @@
         @if ($hasPortalPesertaDidik)
             @php
                 $isPortalPesertaDidikActive =
-                    request()->routeIs('dashboard.peserta-didik.izin*') ||
-                    request()->routeIs('dashboard.peserta-didik.presensi*') ||
+                    request()->routeIs('dashboard.peserta-didik.izin.*') ||
+                    request()->routeIs('dashboard.peserta-didik.izin') ||
+                    request()->routeIs('dashboard.peserta-didik.presensi.*') ||
+                    request()->routeIs('dashboard.peserta-didik.presensi') ||
                     request()->routeIs('dashboard.presensi.riwayat-saya*') ||
-                    request()->routeIs('dashboard.riwayat-rfid*') ||
-                    request()->routeIs('dashboard.jadwal-pelajaran*') ||
-                    request()->routeIs('dashboard.rapor*') ||
-                    request()->routeIs('dashboard.validasi-berkas*');
+                    request()->routeIs('dashboard.riwayat-rfid.*') ||
+                    request()->routeIs('dashboard.riwayat-rfid') ||
+                    request()->routeIs('dashboard.jadwal-pelajaran.*') ||
+                    request()->routeIs('dashboard.jadwal-pelajaran') ||
+                    request()->routeIs('dashboard.rapor.*') ||
+                    request()->routeIs('dashboard.rapor') ||
+                    request()->routeIs('dashboard.validasi-berkas.*') ||
+                    request()->routeIs('dashboard.validasi-berkas');
             @endphp
             <div class="dash-nav-group {{ $isPortalPesertaDidikActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
@@ -653,7 +671,8 @@
                 $isWaliKelasActive =
                     request()->routeIs('dashboard.wali-kelas.peserta-didik-aktif*') ||
                     request()->routeIs('dashboard.wali-kelas.peserta-didik-tidak-aktif*') ||
-                    request()->routeIs('dashboard.wali-kelas.*');
+                    request()->routeIs('dashboard.wali-kelas.*') ||
+                    request()->routeIs('dashboard.wali-kelas');
             @endphp
             <div class="dash-nav-group {{ $isWaliKelasActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
@@ -704,17 +723,32 @@
 
             @php
                 $isLayananDigitalActive =
-                    request()->routeIs('dashboard.formulir*') ||
-                    request()->routeIs('dashboard.pengumuman*') ||
-                    request()->routeIs('dashboard.informasi*') ||
-                    request()->routeIs('dashboard.presensi*') ||
-                    request()->routeIs('dashboard.rfid*') ||
-                    request()->routeIs('dashboard.e-izin*') ||
-                    request()->routeIs('dashboard.poin*') ||
-                    request()->routeIs('dashboard.agenda*') ||
-                    request()->routeIs('dashboard.buku-tamu*') ||
-                    request()->routeIs('dashboard.inventaris*') ||
-                    request()->routeIs('dashboard.kelulusan*');
+                    request()->routeIs('dashboard.formulir.*') ||
+                    request()->routeIs('dashboard.formulir') ||
+                    request()->routeIs('dashboard.pengumuman.*') ||
+                    request()->routeIs('dashboard.pengumuman') ||
+                    request()->routeIs('dashboard.informasi.*') ||
+                    request()->routeIs('dashboard.informasi') ||
+                    (request()->routeIs('dashboard.presensi.*') &&
+                        !request()->routeIs('dashboard.presensi.riwayat-saya*') &&
+                        !request()->routeIs('dashboard.presensi.kelas*') &&
+                        !request()->routeIs('dashboard.presensi-mengajar.*') &&
+                        !request()->routeIs('dashboard.presensi-mengajar')) ||
+                    request()->routeIs('dashboard.rfid.*') ||
+                    request()->routeIs('dashboard.rfid') ||
+                    request()->routeIs('dashboard.e-izin.*') ||
+                    request()->routeIs('dashboard.e-izin') ||
+                    request()->routeIs('dashboard.poin.*') ||
+                    request()->routeIs('dashboard.poin') ||
+                    (request()->routeIs('dashboard.agenda.*') &&
+                        !request()->routeIs('dashboard.agenda-kbm.*') &&
+                        !request()->routeIs('dashboard.agenda-kbm')) ||
+                    request()->routeIs('dashboard.buku-tamu.*') ||
+                    request()->routeIs('dashboard.buku-tamu') ||
+                    request()->routeIs('dashboard.inventaris.*') ||
+                    request()->routeIs('dashboard.inventaris') ||
+                    request()->routeIs('dashboard.kelulusan.*') ||
+                    request()->routeIs('dashboard.kelulusan');
             @endphp
             <div class="dash-nav-group {{ $isLayananDigitalActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
@@ -751,7 +785,7 @@
 
                     @if ($can('menu_rfid'))
                         <a href="{{ route('dashboard.presensi.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi*') && !request()->routeIs('dashboard.presensi.kelas*') && !request()->routeIs('dashboard.presensi.riwayat-saya*') ? 'active' : '' }}">
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.*') && !request()->routeIs('dashboard.presensi.kelas*') && !request()->routeIs('dashboard.presensi.riwayat-saya*') && !request()->routeIs('dashboard.presensi-mengajar.*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card"></i></span>
                             <span class="nav-label">RFID &amp; Presensi</span>
                         </a>
@@ -809,10 +843,14 @@
             @if ($hasPengaturan)
                 @php
                     $isSistemGroupActive =
-                        request()->routeIs('dashboard.pengguna*') ||
-                        request()->routeIs('dashboard.hak-akses*') ||
-                        request()->routeIs('dashboard.identitas-sekolah*') ||
-                        request()->routeIs('dashboard.maintenance*');
+                        request()->routeIs('dashboard.pengguna.*') ||
+                        request()->routeIs('dashboard.pengguna') ||
+                        request()->routeIs('dashboard.hak-akses.*') ||
+                        request()->routeIs('dashboard.hak-akses') ||
+                        request()->routeIs('dashboard.identitas-sekolah.*') ||
+                        request()->routeIs('dashboard.identitas-sekolah') ||
+                        request()->routeIs('dashboard.maintenance.*') ||
+                        request()->routeIs('dashboard.maintenance');
                 @endphp
                 <div class="dash-nav-group {{ $isSistemGroupActive ? 'open active-group' : '' }}">
                     <button type="button" class="dash-nav-toggle">
