@@ -1158,9 +1158,14 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
                     <!-- Input Kode Akses -->
                     <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
-                        <label style="display: block; font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                            Kode Akses Terminal Kiosk:
-                        </label>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="font-size: 0.84rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                                Kode Akses Terminal Kiosk:
+                            </label>
+                            <span id="kodeAksesSavedBadge" class="badge badge-success" style="display: none; font-size: 0.72rem; padding: 3px 8px;">
+                                <i class="fas fa-circle-check me-1"></i> Tersimpan Otomatis
+                            </span>
+                        </div>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <div style="position: relative; flex: 1; min-width: 140px;">
                                 <input type="password" id="inputKodeAksesKiosk" name="kode_akses" value="{{ $pengaturan->kode_akses ?? 'SAE123' }}" class="form-control" style="width: 100%; font-family: monospace; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.1em; padding-right: 42px; text-transform: uppercase;" placeholder="SAE123" required autocomplete="off" spellcheck="false">
@@ -1168,18 +1173,15 @@
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <button type="button" id="btnSaveKodeAkses" class="btn btn-success" style="padding: 8px 14px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" title="Simpan kode akses baru">
-                                <i class="fas fa-save"></i> Simpan
-                            </button>
                             <button type="button" id="btnCopyKodeAkses" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" title="Salin kode akses ke clipboard">
                                 <i class="fas fa-copy"></i> Salin
                             </button>
                             <button type="button" id="btnGenerateRandomCode" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;" title="Buat kode acak baru & otomatis simpan">
-                                <i class="fas fa-dice"></i> Acak
+                                <i class="fas fa-dice"></i> Acak &amp; Simpan
                             </button>
                         </div>
                         <small style="color: var(--text-muted); font-size: 0.73rem; display: block; margin-top: 8px;">
-                            Ketik kode akses khusus lalu klik <strong>Simpan</strong> (atau tekan <strong>Enter</strong>) agar tersimpan permanen. Berikan kode ini kepada petugas gerbang/satpam untuk membuka terminal.
+                            Klik <strong>Acak &amp; Simpan</strong> untuk membuat kode baru secara instan dan otomatis menyimpannya ke database. Berikan kode ini kepada petugas gerbang/satpam untuk membuka terminal.
                         </small>
                     </div>
 

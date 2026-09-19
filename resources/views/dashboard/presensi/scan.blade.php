@@ -195,26 +195,9 @@
                 </div>
             </div>
 
-            <!-- Scanner Input Bar dengan Fokus Kursor Aktif -->
-            <div class="kiosk-scanner-input-container">
-                <div class="kiosk-scanner-input-box focused" id="scannerInputBox">
-                    <i class="fas fa-barcode scanner-icon"></i>
-                    <input type="text" id="kioskScannerInput" class="kiosk-scanner-input"
-                        placeholder="Menunggu pemindaian... Tempelkan kartu RFID atau scan QR Code"
-                        autocomplete="off" spellcheck="false" autofocus>
-                    <div class="scanner-status-indicator" id="scannerStatusIndicator" title="Status Fokus Scanner">
-                        <span class="pulse-indicator"></span>
-                        <span class="status-label" id="scannerStatusLabel">KURSOR AKTIF</span>
-                    </div>
-                </div>
-                <div class="scanner-input-help">
-                    <span id="scannerFocusStatusText" class="focus-ok">
-                        <i class="fas fa-circle-dot me-1"></i> Scanner siap memindai
-                    </span>
-                    <span class="help-separator">•</span>
-                    <span class="help-hint">Klik/sentuh kotak di atas jika scanner belum merespon</span>
-                </div>
-            </div>
+            <!-- Hidden Focus Target for USB RFID & Barcode Reader (Caret hidden) -->
+            <input type="text" id="kioskScannerInput" class="kiosk-scanner-input-hidden"
+                autocomplete="off" spellcheck="false" inputmode="none" autofocus>
 
 
         </div>

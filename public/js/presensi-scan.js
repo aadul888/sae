@@ -463,72 +463,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 5. Global RFID / Barcode Scanner Listener (Hardware Keyboard Wedge & Bluetooth)
     const scannerInput = document.getElementById('kioskScannerInput');
-    const scannerInputBox = document.getElementById('scannerInputBox');
-    const scannerStatusIndicator = document.getElementById('scannerStatusIndicator');
-    const scannerStatusLabel = document.getElementById('scannerStatusLabel');
-    const scannerFocusStatusText = document.getElementById('scannerFocusStatusText');
+    const rfidBadge = document.getElementById('rfidStatusBadge');
 
     let scanBuffer = '';
     let keyTimestamps = [];
     let isProcessing = false;
 
-    function setScannerFocusUI(isFocused) {
-        if (scannerInputBox) {
-            scannerInputBox.classList.toggle('focused', isFocused);
-        }
-        if (scannerStatusIndicator) {
-            scannerStatusIndicator.classList.toggle('unfocused', !isFocused);
-        }
-        if (scannerStatusLabel) {
-            scannerStatusLabel.textContent = isFocused ? 'KURSOR AKTIF' : 'KLIK UNTUK FOKUS';
-        }
-        if (scannerFocusStatusText) {
-            if (isFocused) {
-                scannerFocusStatusText.className = 'focus-ok';
-                scannerFocusStatusText.innerHTML = '<i class="fas fa-circle-dot me-1"></i> Scanner siap memindai (Kursor Aktif)';
-            } else {
-                scannerFocusStatusText.className = 'focus-warn';
-                scannerFocusStatusText.innerHTML = '<i class="fas fa-hand-pointer me-1"></i> Klik kotak scanner untuk mengaktifkan kursor';
-            }
-        }
-    }
-
     function ensureFocus() {
         if (scannerInput && document.activeElement !== scannerInput) {
             const tag = document.activeElement ? document.activeElement.tagName : '';
             if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'SELECT') {
-                scannerInput.focus();
+                try {
+                    scannerInput.focus({ preventScroll: true });
+                } catch (e) {
+                    scannerInput.focus();
+                }
             }
         }
     }
 
     if (scannerInput) {
-        scannerInput.addEventListener('focus', function () {
-            setScannerFocusUI(true);
-        });
-
         scannerInput.addEventListener('blur', function () {
-            setScannerFocusUI(false);
-            // Kembalikan fokus otomatis setelah 250ms jika tidak sedang berinteraksi dengan tombol kontrol
+            // Segera kembalikan fokus otomatis agar input reader selalu tertangkap tanpa interupsi
             setTimeout(() => {
                 if (!isProcessing) {
                     ensureFocus();
                 }
-            }, 250);
+            }, 120);
         });
-
-        if (scannerInputBox) {
-            scannerInputBox.addEventListener('click', function () {
-                scannerInput.focus();
-            });
-        }
 
         scannerInput.addEventListener('input', function () {
             keyTimestamps.push(Date.now());
         });
     }
 
-    // Inisialisasi fokus awal
+    // Inisialisasi fokus otomatis sejak awal
     ensureFocus();
     document.addEventListener('click', function (e) {
         if (e.target.closest('button, a, select, .kiosk-mode-pill')) return;
@@ -574,20 +543,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                     speakGreeting('Input manual dinonaktifkan. Silakan tempelkan kartu pada pemindai.');
                 } else {
-                    if (scannerInputBox) scannerInputBox.classList.add('processing');
-                    if (scannerInput) scannerInput.value = rawIdentifier;
+                    if (rfidBadge) {
+                        rfidBadge.className = 'badge-status-icon status-ok';
+                        rfidBadge.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    }
                     processScanAttendance(rawIdentifier);
                 }
             }
 
-            if (scannerInput) {
-                setTimeout(() => {
-                    scannerInput.value = '';
-                    if (scannerInputBox) scannerInputBox.classList.remove('processing');
-                }, 400);
-            }
+            if (scannerInput) scannerInput.value = '';
             scanBuffer = '';
             keyTimestamps = [];
+            ensureFocus();
         } else if (e.key.length === 1) {
             // Bersihkan buffer jika jeda dengan karakter sebelumnya terlalu lama (> 350ms)
             if (keyTimestamps.length > 0 && (now - keyTimestamps[keyTimestamps.length - 1]) > 350) {
@@ -797,7 +764,11 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
                 isProcessing = false;
                 if (scannerInput) scannerInput.value = '';
-                if (scannerInputBox) scannerInputBox.classList.remove('processing');
+                if (rfidBadge) {
+                    rfidBadge.className = 'badge-status-icon status-ok';
+                    rfidBadge.innerHTML = '<i class="fas fa-wifi"></i>';
+                    rfidBadge.setAttribute('title', 'RFID Online (Siap Memindai)');
+                }
                 ensureFocus();
             }, 800);
         }

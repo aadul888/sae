@@ -502,15 +502,25 @@ document.addEventListener('DOMContentLoaded', function () {
                     inputKodeAkses.value = data.kode_akses;
                 }
 
+                // Tampilkan badge "Tersimpan Otomatis" di samping label
+                const savedBadge = document.getElementById('kodeAksesSavedBadge');
+                if (savedBadge) {
+                    savedBadge.style.display = 'inline-flex';
+                    savedBadge.innerHTML = '<i class="fas fa-circle-check me-1"></i> Tersimpan: ' + data.kode_akses;
+                    setTimeout(() => {
+                        savedBadge.style.display = 'none';
+                    }, 4000);
+                }
+
                 // Salin otomatis ke clipboard tanpa double alert (silent = true)
                 copyKodeAksesToClipboard(data.kode_akses, true);
 
                 // Notifikasi sukses
                 Swal.fire({
                     icon: 'success',
-                    title: 'Kode Akses Disimpan!',
-                    text: `Kode "${data.kode_akses}" berhasil disimpan permanen di database dan disalin ke clipboard.`,
-                    timer: 2500,
+                    title: 'Kode Akses Otomatis Tersimpan!',
+                    html: `Kode terminal berhasil diperbarui menjadi <b style="font-family: monospace; font-size: 1.25rem; color: #38bdf8; letter-spacing: 2px;">${data.kode_akses}</b> dan telah tersimpan otomatis ke database.`,
+                    timer: 3000,
                     showConfirmButton: false,
                     toast: true,
                     position: 'top-end'
@@ -528,7 +538,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 if (btnGenerateCode) {
                     btnGenerateCode.disabled = false;
-                    btnGenerateCode.innerHTML = '<i class="fas fa-dice"></i> Acak';
+                    btnGenerateCode.innerHTML = '<i class="fas fa-dice"></i> Acak &amp; Simpan';
                 }
             }
         }
