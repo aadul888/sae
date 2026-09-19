@@ -29,16 +29,15 @@ class PresensiMengajarController extends Controller
     private function getIndoDayName($date = null): string
     {
         $c = $date ? Carbon::parse($date) : Carbon::now();
-        $map = [
-            'Sunday'    => 'Minggu',
-            'Monday'    => 'Senin',
-            'Tuesday'   => 'Selasa',
-            'Wednesday' => 'Rabu',
-            'Thursday'  => 'Kamis',
-            'Friday'    => 'Jumat',
-            'Saturday'  => 'Sabtu',
-        ];
-        return $map[$c->format('l')] ?? 'Senin';
+        return match ($c->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        };
     }
 
     /**

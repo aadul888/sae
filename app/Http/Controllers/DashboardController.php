@@ -148,8 +148,15 @@ class DashboardController extends Controller
         ];
 
         // Ambil Jadwal KBM Riil Hari Ini dari Master Jadwal
-        $dayMap = ['Sunday' => 'Minggu', 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu'];
-        $hariIni = $dayMap[now()->format('l')] ?? 'Senin';
+        $hariIni = match (now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        };
 
         $jadwal_hari_ini = [];
         $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false);

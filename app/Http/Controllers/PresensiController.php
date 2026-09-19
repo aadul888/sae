@@ -416,6 +416,7 @@ class PresensiController extends Controller
         $statusHari = KalenderPendidikan::getStatusHari($today, 'pd');
         $isLibur = $statusHari['mode'] === 'libur';
         $agendaLibur = $statusHari['agenda'];
+        $isHariAktif = $pengaturan->isHariAktif(now());
 
         // Recent Scans (6 scan terakhir)
         $recentScans = DB::table('presensi_harian as ph')
@@ -456,6 +457,7 @@ class PresensiController extends Controller
                 'isLibur',
                 'agendaLibur',
                 'statusHari',
+                'isHariAktif',
                 'recentScans',
                 'schoolLat',
                 'schoolLon',

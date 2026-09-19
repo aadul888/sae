@@ -94,6 +94,16 @@
                 Terminal presensi tidak menerima pencatatan kehadiran pada hari libur resmi.
             </div>
         </div>
+    @elseif (!$isHariAktif)
+        <div class="card"
+            style="margin-bottom: 20px; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); padding: 14px 20px; text-align: center;">
+            <div style="font-weight: 800; font-size: 1rem; color: var(--warning);">
+                <i class="fas fa-calendar-minus me-2"></i> HARI NON-AKTIF BELAJAR: HARI {{ strtoupper(now()->translatedFormat('l')) }}
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                Hari ini tidak termasuk dalam jadwal hari aktif belajar sekolah. Terminal scanner dalam mode siaga.
+            </div>
+        </div>
     @elseif (isset($statusHari) && $statusHari['mode'] === 'daring')
         <div class="card"
             style="margin-bottom: 20px; border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.1); padding: 14px 20px; text-align: center;">
@@ -104,17 +114,6 @@
             <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
                 Hari ini kegiatan belajar mengajar dilaksanakan secara daring (PJJ). Terminal presensi gerbang sekolah
                 dinonaktifkan.
-            </div>
-        </div>
-    @elseif ($isLibur)
-        <div class="card"
-            style="margin-bottom: 20px; border-left: 4px solid var(--danger); background: rgba(239, 68, 68, 0.1); padding: 14px 20px; text-align: center;">
-            <div style="font-weight: 800; font-size: 1rem; color: var(--danger);">
-                <i class="fas fa-umbrella-beach me-2"></i> HARI LIBUR SEKOLAH:
-                {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Kalender Akademik' }}
-            </div>
-            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
-                Terminal presensi tidak menerima pencatatan kehadiran pada hari libur resmi.
             </div>
         </div>
     @endif
@@ -209,29 +208,76 @@
         <div style="display: flex; flex-direction: column; gap: 20px;">
             <!-- Jadwal Info Card -->
             <div class="card" style="padding: 18px; border-radius: 16px;">
-                <div
-                    style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
-                    <i class="fas fa-clock text-primary me-1"></i> Jadwal Operasional Hari Ini
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem;">
-                    <div
-                        style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <div style="color: var(--text-muted); font-size: 0.72rem;">Batas Masuk Tepat Waktu:</div>
-                        <div
-                            style="font-weight: 800; font-size: 1.05rem; color: var(--success); font-family: monospace;">
-                            {{ substr($pengaturan->jam_masuk_selesai, 0, 5) }} WIB
+                @if ($isLibur)
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--danger); text-transform: uppercase;">
+                            <i class="fas fa-umbrella-beach me-1"></i> Jadwal Operasional Hari Ini
+                        </div>
+                        <span class="badge badge-danger" style="font-size: 0.7rem; font-weight: 700;">LIBUR SEKOLAH</span>
+                    </div>
+                    <div style="background: rgba(239,68,68,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(239,68,68,0.3); text-align: center;">
+                        <div style="color: #ef4444; font-weight: 800; font-size: 0.95rem; margin-bottom: 3px;">
+                            <i class="fas fa-calendar-xmark me-1"></i> Tidak Beroperasi (Hari Libur)
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.76rem; line-height: 1.4;">
+                            {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Libur Kalender Akademik' }}. Jam presensi masuk dan pulang tidak berlaku hari ini.
                         </div>
                     </div>
+                @elseif (!$isHariAktif)
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--warning); text-transform: uppercase;">
+                            <i class="fas fa-clock text-warning me-1"></i> Jadwal Operasional Hari Ini
+                        </div>
+                        <span class="badge badge-warning" style="font-size: 0.7rem; font-weight: 700;">HARI NON-AKTIF</span>
+                    </div>
+                    <div style="background: rgba(245,158,11,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(245,158,11,0.3); text-align: center;">
+                        <div style="color: #f59e0b; font-weight: 800; font-size: 0.95rem; margin-bottom: 3px;">
+                            <i class="fas fa-calendar-minus me-1"></i> Tidak Beroperasi (Hari Non-Aktif)
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.76rem; line-height: 1.4;">
+                            Hari {{ now()->translatedFormat('l') }} tidak termasuk dalam jadwal hari aktif belajar sekolah.
+                        </div>
+                    </div>
+                @elseif (isset($statusHari) && $statusHari['mode'] === 'daring')
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div style="font-size: 0.8rem; font-weight: 700; color: #06b6d4; text-transform: uppercase;">
+                            <i class="fas fa-laptop-house text-accent me-1"></i> Jadwal Operasional Hari Ini
+                        </div>
+                        <span class="badge badge-primary" style="font-size: 0.7rem; font-weight: 700;">DARING (PJJ)</span>
+                    </div>
+                    <div style="background: rgba(6,182,212,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(6,182,212,0.3); text-align: center;">
+                        <div style="color: #06b6d4; font-weight: 800; font-size: 0.92rem; margin-bottom: 3px;">
+                            <i class="fas fa-house-laptop me-1"></i> Pembelajaran Daring (PJJ)
+                        </div>
+                        <div style="color: var(--text-muted); font-size: 0.76rem; line-height: 1.4;">
+                            {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Belajar di Rumah' }}. Presensi gerbang dialihkan.
+                        </div>
+                    </div>
+                @else
+                    <div
+                        style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px;">
+                        <i class="fas fa-clock text-primary me-1"></i> Jadwal Operasional Hari Ini
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem;">
+                        <div
+                            style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="color: var(--text-muted); font-size: 0.72rem;">Batas Masuk Tepat Waktu:</div>
+                            <div
+                                style="font-weight: 800; font-size: 1.05rem; color: var(--success); font-family: monospace;">
+                                {{ substr($pengaturan->jam_masuk_selesai, 0, 5) }} WIB
+                            </div>
+                        </div>
 
-                    <div
-                        style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <div style="color: var(--text-muted); font-size: 0.72rem;">Jam Buka Presensi Pulang:</div>
                         <div
-                            style="font-weight: 800; font-size: 1.05rem; color: var(--primary); font-family: monospace;">
-                            {{ substr($pengaturan->jam_pulang_mulai, 0, 5) }} WIB
+                            style="background: rgba(255,255,255,0.03); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color);">
+                            <div style="color: var(--text-muted); font-size: 0.72rem;">Jam Buka Presensi Pulang:</div>
+                            <div
+                                style="font-weight: 800; font-size: 1.05rem; color: var(--primary); font-family: monospace;">
+                                {{ substr($pengaturan->jam_pulang_mulai, 0, 5) }} WIB
+                            </div>
                         </div>
                     </div>
-                </div>
+                @endif
             </div>
 
             <!-- Lokasi & Radius Presensi Card -->
