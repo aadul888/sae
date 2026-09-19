@@ -179,9 +179,24 @@ class BackupService
             $fp = fopen($outputDir . '/01_Data_Peserta_Didik_Aktif.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, [
-                'No', 'Nama Lengkap', 'NISN', 'NIPD', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir',
-                'Agama', 'Tingkat', 'Rombel', 'Kurikulum', 'Nama Ayah', 'Nama Ibu', 'Nama Wali',
-                'No HP / Telepon', 'Email', 'Alamat Lengkap'
+                'No',
+                'Nama Lengkap',
+                'NISN',
+                'NIPD',
+                'NIK',
+                'Jenis Kelamin',
+                'Tempat Lahir',
+                'Tanggal Lahir',
+                'Agama',
+                'Tingkat',
+                'Rombel',
+                'Kurikulum',
+                'Nama Ayah',
+                'Nama Ibu',
+                'Nama Wali',
+                'No HP / Telepon',
+                'Email',
+                'Alamat Lengkap'
             ]);
 
             $no = 1;
@@ -217,8 +232,20 @@ class BackupService
             $fp = fopen($outputDir . '/02_Data_Alumni_Peserta_Didik_Tidak_Aktif.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, [
-                'No', 'Status', 'Tahun Kelulusan / Keluar', 'Tanggal Keluar', 'Nama Lengkap', 'NISN', 'NIPD', 'NIK',
-                'Jenis Kelamin', 'Rombel Terakhir', 'Tingkat Terakhir', 'Alasan Keluar', 'No HP', 'Alamat'
+                'No',
+                'Status',
+                'Tahun Kelulusan / Keluar',
+                'Tanggal Keluar',
+                'Nama Lengkap',
+                'NISN',
+                'NIPD',
+                'NIK',
+                'Jenis Kelamin',
+                'Rombel Terakhir',
+                'Tingkat Terakhir',
+                'Alasan Keluar',
+                'No HP',
+                'Alamat'
             ]);
 
             $no = 1;
@@ -250,8 +277,20 @@ class BackupService
             $fp = fopen($outputDir . '/03_Data_GTK_Guru_Tendik.csv', 'w');
             fwrite($fp, $bom);
             fputcsv($fp, [
-                'No', 'Nama Lengkap', 'Gelar Depan', 'Gelar Belakang', 'Jenis PTK', 'Status Kepegawaian',
-                'NUPTK', 'NIP', 'NIK', 'Jenis Kelamin', 'Tempat Lahir', 'Tanggal Lahir', 'No HP', 'Email'
+                'No',
+                'Nama Lengkap',
+                'Gelar Depan',
+                'Gelar Belakang',
+                'Jenis PTK',
+                'Status Kepegawaian',
+                'NUPTK',
+                'NIP',
+                'NIK',
+                'Jenis Kelamin',
+                'Tempat Lahir',
+                'Tanggal Lahir',
+                'No HP',
+                'Email'
             ]);
 
             $no = 1;
@@ -388,6 +427,7 @@ class BackupService
     {
         $counts = [
             'foto_peserta_didik' => 0,
+            'foto_gtk' => 0,
             'sekolah' => 0,
             'jurusan' => 0,
             'dokumen' => 0,
@@ -402,6 +442,18 @@ class BackupService
             foreach ($files as $f) {
                 File::copy($f->getRealPath(), $targetFoto . '/' . $f->getFilename());
                 $counts['foto_peserta_didik']++;
+            }
+        }
+
+        // 1b. Foto Guru & Tendik (GTK)
+        $fotoGtkDir = storage_path('app/public/assets/gtk/foto');
+        $targetFotoGtk = $outputDir . '/foto_gtk';
+        if (File::isDirectory($fotoGtkDir)) {
+            File::makeDirectory($targetFotoGtk, 0755, true, true);
+            $files = File::files($fotoGtkDir);
+            foreach ($files as $f) {
+                File::copy($f->getRealPath(), $targetFotoGtk . '/' . $f->getFilename());
+                $counts['foto_gtk']++;
             }
         }
 

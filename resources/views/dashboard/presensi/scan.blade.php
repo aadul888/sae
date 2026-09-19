@@ -162,12 +162,25 @@
                     <span id="cameraStatusBadge" class="badge-status-icon status-ok" title="Kamera Siap">
                         <i class="fas fa-video"></i>
                     </span>
+                    <button type="button" id="btnSwitchCamera" class="badge-status-icon btn-cam-switch" title="Ganti Kamera Depan / Belakang" style="display: none;">
+                        <i class="fas fa-camera-rotate"></i>
+                    </button>
                     <span id="rfidStatusBadge" class="badge-status-icon status-ok" title="RFID Online (Siap Memindai)">
                         <i class="fas fa-wifi"></i>
                     </span>
                     <span id="gpsStatusBadge" class="badge-status-icon status-warn" title="GPS: Menghubungkan...">
                         <i class="fas fa-location-crosshairs"></i>
                     </span>
+                </div>
+
+                <!-- Overlay Pesan Error/Izin Kamera -->
+                <div id="cameraNoticeOverlay" class="camera-notice-overlay" style="display: none;">
+                    <i id="cameraNoticeIcon" class="fas fa-video-slash" style="font-size: 2.2rem; margin-bottom: 10px; color: var(--danger);"></i>
+                    <div id="cameraNoticeTitle" style="font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; color: var(--text-color);">Kamera Tidak Aktif</div>
+                    <div id="cameraNoticeDesc" style="font-size: 0.78rem; max-width: 340px; color: var(--text-muted); line-height: 1.45;"></div>
+                    <button type="button" id="btnRetryCamera" class="btn btn-primary btn-sm" style="margin-top: 14px; padding: 6px 16px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-rotate-right"></i> <span>Coba Aktifkan Lagi</span>
+                    </button>
                 </div>
             </div>
 
@@ -359,6 +372,7 @@
 
     <!-- Vendor Scripts & Presensi Scan Logic -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <script src="{{ asset('vendor/jsqr/jsqr.min.js') }}"></script>
     <script
         src="{{ asset('js/sae.js') }}?v={{ file_exists(public_path('js/sae.js')) ? filemtime(public_path('js/sae.js')) : time() }}">
     </script>

@@ -17,6 +17,7 @@ class ImageOptimizerService
     public const ASSET_DIR_SEKOLAH = 'assets/sekolah';
     public const ASSET_DIR_FOTO_PESERTA_DIDIK = 'assets/peserta-didik/foto';
     public const ASSET_DIR_BERKAS_PESERTA_DIDIK = 'assets/peserta-didik/berkas';
+    public const ASSET_DIR_FOTO_GTK = 'assets/gtk/foto';
 
     // Alias kompatibilitas
     public const ASSET_DIR_FOTO_SISWA = self::ASSET_DIR_FOTO_PESERTA_DIDIK;
@@ -82,7 +83,10 @@ class ImageOptimizerService
             imagecopyresampled(
                 $destImage,
                 $srcImage,
-                0, 0, 0, 0,
+                0,
+                0,
+                0,
+                0,
                 $newWidth,
                 $newHeight,
                 $origWidth,

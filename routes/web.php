@@ -152,6 +152,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/profil', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile');
     Route::put('/profil/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::put('/profil/kontak', [\App\Http\Controllers\ProfileController::class, 'updateContact'])->name('profile.contact');
+    Route::post('/profil/foto', [\App\Http\Controllers\ProfileController::class, 'uploadFoto'])->name('profile.foto.upload');
+    Route::delete('/profil/foto', [\App\Http\Controllers\ProfileController::class, 'deleteFoto'])->name('profile.foto.delete');
 
     // Tarik Data Dapodik
     Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik')->middleware('permission:menu_dapodik');

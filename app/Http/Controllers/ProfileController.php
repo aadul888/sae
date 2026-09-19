@@ -79,7 +79,7 @@ class ProfileController extends Controller
                 'mapel' => $gtk->bidang_studi_terakhir ?? '-',
                 'sekolah' => $sekolah->nama ?? 'SMK Swasta Kristen Tagari Rantepao',
                 'npsn' => $sekolah->npsn ?? '40306164',
-                'foto_url' => session('user.foto_url'),
+                'foto_url' => $user->foto_url ?? session('user.foto_url'),
             ];
         } else {
             // Admin
@@ -88,7 +88,7 @@ class ProfileController extends Controller
                 'level' => 'Administrator Sistem',
                 'sekolah' => $sekolah->nama ?? 'SMK Swasta Kristen Tagari Rantepao',
                 'npsn' => $sekolah->npsn ?? '40306164',
-                'foto_url' => session('user.foto_url'),
+                'foto_url' => $user->foto_url ?? session('user.foto_url'),
             ];
         }
 
@@ -195,5 +195,187 @@ class ProfileController extends Controller
         }
 
         return back()->with('success', 'Informasi profil berhasil disimpan.');
+    }
+
+    /**
+     * Unggah pasfoto mandiri khusus Guru dan Tendik
+     */
+    public function uploadFoto(Request $request)
+    {
+        $sessionUser = session('user');
+        if (!$sessionUser) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sesi login telah berakhir. Silakan login kembali.',
+            ], 401);
+        }
+
+        $userId = is_array($sessionUser)
+            ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null))
+            : ($sessionUser->pengguna_id ?? null);
+
+        $user = User::where('pengguna_id', $userId)->first();
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pengguna tidak ditemukan.',
+            ], 404);
+        }
+
+        $role = $user->role;
+        if ($role !== 'guru' && $role !== 'tendik') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Fitur unggah foto mandiri ini khusus untuk Guru dan Tenaga Kependidikan (Tendik).',
+            ], 403);
+        }
+
+        $request->validate([
+            'foto' => 'required|file|mimes:png,jpg,jpeg|max:5120',
+        ], [
+            'foto.required' => 'Pilih file foto yang akan diunggah.',
+            'foto.file' => 'File tidak valid.',
+            'foto.mimes' => 'Format file wajib berupa gambar PNG, JPG, atau JPEG.',
+            'foto.max' => 'Ukuran file foto maksimal 5 MB.',
+        ]);
+
+        $uploadedFile = $request->file('foto');
+        $optimizer = new \App\Services\ImageOptimizerService();
+
+        try {
+            // Hapus file lama jika ada
+            if (!empty($user->foto_path)) {
+                $optimizer->deleteFile($user->foto_path);
+            }
+
+            $prefix = 'foto_gtk_' . ($user->username ?: preg_replace('/[^a-zA-Z0-9_-]/', '', $user->pengguna_id));
+
+            // Jika input adalah JPG/JPEG, konversikan sementara ke PNG di memori agar kompatibel dengan optimizer lossless PNG
+            $extension = strtolower($uploadedFile->getClientOriginalExtension());
+            if ($extension !== 'png') {
+                $sourcePath = $uploadedFile->getRealPath();
+                $srcImage = @imagecreatefromjpeg($sourcePath);
+                if (!$srcImage) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Gagal membaca file gambar JPG/JPEG yang diunggah.',
+                    ], 422);
+                }
+
+                $tempPngPath = tempnam(sys_get_temp_dir(), 'gtk_opt_') . '.png';
+                imagepng($srcImage, $tempPngPath, 9);
+                imagedestroy($srcImage);
+
+                $convertedFile = new \Illuminate\Http\UploadedFile(
+                    $tempPngPath,
+                    $uploadedFile->getClientOriginalName() . '.png',
+                    'image/png',
+                    null,
+                    true
+                );
+
+                $result = $optimizer->optimizeAndSavePng(
+                    $convertedFile,
+                    \App\Services\ImageOptimizerService::ASSET_DIR_FOTO_GTK,
+                    $prefix,
+                    1000
+                );
+
+                @unlink($tempPngPath);
+            } else {
+                $result = $optimizer->optimizeAndSavePng(
+                    $uploadedFile,
+                    \App\Services\ImageOptimizerService::ASSET_DIR_FOTO_GTK,
+                    $prefix,
+                    1000
+                );
+            }
+
+            $user->foto_path = $result['path'];
+            $user->save();
+
+            // Sinkronkan ke session aktif
+            $sess = session('user');
+            if (is_array($sess)) {
+                $sess['foto_path'] = $user->foto_path;
+                $sess['foto_url'] = $user->foto_url;
+                session(['user' => $sess]);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pasfoto berhasil diperbarui.',
+                'data' => [
+                    'foto_url' => $user->foto_url,
+                    'width' => $result['width'],
+                    'height' => $result['height'],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengunggah foto: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Hapus pasfoto mandiri khusus Guru dan Tendik
+     */
+    public function deleteFoto(Request $request)
+    {
+        $sessionUser = session('user');
+        if (!$sessionUser) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sesi login telah berakhir.',
+            ], 401);
+        }
+
+        $userId = is_array($sessionUser)
+            ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null))
+            : ($sessionUser->pengguna_id ?? null);
+
+        $user = User::where('pengguna_id', $userId)->first();
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Pengguna tidak ditemukan.',
+            ], 404);
+        }
+
+        $role = $user->role;
+        if ($role !== 'guru' && $role !== 'tendik') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Aksi ini khusus untuk Guru dan Tendik.',
+            ], 403);
+        }
+
+        if (empty($user->foto_path)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tidak ada foto profil yang dapat dihapus.',
+            ], 400);
+        }
+
+        $optimizer = new \App\Services\ImageOptimizerService();
+        $optimizer->deleteFile($user->foto_path);
+
+        $user->foto_path = null;
+        $user->save();
+
+        // Update session
+        $sess = session('user');
+        if (is_array($sess)) {
+            $sess['foto_path'] = null;
+            $sess['foto_url'] = null;
+            session(['user' => $sess]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Foto profil berhasil dihapus.',
+        ]);
     }
 }

@@ -30,6 +30,7 @@ class User extends Authenticatable
         'peran_id_str',
         'password',
         'alamat',
+        'foto_path',
         'no_telepon',
         'no_hp',
         'ptk_id',
@@ -60,11 +61,24 @@ class User extends Authenticatable
     protected $appends = [
         'name',
         'role',
+        'foto_url',
     ];
 
     public function getNameAttribute()
     {
         return $this->nama;
+    }
+
+    /**
+     * Dapatkan URL foto profil (khusus GTK/guru/tendik/admin)
+     */
+    public function getFotoUrlAttribute(): ?string
+    {
+        if (empty($this->foto_path)) {
+            return null;
+        }
+
+        return asset('storage/' . ltrim($this->foto_path, '/'));
     }
 
     /**

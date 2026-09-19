@@ -30,17 +30,17 @@ class AuthController extends Controller
         $user = User::where('username', $identifier)
             ->orWhereIn('ptk_id', function ($q) use ($identifier) {
                 $q->select('ptk_id')->from('gtk')
-                  ->where('nip', $identifier)
-                  ->orWhere('nuptk', $identifier)
-                  ->orWhere('nik', $identifier)
-                  ->orWhere('email', $identifier);
+                    ->where('nip', $identifier)
+                    ->orWhere('nuptk', $identifier)
+                    ->orWhere('nik', $identifier)
+                    ->orWhere('email', $identifier);
             })
             ->orWhereIn('peserta_didik_id', function ($q) use ($identifier) {
                 $q->select('peserta_didik_id')->from('peserta_didik')
-                  ->where('nisn', $identifier)
-                  ->orWhere('nik', $identifier)
-                  ->orWhere('nipd', $identifier)
-                  ->orWhere('email', $identifier);
+                    ->where('nisn', $identifier)
+                    ->orWhere('nik', $identifier)
+                    ->orWhere('nipd', $identifier)
+                    ->orWhere('email', $identifier);
             })
             ->first();
 
@@ -144,6 +144,9 @@ class AuthController extends Controller
         $userData = $user->toArray();
         $userData['name'] = $user->name ?? $user->nama;
         $userData['role'] = $user->role;
+        if (!empty($user->foto_url)) {
+            $userData['foto_url'] = $user->foto_url;
+        }
 
         // Ambil relasi GTK atau Peserta Didik jika ada
         if (!empty($user->ptk_id)) {
@@ -268,4 +271,3 @@ class AuthController extends Controller
         return redirect()->route('login')->with('info', 'Anda telah keluar dari sistem.');
     }
 }
-

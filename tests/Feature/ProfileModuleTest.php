@@ -212,4 +212,85 @@ class ProfileModuleTest extends TestCase
         // Clean up
         $tempUser->delete();
     }
+
+    public function test_guru_can_upload_and_delete_photo_mandiri(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $guruUser = User::create([
+            'pengguna_id' => (string) Str::uuid(),
+            'username' => 'guru_test_' . time(),
+            'nama' => 'Guru Test Mandiri',
+            'peran_id_str' => 'Guru Mapel',
+            'password' => Hash::make('Sae12345!'),
+        ]);
+
+        $sessionData = [
+            'id' => $guruUser->pengguna_id,
+            'pengguna_id' => $guruUser->pengguna_id,
+            'name' => $guruUser->name,
+            'nama' => $guruUser->nama,
+            'username' => $guruUser->username,
+            'role' => 'guru',
+        ];
+
+        // Pastikan tampilan profil menampilkan tombol unggah pasfoto
+        $pageResponse = $this->withSession(['user' => $sessionData])
+            ->get(route('dashboard.profile'));
+        $pageResponse->assertStatus(200);
+        $pageResponse->assertSee('Unggah Pasfoto Mandiri');
+        $pageResponse->assertSee('fotoUploadModal');
+
+        // Test Upload Foto PNG
+        $file = \Illuminate\Http\UploadedFile::fake()->image('avatar.png', 200, 200);
+
+        $uploadResponse = $this->withSession(['user' => $sessionData])
+            ->postJson(route('dashboard.profile.foto.upload'), [
+                'foto' => $file,
+            ]);
+
+        $uploadResponse->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        $guruUser->refresh();
+        $this->assertNotNull($guruUser->foto_path);
+        $this->assertNotNull($guruUser->foto_url);
+
+        // Test Hapus Foto
+        $deleteResponse = $this->withSession(['user' => $sessionData])
+            ->deleteJson(route('dashboard.profile.foto.delete'));
+
+        $deleteResponse->assertStatus(200)
+            ->assertJson(['status' => 'success']);
+
+        $guruUser->refresh();
+        $this->assertNull($guruUser->foto_path);
+
+        // Clean up
+        $guruUser->delete();
+    }
+
+    public function test_admin_and_student_forbidden_to_upload_gtk_photo(): void
+    {
+        $adminUser = User::where('peran_id_str', 'LIKE', '%admin%')->first() ?? User::first();
+        $this->assertNotNull($adminUser);
+
+        $sessionData = [
+            'id' => $adminUser->pengguna_id,
+            'pengguna_id' => $adminUser->pengguna_id,
+            'name' => $adminUser->name,
+            'nama' => $adminUser->nama,
+            'username' => $adminUser->username,
+            'role' => 'admin',
+        ];
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('avatar.png', 100, 100);
+
+        $response = $this->withSession(['user' => $sessionData])
+            ->postJson(route('dashboard.profile.foto.upload'), [
+                'foto' => $file,
+            ]);
+
+        $response->assertStatus(403);
+    }
 }

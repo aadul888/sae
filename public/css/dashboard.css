@@ -1760,12 +1760,14 @@
     transform: scale(0.96);
 }
 .copyable::after {
-    content: '\f0c5';
-    font-family: 'Font Awesome 6 Free';
+    content: "\f0c5";
+    font-family: "Font Awesome 6 Free";
     font-weight: 400;
     font-size: 0.68em;
     opacity: 0.45;
-    transition: opacity 0.15s ease, color 0.15s ease;
+    transition:
+        opacity 0.15s ease,
+        color 0.15s ease;
 }
 .copyable:hover::after {
     opacity: 0.95;
@@ -1776,7 +1778,7 @@
     background: rgba(16, 185, 129, 0.12);
 }
 .copyable.copied::after {
-    content: '\f00c';
+    content: "\f00c";
     font-weight: 900;
     color: #10b981;
     opacity: 1;
@@ -1816,7 +1818,10 @@ select.input {
     font-size: 0.85rem;
     font-family: inherit;
     box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .form-control:focus,
@@ -1882,7 +1887,9 @@ input[type="month"] {
     color: var(--text-color) !important;
     line-height: 1.4 !important;
     box-sizing: border-box !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease !important;
 }
 .live-search-wrap input:focus,
 .live-search-wrap input[type="text"]:focus,
@@ -1919,7 +1926,9 @@ input[type="month"] {
     border-radius: 50%;
     z-index: 3;
     padding: 0;
-    transition: color 0.15s ease, background 0.15s ease;
+    transition:
+        color 0.15s ease,
+        background 0.15s ease;
 }
 .live-search-wrap .clear-search:hover {
     color: #ef4444;
@@ -2245,7 +2254,11 @@ input[type="month"] {
         max-width: 68% !important;
         width: auto !important;
     }
-    .table-responsive-stack tbody td .cell-col-right > div[style*="display: flex"],
+    .table-responsive-stack
+        tbody
+        td
+        .cell-col-right
+        > div[style*="display: flex"],
     .table-responsive-stack tbody td .cell-col-right > div.d-flex {
         justify-content: flex-end !important;
     }
@@ -2702,7 +2715,6 @@ input[type="month"] {
         overflow-wrap: normal !important;
     }
 
-
     /* Tab navigasi di mobile: sembunyikan desktop tabs jika ada mobile dropdown */
     .dash-desktop-tabs {
         display: none !important;
@@ -3063,6 +3075,33 @@ input:disabled + .slider-toggle-crud {
     flex-shrink: 0;
 }
 
+.profile-avatar-edit-btn {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--primary, #4f6ef7);
+    color: #fff;
+    border: 2px solid var(--bg-card, #1e293b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+}
+
+.profile-avatar-edit-btn:hover {
+    transform: scale(1.1);
+    background: var(--primary-hover, #4361ee);
+    color: #fff;
+}
+
 .profile-banner-avatar {
     width: 88px;
     height: 88px;
@@ -3350,7 +3389,10 @@ input:disabled + .slider-toggle-crud {
     font-family: inherit;
     outline: none;
     box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .form-control:hover {
@@ -3446,7 +3488,10 @@ input:disabled + .slider-toggle-crud {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
@@ -3701,7 +3746,9 @@ input:disabled + .slider-toggle-crud {
     padding: 18px;
     margin-bottom: 16px;
     position: relative;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .question-card:hover {
@@ -3929,7 +3976,9 @@ input:disabled + .slider-toggle-crud {
     font-weight: 900;
     font-size: 0.72em;
     opacity: 0.35;
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
     margin-left: 2px;
 }
 .copyable:hover::after {
@@ -4172,5 +4221,3 @@ input:disabled + .slider-toggle-crud {
         gap: 8px !important;
     }
 }
-
-

@@ -29,6 +29,18 @@ document.addEventListener('DOMContentLoaded', function () {
         return audioCtx;
     }
 
+    // Unlock Audio & Speech pada sentuhan pertama di perangkat mobile
+    function unlockAudioGesture() {
+        getAudioContext();
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+        }
+        document.removeEventListener('touchstart', unlockAudioGesture);
+        document.removeEventListener('click', unlockAudioGesture);
+    }
+    document.addEventListener('touchstart', unlockAudioGesture, { passive: true });
+    document.addEventListener('click', unlockAudioGesture, { passive: true });
+
     function playSound(type) {
         try {
             const ctx = getAudioContext();
@@ -127,46 +139,180 @@ document.addEventListener('DOMContentLoaded', function () {
         window.speechSynthesis.speak(utterance);
     }
 
-    // 4. Inisialisasi Kamera Live Snapshot
+    // 4. Inisialisasi Kamera Live Snapshot & Scanner
     const videoEl = document.getElementById('cameraVideo');
     const canvasEl = document.getElementById('snapshotCanvas');
+    const btnSwitchCamera = document.getElementById('btnSwitchCamera');
+    const cameraNoticeOverlay = document.getElementById('cameraNoticeOverlay');
+    const cameraNoticeTitle = document.getElementById('cameraNoticeTitle');
+    const cameraNoticeDesc = document.getElementById('cameraNoticeDesc');
+    const btnRetryCamera = document.getElementById('btnRetryCamera');
+    const cameraStatusBadge = document.getElementById('cameraStatusBadge');
+
     let videoStream = null;
+    const isTouchOrMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 768;
 
-    async function initCamera() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            console.warn('Browser tidak mendukung akses kamera.');
-            return;
+    // Preferensi kamera: Default 'environment' (kamera belakang) di HP/Tablet agar mudah scan kartu, atau 'user' di PC/Webcam
+    let currentFacingMode = localStorage.getItem('sae_scanner_facing_mode') || (isTouchOrMobile ? 'environment' : 'user');
+
+    function showCameraNotice(title, message, isError = true) {
+        if (cameraNoticeOverlay) {
+            cameraNoticeOverlay.style.display = 'flex';
+            if (cameraNoticeTitle) cameraNoticeTitle.textContent = title;
+            if (cameraNoticeDesc) cameraNoticeDesc.innerHTML = message;
         }
+        if (cameraStatusBadge) {
+            cameraStatusBadge.className = `badge-status-icon ${isError ? 'status-err' : 'status-warn'}`;
+            cameraStatusBadge.innerHTML = `<i class="fas fa-${isError ? 'video-slash' : 'triangle-exclamation'}"></i>`;
+            cameraStatusBadge.setAttribute('title', title);
+        }
+    }
 
+    function hideCameraNotice() {
+        if (cameraNoticeOverlay) cameraNoticeOverlay.style.display = 'none';
+        if (cameraStatusBadge) {
+            cameraStatusBadge.className = 'badge-status-icon status-ok';
+            cameraStatusBadge.innerHTML = '<i class="fas fa-video"></i>';
+            cameraStatusBadge.setAttribute('title', `Kamera Siap (${currentFacingMode === 'environment' ? 'Belakang' : 'Depan'})`);
+        }
+    }
+
+    async function checkAvailableCameras() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
         try {
-            videoStream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: 'user',
-                    width: { ideal: 640 },
-                    height: { ideal: 480 }
-                },
-                audio: false
-            });
-
-            if (videoEl) {
-                videoEl.srcObject = videoStream;
-                const statusEl = document.getElementById('cameraStatusBadge');
-                if (statusEl) {
-                    statusEl.innerHTML = '<i class="fas fa-video"></i>';
-                    statusEl.className = 'badge-status-icon status-ok';
-                    statusEl.setAttribute('title', 'Kamera Siap / Aktif');
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(d => d.kind === 'videoinput');
+            if (btnSwitchCamera) {
+                if (videoDevices.length > 1 || isTouchOrMobile) {
+                    btnSwitchCamera.style.display = 'inline-flex';
+                } else {
+                    btnSwitchCamera.style.display = 'none';
                 }
             }
-        } catch (err) {
-            console.warn('Gagal membuka kamera / izin ditolak:', err);
-            const statusEl = document.getElementById('cameraStatusBadge');
-            if (statusEl) {
-                statusEl.innerHTML = '<i class="fas fa-video-slash"></i>';
-                statusEl.className = 'badge-status-icon status-err';
-                statusEl.setAttribute('title', 'Kamera Nonaktif / Izin Ditolak');
+        } catch (e) {
+            if (btnSwitchCamera && isTouchOrMobile) {
+                btnSwitchCamera.style.display = 'inline-flex';
             }
         }
     }
+
+    async function initCamera() {
+        // Cek koneksi aman (HTTPS): Browser HP/Tablet strictly memblokir kamera di HTTP non-localhost
+        if (!window.isSecureContext && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            showCameraNotice(
+                'Akses HTTPS Diperlukan',
+                'Browser HP/Tablet membatasi izin kamera dan GPS pada koneksi HTTP biasa. Harap gunakan protokol HTTPS atau aktifkan izin di <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code>.'
+            );
+            return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showCameraNotice(
+                'Kamera Tidak Didukung',
+                'Browser atau webview ini tidak menyediakan API kamera (MediaDevices). Gunakan browser Chrome atau Safari versi terbaru.'
+            );
+            return;
+        }
+
+        // Hentikan stream kamera lama sebelum membuka yang baru
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+
+        // Terapkan mirror visual hanya jika kamera depan (selfie/kiosk)
+        if (videoEl) {
+            if (currentFacingMode === 'user') {
+                videoEl.classList.add('mirrored');
+            } else {
+                videoEl.classList.remove('mirrored');
+            }
+        }
+
+        let stream = null;
+        try {
+            // Percobaan 1: Gunakan facingMode pilihan
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal: currentFacingMode },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            });
+        } catch (err1) {
+            console.warn(`Gagal getUserMedia dengan facingMode ${currentFacingMode}, mencoba fallback...`, err1);
+            try {
+                // Percobaan 2: Fallback ke mode kamera kebalikannya
+                const fallbackMode = (currentFacingMode === 'user' ? 'environment' : 'user');
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: fallbackMode },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    },
+                    audio: false
+                });
+                currentFacingMode = fallbackMode;
+                localStorage.setItem('sae_scanner_facing_mode', currentFacingMode);
+                if (videoEl) {
+                    if (currentFacingMode === 'user') videoEl.classList.add('mirrored');
+                    else videoEl.classList.remove('mirrored');
+                }
+            } catch (err2) {
+                try {
+                    // Percobaan 3: Fallback tanpa constraint sama sekali
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                } catch (errFinal) {
+                    console.error('Kamera gagal dibuka:', errFinal);
+                    let msg = 'Tidak dapat mengakses perangkat kamera.';
+                    if (errFinal.name === 'NotAllowedError' || errFinal.name === 'PermissionDeniedError') {
+                        msg = 'Izin kamera ditolak oleh pengguna/browser. Buka setelan izin browser Anda dan aktifkan akses kamera untuk SAE.';
+                    } else if (errFinal.name === 'NotFoundError' || errFinal.name === 'DevicesNotFoundError') {
+                        msg = 'Tidak ada perangkat kamera yang terdeteksi.';
+                    } else if (errFinal.name === 'NotReadableError' || errFinal.name === 'TrackStartError') {
+                        msg = 'Kamera sedang digunakan oleh aplikasi lain.';
+                    }
+                    showCameraNotice('Izin Kamera Diperlukan', msg);
+                    return;
+                }
+            }
+        }
+
+        if (stream && videoEl) {
+            videoStream = stream;
+            videoEl.srcObject = stream;
+            videoEl.setAttribute('playsinline', 'true');
+            videoEl.setAttribute('webkit-playsinline', 'true');
+
+            try {
+                await videoEl.play();
+            } catch (playErr) {
+                console.warn('Autoplay tertahan, menunggu interaksi:', playErr);
+            }
+
+            hideCameraNotice();
+            checkAvailableCameras();
+        }
+    }
+
+    // Handler Tombol Switch Kamera
+    if (btnSwitchCamera) {
+        btnSwitchCamera.addEventListener('click', function () {
+            currentFacingMode = (currentFacingMode === 'user' ? 'environment' : 'user');
+            localStorage.setItem('sae_scanner_facing_mode', currentFacingMode);
+            this.setAttribute('title', `Beralih ke Kamera ${currentFacingMode === 'environment' ? 'Belakang' : 'Depan'}`);
+            initCamera();
+        });
+    }
+
+    // Handler Tombol Coba Lagi Kamera
+    if (btnRetryCamera) {
+        btnRetryCamera.addEventListener('click', function () {
+            initCamera();
+        });
+    }
+
     initCamera();
 
     function captureSnapshot() {
@@ -178,10 +324,14 @@ document.addEventListener('DOMContentLoaded', function () {
             canvasEl.height = height;
 
             const ctx = canvasEl.getContext('2d');
-            // Un-mirror when capturing
-            ctx.translate(width, 0);
-            ctx.scale(-1, 1);
+            ctx.save();
+            // Un-mirror snapshot hanya jika kamera depan
+            if (currentFacingMode === 'user') {
+                ctx.translate(width, 0);
+                ctx.scale(-1, 1);
+            }
             ctx.drawImage(videoEl, 0, 0, width, height);
+            ctx.restore();
 
             return canvasEl.toDataURL('image/jpeg', 0.82);
         } catch (e) {
@@ -311,8 +461,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     initGeolocation();
 
-    // 5. Global RFID / Barcode Scanner Listener (Keyboard Wedge)
-    // 5. Global RFID / Barcode Scanner Listener (Hardware Keyboard Wedge Only)
+    // 5. Global RFID / Barcode Scanner Listener (Hardware Keyboard Wedge & Bluetooth)
     const hiddenInput = document.getElementById('kioskScannerInput');
     let scanBuffer = '';
     let keyTimestamps = [];
@@ -330,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.addEventListener('click', ensureFocus);
     }
 
-    // Hardware Scanner Wedge Listener with Strict Anti-Manual Typing Filter
+    // Hardware & Bluetooth Scanner Wedge Listener
     window.addEventListener('keydown', function (e) {
         const now = Date.now();
 
@@ -339,9 +488,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const rawIdentifier = (hiddenInput ? hiddenInput.value : scanBuffer).trim();
 
             if (rawIdentifier && !isProcessing) {
-                // Evaluasi kecepatan ketikan:
-                // Scanner fisik mengirim karakter dengan interval sangat cepat (rata-rata < 45ms per char).
-                // Ketikan manual manusia memiliki interval > 120ms per char.
                 const charCount = keyTimestamps.length;
                 let isHardwareScan = true;
 
@@ -349,8 +495,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     const totalDuration = keyTimestamps[charCount - 1] - keyTimestamps[0];
                     const avgInterval = totalDuration / (charCount - 1);
 
-                    // Jika rata-rata interval > 65ms atau total waktu > 500ms untuk input pendek, deteksi sebagai ketikan manual manusia
-                    if (avgInterval > 65 || totalDuration > 700) {
+                    // Izinkan scanner Bluetooth atau OTG pada HP/Tablet dengan toleransi jeda hingga 130ms
+                    if (avgInterval > 130 || totalDuration > 1500) {
                         isHardwareScan = false;
                     }
                 }
@@ -372,8 +518,8 @@ document.addEventListener('DOMContentLoaded', function () {
             scanBuffer = '';
             keyTimestamps = [];
         } else if (e.key.length === 1) {
-            // Bersihkan buffer jika jeda dengan tombol sebelumnya terlalu lama (> 180ms berarti ketikan manual lambat)
-            if (keyTimestamps.length > 0 && (now - keyTimestamps[keyTimestamps.length - 1]) > 180) {
+            // Bersihkan buffer jika jeda dengan karakter sebelumnya terlalu lama (> 250ms berarti ketikan manual manusia)
+            if (keyTimestamps.length > 0 && (now - keyTimestamps[keyTimestamps.length - 1]) > 250) {
                 scanBuffer = '';
                 keyTimestamps = [];
             }
@@ -382,33 +528,93 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // 5.1. Live Camera Barcode & QR Scanner (Native Web BarcodeDetector API)
+    // 5.1. Live Camera Barcode & QR Scanner Engine (Hybrid: BarcodeDetector + jsQR Fallback)
+    let barcodeDetectorInstance = null;
     if ('BarcodeDetector' in window) {
-        const barcodeDetector = new BarcodeDetector({
-            formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'data_matrix']
-        });
-
-        let isCameraScanning = false;
-        setInterval(async () => {
-            if (!videoEl || !videoStream || isProcessing || isCameraScanning) return;
-            if (videoEl.readyState < 2) return;
-
-            isCameraScanning = true;
-            try {
-                const barcodes = await barcodeDetector.detect(videoEl);
-                if (barcodes && barcodes.length > 0 && !isProcessing) {
-                    const detectedRaw = barcodes[0].rawValue;
-                    if (detectedRaw && detectedRaw.trim().length >= 3) {
-                        processScanAttendance(detectedRaw.trim());
-                    }
-                }
-            } catch (err) {
-                // Camera frame not ready
-            } finally {
-                isCameraScanning = false;
-            }
-        }, 300);
+        try {
+            barcodeDetectorInstance = new BarcodeDetector({
+                formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'data_matrix']
+            });
+        } catch (e) {
+            console.warn('BarcodeDetector format error, fallback ke jsQR:', e);
+            barcodeDetectorInstance = null;
+        }
     }
+
+    let isCameraScanning = false;
+    let lastScannedCode = '';
+    let lastScannedAt = 0;
+
+    // Canvas terpisah untuk pemindaian video frame
+    const qrScanCanvas = document.createElement('canvas');
+    const qrScanCtx = qrScanCanvas.getContext('2d', { willReadFrequently: true });
+
+    async function scanVideoFrame() {
+        if (!videoEl || !videoStream || isProcessing || isCameraScanning) return;
+        if (videoEl.readyState < 2 || videoEl.videoWidth === 0 || videoEl.videoHeight === 0) return;
+
+        isCameraScanning = true;
+        try {
+            let detectedRaw = null;
+
+            // 1. Coba BarcodeDetector native jika didukung browser
+            if (barcodeDetectorInstance) {
+                try {
+                    const barcodes = await barcodeDetectorInstance.detect(videoEl);
+                    if (barcodes && barcodes.length > 0) {
+                        const raw = barcodes[0].rawValue;
+                        if (raw && raw.trim().length >= 3) {
+                            detectedRaw = raw.trim();
+                        }
+                    }
+                } catch (detectorErr) {
+                    // Fallback ke jsQR jika detector native error pada frame ini
+                }
+            }
+
+            // 2. Fallback ke jsQR jika belum terdeteksi (sangat andal di Safari iOS, Android PWA, dan Chrome)
+            if (!detectedRaw && typeof window.jsQR === 'function') {
+                const width = videoEl.videoWidth;
+                const height = videoEl.videoHeight;
+
+                // Scale down jika resolusi kamera tinggi (> 640px) agar scanning cepat & hemat CPU di mobile
+                const scale = Math.min(1, 640 / width);
+                const targetW = Math.floor(width * scale);
+                const targetH = Math.floor(height * scale);
+
+                qrScanCanvas.width = targetW;
+                qrScanCanvas.height = targetH;
+                qrScanCtx.drawImage(videoEl, 0, 0, targetW, targetH);
+
+                const imageData = qrScanCtx.getImageData(0, 0, targetW, targetH);
+                const qrResult = window.jsQR(imageData.data, targetW, targetH, {
+                    inversionAttempts: 'dontInvert'
+                });
+
+                if (qrResult && qrResult.data && qrResult.data.trim().length >= 3) {
+                    detectedRaw = qrResult.data.trim();
+                }
+            }
+
+            // 3. Proses pemindaian jika ada kode ditemukan
+            if (detectedRaw && !isProcessing) {
+                const now = Date.now();
+                // Cegah pemindaian berulang kode yang sama dalam interval 3 detik
+                if (detectedRaw !== lastScannedCode || (now - lastScannedAt) > 3000) {
+                    lastScannedCode = detectedRaw;
+                    lastScannedAt = now;
+                    processScanAttendance(detectedRaw);
+                }
+            }
+        } catch (err) {
+            // Abaikan error per-frame
+        } finally {
+            isCameraScanning = false;
+        }
+    }
+
+    // Interval scanning 200ms untuk performa responsif dan mulus
+    setInterval(scanVideoFrame, 200);
 
     // 5.2. Handler Tombol Kunci Terminal Kiosk
     const btnKioskLock = document.getElementById('btnKioskLock');
@@ -639,14 +845,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Otomatis kunci sesi kiosk saat pengguna meninggalkan/berpindah dari halaman scanner presensi
-    window.addEventListener('pagehide', function () {
-        if (navigator.sendBeacon) {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const formData = new FormData();
-            formData.append('_token', csrfToken || '');
-            navigator.sendBeacon('/presensi/kiosk/lock', formData);
-        }
-    });
 });
 
