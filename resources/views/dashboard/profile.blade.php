@@ -7,7 +7,7 @@
     <div class="profile-container">
         <!-- Welcome Profile Banner -->
         <div class="profile-banner-card">
-            <div class="profile-banner-avatar-wrap">
+            <div class="profile-banner-avatar-wrap" @if ($role === 'guru' || $role === 'tendik' || $role === 'admin') onclick="openUploadFotoModal()" style="cursor: pointer;" title="Unggah Pasfoto Mandiri" @endif>
                 @if (!empty($profileDetails['foto_url']))
                     <img src="{{ $profileDetails['foto_url'] }}" alt="{{ $user->name }}" class="profile-banner-avatar"
                         id="mainProfileAvatarImg">
@@ -17,9 +17,9 @@
                     </div>
                 @endif
 
-                @if ($role === 'guru' || $role === 'tendik')
+                @if ($role === 'guru' || $role === 'tendik' || $role === 'admin')
                     <button type="button" class="profile-avatar-edit-btn" onclick="openUploadFotoModal()"
-                        title="Unggah / Ganti Pasfoto Mandiri" aria-label="Unggah Pasfoto">
+                        title="Unggah Pasfoto Mandiri" aria-label="Unggah Pasfoto Mandiri">
                         <i class="fas fa-camera"></i>
                     </button>
                 @endif
@@ -33,15 +33,6 @@
                             Username: <strong style="color: var(--text-color);">{{ $user->username }}</strong>
                         </div>
                     </div>
-                    @if ($role === 'guru' || $role === 'tendik')
-                        <div>
-                            <button type="button" class="btn btn-outline btn-sm" onclick="openUploadFotoModal()"
-                                style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; padding: 7px 14px; border-radius: 8px;">
-                                <i class="fas fa-camera text-primary"></i>
-                                <span>{{ !empty($profileDetails['foto_url']) ? 'Ganti Pasfoto' : 'Unggah Pasfoto' }}</span>
-                            </button>
-                        </div>
-                    @endif
                 </div>
                 <div class="profile-banner-meta">
                     <span class="dash-role-badge dash-role-badge-{{ $role }}">
@@ -183,6 +174,7 @@
                                 <div class="profile-input-wrapper">
                                     <i class="fab fa-whatsapp input-icon" style="color: #22c55e;"></i>
                                     <input type="text" id="no_hp" name="no_hp" class="form-control"
+                                        style="padding-left: 42px !important;"
                                         placeholder="Contoh: 081234567890" value="{{ old('no_hp', $user->no_hp) }}">
                                 </div>
                             </div>
@@ -192,7 +184,7 @@
                                 <div class="profile-input-wrapper">
                                     <i class="fas fa-location-dot input-icon" style="top: 14px; transform: none;"></i>
                                     <textarea id="alamat" name="alamat" class="form-control" rows="3"
-                                        style="padding-top: 10px; resize: vertical;" placeholder="Alamat tempat tinggal saat ini...">{{ old('alamat', $user->alamat) }}</textarea>
+                                        style="padding-top: 10px; padding-left: 42px !important; resize: vertical;" placeholder="Alamat tempat tinggal saat ini...">{{ old('alamat', $user->alamat) }}</textarea>
                                 </div>
                             </div>
 
@@ -357,8 +349,8 @@
             </div>
         </div>
 
-        @if ($role === 'guru' || $role === 'tendik')
-            {{-- Modal Unggah Pasfoto Mandiri GTK --}}
+        @if ($role === 'guru' || $role === 'tendik' || $role === 'admin')
+            {{-- Modal Unggah Pasfoto Mandiri GTK & Admin --}}
             <div id="fotoUploadModal" class="modal-backdrop"
                 style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
                 <div class="card"
@@ -375,7 +367,7 @@
                                     Unggah Pasfoto Mandiri
                                 </h3>
                                 <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                                    {{ $role === 'guru' ? 'Guru Pengampu / Pendidik' : 'Tenaga Kependidikan' }}
+                                    {{ $role === 'guru' ? 'Guru Pengampu / Pendidik' : ($role === 'admin' ? 'Administrator Sistem' : 'Tenaga Kependidikan') }}
                                 </div>
                             </div>
                         </div>
@@ -589,7 +581,7 @@
         }
     });
 
-    @if ($role === 'guru' || $role === 'tendik')
+    @if ($role === 'guru' || $role === 'tendik' || $role === 'admin')
         let selectedFotoFile = null;
         const currentFotoUrl = @json($profileDetails['foto_url'] ?? '');
 

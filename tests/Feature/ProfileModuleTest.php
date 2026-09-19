@@ -270,10 +270,17 @@ class ProfileModuleTest extends TestCase
         $guruUser->delete();
     }
 
-    public function test_admin_and_student_forbidden_to_upload_gtk_photo(): void
+    public function test_admin_can_upload_photo_mandiri(): void
     {
-        $adminUser = User::where('peran_id_str', 'LIKE', '%admin%')->first() ?? User::first();
-        $this->assertNotNull($adminUser);
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $adminUser = User::create([
+            'pengguna_id' => (string) Str::uuid(),
+            'username' => 'admin_test_' . time(),
+            'nama' => 'Admin Test Mandiri',
+            'peran_id_str' => 'Administrator',
+            'password' => Hash::make('Sae12345!'),
+        ]);
 
         $sessionData = [
             'id' => $adminUser->pengguna_id,
@@ -282,6 +289,57 @@ class ProfileModuleTest extends TestCase
             'nama' => $adminUser->nama,
             'username' => $adminUser->username,
             'role' => 'admin',
+        ];
+
+        $pageResponse = $this->withSession(['user' => $sessionData])
+            ->get(route('dashboard.profile'));
+        $pageResponse->assertStatus(200);
+        $pageResponse->assertSee('Unggah Pasfoto Mandiri');
+        $pageResponse->assertSee('fotoUploadModal');
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('avatar.png', 100, 100);
+
+        $response = $this->withSession(['user' => $sessionData])
+            ->postJson(route('dashboard.profile.foto.upload'), [
+                'foto' => $file,
+            ]);
+
+        $response->assertStatus(200)->assertJson(['status' => 'success']);
+
+        $adminUser->refresh();
+        $this->assertNotNull($adminUser->foto_path);
+
+        // Delete test
+        $deleteResp = $this->withSession(['user' => $sessionData])
+            ->deleteJson(route('dashboard.profile.foto.delete'));
+        $deleteResp->assertStatus(200)->assertJson(['status' => 'success']);
+
+        $adminUser->delete();
+    }
+
+    public function test_student_forbidden_to_upload_photo(): void
+    {
+        $studentUser = User::where('peran_id_str', 'LIKE', '%siswa%')
+            ->orWhereNotNull('peserta_didik_id')
+            ->first();
+
+        if (!$studentUser) {
+            $studentUser = User::create([
+                'pengguna_id' => (string) Str::uuid(),
+                'username' => 'siswa_test_' . time(),
+                'nama' => 'Siswa Test Mandiri',
+                'peran_id_str' => 'Peserta Didik',
+                'password' => Hash::make('Sae12345!'),
+            ]);
+        }
+
+        $sessionData = [
+            'id' => $studentUser->pengguna_id,
+            'pengguna_id' => $studentUser->pengguna_id,
+            'name' => $studentUser->name,
+            'nama' => $studentUser->nama,
+            'username' => $studentUser->username,
+            'role' => 'peserta_didik',
         ];
 
         $file = \Illuminate\Http\UploadedFile::fake()->image('avatar.png', 100, 100);

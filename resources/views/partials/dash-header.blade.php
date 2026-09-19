@@ -35,19 +35,11 @@
                 $notifPengumumanCount = 0;
             }
 
-            $transaksiNotifications = collect();
-            $notifTransaksiCount = 0;
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('notifikasi_transaksi')) {
-                    $pdId = is_array($currentUser) ? ($currentUser['peserta_didik_id'] ?? null) : ($currentUser->peserta_didik_id ?? null);
-                    $allTransQuery = \App\Models\NotifikasiTransaksi::forUser($currentUserId, $pdId)->orderBy('created_at', 'desc');
-                    $notifTransaksiCount = (clone $allTransQuery)->unread()->count();
-                    $transaksiNotifications = (clone $allTransQuery)->take(8)->get();
-                }
-            } catch (\Throwable $e) {
-                $transaksiNotifications = collect();
-                $notifTransaksiCount = 0;
-            }
+            $systemNotifData = \App\Services\SystemNotificationService::getSystemNotifications($currentUser);
+            $transaksiNotifications = $systemNotifData['items'];
+            $notifTransaksiCount = $systemNotifData['unread_count'];
+            $systemNotifFooterUrl = $systemNotifData['footer_url'];
+            $systemNotifFooterText = $systemNotifData['footer_text'];
 
             $totalNotifCount = $notifPengumumanCount + $notifTransaksiCount;
             $userFoto = session('user.foto_url');
@@ -81,7 +73,7 @@
                     <button type="button" id="tabHeaderTransaksi" class="notif-tab-btn"
                         style="flex: 1; padding: 11px 8px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <i class="fas fa-bell"></i>
-                        <span>Aktivitas Murid</span>
+                        <span>Sistem</span>
                         @if ($notifTransaksiCount > 0)
                             <span class="badge badge-danger" id="badgeTransaksiCount" style="font-size: 0.65rem; padding: 1px 6px;">
                                 {{ $notifTransaksiCount }}
@@ -149,16 +141,16 @@
                     </div>
                 </div>
 
-                <!-- PANEL 2: NOTIFIKASI TRANSAKSI / AKTIVITAS PERSONAL SISWA -->
+                <!-- PANEL 2: NOTIFIKASI SISTEM & AKTIVITAS PERSONAL -->
                 <div id="paneNotifTransaksi" style="display: none;">
                     <div style="padding: 10px 16px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.01);">
                         <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-color);">
-                            Aktivitas &amp; Presensi Saya
+                            Notifikasi &amp; Aktivitas Sistem
                         </span>
                         @if ($notifTransaksiCount > 0)
                             <button type="button" id="btnQuickMarkAllTransRead"
                                 style="background: none; border: none; font-size: 0.72rem; color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 4px; font-weight: 600;"
-                                title="Tandai semua aktivitas sudah dibaca">
+                                title="Tandai semua notifikasi sistem sudah dibaca">
                                 <i class="fas fa-check-double"></i>
                                 <span>Tandai Baca</span>
                             </button>
@@ -167,14 +159,14 @@
 
                     <div class="dash-notif-list" style="max-height: 320px; overflow-y: auto;">
                         @forelse ($transaksiNotifications as $trans)
-                            <a href="{{ $trans->url ?: route('dashboard.peserta-didik.presensi.index') }}"
+                            <a href="{{ $trans->url ?: '#' }}"
                                 class="dash-notif-item {{ !$trans->is_read ? 'unread-item' : '' }}"
                                 data-trans-id="{{ $trans->id }}"
                                 style="display: flex; gap: 12px; align-items: flex-start;">
                                 <div style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
-                                    background: {{ $trans->tipe === 'success' ? 'rgba(16,185,129,0.15)' : ($trans->tipe === 'warning' ? 'rgba(245,158,11,0.15)' : 'rgba(99,102,241,0.15)') }};
-                                    color: {{ $trans->tipe === 'success' ? 'var(--success)' : ($trans->tipe === 'warning' ? 'var(--warning)' : 'var(--primary)') }}; font-size: 0.9rem;">
-                                    <i class="{{ $trans->icon ?: 'fa-solid fa-calendar-check' }}"></i>
+                                    background: {{ $trans->tipe === 'success' ? 'rgba(16,185,129,0.15)' : ($trans->tipe === 'warning' ? 'rgba(245,158,11,0.15)' : ($trans->tipe === 'danger' ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)')) }};
+                                    color: {{ $trans->tipe === 'success' ? 'var(--success)' : ($trans->tipe === 'warning' ? 'var(--warning)' : ($trans->tipe === 'danger' ? 'var(--danger)' : 'var(--primary)')) }}; font-size: 0.9rem;">
+                                    <i class="{{ $trans->icon ?: 'fas fa-bell' }}"></i>
                                 </div>
                                 <div style="flex: 1; min-width: 0;">
                                     <div class="dash-notif-row">
@@ -185,7 +177,7 @@
                                             <span>{{ $trans->judul }}</span>
                                         </div>
                                         <span class="dash-notif-time">
-                                            {{ $trans->created_at ? $trans->created_at->diffForHumans(null, true) : '-' }}
+                                            {{ $trans->time_diff ?? ($trans->created_at ? $trans->created_at->diffForHumans(null, true) : '-') }}
                                         </span>
                                     </div>
                                     <div class="dash-notif-content" style="color: var(--text-color); font-size: 0.78rem;">
@@ -196,15 +188,15 @@
                         @empty
                             <div style="padding: 28px 16px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">
                                 <i class="fas fa-clock-rotate-left mb-2" style="font-size: 1.6rem; opacity: 0.4;"></i>
-                                <div>Belum ada aktivitas transaksi presensi.</div>
+                                <div>{{ $currentUserRole === 'tendik' ? 'Belum ada aktivitas hari ini untuk dikerjakan.' : 'Belum ada aktivitas atau notifikasi sistem.' }}</div>
                             </div>
                         @endforelse
                     </div>
 
                     <div style="padding: 9px 16px; background: rgba(99,102,241,0.05); border-top: 1px solid var(--border-color); text-align: center;">
-                        <a href="{{ route('dashboard.peserta-didik.presensi.index') }}"
+                        <a href="{{ $systemNotifFooterUrl }}"
                             style="font-size: 0.78rem; font-weight: 600; color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                            <span>Buka Riwayat Presensi Harian Lengkap</span>
+                            <span>{{ $systemNotifFooterText }}</span>
                             <i class="fas fa-arrow-right" style="font-size: 0.7rem;"></i>
                         </a>
                     </div>

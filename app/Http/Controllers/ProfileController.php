@@ -223,10 +223,10 @@ class ProfileController extends Controller
         }
 
         $role = $user->role;
-        if ($role !== 'guru' && $role !== 'tendik') {
+        if ($role !== 'guru' && $role !== 'tendik' && $role !== 'admin') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Fitur unggah foto mandiri ini khusus untuk Guru dan Tenaga Kependidikan (Tendik).',
+                'message' => 'Fitur unggah foto mandiri ini khusus untuk Guru, Tenaga Kependidikan (Tendik), dan Administrator.',
             ], 403);
         }
 
@@ -248,7 +248,7 @@ class ProfileController extends Controller
                 $optimizer->deleteFile($user->foto_path);
             }
 
-            $prefix = 'foto_gtk_' . ($user->username ?: preg_replace('/[^a-zA-Z0-9_-]/', '', $user->pengguna_id));
+            $prefix = ($role === 'admin' ? 'foto_admin_' : 'foto_gtk_') . ($user->username ?: preg_replace('/[^a-zA-Z0-9_-]/', '', $user->pengguna_id));
 
             // Jika input adalah JPG/JPEG, konversikan sementara ke PNG di memori agar kompatibel dengan optimizer lossless PNG
             $extension = strtolower($uploadedFile->getClientOriginalExtension());
@@ -345,10 +345,10 @@ class ProfileController extends Controller
         }
 
         $role = $user->role;
-        if ($role !== 'guru' && $role !== 'tendik') {
+        if ($role !== 'guru' && $role !== 'tendik' && $role !== 'admin') {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Aksi ini khusus untuk Guru dan Tendik.',
+                'message' => 'Aksi ini khusus untuk Guru, Tendik, dan Administrator.',
             ], 403);
         }
 
