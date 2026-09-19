@@ -9,6 +9,7 @@ use App\Models\PresensiIzin;
 use App\Models\PresensiMapel;
 use App\Models\PresensiPengaturan;
 use App\Models\RolePermission;
+use App\Models\User;
 use App\Services\QrCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -123,54 +124,111 @@ class PresensiController extends Controller
             return $item;
         });
 
-        // Daftar Siswa untuk Manajemen Kartu RFID
+        // Daftar Siswa & GTK untuk Manajemen Kartu RFID
+        $rfidKategori = $request->input('rfid_kategori', 'siswa'); // 'siswa' atau 'gtk'
         $rfidSearch = trim($request->input('rfid_search', ''));
         $rfidFilter = $request->input('rfid_status', '');
-
-        $siswaRfidQuery = DB::table('peserta_didik as pd')
-            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
-            ->select(
-                'pd.peserta_didik_id',
-                'pd.nama',
-                'pd.nisn',
-                'pd.nipd',
-                'rb.nama as nama_rombel',
-                'pdm.rfid_uid',
-                'pdm.rfid_registered_at',
-                'pdm.foto_path'
-            );
-
-        if (!empty($rfidSearch)) {
-            $siswaRfidQuery->where(function ($q) use ($rfidSearch) {
-                $q->where('pd.nama', 'like', "%{$rfidSearch}%")
-                    ->orWhere('pd.nisn', 'like', "%{$rfidSearch}%")
-                    ->orWhere('pdm.rfid_uid', 'like', "%{$rfidSearch}%");
-            });
-        }
-
-        if ($rfidFilter === 'terdaftar') {
-            $siswaRfidQuery->whereNotNull('pdm.rfid_uid')->where('pdm.rfid_uid', '!=', '');
-        } elseif ($rfidFilter === 'belum') {
-            $siswaRfidQuery->where(function ($q) {
-                $q->whereNull('pdm.rfid_uid')->orWhere('pdm.rfid_uid', '');
-            });
-        }
-
-        $activeTab = $request->input('tab', 'log');
-        if ($request->filled('rfid_search') || $request->filled('rfid_status') || $request->has('rfid_page')) {
-            $activeTab = 'rfid';
-        }
 
         $perPageRfid = (int) $request->input('perPageRfid', $request->input('perPage', 15));
         if (!in_array($perPageRfid, [10, 15, 25, 50, 100])) {
             $perPageRfid = 15;
         }
 
-        $siswaRfidList = $siswaRfidQuery->orderBy('pd.nama', 'asc')
-            ->paginate($perPageRfid, ['*'], 'rfid_page')
-            ->appends(['tab' => 'rfid'])
-            ->withQueryString();
+        if ($rfidKategori === 'gtk') {
+            $gtkRfidQuery = DB::table('pengguna as p')
+                ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
+                ->where(function ($q) {
+                    $q->where('p.peran_id_str', 'like', '%guru%')
+                        ->orWhere('p.peran_id_str', 'like', '%tendik%')
+                        ->orWhere('p.peran_id_str', 'like', '%admin%')
+                        ->orWhere('p.peran_id_str', 'like', '%operator%')
+                        ->orWhereNotNull('p.ptk_id');
+                })
+                ->where(function ($q) {
+                    $q->where('p.peran_id_str', 'not like', '%peserta didik%')
+                        ->orWhereNull('p.peran_id_str');
+                })
+                ->whereNull('p.peserta_didik_id')
+                ->select(
+                    'p.pengguna_id',
+                    'p.nama',
+                    'p.username',
+                    'p.peran_id_str',
+                    'p.rfid_uid',
+                    'p.rfid_registered_at',
+                    'p.foto_path',
+                    'g.nip',
+                    'g.nuptk',
+                    'g.jenis_ptk_id_str'
+                );
+
+            if (!empty($rfidSearch)) {
+                $gtkRfidQuery->where(function ($q) use ($rfidSearch) {
+                    $q->where('p.nama', 'like', "%{$rfidSearch}%")
+                        ->orWhere('p.username', 'like', "%{$rfidSearch}%")
+                        ->orWhere('p.rfid_uid', 'like', "%{$rfidSearch}%")
+                        ->orWhere('g.nip', 'like', "%{$rfidSearch}%")
+                        ->orWhere('g.nuptk', 'like', "%{$rfidSearch}%");
+                });
+            }
+
+            if ($rfidFilter === 'terdaftar') {
+                $gtkRfidQuery->whereNotNull('p.rfid_uid')->where('p.rfid_uid', '!=', '');
+            } elseif ($rfidFilter === 'belum') {
+                $gtkRfidQuery->where(function ($q) {
+                    $q->whereNull('p.rfid_uid')->orWhere('p.rfid_uid', '');
+                });
+            }
+
+            $gtkRfidList = $gtkRfidQuery->orderBy('p.nama', 'asc')
+                ->paginate($perPageRfid, ['*'], 'rfid_page')
+                ->appends(['tab' => 'rfid', 'rfid_kategori' => 'gtk'])
+                ->withQueryString();
+
+            $siswaRfidList = null;
+        } else {
+            $siswaRfidQuery = DB::table('peserta_didik as pd')
+                ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+                ->select(
+                    'pd.peserta_didik_id',
+                    'pd.nama',
+                    'pd.nisn',
+                    'pd.nipd',
+                    'rb.nama as nama_rombel',
+                    'pdm.rfid_uid',
+                    'pdm.rfid_registered_at',
+                    'pdm.foto_path'
+                );
+
+            if (!empty($rfidSearch)) {
+                $siswaRfidQuery->where(function ($q) use ($rfidSearch) {
+                    $q->where('pd.nama', 'like', "%{$rfidSearch}%")
+                        ->orWhere('pd.nisn', 'like', "%{$rfidSearch}%")
+                        ->orWhere('pdm.rfid_uid', 'like', "%{$rfidSearch}%");
+                });
+            }
+
+            if ($rfidFilter === 'terdaftar') {
+                $siswaRfidQuery->whereNotNull('pdm.rfid_uid')->where('pdm.rfid_uid', '!=', '');
+            } elseif ($rfidFilter === 'belum') {
+                $siswaRfidQuery->where(function ($q) {
+                    $q->whereNull('pdm.rfid_uid')->orWhere('pdm.rfid_uid', '');
+                });
+            }
+
+            $siswaRfidList = $siswaRfidQuery->orderBy('pd.nama', 'asc')
+                ->paginate($perPageRfid, ['*'], 'rfid_page')
+                ->appends(['tab' => 'rfid', 'rfid_kategori' => 'siswa'])
+                ->withQueryString();
+
+            $gtkRfidList = null;
+        }
+
+        $activeTab = $request->input('tab', 'log');
+        if ($request->filled('rfid_search') || $request->filled('rfid_status') || $request->has('rfid_page') || $request->filled('rfid_kategori')) {
+            $activeTab = 'rfid';
+        }
 
         // Pengajuan Izin Menunggu Verifikasi
         $izinPending = PresensiIzin::where('status', 'menunggu')
@@ -210,7 +268,9 @@ class PresensiController extends Controller
             'logs',
             'sortLog',
             'sortLogDir',
+            'rfidKategori',
             'siswaRfidList',
+            'gtkRfidList',
             'izinPending',
             'perPageLog',
             'perPageRfid'
@@ -240,34 +300,55 @@ class PresensiController extends Controller
     }
 
     /**
-     * Endpoint API: Buka Akses Terminal Kiosk dengan Kode Akses
+     * Endpoint API: Buka Akses Terminal Kiosk dengan Kode Akses atau Tap Kartu RFID Guru/Tendik
      */
     public function kioskUnlock(Request $request)
     {
         $request->validate([
-            'kode_akses' => 'required|string|max:50',
+            'kode_akses' => 'required|string|max:64',
         ]);
 
         $pengaturan = PresensiPengaturan::getPengaturan();
         $expectedCode = str_replace(' ', '', strtoupper(trim($pengaturan->kode_akses ?: 'SAE123')));
         $inputCode = str_replace(' ', '', strtoupper(trim($request->input('kode_akses'))));
 
-        if ($inputCode !== $expectedCode) {
+        $unlockedBy = null;
+
+        // 1. Cek apakah cocok dengan Kode Akses PIN resmi
+        if ($inputCode === $expectedCode) {
+            $unlockedBy = 'Kode Akses PIN Terminal';
+        } else {
+            // 2. Cek apakah cocok dengan kartu RFID Guru, Tendik, atau Admin
+            $userRfid = User::where('rfid_uid', $inputCode)->first();
+            if ($userRfid && in_array($userRfid->role, ['admin', 'guru', 'tendik'], true)) {
+                $roleLabel = match ($userRfid->role) {
+                    'admin' => 'Administrator',
+                    'guru' => 'Guru',
+                    'tendik' => 'Tenaga Kependidikan',
+                    default => ucfirst($userRfid->role)
+                };
+                $unlockedBy = "{$userRfid->nama} ({$roleLabel})";
+            }
+        }
+
+        if (!$unlockedBy) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Kode akses terminal salah. Silakan periksa kembali atau tanyakan kode resmi kepada administrator sekolah.',
+                'message' => 'Kode akses salah atau kartu RFID belum terdaftar untuk Guru / Tendik. Silakan periksa kembali.',
             ], 422);
         }
 
         session([
             'kiosk_access_granted' => true,
             'kiosk_login_at'       => now()->toIso8601String(),
+            'kiosk_unlocked_by'    => $unlockedBy,
         ]);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Akses terminal berhasil dibuka. Mengalihkan ke scanner...',
+            'message' => "Akses terminal berhasil dibuka oleh [{$unlockedBy}]. Mengalihkan ke scanner...",
             'redirect_url' => route('presensi.scan'),
+            'unlocked_by'  => $unlockedBy,
         ]);
     }
 
@@ -1203,32 +1284,69 @@ class PresensiController extends Controller
     }
 
     /**
-     * API: Pasangkan / Perbarui Kartu RFID Siswa
+     * API: Pasangkan / Perbarui Kartu RFID Siswa atau Guru & Tendik (GTK)
      */
     public function assignRfid(Request $request)
     {
         $request->validate([
-            'peserta_didik_id' => 'required|string',
-            'rfid_uid' => 'required|string|max:64',
+            'peserta_didik_id' => 'nullable|string',
+            'pengguna_id'      => 'nullable|string',
+            'rfid_uid'         => 'required|string|max:64',
         ]);
 
         $pdId = $request->input('peserta_didik_id');
-        $rfidUid = trim($request->input('rfid_uid'));
+        $penggunaId = $request->input('pengguna_id');
+        $rfidUid = strtoupper(trim($request->input('rfid_uid')));
 
-        // Cek duplikasi kartu RFID pada siswa lain
-        $duplicate = PesertaDidikMeta::where('rfid_uid', $rfidUid)
-            ->where('peserta_didik_id', '!=', $pdId)
-            ->first();
-
-        if ($duplicate) {
-            $siswaLain = DB::table('peserta_didik')->where('peserta_didik_id', $duplicate->peserta_didik_id)->first();
-            $namaLain = $siswaLain ? $siswaLain->nama : 'Peserta Didik Lain';
+        if (!$pdId && !$penggunaId) {
             return response()->json([
                 'status' => 'error',
-                'message' => "Kartu RFID UID [{$rfidUid}] sudah digunakan oleh {$namaLain} ({$duplicate->nisn}). Silakan gunakan kartu lain atau lepaskan kartu terlebih dahulu.",
+                'message' => 'ID peserta didik atau ID pengguna wajib disertakan.',
             ], 422);
         }
 
+        // 1. Cek duplikasi di tabel pengguna (Guru, Tendik, Admin)
+        $duplicateUserQuery = User::where('rfid_uid', $rfidUid);
+        if ($penggunaId) {
+            $duplicateUserQuery->where('pengguna_id', '!=', $penggunaId);
+        }
+        $duplicateUser = $duplicateUserQuery->first();
+        if ($duplicateUser) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Kartu RFID UID [{$rfidUid}] sudah digunakan oleh {$duplicateUser->nama} ({$duplicateUser->username}).",
+            ], 422);
+        }
+
+        // 2. Cek duplikasi di tabel peserta_didik_meta (Siswa)
+        $duplicateSiswaQuery = PesertaDidikMeta::where('rfid_uid', $rfidUid);
+        if ($pdId) {
+            $duplicateSiswaQuery->where('peserta_didik_id', '!=', $pdId);
+        }
+        $duplicateSiswa = $duplicateSiswaQuery->first();
+        if ($duplicateSiswa) {
+            $siswaLain = DB::table('peserta_didik')->where('peserta_didik_id', $duplicateSiswa->peserta_didik_id)->first();
+            $namaLain = $siswaLain ? $siswaLain->nama : 'Peserta Didik Lain';
+            return response()->json([
+                'status' => 'error',
+                'message' => "Kartu RFID UID [{$rfidUid}] sudah digunakan oleh peserta didik {$namaLain} ({$duplicateSiswa->nisn}).",
+            ], 422);
+        }
+
+        // Kasus: Pendaftaran untuk Akun Pengguna GTK (Guru / Tendik / Admin)
+        if ($penggunaId) {
+            $targetUser = User::findOrFail($penggunaId);
+            $targetUser->rfid_uid = $rfidUid;
+            $targetUser->rfid_registered_at = now();
+            $targetUser->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => "Kartu RFID [{$rfidUid}] berhasil didaftarkan untuk {$targetUser->nama} (" . ucfirst($targetUser->role) . ").",
+            ]);
+        }
+
+        // Kasus: Pendaftaran untuk Peserta Didik
         $meta = PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $pdId]);
         $siswa = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
 

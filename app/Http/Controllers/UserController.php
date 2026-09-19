@@ -164,13 +164,27 @@ class UserController extends Controller
             'peran_id_str'  => 'required|string',
             'no_hp'         => 'nullable|string|max:30',
             'alamat'        => 'nullable|string',
+            'rfid_uid'      => 'nullable|string|max:64|unique:pengguna,rfid_uid,' . $id . ',pengguna_id',
         ]);
+
+        $rfidUid = !empty($validated['rfid_uid']) ? strtoupper(trim($validated['rfid_uid'])) : null;
+        if ($rfidUid) {
+            $siswaWithRfid = \App\Models\PesertaDidikMeta::where('rfid_uid', $rfidUid)->first();
+            if ($siswaWithRfid) {
+                return back()->withErrors(['rfid_uid' => "Kartu RFID UID [{$rfidUid}] sudah digunakan oleh peserta didik (NISN: {$siswaWithRfid->nisn})."])->withInput();
+            }
+        }
 
         $user->nama         = $validated['nama'];
         $user->username     = $validated['username'];
         $user->peran_id_str = $validated['peran_id_str'];
         $user->no_hp        = $validated['no_hp'] ?? null;
         $user->alamat       = $validated['alamat'] ?? null;
+
+        if ($user->rfid_uid !== $rfidUid) {
+            $user->rfid_uid = $rfidUid;
+            $user->rfid_registered_at = $rfidUid ? now() : null;
+        }
 
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);

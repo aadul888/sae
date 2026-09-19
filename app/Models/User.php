@@ -37,6 +37,8 @@ class User extends Authenticatable
         'peserta_didik_id',
         'raw_data',
         'password_updated_at',
+        'rfid_uid',
+        'rfid_registered_at',
     ];
 
     /**
@@ -56,6 +58,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'password_updated_at' => 'datetime',
+        'rfid_registered_at' => 'datetime',
     ];
 
     protected $appends = [

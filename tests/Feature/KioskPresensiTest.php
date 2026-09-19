@@ -9,10 +9,13 @@ use Tests\TestCase;
 
 class KioskPresensiTest extends TestCase
 {
+    protected string $originalKodeAkses;
+
     protected function setUp(): void
     {
         parent::setUp();
-        // Pastikan pengaturan memiliki kode akses default
+        // Simpan kode akses operasional pengguna agar tidak terhapus saat test berjalan
+        $this->originalKodeAkses = PresensiPengaturan::getPengaturan()->kode_akses ?: 'SAE123';
         $pengaturan = PresensiPengaturan::getPengaturan();
         $pengaturan->kode_akses = 'SAE123';
         $pengaturan->save();
@@ -156,10 +159,106 @@ class KioskPresensiTest extends TestCase
         PresensiPengaturan::getPengaturan()->update(['kode_akses' => 'SAE123']);
     }
 
+    public function test_kiosk_unlock_accepts_registered_guru_rfid_card(): void
+    {
+        // Cari user Guru / Tendik (memiliki ptk_id atau peran PTK)
+        $guru = User::whereNotNull('ptk_id')->first()
+            ?? User::where('peran_id_str', 'LIKE', '%ptk%')->first();
+
+        $this->assertNotNull($guru, 'Harus ada setidaknya 1 akun GTK di database');
+        $this->assertContains($guru->role, ['guru', 'tendik', 'admin']);
+
+        $testRfid = 'GTK_RFID_TAP_999';
+        $guru->update(['rfid_uid' => $testRfid]);
+
+        $response = $this->postJson(route('presensi.kiosk.unlock'), [
+            'kode_akses' => $testRfid,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('status', 'success');
+        $this->assertTrue(session('kiosk_access_granted') === true);
+        $this->assertStringContainsString($guru->nama, session('kiosk_unlocked_by'));
+
+        // Cleanup
+        $guru->update(['rfid_uid' => null]);
+    }
+
+    public function test_kiosk_unlock_rejects_student_rfid_card(): void
+    {
+        // Cari siswa
+        $siswa = User::whereNotNull('peserta_didik_id')->first();
+        if ($siswa) {
+            $siswaRfid = 'SISWA_RFID_001';
+            $siswa->update(['rfid_uid' => $siswaRfid]);
+
+            $response = $this->postJson(route('presensi.kiosk.unlock'), [
+                'kode_akses' => $siswaRfid,
+            ]);
+
+            $response->assertStatus(422);
+            $response->assertJsonPath('status', 'error');
+            $this->assertFalse(session('kiosk_access_granted') === true);
+
+            $siswa->update(['rfid_uid' => null]);
+        }
+    }
+
+    public function test_assign_rfid_to_gtk_and_prevent_cross_duplicates(): void
+    {
+        $admin = User::where('peran_id_str', 'LIKE', '%admin%')->orWhere('username', 'admin')->first();
+        if (!$admin) {
+            $admin = User::first();
+        }
+
+        $gtk = User::whereNull('peserta_didik_id')->where('pengguna_id', '!=', $admin->pengguna_id)->first();
+        if (!$gtk) {
+            $gtk = $admin;
+        }
+
+        $sessionData = [
+            'id'          => $admin->pengguna_id,
+            'pengguna_id' => $admin->pengguna_id,
+            'role'        => 'admin',
+        ];
+
+        $uid = 'RFID_CROSS_TEST_888';
+
+        // 1. Assign RFID ke GTK
+        $response = $this->withSession(['user' => $sessionData])
+            ->postJson(route('dashboard.presensi.rfid.assign'), [
+                'pengguna_id' => $gtk->pengguna_id,
+                'rfid_uid'    => $uid,
+            ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonPath('status', 'success');
+        $this->assertEquals($uid, User::find($gtk->pengguna_id)->rfid_uid);
+
+        // 2. Coba daftarkan UID yang sama ke GTK lain -> harus ditolak (422)
+        $gtkOther = User::whereNull('peserta_didik_id')
+            ->whereNotIn('pengguna_id', [$gtk->pengguna_id])
+            ->first();
+
+        if ($gtkOther) {
+            $dupResponse = $this->withSession(['user' => $sessionData])
+                ->postJson(route('dashboard.presensi.rfid.assign'), [
+                    'pengguna_id' => $gtkOther->pengguna_id,
+                    'rfid_uid'    => $uid,
+                ]);
+
+            $dupResponse->assertStatus(422);
+            $dupResponse->assertJsonPath('status', 'error');
+        }
+
+        // Cleanup
+        $gtk->update(['rfid_uid' => null]);
+    }
+
     protected function tearDown(): void
     {
-        // Pastikan database selalu bersih dan memiliki kode SAE123
-        PresensiPengaturan::getPengaturan()->update(['kode_akses' => 'SAE123']);
+        // Kembalikan ke kode akses operasional asli pengguna
+        PresensiPengaturan::getPengaturan()->update(['kode_akses' => $this->originalKodeAkses]);
         parent::tearDown();
     }
 }

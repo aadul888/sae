@@ -195,13 +195,18 @@
             <img src="{{ asset('img/logo-light.png') }}" alt="Logo SAE" class="kiosk-brand-logo" onerror="this.src='/img/logo-light.png';">
 
             <div class="kiosk-badge">
-                <i class="fas fa-satellite-dish"></i> Terminal Scanner Kiosk
+                <i class="fas fa-id-card-clip"></i> Terminal Scanner Kiosk
             </div>
 
             <h1 class="kiosk-title">Otorisasi Terminal</h1>
             <div class="kiosk-subtitle">
                 <div style="font-weight: 700; color: #cbd5e1; margin-bottom: 2px;">{{ $sekolah->nama ?? 'Sistem Aplikasi Edukasi' }}</div>
-                Masukkan kode akses untuk mengaktifkan pemindai absensi.
+                Tempelkan kartu RFID Guru / Tendik atau masukkan kode akses untuk mengaktifkan pemindai.
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; font-size: 0.8rem; color: #94a3b8;">
+                <i class="fas fa-satellite-dish text-primary"></i>
+                <span>Siap memindai kartu RFID fisik</span>
             </div>
 
             <div class="live-clock-pill">
@@ -212,7 +217,7 @@
         <form id="formKioskAuth">
             @csrf
             <div class="pin-input-wrap">
-                <input type="text" id="inputKodeAkses" name="kode_akses" class="pin-input" placeholder="KODE AKSES" required autofocus autocomplete="off" spellcheck="false" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')">
+                <input type="text" id="inputKodeAkses" name="kode_akses" class="pin-input" placeholder="TAP KARTU / KODE AKSES" required autofocus autocomplete="off" spellcheck="false" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')">
             </div>
 
             <button type="submit" id="btnSubmitKiosk" class="btn-unlock">
@@ -222,7 +227,7 @@
 
         <div class="info-footer">
             <i class="fas fa-shield-halved me-1"></i> Mode Kiosk Publik Terisolasi.<br>
-            Kode akses dikelola oleh Administrator Sekolah.
+            Dapat dibuka dengan kartu RFID Guru/Tendik terdaftar atau PIN resmi.
         </div>
     </div>
 
@@ -239,10 +244,18 @@
             setInterval(tick, 1000);
             tick();
 
-            // Submit Handler
+            // Submit Handler & RFID Auto-Focus
             const form = document.getElementById('formKioskAuth');
             const input = document.getElementById('inputKodeAkses');
             const btn = document.getElementById('btnSubmitKiosk');
+
+            // Pastikan reader RFID selalu mengetik ke input
+            window.addEventListener('click', () => {
+                if (input && document.activeElement !== input) input.focus();
+            });
+            window.addEventListener('keydown', () => {
+                if (input && document.activeElement !== input) input.focus();
+            });
 
             if (form) {
                 form.addEventListener('submit', async function (e) {
@@ -273,8 +286,8 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Akses Diterima',
-                                text: 'Membuka layar terminal scanner presensi...',
-                                timer: 1200,
+                                text: data.message || 'Membuka layar terminal scanner presensi...',
+                                timer: 1400,
                                 showConfirmButton: false,
                                 timerProgressBar: true
                             }).then(() => {
@@ -283,8 +296,8 @@
                         } else {
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Kode Akses Salah',
-                                text: data.message || 'Kode akses terminal yang Anda masukkan tidak valid.',
+                                title: 'Akses Ditolak',
+                                text: data.message || 'Kode akses atau kartu RFID tidak valid.',
                                 confirmButtonColor: '#4f46e5'
                             });
                             input.value = '';

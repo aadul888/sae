@@ -22,6 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
             user.peran_id_str || "Peserta Didik";
         document.getElementById("inputHp").value = user.no_hp || "";
         document.getElementById("inputAlamat").value = user.alamat || "";
+        const inputRfid = document.getElementById("inputRfidUid");
+        if (inputRfid) inputRfid.value = user.rfid_uid || "";
         inputPassword.value = "";
         inputPassword.required = false;
         passwordHelp.style.display = "block";

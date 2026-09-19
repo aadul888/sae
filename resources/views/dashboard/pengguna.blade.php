@@ -165,6 +165,13 @@
                                 style="font-size: 0.73rem; padding: 4px 8px; border-radius: 6px;">
                                 {{ $item->peran_id_str ?: ($activeTab === 'peserta_didik' ? 'Peserta Didik' : ($activeTab === 'tendik' ? 'Tenaga Kependidikan' : 'Pengguna')) }}
                             </span>
+                            @if (!empty($item->rfid_uid))
+                                <div style="margin-top: 5px;">
+                                    <span class="badge badge-success" style="font-size: 0.7rem; font-family: monospace; padding: 2px 6px;" title="Kartu RFID Fisik Aktif">
+                                        <i class="fas fa-id-card me-1"></i> {{ $item->rfid_uid }}
+                                    </span>
+                                </div>
+                            @endif
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Kontak">
                             {{ $item->no_hp ?: '-' }}
@@ -293,6 +300,11 @@
                     <div class="form-group-compact full-width">
                         <label>Alamat</label>
                         <input type="text" name="alamat" id="inputAlamat">
+                    </div>
+                    <div class="form-group-compact full-width">
+                        <label><i class="fas fa-id-card text-primary me-1"></i> UID Kartu RFID (Akses Kiosk Terminal)</label>
+                        <input type="text" name="rfid_uid" id="inputRfidUid" placeholder="Tempel kartu RFID atau ketik UID..." autocomplete="off">
+                        <div class="input-hint">Digunakan untuk membuka akses layar pemindai terminal kiosk presensi secara instan dengan tap kartu.</div>
                     </div>
                     <div class="form-group-compact full-width">
                         <label>Password Baru</label>

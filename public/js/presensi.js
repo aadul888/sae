@@ -173,31 +173,43 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 2. Modal Pasangkan / Binding Kartu RFID
     const modalRfid = document.getElementById('modalAssignRfid');
     const formRfid = document.getElementById('formAssignRfid');
     const inputPdId = document.getElementById('rfidPdId');
+    const inputTargetType = document.getElementById('rfidTargetType');
+    const labelTarget = document.getElementById('rfidLabelTarget');
     const inputPdNama = document.getElementById('rfidPdNama');
     const inputPdNisn = document.getElementById('rfidPdNisn');
     const inputRfidUid = document.getElementById('rfidUidInput');
     const btnCloseRfidModal = document.getElementById('btnCloseRfidModal');
     const btnCancelRfidModal = document.getElementById('btnCancelRfidModal');
 
-    document.querySelectorAll('.btn-assign-rfid').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const pdId = this.getAttribute('data-id');
-            const nama = this.getAttribute('data-nama');
-            const nisn = this.getAttribute('data-nisn');
-            const currentRfid = this.getAttribute('data-rfid') || '';
+    // Event delegation untuk tombol pendaftaran RFID (mendukung refresh tabel live AJAX)
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-assign-rfid');
+        if (!btn) return;
 
-            inputPdId.value = pdId;
-            inputPdNama.textContent = nama;
-            inputPdNisn.textContent = nisn;
-            inputRfidUid.value = currentRfid;
+        const targetId = btn.getAttribute('data-id');
+        const targetType = btn.getAttribute('data-type') || 'siswa';
+        const nama = btn.getAttribute('data-nama');
+        const nisn = btn.getAttribute('data-nisn');
+        const currentRfid = btn.getAttribute('data-rfid') || '';
 
+        if (inputPdId) inputPdId.value = targetId;
+        if (inputTargetType) inputTargetType.value = targetType;
+        if (labelTarget) {
+            labelTarget.textContent = (targetType === 'gtk' ? 'Guru / Tenaga Kependidikan:' : 'Peserta Didik:');
+        }
+        if (inputPdNama) inputPdNama.textContent = nama;
+        if (inputPdNisn) {
+            inputPdNisn.textContent = (targetType === 'gtk' ? 'NIP/NUPTK: ' : 'NISN/NIPD: ') + nisn;
+        }
+        if (inputRfidUid) inputRfidUid.value = currentRfid;
+
+        if (modalRfid) {
             modalRfid.style.display = 'flex';
             setTimeout(() => inputRfidUid.focus(), 150);
-        });
+        }
     });
 
     function closeRfidModal() {
@@ -211,8 +223,9 @@ document.addEventListener('DOMContentLoaded', function () {
         formRfid.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const pdId = inputPdId.value;
-            const rfidUid = inputRfidUid.value.trim();
+            const targetId = inputPdId.value;
+            const targetType = (inputTargetType ? inputTargetType.value : 'siswa') || 'siswa';
+            const rfidUid = inputRfidUid.value.trim().toUpperCase();
 
             if (!rfidUid) {
                 Swal.fire({
@@ -226,10 +239,19 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 Swal.fire({
                     title: 'Menyimpan...',
-                    text: 'Mendaftarkan kartu RFID ke peserta didik...',
+                    text: targetType === 'gtk' ? 'Mendaftarkan kartu RFID ke akun Guru / Tendik...' : 'Mendaftarkan kartu RFID ke peserta didik...',
                     allowOutsideClick: false,
                     didOpen: () => Swal.showLoading()
                 });
+
+                const payload = {
+                    rfid_uid: rfidUid
+                };
+                if (targetType === 'gtk') {
+                    payload.pengguna_id = targetId;
+                } else {
+                    payload.peserta_didik_id = targetId;
+                }
 
                 const response = await fetch('/dashboard/presensi/rfid/assign', {
                     method: 'POST',
@@ -238,10 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({
-                        peserta_didik_id: pdId,
-                        rfid_uid: rfidUid
-                    })
+                    body: JSON.stringify(payload)
                 });
 
                 const res = await response.json();
@@ -395,6 +414,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Interaksi Pengaturan Kode Akses Kiosk Publik
         const btnToggleShowCode = document.getElementById('btnToggleShowKodeAkses');
         const inputKodeAkses = document.getElementById('inputKodeAksesKiosk');
+        const btnSaveCode = document.getElementById('btnSaveKodeAkses');
         const btnCopyCode = document.getElementById('btnCopyKodeAkses');
         const btnGenerateCode = document.getElementById('btnGenerateRandomCode');
 
@@ -452,6 +472,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             try {
+                if (btnSaveCode) {
+                    btnSaveCode.disabled = true;
+                    btnSaveCode.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+                }
                 if (btnGenerateCode) {
                     btnGenerateCode.disabled = true;
                     btnGenerateCode.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Acak...';
@@ -481,11 +505,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Salin otomatis ke clipboard tanpa double alert (silent = true)
                 copyKodeAksesToClipboard(data.kode_akses, true);
 
-                // Cukup 1 alert/toast tunggal
+                // Notifikasi sukses
                 Swal.fire({
                     icon: 'success',
-                    title: 'Kode Baru Disimpan!',
-                    text: `Kode "${data.kode_akses}" berhasil diacak, disimpan, dan disalin ke clipboard.`,
+                    title: 'Kode Akses Disimpan!',
+                    text: `Kode "${data.kode_akses}" berhasil disimpan permanen di database dan disalin ke clipboard.`,
                     timer: 2500,
                     showConfirmButton: false,
                     toast: true,
@@ -498,6 +522,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     text: err.message || 'Terjadi kesalahan sistem saat memperbarui kode akses.'
                 });
             } finally {
+                if (btnSaveCode) {
+                    btnSaveCode.disabled = false;
+                    btnSaveCode.innerHTML = '<i class="fas fa-save"></i> Simpan';
+                }
                 if (btnGenerateCode) {
                     btnGenerateCode.disabled = false;
                     btnGenerateCode.innerHTML = '<i class="fas fa-dice"></i> Acak';
@@ -508,6 +536,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (inputKodeAkses) {
             inputKodeAkses.addEventListener('input', function () {
                 this.value = this.value.toUpperCase().replace(/\s/g, '');
+            });
+            inputKodeAkses.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveKodeAksesAjax(this.value);
+                }
+            });
+        }
+
+        if (btnSaveCode && inputKodeAkses) {
+            btnSaveCode.addEventListener('click', function () {
+                saveKodeAksesAjax(inputKodeAkses.value);
             });
         }
 
