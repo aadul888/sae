@@ -462,22 +462,82 @@ document.addEventListener('DOMContentLoaded', function () {
     initGeolocation();
 
     // 5. Global RFID / Barcode Scanner Listener (Hardware Keyboard Wedge & Bluetooth)
-    const hiddenInput = document.getElementById('kioskScannerInput');
+    const scannerInput = document.getElementById('kioskScannerInput');
+    const scannerInputBox = document.getElementById('scannerInputBox');
+    const scannerStatusIndicator = document.getElementById('scannerStatusIndicator');
+    const scannerStatusLabel = document.getElementById('scannerStatusLabel');
+    const scannerFocusStatusText = document.getElementById('scannerFocusStatusText');
+
     let scanBuffer = '';
     let keyTimestamps = [];
     let isProcessing = false;
-    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 768;
 
-    // Pastikan hidden input hanya auto-focus di PC/kiosk station non-touch agar keyboard virtual HP tidak terbuka
-    function ensureFocus() {
-        if (!isTouchDevice && hiddenInput && document.activeElement !== hiddenInput && document.activeElement.tagName !== 'INPUT') {
-            hiddenInput.focus();
+    function setScannerFocusUI(isFocused) {
+        if (scannerInputBox) {
+            scannerInputBox.classList.toggle('focused', isFocused);
+        }
+        if (scannerStatusIndicator) {
+            scannerStatusIndicator.classList.toggle('unfocused', !isFocused);
+        }
+        if (scannerStatusLabel) {
+            scannerStatusLabel.textContent = isFocused ? 'KURSOR AKTIF' : 'KLIK UNTUK FOKUS';
+        }
+        if (scannerFocusStatusText) {
+            if (isFocused) {
+                scannerFocusStatusText.className = 'focus-ok';
+                scannerFocusStatusText.innerHTML = '<i class="fas fa-circle-dot me-1"></i> Scanner siap memindai (Kursor Aktif)';
+            } else {
+                scannerFocusStatusText.className = 'focus-warn';
+                scannerFocusStatusText.innerHTML = '<i class="fas fa-hand-pointer me-1"></i> Klik kotak scanner untuk mengaktifkan kursor';
+            }
         }
     }
-    if (!isTouchDevice) {
-        ensureFocus();
-        document.addEventListener('click', ensureFocus);
+
+    function ensureFocus() {
+        if (scannerInput && document.activeElement !== scannerInput) {
+            const tag = document.activeElement ? document.activeElement.tagName : '';
+            if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'SELECT') {
+                scannerInput.focus();
+            }
+        }
     }
+
+    if (scannerInput) {
+        scannerInput.addEventListener('focus', function () {
+            setScannerFocusUI(true);
+        });
+
+        scannerInput.addEventListener('blur', function () {
+            setScannerFocusUI(false);
+            // Kembalikan fokus otomatis setelah 250ms jika tidak sedang berinteraksi dengan tombol kontrol
+            setTimeout(() => {
+                if (!isProcessing) {
+                    ensureFocus();
+                }
+            }, 250);
+        });
+
+        if (scannerInputBox) {
+            scannerInputBox.addEventListener('click', function () {
+                scannerInput.focus();
+            });
+        }
+
+        scannerInput.addEventListener('input', function () {
+            keyTimestamps.push(Date.now());
+        });
+    }
+
+    // Inisialisasi fokus awal
+    ensureFocus();
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('button, a, select, .kiosk-mode-pill')) return;
+        ensureFocus();
+    });
+    document.addEventListener('touchstart', function (e) {
+        if (e.target.closest('button, a, select, .kiosk-mode-pill')) return;
+        ensureFocus();
+    }, { passive: true });
 
     // Hardware & Bluetooth Scanner Wedge Listener
     window.addEventListener('keydown', function (e) {
@@ -485,7 +545,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (e.key === 'Enter') {
             e.preventDefault();
-            const rawIdentifier = (hiddenInput ? hiddenInput.value : scanBuffer).trim();
+
+            // Ambil identifier: dari input field ATAU dari buffer keydown
+            const inputVal = (scannerInput ? scannerInput.value : '').trim();
+            const bufferVal = scanBuffer.trim();
+            const rawIdentifier = inputVal || bufferVal;
 
             if (rawIdentifier && !isProcessing) {
                 const charCount = keyTimestamps.length;
@@ -495,8 +559,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     const totalDuration = keyTimestamps[charCount - 1] - keyTimestamps[0];
                     const avgInterval = totalDuration / (charCount - 1);
 
-                    // Izinkan scanner Bluetooth atau OTG pada HP/Tablet dengan toleransi jeda hingga 130ms
-                    if (avgInterval > 130 || totalDuration > 1500) {
+                    // Toleransi jeda hingga 200ms atau total 3000ms untuk mendukung Bluetooth scanner & USB OTG lambat
+                    if (avgInterval > 200 || totalDuration > 3000) {
                         isHardwareScan = false;
                     }
                 }
@@ -510,21 +574,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                     speakGreeting('Input manual dinonaktifkan. Silakan tempelkan kartu pada pemindai.');
                 } else {
+                    if (scannerInputBox) scannerInputBox.classList.add('processing');
+                    if (scannerInput) scannerInput.value = rawIdentifier;
                     processScanAttendance(rawIdentifier);
                 }
             }
 
-            if (hiddenInput) hiddenInput.value = '';
+            if (scannerInput) {
+                setTimeout(() => {
+                    scannerInput.value = '';
+                    if (scannerInputBox) scannerInputBox.classList.remove('processing');
+                }, 400);
+            }
             scanBuffer = '';
             keyTimestamps = [];
         } else if (e.key.length === 1) {
-            // Bersihkan buffer jika jeda dengan karakter sebelumnya terlalu lama (> 250ms berarti ketikan manual manusia)
-            if (keyTimestamps.length > 0 && (now - keyTimestamps[keyTimestamps.length - 1]) > 250) {
+            // Bersihkan buffer jika jeda dengan karakter sebelumnya terlalu lama (> 350ms)
+            if (keyTimestamps.length > 0 && (now - keyTimestamps[keyTimestamps.length - 1]) > 350) {
                 scanBuffer = '';
                 keyTimestamps = [];
             }
             scanBuffer += e.key;
             keyTimestamps.push(now);
+
+            // Pastikan kursor tetap fokus ke scanner input
+            if (scannerInput && document.activeElement !== scannerInput) {
+                ensureFocus();
+            }
         }
     });
 
@@ -720,8 +796,10 @@ document.addEventListener('DOMContentLoaded', function () {
         } finally {
             setTimeout(() => {
                 isProcessing = false;
+                if (scannerInput) scannerInput.value = '';
+                if (scannerInputBox) scannerInputBox.classList.remove('processing');
                 ensureFocus();
-            }, 1000);
+            }, 800);
         }
     }
 
