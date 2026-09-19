@@ -258,7 +258,7 @@ window.SAE = {
         }, duration);
     },
 
-    alert(message, title = "Informasi", type = "info") {
+    alert(message, title = "Informasi", type = "info", timeoutMs = 0) {
         return new Promise((resolve) => {
             const icons = {
                 success: "fa-circle-check",
@@ -286,9 +286,11 @@ window.SAE = {
             document.body.appendChild(overlay);
             requestAnimationFrame(() => overlay.classList.add("active"));
 
+            let timerId = null;
             const okBtn = overlay.querySelector(".sae-dialog-ok");
             if (okBtn) okBtn.focus();
             const close = () => {
+                if (timerId) clearTimeout(timerId);
                 overlay.classList.remove("active");
                 setTimeout(() => {
                     overlay.remove();
@@ -299,6 +301,10 @@ window.SAE = {
             overlay.onclick = (e) => {
                 if (e.target === overlay) close();
             };
+
+            if (timeoutMs > 0) {
+                timerId = setTimeout(close, timeoutMs);
+            }
         });
     },
 

@@ -73,7 +73,7 @@
             </div>
 
             <!-- QR Code Direct Scan (Bisa di-klik untuk Zoom Fullscreen saat Transaksi) -->
-            <div class="kp-qrcode-box" onclick="zoomKpQrCode(event, this)" data-student-name="{{ $card['nama'] }}"
+            <div class="kp-qrcode-box" onclick="zoomKpQrCode(event, this)" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation(); zoomKpQrCode(event, this);" data-student-name="{{ $card['nama'] }}"
                 data-student-nisn="{{ $card['nisn'] }}" data-student-rombel="{{ $card['rombel'] }}"
                 title="Klik untuk memperbesar QR Code (Transaksi / Presensi)">
                 <div class="kp-qr-wrapper">

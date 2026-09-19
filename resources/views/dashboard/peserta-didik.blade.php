@@ -36,10 +36,19 @@
                         style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
                     {{ session('user.name', 'Peserta Didik') }}! 🎓
                 </h2>
-                <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 8px; line-height: 1.4;">
-                    NISN: <strong>{{ session('user.nisn', $pd->nisn ?? '0071234567') }}</strong> &bull; Kelas:
-                    <strong>{{ session('user.kelas', $pd->nama_rombel ?? 'XII RPL 1') }}</strong> &bull; Status: <span
-                        class="text-success font-bold"><i class="fas fa-circle-check"></i> Aktif</span>
+                @php
+                    $currentNisn = $pd->nisn ?? session('user.nisn');
+                @endphp
+                <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 8px; line-height: 1.6; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span>NISN:</span>
+                    <button type="button" class="btn-copy-nisn" data-nisn="{{ $currentNisn }}"
+                        title="Sentuh atau klik untuk menyalin NISN"
+                        style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: rgba(6,182,212,0.12); border: 1px dashed rgba(6,182,212,0.45); border-radius: 6px; color: #38bdf8; font-family: monospace; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
+                        <span class="nisn-text">{{ $currentNisn ?? '0071234567' }}</span>
+                        <i class="fas fa-copy" style="font-size: 0.75rem;"></i>
+                    </button>
+                    <span>&bull; Kelas: <strong>{{ session('user.kelas', $pd->nama_rombel ?? 'XII RPL 1') }}</strong></span>
+                    <span>&bull; Status: <span class="text-success font-bold"><i class="fas fa-circle-check"></i> Aktif</span></span>
                 </p>
                 <div
                     style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #06b6d4;">
@@ -47,9 +56,6 @@
                 </div>
             </div>
         </div>
-        @php
-            $currentNisn = $pd->nisn ?? session('user.nisn');
-        @endphp
         @if ($currentNisn)
             <div class="dash-banner-actions">
                 <button type="button" class="btn btn-outline" onclick="openKartuPelajarModal('{{ $currentNisn }}')"
@@ -197,4 +203,5 @@
 
 @push('scripts')
     <script src="{{ asset('js/html2canvas.min.js') }}"></script>
+    <script src="{{ asset('js/peserta-didik.js') }}?v={{ file_exists(public_path('js/peserta-didik.js')) ? filemtime(public_path('js/peserta-didik.js')) : time() }}"></script>
 @endpush

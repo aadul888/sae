@@ -450,18 +450,22 @@ class PresensiController extends Controller
         $schoolRadius = $pengaturan->getEffectiveRadius();
         $requireLocation = (bool) $pengaturan->require_location;
 
-        return view('dashboard.presensi.scan', compact(
-            'pengaturan',
-            'isLibur',
-            'agendaLibur',
-            'statusHari',
-            'recentScans',
-            'schoolLat',
-            'schoolLon',
-            'schoolRadius',
-            'requireLocation',
-            'isKioskSession'
-        ));
+        return response()
+            ->view('dashboard.presensi.scan', compact(
+                'pengaturan',
+                'isLibur',
+                'agendaLibur',
+                'statusHari',
+                'recentScans',
+                'schoolLat',
+                'schoolLon',
+                'schoolRadius',
+                'requireLocation',
+                'isKioskSession'
+            ))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
     }
 
     /**
@@ -512,7 +516,7 @@ class PresensiController extends Controller
                 'status' => 'warning',
                 'title' => 'Hari Libur Akademik',
                 'message' => 'Hari ini adalah hari libur sekolah: ' . ($agenda ? $agenda->nama_kegiatan : 'Libur Kalender Pendidikan') . '. Presensi dinonaktifkan.',
-                'speech_text' => 'Hari ini adalah hari libur sekolah. Presensi tidak aktif.',
+                'speech_text' => 'Hari libur sekolah.',
             ], 422);
         }
 
@@ -522,7 +526,7 @@ class PresensiController extends Controller
                 'status' => 'warning',
                 'title' => 'Pembelajaran Daring (PJJ)',
                 'message' => 'Hari ini dijadwalkan Pembelajaran Daring (PJJ): ' . ($agenda ? $agenda->nama_kegiatan : 'Belajar di Rumah') . '. Terminal scanner gerbang dinonaktifkan.',
-                'speech_text' => 'Hari ini adalah jadwal pembelajaran daring.',
+                'speech_text' => 'Pembelajaran daring.',
             ], 422);
         }
 
@@ -536,7 +540,7 @@ class PresensiController extends Controller
                 'status' => 'error',
                 'title' => 'Di Luar Radius Sekolah',
                 'message' => $locCheck['message'],
-                'speech_text' => 'Presensi ditolak. Lokasi Anda berada di luar batas radius sekolah.',
+                'speech_text' => 'Di luar radius sekolah.',
                 'data' => [
                     'distance_meter' => $locCheck['distance_meter'],
                     'radius_meter' => $locCheck['radius_meter'],
@@ -550,7 +554,7 @@ class PresensiController extends Controller
                 'status' => 'warning',
                 'title' => 'Bukan Hari Belajar',
                 'message' => 'Hari ini bukan merupakan hari aktif belajar di jadwal sekolah.',
-                'speech_text' => 'Hari ini bukan jadwal hari aktif sekolah.',
+                'speech_text' => 'Bukan hari aktif sekolah.',
             ], 422);
         }
 
@@ -601,7 +605,7 @@ class PresensiController extends Controller
                 'status' => 'error',
                 'title' => 'Peserta Didik Tidak Ditemukan',
                 'message' => "Kartu RFID atau QR [{$cleanId}] belum terdaftar dalam sistem database sekolah.",
-                'speech_text' => 'Kartu atau kode tidak terdaftar.',
+                'speech_text' => 'Tidak terdaftar.',
             ], 404);
         }
 
@@ -612,7 +616,7 @@ class PresensiController extends Controller
                 'status' => 'warning',
                 'title' => 'Jurusan Tidak Aktif Presensi',
                 'message' => 'Kompetensi Keahlian ' . ($rb->jurusan_id_str ?: 'peserta didik') . ' saat ini tidak dijadwalkan untuk presensi gerbang (misal: sedang PKL/Prakerin).',
-                'speech_text' => 'Jurusan anda sedang tidak dijadwalkan presensi.',
+                'speech_text' => 'Jurusan tidak aktif.',
             ], 422);
         }
 
@@ -662,7 +666,7 @@ class PresensiController extends Controller
                     'status' => 'info',
                     'title' => 'Sudah Presensi Pulang',
                     'message' => "{$siswa->nama} sudah tercatat presensi pulang pada pukul {$presensi->jam_pulang} WIB.",
-                    'speech_text' => "{$siswa->nama}, Anda sudah melakukan presensi pulang sebelumnya.",
+                    'speech_text' => "{$siswa->nama}, sudah pulang.",
                     'data' => $this->formatSiswaResponseData($siswa, $presensi),
                 ]);
             }
@@ -677,11 +681,11 @@ class PresensiController extends Controller
             if ($currentTime < $jamPulangMulai) {
                 $presensi->status_ketepatan_pulang = 'pulang_cepat';
                 $messageDetail = "Presensi pulang berhasil (Pulang Cepat pada {$currentTime} WIB).";
-                $speechGreeting = "Sampai jumpa {$siswa->nama}, presensi pulang berhasil.";
+                $speechGreeting = "Sampai jumpa {$siswa->nama}.";
             } else {
                 $presensi->status_ketepatan_pulang = 'tepat_waktu';
                 $messageDetail = "Presensi pulang tepat waktu pada {$currentTime} WIB.";
-                $speechGreeting = "Sampai jumpa {$siswa->nama}, selamat beristirahat.";
+                $speechGreeting = "Sampai jumpa {$siswa->nama}.";
             }
 
             if ($userLat !== null && $userLon !== null) {
@@ -700,7 +704,7 @@ class PresensiController extends Controller
                     'status' => 'info',
                     'title' => 'Sudah Presensi Masuk',
                     'message' => "{$siswa->nama} sudah tercatat presensi masuk pada pukul {$presensi->jam_masuk} WIB.",
-                    'speech_text' => "{$siswa->nama}, Anda sudah presensi masuk pagi ini.",
+                    'speech_text' => "{$siswa->nama}, sudah masuk.",
                     'data' => $this->formatSiswaResponseData($siswa, $presensi),
                 ]);
             }
@@ -722,20 +726,20 @@ class PresensiController extends Controller
                     $presensi->status_ketepatan_masuk = 'terlambat';
                     $presensi->menit_terlambat = $diffMinutes;
                     $messageDetail = "Presensi masuk tercatat: Terlambat {$diffMinutes} menit ({$currentTime} WIB).";
-                    $speechGreeting = "Selamat pagi {$siswa->nama}, presensi masuk berhasil. Anda terlambat {$diffMinutes} menit.";
+                    $speechGreeting = "{$siswa->nama}, terlambat {$diffMinutes} menit.";
                 } else {
                     $presensi->status = 'H';
                     $presensi->status_ketepatan_masuk = 'tepat_waktu';
                     $presensi->menit_terlambat = 0;
                     $messageDetail = "Presensi masuk tepat waktu ({$currentTime} WIB).";
-                    $speechGreeting = "Selamat pagi {$siswa->nama}, presensi masuk berhasil tepat waktu.";
+                    $speechGreeting = "Selamat pagi {$siswa->nama}.";
                 }
             } else {
                 $presensi->status = 'H';
                 $presensi->status_ketepatan_masuk = 'tepat_waktu';
                 $presensi->menit_terlambat = 0;
                 $messageDetail = "Presensi masuk tepat waktu ({$currentTime} WIB).";
-                $speechGreeting = "Selamat pagi {$siswa->nama}, presensi masuk berhasil tepat waktu.";
+                $speechGreeting = "Selamat pagi {$siswa->nama}.";
             }
 
             if ($userLat !== null && $userLon !== null) {

@@ -15,6 +15,13 @@
         </div>
 
         <div class="kp-viewer-actions">
+            <!-- Tombol Perbesar QR Transaksi / Presensi -->
+            <button type="button" class="kp-viewer-btn kp-btn-zoom-qr" id="kpBtnZoomQr"
+                onclick="zoomKpQrCode(event)" title="Perbesar QR Code untuk Presensi / Transaksi">
+                <i class="fas fa-qrcode"></i>
+                <span>Perbesar QR</span>
+            </button>
+
             <!-- Tombol Unduh dengan Menu Opsi -->
             <button type="button" class="kp-viewer-btn kp-btn-download" id="kpBtnDownload"
                 onclick="toggleKpDownloadMenu(event)">
@@ -101,6 +108,11 @@
             </button>
             <button type="button" class="kp-side-pill" id="kpPillBack" onclick="slideCardTo('back')">
                 <i class="fas fa-barcode"></i> Sisi Belakang
+            </button>
+            <button type="button" class="kp-side-pill" onclick="zoomKpQrCode(event)"
+                style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 700;"
+                title="Perbesar QR Code Transaksi & Presensi">
+                <i class="fas fa-qrcode"></i> QR Presensi
             </button>
         </div>
 
@@ -387,8 +399,13 @@
                 const deltaX = currentX - startX;
                 const duration = Date.now() - dragStartTime;
 
-                // Ketukan singkat (Tap) tanpa geser = balik kartu
+                // Ketukan singkat (Tap) tanpa geser
                 if (Math.abs(deltaX) < 10 && duration < 260) {
+                    const qrBox = e.target ? e.target.closest('.kp-qrcode-box') : null;
+                    if (qrBox) {
+                        zoomKpQrCode(e, qrBox);
+                        return;
+                    }
                     slideCardTo(currentSide === 'front' ? 'back' : 'front');
                     return;
                 }
@@ -438,8 +455,13 @@
                 const deltaX = currentX - startX;
                 const duration = Date.now() - dragStartTime;
 
-                // Klik singkat tanpa geser = balik kartu
+                // Klik singkat tanpa geser = balik kartu atau buka QR jika diklik
                 if (Math.abs(deltaX) < 8 && duration < 260) {
+                    const qrBox = e.target ? e.target.closest('.kp-qrcode-box') : null;
+                    if (qrBox) {
+                        zoomKpQrCode(e, qrBox);
+                        return;
+                    }
                     slideCardTo(currentSide === 'front' ? 'back' : 'front');
                     return;
                 }

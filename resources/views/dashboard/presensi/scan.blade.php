@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Terminal Presensi &amp; Scanner RFID — SAE</title>
 
     <!-- Global CSS & Fonts -->
@@ -41,7 +44,7 @@
                 $kioskLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
                 $kioskLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
             @endphp
-            <a href="{{ route('presensi.kiosk.lock') }}?redirect={{ urlencode(url('/')) }}" title="Kembali ke Beranda" style="display: inline-flex; align-items: center; text-decoration: none;">
+            <a href="{{ route('presensi.kiosk.lock') }}?redirect={{ urlencode(url('/')) }}" class="kiosk-lock-link" title="Kembali ke Beranda" style="display: inline-flex; align-items: center; text-decoration: none;">
                 <img src="{{ $kioskLogoDark }}" alt="SAE Logo" class="kiosk-logo" id="navLogo"
                     data-dark="{{ $kioskLogoDark }}" data-light="{{ $kioskLogoLight }}"
                     onerror="this.onerror=null; this.src='/img/logo-dark.png';">

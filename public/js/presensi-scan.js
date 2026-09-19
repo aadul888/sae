@@ -29,17 +29,31 @@ document.addEventListener('DOMContentLoaded', function () {
         return audioCtx;
     }
 
-    // Unlock Audio & Speech pada sentuhan pertama di perangkat mobile
+    // Unlock Audio & Speech pada interaksi pertama (touch, click, keydown untuk RFID scanner)
     function unlockAudioGesture() {
         getAudioContext();
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.getVoices();
+            try {
+                window.speechSynthesis.resume();
+                const dummy = new SpeechSynthesisUtterance('');
+                dummy.volume = 0;
+                window.speechSynthesis.speak(dummy);
+                window.speechSynthesis.getVoices();
+            } catch (e) {}
         }
         document.removeEventListener('touchstart', unlockAudioGesture);
         document.removeEventListener('click', unlockAudioGesture);
+        document.removeEventListener('keydown', unlockAudioGesture);
     }
     document.addEventListener('touchstart', unlockAudioGesture, { passive: true });
     document.addEventListener('click', unlockAudioGesture, { passive: true });
+    document.addEventListener('keydown', unlockAudioGesture, { passive: true });
+
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = function () {
+            window.speechSynthesis.getVoices();
+        };
+    }
 
     function playSound(type) {
         try {
@@ -112,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnToggleSpeech = document.getElementById('btnToggleSpeech');
     if (btnToggleSpeech) {
         btnToggleSpeech.addEventListener('click', function () {
+            unlockAudioGesture();
             isSpeechEnabled = !isSpeechEnabled;
             this.innerHTML = isSpeechEnabled
                 ? '<i class="fas fa-volume-high"></i>'
@@ -119,24 +134,49 @@ document.addEventListener('DOMContentLoaded', function () {
             this.setAttribute('title', isSpeechEnabled ? 'Suara Aktif (Klik untuk membisukan)' : 'Suara Nonaktif (Klik untuk mengaktifkan)');
             this.classList.toggle('btn-outline', !isSpeechEnabled);
             this.classList.toggle('btn-primary', isSpeechEnabled);
+
+            if (isSpeechEnabled) {
+                speakGreeting('Suara aktif.');
+            }
         });
     }
 
     function speakGreeting(text) {
         if (!isSpeechEnabled || !('speechSynthesis' in window) || !text) return;
-        window.speechSynthesis.cancel(); // batalkan ucapan sebelumnya jika ada
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'id-ID';
-        utterance.rate = 1.05;
-        utterance.pitch = 1.0;
+        try {
+            window.speechSynthesis.cancel();
 
-        // Cari suara Bahasa Indonesia jika ada
-        const voices = window.speechSynthesis.getVoices();
-        const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
-        if (idVoice) utterance.voice = idVoice;
+            setTimeout(() => {
+                try {
+                    if (window.speechSynthesis.paused) {
+                        window.speechSynthesis.resume();
+                    }
 
-        window.speechSynthesis.speak(utterance);
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'id-ID';
+                    utterance.rate = 1.1; // Suara ringkas dan cepat
+                    utterance.pitch = 1.0;
+
+                    const voices = window.speechSynthesis.getVoices();
+                    if (voices && voices.length > 0) {
+                        const idVoice = voices.find(v => v.lang && (v.lang.toLowerCase().includes('id') || v.lang.toLowerCase().includes('indonesia')));
+                        if (idVoice) utterance.voice = idVoice;
+                    }
+
+                    utterance.onerror = function (e) {
+                        console.warn('SpeechSynthesis error:', e);
+                        try { window.speechSynthesis.resume(); } catch (err) {}
+                    };
+
+                    window.speechSynthesis.speak(utterance);
+                } catch (err) {
+                    console.warn('Gagal mengeksekusi speech:', err);
+                }
+            }, 50);
+        } catch (e) {
+            console.warn('SpeechSynthesis cancel exception:', e);
+        }
     }
 
     // 4. Inisialisasi Kamera Live Snapshot & Scanner
@@ -659,31 +699,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Interval scanning 200ms untuk performa responsif dan mulus
     setInterval(scanVideoFrame, 200);
 
-    // 5.2. Handler Tombol Kunci Terminal Kiosk
-    const btnKioskLock = document.getElementById('btnKioskLock');
-    if (btnKioskLock) {
-        btnKioskLock.addEventListener('click', function (e) {
-            e.preventDefault();
-            const lockUrl = this.getAttribute('href');
-            Swal.fire({
-                title: 'Kunci Terminal Kiosk?',
-                text: 'Layar pemindai akan dikunci. Diperlukan kode akses untuk membukanya kembali.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#4b5563',
-                confirmButtonText: '<i class="fas fa-lock me-1"></i> Kunci Sekarang',
-                cancelButtonText: 'Batal'
-            }).then((res) => {
-                if (res.isConfirmed) {
-                    window.location.href = lockUrl;
-                }
-            });
-        });
-    }
-
     // 6. Eksekusi Proses Presensi via AJAX
     async function processScanAttendance(identifier) {
+        unlockAudioGesture();
         if (isProcessing) return;
         isProcessing = true;
 
@@ -833,18 +851,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showNoticeCard(title, message, iconType) {
-        Swal.fire({
-            icon: iconType,
-            title: title,
-            text: message,
-            timer: 3000,
-            showConfirmButton: false,
-            toast: true,
-            position: 'top-end',
-            customClass: {
-                popup: 'colored-toast'
-            }
-        });
+        const type = (iconType === 'error' ? 'danger' : iconType) || 'info';
+        if (window.SAE && typeof window.SAE.alert === 'function') {
+            window.SAE.alert(message, title || 'Pemberitahuan Presensi', type, 3200);
+        } else if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: iconType,
+                title: title,
+                text: message,
+                timer: 3200,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
     }
 
     // 8. Update Recent Scans Feed with Anti-Duplicate Filter
@@ -894,5 +914,39 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // 9. Proteksi BFCache (Back-Forward Cache) & Navigasi Kunci Terminal
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
+            window.location.reload();
+        }
+    });
+
+    const lockElements = document.querySelectorAll('#btnKioskLock, .kiosk-lock-link');
+    lockElements.forEach(function (el) {
+        el.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetUrl = this.getAttribute('href');
+            if (this.id === 'btnKioskLock') {
+                Swal.fire({
+                    title: 'Kunci Terminal?',
+                    text: 'Terminal pemindai akan dikunci dan memerlukan kode akses / RFID untuk dibuka kembali.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: '<i class="fas fa-lock me-1"></i> Kunci Sekarang',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.replace(targetUrl);
+                    }
+                });
+            } else {
+                window.location.replace(targetUrl);
+            }
+        });
+    });
+
 });
+
 

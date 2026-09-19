@@ -15,7 +15,6 @@
 
     <!-- SAE Design System & CSS -->
     <link rel="stylesheet" href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
-    <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
 
     <style>
         body {
@@ -168,10 +167,43 @@
         }
 
         .info-footer {
-            margin-top: 24px;
+            margin-top: 20px;
             font-size: 0.78rem;
             color: #64748b;
             line-height: 1.45;
+        }
+
+        .kiosk-nav-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn-kiosk-nav {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #94a3b8;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-kiosk-nav:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(56, 189, 248, 0.4);
+            color: #f8fafc;
+            transform: translateY(-1px);
         }
 
         .live-clock-pill {
@@ -217,7 +249,7 @@
         <form id="formKioskAuth">
             @csrf
             <div class="pin-input-wrap">
-                <input type="text" id="inputKodeAkses" name="kode_akses" class="pin-input" placeholder="TAP KARTU / KODE AKSES" required autofocus autocomplete="off" spellcheck="false" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')">
+                <input type="password" id="inputKodeAkses" name="kode_akses" class="pin-input" placeholder="••••••••••••" aria-label="KODE AKSES" required autofocus autocomplete="off" spellcheck="false" oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')">
             </div>
 
             <button type="submit" id="btnSubmitKiosk" class="btn-unlock">
@@ -225,13 +257,22 @@
             </button>
         </form>
 
+        <div class="kiosk-nav-actions">
+            <button type="button" onclick="goBackOrHome()" class="btn-kiosk-nav" title="Kembali ke halaman sebelumnya">
+                <i class="fas fa-arrow-left"></i> <span>Kembali</span>
+            </button>
+            <a href="{{ url('/') }}" class="btn-kiosk-nav" title="Kembali ke Beranda Utama / Publik">
+                <i class="fas fa-house"></i> <span>Home Publik</span>
+            </a>
+        </div>
+
         <div class="info-footer">
             <i class="fas fa-shield-halved me-1"></i> Mode Kiosk Publik Terisolasi.<br>
             Dapat dibuka dengan kartu RFID Guru/Tendik terdaftar atau PIN resmi.
         </div>
     </div>
 
-    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <script src="{{ asset('js/sae.js') }}?v={{ file_exists(public_path('js/sae.js')) ? filemtime(public_path('js/sae.js')) : time() }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Live Clock
@@ -283,40 +324,44 @@
                         const data = await res.json();
 
                         if (res.ok && data.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Akses Diterima',
-                                text: data.message || 'Membuka layar terminal scanner presensi...',
-                                timer: 1400,
-                                showConfirmButton: false,
-                                timerProgressBar: true
-                            }).then(() => {
+                            window.SAE.alert(
+                                data.message || 'Membuka layar terminal scanner presensi...',
+                                'Akses Diterima',
+                                'success',
+                                1200
+                            ).then(() => {
                                 window.location.href = data.redirect_url || "{{ route('presensi.scan') }}";
                             });
                         } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Akses Ditolak',
-                                text: data.message || 'Kode akses atau kartu RFID tidak valid.',
-                                confirmButtonColor: '#4f46e5'
+                            window.SAE.alert(
+                                data.message || 'Kode akses atau kartu RFID tidak valid.',
+                                'Akses Ditolak',
+                                'danger',
+                                1800
+                            ).then(() => {
+                                window.location.reload();
                             });
-                            input.value = '';
-                            input.focus();
-                            btn.disabled = false;
-                            btn.innerHTML = '<i class="fas fa-key"></i> <span>Buka Terminal Pemindai</span>';
                         }
                     } catch (err) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Kesalahan Server',
-                            text: 'Gagal terhubung ke server verifikasi. Silakan periksa jaringan Anda.',
-                            confirmButtonColor: '#4f46e5'
+                        window.SAE.alert(
+                            'Gagal terhubung ke server verifikasi. Silakan periksa jaringan Anda.',
+                            'Kesalahan Server',
+                            'danger',
+                            2000
+                        ).then(() => {
+                            window.location.reload();
                         });
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-key"></i> <span>Buka Terminal Pemindai</span>';
                     }
                 });
             }
+
+            window.goBackOrHome = function() {
+                if (window.history.length > 1 && document.referrer && !document.referrer.includes('/presensi/scan/lock')) {
+                    window.history.back();
+                } else {
+                    window.location.href = "{{ url('/') }}";
+                }
+            };
         });
     </script>
 </body>
