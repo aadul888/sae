@@ -80,14 +80,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateLivePreviews() {
-        const sekolah = inputSekolahKode ? inputSekolahKode.value.trim() || 'SMK-SAE' : 'SMK-SAE';
+        const sekolah = inputSekolahKode ? inputSekolahKode.value.trim() || 'SMKN1PGL' : 'SMKN1PGL';
         const formatKeluar = inputFormatKeluar ? inputFormatKeluar.value.trim() : '';
         const formatKet = inputFormatKet ? inputFormatKet.value.trim() : '';
 
-        const nextKeluarNum = String(parseInt(counterKeluar ? counterKeluar.value : 0) + 1).padStart(3, '0');
-        const nextKetNum = String(parseInt(counterKet ? counterKet.value : 0) + 1).padStart(3, '0');
+        const nextKeluarNum = String(parseInt(counterKeluar ? counterKeluar.value : 0) + 1).padStart(4, '0');
+        const nextKetNum = String(parseInt(counterKet ? counterKet.value : 0) + 1).padStart(4, '0');
 
-        const selectedIndeks = previewIndeksSelect ? previewIndeksSelect.value : '005';
+        const selectedIndeks = previewIndeksSelect ? previewIndeksSelect.value : 'KPG.11.01';
 
         if (previewKeluarText && formatKeluar) {
             previewKeluarText.innerText = renderNumberPreview(formatKeluar, nextKeluarNum, selectedIndeks, sekolah);

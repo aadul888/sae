@@ -234,8 +234,8 @@ class PersuratanHddService
     public static function generateNomorSuratKeluar(string $kodeIndeks, ?string $customFormat = null): string
     {
         $setting = DB::table('persuratan_settings')->first();
-        $format = $customFormat ?: ($setting?->format_nomor_surat_keluar ?: '{nomor}/{kode_indeks}/{sekolah_kode}/{romawi_bulan}/{tahun}');
-        $sekolahKode = $setting?->sekolah_kode ?: 'SMK-SAE';
+        $format = $customFormat ?: ($setting?->format_nomor_surat_keluar ?: '{nomor}/{kode_indeks}-{sekolah_kode}');
+        $sekolahKode = $setting?->sekolah_kode ?: 'SMKN1PGL';
 
         $curYear = (int) date('Y');
         $curMonth = (int) date('n');
@@ -251,7 +251,7 @@ class PersuratanHddService
             }
         }
 
-        $formattedNumber = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        $formattedNumber = str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
         $romawiBulan = self::getRomawiBulan($curMonth);
 
         $nomorSurat = str_replace(
@@ -266,11 +266,11 @@ class PersuratanHddService
     /**
      * Generate Nomor Surat Keterangan Siswa Otomatis Berdasarkan Template Pengaturan
      */
-    public static function generateNomorSuratKeterangan(?string $kodeIndeks = '421.5', ?string $customFormat = null): string
+    public static function generateNomorSuratKeterangan(?string $kodeIndeks = 'KS.02.23', ?string $customFormat = null): string
     {
         $setting = DB::table('persuratan_settings')->first();
-        $format = $customFormat ?: ($setting?->format_nomor_surat_keterangan ?: '{kode_indeks}/{nomor}/{sekolah_kode}/{romawi_bulan}/{tahun}');
-        $sekolahKode = $setting?->sekolah_kode ?: 'SMK-SAE';
+        $format = $customFormat ?: ($setting?->format_nomor_surat_keterangan ?: '{nomor}/{kode_indeks}-{sekolah_kode}');
+        $sekolahKode = $setting?->sekolah_kode ?: 'SMKN1PGL';
 
         $curYear = (int) date('Y');
         $curMonth = (int) date('n');
@@ -285,9 +285,9 @@ class PersuratanHddService
             }
         }
 
-        $formattedNumber = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        $formattedNumber = str_pad((string) $nextNumber, 4, '0', STR_PAD_LEFT);
         $romawiBulan = self::getRomawiBulan($curMonth);
-        $actualKodeIndeks = $kodeIndeks ?: '421.5';
+        $actualKodeIndeks = $kodeIndeks ?: 'KS.02.23';
 
         // Jika di setting format masih hardcoded '421.5' dan bukan placeholder {kode_indeks}
         if (!str_contains($format, '{kode_indeks}') && str_contains($format, '421.5')) {

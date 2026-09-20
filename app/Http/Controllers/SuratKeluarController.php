@@ -65,7 +65,7 @@ class SuratKeluarController extends Controller
         $query = Persuratan::where('jenis_surat', 'keluar');
 
         if ($tab === 'keterangan') {
-            $query->where('kode_indeks', '421.5');
+            $query->whereIn('nomor_surat', SuratKeteranganPd::pluck('nomor_surat'));
         }
 
         if ($q !== '') {
@@ -102,8 +102,8 @@ class SuratKeluarController extends Controller
         $hddStatus = PersuratanHddService::checkStatus();
 
         // Format nomor surat saran untuk form
-        $suggestedNumber = PersuratanHddService::generateNomorSuratKeluar('005');
-        $suggestedKetNumber = PersuratanHddService::generateNomorSuratKeterangan();
+        $suggestedNumber = PersuratanHddService::generateNomorSuratKeluar('KPG.11.01');
+        $suggestedKetNumber = PersuratanHddService::generateNomorSuratKeterangan('KS.02.23');
 
         return view('dashboard.persuratan.keluar', compact(
             'stats',
@@ -132,7 +132,7 @@ class SuratKeluarController extends Controller
     public function getNextNumber(Request $request): JsonResponse
     {
         $type = $request->get('type', 'keluar');
-        $kodeIndeks = trim($request->get('kode_indeks', ($type === 'keterangan' ? '421.5' : '005')));
+        $kodeIndeks = trim($request->get('kode_indeks', ($type === 'keterangan' ? 'KS.02.23' : 'KPG.11.01')));
         if ($type === 'keterangan') {
             $nomor = PersuratanHddService::generateNomorSuratKeterangan($kodeIndeks);
         } else {
@@ -264,11 +264,7 @@ class SuratKeluarController extends Controller
     public function show($id): JsonResponse
     {
         $surat = Persuratan::where('jenis_surat', 'keluar')->findOrFail($id);
-        $suratKet = null;
-
-        if ($surat->kode_indeks === '421.5') {
-            $suratKet = SuratKeteranganPd::where('nomor_surat', $surat->nomor_surat)->first();
-        }
+        $suratKet = SuratKeteranganPd::where('nomor_surat', $surat->nomor_surat)->first();
 
         return response()->json([
             'success' => true,
@@ -385,7 +381,7 @@ class SuratKeluarController extends Controller
         ]);
 
         $siswa = PesertaDidik::findOrFail($request->peserta_didik_id);
-        $kodeIndeks = trim($request->get('kode_indeks', '421.5')) ?: '421.5';
+        $kodeIndeks = trim($request->get('kode_indeks', 'KS.02.23')) ?: 'KS.02.23';
 
         // Otomatis tentukan nomor surat mengikuti indeks
         $nomorSurat = trim($request->nomor_surat);

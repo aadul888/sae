@@ -25,15 +25,15 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.86rem; border-radius: 8px;">
-                <i class="fas fa-paper-plane text-success me-1"></i> Surat Keluar
+            <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Buku Agenda Surat Keluar">
+                <i class="fas fa-paper-plane text-success"></i>
             </a>
-            <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.86rem; border-radius: 8px;" title="Pengaturan & Harddisk">
+            <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Pengaturan Persuratan &amp; Harddisk">
                 <i class="fas fa-sliders text-muted"></i>
             </a>
             @if ($canCreate)
-                <button type="button" class="btn btn-primary" id="btnOpenCreateMasuk" style="padding: 8px 16px; font-size: 0.86rem; border-radius: 8px;">
-                    <i class="fas fa-plus me-1"></i> Catat Surat Masuk
+                <button type="button" class="btn btn-primary" id="btnOpenCreateMasuk" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Catat Surat Masuk Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>

@@ -41,12 +41,12 @@ class PersuratanSettingController extends Controller
             $id = DB::table('persuratan_settings')->insertGetId([
                 'hdd_path' => storage_path('app/arsip_persuratan'),
                 'is_hdd_active' => true,
-                'format_nomor_surat_keluar' => '{nomor}/{kode_indeks}/SMK-SAE/{romawi_bulan}/{tahun}',
-                'format_nomor_surat_keterangan' => '421.5/{nomor}/SMK-SAE/{romawi_bulan}/{tahun}',
+                'format_nomor_surat_keluar' => '{nomor}/{kode_indeks}-{sekolah_kode}',
+                'format_nomor_surat_keterangan' => '{nomor}/{kode_indeks}-{sekolah_kode}',
                 'nomor_terakhir_surat_keluar' => 0,
                 'nomor_terakhir_surat_keterangan' => 0,
                 'tahun_terakhir' => (int) date('Y'),
-                'sekolah_kode' => 'SMK-SAE',
+                'sekolah_kode' => 'SMKN1PGL',
                 'auto_subfolder' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -88,8 +88,8 @@ class PersuratanSettingController extends Controller
         }
 
         // Live preview penomoran otomatis
-        $previewSuratKeluar = PersuratanHddService::generateNomorSuratKeluar('005');
-        $previewSuratKet = PersuratanHddService::generateNomorSuratKeterangan('421.5');
+        $previewSuratKeluar = PersuratanHddService::generateNomorSuratKeluar('KPG.11.01');
+        $previewSuratKet = PersuratanHddService::generateNomorSuratKeterangan('KS.02.23');
 
         return view('dashboard.persuratan.pengaturan', compact(
             'setting',
@@ -170,7 +170,12 @@ class PersuratanSettingController extends Controller
         // Siapkan struktur folder otomatis
         PersuratanHddService::ensureDirectories();
 
-        return redirect()->route('dashboard.persuratan.pengaturan.index', ['tab' => 'pengaturan'])
+        $targetTab = $request->get('tab', 'pengaturan');
+        if (!in_array($targetTab, ['referensi', 'pengaturan'])) {
+            $targetTab = 'referensi';
+        }
+
+        return redirect()->route('dashboard.persuratan.pengaturan.index', ['tab' => $targetTab])
             ->with('success', 'Pengaturan persuratan, harddisk, dan format penomoran berhasil disimpan.');
     }
 

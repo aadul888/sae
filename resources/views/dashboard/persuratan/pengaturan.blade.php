@@ -27,11 +27,11 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.86rem; border-radius: 8px;">
-                <i class="fas fa-inbox text-primary me-1"></i> Surat Masuk
+            <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Buku Agenda Surat Masuk">
+                <i class="fas fa-inbox text-primary"></i>
             </a>
-            <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.86rem; border-radius: 8px;">
-                <i class="fas fa-paper-plane text-success me-1"></i> Surat Keluar
+            <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Buku Agenda Surat Keluar">
+                <i class="fas fa-paper-plane text-success"></i>
             </a>
         </div>
     </div>
@@ -50,18 +50,18 @@
         </div>
     @endif
 
-    <!-- 3. Navigasi 2 Tab: Referensi vs Pengaturan Surat -->
+    <!-- 3. Navigasi 2 Tab: Format & Indeks vs Penyimpanan HDD -->
     <div class="dash-tabs" style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color); margin-bottom: 22px;">
         <button type="button" class="dash-tab-btn {{ ($tab ?? 'referensi') === 'referensi' ? 'active' : '' }}" data-target="#tab-referensi"
                 style="padding: 12px 20px; font-weight: 700; font-size: 0.9rem; border: none; background: none; color: {{ ($tab ?? 'referensi') === 'referensi' ? 'var(--primary)' : 'var(--text-muted)' }}; border-bottom: 2px solid {{ ($tab ?? 'referensi') === 'referensi' ? 'var(--primary)' : 'transparent' }}; margin-bottom: -2px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
-            <i class="fas fa-tags"></i>
-            <span>Referensi Indeks Surat</span>
-            <span class="badge-compact" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.75rem;">{{ $indeksList->total() }}</span>
+            <i class="fas fa-hashtag"></i>
+            <span>Format Penomoran &amp; Indeks Surat</span>
+            <span class="badge-compact" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.75rem;">{{ $indeksList->total() }} Indeks</span>
         </button>
         <button type="button" class="dash-tab-btn {{ ($tab ?? 'referensi') === 'pengaturan' ? 'active' : '' }}" data-target="#tab-pengaturan"
                 style="padding: 12px 20px; font-weight: 700; font-size: 0.9rem; border: none; background: none; color: {{ ($tab ?? 'referensi') === 'pengaturan' ? 'var(--primary)' : 'var(--text-muted)' }}; border-bottom: 2px solid {{ ($tab ?? 'referensi') === 'pengaturan' ? 'var(--primary)' : 'transparent' }}; margin-bottom: -2px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;">
-            <i class="fas fa-sliders"></i>
-            <span>Pengaturan Surat &amp; Arsip HDD</span>
+            <i class="fas fa-hard-drive"></i>
+            <span>Penyimpanan &amp; Arsip HDD</span>
             <span class="badge-compact {{ $hddStatus['is_ready'] ? 'badge-success' : 'badge-danger' }}" style="font-size: 0.75rem;">
                 <i class="fas {{ $hddStatus['is_ready'] ? 'fa-check-circle' : 'fa-triangle-exclamation' }}"></i>
                 {{ $hddStatus['is_ready'] ? 'HDD Siap' : 'HDD Off' }}
@@ -70,9 +70,133 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- TAB 1: REFERENSI NOMOR / INDEKS SURAT                             -->
+    <!-- TAB 1: FORMAT PENOMORAN & REFERENSI INDEKS SURAT (SATU HALAMAN)   -->
     <!-- ================================================================= -->
     <div id="tab-referensi" class="dash-tab-pane" style="{{ ($tab ?? 'referensi') === 'referensi' ? 'display: block;' : 'display: none;' }}">
+        
+        <!-- 1. Card Format & Penomoran Surat Otomatis -->
+        <div class="card" style="padding: 22px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); margin-bottom: 24px;">
+            <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-hashtag text-primary"></i>
+                    <span>Format &amp; Penomoran Surat Otomatis</span>
+                </div>
+                <span class="badge-compact" style="background: rgba(16,185,129,0.1); color: #10b981; font-family: monospace; font-size: 0.8rem;">
+                    Format Aktif: {{ $setting->format_nomor_surat_keluar ?? '{nomor}/{kode_indeks}-{sekolah_kode}' }}
+                </span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 18px;">
+                Atur template nomor surat keluar dan surat keterangan aktif siswa. Sistem secara otomatis menyematkan <strong>kode indeks klasifikasi</strong> yang dipilih saat surat dibuat dari tabel di bawah.
+            </p>
+
+            <form action="{{ route('dashboard.persuratan.pengaturan.update') }}" method="POST" id="formFormatNomor">
+                @csrf
+                <input type="hidden" name="tab" value="referensi">
+                <input type="hidden" name="hdd_path" value="{{ $setting->hdd_path ?? '' }}">
+                <input type="hidden" name="auto_subfolder" value="{{ ($setting->auto_subfolder ?? true) ? '1' : '0' }}">
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 16px;">
+                    <!-- Kolom Kiri: Input Template & Kode Sekolah -->
+                    <div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Kode / Singkatan Satuan Pendidikan:
+                            </label>
+                            <input type="text" name="sekolah_kode" id="inputSekolahKode" value="{{ old('sekolah_kode', $setting->sekolah_kode ?? 'SMKN1PGL') }}"
+                                   class="form-control" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.86rem;" required>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Template Nomor Surat Keluar:
+                            </label>
+                            <input type="text" name="format_nomor_surat_keluar" id="inputFormatKeluar" value="{{ old('format_nomor_surat_keluar', $setting->format_nomor_surat_keluar ?? '{nomor}/{kode_indeks}-{sekolah_kode}') }}"
+                                   class="form-control" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.82rem;" required>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Template Nomor Surat Keterangan Siswa:
+                            </label>
+                            <input type="text" name="format_nomor_surat_keterangan" id="inputFormatKet" value="{{ old('format_nomor_surat_keterangan', $setting->format_nomor_surat_keterangan ?? '{nomor}/{kode_indeks}-{sekolah_kode}') }}"
+                                   class="form-control" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.82rem;" required>
+                        </div>
+
+                        <!-- Token Placeholder Guide -->
+                        <div style="background: rgba(99,102,241,0.05); border: 1px dashed rgba(99,102,241,0.3); border-radius: 8px; padding: 10px 12px; font-size: 0.74rem; color: var(--text-muted); line-height: 1.5;">
+                            <strong style="color: var(--primary);"><i class="fas fa-info-circle me-1"></i> Token Placeholder Dinamis:</strong><br>
+                            <code>{nomor}</code> = Nomor urut 4 digit (0029) |
+                            <code>{kode_indeks}</code> = Kode klasifikasi (KPG.11.01 / KS.02.23) |
+                            <code>{sekolah_kode}</code> = Singkatan sekolah (SMKN1PGL) |
+                            <code>{romawi_bulan}</code> = Bulan Romawi (I-XII) |
+                            <code>{bulan}</code> = Angka bulan (01-12) |
+                            <code>{tahun}</code> = Tahun 4 digit ({{ date('Y') }})
+                        </div>
+                    </div>
+
+                    <!-- Kolom Kanan: Live Preview & Counter Terakhir -->
+                    <div style="display: flex; flex-direction: column; justify-content: space-between;">
+                        <!-- Live Preview Box -->
+                        <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--text-color);">
+                                    <i class="fas fa-eye text-primary me-1"></i> Contoh Hasil Penomoran Live:
+                                </span>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted);">Uji Indeks:</span>
+                                    <select id="previewIndeksSelect" style="height: 28px; font-size: 0.74rem; padding: 0 6px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color);">
+                                        <option value="KPG.11.01" selected>KPG.11.01 (Surat Tugas)</option>
+                                        <option value="KS.02.23">KS.02.23 (Sertifikat)</option>
+                                        <option value="KP.11.08">KP.11.08 (Rekomendasi)</option>
+                                        <option value="TU.01">TU.01 (Persuratan)</option>
+                                        <option value="KU.03.01">KU.03.01 (Penyedia Dana)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.82rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: var(--text-muted);">Surat Keluar:</span>
+                                <span id="previewKeluarText" style="font-family: monospace; font-weight: 700; color: #10b981; font-size: 0.95rem;">
+                                    {{ $previewSuratKeluar }}
+                                </span>
+                            </div>
+                            <div style="font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: var(--text-muted);">Surat Keterangan:</span>
+                                <span id="previewKetText" style="font-family: monospace; font-weight: 700; color: var(--primary); font-size: 0.95rem;">
+                                    {{ $previewSuratKet }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">
+                                    Counter Terakhir Surat Keluar:
+                                </label>
+                                <input type="number" name="nomor_terakhir_surat_keluar" id="counterKeluar" value="{{ $setting->nomor_terakhir_surat_keluar ?? 0 }}"
+                                       class="form-control" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">
+                                    Counter Surat Keterangan:
+                                </label>
+                                <input type="number" name="nomor_terakhir_surat_keterangan" id="counterKet" value="{{ $setting->nomor_terakhir_surat_keterangan ?? 0 }}"
+                                       class="form-control" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                            </div>
+                        </div>
+
+                        @if ($canUpdate)
+                            <div style="text-align: right;">
+                                <button type="submit" class="btn btn-primary" style="padding: 9px 20px; border-radius: 8px; font-size: 0.86rem;">
+                                    <i class="fas fa-save me-1"></i> Simpan Format Nomor
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 2. Card Master Indeks Klasifikasi Surat -->
         <div class="card" style="padding: 20px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 24px; background: var(--card-bg);">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px;">
                 <div>
@@ -273,181 +397,73 @@
                     <div class="dash-stat-label">Status Izin Partisi</div>
                 </div>
             </div>
-        </div>
+        </div>        <!-- Form Konfigurasi Penyimpanan HDD -->
+        <div class="card" style="padding: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); max-width: 820px; margin: 0 auto 24px auto;">
+            <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <span><i class="fas fa-hard-drive text-primary me-2"></i> Koneksi Harddisk (HDD) Komputer</span>
+                <span id="hddStatusIndicator" class="badge-compact {{ $hddStatus['is_ready'] ? 'badge-success' : 'badge-danger' }}">
+                    <i class="fas {{ $hddStatus['is_ready'] ? 'fa-check-circle' : 'fa-triangle-exclamation' }}"></i>
+                    {{ $hddStatus['is_ready'] ? 'Terhubung & Siap Tulis' : 'Tidak Dapat Diakses' }}
+                </span>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 18px;">
+                Tentukan path direktori lokal atau partisi harddisk komputer (misal <code>D:\Arsip_Sekolah</code>) tempat seluruh dokumen lampiran (PDF/Scan) disimpan, diunduh, dan dirender oleh sistem.
+            </p>
 
-        <!-- Form Konfigurasi Harddisk & Penomoran -->
-        <div class="dash-layout-grid" style="margin-bottom: 24px;">
-            <!-- Left: Form Konfigurasi Penyimpanan HDD -->
-            <div class="card" style="padding: 22px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
-                <div style="font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-                    <span><i class="fas fa-hard-drive text-primary me-2"></i> Koneksi Harddisk (HDD) Komputer</span>
-                    <span id="hddStatusIndicator" class="badge-compact {{ $hddStatus['is_ready'] ? 'badge-success' : 'badge-danger' }}">
-                        <i class="fas {{ $hddStatus['is_ready'] ? 'fa-check-circle' : 'fa-triangle-exclamation' }}"></i>
-                        {{ $hddStatus['is_ready'] ? 'Terhubung & Siap Tulis' : 'Tidak Dapat Diakses' }}
-                    </span>
+            <form action="{{ route('dashboard.persuratan.pengaturan.update') }}" method="POST">
+                @csrf
+                <input type="hidden" name="tab" value="pengaturan">
+                <input type="hidden" name="format_nomor_surat_keluar" value="{{ $setting->format_nomor_surat_keluar ?? '' }}">
+                <input type="hidden" name="format_nomor_surat_keterangan" value="{{ $setting->format_nomor_surat_keterangan ?? '' }}">
+                <input type="hidden" name="sekolah_kode" value="{{ $setting->sekolah_kode ?? 'SMKN1PGL' }}">
+
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 6px;">
+                        Path Direktori Penyimpanan di HDD:
+                    </label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" name="hdd_path" id="hddPathInput" value="{{ old('hdd_path', $setting->hdd_path ?? '') }}"
+                               class="form-control" style="flex: 1; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.86rem;" required>
+                        <button type="button" class="btn btn-outline" id="btnTestHdd" style="padding: 0 14px; height: 40px; border-radius: 8px; font-size: 0.82rem; white-space: nowrap;">
+                            <i class="fas fa-plug-circle-check me-1"></i> Uji Akses Folder
+                        </button>
+                    </div>
+                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                        Contoh path Windows: <code>D:\Arsip_Persuratan_SAE</code> atau <code>E:\Data_Sekolah\Arsip</code>
+                    </div>
                 </div>
-                <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 18px;">
-                    Tentukan path direktori lokal atau partisi harddisk komputer (misal <code>D:\Arsip_Sekolah</code>) tempat seluruh dokumen lampiran (PDF/Scan) disimpan, diunduh, dan dirender oleh sistem.
-                </p>
 
-                <form action="{{ route('dashboard.persuratan.pengaturan.update') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="tab" value="pengaturan">
-                    <input type="hidden" name="format_nomor_surat_keluar" value="{{ $setting->format_nomor_surat_keluar ?? '' }}">
-                    <input type="hidden" name="format_nomor_surat_keterangan" value="{{ $setting->format_nomor_surat_keterangan ?? '' }}">
-                    <input type="hidden" name="sekolah_kode" value="{{ $setting->sekolah_kode ?? 'SMK-SAE' }}">
-
-                    <div class="form-group" style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 6px;">
-                            Path Direktori Penyimpanan di HDD:
-                        </label>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" name="hdd_path" id="hddPathInput" value="{{ old('hdd_path', $setting->hdd_path ?? '') }}"
-                                   class="form-control" style="flex: 1; height: 40px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.86rem;" required>
-                            <button type="button" class="btn btn-outline" id="btnTestHdd" style="padding: 0 14px; height: 40px; border-radius: 8px; font-size: 0.82rem; white-space: nowrap;">
-                                <i class="fas fa-plug-circle-check me-1"></i> Uji Akses Folder
-                            </button>
-                        </div>
-                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
-                            Contoh path Windows: <code>D:\Arsip_Persuratan_SAE</code> atau <code>E:\Data_Sekolah\Arsip</code>
-                        </div>
+                <!-- Progress Bar Kapasitas HDD -->
+                <div style="background: rgba(0,0,0,0.04); border-radius: 10px; padding: 14px; margin-bottom: 18px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px;">
+                        <span style="color: var(--text-color);"><i class="fas fa-chart-pie text-primary me-1"></i> Penggunaan Partisi Harddisk</span>
+                        <span style="color: var(--text-muted);">{{ $hddStatus['percent_used'] }}% Terpakai ({{ $hddStatus['used_formatted'] }})</span>
                     </div>
-
-                    <!-- Progress Bar Kapasitas HDD -->
-                    <div style="background: rgba(0,0,0,0.04); border-radius: 10px; padding: 14px; margin-bottom: 18px; border: 1px solid var(--border-color);">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; margin-bottom: 6px;">
-                            <span style="color: var(--text-color);"><i class="fas fa-chart-pie text-primary me-1"></i> Penggunaan Partisi Harddisk</span>
-                            <span style="color: var(--text-muted);">{{ $hddStatus['percent_used'] }}% Terpakai ({{ $hddStatus['used_formatted'] }})</span>
-                        </div>
-                        <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
-                            <div style="width: {{ min(100, $hddStatus['percent_used']) }}%; height: 100%; background: {{ $hddStatus['percent_used'] > 90 ? '#ef4444' : ($hddStatus['percent_used'] > 75 ? '#f59e0b' : '#10b981') }}; border-radius: 4px; transition: width 0.4s ease;"></div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">
-                            <span>0 GB</span>
-                            <span>Sisa: {{ $hddStatus['free_formatted'] }} bebas</span>
-                            <span>Total: {{ $hddStatus['total_formatted'] }}</span>
-                        </div>
+                    <div style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+                        <div style="width: {{ min(100, $hddStatus['percent_used']) }}%; height: 100%; background: {{ $hddStatus['percent_used'] > 90 ? '#ef4444' : ($hddStatus['percent_used'] > 75 ? '#f59e0b' : '#10b981') }}; border-radius: 4px; transition: width 0.4s ease;"></div>
                     </div>
-
-                    <div class="form-group" style="margin-bottom: 18px;">
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-color); cursor: pointer;">
-                            <input type="checkbox" name="auto_subfolder" value="1" {{ ($setting->auto_subfolder ?? true) ? 'checked' : '' }} style="width: 16px; height: 16px;">
-                            <span>Otomatis kelompokkan folder: <code>surat_masuk/{Tahun}</code>, <code>surat_keluar/{Tahun}</code>, <code>surat_keterangan/{Tahun}</code></span>
-                        </label>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-top: 6px;">
+                        <span>0 GB</span>
+                        <span>Sisa: {{ $hddStatus['free_formatted'] }} bebas</span>
+                        <span>Total: {{ $hddStatus['total_formatted'] }}</span>
                     </div>
+                </div>
 
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text-color); cursor: pointer;">
+                        <input type="checkbox" name="auto_subfolder" value="1" {{ ($setting->auto_subfolder ?? true) ? 'checked' : '' }} style="width: 16px; height: 16px;">
+                        <span>Otomatis kelompokkan folder: <code>surat_masuk/{Tahun}</code>, <code>surat_keluar/{Tahun}</code>, <code>surat_keterangan/{Tahun}</code></span>
+                    </label>
+                </div>
+
+                @if ($canUpdate)
                     <div style="text-align: right;">
-                        <button type="submit" class="btn btn-primary" style="padding: 8px 18px; border-radius: 8px; font-size: 0.86rem;">
+                        <button type="submit" class="btn btn-primary" style="padding: 9px 20px; border-radius: 8px; font-size: 0.86rem;">
                             <i class="fas fa-save me-1"></i> Simpan Pengaturan HDD
                         </button>
                     </div>
-                </form>
-            </div>
-
-            <!-- Right: Template Format Penomoran Surat Otomatis -->
-            <div class="card" style="padding: 22px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
-                <div style="font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-hashtag text-success"></i> Format &amp; Penomoran Surat Otomatis
-                </div>
-                <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 16px;">
-                    Atur template nomor surat keluar dan surat keterangan aktif siswa. Sistem secara otomatis menyematkan <strong>kode indeks klasifikasi</strong> yang dipilih saat surat dibuat.
-                </p>
-
-                <form action="{{ route('dashboard.persuratan.pengaturan.update') }}" method="POST" id="formFormatNomor">
-                    @csrf
-                    <input type="hidden" name="tab" value="pengaturan">
-                    <input type="hidden" name="hdd_path" value="{{ $setting->hdd_path ?? '' }}">
-                    <input type="hidden" name="auto_subfolder" value="{{ ($setting->auto_subfolder ?? true) ? '1' : '0' }}">
-
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                            Kode / Singkatan Satuan Pendidikan:
-                        </label>
-                        <input type="text" name="sekolah_kode" id="inputSekolahKode" value="{{ old('sekolah_kode', $setting->sekolah_kode ?? 'SMK-SAE') }}"
-                               class="form-control" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.86rem;" required>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                            Template Nomor Surat Keluar:
-                        </label>
-                        <input type="text" name="format_nomor_surat_keluar" id="inputFormatKeluar" value="{{ old('format_nomor_surat_keluar', $setting->format_nomor_surat_keluar ?? '{nomor}/{kode_indeks}/{sekolah_kode}/{romawi_bulan}/{tahun}') }}"
-                               class="form-control" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.82rem;" required>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 12px;">
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                            Template Nomor Surat Keterangan Siswa:
-                        </label>
-                        <input type="text" name="format_nomor_surat_keterangan" id="inputFormatKet" value="{{ old('format_nomor_surat_keterangan', $setting->format_nomor_surat_keterangan ?? '{kode_indeks}/{nomor}/{sekolah_kode}/{romawi_bulan}/{tahun}') }}"
-                               class="form-control" style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.82rem;" required>
-                    </div>
-
-                    <!-- Token Placeholder Guide -->
-                    <div style="background: rgba(99,102,241,0.05); border: 1px dashed rgba(99,102,241,0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; font-size: 0.74rem; color: var(--text-muted); line-height: 1.5;">
-                        <strong style="color: var(--primary);"><i class="fas fa-info-circle me-1"></i> Token Placeholder Dinamis:</strong><br>
-                        <code>{nomor}</code> = Nomor urut 3 digit (001) |
-                        <code>{kode_indeks}</code> = Kode klasifikasi (005 / 421.5) |
-                        <code>{sekolah_kode}</code> = Singkatan sekolah |
-                        <code>{romawi_bulan}</code> = Bulan Romawi (I-XII) |
-                        <code>{bulan}</code> = Angka bulan (01-12) |
-                        <code>{tahun}</code> = Tahun 4 digit ({{ date('Y') }})
-                    </div>
-
-                    <!-- Live Preview Box -->
-                    <div style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--text-color);">
-                                <i class="fas fa-eye text-primary me-1"></i> Contoh Hasil Penomoran Live:
-                            </span>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <span style="font-size: 0.72rem; color: var(--text-muted);">Uji Indeks:</span>
-                                <select id="previewIndeksSelect" style="height: 26px; font-size: 0.72rem; padding: 0 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color);">
-                                    <option value="005">005 (Undangan)</option>
-                                    <option value="421.5" selected>421.5 (Ket. Siswa)</option>
-                                    <option value="800">800 (Kepegawaian)</option>
-                                    <option value="421.3">421.3 (Kesiswaan)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div style="font-size: 0.78rem; margin-bottom: 4px;">
-                            <span style="color: var(--text-muted);">Surat Keluar:</span>
-                            <span id="previewKeluarText" style="font-family: monospace; font-weight: 700; color: #10b981; margin-left: 6px;">
-                                {{ $previewSuratKeluar }}
-                            </span>
-                        </div>
-                        <div style="font-size: 0.78rem;">
-                            <span style="color: var(--text-muted);">Surat Keterangan:</span>
-                            <span id="previewKetText" style="font-family: monospace; font-weight: 700; color: var(--primary); margin-left: 6px;">
-                                {{ $previewSuratKet }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                        <div style="flex: 1;">
-                            <label style="display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">
-                                Counter Terakhir Surat Keluar:
-                            </label>
-                            <input type="number" name="nomor_terakhir_surat_keluar" id="counterKeluar" value="{{ $setting->nomor_terakhir_surat_keluar ?? 0 }}"
-                                   class="form-control" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">
-                                Counter Surat Keterangan:
-                            </label>
-                            <input type="number" name="nomor_terakhir_surat_keterangan" id="counterKet" value="{{ $setting->nomor_terakhir_surat_keterangan ?? 0 }}"
-                                   class="form-control" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
-                        </div>
-                    </div>
-
-                    <div style="text-align: right;">
-                        <button type="submit" class="btn btn-primary" style="padding: 8px 18px; border-radius: 8px; font-size: 0.86rem;">
-                            <i class="fas fa-save me-1"></i> Simpan Format Nomor
-                        </button>
-                    </div>
-                </form>
-            </div>
+                @endif
+            </form>
         </div>
     </div>
 
@@ -470,9 +486,9 @@
                 <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
                     <div>
                         <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                            Kode Indeks (Angka / Titik): <span class="text-danger">*</span>
+                            Kode Indeks: <span class="text-danger">*</span>
                         </label>
-                        <input type="text" name="kode" id="inputIndeksKode" placeholder="Contoh: 421.5"
+                        <input type="text" name="kode" id="inputIndeksKode" placeholder="Contoh: KPG.11.01"
                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.88rem;" required>
                     </div>
 

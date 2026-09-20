@@ -30,19 +30,19 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.86rem; border-radius: 8px;">
-                <i class="fas fa-inbox text-primary me-1"></i> Surat Masuk
+            <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Buku Agenda Surat Masuk">
+                <i class="fas fa-inbox text-primary"></i>
             </a>
-            <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.86rem; border-radius: 8px;" title="Pengaturan & Harddisk">
+            <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Pengaturan Persuratan &amp; Harddisk">
                 <i class="fas fa-sliders text-muted"></i>
             </a>
 
             @if ($canCreate)
-                <button type="button" class="btn btn-outline" id="btnOpenCreateKet" style="padding: 8px 14px; font-size: 0.86rem; border-radius: 8px; border-color: rgba(99,102,241,0.4); color: var(--primary);">
-                    <i class="fas fa-file-signature text-primary me-1"></i> Surat Keterangan Siswa
+                <button type="button" class="btn btn-outline" id="btnOpenCreateKet" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(99,102,241,0.4); color: var(--primary);" title="Buat Surat Keterangan Siswa Aktif">
+                    <i class="fas fa-file-signature text-primary"></i>
                 </button>
-                <button type="button" class="btn btn-primary" id="btnOpenCreateKeluar" style="padding: 8px 16px; font-size: 0.86rem; border-radius: 8px;">
-                    <i class="fas fa-plus me-1"></i> Catat Surat Keluar
+                <button type="button" class="btn btn-primary" id="btnOpenCreateKeluar" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Catat Surat Keluar Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>
@@ -115,7 +115,7 @@
         <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'keterangan']) }}"
            class="btn {{ ($tab ?? '') === 'keterangan' ? 'btn-primary' : 'btn-outline' }}"
            style="padding: 7px 16px; border-radius: 8px; font-size: 0.84rem;">
-            <i class="fas fa-graduation-cap me-1"></i> Khusus Surat Keterangan Siswa (421.5)
+            <i class="fas fa-graduation-cap me-1"></i> Khusus Surat Keterangan Siswa
         </a>
     </div>
 
@@ -189,11 +189,8 @@
                 <tbody>
                     @forelse ($items as $item)
                         @php
-                            $isKet = ($item->kode_indeks === '421.5');
-                            $suratKet = null;
-                            if ($isKet) {
-                                $suratKet = \App\Models\SuratKeteranganPd::where('nomor_surat', $item->nomor_surat)->first();
-                            }
+                            $suratKet = \App\Models\SuratKeteranganPd::where('nomor_surat', $item->nomor_surat)->first();
+                            $isKet = !empty($suratKet);
                         @endphp
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 12px 16px;">
@@ -201,7 +198,7 @@
                                     {{ $item->nomor_surat }}
                                 </div>
                                 <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                    Indeks: <span class="badge-compact" style="background: rgba(16,185,129,0.1); color: #10b981;">{{ $item->kode_indeks ?: '005' }}</span>
+                                    Indeks: <span class="badge-compact" style="background: rgba(16,185,129,0.1); color: #10b981;">{{ $item->kode_indeks ?: '-' }}</span>
                                     @if ($isKet)
                                         <span class="badge-compact" style="background: rgba(99,102,241,0.1); color: var(--primary);">Surat Keterangan</span>
                                     @endif
@@ -525,7 +522,7 @@
                         <select name="kode_indeks" id="selectKodeIndeksKet"
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;" required>
                             @foreach ($indeksList as $idx)
-                                <option value="{{ $idx->kode }}" {{ $idx->kode === '421.5' ? 'selected' : '' }}>
+                                <option value="{{ $idx->kode }}" {{ $idx->kode === 'KS.02.23' ? 'selected' : '' }}>
                                     {{ $idx->kode }} - {{ $idx->judul }} ({{ $idx->kategori }})
                                 </option>
                             @endforeach

@@ -81,8 +81,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             inputNomorSuratKeluar.value = '';
             if (selectKodeIndeksKeluar) {
-                selectKodeIndeksKeluar.value = '005';
-                fetchAutoNumber('005');
+                const defaultIdx = selectKodeIndeksKeluar.value || 'KPG.11.01';
+                fetchAutoNumber(defaultIdx);
             }
             inputPerihalKeluar.value = '';
             inputTujuanKeluar.value = '';
@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnAutoNumberKeluar) {
         btnAutoNumberKeluar.addEventListener('click', function () {
-            const idx = selectKodeIndeksKeluar ? selectKodeIndeksKeluar.value : '005';
-            fetchAutoNumber(idx || '005');
+            const idx = selectKodeIndeksKeluar ? selectKodeIndeksKeluar.value : 'KPG.11.01';
+            fetchAutoNumber(idx || 'KPG.11.01');
         });
     }
 
@@ -176,8 +176,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnAutoNumberKet) {
         btnAutoNumberKet.addEventListener('click', function () {
-            const idx = selectKodeIndeksKet ? selectKodeIndeksKet.value : '421.5';
-            fetchAutoNumberKet(idx || '421.5');
+            const idx = selectKodeIndeksKet ? selectKodeIndeksKet.value : 'KS.02.23';
+            fetchAutoNumberKet(idx || 'KS.02.23');
         });
     }
 
@@ -193,8 +193,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (selectKeperluanPreset) selectKeperluanPreset.value = '';
 
         if (selectKodeIndeksKet) {
-            selectKodeIndeksKet.value = '421.5';
-            fetchAutoNumberKet('421.5');
+            const defaultKetIdx = selectKodeIndeksKet.value || 'KS.02.23';
+            fetchAutoNumberKet(defaultKetIdx);
         }
 
         modalSuratKeterangan.style.display = 'flex';
