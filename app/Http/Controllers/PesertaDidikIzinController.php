@@ -103,16 +103,18 @@ class PesertaDidikIzinController extends Controller
                 }
             });
 
-        // 4 Stat Cards Ringkasan
+        $tab = $request->get('tab', 'surat');
+
+        // Tab 1: Surat Izin Tidak Masuk (PresensiIzin)
         $statTotal = (clone $baseQuery)->count();
         $statMenunggu = (clone $baseQuery)->where('status', 'menunggu')->count();
         $statDisetujui = (clone $baseQuery)->where('status', 'disetujui')->count();
         $statDitolak = (clone $baseQuery)->where('status', 'ditolak')->count();
 
-        // Filter & Pencarian
+        // Filter & Pencarian Surat
         $query = clone $baseQuery;
 
-        if ($request->filled('q')) {
+        if ($request->filled('q') && $tab === 'surat') {
             $search = trim($request->input('q'));
             $query->where(function ($q) use ($search) {
                 $q->where('alasan', 'like', "%{$search}%")
@@ -121,11 +123,11 @@ class PesertaDidikIzinController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $tab === 'surat') {
             $query->where('status', $request->input('status'));
         }
 
-        if ($request->filled('jenis')) {
+        if ($request->filled('jenis') && $tab === 'surat') {
             $query->where('jenis', $request->input('jenis'));
         }
 
@@ -148,13 +150,36 @@ class PesertaDidikIzinController extends Controller
 
         $list = $query->paginate($perPage)->withQueryString();
 
+        // Tab 2: e-Izin Keluar-Masuk (peserta_didik_izin_keluar)
+        $queryKeluar = DB::table('peserta_didik_izin_keluar as iz')
+            ->leftJoin('gtk as piket', 'iz.petugas_piket_ptk_id', '=', 'piket.ptk_id')
+            ->select('iz.*', 'piket.nama as nama_piket')
+            ->where('iz.peserta_didik_id', $siswa->peserta_didik_id);
+
+        if ($request->filled('q') && $tab === 'keluar') {
+            $searchK = trim($request->input('q'));
+            $queryKeluar->where(function ($q) use ($searchK) {
+                $q->where('iz.nomor_tiket', 'like', "%{$searchK}%")
+                  ->orWhere('iz.alasan', 'like', "%{$searchK}%");
+            });
+        }
+
+        $listKeluar = $queryKeluar->orderBy('iz.id', 'desc')->paginate($perPage, ['*'], 'keluar_page');
+
+        $statKeluarTotal = DB::table('peserta_didik_izin_keluar')->where('peserta_didik_id', $siswa->peserta_didik_id)->count();
+        $statKeluarAktif = DB::table('peserta_didik_izin_keluar')->where('peserta_didik_id', $siswa->peserta_didik_id)->whereIn('status', ['menunggu_satpam', 'di_luar'])->count();
+
         return view('dashboard.peserta-didik-izin', compact(
             'siswa',
             'list',
+            'listKeluar',
+            'tab',
             'statTotal',
             'statMenunggu',
             'statDisetujui',
             'statDitolak',
+            'statKeluarTotal',
+            'statKeluarAktif',
             'canCreate',
             'canRead',
             'canDelete',
@@ -290,4 +315,53 @@ class PesertaDidikIzinController extends Controller
         return redirect()->route('dashboard.peserta-didik.izin.index')
             ->with('success', 'Pengajuan surat izin berhasil dibatalkan.');
     }
+
+    /**
+     * Siswa Mengajukan e-Izin Keluar-Masuk / Pulang Cepat
+     */
+    public function storeIzinKeluar(Request $request)
+    {
+        $request->validate([
+            'jenis_izin' => 'required|string|in:keluar_sebentar,pulang_cepat',
+            'alasan' => 'required|string|max:500',
+            'jam_izin_keluar' => 'required',
+        ]);
+
+        $siswa = $this->getSiswaFromSession();
+        if (!$siswa) {
+            return redirect()->back()->with('error', 'Sesi peserta didik tidak ditemukan.');
+        }
+
+        // Generate unique ticket number: IZN-YYYYMMDD-XXXX
+        $todayStr = date('Ymd');
+        $lastTicket = DB::table('peserta_didik_izin_keluar')
+            ->where('nomor_tiket', 'like', "IZN-{$todayStr}-%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $nextSeq = 1;
+        if ($lastTicket && preg_match('/IZN-\d+-(\d+)/', $lastTicket->nomor_tiket, $matches)) {
+            $nextSeq = (int) $matches[1] + 1;
+        }
+        $nomorTiket = sprintf("IZN-%s-%04d", $todayStr, $nextSeq);
+
+        DB::table('peserta_didik_izin_keluar')->insert([
+            'nomor_tiket' => $nomorTiket,
+            'peserta_didik_id' => $siswa->peserta_didik_id,
+            'rombel_id' => $siswa->rombongan_belajar_id,
+            'tanggal' => date('Y-m-d'),
+            'jenis_izin' => $request->jenis_izin,
+            'alasan' => $request->alasan,
+            'jam_izin_keluar' => $request->jam_izin_keluar,
+            'jam_rencana_kembali' => $request->jam_rencana_kembali ?: null,
+            'status' => 'menunggu_satpam',
+            'created_by' => 'Siswa Mandiri (' . $siswa->nama . ')',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('dashboard.peserta-didik.izin.index', ['tab' => 'keluar'])
+            ->with('success', 'e-Izin keluar berhasil diajukan dengan nomor tiket: ' . $nomorTiket . '. Silakan tunjukkan ke Guru Piket atau Pos Satpam.');
+    }
 }
+

@@ -10,6 +10,7 @@ use App\Models\Sekolah;
 use App\Models\RolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class KepegawaianGtkController extends Controller
@@ -20,7 +21,7 @@ class KepegawaianGtkController extends Controller
     public function index(Request $request)
     {
         $user = session('user');
-        $tab = $request->query('tab', 'berkas'); // 'berkas', 'kgb', 'cuti'
+        $tab = $request->query('tab', 'berkas'); // 'berkas', 'kgb', 'cuti', 'spt'
         $search = $request->query('q', '');
         $jenisFilter = $request->query('jenis', 'all');
 
@@ -75,6 +76,17 @@ class KepegawaianGtkController extends Controller
         }
         $cutiList = $cutiQuery->orderBy('tanggal_mulai', 'desc')->paginate(15)->withQueryString();
 
+        // 4. Tab Surat Perintah Tugas (SPT)
+        $sptQuery = DB::table('gtk_spt');
+        if ($search && $tab === 'spt') {
+            $sptQuery->where(function ($q) use ($search) {
+                $q->where('nomor_spt', 'like', "%{$search}%")
+                  ->orWhere('nama_kegiatan', 'like', "%{$search}%")
+                  ->orWhere('lokasi_tujuan', 'like', "%{$search}%");
+            });
+        }
+        $sptList = $sptQuery->orderBy('tanggal_berangkat', 'desc')->paginate(15)->withQueryString();
+
         // Jenis berkas standar
         $jenisBerkasOptions = [
             'sk_pengangkatan' => 'SK Pengangkatan Pertama',
@@ -94,6 +106,7 @@ class KepegawaianGtkController extends Controller
             'gtkBerkasList',
             'kgbList',
             'cutiList',
+            'sptList',
             'kgbJatuhTempoCount',
             'jenisBerkasOptions'
         ));
@@ -245,6 +258,102 @@ class KepegawaianGtkController extends Controller
 
         return view('dashboard.kepegawaian.cetak-cuti', compact(
             'cuti',
+            'sekolah',
+            'sekolahMeta',
+            'kepsek'
+        ));
+    }
+
+    /**
+     * Simpan Surat Perintah Tugas (SPT) GTK
+     */
+    public function storeSpt(Request $request)
+    {
+        $request->validate([
+            'nama_kegiatan' => 'required|string|max:255',
+            'lokasi_tujuan' => 'required|string|max:255',
+            'tanggal_berangkat' => 'required|date',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_berangkat',
+            'beban_anggaran' => 'required|string|max:50',
+            'daftar_ptk_id' => 'required|array|min:1',
+            'dasar_penugasan' => 'nullable|string|max:1000',
+        ], [
+            'nama_kegiatan.required' => 'Nama kegiatan penugasan wajib diisi.',
+            'lokasi_tujuan.required' => 'Lokasi tujuan penugasan wajib diisi.',
+            'daftar_ptk_id.required' => 'Pilih minimal satu GTK yang ditugaskan.',
+        ]);
+
+        $start = Carbon::parse($request->tanggal_berangkat);
+        $end = Carbon::parse($request->tanggal_kembali);
+        $lamaHari = $start->diffInDays($end) + 1;
+
+        // Auto generate nomor SPT
+        $year = date('Y');
+        $countThisYear = DB::table('gtk_spt')->whereYear('tanggal_berangkat', $year)->count() + 1;
+        $nomorSpt = sprintf('800/SPT/%s/%03d', $year, $countThisYear);
+
+        $kepsek = Gtk::where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
+              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
+        })->first();
+
+        DB::table('gtk_spt')->insert([
+            'nomor_spt' => $nomorSpt,
+            'dasar_penugasan' => $request->dasar_penugasan,
+            'nama_kegiatan' => $request->nama_kegiatan,
+            'lokasi_tujuan' => $request->lokasi_tujuan,
+            'tanggal_berangkat' => $request->tanggal_berangkat,
+            'tanggal_kembali' => $request->tanggal_kembali,
+            'lama_hari' => $lamaHari,
+            'beban_anggaran' => $request->beban_anggaran,
+            'pejabat_penandatangan_ptk_id' => $kepsek?->ptk_id,
+            'pejabat_nama' => $kepsek?->nama ?? 'Kepala Sekolah',
+            'pejabat_jabatan' => 'Kepala Sekolah',
+            'daftar_ptk_id' => json_encode($request->daftar_ptk_id, JSON_UNESCAPED_UNICODE),
+            'status' => 'disetujui',
+            'created_by' => session('user')['nama'] ?? 'Tendik Kepegawaian',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('dashboard.kepegawaian.index', ['tab' => 'spt'])
+            ->with('success', "Surat Perintah Tugas (SPT) {$nomorSpt} berhasil diterbitkan.");
+    }
+
+    /**
+     * Hapus Surat Perintah Tugas (SPT)
+     */
+    public function deleteSpt($id)
+    {
+        DB::table('gtk_spt')->where('id', $id)->delete();
+
+        return redirect()->route('dashboard.kepegawaian.index', ['tab' => 'spt'])
+            ->with('success', 'Surat Perintah Tugas berhasil dihapus.');
+    }
+
+    /**
+     * Cetak Surat Perintah Tugas (SPT) Resmi Format A4 Ber-KOP
+     */
+    public function cetakSpt($id)
+    {
+        $spt = DB::table('gtk_spt')->where('id', $id)->first();
+        if (!$spt) {
+            abort(404, 'Data SPT tidak ditemukan.');
+        }
+
+        $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
+        $gtkList = Gtk::whereIn('ptk_id', $ptkIds)->orderBy('nama', 'asc')->get();
+
+        $sekolah = Sekolah::first();
+        $sekolahMeta = \App\Models\SekolahMeta::first();
+        $kepsek = Gtk::where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
+              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
+        })->first();
+
+        return view('dashboard.kepegawaian.cetak-spt', compact(
+            'spt',
+            'gtkList',
             'sekolah',
             'sekolahMeta',
             'kepsek'

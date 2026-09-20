@@ -23,7 +23,11 @@
                     <i class="fas fa-plus"></i>
                 </button>
                 @elseif($tab === 'cuti')
-                <button type="button" class="btn btn-primary" id="btnOpenModalCuti" title="Buat Surat Cuti / SPT" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;">
+                <button type="button" class="btn btn-primary" id="btnOpenModalCuti" title="Buat Surat Cuti / Izin" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;">
+                    <i class="fas fa-plus"></i>
+                </button>
+                @elseif($tab === 'spt')
+                <button type="button" class="btn btn-primary" id="btnOpenModalSpt" title="Terbitkan SPT Dinas" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;">
                     <i class="fas fa-plus"></i>
                 </button>
                 @endif
@@ -56,7 +60,10 @@
             @endif
         </a>
         <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'cuti']) }}" class="tab-item {{ $tab === 'cuti' ? 'active' : '' }}" style="padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.88rem; text-decoration: none; color: {{ $tab === 'cuti' ? 'var(--primary)' : 'var(--text-muted)' }}; background: {{ $tab === 'cuti' ? 'var(--primary-subtle)' : 'transparent' }}; display: flex; align-items: center; gap: 6px;">
-            <i class="fas fa-plane-departure"></i> Cuti &amp; SPT
+            <i class="fas fa-plane-departure"></i> Cuti &amp; Izin
+        </a>
+        <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'spt']) }}" class="tab-item {{ $tab === 'spt' ? 'active' : '' }}" style="padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.88rem; text-decoration: none; color: {{ $tab === 'spt' ? 'var(--primary)' : 'var(--text-muted)' }}; background: {{ $tab === 'spt' ? 'var(--primary-subtle)' : 'transparent' }}; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-file-contract"></i> Surat Tugas (SPT)
         </a>
     </div>
 
@@ -602,7 +609,181 @@
     </div>
 </div>
 
+{{-- TAB 4: Datatable & Modal SPT (Surat Perintah Tugas) --}}
+@if($tab === 'spt')
+<div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
+    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+        <thead>
+            <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-hover);">
+                <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No</th>
+                <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nomor SPT &amp; Kegiatan</th>
+                <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Lokasi &amp; Tanggal</th>
+                <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Personil Ditugaskan</th>
+                <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Beban</th>
+                <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($sptList as $idx => $sptItem)
+            @php
+                $assignedIds = json_decode($sptItem->daftar_ptk_id ?? '[]', true) ?: [];
+                $assignedGtks = $allGtk->whereIn('ptk_id', $assignedIds);
+            @endphp
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td data-label="No" style="padding: 12px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                    {{ $sptList->firstItem() + $idx }}
+                </td>
+                <td data-label="Nomor & Kegiatan" style="padding: 12px 18px;">
+                    <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{ $sptItem->nama_kegiatan }}</div>
+                    <div style="font-size: 0.8rem; color: var(--primary); font-family: monospace;">{{ $sptItem->nomor_spt }}</div>
+                </td>
+                <td data-label="Lokasi & Tanggal" style="padding: 12px 18px;">
+                    <div style="font-size: 0.86rem; color: var(--text-primary);"><i class="fas fa-location-dot text-danger me-1"></i> {{ $sptItem->lokasi_tujuan }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                        {{ \Carbon\Carbon::parse($sptItem->tanggal_berangkat)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($sptItem->tanggal_kembali)->format('d/m/Y') }} ({{ $sptItem->lama_hari }} hr)
+                    </div>
+                </td>
+                <td data-label="Personil" style="padding: 12px 18px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                        @foreach($assignedGtks as $ag)
+                        <span class="badge badge-info" style="font-size: 0.75rem; padding: 2px 7px;">{{ $ag->nama }}</span>
+                        @endforeach
+                    </div>
+                </td>
+                <td data-label="Beban" style="padding: 12px 18px;">
+                    <span class="badge badge-secondary" style="font-size: 0.75rem;">{{ $sptItem->beban_anggaran }}</span>
+                </td>
+                <td data-label="Aksi" style="padding: 12px 18px; text-align: center;">
+                    <div class="table-actions" style="justify-content: center; gap: 6px;">
+                        <a href="{{ route('dashboard.kepegawaian.spt.cetak', $sptItem->id) }}" target="_blank" class="btn-icon" title="Cetak Surat Tugas SPT" style="color: var(--primary);">
+                            <i class="fas fa-print"></i>
+                        </a>
+                        <form action="{{ route('dashboard.kepegawaian.spt.delete', $sptItem->id) }}" method="POST" style="display: inline;" data-confirm="delete" data-name="SPT {{ $sptItem->nomor_spt }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn-icon" title="Hapus SPT" style="color: #ef4444;">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                    <i class="fas fa-folder-open" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.5;"></i>
+                    <div>Tidak ada data Surat Perintah Tugas (SPT) ditemukan.</div>
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+@if ($sptList->hasPages())
+    <div class="custom-pagination">
+        @if ($sptList->onFirstPage())
+            <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+        @else
+            <a href="{{ $sptList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+        @endif
+        @php
+            $cur = $sptList->currentPage();
+            $last = $sptList->lastPage();
+            $from = max(1, $cur - 2);
+            $to = min($last, $cur + 2);
+        @endphp
+        @if ($from > 1)
+            <a href="{{ $sptList->url(1) }}" class="page-btn">1</a>
+            @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+        @endif
+        @for ($i = $from; $i <= $to; $i++)
+            <a href="{{ $sptList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+        @endfor
+        @if ($to < $last)
+            @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+            <a href="{{ $sptList->url($last) }}" class="page-btn">{{ $last }}</a>
+        @endif
+        @if ($sptList->hasMorePages())
+            <a href="{{ $sptList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+        @else
+            <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+        @endif
+    </div>
+@endif
+@endif
+
+{{-- Modal Input SPT Baru --}}
+<div id="modalSpt" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">
+                <i class="fas fa-file-contract text-primary me-2"></i> Terbitkan Surat Perintah Tugas (SPT)
+            </h3>
+            <button type="button" id="btnCloseModalSpt" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+        </div>
+
+        <form action="{{ route('dashboard.kepegawaian.spt.store') }}" method="POST" id="formSpt">
+            @csrf
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Nama Kegiatan / Tugas Dinas <span style="color: #ef4444;">*</span></label>
+                <input type="text" name="nama_kegiatan" class="form-control" placeholder="Contoh: Mengikuti Bimtek Implementasi Kurikulum Merdeka" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Lokasi / Tempat Tujuan <span style="color: #ef4444;">*</span></label>
+                <input type="text" name="lokasi_tujuan" class="form-control" placeholder="Contoh: Hotel Grand Sahid / BBGP Provinsi" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Tanggal Berangkat <span style="color: #ef4444;">*</span></label>
+                    <input type="date" name="tanggal_berangkat" class="form-control" required>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Tanggal Kembali <span style="color: #ef4444;">*</span></label>
+                    <input type="date" name="tanggal_kembali" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Beban Anggaran <span style="color: #ef4444;">*</span></label>
+                <select name="beban_anggaran" class="form-control" required>
+                    <option value="BOS Reguler">BOS Reguler</option>
+                    <option value="BOS Kinerja">BOS Kinerja</option>
+                    <option value="Komite Sekolah">Komite Sekolah</option>
+                    <option value="Penyelenggara / Panitia">Biaya Penyelenggara / Gratis</option>
+                    <option value="Mandiri">Mandiri</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Pilih GTK Yang Ditugaskan <span style="color: #ef4444;">*</span></label>
+                <div style="max-height: 160px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: var(--bg-hover);">
+                    @foreach($allGtk as $g)
+                    <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.84rem; cursor: pointer;">
+                        <input type="checkbox" name="daftar_ptk_id[]" value="{{ $g->ptk_id }}">
+                        <span><strong>{{ $g->nama }}</strong> <small style="color: var(--text-muted);">(NIP: {{ $g->nip ?: '-' }})</small></span>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-primary);">Dasar Penugasan (Opsional)</label>
+                <textarea name="dasar_penugasan" class="form-control" rows="2" placeholder="Contoh: Surat Undangan Dinas Pendidikan No. 421/123/2026 tanggal 15 September 2026..."></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalSpt').style.display='none'">Batal</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Terbitkan SPT</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @push('scripts')
 <script src="{{ asset('js/kepegawaian.js') }}"></script>
+<script src="{{ asset('js/kepegawaian-spt.js') }}"></script>
 @endpush
 @endsection

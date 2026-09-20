@@ -54,10 +54,27 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnBatalModalIzin) {
         btnBatalModalIzin.addEventListener('click', closeModalIzin);
     }
-    if (modalFormIzin) {
-        modalFormIzin.addEventListener('click', function (e) {
-            if (e.target === modalFormIzin) {
-                closeModalIzin();
+    window.openModalIzinKeluar = function () {
+        const m = document.getElementById('modalFormIzinKeluar');
+        if (m) {
+            m.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    };
+
+    window.closeModalIzinKeluar = function () {
+        const m = document.getElementById('modalFormIzinKeluar');
+        if (m) {
+            m.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    };
+
+    const modalFormIzinKeluar = document.getElementById('modalFormIzinKeluar');
+    if (modalFormIzinKeluar) {
+        modalFormIzinKeluar.addEventListener('click', function (e) {
+            if (e.target === modalFormIzinKeluar) {
+                closeModalIzinKeluar();
             }
         });
     }

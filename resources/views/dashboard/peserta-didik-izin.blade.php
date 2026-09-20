@@ -8,10 +8,10 @@
     <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
-                <i class="fas fa-envelope-open-text text-primary me-2"></i> Surat Izin &amp; Sakit
+                <i class="fas fa-envelope-open-text text-primary me-2"></i> Surat &amp; e-Izin Peserta Didik
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem;">
-                Permohonan dan riwayat surat izin, surat keterangan sakit dokter, serta dispensasi resmi peserta didik.
+                Permohonan surat izin tidak masuk sekolah serta e-Izin keluar-masuk / pulang cepat gerbang sekolah.
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center;">
@@ -19,17 +19,36 @@
                 style="padding: 8px 14px; font-size: 0.9rem;" title="Lihat Riwayat Presensi Lengkap">
                 <i class="fas fa-calendar-check"></i>
             </a>
-            @if ($canCreate)
+            @if ($tab === 'surat' && $canCreate)
                 <button type="button" class="btn btn-primary" id="btnBukaModalIzin"
-                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 700;" title="Ajukan Permohonan Baru">
-                    <i class="fas fa-plus"></i>
+                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 700;" title="Ajukan Surat Izin / Sakit Baru">
+                    <i class="fas fa-plus"></i> Ajukan Surat Izin
+                </button>
+            @elseif ($tab === 'keluar')
+                <button type="button" class="btn btn-primary" onclick="openModalIzinKeluar()"
+                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 700;" title="Ajukan Izin Keluar Gerbang">
+                    <i class="fas fa-ticket-alt"></i> Ajukan Izin Keluar
                 </button>
             @endif
         </div>
     </div>
 
-    <!-- 2. Stat Grid Baku SAE (Konsisten 100% dengan Modul Peserta Didik Aktif) -->
-    <div class="dash-stat-grid" id="dashStatGrid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
+    <!-- Navigation Tabs -->
+    <div style="display: flex; gap: 8px; border-bottom: 2px solid var(--border-color); margin-bottom: 20px;">
+        <a href="{{ route('dashboard.peserta-didik.izin.index', ['tab' => 'surat']) }}"
+           style="padding: 10px 18px; font-weight: 700; font-size: 0.9rem; text-decoration: none; border-bottom: 2px solid {{ $tab === 'surat' ? 'var(--primary)' : 'transparent' }}; color: {{ $tab === 'surat' ? 'var(--primary)' : 'var(--text-muted)' }}; margin-bottom: -2px;">
+            <i class="fas fa-file-medical"></i> Surat Izin / Sakit (Tidak Masuk)
+        </a>
+        <a href="{{ route('dashboard.peserta-didik.izin.index', ['tab' => 'keluar']) }}"
+           style="padding: 10px 18px; font-weight: 700; font-size: 0.9rem; text-decoration: none; border-bottom: 2px solid {{ $tab === 'keluar' ? 'var(--primary)' : 'transparent' }}; color: {{ $tab === 'keluar' ? 'var(--primary)' : 'var(--text-muted)' }}; margin-bottom: -2px;">
+            <i class="fas fa-qrcode"></i> Tiket e-Izin Keluar-Masuk Gerbang
+            @if (isset($statKeluarAktif) && $statKeluarAktif > 0)
+                <span class="badge" style="background: #ef4444; color: #fff; margin-left: 4px; font-size: 0.72rem;">{{ $statKeluarAktif }}</span>
+            @endif
+        </a>
+    </div>
+
+    @if ($tab === 'surat')
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                 <i class="fas fa-folder-open"></i>
@@ -329,6 +348,147 @@
             @endif
         </div>
     @endif
+    @else
+        {{-- TAB 2: e-Izin Keluar-Masuk Gerbang --}}
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No Tiket</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jenis Izin</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Alasan</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Waktu Keluar / Kembali</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Petugas Piket</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status Gerbang</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Slip / Tiket</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($listKeluar as $item)
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px 18px;">
+                                <span style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: 0.9rem;">{{ $item->nomor_tiket }}</span>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</div>
+                            </td>
+                            <td style="padding: 12px 18px;">
+                                @if ($item->jenis_izin === 'keluar_sebentar')
+                                    <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3);">Keluar Sebentar</span>
+                                @elseif ($item->jenis_izin === 'pulang_cepat')
+                                    <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Pulang Cepat</span>
+                                @else
+                                    <span class="badge" style="background: rgba(107, 114, 128, 0.15); color: #6b7280;">{{ ucfirst($item->jenis_izin) }}</span>
+                                @endif
+                            </td>
+                            <td style="padding: 12px 18px; max-width: 220px;">
+                                <div style="font-size: 0.85rem; color: var(--text-heading); white-space: normal;">{{ $item->alasan }}</div>
+                            </td>
+                            <td style="padding: 12px 18px; font-size: 0.82rem;">
+                                <div>Keluar: <strong>{{ substr($item->jam_izin_keluar, 0, 5) }}</strong></div>
+                                @if ($item->jam_rencana_kembali)
+                                    <div style="color: var(--text-muted);">Rencana: {{ substr($item->jam_rencana_kembali, 0, 5) }}</div>
+                                @endif
+                                @if ($item->jam_kembali_aktual)
+                                    <div style="color: #10b981; font-weight: 600;">Aktual: {{ substr($item->jam_kembali_aktual, 0, 5) }}</div>
+                                @endif
+                            </td>
+                            <td style="padding: 12px 18px; font-size: 0.82rem;">
+                                {{ $item->nama_piket ?: ($item->created_by ?: 'Guru Piket') }}
+                            </td>
+                            <td style="padding: 12px 18px;">
+                                @if ($item->status === 'menunggu_satpam')
+                                    <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Menunggu Gerbang</span>
+                                @elseif ($item->status === 'di_luar')
+                                    <span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3);">Di Luar</span>
+                                @elseif ($item->status === 'kembali')
+                                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Sudah Kembali</span>
+                                @elseif ($item->status === 'pulang_selesai')
+                                    <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3);">Pulang Selesai</span>
+                                @else
+                                    <span class="badge" style="background: rgba(107, 114, 128, 0.15); color: #6b7280;">{{ ucfirst($item->status) }}</span>
+                                @endif
+                            </td>
+                            <td style="padding: 12px 18px; text-align: center;">
+                                <a href="{{ route('dashboard.piket.izin.cetak', $item->id) }}" target="_blank" class="btn btn-secondary btn-sm" title="Lihat Slip Izin" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 0.78rem;">
+                                    <i class="fas fa-qrcode"></i> Tiket
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">
+                                <i class="fas fa-ticket-alt" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.4;"></i>
+                                <p style="margin: 0;">Belum ada pengajuan izin keluar gerbang.</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if ($listKeluar->hasPages())
+            <div class="custom-pagination">
+                @if ($listKeluar->onFirstPage())
+                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+                @else
+                    <a href="{{ $listKeluar->previousPageUrl() }}" class="page-btn"><i class="fas fa-chevron-left"></i></a>
+                @endif
+                @for ($i = 1; $i <= $listKeluar->lastPage(); $i++)
+                    <a href="{{ $listKeluar->url($i) }}" class="page-btn {{ $i === $listKeluar->currentPage() ? 'current' : '' }}">{{ $i }}</a>
+                @endfor
+                @if ($listKeluar->hasMorePages())
+                    <a href="{{ $listKeluar->nextPageUrl() }}" class="page-btn"><i class="fas fa-chevron-right"></i></a>
+                @else
+                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+                @endif
+            </div>
+        @endif
+    @endif
+
+    <!-- Modal Form Pengajuan e-Izin Keluar-Masuk Siswa -->
+    <div id="modalFormIzinKeluar" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.68); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card" style="max-width: 500px; width: 92%; margin: auto; padding: 24px; border-radius: 16px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 style="font-size: 1.12rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    <i class="fas fa-ticket-alt text-primary"></i> Ajukan e-Izin Keluar Sekolah
+                </h3>
+                <button type="button" onclick="closeModalIzinKeluar()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('dashboard.peserta-didik.izin.keluar.store') }}">
+                @csrf
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 6px;">Jenis Izin Keluar: <span style="color:red;">*</span></label>
+                    <select name="jenis_izin" required class="form-control" style="width: 100%;">
+                        <option value="keluar_sebentar">Keluar Sebentar (Kembali Lagi ke Sekolah)</option>
+                        <option value="pulang_cepat">Pulang Cepat (Sakit / Keperluan Mendesak)</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 6px;">Jam Keluar: <span style="color:red;">*</span></label>
+                        <input type="time" name="jam_izin_keluar" value="{{ date('H:i') }}" required class="form-control" style="width: 100%;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 6px;">Rencana Kembali:</label>
+                        <input type="time" name="jam_rencana_kembali" class="form-control" style="width: 100%;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 6px;">Alasan / Keperluan: <span style="color:red;">*</span></label>
+                    <textarea name="alasan" rows="3" required placeholder="Jelaskan alasan izin Anda..." class="form-control" style="width: 100%;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <button type="button" class="btn btn-outline" onclick="closeModalIzinKeluar()">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-1"></i> Ajukan Izin</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- 6. Modal Form Pengajuan Surat Izin (z-index: 99999 !important) -->
     <div id="modalFormIzin" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.68); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
