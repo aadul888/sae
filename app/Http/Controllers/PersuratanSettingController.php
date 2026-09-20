@@ -73,7 +73,10 @@ class PersuratanSettingController extends Controller
             $indeksQuery->where('kategori', $kategoriIndeks);
         }
 
-        $indeksList = $indeksQuery->orderBy('kode')->paginate(20)->withQueryString();
+        $perPageVal = $request->get('perPage', $request->get('per_page', '20'));
+        $perPage = in_array($perPageVal, ['10', '15', '20', '25', '50', '100']) ? (int)$perPageVal : 20;
+
+        $indeksList = $indeksQuery->orderBy('kode')->paginate($perPage)->withQueryString();
         $kategoriList = DB::table('ref_indeks_surat')->distinct()->pluck('kategori');
 
         // Ringkasan Statistik Berkas di HDD
@@ -98,6 +101,7 @@ class PersuratanSettingController extends Controller
             'kategoriList',
             'qIndeks',
             'kategoriIndeks',
+            'perPage',
             'canUpdate',
             'totalSuratMasuk',
             'totalSuratKeluar',

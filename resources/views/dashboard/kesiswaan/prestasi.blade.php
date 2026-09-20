@@ -243,7 +243,7 @@
         <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Catat Prestasi Siswa</h3>
-                <button type="button" class="btn-icon close-modal" data-target="#modalPrestasi"><i class="fas fa-xmark"></i></button>
+                <button type="button" class="close-modal" data-target="#modalPrestasi" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i class="fas fa-times"></i></button>
             </div>
             <form id="formPrestasi" method="POST" action="{{ route('dashboard.kesiswaan.prestasi.store') }}" enctype="multipart/form-data">
                 @csrf

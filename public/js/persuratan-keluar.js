@@ -390,4 +390,99 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+
+    // 7. Datatable Realtime Live Search, Entri perPage, Filter Indeks & Status, and Sorting Standar SAE
+    const searchInput = document.getElementById("liveSearch");
+    const clearBtn = document.getElementById("clearSearch");
+    const perPageSelect = document.getElementById("perPageSelect");
+    const filterKodeIndeks = document.getElementById("filterKodeIndeks");
+    const filterStatus = document.getElementById("filterStatus");
+
+    function applyFilter() {
+        const url = new URL(window.location.href);
+        if (searchInput && searchInput.value.trim()) {
+            url.searchParams.set("q", searchInput.value.trim());
+        } else {
+            url.searchParams.delete("q");
+        }
+
+        if (filterKodeIndeks && filterKodeIndeks.value) {
+            url.searchParams.set("kode_indeks", filterKodeIndeks.value);
+        } else {
+            url.searchParams.delete("kode_indeks");
+        }
+
+        if (filterStatus && filterStatus.value) {
+            url.searchParams.set("status", filterStatus.value);
+        } else {
+            url.searchParams.delete("status");
+        }
+
+        if (perPageSelect && perPageSelect.value) {
+            url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        url.searchParams.set("page", "1");
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    if (searchInput) {
+        let timer = null;
+        searchInput.addEventListener("input", function () {
+            if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(applyFilter, 300);
+        });
+
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                applyFilter();
+            }
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            if (searchInput) {
+                searchInput.value = "";
+                clearBtn.classList.remove("visible");
+                applyFilter();
+            }
+        });
+    }
+
+    if (filterKodeIndeks) filterKodeIndeks.addEventListener("change", applyFilter);
+    if (filterStatus) filterStatus.addEventListener("change", applyFilter);
+    if (perPageSelect) perPageSelect.addEventListener("change", applyFilter);
+
+    document.querySelectorAll(".sortable-th").forEach(function (th) {
+        th.style.cursor = "pointer";
+        th.addEventListener("click", function () {
+            const sortField = this.getAttribute("data-sort");
+            if (!sortField) return;
+
+            const url = new URL(window.location.href);
+            const currentSort = url.searchParams.get("sort") || "tanggal_surat";
+            const currentDir = url.searchParams.get("sort_dir") || url.searchParams.get("dir") || "desc";
+
+            let newDir = "asc";
+            if (currentSort === sortField && currentDir === "asc") {
+                newDir = "desc";
+            }
+
+            url.searchParams.set("sort", sortField);
+            url.searchParams.set("sort_dir", newDir);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
+        });
+    });
 });

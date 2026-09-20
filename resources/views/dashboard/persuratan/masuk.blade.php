@@ -97,21 +97,21 @@
     </div>
 
     <!-- 4. Main Data Card & Table -->
-    <div class="card" style="padding: 20px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 24px; background: var(--card-bg);">
-        <!-- Toolbar: Search, Filter Status & Dropdown Baris -->
-        <form method="GET" action="{{ route('dashboard.persuratan.masuk.index') }}" id="filterForm" class="dash-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-            <div class="live-search-wrap" style="flex: 1; min-width: 260px;">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" name="q" id="liveSearchInput" value="{{ $q ?? '' }}" placeholder="Cari nomor surat, perihal, atau instansi pengirim..." autocomplete="off">
-                @if (!empty($q))
-                    <a href="{{ route('dashboard.persuratan.masuk.index', array_filter(['status' => $status, 'per_page' => $perPage])) }}" class="clear-search" title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </a>
-                @endif
-            </div>
+    <!-- 4. Toolbar & Filter Standar SAE -->
+    <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" class="per-page-select">
+                        @foreach ([10, 15, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
+                </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <select name="status" id="filterStatus" onchange="this.form.submit()" style="height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                <select id="filterStatus" class="toolbar-filter-select">
                     <option value="">Semua Status</option>
                     <option value="menunggu_disposisi" {{ ($status ?? '') === 'menunggu_disposisi' ? 'selected' : '' }}>Menunggu Disposisi</option>
                     <option value="diproses" {{ ($status ?? '') === 'diproses' ? 'selected' : '' }}>Sedang Diproses</option>
@@ -119,29 +119,41 @@
                     <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan</option>
                 </select>
 
-                <select name="per_page" id="perPageSelect" onchange="this.form.submit()" style="height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
-                    <option value="10" {{ ($perPage ?? 25) == 10 ? 'selected' : '' }}>10 Baris</option>
-                    <option value="25" {{ ($perPage ?? 25) == 25 ? 'selected' : '' }}>25 Baris</option>
-                    <option value="50" {{ ($perPage ?? 25) == 50 ? 'selected' : '' }}>50 Baris</option>
-                    <option value="100" {{ ($perPage ?? 25) == 100 ? 'selected' : '' }}>100 Baris</option>
-                </select>
+                @if (!empty($q) || !empty($status))
+                    <a href="{{ route('dashboard.persuratan.masuk.index') }}"
+                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                        title="Reset filter">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                @endif
             </div>
-        </form>
 
-        <!-- Container Datatable Responsive-Stack Standar SAE -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                        <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}" data-sort="nomor_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            No. Surat &amp; Indeks
-                        </th>
-                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Pengirim &amp; Perihal
-                        </th>
-                        <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}" data-sort="tanggal_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                            Tgl Surat / Masuk
-                        </th>
+            <div class="live-search-wrap">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="liveSearch" placeholder="Cari nomor surat / perihal / pengirim..." value="{{ $q ?? '' }}" autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Container Datatable Responsive-Stack Standar SAE -->
+    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
+        <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}" data-sort="nomor_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        No. Surat &amp; Indeks
+                        <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Pengirim &amp; Perihal
+                    </th>
+                    <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}" data-sort="tanggal_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                        Tgl Surat / Masuk
+                        <span class="sort-icon">{!! ($sort ?? '') === 'tanggal_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
                         <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
                             Arsip HDD
                         </th>
@@ -317,7 +329,6 @@
                 @endif
             </div>
         @endif
-    </div>
 
     <!-- Modal 1: Catat / Edit Surat Masuk -->
     <div class="modal-overlay" id="modalSuratMasuk" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center;">

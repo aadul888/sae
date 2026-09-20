@@ -197,4 +197,190 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
+    // 5. Modal Detail Biodata Lengkap Peserta Didik
+    window.openBiodataPesertaDidikModal = async function (id) {
+        const modal = document.getElementById("biodataModal");
+        const bioNama = document.getElementById("bioNama");
+        const bioRombel = document.getElementById("bioRombel");
+        const bioLoading = document.getElementById("bioLoading");
+        const bioContent = document.getElementById("bioContent");
+
+        if (!modal) return;
+
+        bioNama.textContent = "Biodata Peserta Didik";
+        bioRombel.textContent = "Memuat data...";
+        bioLoading.style.display = "block";
+        bioContent.style.display = "none";
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+
+        try {
+            const res = await fetch(
+                "/dashboard/kesiswaan/peserta-didik/" + encodeURIComponent(id),
+                {
+                    headers: {
+                        Accept: "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                }
+            );
+            const json = await res.json();
+
+            bioLoading.style.display = "none";
+            bioContent.style.display = "block";
+
+            if ((json.status === "success" || json.success) && json.data) {
+                const d = json.data;
+                bioNama.textContent = d.nama || "Tanpa Nama";
+                bioRombel.textContent =
+                    [d.nama_rombel || d.nama_rombel_terakhir || d.rombel_terakhir, d.kurikulum_id_str]
+                        .filter(Boolean)
+                        .join(" • ") || "-";
+
+                const fotoBox = document.getElementById("bioFotoContainer");
+                if (fotoBox) {
+                    const fUrl = json.foto_url || d.foto_url;
+                    if (fUrl) {
+                        fotoBox.innerHTML = `<img src="${fUrl}?v=${Date.now()}" alt="Foto ${escapeHtml(d.nama)}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    } else {
+                        fotoBox.innerHTML = `<i class="fas fa-user-graduate text-primary" style="font-size: 1.3rem;"></i>`;
+                    }
+                }
+
+                document.getElementById("bioNisn").textContent =
+                    [
+                        d.nisn ? "NISN: " + d.nisn : null,
+                        d.nipd ? "NIPD: " + d.nipd : null,
+                    ]
+                        .filter(Boolean)
+                        .join(" / ") || "-";
+                document.getElementById("bioNik").textContent = d.nik || "-";
+                document.getElementById("bioJk").textContent =
+                    d.jenis_kelamin === "L"
+                        ? "Laki-Laki (L)"
+                        : d.jenis_kelamin === "P"
+                          ? "Perempuan (P)"
+                          : "-";
+                document.getElementById("bioTtl").textContent =
+                    [d.tempat_lahir, d.tanggal_lahir].filter(Boolean).join(", ") || "-";
+                document.getElementById("bioAgama").textContent =
+                    d.agama_id_str || "-";
+                document.getElementById("bioAnak").textContent = d.anak_keberapa
+                    ? "Anak ke-" + d.anak_keberapa
+                    : "-";
+
+                const tb = d.tinggi_badan ? d.tinggi_badan + " cm" : null;
+                const bb = d.berat_badan ? d.berat_badan + " kg" : null;
+                document.getElementById("bioFisik").textContent =
+                    [tb, bb].filter(Boolean).join(" • ") || "Belum dicatat";
+
+                document.getElementById("bioKhusus").textContent =
+                    d.kebutuhan_khusus || "Tidak Ada";
+
+                const pendaftaranStr = [
+                    d.jenis_pendaftaran_id_str ||
+                        (json.anggota
+                            ? json.anggota.jenis_pendaftaran_id_str
+                            : null) ||
+                        "Peserta Didik",
+                    d.sekolah_asal ? "Asal: " + d.sekolah_asal : null,
+                ]
+                    .filter(Boolean)
+                    .join(" • ");
+                document.getElementById("bioPendaftaran").textContent =
+                    pendaftaranStr || "-";
+
+                document.getElementById("bioTglMasuk").textContent =
+                    d.tanggal_masuk_sekolah || "-";
+
+                const regArr = [
+                    d.registrasi_id ? "Reg: " + d.registrasi_id : null,
+                    json.anggota && json.anggota.anggota_rombel_id
+                        ? "Anggota ID: " + json.anggota.anggota_rombel_id
+                        : null,
+                ].filter(Boolean);
+                document.getElementById("bioRegId").textContent =
+                    regArr.length > 0 ? regArr.join(" • ") : "-";
+
+                document.getElementById("bioAyah").textContent =
+                    [d.nama_ayah, d.pekerjaan_ayah_id_str]
+                        .filter(Boolean)
+                        .join(" • Pekerjaan: ") || "-";
+                document.getElementById("bioIbu").textContent =
+                    [d.nama_ibu, d.pekerjaan_ibu_id_str]
+                        .filter(Boolean)
+                        .join(" • Pekerjaan: ") || "-";
+                document.getElementById("bioWali").textContent =
+                    [d.nama_wali, d.pekerjaan_wali_id_str]
+                        .filter(Boolean)
+                        .join(" • Pekerjaan: ") || "-";
+
+                const hpEmail = [
+                    d.nomor_telepon_seluler || d.no_hp,
+                    d.email,
+                ].filter(Boolean).join(" / ");
+                document.getElementById("bioHp").textContent = hpEmail || "-";
+                document.getElementById("bioAlamat").textContent =
+                    d.alamat_jalan || "-";
+
+                const mapelSec = document.getElementById("bioMapelSection");
+                const mapelList = document.getElementById("bioMapelList");
+                const jmlMapel = document.getElementById("bioJmlMapel");
+                if (mapelSec && mapelList) {
+                    if (json.pembelajaran && json.pembelajaran.length > 0) {
+                        mapelSec.style.display = "block";
+                        if (jmlMapel) jmlMapel.textContent = `${json.total_mapel || json.pembelajaran.length} Mapel (${json.total_jam || 0} Jam)`;
+                        mapelList.innerHTML = json.pembelajaran.map(p => `
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 6px 10px; font-weight: 600;">${escapeHtml(p.nama_mata_pelajaran || p.mata_pelajaran_id_str || '-')}</td>
+                                <td style="padding: 6px 10px; color: var(--text-muted);">${escapeHtml(p.nama_guru || '-')}</td>
+                                <td style="padding: 6px 10px; text-align: center; font-weight: 700;">${p.jam_mengajar_per_minggu || 0}</td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        mapelSec.style.display = "none";
+                        mapelList.innerHTML = "";
+                    }
+                }
+            } else {
+                Swal.fire('Error', json.message || 'Gagal memuat biodata peserta didik', 'error');
+                modal.style.display = "none";
+                document.body.style.overflow = "";
+            }
+        } catch (err) {
+            bioLoading.style.display = "none";
+            Swal.fire('Error', 'Terjadi kesalahan saat memuat biodata', 'error');
+            modal.style.display = "none";
+            document.body.style.overflow = "";
+        }
+    };
+
+    window.closeBiodataModal = function () {
+        const modal = document.getElementById("biodataModal");
+        if (modal) modal.style.display = "none";
+        document.body.style.overflow = "";
+    };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Delegated click event listener for clicking student photo or name
+    document.addEventListener('click', function (e) {
+        const target = e.target.closest('[data-biodata-id]');
+        if (target) {
+            e.preventDefault();
+            const id = target.getAttribute('data-biodata-id');
+            if (id) {
+                window.openBiodataPesertaDidikModal(id);
+            }
+        }
+    });
 });

@@ -284,6 +284,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::post('/usulan', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'storeUsulan'])->name('usulan.store')->middleware('permission:menu_kesiswaan,create');
             Route::post('/usulan/{id}/verifikasi', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiUsulan'])->name('usulan.verifikasi')->middleware('permission:menu_kesiswaan,update');
             Route::post('/berkas/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateBerkas'])->name('berkas.update')->middleware('permission:menu_kesiswaan,update');
+            Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan,read');
         });
 
         // 2. Kluster Administrasi (Buku Klaper, Mutasi, Kelulusan)

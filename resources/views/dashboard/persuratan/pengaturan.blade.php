@@ -215,29 +215,43 @@
                 @endif
             </div>
 
-            <!-- Filter & Search Indeks -->
-            <form method="GET" action="{{ route('dashboard.persuratan.pengaturan.index') }}" class="dash-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-                <input type="hidden" name="tab" value="referensi">
+            <!-- Filter & Search Indeks Standar SAE -->
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select">
+                            @foreach ([10, 15, 20, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 20) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
 
-                <div class="live-search-wrap" style="flex: 1; min-width: 240px;">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" name="q_indeks" value="{{ $qIndeks ?? '' }}" placeholder="Cari kode indeks atau perihal klasifikasi..." autocomplete="off">
-                    @if (!empty($qIndeks))
-                        <a href="{{ route('dashboard.persuratan.pengaturan.index', ['tab' => 'referensi']) }}" class="clear-search" title="Hapus pencarian">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    @endif
-                </div>
-
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <select name="kategori" onchange="this.form.submit()" style="height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                    <select id="filterKategori" class="toolbar-filter-select">
                         <option value="">Semua Kategori</option>
                         @foreach ($kategoriList as $kat)
                             <option value="{{ $kat }}" {{ ($kategoriIndeks ?? '') === $kat ? 'selected' : '' }}>{{ $kat }}</option>
                         @endforeach
                     </select>
+
+                    @if (!empty($qIndeks) || !empty($kategoriIndeks))
+                        <a href="{{ route('dashboard.persuratan.pengaturan.index', ['tab' => 'referensi']) }}"
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                            title="Reset filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
-            </form>
+
+                <div class="live-search-wrap">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearchIndeks" placeholder="Cari kode indeks atau klasifikasi..." value="{{ $qIndeks ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearchIndeks" class="clear-search {{ !empty($qIndeks) ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
 
             <!-- Tabel Responsive Stack Standar SAE -->
             <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden;">

@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         didOpen: () => Swal.showLoading()
                     });
 
-                    fetch('/dashboard/kesiswaan/klaper/sync', {
+                    fetch('/dashboard/kesiswaan/administrasi/klaper/sync', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',

@@ -286,4 +286,70 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     });
+
+    // =========================================================================
+    // 6. Datatable Realtime Live Search, Entri perPage & Filter Kategori Indeks Standar SAE
+    // =========================================================================
+    const searchIndeksInput = document.getElementById("liveSearchIndeks");
+    const clearIndeksBtn = document.getElementById("clearSearchIndeks");
+    const perPageSelect = document.getElementById("perPageSelect");
+    const filterKategori = document.getElementById("filterKategori");
+
+    function applyIndeksFilter() {
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", "referensi");
+
+        if (searchIndeksInput && searchIndeksInput.value.trim()) {
+            url.searchParams.set("q_indeks", searchIndeksInput.value.trim());
+        } else {
+            url.searchParams.delete("q_indeks");
+        }
+
+        if (filterKategori && filterKategori.value) {
+            url.searchParams.set("kategori", filterKategori.value);
+        } else {
+            url.searchParams.delete("kategori");
+        }
+
+        if (perPageSelect && perPageSelect.value) {
+            url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        url.searchParams.set("page", "1");
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    if (searchIndeksInput) {
+        let timer = null;
+        searchIndeksInput.addEventListener("input", function () {
+            if (clearIndeksBtn) clearIndeksBtn.classList.toggle("visible", this.value.trim().length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(applyIndeksFilter, 300);
+        });
+
+        searchIndeksInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                applyIndeksFilter();
+            }
+        });
+    }
+
+    if (clearIndeksBtn) {
+        clearIndeksBtn.addEventListener("click", function () {
+            if (searchIndeksInput) {
+                searchIndeksInput.value = "";
+                clearIndeksBtn.classList.remove("visible");
+                applyIndeksFilter();
+            }
+        });
+    }
+
+    if (filterKategori) filterKategori.addEventListener("change", applyIndeksFilter);
+    if (perPageSelect) perPageSelect.addEventListener("change", applyIndeksFilter);
 });

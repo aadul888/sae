@@ -57,9 +57,9 @@ class SuratKeluarController extends Controller
         $status     = $request->get('status', '');
         $kodeIndeks = $request->get('kode_indeks', '');
         $sort       = $request->get('sort', 'tanggal_surat');
-        $sortDir    = strtolower($request->get('dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-        $perPageVal = $request->get('per_page', '25');
-        $perPage    = in_array($perPageVal, ['10', '25', '50', '100']) ? (int)$perPageVal : 25;
+        $sortDir    = strtolower($request->get('sort_dir', $request->get('dir', 'desc'))) === 'asc' ? 'asc' : 'desc';
+        $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
+        $perPage    = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
         // Query Surat Keluar
         $query = Persuratan::where('jenis_surat', 'keluar');

@@ -43,6 +43,9 @@ class KesiswaanPesertaDidikController extends Controller
         $gender = trim($request->get('gender', ''));
         $tahunLulus = trim($request->get('tahun_lulus', ''));
 
+        $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
+        $perPage = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
+
         // 1. Statistik Ringkas
         $totalAktif = PesertaDidik::count();
         $totalTidakAktif = DB::table('peserta_didik_tidak_aktif')->count();
@@ -82,7 +85,8 @@ class KesiswaanPesertaDidikController extends Controller
             $aktifQuery->where(function ($b) use ($q) {
                 $b->where('nama', 'like', "%{$q}%")
                   ->orWhere('nisn', 'like', "%{$q}%")
-                  ->orWhere('nipd', 'like', "%{$q}%");
+                  ->orWhere('nipd', 'like', "%{$q}%")
+                  ->orWhere('nik', 'like', "%{$q}%");
             });
         }
         if ($rombel !== '') {
@@ -91,40 +95,73 @@ class KesiswaanPesertaDidikController extends Controller
         if ($gender !== '') {
             $aktifQuery->where('jenis_kelamin', $gender);
         }
-        $aktifList = $aktifQuery->orderBy('nama', 'asc')->paginate(25, ['*'], 'aktif_page')->withQueryString();
+        $aktifList = $aktifQuery->orderBy('nama', 'asc')->paginate($perPage, ['*'], 'aktif_page')->withQueryString();
+
+        $aktifPdIds = $aktifList->pluck('peserta_didik_id')->filter()->values()->all();
+        $metaMapAktif = collect();
+        if (!empty($aktifPdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMapAktif = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $aktifPdIds)->get()->keyBy('peserta_didik_id');
+        }
+        foreach ($aktifList as $item) {
+            $item->foto_url = $metaMapAktif[$item->peserta_didik_id]?->foto_url ?? null;
+        }
 
         // 3. Tab: Peserta Didik Tidak Aktif (Mutasi / DO / Berhenti)
         $tidakAktifQuery = DB::table('peserta_didik_tidak_aktif')
-            ->select('id', 'peserta_didik_id', 'nama', 'nisn', 'nipd', 'jenis_kelamin', 'rombel_terakhir', 'alasan_keluar', 'tanggal_keluar', 'sekolah_tujuan');
+            ->select('id', 'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin', 'nama_rombel_terakhir as rombel_terakhir', 'alasan_keluar', 'tanggal_keluar', 'foto_path');
 
         if ($q !== '' && $activeTab === 'tidak_aktif') {
             $tidakAktifQuery->where(function ($b) use ($q) {
                 $b->where('nama', 'like', "%{$q}%")
                   ->orWhere('nisn', 'like', "%{$q}%")
+                  ->orWhere('nipd', 'like', "%{$q}%")
+                  ->orWhere('nik', 'like', "%{$q}%")
                   ->orWhere('alasan_keluar', 'like', "%{$q}%");
             });
         }
-        $tidakAktifList = $tidakAktifQuery->orderBy('tanggal_keluar', 'desc')->paginate(25, ['*'], 'tidak_aktif_page')->withQueryString();
+        $tidakAktifList = $tidakAktifQuery->orderBy('tanggal_keluar', 'desc')->paginate($perPage, ['*'], 'tidak_aktif_page')->withQueryString();
+        $taPdIds = $tidakAktifList->pluck('peserta_didik_id')->filter()->values()->all();
+        $metaMapTa = collect();
+        if (!empty($taPdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMapTa = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $taPdIds)->get()->keyBy('peserta_didik_id');
+        }
+        foreach ($tidakAktifList as $item) {
+            $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : ($metaMapTa[$item->peserta_didik_id]?->foto_url ?? null);
+        }
 
         // 4. Tab: Alumni
         $alumniQuery = DB::table('peserta_didik_tidak_aktif')
             ->where(function ($b) {
-                $b->where('alasan_keluar', 'like', '%Lulus%')
+                $b->where('status_keluar', 'Alumni')
+                  ->orWhere('alasan_keluar', 'like', '%Lulus%')
                   ->orWhere('alasan_keluar', 'like', '%Tamat%');
             })
-            ->select('id', 'peserta_didik_id', 'nama', 'nisn', 'nipd', 'jenis_kelamin', 'rombel_terakhir', 'alasan_keluar', 'tanggal_keluar');
+            ->select('id', 'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin', 'nama_rombel_terakhir as rombel_terakhir', 'alasan_keluar', 'tanggal_keluar', 'tahun_lulus', 'foto_path');
 
         if ($q !== '' && $activeTab === 'alumni') {
             $alumniQuery->where(function ($b) use ($q) {
                 $b->where('nama', 'like', "%{$q}%")
                   ->orWhere('nisn', 'like', "%{$q}%")
-                  ->orWhere('rombel_terakhir', 'like', "%{$q}%");
+                  ->orWhere('nipd', 'like', "%{$q}%")
+                  ->orWhere('nik', 'like', "%{$q}%")
+                  ->orWhere('nama_rombel_terakhir', 'like', "%{$q}%");
             });
         }
         if ($tahunLulus !== '') {
-            $alumniQuery->whereYear('tanggal_keluar', $tahunLulus);
+            $alumniQuery->where(function ($b) use ($tahunLulus) {
+                $b->where('tahun_lulus', $tahunLulus)
+                  ->orWhereYear('tanggal_keluar', $tahunLulus);
+            });
         }
-        $alumniList = $alumniQuery->orderBy('tanggal_keluar', 'desc')->paginate(25, ['*'], 'alumni_page')->withQueryString();
+        $alumniList = $alumniQuery->orderBy('tanggal_keluar', 'desc')->paginate($perPage, ['*'], 'alumni_page')->withQueryString();
+        $alumniPdIds = $alumniList->pluck('peserta_didik_id')->filter()->values()->all();
+        $metaMapAlumni = collect();
+        if (!empty($alumniPdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMapAlumni = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $alumniPdIds)->get()->keyBy('peserta_didik_id');
+        }
+        foreach ($alumniList as $item) {
+            $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : ($metaMapAlumni[$item->peserta_didik_id]?->foto_url ?? null);
+        }
 
         // 5. Tab: Verifikasi Berkas Fisik
         $berkasQuery = DB::table('peserta_didik as pd')
@@ -136,6 +173,7 @@ class KesiswaanPesertaDidikController extends Controller
                 'pd.nama',
                 'pd.nisn',
                 'pd.nipd',
+                'pd.nik',
                 'rb.nama as rombel_nama',
                 'kbv.id as berkas_id',
                 'kbv.akta_kelahiran',
@@ -143,6 +181,7 @@ class KesiswaanPesertaDidikController extends Controller
                 'kbv.ijazah_smp',
                 'kbv.ktp_orang_tua',
                 'kbv.kip_pip',
+                'kbv.catatan_verifikasi',
                 'kbv.verified_by',
                 'kbv.verified_at'
             );
@@ -150,21 +189,41 @@ class KesiswaanPesertaDidikController extends Controller
         if ($q !== '' && $activeTab === 'berkas') {
             $berkasQuery->where(function ($b) use ($q) {
                 $b->where('pd.nama', 'like', "%{$q}%")
-                  ->orWhere('pd.nisn', 'like', "%{$q}%");
+                  ->orWhere('pd.nisn', 'like', "%{$q}%")
+                  ->orWhere('pd.nipd', 'like', "%{$q}%")
+                  ->orWhere('pd.nik', 'like', "%{$q}%");
             });
         }
-        $berkasList = $berkasQuery->orderBy('pd.nama', 'asc')->paginate(25, ['*'], 'berkas_page')->withQueryString();
+        $berkasList = $berkasQuery->orderBy('pd.nama', 'asc')->paginate($perPage, ['*'], 'berkas_page')->withQueryString();
+        $berkasPdIds = $berkasList->pluck('peserta_didik_id')->filter()->values()->all();
+        $metaMapBerkas = collect();
+        if (!empty($berkasPdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMapBerkas = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $berkasPdIds)->get()->keyBy('peserta_didik_id');
+        }
+        foreach ($berkasList as $item) {
+            $item->foto_url = $metaMapBerkas[$item->peserta_didik_id]?->foto_url ?? null;
+        }
 
         // 6. Tab: Usulan Perubahan Data Siswa
         $usulanQuery = SiswaUsulanPerubahan::with('siswa')->orderBy('created_at', 'desc');
         if ($q !== '' && $activeTab === 'usulan') {
             $usulanQuery->whereHas('siswa', function ($b) use ($q) {
                 $b->where('nama', 'like', "%{$q}%")
-                  ->orWhere('nisn', 'like', "%{$q}%");
+                  ->orWhere('nisn', 'like', "%{$q}%")
+                  ->orWhere('nipd', 'like', "%{$q}%")
+                  ->orWhere('nik', 'like', "%{$q}%");
             })->orWhere('kolom_perubahan', 'like', "%{$q}%")
               ->orWhere('alasan', 'like', "%{$q}%");
         }
-        $usulanList = $usulanQuery->paginate(25, ['*'], 'usulan_page')->withQueryString();
+        $usulanList = $usulanQuery->paginate($perPage, ['*'], 'usulan_page')->withQueryString();
+        $usulanPdIds = $usulanList->pluck('peserta_didik_id')->filter()->values()->all();
+        $metaMapUsulan = collect();
+        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMapUsulan = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $usulanPdIds)->get()->keyBy('peserta_didik_id');
+        }
+        foreach ($usulanList as $item) {
+            $item->foto_url = $metaMapUsulan[$item->peserta_didik_id]?->foto_url ?? null;
+        }
 
         // Daftar siswa aktif untuk modal usulan
         $siswaList = PesertaDidik::orderBy('nama')
@@ -178,6 +237,7 @@ class KesiswaanPesertaDidikController extends Controller
             'rombel',
             'gender',
             'tahunLulus',
+            'perPage',
             'filterRombel',
             'aktifList',
             'tidakAktifList',
@@ -306,6 +366,88 @@ class KesiswaanPesertaDidikController extends Controller
             'status' => 'success',
             'message' => 'Verifikasi kelengkapan berkas berhasil diperbarui.',
             'data' => $berkas,
+        ]);
+    }
+
+    /**
+     * Detail lengkap biodata peserta didik (JSON) untuk Modal Biodata.
+     */
+    public function show($id)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read') && !RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'read')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $pesertaDidik = DB::table('peserta_didik')
+            ->where('peserta_didik_id', $id)
+            ->orWhere('nisn', $id)
+            ->orWhere('nipd', $id)
+            ->first();
+
+        // Jika tidak ada di tabel peserta_didik aktif, cari di peserta_didik_tidak_aktif
+        if (!$pesertaDidik && Schema::hasTable('peserta_didik_tidak_aktif')) {
+            $pesertaDidik = DB::table('peserta_didik_tidak_aktif')
+                ->where('peserta_didik_id', $id)
+                ->orWhere('nisn', $id)
+                ->orWhere('nipd', $id)
+                ->first();
+        }
+
+        if (!$pesertaDidik) {
+            return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.'], 404);
+        }
+
+        $anggota = null;
+        if (Schema::hasTable('anggota_rombel')) {
+            $anggota = DB::table('anggota_rombel')
+                ->where('peserta_didik_id', $pesertaDidik->peserta_didik_id)
+                ->first();
+        }
+
+        $meta = null;
+        if (Schema::hasTable('peserta_didik_meta')) {
+            $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pesertaDidik->peserta_didik_id)->first();
+        }
+
+        $rombelId = $pesertaDidik->rombongan_belajar_id ?? ($anggota->rombongan_belajar_id ?? null);
+        $pembelajaran = collect();
+        if (!empty($rombelId) && Schema::hasTable('pembelajaran')) {
+            $pembelajaran = DB::table('pembelajaran')
+                ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
+                ->where('pembelajaran.rombongan_belajar_id', $rombelId)
+                ->select(
+                    'pembelajaran.pembelajaran_id',
+                    'pembelajaran.nama_mata_pelajaran',
+                    'pembelajaran.mata_pelajaran_id_str',
+                    'pembelajaran.jam_mengajar_per_minggu',
+                    'pembelajaran.status_di_kurikulum_str',
+                    'gtk.nama as nama_guru',
+                    'gtk.nuptk',
+                    'gtk.nip'
+                )
+                ->orderBy('pembelajaran.nama_mata_pelajaran', 'asc')
+                ->get();
+        }
+
+        $fotoUrl = !empty($pesertaDidik->foto_path) 
+            ? asset('storage/' . ltrim($pesertaDidik->foto_path, '/')) 
+            : ($meta?->foto_url ?? null);
+
+        return response()->json([
+            'status'       => 'success',
+            'data'         => $pesertaDidik,
+            'anggota'      => $anggota,
+            'meta'         => $meta,
+            'foto_url'     => $fotoUrl,
+            'foto_size'    => $meta?->formatted_foto_size,
+            'pembelajaran' => $pembelajaran,
+            'total_mapel'  => $pembelajaran->count(),
+            'total_jam'    => $pembelajaran->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
         ]);
     }
 }

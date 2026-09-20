@@ -280,7 +280,7 @@
                             <td style="padding: 12px 18px; font-size: 0.85rem;">{{ $item->menghadap_ke }}</td>
                             <td style="padding: 12px 18px; text-align: right;">
                                 <div class="table-actions">
-                                    <a href="{{ route('dashboard.kesiswaan.kedisiplinan.panggilan.cetak', $item->id) }}" target="_blank"
+                                    <a href="{{ route('dashboard.kesiswaan.kedisiplinan.panggilan-wali.cetak', $item->id) }}" target="_blank"
                                         class="btn-icon" title="Cetak Surat Pemanggilan">
                                         <i class="fas fa-print"></i>
                                     </a>
@@ -349,9 +349,9 @@
         <div class="card" style="width: 100%; max-width: 500px; padding: 24px; border-radius: 12px; margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Tambah Aturan Tata Tertib</h3>
-                <button type="button" class="btn-icon close-modal" data-target="#modalTataTertib"><i class="fas fa-xmark"></i></button>
+                <button type="button" class="close-modal" data-target="#modalTataTertib" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i class="fas fa-times"></i></button>
             </div>
-            <form id="formTataTertib" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.tata-tertib.store') }}">
+            <form id="formTataTertib" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.tatib.store') }}">
                 @csrf
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group">
@@ -395,9 +395,9 @@
         <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Catat Pelanggaran Poin Siswa</h3>
-                <button type="button" class="btn-icon close-modal" data-target="#modalPoin"><i class="fas fa-xmark"></i></button>
+                <button type="button" class="close-modal" data-target="#modalPoin" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i class="fas fa-times"></i></button>
             </div>
-            <form id="formPoin" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.poin.store') }}" enctype="multipart/form-data">
+            <form id="formPoin" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.pelanggaran.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih Siswa <span class="text-danger">*</span></label>
@@ -448,7 +448,7 @@
         <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Catat Sesi Pembinaan Konseling</h3>
-                <button type="button" class="btn-icon close-modal" data-target="#modalPembinaan"><i class="fas fa-xmark"></i></button>
+                <button type="button" class="close-modal" data-target="#modalPembinaan" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i class="fas fa-times"></i></button>
             </div>
             <form id="formPembinaan" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.pembinaan.store') }}" enctype="multipart/form-data">
                 @csrf
@@ -506,9 +506,9 @@
         <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
                 <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Terbitkan Surat Panggilan Orang Tua</h3>
-                <button type="button" class="btn-icon close-modal" data-target="#modalPanggilan"><i class="fas fa-xmark"></i></button>
+                <button type="button" class="close-modal" data-target="#modalPanggilan" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i class="fas fa-times"></i></button>
             </div>
-            <form id="formPanggilan" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.panggilan.store') }}">
+            <form id="formPanggilan" method="POST" action="{{ route('dashboard.kesiswaan.kedisiplinan.panggilan-wali.store') }}">
                 @csrf
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih Siswa <span class="text-danger">*</span></label>
