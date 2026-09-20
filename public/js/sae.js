@@ -356,10 +356,15 @@ window.SAE = {
         confirmText = "Lanjutkan",
         cancelText = "Batal",
     ) {
-        if (typeof Swal !== "undefined") {
+        // Cek jika real SweetAlert2 tersedia (memiliki method mixin atau getPopup bawaan library)
+        const hasRealSwal =
+            typeof window.Swal !== "undefined" &&
+            typeof window.Swal.mixin === "function";
+
+        if (hasRealSwal) {
             const isDanger = type === "danger" || type === "error";
             const swalIcon = isDanger ? "warning" : (type === "success" ? "success" : (type === "info" ? "info" : "warning"));
-            return Swal.fire({
+            return window.Swal.fire({
                 title: title,
                 html: message,
                 icon: swalIcon,
@@ -374,9 +379,25 @@ window.SAE = {
                 customClass: {
                     popup: "sae-swal-popup"
                 }
-            }).then((res) => res.isConfirmed);
+            }).then((res) => Boolean(res && res.isConfirmed));
         }
 
+        return this.renderConfirmDialog(
+            message,
+            title,
+            type,
+            confirmText,
+            cancelText
+        );
+    },
+
+    renderConfirmDialog(
+        message,
+        title = "Konfirmasi Tindakan",
+        type = "warning",
+        confirmText = "Lanjutkan",
+        cancelText = "Batal"
+    ) {
         return new Promise((resolve) => {
             const icons = {
                 success: "fa-circle-check",
@@ -470,70 +491,71 @@ window.SAE = {
     },
 };
 
-// Universal SweetAlert2 Shim: Mengarahkan seluruh panggilan Swal.fire ke style tunggal SAE secara konsisten
-window.Swal = {
-    fire: function (titleOrOpts, message, icon) {
-        let opts = {};
-        if (typeof titleOrOpts === "string") {
-            opts = { title: titleOrOpts, text: message, icon: icon };
-        } else if (typeof titleOrOpts === "object" && titleOrOpts !== null) {
-            opts = titleOrOpts;
-        }
+// Universal SweetAlert2 Fallback Shim: Hanya aktif jika library SweetAlert2 TIDAK dimuat di halaman
+if (typeof window.Swal === "undefined") {
+    window.Swal = {
+        fire: function (titleOrOpts, message, icon) {
+            let opts = {};
+            if (typeof titleOrOpts === "string") {
+                opts = { title: titleOrOpts, text: message, icon: icon };
+            } else if (typeof titleOrOpts === "object" && titleOrOpts !== null) {
+                opts = titleOrOpts;
+            }
 
-        const isConfirm = Boolean(opts.showCancelButton);
-        const rawMsg = opts.html || opts.text || opts.title || "";
-        const title = opts.title || "Pemberitahuan";
-        const iconType =
-            (opts.icon === "error" ? "danger" : opts.icon) || "info";
+            const isConfirm = Boolean(opts.showCancelButton);
+            const rawMsg = opts.html || opts.text || opts.title || "";
+            const title = opts.title || "Pemberitahuan";
+            const iconType =
+                (opts.icon === "error" ? "danger" : opts.icon) || "info";
 
-        if (isConfirm) {
-            const confirmText = opts.confirmButtonText
-                ? String(opts.confirmButtonText)
-                      .replace(/<[^>]*>?/gm, "")
-                      .trim()
-                : "Lanjutkan";
-            const cancelText = opts.cancelButtonText
-                ? String(opts.cancelButtonText)
-                      .replace(/<[^>]*>?/gm, "")
-                      .trim()
-                : "Batal";
-            return window.SAE.confirm(
-                rawMsg,
-                title,
-                iconType,
-                confirmText,
-                cancelText,
-            ).then((isConfirmed) => ({
-                isConfirmed: isConfirmed,
-                isDismissed: !isConfirmed,
-            }));
-        } else if (
-            opts.toast ||
-            iconType === "success" ||
-            iconType === "info" ||
-            iconType === "warning" ||
-            iconType === "danger"
-        ) {
-            // Seluruh alert status (sukses/info/peringatan) menggunakan SAE Toast modern di pojok atas
-            const toastMsg =
-                opts.title && opts.text
-                    ? `${opts.title} - ${opts.text}`
-                    : opts.text || opts.title || rawMsg;
-            const cleanToastMsg =
-                typeof toastMsg === "string"
-                    ? toastMsg.replace(/<[^>]*>?/gm, "").trim()
-                    : toastMsg;
-            window.SAE.toast(cleanToastMsg, iconType);
-            return Promise.resolve({ isConfirmed: true });
-        } else {
-            return window.SAE.alert(rawMsg, title, iconType).then(() => ({
-                isConfirmed: true,
-            }));
-        }
-    },
-    close: function () {},
-    showLoading: function () {},
-};
+            if (isConfirm) {
+                const confirmText = opts.confirmButtonText
+                    ? String(opts.confirmButtonText)
+                          .replace(/<[^>]*>?/gm, "")
+                          .trim()
+                    : "Lanjutkan";
+                const cancelText = opts.cancelButtonText
+                    ? String(opts.cancelButtonText)
+                          .replace(/<[^>]*>?/gm, "")
+                          .trim()
+                    : "Batal";
+                return window.SAE.renderConfirmDialog(
+                    rawMsg,
+                    title,
+                    iconType,
+                    confirmText,
+                    cancelText,
+                ).then((isConfirmed) => ({
+                    isConfirmed: isConfirmed,
+                    isDismissed: !isConfirmed,
+                }));
+            } else if (
+                opts.toast ||
+                iconType === "success" ||
+                iconType === "info" ||
+                iconType === "warning" ||
+                iconType === "danger"
+            ) {
+                const toastMsg =
+                    opts.title && opts.text
+                        ? `${opts.title} - ${opts.text}`
+                        : opts.text || opts.title || rawMsg;
+                const cleanToastMsg =
+                    typeof toastMsg === "string"
+                        ? toastMsg.replace(/<[^>]*>?/gm, "").trim()
+                        : toastMsg;
+                window.SAE.toast(cleanToastMsg, iconType);
+                return Promise.resolve({ isConfirmed: true });
+            } else {
+                return window.SAE.alert(rawMsg, title, iconType).then(() => ({
+                    isConfirmed: true,
+                }));
+            }
+        },
+        close: function () {},
+        showLoading: function () {},
+    };
+}
 
 // Global Automatic Listeners (Auto Flash Messages, Auto Confirm, Auto Copy)
 document.addEventListener("DOMContentLoaded", () => {

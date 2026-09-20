@@ -201,7 +201,7 @@
             }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 </head>
 <body style="background: #f1f5f9; min-height: 100vh; padding: 20px 0;">
 

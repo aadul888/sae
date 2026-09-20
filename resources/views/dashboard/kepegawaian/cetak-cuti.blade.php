@@ -8,7 +8,7 @@
         $judulDokumen = $isDinas ? 'SURAT PERINTAH TUGAS (SPT)' : 'SURAT KETERANGAN IZIN / CUTI';
     @endphp
     <title>{{ $judulDokumen }} - {{ $cuti->gtk?->nama }}</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <style>
         @page {
             size: A4 portrait;

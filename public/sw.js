@@ -1,28 +1,39 @@
 /* ==========================================================================
    SAE (Sistem Aplikasi Edukasi) — Progressive Web App Service Worker
-   Version: 1.1.0
+   Version: 1.2.0 — Full Offline / Self-Hosted Assets
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = "sae-pwa-v1.1.0";
+const CACHE_NAME = "sae-pwa-v1.2.0";
 const OFFLINE_URL = "/offline";
 
 // Aset inti yang di-precache saat instalasi service worker
+// Seluruh font & ikon kini LOKAL — tidak memerlukan koneksi internet
 const PRECACHE_ASSETS = [
     OFFLINE_URL,
+    "/css/fonts.css",
     "/css/sae.css",
     "/css/dashboard.css",
     "/css/presensi.css",
+    "/css/kartu-pelajar.css",
+    "/css/formulir-public.css",
+    "/fonts/plus-jakarta-sans/plus-jakarta-sans-latin.woff2",
+    "/fonts/plus-jakarta-sans/plus-jakarta-sans-latin-ext.woff2",
+    "/fonts/plus-jakarta-sans/plus-jakarta-sans-vietnamese.woff2",
+    "/fonts/plus-jakarta-sans/plus-jakarta-sans-cyrillic-ext.woff2",
     "/js/sae.js",
     "/js/pwa.js",
+    "/js/dashboard.js",
     "/js/presensi-scan.js",
     "/vendor/jsqr/jsqr.min.js",
+    "/vendor/fontawesome/css/all.min.css",
+    "/vendor/sweetalert2/sweetalert2.all.min.js",
+    "/vendor/chartjs/chart.umd.min.js",
     "/img/logo-icon.png",
     "/img/icons/sae-icon-192x192.png",
     "/img/icons/sae-icon-512x512.png",
     "/img/icons/icon-192x192.png",
     "/img/icons/icon-512x512.png",
-    "/vendor/fontawesome/css/all.min.css",
 ];
 
 // Alamat URL yang WAJIB Network-Only (TIDAK BOLEH di-cache demi keamanan & keakuratan data)
@@ -86,18 +97,15 @@ self.addEventListener("activate", (event) => {
 });
 
 // 3. Helper: Periksa apakah request harus di-bypass
+// Sejak v1.2.0: TIDAK ADA aset eksternal — seluruh font & icon sudah lokal
 function shouldBypassCache(request) {
     if (request.method !== "GET") return true;
 
     const url = new URL(request.url);
     // Hanya tangani request dari origin yang sama
+    // Abaikan request ke domain luar (tidak relevan lagi setelah self-hosted)
     if (url.origin !== self.location.origin) {
-        // Izinkan caching untuk Google Fonts & CDN fontawesome jika perlu
-        return (
-            !url.hostname.includes("fonts.googleapis.com") &&
-            !url.hostname.includes("fonts.gstatic.com") &&
-            !url.hostname.includes("cdnjs.cloudflare.com")
-        );
+        return true;
     }
 
     // Cek pattern Network-Only
