@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\KesiswaanBerkasVerifikasi;
 use App\Models\KesiswaanBukuKlaper;
+use App\Models\KesiswaanKelulusan;
 use App\Models\KesiswaanMutasi;
 use App\Models\PesertaDidik;
 use App\Models\RolePermission;
@@ -24,7 +25,7 @@ class KesiswaanController extends Controller
     }
 
     /**
-     * Tampilkan Halaman Utama Administrasi Kesiswaan (Buku Klaper, Mutasi, Berkas).
+     * Tampilkan Halaman Kluster Administrasi Kesiswaan (Buku Klaper, Mutasi, Kelulusan).
      */
     public function index(Request $request)
     {
@@ -38,25 +39,23 @@ class KesiswaanController extends Controller
         $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update');
         $canDelete = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete');
 
-        $activeTab = $request->get('tab', 'klaper'); // klaper, mutasi, berkas
+        $activeTab = $request->get('tab', 'klaper'); // klaper, mutasi, kelulusan
         $q = trim($request->get('q', ''));
         $abjad = strtoupper(trim($request->get('abjad', '')));
         $tahunMasuk = $request->get('tahun_masuk', '');
+        $tahunAjaran = $request->get('tahun_ajaran', '');
 
-        // 1. Statistik Kesiswaan
+        // 1. Statistik Administrasi Kesiswaan
         $totalSiswaAktif = PesertaDidik::count();
         $totalKlaperTercatat = KesiswaanBukuKlaper::count();
         $totalMutasi = KesiswaanMutasi::count();
-        $totalBerkasLengkap = KesiswaanBerkasVerifikasi::where('akta_kelahiran', true)
-            ->where('kartu_keluarga', true)
-            ->where('ijazah_smp', true)
-            ->count();
+        $totalLulus = KesiswaanKelulusan::where('status_kelulusan', 'lulus')->count();
 
         $stats = [
             'total_aktif'    => $totalSiswaAktif,
             'total_klaper'   => $totalKlaperTercatat,
             'total_mutasi'   => $totalMutasi,
-            'berkas_lengkap' => $totalBerkasLengkap,
+            'total_lulus'    => $totalLulus,
         ];
 
         // 2. Data Buku Klaper
@@ -81,7 +80,7 @@ class KesiswaanController extends Controller
                 'kbk.status_klaper'
             );
 
-        if ($q !== '') {
+        if ($q !== '' && $activeTab === 'klaper') {
             $klaperQuery->where(function ($b) use ($q) {
                 $b->where('pd.nama', 'like', "%{$q}%")
                   ->orWhere('pd.nisn', 'like', "%{$q}%")
@@ -99,55 +98,49 @@ class KesiswaanController extends Controller
             $klaperQuery->where('kbk.tahun_masuk', $tahunMasuk);
         }
 
-        $klaperList = $klaperQuery->orderBy('pd.nama', 'asc')->paginate(25)->withQueryString();
+        $klaperList = $klaperQuery->orderBy('pd.nama', 'asc')->paginate(25, ['*'], 'klaper_page')->withQueryString();
 
         // 3. Data Mutasi Siswa
         $mutasiQuery = KesiswaanMutasi::with('siswa')->orderBy('tanggal_mutasi', 'desc');
-        $mutasiList = $mutasiQuery->paginate(20)->withQueryString();
-
-        // 4. Data Berkas Verifikasi Siswa Baru
-        $berkasQuery = DB::table('peserta_didik as pd')
-            ->leftJoin('kesiswaan_berkas_verifikasi as kbv', 'pd.peserta_didik_id', '=', 'kbv.peserta_didik_id')
-            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->select(
-                'pd.peserta_didik_id',
-                'pd.nama',
-                'pd.nisn',
-                'pd.nipd',
-                'rb.nama as rombel_nama',
-                'kbv.id as berkas_id',
-                'kbv.akta_kelahiran',
-                'kbv.kartu_keluarga',
-                'kbv.ijazah_smp',
-                'kbv.ktp_orang_tua',
-                'kbv.kip_pip',
-                'kbv.verified_by',
-                'kbv.verified_at'
-            );
-
-        if ($q !== '' && $activeTab === 'berkas') {
-            $berkasQuery->where(function ($b) use ($q) {
-                $b->where('pd.nama', 'like', "%{$q}%")
-                  ->orWhere('pd.nisn', 'like', "%{$q}%");
-            });
+        if ($q !== '' && $activeTab === 'mutasi') {
+            $mutasiQuery->whereHas('siswa', function ($b) use ($q) {
+                $b->where('nama', 'like', "%{$q}%")
+                  ->orWhere('nisn', 'like', "%{$q}%");
+            })->orWhere('nomor_surat_mutasi', 'like', "%{$q}%")
+              ->orWhere('sekolah_tujuan_asal', 'like', "%{$q}%");
         }
+        $mutasiList = $mutasiQuery->paginate(20, ['*'], 'mutasi_page')->withQueryString();
 
-        $berkasList = $berkasQuery->orderBy('pd.nama', 'asc')->paginate(25)->withQueryString();
+        // 4. Data Kelulusan Siswa
+        $kelulusanQuery = KesiswaanKelulusan::with('siswa')->orderBy('tahun_ajaran', 'desc')->orderBy('created_at', 'desc');
+        if ($q !== '' && $activeTab === 'kelulusan') {
+            $kelulusanQuery->whereHas('siswa', function ($b) use ($q) {
+                $b->where('nama', 'like', "%{$q}%")
+                  ->orWhere('nisn', 'like', "%{$q}%");
+            })->orWhere('nomor_peserta_ujian', 'like', "%{$q}%")
+              ->orWhere('nomor_ijazah', 'like', "%{$q}%")
+              ->orWhere('nomor_skl', 'like', "%{$q}%");
+        }
+        if ($tahunAjaran !== '') {
+            $kelulusanQuery->where('tahun_ajaran', $tahunAjaran);
+        }
+        $kelulusanList = $kelulusanQuery->paginate(25, ['*'], 'kelulusan_page')->withQueryString();
 
+        // Siswa aktif untuk modal pilihan
         $siswaList = PesertaDidik::orderBy('nama')
             ->limit(300)
             ->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
 
-        return view('dashboard.kesiswaan', compact(
+        return view('dashboard.kesiswaan.administrasi', compact(
             'stats',
             'activeTab',
             'q',
             'abjad',
             'tahunMasuk',
+            'tahunAjaran',
             'klaperList',
             'mutasiList',
-            'berkasList',
+            'kelulusanList',
             'siswaList',
             'canCreate',
             'canRead',
@@ -246,7 +239,6 @@ class KesiswaanController extends Controller
 
         $siswa = PesertaDidik::where('peserta_didik_id', $validated['peserta_didik_id'])->firstOrFail();
 
-        // Hitung nomor surat mutasi
         $countMutasi = KesiswaanMutasi::whereYear('tanggal_mutasi', date('Y', strtotime($validated['tanggal_mutasi'])))->count() + 1;
         $nomorSurat = "421.5/" . str_pad($countMutasi, 3, '0', STR_PAD_LEFT) . "/SMK-MUTASI/" . date('Y', strtotime($validated['tanggal_mutasi']));
 
@@ -263,7 +255,6 @@ class KesiswaanController extends Controller
             'created_by'          => $userName,
         ]);
 
-        // Perbarui status klaper jika mutasi keluar atau DO
         if (in_array($validated['jenis_mutasi'], ['keluar', 'do', 'meninggal'])) {
             KesiswaanBukuKlaper::where('peserta_didik_id', $siswa->peserta_didik_id)
                 ->update(['status_klaper' => 'mutasi_keluar']);
@@ -330,34 +321,98 @@ class KesiswaanController extends Controller
     }
 
     /**
-     * Update Checklist Verifikasi Berkas Fisik Siswa Baru.
+     * Simpan / Perbarui Data Kelulusan Siswa.
      */
-    public function updateBerkas(Request $request, $id)
+    public function storeKelulusan(Request $request)
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')) {
+        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'create')) {
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
         }
 
-        $berkas = KesiswaanBerkasVerifikasi::firstOrNew(['peserta_didik_id' => $id]);
+        $validated = $request->validate([
+            'peserta_didik_id'    => 'required|string',
+            'tahun_ajaran'        => 'required|string|max:20',
+            'nomor_peserta_ujian' => 'nullable|string|max:50',
+            'nomor_ijazah'        => 'nullable|string|max:50',
+            'status_kelulusan'    => 'required|string|in:lulus,tidak_lulus,ditunda',
+            'tanggal_lulus'       => 'nullable|date',
+            'keterangan'          => 'nullable|string',
+        ]);
 
-        $berkas->akta_kelahiran = $request->boolean('akta_kelahiran');
-        $berkas->kartu_keluarga = $request->boolean('kartu_keluarga');
-        $berkas->ijazah_smp     = $request->boolean('ijazah_smp');
-        $berkas->ktp_orang_tua  = $request->boolean('ktp_orang_tua');
-        $berkas->kip_pip        = $request->boolean('kip_pip');
+        $siswa = PesertaDidik::where('peserta_didik_id', $validated['peserta_didik_id'])->firstOrFail();
 
-        $userName = is_array($user) ? ($user['nama'] ?? 'Staf Kesiswaan') : ($user->nama ?? 'Staf Kesiswaan');
-        $berkas->verified_by = $userName;
-        $berkas->verified_at = now();
-        $berkas->save();
+        $kelulusan = KesiswaanKelulusan::firstOrNew(['peserta_didik_id' => $siswa->peserta_didik_id]);
+
+        $countSkl = KesiswaanKelulusan::where('tahun_ajaran', $validated['tahun_ajaran'])->count() + 1;
+        $nomorSkl = "421.5/" . str_pad($countSkl, 3, '0', STR_PAD_LEFT) . "/SMK-SKL/" . date('Y');
+        $docId = 'SAE-SKL-' . strtoupper(substr(md5($siswa->peserta_didik_id . $validated['tahun_ajaran']), 0, 10));
+
+        $kelulusan->tahun_ajaran        = $validated['tahun_ajaran'];
+        $kelulusan->nomor_peserta_ujian = $validated['nomor_peserta_ujian'] ?? null;
+        $kelulusan->nomor_ijazah        = $validated['nomor_ijazah'] ?? null;
+        $kelulusan->nomor_skl           = $kelulusan->nomor_skl ?: $nomorSkl;
+        $kelulusan->status_kelulusan    = $validated['status_kelulusan'];
+        $kelulusan->tanggal_lulus       = $validated['tanggal_lulus'] ?: date('Y-m-d');
+        $kelulusan->keterangan          = $validated['keterangan'] ?? null;
+        $kelulusan->doc_id              = $kelulusan->doc_id ?: $docId;
+        $kelulusan->save();
+
+        if ($validated['status_kelulusan'] === 'lulus') {
+            KesiswaanBukuKlaper::where('peserta_didik_id', $siswa->peserta_didik_id)
+                ->update(['status_klaper' => 'lulus']);
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Verifikasi kelengkapan berkas berhasil diperbarui.',
-            'data' => $berkas,
+            'message' => "Data kelulusan siswa {$siswa->nama} berhasil disimpan.",
+            'data' => $kelulusan,
+            'cetak_url' => route('dashboard.kesiswaan.kelulusan.cetak', $kelulusan->id),
         ]);
+    }
+
+    /**
+     * Cetak Surat Keterangan Lulus (SKL) Resmi Ber-Kop Sekolah & QR Code Verifikasi.
+     */
+    public function cetakSkl(Request $request, $id)
+    {
+        $kelulusan = KesiswaanKelulusan::with('siswa')->findOrFail($id);
+        $siswa = $kelulusan->siswa;
+        $sekolah = DB::table('sekolah')->first();
+        $sekolahMeta = \App\Models\SekolahMeta::first();
+
+        $anggotaRombel = DB::table('anggota_rombel as ar')
+            ->join('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->where('ar.peserta_didik_id', $siswa->peserta_didik_id)
+            ->select('rb.nama as rombel_nama', 'rb.jurusan_id_str')
+            ->first();
+
+        $rombelNama = $anggotaRombel?->rombel_nama ?: 'Kelas XII';
+        $jurusanNama = $anggotaRombel?->jurusan_id_str ?: 'Kompetensi Keahlian';
+
+        $kepsek = DB::table('gtk')
+            ->where(function ($q) {
+                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
+                    ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
+            })
+            ->first();
+
+        $docId = $kelulusan->doc_id ?: ('SAE-SKL-' . strtoupper(substr(md5($siswa->peserta_didik_id), 0, 10)));
+        $qrVerifyUrl = url('/v/doc/' . $docId);
+        $qrUri = QrCodeService::generateDataUri($qrVerifyUrl, 140, 1);
+
+        return view('dashboard.kesiswaan.cetak-skl', compact(
+            'kelulusan',
+            'siswa',
+            'sekolah',
+            'sekolahMeta',
+            'rombelNama',
+            'jurusanNama',
+            'kepsek',
+            'qrUri',
+            'docId'
+        ));
     }
 }

@@ -699,18 +699,31 @@
                                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                                     <span class="nav-label">Dashboard Kesiswaan</span>
                                 </a>
-                                <a href="{{ $href('dashboard.kesiswaan.index') }}"
-                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kesiswaan.*') ? 'active' : '' }}">
-                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
-                                    <span class="nav-label">Buku Klaper &amp; Kesiswaan</span>
+                                <a href="{{ route('dashboard.kesiswaan.peserta-didik.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kesiswaan.peserta-didik.*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-users"></i></span>
+                                    <span class="nav-label">Peserta Didik</span>
                                 </a>
-                                @if ($can('menu_peserta_didik_aktif'))
-                                    <a href="{{ $href('dashboard.peserta-didik-aktif.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.peserta-didik-aktif*') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-user-check"></i></span>
-                                        <span class="nav-label">Buku Induk Siswa</span>
-                                    </a>
-                                @endif
+                                <a href="{{ route('dashboard.kesiswaan.administrasi.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kesiswaan.administrasi.*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
+                                    <span class="nav-label">Administrasi</span>
+                                </a>
+                                <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kesiswaan.kedisiplinan.*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-shield-halved"></i></span>
+                                    <span class="nav-label">Kedisiplinan</span>
+                                </a>
+                                <a href="{{ route('dashboard.kesiswaan.kegiatan.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kesiswaan.kegiatan.*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-people-group"></i></span>
+                                    <span class="nav-label">Kegiatan Siswa</span>
+                                </a>
+                                <a href="{{ route('dashboard.kesiswaan.prestasi.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kesiswaan.prestasi.*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-trophy"></i></span>
+                                    <span class="nav-label">Prestasi</span>
+                                </a>
                                 @if ($can('menu_aktivitas_tendik'))
                                     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'kesiswaan']) }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'kesiswaan' ? 'active' : '' }}">
@@ -1149,18 +1162,31 @@
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                             <span class="nav-label">Dashboard Kesiswaan</span>
                         </a>
-                        <a href="{{ $href('dashboard.kesiswaan.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-graduate"></i></span>
-                            <span class="nav-label">Buku Klaper &amp; Kesiswaan</span>
+                        <a href="{{ route('dashboard.kesiswaan.peserta-didik.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.peserta-didik.*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users"></i></span>
+                            <span class="nav-label">Peserta Didik</span>
                         </a>
-                        @if ($can('menu_peserta_didik_aktif'))
-                            <a href="{{ $href('dashboard.peserta-didik-aktif.index') }}"
-                                class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik-aktif*') ? 'active' : '' }}">
-                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-check"></i></span>
-                                <span class="nav-label">Buku Induk Siswa</span>
-                            </a>
-                        @endif
+                        <a href="{{ route('dashboard.kesiswaan.administrasi.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.administrasi.*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
+                            <span class="nav-label">Administrasi</span>
+                        </a>
+                        <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.kedisiplinan.*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-shield-halved"></i></span>
+                            <span class="nav-label">Kedisiplinan</span>
+                        </a>
+                        <a href="{{ route('dashboard.kesiswaan.kegiatan.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.kegiatan.*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-people-group"></i></span>
+                            <span class="nav-label">Kegiatan Siswa</span>
+                        </a>
+                        <a href="{{ route('dashboard.kesiswaan.prestasi.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.prestasi.*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-trophy"></i></span>
+                            <span class="nav-label">Prestasi</span>
+                        </a>
                     @endif
 
                     {{-- Bidang Kepegawaian --}}

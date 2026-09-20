@@ -239,8 +239,8 @@ class RolePermission extends Model
 
             'Tendik: Kesiswaan' => [
                 'menu_kesiswaan' => [
-                    'label' => 'Buku Induk & Klaper Kesiswaan',
-                    'icon' => 'fa-address-card',
+                    'label' => 'Administrasi Kesiswaan Terpadu',
+                    'icon' => 'fa-user-graduate',
                     'roles' => ['admin', 'tendik', 'guru'],
                 ],
             ],
