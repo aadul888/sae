@@ -29,15 +29,18 @@ class PrestasiSiswaController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'create');
-        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read');
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete');
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_prestasi', 'create') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'create');
+        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_prestasi', 'read') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read');
+        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_prestasi', 'update') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_prestasi', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete');
 
         $activeTab = $request->get('tab', 'akademik'); // akademik, nonakademik, rekap
         $q = trim($request->get('q', ''));
         $tingkat = trim($request->get('tingkat', ''));
         $tahun = trim($request->get('tahun', ''));
+
+        $perPageVal = $request->input('perPage', $request->input('per_page', 25));
+        $perPage = in_array((int)$perPageVal, [10, 15, 25, 50, 100], true) ? (int)$perPageVal : 25;
 
         // 1. Statistik Prestasi
         $totalAkademik = KesiswaanPrestasi::where('kategori', 'akademik')->count();
@@ -66,7 +69,7 @@ class PrestasiSiswaController extends Controller
         if ($tingkat !== '' && $activeTab === 'akademik') {
             $akademikQuery->where('tingkat', $tingkat);
         }
-        $akademikList = $akademikQuery->paginate(25, ['*'], 'akademik_page')->withQueryString();
+        $akademikList = $akademikQuery->paginate($perPage, ['*'], 'akademik_page')->withQueryString();
 
         // 3. Tab: Prestasi Nonakademik
         $nonakademikQuery = KesiswaanPrestasi::with(['siswa', 'pembimbing'])
@@ -82,7 +85,7 @@ class PrestasiSiswaController extends Controller
         if ($tingkat !== '' && $activeTab === 'nonakademik') {
             $nonakademikQuery->where('tingkat', $tingkat);
         }
-        $nonakademikList = $nonakademikQuery->paginate(25, ['*'], 'nonakademik_page')->withQueryString();
+        $nonakademikList = $nonakademikQuery->paginate($perPage, ['*'], 'nonakademik_page')->withQueryString();
 
         // 4. Tab: Rekapitulasi Prestasi (Berdasarkan Tingkat & Peringkat)
         $rekapPerTingkat = DB::table('kesiswaan_prestasi')
@@ -112,7 +115,7 @@ class PrestasiSiswaController extends Controller
             'activeTab',
             'q',
             'tingkat',
-            'tahun',
+            'perPage',
             'akademikList',
             'nonakademikList',
             'rekapPerTingkat',

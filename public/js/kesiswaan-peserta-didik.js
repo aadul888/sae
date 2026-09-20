@@ -383,4 +383,97 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
+
+    // Datatable Realtime Live Search, Entri perPage, dan Filter Standar SAE
+    const searchInput = document.getElementById("liveSearch");
+    const clearBtn = document.getElementById("clearSearch");
+    const perPageSelect = document.getElementById("perPageSelect");
+    const filterRombel = document.getElementById("filterRombel");
+    const filterGender = document.getElementById("filterGender");
+    const filterTahunLulus = document.getElementById("filterTahunLulus");
+
+    function applyFilter() {
+        const url = new URL(window.location.href);
+        if (searchInput && searchInput.value.trim()) {
+            url.searchParams.set("q", searchInput.value.trim());
+        } else {
+            url.searchParams.delete("q");
+        }
+
+        if (filterRombel && filterRombel.value) {
+            url.searchParams.set("rombel", filterRombel.value);
+        } else {
+            url.searchParams.delete("rombel");
+        }
+
+        if (filterGender && filterGender.value) {
+            url.searchParams.set("gender", filterGender.value);
+        } else {
+            url.searchParams.delete("gender");
+        }
+
+        if (filterTahunLulus && filterTahunLulus.value.trim()) {
+            url.searchParams.set("tahun_lulus", filterTahunLulus.value.trim());
+        } else if (filterTahunLulus) {
+            url.searchParams.delete("tahun_lulus");
+        }
+
+        if (perPageSelect && perPageSelect.value) {
+            url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        // Reset sub-tab pages
+        url.searchParams.delete("aktif_page");
+        url.searchParams.delete("tidak_aktif_page");
+        url.searchParams.delete("alumni_page");
+        url.searchParams.delete("berkas_page");
+        url.searchParams.delete("usulan_page");
+        url.searchParams.delete("page");
+
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    if (searchInput) {
+        let timer = null;
+        searchInput.addEventListener("input", function () {
+            if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(applyFilter, 300);
+        });
+
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                applyFilter();
+            }
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            if (searchInput) {
+                searchInput.value = "";
+                clearBtn.classList.remove("visible");
+                applyFilter();
+            }
+        });
+    }
+
+    if (filterRombel) filterRombel.addEventListener("change", applyFilter);
+    if (filterGender) filterGender.addEventListener("change", applyFilter);
+    if (filterTahunLulus) {
+        filterTahunLulus.addEventListener("change", applyFilter);
+        filterTahunLulus.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                applyFilter();
+            }
+        });
+    }
+    if (perPageSelect) perPageSelect.addEventListener("change", applyFilter);
 });

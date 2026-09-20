@@ -96,44 +96,66 @@
         @php
             $currentList = ($activeTab === 'akademik') ? $akademikList : $nonakademikList;
         @endphp
-        <div class="card" style="padding: 16px 20px; margin-bottom: 18px;">
-            <form method="GET" action="{{ route('dashboard.kesiswaan.prestasi.index') }}" class="table-toolbar" style="margin-bottom: 0;">
-                <input type="hidden" name="tab" value="{{ $activeTab }}">
-                <div class="live-search-wrap" style="flex: 1; min-width: 240px; position: relative;">
-                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                    <input type="text" name="q" value="{{ $q }}" placeholder="Cari nama lomba, event, atau siswa..."
-                        class="form-control" style="padding-left: 38px; width: 100%; border-radius: 8px;">
+        <!-- 4. Toolbar & Filter Standar SAE -->
+        <div class="card" style="padding: 16px; margin-bottom: 20px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    <select id="filterTingkat" class="toolbar-filter-select">
+                        <option value="">Semua Tingkat</option>
+                        <option value="sekolah" {{ $tingkat === 'sekolah' ? 'selected' : '' }}>Sekolah</option>
+                        <option value="kecamatan" {{ $tingkat === 'kecamatan' ? 'selected' : '' }}>Kecamatan</option>
+                        <option value="kabupaten_kota" {{ $tingkat === 'kabupaten_kota' ? 'selected' : '' }}>Kabupaten / Kota</option>
+                        <option value="provinsi" {{ $tingkat === 'provinsi' ? 'selected' : '' }}>Provinsi</option>
+                        <option value="nasional" {{ $tingkat === 'nasional' ? 'selected' : '' }}>Nasional</option>
+                        <option value="internasional" {{ $tingkat === 'internasional' ? 'selected' : '' }}>Internasional</option>
+                    </select>
+
+                    @if (!empty($q) || !empty($tingkat))
+                        <a href="{{ route('dashboard.kesiswaan.prestasi.index', ['tab' => $activeTab]) }}"
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                            title="Reset filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
-                <select name="tingkat" class="form-control" style="width: 180px; border-radius: 8px;">
-                    <option value="">-- Semua Tingkat --</option>
-                    <option value="sekolah" {{ $tingkat === 'sekolah' ? 'selected' : '' }}>Sekolah</option>
-                    <option value="kecamatan" {{ $tingkat === 'kecamatan' ? 'selected' : '' }}>Kecamatan</option>
-                    <option value="kabupaten_kota" {{ $tingkat === 'kabupaten_kota' ? 'selected' : '' }}>Kabupaten / Kota</option>
-                    <option value="provinsi" {{ $tingkat === 'provinsi' ? 'selected' : '' }}>Provinsi</option>
-                    <option value="nasional" {{ $tingkat === 'nasional' ? 'selected' : '' }}>Nasional</option>
-                    <option value="internasional" {{ $tingkat === 'internasional' ? 'selected' : '' }}>Internasional</option>
-                </select>
-                <button type="submit" class="btn btn-outline" style="border-radius: 8px;"><i class="fas fa-filter"></i> Filter</button>
-            </form>
+
+                <div class="live-search-wrap">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" placeholder="Cari event, lomba, atau siswa..." value="{{ $q ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Peringkat</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Bidang Lomba / Event</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tingkat</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tanggal</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pembimbing</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
+                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">Peringkat</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Bidang Lomba / Event</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">Tingkat</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">Tanggal</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">Pembimbing</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 80px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($currentList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 18px;">
+                            <td style="padding: 12px 16px;">
                                 @php
                                     $pColor = match ($item->peringkat) {
                                         'juara_1' => 'background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4);',
@@ -144,24 +166,24 @@
                                 @endphp
                                 <span class="badge" style="{{ $pColor }} font-weight: 800;">{{ strtoupper(str_replace('_', ' ', $item->peringkat)) }}</span>
                             </td>
-                            <td style="padding: 12px 18px; font-weight: 700; color: var(--text-color);">
+                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                 {{ $item->siswa?->nama ?: '-' }}
-                                <div style="font-size: 0.75rem; color: var(--text-muted);">NISN: {{ $item->siswa?->nisn ?: '-' }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">NISN: {{ $item->siswa?->nisn ?: '-' }}</div>
                             </td>
-                            <td style="padding: 12px 18px; font-size: 0.85rem;">
+                            <td style="padding: 12px 16px; font-size: 0.85rem;">
                                 <strong>{{ $item->bidang_lomba }}</strong>
                                 <div style="font-size: 0.78rem; color: var(--text-muted);">{{ $item->nama_event }}</div>
                             </td>
-                            <td style="padding: 12px 18px;">
+                            <td style="padding: 12px 16px;">
                                 <span class="badge badge-outline">{{ strtoupper(str_replace('_', ' ', $item->tingkat)) }}</span>
                             </td>
-                            <td style="padding: 12px 18px; font-size: 0.85rem;">
+                            <td style="padding: 12px 16px; font-size: 0.85rem;">
                                 {{ date('d/m/Y', strtotime($item->tanggal_prestasi)) }}
                             </td>
-                            <td style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-muted);">
+                            <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-muted);">
                                 {{ $item->pembimbing?->nama ?: ($item->pembimbing_nama ?: '-') }}
                             </td>
-                            <td style="padding: 12px 18px; text-align: right;">
+                            <td style="padding: 12px 16px; text-align: right;">
                                 <div class="table-actions">
                                     @if ($item->sertifikat_file)
                                         <a href="{{ asset($item->sertifikat_file) }}" target="_blank" class="btn-icon" title="Lihat Sertifikat">
@@ -179,12 +201,47 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">Belum ada catatan prestasi pada kategori ini.</td>
+                            <td colspan="7" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                <i class="fas fa-folder-open" style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                Belum ada catatan prestasi yang cocok dengan pencarian.
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        @if ($currentList->hasPages())
+            <div class="custom-pagination" style="margin-bottom: 24px;">
+                @if ($currentList->onFirstPage())
+                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+                @else
+                    <a href="{{ $currentList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                @endif
+                @php
+                    $cur = $currentList->currentPage();
+                    $last = $currentList->lastPage();
+                    $from = max(1, $cur - 2);
+                    $to = min($last, $cur + 2);
+                @endphp
+                @if ($from > 1)
+                    <a href="{{ $currentList->url(1) }}" class="page-btn">1</a>
+                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                @endif
+                @for ($i = $from; $i <= $to; $i++)
+                    <a href="{{ $currentList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                @endfor
+                @if ($to < $last)
+                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    <a href="{{ $currentList->url($last) }}" class="page-btn">{{ $last }}</a>
+                @endif
+                @if ($currentList->hasMorePages())
+                    <a href="{{ $currentList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                @else
+                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+                @endif
+            </div>
+        @endif
 
     @elseif ($activeTab === 'rekap')
         <!-- TAB 3: REKAPITULASI PRESTASI -->

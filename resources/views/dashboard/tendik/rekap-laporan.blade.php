@@ -233,26 +233,26 @@
                     </span>
                 </div>
                 <div style="overflow-x: auto;">
-                    <table class="table-laporan">
+                    <table class="table table-pd table-laporan" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
-                            <tr>
-                                <th>Bulan</th>
-                                <th style="text-align: center;">Hari Aktif</th>
-                                <th style="text-align: center;">Total Pekerjaan</th>
-                                <th style="text-align: center;">Selesai</th>
-                                <th style="text-align: center;">Proses</th>
-                                <th style="text-align: right;">Durasi Kerja</th>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Bulan</th>
+                                <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Hari Aktif</th>
+                                <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Total Pekerjaan</th>
+                                <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Selesai</th>
+                                <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Proses</th>
+                                <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Durasi Kerja</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($rekapBulanan as $rb)
-                                <tr>
-                                    <td data-label="Bulan" style="font-weight: 700;">{{ $rb['bulan_nama'] }}</td>
-                                    <td data-label="Hari Aktif" style="text-align: center;">{{ $rb['hari_aktif'] }} hari</td>
-                                    <td data-label="Total Pekerjaan" style="text-align: center; font-weight: 700;">{{ $rb['total'] }}</td>
-                                    <td data-label="Selesai" style="text-align: center; color: #10b981; font-weight: 700;">{{ $rb['selesai'] }}</td>
-                                    <td data-label="Proses" style="text-align: center; color: #f59e0b; font-weight: 700;">{{ $rb['proses'] }}</td>
-                                    <td data-label="Durasi Kerja" style="text-align: right; font-weight: 700; font-family: monospace;">{{ $rb['durasi_jam'] }}j {{ $rb['durasi_menit'] }}m</td>
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td data-label="Bulan" style="padding: 12px 16px; font-weight: 700;">{{ $rb['bulan_nama'] }}</td>
+                                    <td data-label="Hari Aktif" style="padding: 12px 16px; text-align: center;">{{ $rb['hari_aktif'] }} hari</td>
+                                    <td data-label="Total Pekerjaan" style="padding: 12px 16px; text-align: center; font-weight: 700;">{{ $rb['total'] }}</td>
+                                    <td data-label="Selesai" style="padding: 12px 16px; text-align: center; color: #10b981; font-weight: 700;">{{ $rb['selesai'] }}</td>
+                                    <td data-label="Proses" style="padding: 12px 16px; text-align: center; color: #f59e0b; font-weight: 700;">{{ $rb['proses'] }}</td>
+                                    <td data-label="Durasi Kerja" style="padding: 12px 16px; text-align: right; font-weight: 700; font-family: monospace;">{{ $rb['durasi_jam'] }}j {{ $rb['durasi_menit'] }}m</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -278,16 +278,16 @@
             </div>
 
             <div style="overflow-x: auto;">
-                <table class="table-laporan">
+                <table class="table table-pd table-laporan" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr>
-                            <th style="width: 45px; text-align: center;">No</th>
-                            <th style="width: 120px;">Tanggal</th>
-                            <th style="width: 120px;">Jam Kerja</th>
-                            <th>Uraian Aktivitas / Pekerjaan</th>
-                            <th style="width: 140px;">Output / Volume</th>
-                            <th style="width: 110px;">Durasi</th>
-                            <th style="width: 110px;">Status</th>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">No</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">Tanggal</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">Jam Kerja</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Uraian Aktivitas / Pekerjaan</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">Output / Volume</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">Durasi</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">Status</th>
                         </tr>
                     </thead>
                     <tbody>

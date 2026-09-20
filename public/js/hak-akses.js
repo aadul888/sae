@@ -694,35 +694,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const formAddModule = document.getElementById('formAddModule');
     const btnSubmitAddModule = document.getElementById('btnSubmitAddModule');
 
+    const selectAddModule = document.getElementById('selectAddModule');
+    const filterModuleOptions = document.getElementById('filterModuleOptions');
+    const customModuleFields = document.getElementById('customModuleFields');
+    const inputCustomModuleName = document.getElementById('inputCustomModuleName');
+
     if (btnOpenAddModule && modalAddModule) {
         btnOpenAddModule.addEventListener('click', () => {
             modalAddModule.style.display = 'flex';
-        });
-    }
-
-    if (btnCloseAddModule && modalAddModule) {
-        btnCloseAddModule.addEventListener('click', () => {
-            modalAddModule.style.display = 'none';
-        });
-    }
-
-    if (btnCancelAddModule && modalAddModule) {
-        btnCancelAddModule.addEventListener('click', () => {
-            modalAddModule.style.display = 'none';
-        });
-    }
-
-    if (modalAddModule) {
-        modalAddModule.addEventListener('click', (e) => {
-            if (e.target === modalAddModule) {
-                modalAddModule.style.display = 'none';
+            if (filterModuleOptions) {
+                filterModuleOptions.value = '';
+                filterModuleOptions.dispatchEvent(new Event('input'));
+                setTimeout(() => filterModuleOptions.focus(), 100);
             }
         });
     }
 
-    const selectAddModule = document.getElementById('selectAddModule');
-    const customModuleFields = document.getElementById('customModuleFields');
-    const inputCustomModuleName = document.getElementById('inputCustomModuleName');
+    if (filterModuleOptions && selectAddModule) {
+        filterModuleOptions.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+            const optgroups = selectAddModule.querySelectorAll('optgroup');
+            let firstMatchedVal = null;
+
+            optgroups.forEach(group => {
+                let groupHasVisible = false;
+                const options = group.querySelectorAll('option');
+                options.forEach(opt => {
+                    const text = (opt.textContent || '').toLowerCase();
+                    const val = (opt.value || '').toLowerCase();
+                    if (val === '__new_custom_module__') {
+                        opt.style.display = '';
+                        groupHasVisible = true;
+                        return;
+                    }
+                    if (!query || text.includes(query) || val.includes(query)) {
+                        opt.style.display = '';
+                        groupHasVisible = true;
+                        if (!firstMatchedVal && !opt.disabled && opt.value) {
+                            firstMatchedVal = opt.value;
+                        }
+                    } else {
+                        opt.style.display = 'none';
+                    }
+                });
+                group.style.display = groupHasVisible ? '' : 'none';
+            });
+
+            if (firstMatchedVal && query) {
+                selectAddModule.value = firstMatchedVal;
+                selectAddModule.dispatchEvent(new Event('change'));
+            }
+        });
+    }
 
     if (selectAddModule && customModuleFields) {
         selectAddModule.addEventListener('change', () => {

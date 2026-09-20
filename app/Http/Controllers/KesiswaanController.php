@@ -98,7 +98,10 @@ class KesiswaanController extends Controller
             $klaperQuery->where('kbk.tahun_masuk', $tahunMasuk);
         }
 
-        $klaperList = $klaperQuery->orderBy('pd.nama', 'asc')->paginate(25, ['*'], 'klaper_page')->withQueryString();
+        $perPageVal = $request->input('perPage', $request->input('per_page', 25));
+        $perPage = in_array((int)$perPageVal, [10, 15, 25, 50, 100], true) ? (int)$perPageVal : 25;
+
+        $klaperList = $klaperQuery->orderBy('pd.nama', 'asc')->paginate($perPage, ['*'], 'klaper_page')->withQueryString();
 
         // 3. Data Mutasi Siswa
         $mutasiQuery = KesiswaanMutasi::with('siswa')->orderBy('tanggal_mutasi', 'desc');
@@ -109,7 +112,7 @@ class KesiswaanController extends Controller
             })->orWhere('nomor_surat_mutasi', 'like', "%{$q}%")
               ->orWhere('sekolah_tujuan_asal', 'like', "%{$q}%");
         }
-        $mutasiList = $mutasiQuery->paginate(20, ['*'], 'mutasi_page')->withQueryString();
+        $mutasiList = $mutasiQuery->paginate($perPage, ['*'], 'mutasi_page')->withQueryString();
 
         // 4. Data Kelulusan Siswa
         $kelulusanQuery = KesiswaanKelulusan::with('siswa')->orderBy('tahun_ajaran', 'desc')->orderBy('created_at', 'desc');
@@ -124,7 +127,7 @@ class KesiswaanController extends Controller
         if ($tahunAjaran !== '') {
             $kelulusanQuery->where('tahun_ajaran', $tahunAjaran);
         }
-        $kelulusanList = $kelulusanQuery->paginate(25, ['*'], 'kelulusan_page')->withQueryString();
+        $kelulusanList = $kelulusanQuery->paginate($perPage, ['*'], 'kelulusan_page')->withQueryString();
 
         // Siswa aktif untuk modal pilihan
         $siswaList = PesertaDidik::orderBy('nama')
@@ -138,6 +141,7 @@ class KesiswaanController extends Controller
             'abjad',
             'tahunMasuk',
             'tahunAjaran',
+            'perPage',
             'klaperList',
             'mutasiList',
             'kelulusanList',

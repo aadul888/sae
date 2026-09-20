@@ -117,40 +117,54 @@
     </div>
 
     <!-- 4. Toolbar Filter Global per Tab -->
-    <div class="card" style="padding: 16px 20px; margin-bottom: 18px;">
-        <form method="GET" action="{{ route('dashboard.kesiswaan.peserta-didik.index') }}" class="table-toolbar" style="margin-bottom: 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <input type="hidden" name="tab" value="{{ $activeTab }}">
-            <div class="live-search-wrap" style="flex: 1; min-width: 240px; position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                <input type="text" name="q" value="{{ $q }}" placeholder="Cari nama, NISN, NIPD, atau NIK siswa..."
-                    class="form-control" style="padding-left: 38px; width: 100%; border-radius: 8px;">
+    <!-- 4. Toolbar & Filter Standar SAE -->
+    <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" class="per-page-select">
+                        @foreach ([10, 15, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
+                </div>
+
+                @if ($activeTab === 'aktif')
+                    <select id="filterRombel" class="toolbar-filter-select">
+                        <option value="">Semua Rombel</option>
+                        @foreach ($filterRombel as $r)
+                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}</option>
+                        @endforeach
+                    </select>
+                    <select id="filterGender" class="toolbar-filter-select">
+                        <option value="">Semua L/P</option>
+                        <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                        <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan</option>
+                    </select>
+                @elseif ($activeTab === 'alumni')
+                    <input type="text" id="filterTahunLulus" value="{{ $tahunLulus }}" placeholder="Tahun Lulus (Contoh: 2026)"
+                        class="form-control" style="width: 170px; height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                @endif
+
+                @if (!empty($q) || !empty($rombel) || !empty($gender) || !empty($tahunLulus))
+                    <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => $activeTab]) }}"
+                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                        title="Reset filter">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                @endif
             </div>
 
-            @if ($activeTab === 'aktif')
-                <select name="rombel" class="form-control" style="width: 200px; border-radius: 8px;">
-                    <option value="">-- Semua Rombel --</option>
-                    @foreach ($filterRombel as $r)
-                        <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}</option>
-                    @endforeach
-                </select>
-                <select name="gender" class="form-control" style="width: 130px; border-radius: 8px;">
-                    <option value="">-- L/P --</option>
-                    <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                    <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan</option>
-                </select>
-            @elseif ($activeTab === 'alumni')
-                <input type="text" name="tahun_lulus" value="{{ $tahunLulus }}" placeholder="Tahun Lulus (Contoh: 2026)"
-                    class="form-control" style="width: 180px; border-radius: 8px;">
-            @endif
-
-            <button type="submit" class="btn btn-outline" style="border-radius: 8px;"><i class="fas fa-filter"></i> Filter</button>
-            @if ($q || $rombel || $gender || $tahunLulus)
-                <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => $activeTab]) }}"
-                    class="btn btn-outline" style="border-radius: 8px;" title="Reset filter">
-                    <i class="fas fa-undo"></i>
-                </a>
-            @endif
-        </form>
+            <div class="live-search-wrap">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIPD / NIK..." value="{{ $q ?? '' }}" autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- 5. Content Sesuai Tab -->

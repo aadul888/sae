@@ -126,4 +126,76 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // 5. Datatable Realtime Live Search & Entri perPage Standar SAE
+    const searchInput = document.getElementById("liveSearch");
+    const clearBtn = document.getElementById("clearSearch");
+    const perPageSelect = document.getElementById("perPageSelect");
+    const filterTingkat = document.getElementById("filterTingkat");
+
+    function applyFilter() {
+        const url = new URL(window.location.href);
+        if (searchInput && searchInput.value.trim()) {
+            url.searchParams.set("q", searchInput.value.trim());
+        } else {
+            url.searchParams.delete("q");
+        }
+
+        if (perPageSelect && perPageSelect.value) {
+            url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        if (filterTingkat) {
+            if (filterTingkat.value) {
+                url.searchParams.set("tingkat", filterTingkat.value);
+            } else {
+                url.searchParams.delete("tingkat");
+            }
+        }
+
+        url.searchParams.delete("akademik_page");
+        url.searchParams.delete("nonakademik_page");
+        url.searchParams.delete("page");
+
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    if (searchInput) {
+        let timer = null;
+        searchInput.addEventListener("input", function () {
+            if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(applyFilter, 300);
+        });
+
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                applyFilter();
+            }
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            if (searchInput) {
+                searchInput.value = "";
+                clearBtn.classList.remove("visible");
+                applyFilter();
+            }
+        });
+    }
+
+    if (perPageSelect) {
+        perPageSelect.addEventListener("change", applyFilter);
+    }
+
+    if (filterTingkat) {
+        filterTingkat.addEventListener("change", applyFilter);
+    }
 });

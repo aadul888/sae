@@ -76,19 +76,22 @@
         </div>
     </div>
 
-    <!-- Filter Bar Card -->
-    <div class="card" style="padding: 16px 20px; border-radius: 12px; margin-bottom: 20px;">
-        <form action="{{ route('dashboard.tendik.aktivitas.index') }}" method="GET" id="formFilterAktivitas" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1;">
-                <!-- Live Search -->
-                <div style="position: relative; min-width: 220px; flex: 1;">
-                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.8rem;"></i>
-                    <input type="text" name="q" value="{{ $q }}" placeholder="Cari aktivitas, uraian, hasil..." class="form-control"
-                        style="padding-left: 34px; font-size: 0.82rem; height: 38px; border-radius: 8px;">
+    <!-- 4. Toolbar & Filter Standar SAE -->
+    <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" class="per-page-select">
+                        @foreach ([10, 15, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
                 </div>
 
                 <!-- Bulan -->
-                <select name="bulan" class="form-control" style="width: auto; font-size: 0.82rem; height: 38px; border-radius: 8px;" onchange="this.form.submit()">
+                <select id="filterBulan" class="toolbar-filter-select">
                     @for ($m = 1; $m <= 12; $m++)
                         <option value="{{ $m }}" {{ (int)$bulan === $m ? 'selected' : '' }}>
                             {{ \Carbon\Carbon::create(null, $m, 1)->translatedFormat('F') }}
@@ -97,57 +100,78 @@
                 </select>
 
                 <!-- Tahun -->
-                <select name="tahun" class="form-control" style="width: auto; font-size: 0.82rem; height: 38px; border-radius: 8px;" onchange="this.form.submit()">
+                <select id="filterTahun" class="toolbar-filter-select">
                     @for ($y = date('Y') + 1; $y >= date('Y') - 2; $y--)
                         <option value="{{ $y }}" {{ (int)$tahun === $y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
                 </select>
 
                 <!-- Status -->
-                <select name="status" class="form-control" style="width: auto; font-size: 0.82rem; height: 38px; border-radius: 8px;" onchange="this.form.submit()">
-                    <option value="">-- Semua Status --</option>
-                    <option value="selesai" {{ $filterStatus === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                    <option value="proses" {{ $filterStatus === 'proses' ? 'selected' : '' }}>Sedang Proses</option>
-                    <option value="tertunda" {{ $filterStatus === 'tertunda' ? 'selected' : '' }}>Tertunda</option>
+                <select id="filterStatus" class="toolbar-filter-select">
+                    <option value="">Semua Status</option>
+                    <option value="selesai" {{ ($filterStatus ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                    <option value="proses" {{ ($filterStatus ?? '') === 'proses' ? 'selected' : '' }}>Sedang Proses</option>
+                    <option value="tertunda" {{ ($filterStatus ?? '') === 'tertunda' ? 'selected' : '' }}>Tertunda</option>
                 </select>
 
                 @if ($isKepalaTas)
                     <!-- Bidang Filter untuk Kepala TAS / Admin -->
-                    <select name="bidang" class="form-control" style="width: auto; font-size: 0.82rem; height: 38px; border-radius: 8px;" onchange="this.form.submit()">
-                        <option value="">-- Semua Bidang Kerja --</option>
+                    <select id="filterBidang" class="toolbar-filter-select">
+                        <option value="">Semua Bidang Kerja</option>
                         @foreach ($bidangOptions as $bKey => $bLabel)
-                            <option value="{{ $bKey }}" {{ $filterBidang === $bKey ? 'selected' : '' }}>{{ $bLabel }}</option>
+                            <option value="{{ $bKey }}" {{ ($filterBidang ?? '') === $bKey ? 'selected' : '' }}>{{ $bLabel }}</option>
                         @endforeach
                     </select>
                 @endif
-            </div>
 
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <button type="submit" class="btn btn-outline" style="height: 38px; padding: 0 12px; font-size: 0.84rem; border-radius: 8px;" title="Terapkan Filter">
-                    <i class="fas fa-filter"></i>
-                </button>
-                @if ($q || $filterStatus || $filterBidang)
-                    <a href="{{ route('dashboard.tendik.aktivitas.index') }}" class="btn btn-outline" style="height: 38px; padding: 0 12px; font-size: 0.84rem; border-radius: 8px;" title="Reset Filter">
+                @if (!empty($q) || !empty($filterStatus) || !empty($filterBidang))
+                    <a href="{{ route('dashboard.tendik.aktivitas.index') }}"
+                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                        title="Reset filter">
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif
             </div>
-        </form>
+
+            <div class="live-search-wrap">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="liveSearch" placeholder="Cari aktivitas / uraian..." value="{{ $q ?? '' }}" autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- Data Table Container -->
-    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px; border-radius: 14px; overflow: hidden;">
+    <!-- Container Datatable Responsive-Stack Standar SAE -->
+    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
         <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
-                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.02);">
-                    <th style="padding: 12px 16px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); width: 140px;">Waktu &amp; Tanggal</th>
+                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    <th class="sortable-th {{ ($sort ?? '') === 'tanggal' ? 'sorted' : '' }}" data-sort="tanggal" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                        Waktu &amp; Tanggal
+                        <span class="sort-icon">{!! ($sort ?? '') === 'tanggal' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
                     @if ($isKepalaTas)
-                        <th style="padding: 12px 14px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">Pegawai / Bidang</th>
+                        <th class="sortable-th {{ ($sort ?? '') === 'nama_pegawai' ? 'sorted' : '' }}" data-sort="nama_pegawai" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Pegawai / Bidang
+                            <span class="sort-icon">{!! ($sort ?? '') === 'nama_pegawai' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
                     @endif
-                    <th style="padding: 12px 16px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">Aktivitas &amp; Uraian Pekerjaan</th>
-                    <th style="padding: 12px 14px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);">Hasil / Output</th>
-                    <th style="padding: 12px 14px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 110px;">Status</th>
-                    <th style="padding: 12px 16px; font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 100px;">Aksi</th>
+                    <th class="sortable-th {{ ($sort ?? '') === 'judul_aktivitas' ? 'sorted' : '' }}" data-sort="judul_aktivitas" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Aktivitas &amp; Uraian Pekerjaan
+                        <span class="sort-icon">{!! ($sort ?? '') === 'judul_aktivitas' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Hasil / Output
+                    </th>
+                    <th class="sortable-th {{ ($sort ?? '') === 'status' ? 'sorted' : '' }}" data-sort="status" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                        Status
+                        <span class="sort-icon">{!! ($sort ?? '') === 'status' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                        Aksi
+                    </th>
                 </tr>
             </thead>
             <tbody>

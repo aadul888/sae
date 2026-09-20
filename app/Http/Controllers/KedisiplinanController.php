@@ -78,7 +78,11 @@ class KedisiplinanController extends Controller
         if ($status !== '') {
             $riwayatQuery->where('status_tindak_lanjut', $status);
         }
-        $riwayatList = $riwayatQuery->paginate(25, ['*'], 'riwayat_page')->withQueryString();
+
+        $perPageVal = $request->input('perPage', $request->input('per_page', 25));
+        $perPage = in_array((int)$perPageVal, [10, 15, 25, 50, 100], true) ? (int)$perPageVal : 25;
+
+        $riwayatList = $riwayatQuery->paginate($perPage, ['*'], 'riwayat_page')->withQueryString();
 
         // 4. Tab: Sesi Pembinaan Konseling
         $pembinaanQuery = KedisiplinanPembinaan::with(['siswa', 'pelanggaran.aturan', 'guruBk', 'waliKelas'])
@@ -88,7 +92,7 @@ class KedisiplinanController extends Controller
                 $b->where('nama', 'like', "%{$q}%");
             })->orWhere('hasil_pembinaan', 'like', "%{$q}%");
         }
-        $pembinaanList = $pembinaanQuery->paginate(25, ['*'], 'pembinaan_page')->withQueryString();
+        $pembinaanList = $pembinaanQuery->paginate($perPage, ['*'], 'pembinaan_page')->withQueryString();
 
         // 5. Tab: Pemanggilan Wali Murid
         $pemanggilanQuery = KedisiplinanPemanggilanWali::with('siswa')
@@ -98,7 +102,7 @@ class KedisiplinanController extends Controller
                 $b->where('nama', 'like', "%{$q}%");
             })->orWhere('nomor_surat', 'like', "%{$q}%");
         }
-        $pemanggilanList = $pemanggilanQuery->paginate(25, ['*'], 'pemanggilan_page')->withQueryString();
+        $pemanggilanList = $pemanggilanQuery->paginate($perPage, ['*'], 'pemanggilan_page')->withQueryString();
 
         // 6. Tab: Rekapitulasi Poin Siswa (Total akumulasi poin per siswa)
         $rekapSiswa = DB::table('kedisiplinan_pelanggaran as kp')
@@ -128,6 +132,7 @@ class KedisiplinanController extends Controller
             'q',
             'kategori',
             'status',
+            'perPage',
             'tataTertibList',
             'riwayatList',
             'pembinaanList',

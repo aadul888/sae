@@ -254,4 +254,64 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     });
+
+    // 7. Datatable Realtime Live Search & Entri perPage Standar SAE
+    const searchInput = document.getElementById("liveSearch");
+    const clearBtn = document.getElementById("clearSearch");
+    const perPageSelect = document.getElementById("perPageSelect");
+
+    function applyFilter() {
+        const url = new URL(window.location.href);
+        if (searchInput && searchInput.value.trim()) {
+            url.searchParams.set("q", searchInput.value.trim());
+        } else {
+            url.searchParams.delete("q");
+        }
+
+        if (perPageSelect && perPageSelect.value) {
+            url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        url.searchParams.delete("klaper_page");
+        url.searchParams.delete("mutasi_page");
+        url.searchParams.delete("kelulusan_page");
+        url.searchParams.delete("page");
+
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    if (searchInput) {
+        let timer = null;
+        searchInput.addEventListener("input", function () {
+            if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(applyFilter, 300);
+        });
+
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                applyFilter();
+            }
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            if (searchInput) {
+                searchInput.value = "";
+                clearBtn.classList.remove("visible");
+                applyFilter();
+            }
+        });
+    }
+
+    if (perPageSelect) {
+        perPageSelect.addEventListener("change", applyFilter);
+    }
 });

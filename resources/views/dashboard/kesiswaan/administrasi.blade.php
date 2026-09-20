@@ -100,63 +100,82 @@
     <!-- 4. Content Sesuai Tab Aktif -->
     @if ($activeTab === 'klaper')
         <!-- TAB 1: BUKU KLAPER -->
-        <div class="card" style="padding: 16px 20px; margin-bottom: 18px;">
-            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; align-items: center;">
+        <div class="card" style="padding: 16px; margin-bottom: 20px;">
+            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; align-items: center;">
                 <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-right: 8px;">Abjad:</span>
-                <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'klaper']) }}"
+                <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'klaper', 'perPage' => $perPage]) }}"
                     class="badge {{ empty($abjad) ? 'badge-primary' : 'badge-outline' }}" style="text-decoration: none; padding: 4px 8px;">Semua</a>
                 @foreach (range('A', 'Z') as $char)
-                    <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'klaper', 'abjad' => $char]) }}"
+                    <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'klaper', 'abjad' => $char, 'perPage' => $perPage]) }}"
                         class="badge {{ $abjad === $char ? 'badge-primary' : 'badge-outline' }}" style="text-decoration: none; padding: 4px 8px;">{{ $char }}</a>
                 @endforeach
             </div>
 
-            <form method="GET" action="{{ route('dashboard.kesiswaan.administrasi.index') }}" class="table-toolbar" style="margin-bottom: 0;">
-                <input type="hidden" name="tab" value="klaper">
-                @if ($abjad) <input type="hidden" name="abjad" value="{{ $abjad }}"> @endif
-                <div class="live-search-wrap" style="flex: 1; min-width: 240px; position: relative;">
-                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                    <input type="text" name="q" value="{{ $q }}" placeholder="Cari nama, NISN, NIPD, atau nomor klaper..."
-                        class="form-control" style="padding-left: 38px; width: 100%; border-radius: 8px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    @if (!empty($q) || !empty($abjad))
+                        <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'klaper']) }}"
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                            title="Reset filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
-                <button type="submit" class="btn btn-outline" style="border-radius: 8px;"><i class="fas fa-filter"></i> Filter</button>
-            </form>
+
+                <div class="live-search-wrap">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" placeholder="Cari nama / NISN / no. klaper..." value="{{ $q ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No. Klaper</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Peserta Didik</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">NISN / NIPD</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">L/P</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Rombel</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
+                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">No. Klaper</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Peserta Didik</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">NISN / NIPD</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">L/P</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">Rombel</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">Status</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($klaperList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 18px; font-family: monospace; font-weight: 700; color: var(--primary);">
+                            <td style="padding: 12px 16px; font-family: monospace; font-weight: 700; color: var(--primary);">
                                 {{ $item->nomor_klaper ?: '-' }}
                             </td>
-                            <td style="padding: 12px 18px; font-weight: 700; color: var(--text-color);">
+                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                 {{ $item->nama }}
                             </td>
-                            <td style="padding: 12px 18px; font-family: monospace; font-size: 0.82rem;">
+                            <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem;">
                                 {{ $item->nisn ?: '-' }} / {{ $item->nipd ?: '-' }}
                             </td>
-                            <td style="padding: 12px 18px; text-align: center;">
+                            <td style="padding: 12px 16px; text-align: center;">
                                 <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-accent' }}">
                                     {{ $item->jenis_kelamin }}
                                 </span>
                             </td>
-                            <td style="padding: 12px 18px; font-size: 0.85rem;">
+                            <td style="padding: 12px 16px; font-size: 0.85rem;">
                                 {{ $item->rombel_nama ?: '-' }}
                             </td>
-                            <td style="padding: 12px 18px;">
+                            <td style="padding: 12px 16px; text-align: center;">
                                 @php
                                     $badgeColor = match ($item->status_klaper) {
                                         'aktif' => 'badge-success',
@@ -167,8 +186,8 @@
                                 @endphp
                                 <span class="badge {{ $badgeColor }}">{{ strtoupper($item->status_klaper ?: 'AKTIF') }}</span>
                             </td>
-                            <td style="padding: 12px 18px; text-align: right;">
-                                <div class="table-actions">
+                            <td style="padding: 12px 16px; text-align: center;">
+                                <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
                                     @if ($canUpdate)
                                         <button type="button" class="btn-icon btn-edit-klaper"
                                             data-id="{{ $item->klaper_id }}"
@@ -186,9 +205,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada data Buku Klaper yang cocok.</div>
+                            <td colspan="7" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                <i class="fas fa-folder-open" style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                Tidak ada data Buku Klaper yang cocok dengan filter pencarian.
                             </td>
                         </tr>
                     @endforelse
@@ -203,7 +222,23 @@
                 @else
                     <a href="{{ $klaperList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
                 @endif
-                <span class="page-info">Hal {{ $klaperList->currentPage() }} dari {{ $klaperList->lastPage() }}</span>
+                @php
+                    $cur = $klaperList->currentPage();
+                    $last = $klaperList->lastPage();
+                    $from = max(1, $cur - 2);
+                    $to = min($last, $cur + 2);
+                @endphp
+                @if ($from > 1)
+                    <a href="{{ $klaperList->url(1) }}" class="page-btn">1</a>
+                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                @endif
+                @for ($i = $from; $i <= $to; $i++)
+                    <a href="{{ $klaperList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                @endfor
+                @if ($to < $last)
+                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    <a href="{{ $klaperList->url($last) }}" class="page-btn">{{ $last }}</a>
+                @endif
                 @if ($klaperList->hasMorePages())
                     <a href="{{ $klaperList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
                 @else
@@ -214,41 +249,73 @@
 
     @elseif ($activeTab === 'mutasi')
         <!-- TAB 2: MUTASI SISWA -->
-        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+        <div class="card" style="padding: 16px; margin-bottom: 20px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    @if (!empty($q))
+                        <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'mutasi']) }}"
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                            title="Reset filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="live-search-wrap">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" placeholder="Cari siswa / no. surat / sekolah..." value="{{ $q ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No. Surat Mutasi</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jenis Mutasi</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tanggal</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Sekolah Tujuan / Asal</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
+                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">No. Surat Mutasi</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">Jenis Mutasi</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">Tanggal</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Sekolah Tujuan / Asal</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($mutasiList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 18px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
+                            <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
                                 {{ $item->nomor_surat_mutasi ?: '-' }}
                             </td>
-                            <td style="padding: 12px 18px; font-weight: 700; color: var(--text-color);">
+                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                 {{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">NISN: {{ $item->siswa?->nisn ?: '-' }}</div>
                             </td>
-                            <td style="padding: 12px 18px;">
+                            <td style="padding: 12px 16px; text-align: center;">
                                 <span class="badge {{ $item->jenis_mutasi === 'masuk' ? 'badge-success' : 'badge-danger' }}">
                                     {{ strtoupper($item->jenis_mutasi) }}
                                 </span>
                             </td>
-                            <td style="padding: 12px 18px; font-size: 0.85rem;">
+                            <td style="padding: 12px 16px; font-size: 0.85rem;">
                                 {{ date('d/m/Y', strtotime($item->tanggal_mutasi)) }}
                             </td>
-                            <td style="padding: 12px 18px; font-size: 0.85rem;">
+                            <td style="padding: 12px 16px; font-size: 0.85rem;">
                                 {{ $item->sekolah_tujuan_asal ?: '-' }}
                             </td>
-                            <td style="padding: 12px 18px; text-align: right;">
-                                <div class="table-actions">
+                            <td style="padding: 12px 16px; text-align: center;">
+                                <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
                                     <a href="{{ route('dashboard.kesiswaan.administrasi.mutasi.cetak', $item->id) }}" target="_blank"
                                         class="btn-icon" title="Cetak Surat Mutasi">
                                         <i class="fas fa-print"></i>
@@ -258,9 +325,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada catatan mutasi siswa.</div>
+                            <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                <i class="fas fa-folder-open" style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                Tidak ada catatan mutasi siswa yang cocok dengan filter pencarian.
                             </td>
                         </tr>
                     @endforelse
@@ -268,43 +335,107 @@
             </table>
         </div>
 
+        @if ($mutasiList->hasPages())
+            <div class="custom-pagination" style="margin-bottom: 24px;">
+                @if ($mutasiList->onFirstPage())
+                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+                @else
+                    <a href="{{ $mutasiList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                @endif
+                @php
+                    $cur = $mutasiList->currentPage();
+                    $last = $mutasiList->lastPage();
+                    $from = max(1, $cur - 2);
+                    $to = min($last, $cur + 2);
+                @endphp
+                @if ($from > 1)
+                    <a href="{{ $mutasiList->url(1) }}" class="page-btn">1</a>
+                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                @endif
+                @for ($i = $from; $i <= $to; $i++)
+                    <a href="{{ $mutasiList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                @endfor
+                @if ($to < $last)
+                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    <a href="{{ $mutasiList->url($last) }}" class="page-btn">{{ $last }}</a>
+                @endif
+                @if ($mutasiList->hasMorePages())
+                    <a href="{{ $mutasiList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                @else
+                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+                @endif
+            </div>
+        @endif
+
     @elseif ($activeTab === 'kelulusan')
         <!-- TAB 3: KELULUSAN & SKL -->
-        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+        <div class="card" style="padding: 16px; margin-bottom: 20px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    @if (!empty($q) || !empty($tahunAjaran))
+                        <a href="{{ route('dashboard.kesiswaan.administrasi.index', ['tab' => 'kelulusan']) }}"
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                            title="Reset filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="live-search-wrap">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" placeholder="Cari nama / NISN / no. SKL..." value="{{ $q ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No. SKL</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tahun Ajaran</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No. Ujian / Ijazah</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
+                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">No. SKL</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">Tahun Ajaran</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No. Ujian / Ijazah</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">Status</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($kelulusanList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 18px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
+                            <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
                                 {{ $item->nomor_skl ?: '-' }}
                             </td>
-                            <td style="padding: 12px 18px; font-weight: 700; color: var(--text-color);">
+                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                 {{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}
                                 <div style="font-size: 0.75rem; color: var(--text-muted);">NISN: {{ $item->siswa?->nisn ?: '-' }}</div>
                             </td>
-                            <td style="padding: 12px 18px; font-size: 0.85rem;">
+                            <td style="padding: 12px 16px; font-size: 0.85rem;">
                                 {{ $item->tahun_ajaran }}
                             </td>
-                            <td style="padding: 12px 18px; font-family: monospace; font-size: 0.82rem;">
+                            <td style="padding: 12px 16px; font-family: monospace; font-size: 0.82rem;">
                                 {{ $item->nomor_peserta_ujian ?: '-' }} / {{ $item->nomor_ijazah ?: '-' }}
                             </td>
-                            <td style="padding: 12px 18px;">
+                            <td style="padding: 12px 16px; text-align: center;">
                                 <span class="badge {{ $item->status_kelulusan === 'lulus' ? 'badge-success' : 'badge-danger' }}">
                                     {{ strtoupper($item->status_kelulusan) }}
                                 </span>
                             </td>
-                            <td style="padding: 12px 18px; text-align: right;">
-                                <div class="table-actions">
+                            <td style="padding: 12px 16px; text-align: center;">
+                                <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
                                     <a href="{{ route('dashboard.kesiswaan.administrasi.kelulusan.cetak-skl', $item->id) }}" target="_blank"
                                         class="btn-icon" title="Cetak Surat Keterangan Lulus (SKL)">
                                         <i class="fas fa-print"></i>
@@ -314,15 +445,47 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada data penetapan kelulusan siswa.</div>
+                            <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                <i class="fas fa-folder-open" style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                Tidak ada data penetapan kelulusan siswa yang cocok dengan filter pencarian.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
+        @if ($kelulusanList->hasPages())
+            <div class="custom-pagination" style="margin-bottom: 24px;">
+                @if ($kelulusanList->onFirstPage())
+                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+                @else
+                    <a href="{{ $kelulusanList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                @endif
+                @php
+                    $cur = $kelulusanList->currentPage();
+                    $last = $kelulusanList->lastPage();
+                    $from = max(1, $cur - 2);
+                    $to = min($last, $cur + 2);
+                @endphp
+                @if ($from > 1)
+                    <a href="{{ $kelulusanList->url(1) }}" class="page-btn">1</a>
+                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                @endif
+                @for ($i = $from; $i <= $to; $i++)
+                    <a href="{{ $kelulusanList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                @endfor
+                @if ($to < $last)
+                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    <a href="{{ $kelulusanList->url($last) }}" class="page-btn">{{ $last }}</a>
+                @endif
+                @if ($kelulusanList->hasMorePages())
+                    <a href="{{ $kelulusanList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                @else
+                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+                @endif
+            </div>
+        @endif
     @endif
 
     <!-- MODAL 1: CATAT MUTASI SISWA -->

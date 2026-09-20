@@ -82,6 +82,9 @@ class KegiatanSiswaController extends Controller
         }
         $ekskulList = $ekskulQuery->get();
 
+        $perPageVal = $request->input('perPage', $request->input('per_page', 25));
+        $perPage = in_array((int)$perPageVal, [10, 15, 25, 50, 100], true) ? (int)$perPageVal : 25;
+
         // 5. Tab: Agenda Kegiatan Siswa
         $agendaQuery = KegiatanAgenda::with(['organisasi', 'ekskul'])
             ->orderBy('tanggal_mulai', 'desc');
@@ -89,7 +92,7 @@ class KegiatanSiswaController extends Controller
             $agendaQuery->where('judul_kegiatan', 'like', "%{$q}%")
                 ->orWhere('tempat', 'like', "%{$q}%");
         }
-        $agendaList = $agendaQuery->paginate(25, ['*'], 'agenda_page')->withQueryString();
+        $agendaList = $agendaQuery->paginate($perPage, ['*'], 'agenda_page')->withQueryString();
 
         // Master Siswa & GTK untuk modal
         $siswaList = PesertaDidik::orderBy('nama')->limit(300)->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
@@ -100,6 +103,7 @@ class KegiatanSiswaController extends Controller
             'activeTab',
             'q',
             'kategori',
+            'perPage',
             'osis',
             'organisasiList',
             'ekskulList',

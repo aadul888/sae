@@ -110,8 +110,25 @@ class TendikAktivitasController extends Controller
         $totalProses = (clone $query)->where('status', 'proses')->count();
         $totalTertunda = (clone $query)->where('status', 'tertunda')->count();
 
-        $perPage = (int) $request->input('per_page', 15);
-        $aktivitasList = $query->orderBy('tanggal', 'desc')->orderBy('jam_mulai', 'desc')->paginate($perPage)->withQueryString();
+        // Pengaturan Sorting & Pagination Standar SAE
+        $perPage = (int) $request->input('perPage', $request->input('per_page', 15));
+        if (!in_array($perPage, [10, 15, 25, 50, 100], true)) {
+            $perPage = 15;
+        }
+
+        $sort = $request->input('sort', 'tanggal');
+        $sortDir = strtolower($request->input('sort_dir', $request->input('dir', 'desc'))) === 'asc' ? 'asc' : 'desc';
+        $allowedSorts = ['tanggal', 'jam_mulai', 'nama_pegawai', 'bidang', 'judul_aktivitas', 'status'];
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'tanggal';
+        }
+
+        $query->orderBy($sort, $sortDir);
+        if ($sort !== 'jam_mulai') {
+            $query->orderBy('jam_mulai', 'desc');
+        }
+
+        $aktivitasList = $query->paginate($perPage)->withQueryString();
 
         $bidangOptions = TendikAktivitas::BIDANG_LABELS;
 
@@ -127,6 +144,8 @@ class TendikAktivitasController extends Controller
             'filterBidang',
             'q',
             'perPage',
+            'sort',
+            'sortDir',
             'isKepalaTas',
             'activeBidang',
             'userName',
