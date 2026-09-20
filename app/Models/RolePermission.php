@@ -216,19 +216,24 @@ class RolePermission extends Model
 
             'Tendik: Persuratan' => [
                 'menu_persuratan' => [
-                    'label' => 'Persuratan & Disposisi Digital',
+                    'label' => 'Dashboard & Modul Persuratan',
                     'icon' => 'fa-envelope-open-text',
                     'roles' => ['admin', 'tendik', 'guru'],
                 ],
-                'menu_buku_tamu' => [
-                    'label' => 'Buku Tamu Digital',
-                    'icon' => 'fa-address-book',
+                'menu_surat_masuk' => [
+                    'label' => 'Buku Agenda Surat Masuk',
+                    'icon' => 'fa-inbox',
                     'roles' => ['admin', 'tendik', 'guru'],
                 ],
-                'menu_agenda' => [
-                    'label' => 'Agenda Kegiatan Sekolah',
-                    'icon' => 'fa-calendar-days',
-                    'roles' => ['admin', 'guru', 'tendik'],
+                'menu_surat_keluar' => [
+                    'label' => 'Buku Agenda Surat Keluar',
+                    'icon' => 'fa-paper-plane',
+                    'roles' => ['admin', 'tendik', 'guru'],
+                ],
+                'menu_pengaturan_persuratan' => [
+                    'label' => 'Pengaturan & Arsip HDD Persuratan',
+                    'icon' => 'fa-sliders',
+                    'roles' => ['admin', 'tendik', 'guru'],
                 ],
             ],
 
@@ -797,6 +802,9 @@ class RolePermission extends Model
             self::$runtimeRolePermissionsCache[$role] = self::where('role', $role)->get()->keyBy('permission_key');
         }
         $row = self::$runtimeRolePermissionsCache[$role]->get($permissionKey);
+        if (!$row && in_array($permissionKey, ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'], true)) {
+            $row = self::$runtimeRolePermissionsCache[$role]->get('menu_persuratan');
+        }
         if (!$row || !$row->is_allowed || !$row->can_read) {
             return false;
         }
@@ -822,6 +830,9 @@ class RolePermission extends Model
         return in_array($key, [
             'menu_kepala_tas',
             'menu_persuratan',
+            'menu_surat_masuk',
+            'menu_surat_keluar',
+            'menu_pengaturan_persuratan',
             'menu_kesiswaan',
             'menu_kepegawaian',
             'menu_sarpras',
@@ -873,6 +884,9 @@ class RolePermission extends Model
                     self::$runtimeRolePermissionsCache['admin'] = self::where('role', 'admin')->get()->keyBy('permission_key');
                 }
                 $adminRow = self::$runtimeRolePermissionsCache['admin']->get($permissionKey);
+                if (!$adminRow && in_array($permissionKey, ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'], true)) {
+                    $adminRow = self::$runtimeRolePermissionsCache['admin']->get('menu_persuratan');
+                }
                 if ($adminRow && $adminRow->is_allowed && $adminRow->can_read) {
                     return $actionCol === 'can_read' ? true : (bool) $adminRow->{$actionCol};
                 }
@@ -902,6 +916,9 @@ class RolePermission extends Model
             self::$runtimeRolePermissionsCache[$role] = self::where('role', $role)->get()->keyBy('permission_key');
         }
         $row = self::$runtimeRolePermissionsCache[$role]->get($permissionKey);
+        if (!$row && in_array($permissionKey, ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'], true)) {
+            $row = self::$runtimeRolePermissionsCache[$role]->get('menu_persuratan');
+        }
 
         if ($row) {
             if (!$row->is_allowed || !$row->can_read) {
@@ -1010,15 +1027,15 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'PETUGAS_KEAMANAN' || $kode === 'SATPAM') {
-                        foreach (['menu_keamanan', 'menu_buku_tamu'] as $k) {
+                        foreach (['menu_keamanan'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['PENJAGA_SEKOLAH', 'PESURUH'], true)) {
-                        foreach (['menu_penjaga', 'menu_buku_tamu'] as $k) {
+                        foreach (['menu_penjaga'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'GURU_PIKET') {
-                        foreach (['menu_piket', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_buku_tamu', 'menu_e_izin', 'menu_riwayat_rfid'] as $k) {
+                        foreach (['menu_piket', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_e_izin', 'menu_riwayat_rfid'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'OPERATOR_DAPODIK') {
@@ -1026,11 +1043,11 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'KEPALA_TAS') {
-                        foreach (['menu_kepala_tas', 'menu_persuratan', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_buku_tamu', 'menu_agenda', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris'] as $k) {
+                        foreach (['menu_kepala_tas', 'menu_persuratan', 'menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_PERSURATAN') {
-                        foreach (['menu_persuratan', 'menu_buku_tamu', 'menu_agenda'] as $k) {
+                        foreach (['menu_persuratan', 'menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_KEPEGAWAIAN') {
@@ -1057,12 +1074,19 @@ class RolePermission extends Model
                     }
                 }
 
+                // Wariskan izin menu_persuratan ke sub-modul persuratan jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_persuratan'])) {
+                    if (!isset($allowedKeys['menu_surat_masuk'])) $allowedKeys['menu_surat_masuk'] = true;
+                    if (!isset($allowedKeys['menu_surat_keluar'])) $allowedKeys['menu_surat_keluar'] = true;
+                    if (!isset($allowedKeys['menu_pengaturan_persuratan'])) $allowedKeys['menu_pengaturan_persuratan'] = true;
+                }
+
                 self::$runtimeDutyPermissionsCache[$cacheKey] = $allowedKeys;
             }
 
             $action = strtolower(trim($action));
             if (isset(self::$runtimeDutyPermissionsCache[$cacheKey][$permissionKey])) {
-                return in_array($action, ['read', 'create', 'update']);
+                return in_array($action, ['read', 'create', 'update', 'delete']);
             }
 
             return false;
@@ -1154,6 +1178,9 @@ class RolePermission extends Model
                 'menu_aktivitas_tendik',
                 'menu_laporan_tendik',
                 'menu_persuratan',
+                'menu_surat_masuk',
+                'menu_surat_keluar',
+                'menu_pengaturan_persuratan',
                 'menu_kesiswaan',
                 'menu_kepegawaian',
                 'menu_keuangan',
@@ -1164,9 +1191,7 @@ class RolePermission extends Model
                 'menu_keamanan',
                 'menu_penjaga',
                 'menu_piket',
-                'menu_buku_tamu',
                 'menu_inventaris',
-                'menu_agenda',
                 'menu_pengguna',
                 'menu_hak_akses',
                 'menu_pengaturan',
@@ -1201,6 +1226,9 @@ class RolePermission extends Model
                 'menu_rfid',
                 'menu_e_izin',
                 'menu_persuratan',
+                'menu_surat_masuk',
+                'menu_surat_keluar',
+                'menu_pengaturan_persuratan',
                 'menu_kesiswaan',
                 'menu_kepegawaian',
                 'menu_keuangan',
@@ -1211,9 +1239,7 @@ class RolePermission extends Model
                 'menu_keamanan',
                 'menu_penjaga',
                 'menu_piket',
-                'menu_buku_tamu',
                 'menu_inventaris',
-                'menu_agenda',
                 'menu_pengumuman',
                 'menu_jadwal_kbm',
                 'menu_kalender_pendidikan',

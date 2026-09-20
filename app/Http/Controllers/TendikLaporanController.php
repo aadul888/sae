@@ -125,7 +125,12 @@ class TendikLaporanController extends Controller
         if ($ptkId) {
             $gtk = DB::table('gtk')->where('ptk_id', $ptkId)->first();
         } elseif ($userId) {
-            $gtk = DB::table('gtk')->where('pengguna_id', $userId)->first();
+            $u = DB::table('pengguna')->where('pengguna_id', $userId)->first();
+            if ($u && !empty($u->ptk_id)) {
+                $ptkId = $u->ptk_id;
+                $profile['ptk_id'] = $ptkId;
+                $gtk = DB::table('gtk')->where('ptk_id', $ptkId)->first();
+            }
         }
 
         if ($gtk) {

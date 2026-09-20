@@ -4,11 +4,11 @@
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
-            <i class="fas fa-address-book"></i>
+            <i class="fas fa-clipboard-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['buku_tamu_hari_ini'] ?? 12 }} Tamu</div>
-            <div class="dash-stat-label">Buku Tamu Hari Ini</div>
+            <div class="dash-stat-value">Aman</div>
+            <div class="dash-stat-label">Status Lingkungan</div>
         </div>
     </div>
 

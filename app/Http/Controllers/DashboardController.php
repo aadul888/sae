@@ -558,9 +558,11 @@ class DashboardController extends Controller
         }
 
         // Agregasi Statistik & Data Berdasarkan Kebutuhan Modul
-        $totalSuratMasuk = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 14;
-        $totalSuratKeluar = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 8;
+        $totalSuratMasuk = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 0;
+        $totalSuratKeluar = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 0;
+        $totalSuratKeterangan = Schema::hasTable('surat_keterangan_pd') ? DB::table('surat_keterangan_pd')->count() : 0;
         $totalPersuratan = $totalSuratMasuk + $totalSuratKeluar;
+        $hddStatus = \App\Services\PersuratanHddService::checkStatus();
 
         $totalSiswa = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 1126;
         $siswaLaki = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 620;
@@ -576,8 +578,9 @@ class DashboardController extends Controller
         $stats = [
             'total_surat_masuk'  => $totalSuratMasuk,
             'total_surat_keluar' => $totalSuratKeluar,
+            'total_surat_ket'    => $totalSuratKeterangan,
             'total_persuratan'   => $totalPersuratan,
-            'buku_tamu_hari_ini' => 12,
+            'hdd_status'         => $hddStatus,
             'presensi_masuk'     => $presensiMasuk,
             'status_presensi'    => $statusPresensi,
             'total_siswa'        => $totalSiswa,
