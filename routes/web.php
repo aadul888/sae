@@ -553,6 +553,41 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Pengajuan e-Izin Keluar Siswa Mandiri
     Route::post('/peserta-didik/izin/keluar', [\App\Http\Controllers\PesertaDidikIzinController::class, 'storeIzinKeluar'])->name('peserta-didik.izin.keluar.store');
+
+    // 6. Perpustakaan (Koleksi, Sirkulasi, Kunjungan)
+    Route::prefix('perpustakaan')->name('perpustakaan.')->group(function () {
+        // Koleksi & Katalog Buku
+        Route::get('/koleksi', [\App\Http\Controllers\PerpusKoleksiController::class, 'index'])->name('koleksi.index')->middleware('permission:menu_perpustakaan,read');
+        Route::post('/koleksi', [\App\Http\Controllers\PerpusKoleksiController::class, 'store'])->name('koleksi.store')->middleware('permission:menu_perpustakaan,create');
+        Route::put('/koleksi/{id}', [\App\Http\Controllers\PerpusKoleksiController::class, 'update'])->name('koleksi.update')->middleware('permission:menu_perpustakaan,update');
+        Route::delete('/koleksi/{id}', [\App\Http\Controllers\PerpusKoleksiController::class, 'destroy'])->name('koleksi.destroy')->middleware('permission:menu_perpustakaan,delete');
+
+        // Sirkulasi Peminjaman & Pengembalian
+        Route::get('/sirkulasi', [\App\Http\Controllers\PerpusSirkulasiController::class, 'index'])->name('sirkulasi')->middleware('permission:menu_perpustakaan,read');
+        Route::post('/sirkulasi', [\App\Http\Controllers\PerpusSirkulasiController::class, 'store'])->name('sirkulasi.store')->middleware('permission:menu_perpustakaan,create');
+        Route::post('/sirkulasi/{id}/kembalikan', [\App\Http\Controllers\PerpusSirkulasiController::class, 'kembalikan'])->name('sirkulasi.kembalikan')->middleware('permission:menu_perpustakaan,update');
+        Route::delete('/sirkulasi/{id}', [\App\Http\Controllers\PerpusSirkulasiController::class, 'destroy'])->name('sirkulasi.destroy')->middleware('permission:menu_perpustakaan,delete');
+
+        // Buku Kunjungan
+        Route::get('/kunjungan', [\App\Http\Controllers\PerpusKunjunganController::class, 'index'])->name('kunjungan')->middleware('permission:menu_perpustakaan,read');
+        Route::post('/kunjungan', [\App\Http\Controllers\PerpusKunjunganController::class, 'store'])->name('kunjungan.store')->middleware('permission:menu_perpustakaan,create');
+        Route::delete('/kunjungan/{id}', [\App\Http\Controllers\PerpusKunjunganController::class, 'destroy'])->name('kunjungan.destroy')->middleware('permission:menu_perpustakaan,delete');
+    });
+
+    // 7. Teknisi & Maintenance (Work Order & Pemeliharaan Preventif)
+    Route::prefix('teknisi')->name('teknisi.')->group(function () {
+        // Work Order & Tiket Perbaikan (Bangunan, Listrik, Air, AC, IT, Kebersihan)
+        Route::get('/work-order', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'index'])->name('work-order')->middleware('permission:menu_teknisi,read');
+        Route::post('/work-order', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'store'])->name('work-order.store')->middleware('permission:menu_teknisi,create');
+        Route::post('/work-order/{id}/status', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'updateStatus'])->name('work-order.status')->middleware('permission:menu_teknisi,update');
+        Route::delete('/work-order/{id}', [\App\Http\Controllers\TeknisiWorkOrderController::class, 'destroy'])->name('work-order.destroy')->middleware('permission:menu_teknisi,delete');
+
+        // Pemeliharaan Preventif (Maintenance Routine)
+        Route::get('/pemeliharaan', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'index'])->name('pemeliharaan')->middleware('permission:menu_teknisi,read');
+        Route::post('/pemeliharaan', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'store'])->name('pemeliharaan.store')->middleware('permission:menu_teknisi,create');
+        Route::post('/pemeliharaan/{id}/status', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'updateStatus'])->name('pemeliharaan.status')->middleware('permission:menu_teknisi,update');
+        Route::delete('/pemeliharaan/{id}', [\App\Http\Controllers\TeknisiPemeliharaanController::class, 'destroy'])->name('pemeliharaan.destroy')->middleware('permission:menu_teknisi,delete');
+    });
 });
 
 // Admin shortcut redirect

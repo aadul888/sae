@@ -575,8 +575,8 @@
             $isKepegawaianActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'kepegawaian') || request()->routeIs('dashboard.kepegawaian.*') || request()->routeIs('dashboard.kepegawaian') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'kepegawaian') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'kepegawaian');
             $isSarprasActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'sarpras') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'sarpras') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'sarpras');
             $isLaboranActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'laboran') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'laboran') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'laboran');
-            $isPerpustakaanActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'perpustakaan') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'perpustakaan') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'perpustakaan');
-            $isTeknisiActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'teknisi') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'teknisi') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'teknisi');
+            $isPerpustakaanActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'perpustakaan') || request()->routeIs('dashboard.perpustakaan.*') || request()->routeIs('dashboard.perpustakaan') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'perpustakaan') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'perpustakaan');
+            $isTeknisiActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'teknisi') || request()->routeIs('dashboard.teknisi.*') || request()->routeIs('dashboard.teknisi') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'teknisi') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'teknisi');
             $isKeamananActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'keamanan') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'keamanan') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'keamanan');
             $isPenjagaActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'penjaga') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'penjaga') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'penjaga');
             $isPiketActive = (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'piket') || (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'piket') || (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'piket');
@@ -913,6 +913,21 @@
                                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                                     <span class="nav-label">Dashboard Perpustakaan</span>
                                 </a>
+                                <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.koleksi*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book"></i></span>
+                                    <span class="nav-label">Katalog &amp; Koleksi Buku</span>
+                                </a>
+                                <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.sirkulasi*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-exchange-alt"></i></span>
+                                    <span class="nav-label">Sirkulasi &amp; Denda</span>
+                                </a>
+                                <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.perpustakaan.kunjungan*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-user-check"></i></span>
+                                    <span class="nav-label">Buku Kunjungan Harian</span>
+                                </a>
                                 @if ($can('menu_aktivitas_tendik'))
                                     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'perpustakaan']) }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'perpustakaan' ? 'active' : '' }}">
@@ -931,13 +946,13 @@
                         </div>
                     @endif
 
-                    {{-- 7. Submenu Per-Bidang: Teknisi IT --}}
+                    {{-- 7. Submenu Per-Bidang: Teknisi & Maintenance --}}
                     @if ($can('menu_teknisi'))
                         <div class="dash-nav-nested-group {{ $isTeknisiActive ? 'open active-group' : '' }}">
                             <button type="button" class="dash-nav-nested-toggle">
                                 <div class="dash-nav-nested-toggle-main">
-                                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-network-wired"></i></span>
-                                    <span class="nav-label">Teknisi IT</span>
+                                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-tools"></i></span>
+                                    <span class="nav-label">Teknisi &amp; Sarpras</span>
                                 </div>
                                 <i class="fas fa-chevron-right nested-arrow-icon"></i>
                             </button>
@@ -945,7 +960,17 @@
                                 <a href="{{ route('dashboard.tendik', ['bidang' => 'teknisi']) }}"
                                     class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'teknisi' ? 'active' : '' }}">
                                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
-                                    <span class="nav-label">Dashboard Teknisi IT</span>
+                                    <span class="nav-label">Dashboard Teknisi</span>
+                                </a>
+                                <a href="{{ route('dashboard.teknisi.work-order') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-wrench"></i></span>
+                                    <span class="nav-label">Work Order &amp; Perbaikan</span>
+                                </a>
+                                <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.teknisi.pemeliharaan*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
+                                    <span class="nav-label">Jadwal Pemeliharaan PM</span>
                                 </a>
                                 @if ($can('menu_aktivitas_tendik'))
                                     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'teknisi']) }}"
@@ -1148,7 +1173,8 @@
                 ($tendikDutyList->contains('kode', 'STAF_SARPRAS') && $can('menu_sarpras')) ||
                 ($tendikDutyList->contains('kode', 'PUSTAKAWAN') && $can('menu_perpustakaan')) ||
                 ($tendikDutyList->contains('kode', 'LABORAN') && $can('menu_laboran')) ||
-                (($tendikDutyList->contains('kode', 'SATPAM') || $tendikDutyList->contains('kode', 'PENJAGA_SEKOLAH')) && $can('menu_keamanan')) ||
+                ($tendikDutyList->contains('kode', 'TEKNISI_IT') && $can('menu_teknisi')) ||
+                (($tendikDutyList->contains('kode', 'SATPAM') || $tendikDutyList->contains('kode', 'PENJAGA_SEKOLAH')) && ($can('menu_keamanan') || $can('menu_penjaga'))) ||
                 ($tendikDutyList->isEmpty() && $can('menu_tendik_aktif')) ||
                 $can('menu_aktivitas_tendik') ||
                 $can('menu_laporan_tendik')
@@ -1165,7 +1191,9 @@
                 request()->routeIs('dashboard.kesiswaan.*') ||
                 request()->routeIs('dashboard.kesiswaan') ||
                 request()->routeIs('dashboard.kepegawaian.*') ||
-                request()->routeIs('dashboard.kepegawaian');
+                request()->routeIs('dashboard.kepegawaian') ||
+                request()->routeIs('dashboard.perpustakaan.*') ||
+                request()->routeIs('dashboard.teknisi.*');
         @endphp
         @if ($hasTendikSection)
             <div class="dash-nav-group {{ $isTendikActive ? 'open active-group' : '' }}">
@@ -1321,6 +1349,40 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'perpustakaan' ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                             <span class="nav-label">Dashboard Perpustakaan</span>
+                        </a>
+                        <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.perpustakaan.koleksi*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book"></i></span>
+                            <span class="nav-label">Katalog &amp; Koleksi Buku</span>
+                        </a>
+                        <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.perpustakaan.sirkulasi*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-exchange-alt"></i></span>
+                            <span class="nav-label">Sirkulasi &amp; Denda</span>
+                        </a>
+                        <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.perpustakaan.kunjungan*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-check"></i></span>
+                            <span class="nav-label">Buku Kunjungan Harian</span>
+                        </a>
+                    @endif
+
+                    {{-- Bidang Teknisi & Maintenance --}}
+                    @if ($tendikDutyList->contains('kode', 'TEKNISI_IT') && $can('menu_teknisi'))
+                        <a href="{{ route('dashboard.tendik', ['bidang' => 'teknisi']) }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'teknisi' ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
+                            <span class="nav-label">Dashboard Teknisi</span>
+                        </a>
+                        <a href="{{ route('dashboard.teknisi.work-order') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.work-order*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-tools"></i></span>
+                            <span class="nav-label">Work Order &amp; Perbaikan</span>
+                        </a>
+                        <a href="{{ route('dashboard.teknisi.pemeliharaan') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.teknisi.pemeliharaan*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
+                            <span class="nav-label">Jadwal Pemeliharaan PM</span>
                         </a>
                     @endif
 
