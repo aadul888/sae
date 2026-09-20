@@ -191,20 +191,40 @@ class RolePermission extends Model
             ],
 
             'Administrasi Tendik' => [
+                'menu_aktivitas_tendik' => [
+                    'label' => 'Aktivitas Harian Tendik',
+                    'icon' => 'fa-list-check',
+                    'roles' => ['admin', 'tendik', 'guru'],
+                ],
+                'menu_laporan_tendik' => [
+                    'label' => 'Laporan Kinerja Tendik',
+                    'icon' => 'fa-file-signature',
+                    'roles' => ['admin', 'tendik', 'guru'],
+                ],
                 'menu_persuratan' => [
                     'label' => 'Persuratan & Arsip',
                     'icon' => 'fa-envelope-open-text',
-                    'roles' => ['admin', 'tendik'],
+                    'roles' => ['admin', 'tendik', 'guru'],
+                ],
+                'menu_kesiswaan' => [
+                    'label' => 'Buku Induk & Klaper Kesiswaan',
+                    'icon' => 'fa-address-card',
+                    'roles' => ['admin', 'tendik', 'guru'],
+                ],
+                'menu_kepegawaian' => [
+                    'label' => 'Kepegawaian GTK & KGB',
+                    'icon' => 'fa-user-tie',
+                    'roles' => ['admin', 'tendik', 'guru'],
                 ],
                 'menu_buku_tamu' => [
-                    'label' => 'Buku Tamu',
+                    'label' => 'Buku Tamu Digital',
                     'icon' => 'fa-address-book',
-                    'roles' => ['admin', 'tendik'],
+                    'roles' => ['admin', 'tendik', 'guru'],
                 ],
                 'menu_inventaris' => [
                     'label' => 'Inventaris Sarpras',
                     'icon' => 'fa-boxes-stacked',
-                    'roles' => ['admin', 'tendik'],
+                    'roles' => ['admin', 'tendik', 'guru'],
                 ],
                 'menu_agenda' => [
                     'label' => 'Agenda Kelas',
@@ -702,24 +722,21 @@ class RolePermission extends Model
 
         // 1. Otoritas Utama: Izin peran tersimpan di database
         $row = self::where('role', $role)->where('permission_key', $permissionKey)->first();
-        if ($row) {
-            // Jika modul dinonaktifkan (is_allowed false), seluruh aksi ditolak
-            if (!$row->is_allowed) {
-                return false;
-            }
-
+        if ($row && $row->is_allowed) {
             // Jika mengecek izin baca (read)
-            if ($actionCol === 'can_read') {
-                return (bool) $row->can_read;
+            if ($actionCol === 'can_read' && $row->can_read) {
+                return true;
             }
 
             // Jika mengecek izin mutasi (create, update, delete):
             // Wajib memenuhi can_read true dan kolom aksi spesifik true
-            return (bool) ($row->can_read && $row->{$actionCol});
+            if ($row->can_read && $row->{$actionCol}) {
+                return true;
+            }
         }
 
         // 2. Evaluasi izin dari tugas tambahan aktif (Duty-based) untuk Guru & Tendik
-        // Hanya dievaluasi jika modul ini belum pernah dimatikan secara eksplisit di database
+        // Tugas tambahan dapat memberikan elevated privileges ke modul spesifik
         if (in_array($role, ['guru', 'tendik']) && Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
             $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
             $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
@@ -832,6 +849,55 @@ class RolePermission extends Model
                 // Modul sarpras
                 if (in_array($d->kode, ['WAKA_SARPRAS', 'KEPALA_LAB', 'KEPALA_BENGKEL'], true)) {
                     if ($permissionKey === 'menu_inventaris') {
+                        return in_array($action, ['read', 'create', 'update']);
+                    }
+                }
+
+                // Modul umum seluruh tendik & kepala TAS: Aktivitas & Laporan Kinerja
+                if (in_array($d->kode, [
+                    'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
+                    'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
+                ], true)) {
+                    if (in_array($permissionKey, ['menu_aktivitas_tendik', 'menu_laporan_tendik'], true)) {
+                        return in_array($action, ['read', 'create', 'update']);
+                    }
+                }
+
+                // Modul Kepala TAS (Akses Lengkap Bidang TAS)
+                if ($d->kode === 'KEPALA_TAS') {
+                    if (in_array($permissionKey, [
+                        'menu_aktivitas_tendik', 'menu_laporan_tendik',
+                        'menu_persuratan', 'menu_kesiswaan', 'menu_kepegawaian',
+                        'menu_buku_tamu', 'menu_inventaris', 'menu_agenda',
+                        'menu_peserta_didik_aktif', 'menu_guru_aktif', 'menu_tendik_aktif',
+                    ], true)) {
+                        return in_array($action, ['read', 'create', 'update']);
+                    }
+                }
+
+                // Modul staf persuratan
+                if ($d->kode === 'STAF_PERSURATAN') {
+                    if (in_array($permissionKey, ['menu_persuratan', 'menu_buku_tamu', 'menu_agenda'], true)) {
+                        return in_array($action, ['read', 'create', 'update']);
+                    }
+                }
+
+                // Modul staf kesiswaan
+                if ($d->kode === 'STAF_KESISWAAN') {
+                    if (in_array($permissionKey, [
+                        'menu_kesiswaan', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif',
+                        'menu_berkas_peserta_didik', 'menu_perubahan_data', 'menu_kelulusan'
+                    ], true)) {
+                        return in_array($action, ['read', 'create', 'update']);
+                    }
+                }
+
+                // Modul staf kepegawaian
+                if ($d->kode === 'STAF_KEPEGAWAIAN') {
+                    if (in_array($permissionKey, [
+                        'menu_kepegawaian', 'menu_guru_aktif', 'menu_tendik_aktif',
+                        'menu_guru_tidak_aktif', 'menu_tendik_tidak_aktif', 'menu_rfid'
+                    ], true)) {
                         return in_array($action, ['read', 'create', 'update']);
                     }
                 }
@@ -948,6 +1014,8 @@ class RolePermission extends Model
             ],
             'tendik' => [
                 'menu_dashboard',
+                'menu_aktivitas_tendik',
+                'menu_laporan_tendik',
                 'menu_tendik_aktif',
                 'menu_guru_aktif',
                 'menu_peserta_didik_aktif',
@@ -955,6 +1023,8 @@ class RolePermission extends Model
                 'menu_rfid',
                 'menu_e_izin',
                 'menu_persuratan',
+                'menu_kesiswaan',
+                'menu_kepegawaian',
                 'menu_buku_tamu',
                 'menu_inventaris',
                 'menu_agenda',

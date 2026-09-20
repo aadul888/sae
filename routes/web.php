@@ -247,6 +247,38 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'show'])->name('persuratan.show')->middleware('permission:menu_persuratan,read');
     Route::put('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'update'])->name('persuratan.update')->middleware('permission:menu_persuratan,update');
     Route::delete('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'destroy'])->name('persuratan.destroy')->middleware('permission:menu_persuratan,delete');
+    Route::post('/persuratan/{id}/disposisi', [\App\Http\Controllers\PersuratanController::class, 'disposisi'])->name('persuratan.disposisi')->middleware('permission:menu_persuratan,update');
+    Route::get('/persuratan/{id}/disposisi/cetak', [\App\Http\Controllers\PersuratanController::class, 'cetakDisposisi'])->name('persuratan.disposisi.cetak')->middleware('permission:menu_persuratan,read');
+    Route::post('/persuratan/keterangan', [\App\Http\Controllers\PersuratanController::class, 'suratKeteranganStore'])->name('persuratan.keterangan.store')->middleware('permission:menu_persuratan,create');
+    Route::get('/persuratan/keterangan/{id}/cetak', [\App\Http\Controllers\PersuratanController::class, 'suratKeteranganCetak'])->name('persuratan.keterangan.cetak')->middleware('permission:menu_persuratan,read');
+
+    // Administrasi Tendik — Kesiswaan (Buku Induk, Klaper, Mutasi, & Berkas Siswa)
+    Route::get('/kesiswaan', [\App\Http\Controllers\KesiswaanController::class, 'index'])->name('kesiswaan.index')->middleware('permission:menu_kesiswaan,read');
+    Route::post('/kesiswaan/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper'])->name('kesiswaan.klaper.sync')->middleware('permission:menu_kesiswaan,create');
+    Route::put('/kesiswaan/klaper/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateKlaper'])->name('kesiswaan.klaper.update')->middleware('permission:menu_kesiswaan,update');
+    Route::post('/kesiswaan/mutasi', [\App\Http\Controllers\KesiswaanController::class, 'storeMutasi'])->name('kesiswaan.mutasi.store')->middleware('permission:menu_kesiswaan,create');
+    Route::get('/kesiswaan/mutasi/{id}/cetak', [\App\Http\Controllers\KesiswaanController::class, 'cetakMutasi'])->name('kesiswaan.mutasi.cetak')->middleware('permission:menu_kesiswaan,read');
+    Route::post('/kesiswaan/berkas/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateBerkas'])->name('kesiswaan.berkas.update')->middleware('permission:menu_kesiswaan,update');
+
+    // Administrasi Tendik — Kepegawaian GTK (Berkas Digital, KGB Tracker, Cuti & SPT)
+    Route::get('/kepegawaian', [\App\Http\Controllers\KepegawaianGtkController::class, 'index'])->name('kepegawaian.index')->middleware('permission:menu_kepegawaian,read');
+    Route::post('/kepegawaian/berkas', [\App\Http\Controllers\KepegawaianGtkController::class, 'uploadBerkas'])->name('kepegawaian.berkas.upload')->middleware('permission:menu_kepegawaian,create');
+    Route::delete('/kepegawaian/berkas/{id}', [\App\Http\Controllers\KepegawaianGtkController::class, 'deleteBerkas'])->name('kepegawaian.berkas.delete')->middleware('permission:menu_kepegawaian,delete');
+    Route::post('/kepegawaian/kgb', [\App\Http\Controllers\KepegawaianGtkController::class, 'storeKgb'])->name('kepegawaian.kgb.store')->middleware('permission:menu_kepegawaian,create');
+    Route::post('/kepegawaian/cuti', [\App\Http\Controllers\KepegawaianGtkController::class, 'storeCuti'])->name('kepegawaian.cuti.store')->middleware('permission:menu_kepegawaian,create');
+    Route::get('/kepegawaian/cuti/{id}/cetak', [\App\Http\Controllers\KepegawaianGtkController::class, 'cetakCuti'])->name('kepegawaian.cuti.cetak')->middleware('permission:menu_kepegawaian,read');
+
+    // Administrasi Tendik — Pencatatan Aktivitas & Pekerjaan Harian
+    Route::get('/tendik/aktivitas', [\App\Http\Controllers\TendikAktivitasController::class, 'index'])->name('tendik.aktivitas.index')->middleware('permission:menu_aktivitas_tendik,read');
+    Route::post('/tendik/aktivitas', [\App\Http\Controllers\TendikAktivitasController::class, 'store'])->name('tendik.aktivitas.store')->middleware('permission:menu_aktivitas_tendik,create');
+    Route::put('/tendik/aktivitas/{id}', [\App\Http\Controllers\TendikAktivitasController::class, 'update'])->name('tendik.aktivitas.update')->middleware('permission:menu_aktivitas_tendik,update');
+    Route::delete('/tendik/aktivitas/{id}', [\App\Http\Controllers\TendikAktivitasController::class, 'destroy'])->name('tendik.aktivitas.destroy')->middleware('permission:menu_aktivitas_tendik,delete');
+
+    // Administrasi Tendik — Rekap & Cetak Laporan Kinerja Berbasis Aktivitas Harian (Bulan, Triwulan, Semester, Tahun Ajaran)
+    Route::get('/tendik/laporan', [\App\Http\Controllers\TendikLaporanController::class, 'index'])->name('tendik.laporan.index')->middleware('permission:menu_laporan_tendik,read');
+    Route::get('/tendik/laporan/cetak', [\App\Http\Controllers\TendikLaporanController::class, 'cetak'])->name('tendik.laporan.cetak')->middleware('permission:menu_laporan_tendik,read');
+    Route::get('/tendik/presensi', fn() => redirect()->route('dashboard.tendik.laporan.index'))->name('tendik.presensi.index');
+    Route::get('/tendik/presensi/cetak', fn(\Illuminate\Http\Request $r) => redirect()->route('dashboard.tendik.laporan.cetak', $r->all()))->name('tendik.presensi.cetak');
 
     // Portal Peserta Didik — Modul Surat Izin & Sakit Mandiri
     Route::get('/peserta-didik/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'index'])->name('peserta-didik.izin.index');

@@ -26,8 +26,8 @@
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline">
-                <i class="fas fa-cloud-arrow-down me-1"></i> Tarik Data Dapodik
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;" title="Tarik Data Dapodik">
+                <i class="fas fa-cloud-arrow-down"></i>
             </a>
         </div>
     </div>
@@ -118,9 +118,9 @@
                 </select>
 
                 @if ($q || $tingkat || $jurusan)
-                    <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}" class="btn btn-outline btn-responsive-icon"
-                        style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                        <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
+                    <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}" class="btn btn-outline"
+                        style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                        <i class="fas fa-undo"></i>
                     </a>
                 @endif
             </div>

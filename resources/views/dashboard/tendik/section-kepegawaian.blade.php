@@ -55,8 +55,8 @@
                 <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
                     <i class="fas fa-briefcase text-primary me-2"></i> Penugasan Tugas Tambahan &amp; SK Aktif
                 </div>
-                <a href="{{ route('dashboard.hak-akses.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;">
-                    Kelola Tugas Tambahan <i class="fas fa-arrow-right ms-1"></i>
+                <a href="{{ route('dashboard.hak-akses.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" title="Kelola Tugas Tambahan">
+                    <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
 
@@ -110,8 +110,8 @@
                 <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
                     <i class="fas fa-address-card text-success me-2"></i> Arsip Personel GTK (Sampel Induk)
                 </div>
-                <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;">
-                    Buka Direktori <i class="fas fa-arrow-right ms-1"></i>
+                <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" title="Buka Direktori Guru">
+                    <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
 

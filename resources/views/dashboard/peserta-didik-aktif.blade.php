@@ -19,8 +19,8 @@
         <div class="dash-banner-actions">
             @if (\App\Models\RolePermission::canAccess($user ?? session('user'), 'menu_dapodik'))
                 <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline"
-                    style="padding: 9px 16px; font-size: 0.85rem;">
-                    <i class="fas fa-cloud-arrow-down me-1"></i> Tarik Data Dapodik
+                    style="padding: 8px 14px; font-size: 0.9rem;" title="Tarik Data Dapodik">
+                    <i class="fas fa-cloud-arrow-down"></i>
                 </a>
             @endif
         </div>
@@ -109,25 +109,25 @@
 
                 @if ($q || $rombel || $gender)
                     <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
-                        class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;"
+                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
                         title="Reset filter">
-                        <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
+                        <i class="fas fa-undo"></i>
                     </a>
                 @endif
 
                 @if ($isAdmin)
-                    <button type="button" class="btn btn-primary btn-responsive-icon"
+                    <button type="button" class="btn btn-primary"
                         onclick="openBulkUploadFotoModal('{{ $rombel }}')"
-                        style="padding: 7px 14px; font-size: 0.82rem; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
+                        style="padding: 7px 12px; font-size: 0.84rem; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
                         title="Unggah Foto Masal Kelas">
-                        <i class="fas fa-images"></i> <span class="btn-responsive-text">Unggah Foto Masal</span>
+                        <i class="fas fa-images"></i>
                     </button>
 
-                    <button type="button" class="btn btn-outline btn-responsive-icon"
+                    <button type="button" class="btn btn-outline"
                         onclick="openCetakRombelModal('{{ $rombel }}')"
-                        style="padding: 7px 14px; font-size: 0.82rem; border-color: #0284c7; color: #0284c7;"
+                        style="padding: 7px 12px; font-size: 0.84rem; border-color: #0284c7; color: #0284c7;"
                         title="Cetak Kartu Pelajar Masal">
-                        <i class="fas fa-id-card"></i> <span class="btn-responsive-text">Cetak Kartu Masal</span>
+                        <i class="fas fa-id-card"></i>
                     </button>
                 @endif
             </div>

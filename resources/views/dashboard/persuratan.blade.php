@@ -11,19 +11,19 @@
                 <i class="fas fa-envelope-open-text"></i>
             </div>
             <div>
-                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0 0 2px 0;">
-                    Persuratan & Arsip Digital
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    Persuratan &amp; Arsip Digital
                 </h2>
-                <p style="color: var(--text-muted); font-size: 0.84rem; margin: 0;">
-                    Administrasi surat masuk, surat keluar, disposisi dinas, surat tugas, dan pengarsipan digital sekolah.
-                </p>
             </div>
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
-                <button type="button" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.84rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" id="btnOpenCreateModal">
-                    <i class="fas fa-plus"></i> Catat Surat Baru
+                <button type="button" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;" id="btnOpenKetModal" title="Terbitkan Surat Keterangan Siswa">
+                    <i class="fas fa-file-signature text-primary"></i>
+                </button>
+                <button type="button" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;" id="btnOpenCreateModal" title="Catat Surat Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>
@@ -140,16 +140,16 @@
                 <tbody id="tableBodyContent">
                     @forelse ($items as $index => $item)
                         <tr class="data-row" style="border-bottom: 1px solid var(--border-color);" data-id="{{ $item->id }}">
-                            <td style="padding: 12px 14px; font-size: 0.84rem; color: var(--text-muted);">
+                            <td data-label="No" style="padding: 12px 14px; font-size: 0.84rem; color: var(--text-muted);">
                                 {{ $items->firstItem() + $index }}
                             </td>
-                            <td style="padding: 12px 14px;">
+                            <td data-label="Jenis & Status" style="padding: 12px 14px;">
                                 <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
                                     {!! $item->jenis_badge !!}
                                     {!! $item->status_badge !!}
                                 </div>
                             </td>
-                            <td style="padding: 12px 14px;">
+                            <td data-label="Nomor & Tanggal" style="padding: 12px 14px;">
                                 <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem; margin-bottom: 2px;">
                                     {{ $item->nomor_surat }}
                                 </div>
@@ -160,7 +160,7 @@
                                     @endif
                                 </div>
                             </td>
-                            <td style="padding: 12px 14px;">
+                            <td data-label="Perihal & Pihak" style="padding: 12px 14px;">
                                 <div style="font-weight: 600; color: var(--text-color); font-size: 0.86rem; margin-bottom: 4px;">
                                     {{ $item->perihal }}
                                 </div>
@@ -173,7 +173,7 @@
                                     @endif
                                 </div>
                             </td>
-                            <td style="padding: 12px 14px; text-align: center;">
+                            <td data-label="Aksi" style="padding: 12px 14px; text-align: center;">
                                 <div class="table-actions" style="display: inline-flex; gap: 6px;">
                                     <button type="button" class="btn btn-outline btn-sm btn-detail-row" data-id="{{ $item->id }}" title="Lihat Detail Surat" style="padding: 4px 8px; font-size: 0.78rem;">
                                         <i class="fas fa-eye"></i>
@@ -382,11 +382,155 @@
                 <!-- Diisi via JavaScript -->
             </div>
 
-            <div style="display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 18px;">
+            <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 18px;">
+                <div id="detailActionExtra" style="display: flex; gap: 8px;"></div>
                 <button type="button" id="btnCloseDetailBtn" class="btn btn-outline" style="padding: 8px 18px; font-size: 0.84rem; border-radius: 8px;">
                     Tutup
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- 7. Modal Form Disposisi Surat Masuk (z-index: 99999 !important) -->
+    <div id="modalDisposisiItem" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card" style="max-width: 580px; width: 92%; margin: 0; border-radius: 14px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.45); border: 1px solid var(--border-color); background: var(--bg-card, #1e293b);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-clipboard-check text-primary"></i> Lembar Disposisi Surat
+                </h3>
+                <button type="button" id="btnCloseDisposisiModal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.15rem; padding: 4px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="formDisposisiItem">
+                @csrf
+                <input type="hidden" id="disposisiSuratId">
+
+                <div style="background: var(--bg-hover); padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 0.82rem;">
+                    <div id="dispSuratNomor" style="font-weight: 700; color: var(--primary);"></div>
+                    <div id="dispSuratPerihal" style="color: var(--text-color); margin-top: 2px;"></div>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                        Diteruskan Kepada (Tujuan Disposisi) <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="text" id="dispTujuan" required placeholder="Contoh: Waka Kurikulum, Kepala TAS, Guru Piket..."
+                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                            Instruksi Disposisi <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select id="dispInstruksi" required
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                            <option value="Tanggapi / Tindak Lanjuti">Tanggapi / Tindak Lanjuti</option>
+                            <option value="Hadir / Wakili">Hadir / Wakili</option>
+                            <option value="Teliti & Laporkan">Teliti &amp; Laporkan</option>
+                            <option value="Koordinasikan">Koordinasikan</option>
+                            <option value="Bicarakan Bersama">Bicarakan Bersama</option>
+                            <option value="Arsipkan">Ketahui / Arsipkan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                            Tanggal Disposisi <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="date" id="dispTanggal" required value="{{ date('Y-m-d') }}"
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                        Catatan / Petunjuk Tambahan Pimpinan
+                    </label>
+                    <textarea id="dispCatatan" rows="3" placeholder="Tambahkan petunjuk khusus pelaksanaan tugas..."
+                        style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <button type="button" id="btnCancelDisposisiModal" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.84rem; border-radius: 8px;">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnSaveDisposisiModal" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.84rem; border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-check me-1"></i> Simpan Disposisi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 8. Modal Terbitkan Surat Keterangan Siswa (z-index: 99999 !important) -->
+    <div id="modalSuratKetItem" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card" style="max-width: 600px; width: 92%; margin: 0; border-radius: 14px; padding: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.45); border: 1px solid var(--border-color); background: var(--bg-card, #1e293b);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-file-signature text-primary"></i> Terbitkan Surat Keterangan Siswa
+                </h3>
+                <button type="button" id="btnCloseKetModal" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.15rem; padding: 4px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="formSuratKetItem">
+                @csrf
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                        Pilih Peserta Didik <span style="color: #ef4444;">*</span>
+                    </label>
+                    <select id="ketPesertaDidikId" required
+                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                        <option value="">-- Cari / Pilih Peserta Didik --</option>
+                        @foreach ($siswaList as $sw)
+                            <option value="{{ $sw->peserta_didik_id }}">
+                                {{ $sw->nama }} (NISN: {{ $sw->nisn ?: '-' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                            Jenis Surat Keterangan <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select id="ketJenisSurat" required
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                            <option value="siswa_aktif">Surat Keterangan Siswa Aktif</option>
+                            <option value="kelakuan_baik">Surat Keterangan Berkelakuan Baik</option>
+                            <option value="rekomendasi">Surat Rekomendasi Siswa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                            Tanggal Surat <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="date" id="ketTanggal" required value="{{ date('Y-m-d') }}"
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
+                        Keperluan Penerbitan Surat <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="text" id="ketKeperluan" required placeholder="Contoh: Persyaratan Tunjangan Orang Tua / Beasiswa / Lomba..."
+                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <button type="button" id="btnCancelKetModal" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.84rem; border-radius: 8px;">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnSaveKetModal" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.84rem; border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-check me-1"></i> Terbitkan &amp; Cetak
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

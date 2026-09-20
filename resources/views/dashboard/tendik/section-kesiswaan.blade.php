@@ -55,8 +55,8 @@
                 <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
                     <i class="fas fa-chalkboard-user text-primary me-2"></i> Rekapitulasi Rombongan Belajar &amp; Kapasitas Siswa
                 </div>
-                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;">
-                    Lihat Semua Rombel <i class="fas fa-arrow-right ms-1"></i>
+                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" title="Lihat Semua Rombel">
+                    <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
 
@@ -107,8 +107,8 @@
                 <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
                     <i class="fas fa-users text-success me-2"></i> Data Peserta Didik Terbaru (Sampel Induk)
                 </div>
-                <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;">
-                    Buka Buku Induk <i class="fas fa-arrow-right ms-1"></i>
+                <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" title="Buka Buku Induk">
+                    <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
 

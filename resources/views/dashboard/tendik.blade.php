@@ -33,6 +33,7 @@
         // Daftar semua bidang tugas untuk switcher Kepala TAS
         $allDomains = [
             'kepala-tas' => ['label' => 'Ikhtisar Koordinator', 'icon' => 'fas fa-landmark', 'color' => '#10b981'],
+            'piket' => ['label' => 'Guru Piket', 'icon' => 'fas fa-clipboard-user', 'color' => '#8b5cf6'],
             'kesiswaan' => ['label' => 'Kesiswaan', 'icon' => 'fas fa-user-graduate', 'color' => '#3b82f6'],
             'kepegawaian' => ['label' => 'Kepegawaian', 'icon' => 'fas fa-id-badge', 'color' => '#8b5cf6'],
             'sarpras' => ['label' => 'Sarpras & Aset', 'icon' => 'fas fa-building', 'color' => '#f59e0b'],
@@ -101,7 +102,20 @@
 
         <!-- Dynamic Action Buttons Berdasarkan Bidang -->
         <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            @if ($activeSection === 'kesiswaan')
+            @if ($activeSection === 'piket')
+                <a href="{{ route('dashboard.peserta-didik.izin.index') }}" class="btn btn-primary"
+                    style="background: #f59e0b; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-person-walking-arrow-right"></i> + Catat e-Izin Siswa
+                </a>
+                <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline"
+                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-calendar-check"></i> Presensi Guru Mengajar
+                </a>
+                <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline"
+                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-book-open-reader"></i> Jurnal Agenda KBM
+                </a>
+            @elseif ($activeSection === 'kesiswaan')
                 <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-primary"
                     style="background: #3b82f6; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-user-graduate"></i> Buku Induk Siswa
@@ -193,6 +207,7 @@
                     @php
                         $codeMap = [
                             'KEPALA_TAS' => 'kepala-tas',
+                            'GURU_PIKET' => 'piket',
                             'STAF_KESISWAAN' => 'kesiswaan',
                             'STAF_KEPEGAWAIAN' => 'kepegawaian',
                             'STAF_SARPRAS' => 'sarpras',

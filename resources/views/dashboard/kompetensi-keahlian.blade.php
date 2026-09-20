@@ -15,8 +15,8 @@
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
-                <i class="fas fa-cloud-arrow-down me-1"></i> Tarik Data Rombel
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;" title="Tarik Data Rombel">
+                <i class="fas fa-cloud-arrow-down"></i>
             </a>
         </div>
     </div>

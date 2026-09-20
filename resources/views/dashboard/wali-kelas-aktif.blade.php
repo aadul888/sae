@@ -124,17 +124,17 @@
                     </select>
 
                     @if ($q || $gender)
-                        <a href="{{ route('dashboard.wali-kelas.peserta-didik-aktif.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}" class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                            <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
+                        <a href="{{ route('dashboard.wali-kelas.peserta-didik-aktif.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}" class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                            <i class="fas fa-undo"></i>
                         </a>
                     @endif
 
                     @if ($activeRombel)
                         <a href="{{ url('/dashboard/kartu-pelajar/cetak-rombel/' . urlencode($activeRombel->rombongan_belajar_id ?? $activeRombel->nama)) }}"
-                            target="_blank" class="btn btn-outline btn-responsive-icon"
-                            style="padding: 7px 14px; font-size: 0.82rem; border-color: #0284c7; color: #0284c7;"
+                            target="_blank" class="btn btn-outline"
+                            style="padding: 7px 12px; font-size: 0.84rem; border-color: #0284c7; color: #0284c7;"
                             title="Cetak Seluruh Kartu Pelajar Rombel {{ $activeRombel->nama }}">
-                            <i class="fas fa-id-card"></i> <span class="btn-responsive-text">Cetak Kartu Masal ({{ $activeRombel->nama }})</span>
+                            <i class="fas fa-id-card"></i>
                         </a>
                     @endif
                 </div>

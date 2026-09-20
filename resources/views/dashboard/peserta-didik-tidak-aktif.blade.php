@@ -22,16 +22,14 @@
             @if (($canCreate || $canUpdate) && $grade12ActiveCount > 0)
                 <button type="button" id="btnArchiveGrade12" class="btn btn-primary" data-count="{{ $grade12ActiveCount }}"
                     data-url="{{ route('dashboard.peserta-didik-tidak-aktif.archive-grade12') }}"
-                    style="padding: 9px 16px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(99,102,241,0.3);">
+                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 2px 8px rgba(99,102,241,0.3);" title="Arsipkan Peserta Didik Kelas XII ({{ $grade12ActiveCount }})">
                     <i class="fas fa-box-archive"></i>
-                    <span>Arsipkan Peserta Didik Kelas XII ({{ $grade12ActiveCount }})</span>
                 </button>
             @endif
             <a href="{{ route('dashboard.peserta-didik-tidak-aktif.export', ['status' => $status, 'tahun' => $tahun]) }}"
                 class="btn btn-outline"
-                style="padding: 9px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
+                style="padding: 8px 14px; font-size: 0.9rem;" title="Ekspor Excel (.CSV)">
                 <i class="fas fa-file-excel text-success"></i>
-                <span>Ekspor Excel (.CSV)</span>
             </a>
         </div>
     </div>

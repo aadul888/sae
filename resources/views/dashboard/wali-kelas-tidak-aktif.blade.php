@@ -130,8 +130,8 @@
                     @endif
 
                     @if ($q || $status || $tahun)
-                        <a href="{{ route('dashboard.wali-kelas.peserta-didik-tidak-aktif.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}" class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                            <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
+                        <a href="{{ route('dashboard.wali-kelas.peserta-didik-tidak-aktif.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}" class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                            <i class="fas fa-undo"></i>
                         </a>
                     @endif
                 </div>

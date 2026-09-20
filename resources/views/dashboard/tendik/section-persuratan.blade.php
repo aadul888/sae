@@ -53,8 +53,8 @@
             <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
                 <i class="fas fa-file-invoice text-primary me-2"></i> Log Administrasi &amp; Surat Terakhir
             </div>
-            <a href="{{ route('dashboard.persuratan.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;">
-                Semua Surat <i class="fas fa-arrow-right ms-1"></i>
+            <a href="{{ route('dashboard.persuratan.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem;" title="Lihat Semua Surat">
+                <i class="fas fa-arrow-right"></i>
             </a>
         </div>
 

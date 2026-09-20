@@ -14,15 +14,15 @@
                 Permohonan dan riwayat surat izin, surat keterangan sakit dokter, serta dispensasi resmi peserta didik.
             </p>
         </div>
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center;">
             <a href="{{ route('dashboard.peserta-didik.presensi.index') }}" class="btn btn-outline"
-                style="padding: 9px 16px; font-size: 0.85rem;" title="Lihat Riwayat Presensi Lengkap">
-                <i class="fas fa-calendar-check me-1"></i> Riwayat Presensi
+                style="padding: 8px 14px; font-size: 0.9rem;" title="Lihat Riwayat Presensi Lengkap">
+                <i class="fas fa-calendar-check"></i>
             </a>
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnBukaModalIzin"
-                    style="padding: 9px 16px; font-size: 0.85rem; font-weight: 700;" title="Ajukan Surat Izin atau Sakit Baru">
-                    <i class="fas fa-plus me-1"></i> Ajukan Permohonan
+                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 700;" title="Ajukan Permohonan Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>
@@ -115,8 +115,8 @@
 
                     @if (request('q') || request('jenis') || request('status'))
                         <a href="{{ route('dashboard.peserta-didik.izin.index') }}"
-                            class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
-                            <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                            <i class="fas fa-undo"></i>
                         </a>
                     @endif
                 </div>

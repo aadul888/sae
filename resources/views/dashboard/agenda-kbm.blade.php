@@ -21,17 +21,15 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('dashboard.agenda-kbm.cetak', request()->all()) }}" target="_blank" class="btn btn-outline btn-responsive-icon"
+            <a href="{{ route('dashboard.agenda-kbm.cetak', request()->all()) }}" target="_blank" class="btn btn-outline"
                 title="Cetak Jurnal KBM"
-                style="padding: 8px 12px; font-size: 0.82rem; border-radius: 8px; text-decoration: none; border-color: var(--border-color); color: var(--text-color);">
+                style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; text-decoration: none; border-color: var(--border-color); color: var(--text-color);">
                 <i class="fas fa-print text-primary"></i>
-                <span class="btn-responsive-text">Cetak Jurnal</span>
             </a>
 
             @if ($canCreate)
-                <button type="button" class="btn btn-primary btn-responsive-icon" style="padding: 8px 14px; font-size: 0.82rem; border-radius: 8px; font-weight: 600;" id="btnOpenCreateAgenda" title="Tambah Agenda KBM">
+                <button type="button" class="btn btn-primary" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; font-weight: 600;" id="btnOpenCreateAgenda" title="Tambah Agenda KBM">
                     <i class="fas fa-plus"></i>
-                    <span class="btn-responsive-text">Tambah Agenda</span>
                 </button>
             @endif
         </div>

@@ -33,9 +33,8 @@
             <!-- Dropdown Cetak Jadwal Multi-Format -->
             <div style="position: relative; display: inline-block;">
                 <button type="button" class="btn btn-outline" id="btnDropdownCetak"
-                    style="padding: 8px 14px; font-size: 0.85rem;">
-                    <i class="fas fa-print me-1"></i> Cetak Jadwal <i class="fas fa-chevron-down ms-1"
-                        style="font-size: 0.7rem;"></i>
+                    style="padding: 8px 14px; font-size: 0.9rem;" title="Cetak Jadwal (Induk, Guru, Kelas)">
+                    <i class="fas fa-print"></i>
                 </button>
                 <div id="dropdownMenuCetak"
                     style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); min-width: 220px; z-index: 1000; overflow: hidden;">
@@ -68,23 +67,23 @@
 
             @if ($canUpdate)
                 <button type="button" class="btn btn-outline" id="btnBukaPreferensiGuru"
-                    style="padding: 8px 14px; font-size: 0.85rem;" title="Atur Hari Off dan Jam Berhalangan Guru">
-                    <i class="fas fa-user-clock me-1"></i> Preferensi Guru
+                    style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Hari Off dan Jam Berhalangan Guru">
+                    <i class="fas fa-user-clock"></i>
                 </button>
                 <button type="button" class="btn btn-outline" id="btnBukaPengaturanSlot"
-                    style="padding: 8px 14px; font-size: 0.85rem;" title="Atur Jam Pelajaran, Durasi JP, dan Istirahat">
-                    <i class="fas fa-sliders me-1"></i> Atur Jam Pelajaran
+                    style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Jam Pelajaran, Durasi JP, dan Istirahat">
+                    <i class="fas fa-sliders"></i>
                 </button>
             @endif
 
             @if ($canCreate)
                 <button type="button" class="btn" id="btnBukaAutoGenerate"
-                    style="padding: 8px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);">
-                    <i class="fas fa-wand-magic-sparkles me-1"></i> Tombol Sakti (Auto-Generate)
+                    style="padding: 8px 14px; font-size: 0.9rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);" title="Auto-Generate Jadwal Otomatis">
+                    <i class="fas fa-wand-magic-sparkles"></i>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnTambahJadwal"
-                    style="padding: 8px 16px; font-size: 0.85rem;">
-                    <i class="fas fa-plus me-1"></i> Tambah Manual
+                    style="padding: 8px 14px; font-size: 0.9rem;" title="Tambah Jadwal Manual">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>

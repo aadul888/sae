@@ -215,6 +215,22 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </tr>
                             </table>
                         `;
+
+                        const actionExtra = document.getElementById('detailActionExtra');
+                        if (actionExtra) {
+                            if (item.jenis_surat === 'masuk') {
+                                actionExtra.innerHTML = `
+                                    <button type="button" class="btn btn-primary btn-sm btn-open-disp" data-id="${item.id}" data-nomor="${item.nomor_surat}" data-perihal="${item.perihal}">
+                                        <i class="fas fa-clipboard-check me-1"></i> Beri Disposisi
+                                    </button>
+                                    <a href="/dashboard/persuratan/${item.id}/disposisi/cetak" target="_blank" class="btn btn-outline btn-sm">
+                                        <i class="fas fa-print me-1"></i> Cetak Disposisi
+                                    </a>
+                                `;
+                            } else {
+                                actionExtra.innerHTML = '';
+                            }
+                        }
                     }
                     if (modalDetail) modalDetail.style.display = 'flex';
                 }
@@ -302,5 +318,153 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('Terjadi kesalahan koneksi server.', 'danger');
             }
         }
+
+        // 4. Buka Form Disposisi dari modal detail
+        const openDispBtn = e.target.closest('.btn-open-disp');
+        if (openDispBtn) {
+            const suratId = openDispBtn.dataset.id;
+            const nomor = openDispBtn.dataset.nomor;
+            const perihal = openDispBtn.dataset.perihal;
+
+            const modalDisp = document.getElementById('modalDisposisiItem');
+            const dispSuratId = document.getElementById('disposisiSuratId');
+            const dispSuratNomor = document.getElementById('dispSuratNomor');
+            const dispSuratPerihal = document.getElementById('dispSuratPerihal');
+
+            if (dispSuratId) dispSuratId.value = suratId;
+            if (dispSuratNomor) dispSuratNomor.innerText = `Nomor: ${nomor}`;
+            if (dispSuratPerihal) dispSuratPerihal.innerText = `Perihal: ${perihal}`;
+
+            if (modalDetail) modalDetail.style.display = 'none';
+            if (modalDisp) modalDisp.style.display = 'flex';
+        }
     });
+
+    // Close Disposisi Modal
+    const modalDisp = document.getElementById('modalDisposisiItem');
+    const btnCloseDisp = document.getElementById('btnCloseDisposisiModal');
+    const btnCancelDisp = document.getElementById('btnCancelDisposisiModal');
+    const closeDispModal = () => { if (modalDisp) modalDisp.style.display = 'none'; };
+    if (btnCloseDisp) btnCloseDisp.addEventListener('click', closeDispModal);
+    if (btnCancelDisp) btnCancelDisp.addEventListener('click', closeDispModal);
+
+    // Submit Disposisi
+    const formDisp = document.getElementById('formDisposisiItem');
+    if (formDisp) {
+        formDisp.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const suratId = document.getElementById('disposisiSuratId')?.value;
+            const btnSave = document.getElementById('btnSaveDisposisiModal');
+
+            const payload = {
+                disposisi_dari: 'Kepala Sekolah',
+                disposisi_ke: document.getElementById('dispTujuan')?.value || '',
+                instruksi: document.getElementById('dispInstruksi')?.value || 'Tanggapi / Tindak Lanjuti',
+                tanggal_disposisi: document.getElementById('dispTanggal')?.value || new Date().toISOString().split('T')[0],
+                catatan: document.getElementById('dispCatatan')?.value || '',
+                update_status_surat: 'diproses'
+            };
+
+            if (btnSave) {
+                btnSave.disabled = true;
+                btnSave.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+            }
+
+            try {
+                const res = await fetch(`/dashboard/persuratan/${suratId}/disposisi`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    closeDispModal();
+                    showToast(data.message || 'Lembar disposisi berhasil disimpan.');
+                    setTimeout(() => window.location.reload(), 600);
+                } else {
+                    showToast(data.message || 'Gagal menyimpan disposisi.', 'danger');
+                }
+            } catch (err) {
+                showToast('Terjadi kesalahan koneksi server.', 'danger');
+            } finally {
+                if (btnSave) {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = '<i class="fas fa-check me-1"></i> Simpan Disposisi';
+                }
+            }
+        });
+    }
+
+    // Modal Surat Keterangan Siswa
+    const modalKet = document.getElementById('modalSuratKetItem');
+    const btnOpenKet = document.getElementById('btnOpenKetModal');
+    const btnCloseKet = document.getElementById('btnCloseKetModal');
+    const btnCancelKet = document.getElementById('btnCancelKetModal');
+    const formKet = document.getElementById('formSuratKetItem');
+
+    const closeKetModal = () => { if (modalKet) modalKet.style.display = 'none'; };
+    if (btnOpenKet && modalKet) {
+        btnOpenKet.addEventListener('click', () => {
+            if (formKet) formKet.reset();
+            const dateInput = document.getElementById('ketTanggal');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+            modalKet.style.display = 'flex';
+        });
+    }
+    if (btnCloseKet) btnCloseKet.addEventListener('click', closeKetModal);
+    if (btnCancelKet) btnCancelKet.addEventListener('click', closeKetModal);
+
+    // Submit Surat Keterangan
+    if (formKet) {
+        formKet.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSave = document.getElementById('btnSaveKetModal');
+
+            const payload = {
+                peserta_didik_id: document.getElementById('ketPesertaDidikId')?.value || '',
+                jenis_surat: document.getElementById('ketJenisSurat')?.value || 'siswa_aktif',
+                tanggal_surat: document.getElementById('ketTanggal')?.value || new Date().toISOString().split('T')[0],
+                keperluan: document.getElementById('ketKeperluan')?.value || ''
+            };
+
+            if (btnSave) {
+                btnSave.disabled = true;
+                btnSave.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
+            }
+
+            try {
+                const res = await fetch('/dashboard/persuratan/keterangan', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'success') {
+                    closeKetModal();
+                    showToast(data.message || 'Surat keterangan berhasil diterbitkan.');
+                    if (data.cetak_url) {
+                        window.open(data.cetak_url, '_blank');
+                    }
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    showToast(data.message || 'Gagal menerbitkan surat keterangan.', 'danger');
+                }
+            } catch (err) {
+                showToast('Terjadi kesalahan koneksi server.', 'danger');
+            } finally {
+                if (btnSave) {
+                    btnSave.disabled = false;
+                    btnSave.innerHTML = '<i class="fas fa-check me-1"></i> Terbitkan &amp; Cetak';
+                }
+            }
+        });
+    }
 });

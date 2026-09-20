@@ -100,6 +100,17 @@ class SystemNotificationService
                 $items = $dynamicItems->merge($items);
                 $footerUrl = route('dashboard.tendik');
                 $footerText = 'Buka Dashboard Tendik';
+
+                if (RolePermission::canAccess($currentUser, 'menu_kesiswaan', 'read') && !RolePermission::canAccess($currentUser, 'menu_kepegawaian', 'read')) {
+                    $footerUrl = route('dashboard.kesiswaan.index');
+                    $footerText = 'Buka Administrasi Kesiswaan';
+                } elseif (RolePermission::canAccess($currentUser, 'menu_kepegawaian', 'read') && !RolePermission::canAccess($currentUser, 'menu_kesiswaan', 'read')) {
+                    $footerUrl = route('dashboard.kepegawaian.index');
+                    $footerText = 'Buka Kepegawaian GTK & KGB';
+                } elseif (RolePermission::canAccess($currentUser, 'menu_persuratan', 'read') && !RolePermission::canAccess($currentUser, 'menu_kesiswaan', 'read')) {
+                    $footerUrl = route('dashboard.persuratan.index');
+                    $footerText = 'Buka Persuratan & Disposisi';
+                }
                 break;
 
             case 'peserta_didik':
@@ -327,15 +338,42 @@ class SystemNotificationService
     }
 
     /**
-     * Peringatan & Pengingat Dinamis untuk Tendik
+     * Peringatan & Pengingat Dinamis untuk Tendik (Disesuaikan Per Bidang Tugas Terkait)
      */
     protected static function getTendikDynamicReminders($currentUser, ?string $ptkId, int $existingDbCount): Collection
     {
         $list = collect();
 
-        // 1. Cek aktivitas Persuratan jika pengguna memiliki hak akses / penugasan Persuratan
-        try {
-            if (RolePermission::canAccess($currentUser, 'menu_persuratan', 'read') && Schema::hasTable('persuratan')) {
+        $userId = (string) (is_array($currentUser)
+            ? ($currentUser['pengguna_id'] ?? ($currentUser['id'] ?? ''))
+            : ($currentUser->pengguna_id ?? ($currentUser->id ?? '')));
+
+        // Ambil daftar kode tugas tambahan aktif personil
+        $duties = [];
+        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            try {
+                $duties = \DB::table('ptk_tugas_tambahan as ptt')
+                    ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                    ->where('ptt.is_active', true)
+                    ->where('rtt.is_active', true)
+                    ->where(function ($q) use ($userId, $ptkId) {
+                        if ($userId) $q->where('ptt.user_id', $userId);
+                        if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
+                    })
+                    ->pluck('rtt.kode')
+                    ->toArray();
+            } catch (\Throwable $e) {}
+        }
+
+        $isKepalaTas = in_array('KEPALA_TAS', $duties, true);
+        $isPersuratan = $isKepalaTas || in_array('STAF_PERSURATAN', $duties, true) || (empty($duties) && RolePermission::canAccess($currentUser, 'menu_persuratan', 'read'));
+        $isKesiswaan = $isKepalaTas || in_array('STAF_KESISWAAN', $duties, true) || RolePermission::canAccess($currentUser, 'menu_kesiswaan', 'read');
+        $isKepegawaian = $isKepalaTas || in_array('STAF_KEPEGAWAIAN', $duties, true) || RolePermission::canAccess($currentUser, 'menu_kepegawaian', 'read');
+        $isGuruPiket = in_array('GURU_PIKET', $duties, true);
+
+        // 1. BIDANG PERSURATAN: Notifikasi surat masuk & disposisi
+        if ($isPersuratan && Schema::hasTable('persuratan')) {
+            try {
                 $pendingSurat = \App\Models\Persuratan::where('status', 'menunggu_disposisi')->count();
                 if ($pendingSurat > 0) {
                     $list->push((object) [
@@ -352,15 +390,162 @@ class SystemNotificationService
                         'is_dynamic' => true,
                     ]);
                 }
-            }
-        } catch (\Throwable $e) {}
+
+                if (Schema::hasTable('persuratan_disposisi') && $ptkId) {
+                    $disposisiSaya = \App\Models\PersuratanDisposisi::where('ptk_id_tujuan', $ptkId)
+                        ->where('status', 'menunggu')
+                        ->count();
+
+                    if ($disposisiSaya > 0) {
+                        $list->push((object) [
+                            'id'         => 'dyn_tendik_disposisi_saya',
+                            'judul'      => 'Disposisi Surat Masuk Untuk Anda',
+                            'pesan'      => "Ada {$disposisiSaya} instruksi lembar disposisi pimpinan yang ditujukan kepada Anda.",
+                            'kategori'   => 'persuratan',
+                            'tipe'       => 'info',
+                            'icon'       => 'fas fa-file-signature',
+                            'url'        => route('dashboard.persuratan.index'),
+                            'created_at' => now(),
+                            'time_diff'  => 'Baru',
+                            'is_read'    => false,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 2. BIDANG KESISWAAN: Notifikasi berkas fisik siswa baru & buku klaper
+        if ($isKesiswaan) {
+            try {
+                // Notifikasi berkas fisik yang belum lengkap
+                if (Schema::hasTable('kesiswaan_berkas_verifikasi')) {
+                    $unverifiedBerkas = \App\Models\KesiswaanBerkasVerifikasi::where(function ($q) {
+                        $q->where('akta_kelahiran', false)
+                          ->orWhere('kartu_keluarga', false)
+                          ->orWhere('ijazah_smp', false);
+                    })->count();
+
+                    if ($unverifiedBerkas > 0) {
+                        $list->push((object) [
+                            'id'         => 'dyn_tendik_berkas_unverified',
+                            'judul'      => 'Verifikasi Berkas Siswa Baru',
+                            'pesan'      => "Terdapat {$unverifiedBerkas} siswa baru yang berkas persyaratannya belum lengkap terverifikasi.",
+                            'kategori'   => 'kesiswaan',
+                            'tipe'       => 'warning',
+                            'icon'       => 'fas fa-folder-open',
+                            'url'        => route('dashboard.kesiswaan.index', ['tab' => 'berkas']),
+                            'created_at' => now(),
+                            'time_diff'  => 'Perlu Verifikasi',
+                            'is_read'    => false,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+                }
+
+                // Notifikasi siswa aktif yang belum tercatat di buku klaper
+                if (Schema::hasTable('peserta_didik') && Schema::hasTable('kesiswaan_buku_klaper')) {
+                    $unregisteredKlaper = \App\Models\PesertaDidik::whereDoesntHave('klaper')->count();
+                    if ($unregisteredKlaper > 0) {
+                        $list->push((object) [
+                            'id'         => 'dyn_tendik_klaper_unsynced',
+                            'judul'      => 'Sinkronisasi Buku Klaper',
+                            'pesan'      => "Ada {$unregisteredKlaper} siswa aktif belum terdaftar pada Buku Klaper sekolah.",
+                            'kategori'   => 'kesiswaan',
+                            'tipe'       => 'info',
+                            'icon'       => 'fas fa-address-book',
+                            'url'        => route('dashboard.kesiswaan.index', ['tab' => 'klaper']),
+                            'created_at' => now(),
+                            'time_diff'  => 'Belum Sinkron',
+                            'is_read'    => false,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 3. BIDANG KEPEGAWAIAN GTK: Notifikasi KGB & Cuti
+        if ($isKepegawaian) {
+            try {
+                // Notifikasi KGB jatuh tempo dalam 90 hari
+                if (Schema::hasTable('gtk_kgb_tracker')) {
+                    $today = now()->toDateString();
+                    $in90Days = now()->addDays(90)->toDateString();
+                    $kgbJatuhTempo = \App\Models\GtkKgbTracker::whereBetween('tmt_baru_target', [$today, $in90Days])
+                        ->where('status_usulan', '!=', 'terbit_sk')
+                        ->count();
+
+                    if ($kgbJatuhTempo > 0) {
+                        $list->push((object) [
+                            'id'         => 'dyn_tendik_kgb_due',
+                            'judul'      => 'Kenaikan Gaji Berkala (KGB) Jatuh Tempo',
+                            'pesan'      => "Terdapat {$kgbJatuhTempo} GTK yang akan jatuh tempo KGB dalam 90 hari ke depan.",
+                            'kategori'   => 'kepegawaian',
+                            'tipe'       => 'warning',
+                            'icon'       => 'fas fa-business-time',
+                            'url'        => route('dashboard.kepegawaian.index', ['tab' => 'kgb']),
+                            'created_at' => now(),
+                            'time_diff'  => 'Segera Usulkan',
+                            'is_read'    => false,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+                }
+
+                // Notifikasi permohonan cuti / tugas dinas yang diajukan
+                if (Schema::hasTable('gtk_cuti_izin')) {
+                    $pendingCuti = \App\Models\GtkCutiIzin::where('status', 'diajukan')->count();
+                    if ($pendingCuti > 0) {
+                        $list->push((object) [
+                            'id'         => 'dyn_tendik_cuti_pending',
+                            'judul'      => 'Permohonan Cuti / Izin GTK',
+                            'pesan'      => "Terdapat {$pendingCuti} permohonan cuti GTK yang sedang menunggu proses verifikasi.",
+                            'kategori'   => 'kepegawaian',
+                            'tipe'       => 'info',
+                            'icon'       => 'fas fa-plane-departure',
+                            'url'        => route('dashboard.kepegawaian.index', ['tab' => 'cuti']),
+                            'created_at' => now(),
+                            'time_diff'  => 'Menunggu',
+                            'is_read'    => false,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 4. BIDANG GURU PIKET: Notifikasi izin keluar masuk siswa
+        if ($isGuruPiket && Schema::hasTable('presensi_izin')) {
+            try {
+                $pendingIzinToday = \App\Models\PresensiIzin::whereDate('tanggal_mulai', now()->toDateString())
+                    ->where('status', 'menunggu')
+                    ->count();
+
+                if ($pendingIzinToday > 0) {
+                    $list->push((object) [
+                        'id'         => 'dyn_tendik_piket_izin',
+                        'judul'      => 'e-Izin Keluar Masuk Siswa',
+                        'pesan'      => "Ada {$pendingIzinToday} siswa mengajukan izin hari ini yang memerlukan konfirmasi guru piket.",
+                        'kategori'   => 'piket',
+                        'tipe'       => 'warning',
+                        'icon'       => 'fas fa-person-walking-dashed-line-arrow-right',
+                        'url'        => route('dashboard.peserta-didik.izin.index'),
+                        'created_at' => now(),
+                        'time_diff'  => 'Hari Ini',
+                        'is_read'    => false,
+                        'is_dynamic' => true,
+                    ]);
+                }
+            } catch (\Throwable $e) {}
+        }
 
         // Jika tidak ada notifikasi DB atau aktivitas dinamis, tampilkan pesan ramah baku
         if ($list->isEmpty() && $existingDbCount === 0) {
             $list->push((object) [
                 'id'         => 'dyn_tendik_standby',
                 'judul'      => 'Aktivitas Hari Ini',
-                'pesan'      => 'Belum ada aktivitas hari ini untuk dikerjakan.',
+                'pesan'      => 'Belum ada aktivitas baru pada bidang tugas Anda.',
                 'kategori'   => 'tendik',
                 'tipe'       => 'info',
                 'icon'       => 'fas fa-circle-check',

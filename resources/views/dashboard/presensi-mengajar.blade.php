@@ -251,8 +251,8 @@
             </div>
             <div>
                 <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline"
-                    style="padding: 6px 12px; font-size: 0.78rem;">
-                    <i class="fas fa-calendar-alt me-1"></i> Detail Kalender
+                    style="padding: 6px 12px; font-size: 0.8rem;" title="Detail Kalender Pendidikan">
+                    <i class="fas fa-calendar-alt"></i>
                 </a>
             </div>
         </div>
@@ -359,9 +359,8 @@
                                         data-jam-waktu="{{ $j->jam_waktu_range }}" data-durasi-jp="{{ $j->durasi_jp }}"
                                         data-hari="{{ $j->hari }}" data-ptk-id="{{ $j->ptk_id }}"
                                         title="Presensi Sekarang"
-                                        style="font-size: 0.76rem; padding: 5px 12px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
+                                        style="font-size: 0.8rem; padding: 5px 10px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
                                         <i class="fas fa-calendar-check"></i>
-                                        <span>Presensi</span>
                                     </button>
                                 @endif
                             @endif
