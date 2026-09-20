@@ -153,7 +153,42 @@ class AuthController extends Controller
             $gtk = \Illuminate\Support\Facades\DB::table('gtk')->where('ptk_id', $user->ptk_id)->first();
             if ($gtk) {
                 $userData['nip'] = $gtk->nip;
-                $userData['mapel'] = $gtk->bidang_studi_terakhir ?? $gtk->jabatan_ptk_id_str;
+
+                if ($user->role === 'tendik') {
+                    // Cari tugas tambahan aktif tendik
+                    $bagianTugas = null;
+                    if (\Illuminate\Support\Facades\Schema::hasTable('ptk_tugas_tambahan') && \Illuminate\Support\Facades\Schema::hasTable('ref_tugas_tambahan')) {
+                        $activeDuties = \Illuminate\Support\Facades\DB::table('ptk_tugas_tambahan as ptt')
+                            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                            ->where('ptt.is_active', true)
+                            ->where('rtt.is_active', true)
+                            ->where(function ($q) use ($user) {
+                                $q->where('ptt.user_id', $user->pengguna_id)
+                                    ->orWhere('ptt.ptk_id', $user->ptk_id);
+                            })
+                            ->pluck('rtt.nama')
+                            ->filter()
+                            ->unique();
+
+                        if ($activeDuties->isNotEmpty()) {
+                            $bagianTugas = $activeDuties->implode(', ');
+                        }
+                    }
+                    $userData['mapel'] = $bagianTugas ?: ($gtk->jabatan_ptk_id_str ?: ($gtk->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah'));
+                } else {
+                    // Guru atau role lainnya: ambil mata pelajaran dengan jam mengajar terbanyak
+                    $mapelUtama = null;
+                    if (\Illuminate\Support\Facades\Schema::hasTable('pembelajaran')) {
+                        $topMapel = \Illuminate\Support\Facades\DB::table('pembelajaran')
+                            ->where('ptk_id', $user->ptk_id)
+                            ->select('nama_mata_pelajaran', \Illuminate\Support\Facades\DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
+                            ->groupBy('nama_mata_pelajaran')
+                            ->orderByDesc('total_jam')
+                            ->first();
+                        $mapelUtama = $topMapel?->nama_mata_pelajaran;
+                    }
+                    $userData['mapel'] = $mapelUtama ?: ($gtk->bidang_studi_terakhir ?? ($gtk->jabatan_ptk_id_str ?? 'Guru Mata Pelajaran'));
+                }
             }
         } elseif (!empty($user->peserta_didik_id)) {
             $pd = \Illuminate\Support\Facades\DB::table('peserta_didik')->where('peserta_didik_id', $user->peserta_didik_id)->first();

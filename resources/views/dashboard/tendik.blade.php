@@ -1,7 +1,7 @@
 @extends('layouts.dashboard')
 
 @section('title', 'Dashboard Tenaga Kependidikan — SAE')
-@section('dash_title', 'Portal Tenaga Kependidikan & Administrasi')
+@section('dash_title', ($isKepalaTas ?? false) ? 'Portal Kepala Tenaga Administrasi Sekolah (TAS)' : 'Portal Tenaga Kependidikan & Administrasi')
 
 @section('content')
     @php
@@ -14,213 +14,213 @@
                     : ($hour < 18
                         ? 'Selamat Sore,'
                         : 'Selamat Malam,'));
+
+        $sessionUser = session('user');
+        $userName = is_array($sessionUser) ? ($sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Tenaga Kependidikan')) : ($sessionUser->name ?? ($sessionUser->nama ?? 'Tenaga Kependidikan'));
+        $fotoUrl = $fotoUrl ?? (is_array($sessionUser) ? ($sessionUser['foto_url'] ?? null) : ($sessionUser->foto_url ?? null));
+        if (!$fotoUrl) {
+            $uId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+            if ($uId) {
+                $fotoUrl = \App\Models\User::where('pengguna_id', $uId)->first()?->foto_url;
+            }
+        }
+        if (!$fotoUrl && !empty($gtk?->ptk_id)) {
+            $fotoUrl = \App\Models\User::where('ptk_id', $gtk->ptk_id)->whereNotNull('foto_path')->first()?->foto_url;
+        }
+
+        $activeSection = $viewSection ?? 'persuratan';
+
+        // Daftar semua bidang tugas untuk switcher Kepala TAS
+        $allDomains = [
+            'kepala-tas' => ['label' => 'Ikhtisar Koordinator', 'icon' => 'fas fa-landmark', 'color' => '#10b981'],
+            'kesiswaan' => ['label' => 'Kesiswaan', 'icon' => 'fas fa-user-graduate', 'color' => '#3b82f6'],
+            'kepegawaian' => ['label' => 'Kepegawaian', 'icon' => 'fas fa-id-badge', 'color' => '#8b5cf6'],
+            'sarpras' => ['label' => 'Sarpras & Aset', 'icon' => 'fas fa-building', 'color' => '#f59e0b'],
+            'laboran' => ['label' => 'Laboratorium', 'icon' => 'fas fa-flask', 'color' => '#06b6d4'],
+            'perpustakaan' => ['label' => 'Perpustakaan', 'icon' => 'fas fa-book-open', 'color' => '#ec4899'],
+            'teknisi' => ['label' => 'Teknisi IT', 'icon' => 'fas fa-network-wired', 'color' => '#6366f1'],
+            'keamanan' => ['label' => 'Keamanan & Tamu', 'icon' => 'fas fa-shield-halved', 'color' => '#ef4444'],
+            'persuratan' => ['label' => 'Persuratan & Arsip', 'icon' => 'fas fa-envelope-open-text', 'color' => '#14b8a6'],
+            'penjaga' => ['label' => 'Fasilitas & Penjaga', 'icon' => 'fas fa-broom', 'color' => '#84cc16'],
+        ];
     @endphp
-    <!-- Banner Header -->
-    <div class="card"
-        style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25); position: relative; overflow: hidden; border-radius: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-            <div>
+
+    <!-- Welcome Banner -->
+    <div class="dash-banner"
+        style="margin-bottom: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-radius: 16px; padding: 20px 24px;">
+        <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
+            @if ($fotoUrl)
+                <!-- Pasfoto Tenaga Kependidikan -->
+                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}" 
+                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                </div>
+            @endif
+
+            <div style="flex: 1; min-width: 0;">
                 <h2
-                    style="font-size: 1.45rem; font-weight: 800; color: var(--text-color); margin-bottom: 6px; line-height: 1.3;">
+                    style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                     <span
-                        style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
-                    {{ session('user')['name'] ?? 'Tenaga Kependidikan' }}! 📁
+                        style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
+                    {{ $userName }}! 📁
                 </h2>
                 <div
-                    style="display: flex; gap: 16px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 12px;">
-                    <span><i class="fas fa-briefcase text-primary me-1"></i> Bagian:
-                        <strong>{{ session('user')['mapel'] ?? 'Tata Usaha / Administrasi Sekolah' }}</strong></span>
-                    @if (!empty(session('user')['nip']))
-                        <span><i class="fas fa-id-card text-primary me-1"></i> NIP:
-                            <strong>{{ session('user')['nip'] }}</strong></span>
+                    style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
+                    <span title="Penugasan / Bidang Tugas">
+                        <i class="fas fa-briefcase text-primary me-1"></i>
+                        <strong style="color: var(--text-color);">{{ $bagianTugas ?? 'Tenaga Administrasi Sekolah' }}</strong>
+                    </span>
+                    @if (!empty(session('user.nip', $gtk->nip ?? null)))
+                        <span title="Nomor Induk Pegawai (NIP)">
+                            <i class="fas fa-id-badge text-warning me-1"></i>
+                            <strong style="color: var(--text-color);">{{ session('user.nip', $gtk->nip) }}</strong>
+                        </span>
+                    @endif
+                    @if(!empty($gtk->status_kepegawaian_id_str))
+                        <span title="Status Kepegawaian">
+                            <i class="fas fa-id-card-clip text-info me-1"></i>
+                            <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk->status_kepegawaian_id_str }}</span>
+                        </span>
                     @endif
                 </div>
-                <div
-                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #3b82f6;">
-                    <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <div
+                        style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #3b82f6;">
+                        <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+                    </div>
+                    @if($isKepalaTas ?? false)
+                        <div
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #10b981;">
+                            <i class="fas fa-crown"></i> Kepala TAS / Koordinator Tata Usaha
+                        </div>
+                    @endif
                 </div>
             </div>
-            @if (
-                \App\Models\RolePermission::canAccess('tendik', 'menu_surat_keluar') ||
+        </div>
+
+        <!-- Dynamic Action Buttons Berdasarkan Bidang -->
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            @if ($activeSection === 'kesiswaan')
+                <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-primary"
+                    style="background: #3b82f6; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-user-graduate"></i> Buku Induk Siswa
+                </a>
+                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline"
+                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-layer-group"></i> Rombongan Belajar
+                </a>
+            @elseif ($activeSection === 'kepegawaian')
+                <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-primary"
+                    style="background: #8b5cf6; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-id-badge"></i> Data Tendik Aktif
+                </a>
+                <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline"
+                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-chalkboard-user"></i> Direktori Guru
+                </a>
+            @elseif ($activeSection === 'sarpras')
+                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-primary"
+                    style="background: #f59e0b; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-door-open"></i> Pemetaan Ruang &amp; Kelas
+                </a>
+            @elseif ($activeSection === 'laboran')
+                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-primary"
+                    style="background: #06b6d4; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-calendar-check"></i> Jadwal Praktikum
+                </a>
+            @elseif ($activeSection === 'keamanan')
+                <a href="{{ route('presensi.scan') }}" target="_blank" class="btn btn-primary"
+                    style="background: #ef4444; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-qrcode"></i> Buka Kiosk Gate Presensi
+                </a>
+            @elseif ($activeSection === 'teknisi')
+                <a href="{{ route('presensi.scan') }}" target="_blank" class="btn btn-primary"
+                    style="background: #6366f1; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-desktop"></i> Monitor Gerbang RFID
+                </a>
+            @else
+                @if (
+                    \App\Models\RolePermission::canAccess('tendik', 'menu_persuratan') ||
+                    \App\Models\RolePermission::canAccess('tendik', 'menu_surat_keluar') ||
                     \App\Models\RolePermission::canAccess('tendik', 'menu_berkas_peserta_didik'))
-                <div>
-                    <button class="btn btn-primary"
-                        style="background: #10b981; border: none; padding: 10px 18px; font-size: 0.85rem; border-radius: 8px; font-weight: 600;">
-                        <i class="fas fa-plus me-1"></i> Catat Surat / Dokumen
-                    </button>
-                </div>
+                    <a href="{{ route('dashboard.persuratan.index') }}" class="btn btn-primary"
+                        style="background: #10b981; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-plus"></i> Catat Surat / Dokumen
+                    </a>
+                @endif
+                <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
+                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-address-book"></i> Direktori Pegawai
+                </a>
             @endif
         </div>
     </div>
 
-    <!-- Quick Stats Grid -->
-    <div class="dash-stat-grid"
-        style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 24px; gap: 16px;">
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
-                <i class="fas fa-inbox"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['total_surat_masuk'] }} Dokumen</div>
-                <div class="dash-stat-label">Surat Masuk Bulan Ini</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
-                <i class="fas fa-paper-plane"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['total_surat_keluar'] }} Berkas</div>
-                <div class="dash-stat-label">Surat Keluar / Keterangan</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
-                <i class="fas fa-address-book"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ $stats['buku_tamu_hari_ini'] }} Tamu</div>
-                <div class="dash-stat-label">Buku Tamu Digital Hari Ini</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.05rem;">{{ $stats['status_presensi'] }}</div>
-                <div class="dash-stat-label">Masuk: {{ $stats['presensi_masuk'] }}</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content Grid -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
-        <!-- Left: Administrasi & Persuratan Terbaru -->
-        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px;">
-            <div
-                style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
-                    <i class="fas fa-file-invoice text-primary me-2"></i> Log Administrasi &amp; Surat Terakhir
+    <!-- Domain / Bidang Switcher Tabs -->
+    @if ($isKepalaTas ?? false)
+        <div class="dash-domain-switcher" style="margin-bottom: 22px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="fas fa-sliders text-primary me-1"></i> Navigasi Bidang Kerja Tata Administrasi Sekolah (TAS)
                 </div>
-                <span class="badge badge-info" style="font-size: 0.72rem; padding: 4px 8px;">
-                    Hari ini: {{ date('d F Y') }}
+                <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">
+                    Mode Supervisi Koordinator
                 </span>
             </div>
-
-            <div class="table-responsive">
-                <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
-                            <th
-                                style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                                No. Agenda</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                                Jenis / Kategori</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                                Perihal Dokumen</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                                Status</th>
-                            <th
-                                style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">
-                                Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($administrasi_tugas as $adm)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td
-                                    style="padding: 12px 16px; font-size: 0.8rem; font-family: monospace; font-weight: 600; color: var(--text-color);">
-                                    {{ $adm['nomor'] }}
-                                    <div style="font-size: 0.72rem; color: var(--text-muted); font-family: sans-serif;">
-                                        {{ $adm['tgl'] }}</div>
-                                </td>
-                                <td style="padding: 12px 14px; font-size: 0.8rem;">
-                                    <span
-                                        class="badge {{ str_contains($adm['kategori'], 'Masuk') ? 'badge-primary' : (str_contains($adm['kategori'], 'Keluar') ? 'badge-success' : 'badge-warning') }}"
-                                        style="font-size: 0.72rem; padding: 3px 8px;">
-                                        {{ $adm['kategori'] }}
-                                    </span>
-                                </td>
-                                <td style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-color);">
-                                    <div style="font-weight: 600;">{{ $adm['perihal'] }}</div>
-                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
-                                        Dari/Tujuan: {{ $adm['pengirim'] }}
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 14px; font-size: 0.8rem;">
-                                    <span
-                                        style="display: inline-flex; align-items: center; gap: 5px; color: #10b981; font-weight: 600; font-size: 0.78rem;">
-                                        <i class="fas fa-circle-check" style="font-size: 0.68rem;"></i>
-                                        {{ $adm['status'] }}
-                                    </span>
-                                </td>
-                                <td style="padding: 12px 16px; text-align: center;">
-                                    <button class="btn btn-outline"
-                                        style="padding: 4px 8px; font-size: 0.75rem; border-radius: 6px;"
-                                        title="Lihat Dokumen">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch;">
+                @foreach ($allDomains as $slug => $domain)
+                    @php $isActive = ($activeSection === $slug); @endphp
+                    <a href="{{ route('dashboard.tendik', ['bidang' => $slug]) }}"
+                        style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: {{ $isActive ? '700' : '600' }}; text-decoration: none; white-space: nowrap; transition: all 0.2s ease;
+                        {{ $isActive 
+                            ? 'background: ' . $domain['color'] . '; color: #ffffff; box-shadow: 0 4px 12px ' . $domain['color'] . '40; border: 1px solid ' . $domain['color'] . ';' 
+                            : 'background: var(--card-bg, #ffffff); color: var(--text-color); border: 1px solid var(--border-color);' }}">
+                        <i class="{{ $domain['icon'] }}" style="{{ $isActive ? 'color: #ffffff;' : 'color: ' . $domain['color'] . ';' }}"></i>
+                        <span>{{ $domain['label'] }}</span>
+                    </a>
+                @endforeach
             </div>
         </div>
-
-        <!-- Right: Menu Cepat Administrasi -->
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-            <div class="card" style="padding: 18px; border-radius: 14px;">
-                <div
-                    style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-bolt text-primary"></i> Akses Cepat Administrasi
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
-                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                        <span><i class="fas fa-id-badge text-primary me-2"></i> Direktori Tendik Aktif</span>
-                        <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
-                    </a>
-                    <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline"
-                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                        <span><i class="fas fa-chalkboard-user text-primary me-2"></i> Direktori Guru Aktif</span>
-                        <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
-                    </a>
-                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline"
-                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                        <span><i class="fas fa-user-graduate text-primary me-2"></i> Direktori Peserta Didik Aktif</span>
-                        <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
-                    </a>
-                    <a href="#" class="btn btn-outline"
-                        style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                        <span><i class="fas fa-address-book text-primary me-2"></i> Buku Tamu Digital</span>
-                        <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
-                    </a>
-                </div>
+    @elseif (isset($userDuties) && count($userDuties) > 1)
+        <!-- Multi-Duty Switcher untuk Tendik dengan lebih dari 1 tugas tambahan -->
+        <div class="dash-domain-switcher" style="margin-bottom: 20px;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+                <i class="fas fa-layer-group text-primary me-1"></i> Penugasan Aktif Anda
             </div>
-
-            <!-- Jam Kerja & Kehadiran -->
-            <div class="card"
-                style="padding: 18px; border-radius: 14px; background: rgba(99, 102, 241, 0.04); border: 1px solid rgba(99, 102, 241, 0.15);">
-                <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color); margin-bottom: 8px;">
-                    <i class="far fa-clock text-primary me-1"></i> Jam Layanan TU Hari Ini
-                </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">
-                    Senin - Kamis: <strong>07.00 - 15.30 WIB</strong><br>
-                    Jumat: <strong>07.00 - 15.00 WIB</strong>
-                </div>
-                <div
-                    style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color); font-size: 0.76rem; color: #10b981; font-weight: 600;">
-                    <i class="fas fa-check-circle me-1"></i> Presensi staf telah terverifikasi via RFID Gateway.
-                </div>
+            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;">
+                @foreach ($userDuties as $ud)
+                    @php
+                        $codeMap = [
+                            'KEPALA_TAS' => 'kepala-tas',
+                            'STAF_KESISWAAN' => 'kesiswaan',
+                            'STAF_KEPEGAWAIAN' => 'kepegawaian',
+                            'STAF_SARPRAS' => 'sarpras',
+                            'LABORAN' => 'laboran',
+                            'PUSTAKAWAN' => 'perpustakaan',
+                            'TEKNISI_IT' => 'teknisi',
+                            'SATPAM' => 'keamanan',
+                            'PENJAGA_SEKOLAH' => 'penjaga',
+                            'STAF_PERSURATAN' => 'persuratan',
+                        ];
+                        $targetSlug = $codeMap[$ud->kode] ?? 'persuratan';
+                        $isActive = ($activeSection === $targetSlug);
+                        $info = $allDomains[$targetSlug] ?? ['label' => $ud->nama, 'icon' => 'fas fa-briefcase', 'color' => '#10b981'];
+                    @endphp
+                    <a href="{{ route('dashboard.tendik', ['bidang' => $targetSlug]) }}"
+                        style="display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: {{ $isActive ? '700' : '600' }}; text-decoration: none; white-space: nowrap;
+                        {{ $isActive 
+                            ? 'background: ' . $info['color'] . '; color: #ffffff; border: 1px solid ' . $info['color'] . ';' 
+                            : 'background: var(--card-bg, #ffffff); color: var(--text-color); border: 1px solid var(--border-color);' }}">
+                        <i class="{{ $info['icon'] }}"></i>
+                        <span>{{ $ud->nama }}</span>
+                    </a>
+                @endforeach
             </div>
         </div>
-    </div>
+    @endif
+
+    <!-- Dynamic Section Content by Domain -->
+    @include('dashboard.tendik.section-' . $activeSection)
+
 @endsection

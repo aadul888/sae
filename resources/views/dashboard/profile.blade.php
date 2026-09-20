@@ -25,13 +25,11 @@
                 @endif
             </div>
             <div class="profile-banner-details">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
-                    <div>
-                        <h1 class="profile-banner-title">{{ $user->name ?? 'Pengguna' }}</h1>
-                        <div style="font-size: 0.88rem; color: var(--text-muted);">
-                            Username: <strong style="color: var(--text-color);">{{ $user->username }}</strong>
-                        </div>
+                <div class="profile-banner-header">
+                    <h1 class="profile-banner-title">{{ $user->name ?? 'Pengguna' }}</h1>
+                    <div class="profile-banner-username" title="Identitas Akun / Username">
+                        <i class="fas fa-at text-muted" style="font-size: 0.85rem; opacity: 0.85;"></i>
+                        <strong class="profile-username-val">{{ $user->username }}</strong>
                     </div>
                 </div>
                 <div class="profile-banner-meta">
@@ -39,18 +37,34 @@
                         {{ strtoupper(str_replace('_', ' ', $role)) }}
                     </span>
                     @if (!empty($profileDetails['sekolah']))
-                        <span class="profile-meta-chip">
-                            <i class="fas fa-school text-primary"></i> {{ $profileDetails['sekolah'] }}
+                        <span class="profile-meta-chip" title="Sekolah: {{ $profileDetails['sekolah'] }}">
+                            <i class="fas fa-school text-primary"></i> <span>{{ $profileDetails['sekolah'] }}</span>
                         </span>
                     @endif
                     @if (!empty($profileDetails['kelas']))
-                        <span class="profile-meta-chip">
-                            <i class="fas fa-graduation-cap text-warning"></i> Kelas {{ $profileDetails['kelas'] }}
+                        <span class="profile-meta-chip" title="Kelas / Rombel">
+                            <i class="fas fa-graduation-cap text-warning"></i> <span>{{ $profileDetails['kelas'] }}</span>
                         </span>
                     @endif
-                    <span class="profile-meta-chip"
+                    @if ($role === 'guru' && !empty($profileDetails['mapel']) && $profileDetails['mapel'] !== '-')
+                        <span class="profile-meta-chip" title="Mata Pelajaran Utama">
+                            <i class="fas fa-book text-info"></i> <span>{{ $profileDetails['mapel'] }}</span>
+                        </span>
+                    @endif
+                    @if ($role === 'tendik' && !empty($profileDetails['tugas_tambahan']) && $profileDetails['tugas_tambahan'] !== '-')
+                        <span class="profile-meta-chip" title="Penugasan / Bidang Tugas">
+                            <i class="fas fa-briefcase text-success"></i> <span>{{ $profileDetails['tugas_tambahan'] }}</span>
+                        </span>
+                    @endif
+                    @if (!empty($profileDetails['status_kepegawaian']))
+                        <span class="profile-meta-chip" title="Status Kepegawaian">
+                            <i class="fas fa-id-card-clip text-info"></i> <span>{{ $profileDetails['status_kepegawaian'] }}</span>
+                        </span>
+                    @endif
+                    <span class="profile-meta-chip profile-chip-status"
+                        title="Status Akun Pengguna"
                         style="color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08);">
-                        <i class="fas fa-circle-check"></i> Akun Aktif
+                        <i class="fas fa-circle-check"></i> <span>Akun Aktif</span>
                     </span>
                 </div>
             </div>
@@ -126,10 +140,32 @@
                                 </div>
                                 @if ($role === 'guru')
                                     <div class="profile-info-row">
-                                        <span class="profile-info-label"><i class="fas fa-book"></i> Bidang Studi /
-                                            Mapel</span>
+                                        <span class="profile-info-label"><i class="fas fa-book"></i> Mapel Utama</span>
                                         <span class="profile-info-val">{{ $profileDetails['mapel'] ?? '-' }}</span>
                                     </div>
+                                    @if (!empty($profileDetails['bidang_studi']) && $profileDetails['bidang_studi'] !== '-' && $profileDetails['bidang_studi'] !== $profileDetails['mapel'])
+                                        <div class="profile-info-row">
+                                            <span class="profile-info-label"><i class="fas fa-graduation-cap"></i> Jurusan / Bidang Studi</span>
+                                            <span class="profile-info-val">{{ $profileDetails['bidang_studi'] }}</span>
+                                        </div>
+                                    @endif
+                                    @if (!empty($profileDetails['tugas_tambahan']) && $profileDetails['tugas_tambahan'] !== '-')
+                                        <div class="profile-info-row">
+                                            <span class="profile-info-label"><i class="fas fa-user-gear"></i> Tugas Tambahan</span>
+                                            <span class="profile-info-val">{{ $profileDetails['tugas_tambahan'] }}</span>
+                                        </div>
+                                    @endif
+                                @elseif ($role === 'tendik')
+                                    <div class="profile-info-row">
+                                        <span class="profile-info-label"><i class="fas fa-user-gear"></i> Bagian / Tugas</span>
+                                        <span class="profile-info-val">{{ $profileDetails['tugas_tambahan'] ?? ($profileDetails['jabatan'] ?? '-') }}</span>
+                                    </div>
+                                    @if (!empty($profileDetails['bidang_studi']) && $profileDetails['bidang_studi'] !== '-')
+                                        <div class="profile-info-row">
+                                            <span class="profile-info-label"><i class="fas fa-graduation-cap"></i> Bidang Keahlian / Studi</span>
+                                            <span class="profile-info-val">{{ $profileDetails['bidang_studi'] }}</span>
+                                        </div>
+                                    @endif
                                 @endif
                             @else
                                 <div class="profile-info-row">

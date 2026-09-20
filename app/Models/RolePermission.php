@@ -191,6 +191,11 @@ class RolePermission extends Model
             ],
 
             'Administrasi Tendik' => [
+                'menu_persuratan' => [
+                    'label' => 'Persuratan & Arsip',
+                    'icon' => 'fa-envelope-open-text',
+                    'roles' => ['admin', 'tendik'],
+                ],
                 'menu_buku_tamu' => [
                     'label' => 'Buku Tamu',
                     'icon' => 'fa-address-book',
@@ -914,6 +919,7 @@ class RolePermission extends Model
                 'menu_agenda_kbm',
                 'menu_penilaian',
                 'menu_presensi_peserta_didik',
+                'menu_persuratan',
                 'menu_buku_tamu',
                 'menu_inventaris',
                 'menu_agenda',
@@ -948,6 +954,7 @@ class RolePermission extends Model
                 'menu_formulir',
                 'menu_rfid',
                 'menu_e_izin',
+                'menu_persuratan',
                 'menu_buku_tamu',
                 'menu_inventaris',
                 'menu_agenda',

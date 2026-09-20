@@ -14,22 +14,75 @@
                     : ($hour < 18
                         ? 'Selamat Sore,'
                         : 'Selamat Malam,'));
+
+        $sessionUser = session('user');
+        $userName = is_array($sessionUser) ? ($sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Guru')) : ($sessionUser->name ?? ($sessionUser->nama ?? 'Guru'));
+        $fotoUrl = $fotoUrl ?? (is_array($sessionUser) ? ($sessionUser['foto_url'] ?? null) : ($sessionUser->foto_url ?? null));
+        if (!$fotoUrl) {
+            $uId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+            if ($uId) {
+                $fotoUrl = \App\Models\User::where('pengguna_id', $uId)->first()?->foto_url;
+            }
+        }
+        if (!$fotoUrl && !empty($gtk?->ptk_id)) {
+            $fotoUrl = \App\Models\User::where('ptk_id', $gtk->ptk_id)->whereNotNull('foto_path')->first()?->foto_url;
+        }
+
+        if (!isset($mapelUtama) || empty($mapelUtama)) {
+            if (!empty($gtk?->ptk_id)) {
+                $topM = \DB::table('pembelajaran')
+                    ->where('ptk_id', $gtk->ptk_id)
+                    ->select('nama_mata_pelajaran', \DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
+                    ->groupBy('nama_mata_pelajaran')
+                    ->orderByDesc('total_jam')
+                    ->first();
+                $mapelUtama = $topM?->nama_mata_pelajaran;
+            }
+            $mapelUtama = $mapelUtama ?: ($gtk->bidang_studi_terakhir ?? session('user.mapel', 'Mata Pelajaran'));
+        }
     @endphp
     <!-- Welcome Banner -->
-    <div class="dash-banner" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(6,182,212,0.1) 100%);">
-        <div>
-            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.3;">
-                <span
-                    style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
-                {{ session('user.name', 'Guru') }}! 📚
-            </h2>
-            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">
-                Mata Pelajaran: <strong>{{ session('user.mapel', 'Informatika & RPL') }}</strong> &bull; NIP:
-                {{ session('user.nip', '197905122005011003') }}
-            </p>
-            <div
-                style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #10b981;">
-                <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+    <div class="dash-banner" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(6,182,212,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
+            @if ($fotoUrl)
+                <!-- Pasfoto Guru / Pendidik -->
+                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}" 
+                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                </div>
+            @endif
+
+            <div style="flex: 1; min-width: 0;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                    <span
+                        style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
+                    {{ $userName }}! 📚
+                </h2>
+                <div style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
+                    @if (!empty($mapelUtama) && $mapelUtama !== '-')
+                        <span title="Mata Pelajaran Utama">
+                            <i class="fas fa-book-open text-primary me-1"></i>
+                            <strong style="color: var(--text-color);">{{ $mapelUtama }}</strong>
+                        </span>
+                    @endif
+                    @if (!empty(session('user.nip', $gtk->nip ?? null)))
+                        <span title="Nomor Induk Pegawai (NIP)">
+                            <i class="fas fa-id-badge text-warning me-1"></i>
+                            <strong style="color: var(--text-color);">{{ session('user.nip', $gtk->nip) }}</strong>
+                        </span>
+                    @endif
+                    @if(!empty($gtk->status_kepegawaian_id_str))
+                        <span title="Status Kepegawaian">
+                            <i class="fas fa-id-card-clip text-info me-1"></i>
+                            <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk->status_kepegawaian_id_str }}</span>
+                        </span>
+                    @endif
+                </div>
+                <div
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #10b981;">
+                    <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+                </div>
             </div>
         </div>
         <div class="dash-banner-actions">

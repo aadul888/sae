@@ -96,13 +96,36 @@ class User extends Authenticatable
         if (str_contains($peran, 'tendik') || str_contains($peran, 'tenaga kependidikan') || str_contains($peran, 'tata usaha') || str_contains($peran, 'laboran') || str_contains($peran, 'pustakawan')) {
             return 'tendik';
         }
-        if (!empty($this->ptk_id)) {
-            // Cek jenis_ptk dari relasi tabel gtk
-            $gtk = \Illuminate\Support\Facades\DB::table('gtk')->where('ptk_id', $this->ptk_id)->select('jenis_ptk_id_str')->first();
-            if ($gtk && !empty($gtk->jenis_ptk_id_str)) {
-                $jPtk = strtolower($gtk->jenis_ptk_id_str);
-                if (str_contains($jPtk, 'tenaga kependidikan') || (!str_contains($jPtk, 'guru') && !str_contains($jPtk, 'kepala sekolah'))) {
+        if (!empty($this->ptk_id) || !empty($this->pengguna_id)) {
+            // Prioritaskan penugasan aktif Kepala TAS atau staf administrasi/tendik
+            if (\Illuminate\Support\Facades\Schema::hasTable('ptk_tugas_tambahan') && \Illuminate\Support\Facades\Schema::hasTable('ref_tugas_tambahan')) {
+                $hasTendikDuty = \Illuminate\Support\Facades\DB::table('ptk_tugas_tambahan as ptt')
+                    ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                    ->where('ptt.is_active', true)
+                    ->where('rtt.is_active', true)
+                    ->where(function ($q) {
+                        if (!empty($this->pengguna_id)) $q->where('ptt.user_id', $this->pengguna_id);
+                        if (!empty($this->ptk_id)) $q->orWhere('ptt.ptk_id', $this->ptk_id);
+                    })
+                    ->whereIn('rtt.kode', [
+                        'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
+                        'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
+                    ])
+                    ->exists();
+
+                if ($hasTendikDuty) {
                     return 'tendik';
+                }
+            }
+
+            // Cek jenis_ptk dari relasi tabel gtk
+            if (!empty($this->ptk_id)) {
+                $gtk = \Illuminate\Support\Facades\DB::table('gtk')->where('ptk_id', $this->ptk_id)->select('jenis_ptk_id_str')->first();
+                if ($gtk && !empty($gtk->jenis_ptk_id_str)) {
+                    $jPtk = strtolower($gtk->jenis_ptk_id_str);
+                    if (str_contains($jPtk, 'tenaga kependidikan') || (!str_contains($jPtk, 'guru') && !str_contains($jPtk, 'kepala sekolah'))) {
+                        return 'tendik';
+                    }
                 }
             }
         }

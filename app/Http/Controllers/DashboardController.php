@@ -101,10 +101,19 @@ class DashboardController extends Controller
         $user = session('user');
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? '')) : ($user->nama ?? ($user->name ?? ''));
+        $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
 
         $gtk = null;
         if (Schema::hasTable('gtk')) {
             $gtk = $ptkId ? DB::table('gtk')->where('ptk_id', $ptkId)->first() : DB::table('gtk')->where('nama', $userName)->first();
+        }
+
+        $fotoUrl = is_array($user) ? ($user['foto_url'] ?? null) : ($user->foto_url ?? null);
+        if (!$fotoUrl && $userId) {
+            $fotoUrl = \App\Models\User::where('pengguna_id', $userId)->first()?->foto_url;
+        }
+        if (!$fotoUrl && $gtk?->ptk_id) {
+            $fotoUrl = \App\Models\User::where('ptk_id', $gtk->ptk_id)->whereNotNull('foto_path')->first()?->foto_url;
         }
 
         $pembelajaran = collect();
@@ -155,29 +164,47 @@ class DashboardController extends Controller
             4 => 'Kamis',
             5 => 'Jumat',
             6 => 'Sabtu',
-            7 => 'Minggu',
+            default => 'Minggu',
         };
 
+        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || in_array($hariIni, ['Sabtu', 'Minggu']);
         $jadwal_hari_ini = [];
-        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false);
 
-        if (!$isLiburHariIni && Schema::hasTable('jadwal_kbm')) {
-            $jadwalRiil = \App\Models\JadwalKbm::where('is_active', true)
+        if (!$isLiburHariIni && $gtk && Schema::hasTable('jadwal_kbm')) {
+            $jadwalRiil = DB::table('jadwal_kbm')
+                ->where('ptk_id', $gtk->ptk_id)
                 ->where('hari', $hariIni)
-                ->when($gtk, fn($q) => $q->where('ptk_id', $gtk->ptk_id))
-                ->excludePkl()
-                ->orderBy('jam_ke_mulai')
+                ->orderBy('jam_ke')
                 ->get();
 
             if ($jadwalRiil->isNotEmpty()) {
+                // Group jam yang berurutan untuk mapel dan rombel yang sama
+                $grouped = [];
                 foreach ($jadwalRiil as $j) {
-                    $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
-                    $jamRange = (!empty($j->jam_mulai) && !empty($j->jam_selesai))
-                        ? substr($j->jam_mulai, 0, 5) . ' - ' . substr($j->jam_selesai, 0, 5)
-                        : "Jam Ke {$j->jam_ke_mulai}-{$j->jam_ke_selesai}";
+                    $key = $j->rombongan_belajar_id . '_' . $j->nama_mata_pelajaran;
+                    if (!isset($grouped[$key])) {
+                        $grouped[$key] = [
+                            'jam_mulai' => $j->jam_mulai ?: sprintf('%02d:00', 6 + $j->jam_ke),
+                            'jam_selesai' => $j->jam_selesai ?: sprintf('%02d:45', 6 + $j->jam_ke),
+                            'data' => $j,
+                            'total_jp' => 1
+                        ];
+                    } else {
+                        $grouped[$key]['jam_selesai'] = $j->jam_selesai ?: sprintf('%02d:45', 6 + $j->jam_ke);
+                        $grouped[$key]['total_jp']++;
+                    }
+                }
+
+                foreach ($grouped as $g) {
+                    $j = $g['data'];
+                    $rombelNama = $j->nama_rombel;
+                    if (!$rombelNama && !empty($j->rombongan_belajar_id)) {
+                        $rb = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->first();
+                        $rombelNama = $rb?->nama ?: 'Rombel';
+                    }
 
                     $jadwal_hari_ini[] = [
-                        'jam'    => $jamRange,
+                        'jam'    => substr($g['jam_mulai'], 0, 5) . ' - ' . substr($g['jam_selesai'], 0, 5),
                         'kelas'  => $rombelNama,
                         'mapel'  => $j->nama_mata_pelajaran ?: 'Mata Pelajaran',
                         'ruang'  => $j->ruangan ?: 'Ruang Kelas',
@@ -202,25 +229,266 @@ class DashboardController extends Controller
             }
         }
 
-        return view('dashboard.guru', compact('stats', 'jadwal_hari_ini', 'gtk', 'statusHariIni', 'agendaHariIni', 'hariIni'));
+        // Cari mata pelajaran utama dengan total jam mengajar terbanyak
+        $mapelUtama = null;
+        if ($pembelajaran->isNotEmpty()) {
+            $mapelUtama = $pembelajaran->groupBy('nama_mata_pelajaran')
+                ->map(fn($group) => $group->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)))
+                ->sortDesc()
+                ->keys()
+                ->first();
+        }
+        if (!$mapelUtama && $gtk) {
+            $mapelUtama = $gtk->bidang_studi_terakhir ?? ($gtk->jabatan_ptk_id_str ?? 'Guru Mata Pelajaran');
+        }
+
+        return view('dashboard.guru', compact('stats', 'jadwal_hari_ini', 'gtk', 'statusHariIni', 'agendaHariIni', 'hariIni', 'fotoUrl', 'mapelUtama'));
     }
 
-    public function tendik()
+    public function tendik(?Request $request = null)
     {
+        $request = $request ?: request();
         if ($res = $this->checkAuth('tendik')) return $res;
         if (!\App\Models\RolePermission::canAccess('tendik', 'menu_dashboard')) {
             return view('errors.dashboard-disabled', ['roleName' => 'Tenaga Kependidikan', 'role' => 'tendik']);
         }
 
-        $stats = [
-            'total_surat_masuk'  => 14,
-            'total_surat_keluar' => 8,
-            'agenda_sekolah'     => 5,
-            'buku_tamu_hari_ini' => 12,
-            'presensi_masuk'     => '06:50 WIB',
-            'status_presensi'    => 'Hadir Tepat Waktu'
+        $user = session('user');
+        $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+        $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? '')) : ($user->nama ?? ($user->name ?? ''));
+        $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
+
+        $gtk = null;
+        if (Schema::hasTable('gtk')) {
+            $gtk = $ptkId ? DB::table('gtk')->where('ptk_id', $ptkId)->first() : DB::table('gtk')->where('nama', $userName)->first();
+        }
+
+        $fotoUrl = is_array($user) ? ($user['foto_url'] ?? null) : ($user->foto_url ?? null);
+        if (!$fotoUrl && $userId) {
+            $fotoUrl = \App\Models\User::where('pengguna_id', $userId)->first()?->foto_url;
+        }
+        if (!$fotoUrl && $ptkId) {
+            $fotoUrl = \App\Models\User::where('ptk_id', $ptkId)->whereNotNull('foto_path')->first()?->foto_url;
+        }
+        if (!$fotoUrl && $gtk?->ptk_id) {
+            $fotoUrl = \App\Models\User::where('ptk_id', $gtk->ptk_id)->whereNotNull('foto_path')->first()?->foto_url;
+        }
+
+        // Ambil penugasan tugas tambahan aktif untuk tendik
+        $dutyRecords = collect();
+        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            $dutyRecords = DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('ptt.is_active', true)
+                ->where('rtt.is_active', true)
+                ->where(function ($q) use ($userId, $ptkId) {
+                    if ($userId) $q->where('ptt.user_id', $userId);
+                    if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
+                })
+                ->select('rtt.kode', 'rtt.nama')
+                ->get();
+        }
+
+        $activeDuties = $dutyRecords->pluck('nama')->filter()->unique();
+        $dutyCodes = $dutyRecords->pluck('kode')->filter()->unique()->values();
+
+        $bagianTugas = $activeDuties->isNotEmpty()
+            ? $activeDuties->implode(', ')
+            : ($gtk?->jabatan_ptk_id_str ?: ($gtk?->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah'));
+
+        $isKepalaTas = $dutyCodes->contains('KEPALA_TAS');
+
+        // Deteksi Primary Duty Code
+        $primaryDuty = 'STAF_PERSURATAN';
+        if ($isKepalaTas) {
+            $primaryDuty = 'KEPALA_TAS';
+        } elseif ($dutyCodes->contains('STAF_KESISWAAN')) {
+            $primaryDuty = 'STAF_KESISWAAN';
+        } elseif ($dutyCodes->contains('STAF_KEPEGAWAIAN')) {
+            $primaryDuty = 'STAF_KEPEGAWAIAN';
+        } elseif ($dutyCodes->contains('STAF_SARPRAS')) {
+            $primaryDuty = 'STAF_SARPRAS';
+        } elseif ($dutyCodes->contains('LABORAN')) {
+            $primaryDuty = 'LABORAN';
+        } elseif ($dutyCodes->contains('PUSTAKAWAN')) {
+            $primaryDuty = 'PUSTAKAWAN';
+        } elseif ($dutyCodes->contains('TEKNISI_IT')) {
+            $primaryDuty = 'TEKNISI_IT';
+        } elseif ($dutyCodes->contains('SATPAM')) {
+            $primaryDuty = 'SATPAM';
+        } elseif ($dutyCodes->contains('PENJAGA_SEKOLAH')) {
+            $primaryDuty = 'PENJAGA_SEKOLAH';
+        } elseif ($dutyCodes->contains('STAF_PERSURATAN')) {
+            $primaryDuty = 'STAF_PERSURATAN';
+        } elseif ($dutyCodes->isNotEmpty()) {
+            $primaryDuty = $dutyCodes->first();
+        }
+
+        // Peta domain untuk tab switcher
+        $bidangMap = [
+            'kepala_tas'   => 'KEPALA_TAS',
+            'kepala-tas'   => 'KEPALA_TAS',
+            'kesiswaan'    => 'STAF_KESISWAAN',
+            'kepegawaian'  => 'STAF_KEPEGAWAIAN',
+            'sarpras'      => 'STAF_SARPRAS',
+            'laboran'      => 'LABORAN',
+            'perpustakaan' => 'PUSTAKAWAN',
+            'teknisi'      => 'TEKNISI_IT',
+            'keamanan'     => 'SATPAM',
+            'penjaga'      => 'PENJAGA_SEKOLAH',
+            'persuratan'   => 'STAF_PERSURATAN',
         ];
 
+        $reqBidang = $request->query('bidang') ?: $request->get('bidang');
+        $currentDuty = $primaryDuty;
+        if ($reqBidang && isset($bidangMap[$reqBidang])) {
+            if ($isKepalaTas || $dutyCodes->contains($bidangMap[$reqBidang])) {
+                $currentDuty = $bidangMap[$reqBidang];
+            }
+        }
+
+        // Peta view section Blade berdasarkan duty code
+        $viewSectionMap = [
+            'KEPALA_TAS'       => 'kepala-tas',
+            'STAF_KESISWAAN'    => 'kesiswaan',
+            'STAF_KEPEGAWAIAN'  => 'kepegawaian',
+            'STAF_SARPRAS'      => 'sarpras',
+            'LABORAN'          => 'laboran',
+            'PUSTAKAWAN'       => 'perpustakaan',
+            'TEKNISI_IT'       => 'teknisi',
+            'SATPAM'           => 'keamanan',
+            'PENJAGA_SEKOLAH'  => 'penjaga',
+            'STAF_PERSURATAN'  => 'persuratan',
+        ];
+
+        $viewSection = $viewSectionMap[$currentDuty] ?? 'persuratan';
+
+        // Agregasi Statistik & Data Berdasarkan Kebutuhan Modul
+        $totalSuratMasuk = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 14;
+        $totalSuratKeluar = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 8;
+        $totalPersuratan = $totalSuratMasuk + $totalSuratKeluar;
+
+        $totalSiswa = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 1126;
+        $siswaLaki = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 620;
+        $siswaPerempuan = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'P')->count() : 506;
+        $siswaBerfoto = Schema::hasTable('peserta_didik_meta') ? DB::table('peserta_didik_meta')->whereNotNull('foto_path')->count() : 0;
+        $totalRombel = Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 70;
+
+        $totalGuru = Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'like', '%guru%')->count() : 48;
+        $totalTendik = Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'not like', '%guru%')->count() : 19;
+        $gtkTugasCount = Schema::hasTable('ptk_tugas_tambahan') ? DB::table('ptk_tugas_tambahan')->where('is_active', true)->distinct('ptk_id')->count('ptk_id') : 38;
+        $totalJamKbm = Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->sum('jam_mengajar_per_minggu') : 840;
+
+        $stats = [
+            'total_surat_masuk'  => $totalSuratMasuk,
+            'total_surat_keluar' => $totalSuratKeluar,
+            'total_persuratan'   => $totalPersuratan,
+            'buku_tamu_hari_ini' => 12,
+            'presensi_masuk'     => '06:50 WIB',
+            'status_presensi'    => 'Hadir Tepat Waktu',
+            'total_siswa'        => $totalSiswa,
+            'siswa_laki'         => $siswaLaki,
+            'siswa_perempuan'    => $siswaPerempuan,
+            'siswa_berfoto'      => $siswaBerfoto,
+            'persen_foto'        => $totalSiswa > 0 ? round(($siswaBerfoto / $totalSiswa) * 100) . '%' : '0%',
+            'total_rombel'       => $totalRombel,
+            'total_guru'         => $totalGuru,
+            'total_tendik'       => $totalTendik,
+            'gtk_tugas_tambahan' => $gtkTugasCount,
+            'total_jam_kbm'      => $totalJamKbm,
+            'total_ruangan'      => Schema::hasTable('rombongan_belajar') ? (DB::table('rombongan_belajar')->distinct('id_ruang_str')->count('id_ruang_str') ?: 33) : 33,
+            'jam_praktik'        => Schema::hasTable('pembelajaran') ? (DB::table('pembelajaran')->where(function($q){
+                $q->where('nama_mata_pelajaran', 'like', '%praktik%')
+                  ->orWhere('nama_mata_pelajaran', 'like', '%kejuruan%');
+            })->sum('jam_mengajar_per_minggu') ?: 48) : 48,
+            'total_pengguna'     => Schema::hasTable('pengguna') ? DB::table('pengguna')->count() : 1230,
+        ];
+
+        // 1. Data Staf TAS (Khusus Kepala TAS)
+        $stafTas = collect();
+        if (Schema::hasTable('gtk')) {
+            $stafTas = DB::table('gtk')
+                ->leftJoin('ptk_tugas_tambahan as ptt', function($join) {
+                    $join->on('gtk.ptk_id', '=', 'ptt.ptk_id')->where('ptt.is_active', true);
+                })
+                ->leftJoin('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('gtk.jenis_ptk_id_str', 'not like', '%guru%')
+                ->select('gtk.nama', 'gtk.nip', 'gtk.jabatan_ptk_id_str', DB::raw('GROUP_CONCAT(rtt.nama SEPARATOR ", ") as tugas_tambahan'))
+                ->groupBy('gtk.ptk_id', 'gtk.nama', 'gtk.nip', 'gtk.jabatan_ptk_id_str')
+                ->orderBy('gtk.nama')
+                ->get();
+        }
+
+        // 2. Data Persuratan Terkini
+        $persuratanTerbaru = collect();
+        $persuratanList = collect();
+        if (Schema::hasTable('persuratan')) {
+            $persuratanList = DB::table('persuratan')->orderByDesc('id')->limit(8)->get();
+            $persuratanTerbaru = $persuratanList->take(5);
+        }
+
+        // 3. Data Rekap Rombel (Kesiswaan)
+        $rombelRekap = collect();
+        if (Schema::hasTable('rombongan_belajar')) {
+            $rombelRekap = DB::table('rombongan_belajar as rb')
+                ->leftJoin('anggota_rombel as ar', 'rb.rombongan_belajar_id', '=', 'ar.rombongan_belajar_id')
+                ->select('rb.nama', 'rb.tingkat_pendidikan_id_str as tingkat', 'rb.jurusan_id_str as jurusan', DB::raw('COUNT(ar.peserta_didik_id) as total_siswa'))
+                ->groupBy('rb.rombongan_belajar_id', 'rb.nama', 'rb.tingkat_pendidikan_id_str', 'rb.jurusan_id_str')
+                ->orderBy('rb.nama')
+                ->limit(8)
+                ->get();
+        }
+
+        // 4. Data Siswa Terbaru (Kesiswaan)
+        $siswaTerbaru = collect();
+        if (Schema::hasTable('peserta_didik')) {
+            $siswaTerbaru = DB::table('peserta_didik')->select('nama', 'nisn', 'nama_rombel', 'jenis_kelamin')->orderByDesc('peserta_didik_id')->limit(6)->get();
+        }
+
+        // 5. Data Tugas Tambahan GTK (Kepegawaian)
+        $gtkTugasList = collect();
+        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            $gtkTugasList = DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->leftJoin('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
+                ->select('gtk.nama as gtk_nama', 'gtk.nip', 'rtt.nama as duty_name', 'ptt.nomor_sk', 'ptt.tmt_tugas')
+                ->where('ptt.is_active', true)
+                ->orderBy('gtk.nama')
+                ->limit(8)
+                ->get();
+        }
+
+        // 6. Data GTK Terdaftar (Kepegawaian)
+        $gtkList = collect();
+        if (Schema::hasTable('gtk')) {
+            $gtkList = DB::table('gtk')->select('nama', 'nip', 'jenis_ptk_id_str', 'status_kepegawaian_id_str')->orderBy('nama')->limit(6)->get();
+        }
+
+        // 7. Data Ruangan (Sarpras)
+        $ruangList = collect();
+        if (Schema::hasTable('rombongan_belajar')) {
+            $ruangList = DB::table('rombongan_belajar')->select('nama as nama_rombel', 'id_ruang_str as ruang')->whereNotNull('id_ruang_str')->distinct()->orderBy('nama_rombel')->limit(8)->get();
+        }
+
+        // 8. Jadwal Lab (Laboran)
+        $jadwalLab = collect();
+        if (Schema::hasTable('pembelajaran') && Schema::hasTable('rombongan_belajar')) {
+            $jadwalLab = DB::table('pembelajaran as p')
+                ->join('rombongan_belajar as rb', 'p.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->leftJoin('gtk', 'p.ptk_id', '=', 'gtk.ptk_id')
+                ->where(function($q) {
+                    $q->where('p.nama_mata_pelajaran', 'like', '%kejuruan%')
+                      ->orWhere('p.nama_mata_pelajaran', 'like', '%praktik%')
+                      ->orWhere('p.nama_mata_pelajaran', 'like', '%agribisnis%')
+                      ->orWhere('p.nama_mata_pelajaran', 'like', '%kehutanan%');
+                })
+                ->select('p.nama_mata_pelajaran', 'rb.nama as nama_rombel', 'gtk.nama as nama_guru', 'p.jam_mengajar_per_minggu')
+                ->orderByDesc('p.jam_mengajar_per_minggu')
+                ->limit(6)
+                ->get();
+        }
+
+        // Fallback data log administrasi
         $administrasi_tugas = [
             ['nomor' => 'SRT/2026/09/012', 'kategori' => 'Surat Masuk', 'perihal' => 'Undangan Sosialisasi Kurikulum Dinas Pendidikan', 'pengirim' => 'Disdik Jabar', 'tgl' => '08 Sep 2026', 'status' => 'Sudah Didisposisi'],
             ['nomor' => 'SRT/2026/09/011', 'kategori' => 'Surat Keluar', 'perihal' => 'Pemberitahuan Ujian Tengah Semester Ganjil', 'pengirim' => 'Bagian Kurikulum', 'tgl' => '07 Sep 2026', 'status' => 'Selesai Dicetak'],
@@ -228,7 +496,12 @@ class DashboardController extends Controller
             ['nomor' => 'INV/2026/09/004', 'kategori' => 'Inventaris TU', 'perihal' => 'Pengadaan Kertas & ATK Kantor Bulan September', 'pengirim' => 'Staf Sarpras', 'tgl' => '06 Sep 2026', 'status' => 'Proses Verifikasi'],
         ];
 
-        return view('dashboard.tendik', compact('stats', 'administrasi_tugas'));
+        return view('dashboard.tendik', compact(
+            'stats', 'administrasi_tugas', 'gtk', 'fotoUrl', 'bagianTugas',
+            'dutyCodes', 'isKepalaTas', 'primaryDuty', 'currentDuty', 'viewSection',
+            'stafTas', 'persuratanTerbaru', 'persuratanList', 'rombelRekap', 'siswaTerbaru',
+            'gtkTugasList', 'gtkList', 'ruangList', 'jadwalLab'
+        ));
     }
 
     public function pesertaDidik()

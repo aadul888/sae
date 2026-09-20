@@ -70,15 +70,53 @@ class ProfileController extends Controller
                 ? DB::table('gtk')->where('ptk_id', $user->ptk_id)->first()
                 : null;
 
+            // Cari tugas tambahan aktif dari tabel RBAC/Dapodik
+            $tugasTambahan = null;
+            if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+                $duties = DB::table('ptk_tugas_tambahan as ptt')
+                    ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                    ->where('ptt.is_active', true)
+                    ->where('rtt.is_active', true)
+                    ->where(function ($q) use ($user) {
+                        $q->where('ptt.user_id', $user->pengguna_id);
+                        if (!empty($user->ptk_id)) {
+                            $q->orWhere('ptt.ptk_id', $user->ptk_id);
+                        }
+                    })
+                    ->pluck('rtt.nama')
+                    ->filter()
+                    ->unique();
+                if ($duties->isNotEmpty()) {
+                    $tugasTambahan = $duties->implode(', ');
+                }
+            }
+
+            // Cari mata pelajaran utama dengan total jam mengajar terbanyak untuk guru
+            $mapelUtama = null;
+            if ($role === 'guru' && !empty($user->ptk_id) && Schema::hasTable('pembelajaran')) {
+                $topM = DB::table('pembelajaran')
+                    ->where('ptk_id', $user->ptk_id)
+                    ->select('nama_mata_pelajaran', DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
+                    ->groupBy('nama_mata_pelajaran')
+                    ->orderByDesc('total_jam')
+                    ->first();
+                $mapelUtama = $topM?->nama_mata_pelajaran;
+            }
+            if (!$mapelUtama) {
+                $mapelUtama = $gtk?->bidang_studi_terakhir ?: ($gtk?->jabatan_ptk_id_str ?: '-');
+            }
+
             $profileDetails = [
                 'nip' => $gtk->nip ?? '-',
                 'nuptk' => $gtk->nuptk ?? '-',
                 'nik' => $gtk->nik ?? '-',
                 'jenis_ptk' => $gtk->jenis_ptk_id_str ?? ($role === 'guru' ? 'Guru Mapel' : 'Tenaga Kependidikan'),
                 'jabatan' => $gtk->jabatan_ptk_id_str ?? '-',
-                'mapel' => $gtk->bidang_studi_terakhir ?? '-',
+                'mapel' => $mapelUtama,
+                'bidang_studi' => $gtk->bidang_studi_terakhir ?? '-',
+                'tugas_tambahan' => $tugasTambahan ?? ($role === 'tendik' ? ($gtk->jabatan_ptk_id_str ?: ($gtk->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah')) : null),
                 'sekolah' => $sekolah->nama ?? 'SMK Swasta Kristen Tagari Rantepao',
-                'npsn' => $sekolah->npsn ?? '40306164',
+                'status_kepegawaian' => $gtk->status_kepegawaian_id_str ?? null,
                 'foto_url' => $user->foto_url ?? session('user.foto_url'),
             ];
         } else {

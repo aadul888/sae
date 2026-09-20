@@ -333,8 +333,30 @@ class SystemNotificationService
     {
         $list = collect();
 
-        // Jika tidak ada notifikasi DB atau agenda khusus, tampilkan pesan ramah baku
-        if ($existingDbCount === 0) {
+        // 1. Cek aktivitas Persuratan jika pengguna memiliki hak akses / penugasan Persuratan
+        try {
+            if (RolePermission::canAccess($currentUser, 'menu_persuratan', 'read') && Schema::hasTable('persuratan')) {
+                $pendingSurat = \App\Models\Persuratan::where('status', 'menunggu_disposisi')->count();
+                if ($pendingSurat > 0) {
+                    $list->push((object) [
+                        'id'         => 'dyn_tendik_pending_surat',
+                        'judul'      => 'Surat Menunggu Disposisi',
+                        'pesan'      => "Terdapat {$pendingSurat} berkas surat yang sedang menunggu telaah atau tindak lanjut disposisi.",
+                        'kategori'   => 'persuratan',
+                        'tipe'       => 'warning',
+                        'icon'       => 'fas fa-envelope-open-text',
+                        'url'        => route('dashboard.persuratan.index', ['status' => 'menunggu_disposisi']),
+                        'created_at' => now(),
+                        'time_diff'  => 'Perlu Tindakan',
+                        'is_read'    => false,
+                        'is_dynamic' => true,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // Jika tidak ada notifikasi DB atau aktivitas dinamis, tampilkan pesan ramah baku
+        if ($list->isEmpty() && $existingDbCount === 0) {
             $list->push((object) [
                 'id'         => 'dyn_tendik_standby',
                 'judul'      => 'Aktivitas Hari Ini',
@@ -518,6 +540,28 @@ class SystemNotificationService
                         'url'        => route('dashboard.presensi.index'),
                         'created_at' => now(),
                         'time_diff'  => 'Perlu Tindakan',
+                        'is_read'    => false,
+                        'is_dynamic' => true,
+                    ]);
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // Cek arsip surat dinas yang menunggu disposisi
+        if (Schema::hasTable('persuratan')) {
+            try {
+                $pendingSurat = \App\Models\Persuratan::where('status', 'menunggu_disposisi')->count();
+                if ($pendingSurat > 0) {
+                    $list->push((object) [
+                        'id'         => 'dyn_admin_pending_surat',
+                        'judul'      => 'Disposisi Surat Masuk',
+                        'pesan'      => "Terdapat {$pendingSurat} surat dinas baru yang perlu ditelaah dan diberikan lembar disposisi.",
+                        'kategori'   => 'persuratan',
+                        'tipe'       => 'warning',
+                        'icon'       => 'fas fa-envelope-open-text',
+                        'url'        => route('dashboard.persuratan.index', ['status' => 'menunggu_disposisi']),
+                        'created_at' => now(),
+                        'time_diff'  => 'Perlu Respon',
                         'is_read'    => false,
                         'is_dynamic' => true,
                     ]);

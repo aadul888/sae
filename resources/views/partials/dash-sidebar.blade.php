@@ -63,6 +63,7 @@
         $can('menu_e_izin') ||
         $can('menu_poin') ||
         $can('menu_agenda') ||
+        $can('menu_persuratan') ||
         $can('menu_buku_tamu') ||
         $can('menu_inventaris') ||
         $can('menu_kelulusan');
@@ -120,6 +121,7 @@
         'menu_agenda_kbm',
         'menu_penilaian',
         'menu_presensi_peserta_didik',
+        'menu_persuratan',
         'menu_buku_tamu',
         'menu_inventaris',
         'menu_agenda',
@@ -743,6 +745,8 @@
                     (request()->routeIs('dashboard.agenda.*') &&
                         !request()->routeIs('dashboard.agenda-kbm.*') &&
                         !request()->routeIs('dashboard.agenda-kbm')) ||
+                    request()->routeIs('dashboard.persuratan.*') ||
+                    request()->routeIs('dashboard.persuratan') ||
                     request()->routeIs('dashboard.buku-tamu.*') ||
                     request()->routeIs('dashboard.buku-tamu') ||
                     request()->routeIs('dashboard.inventaris.*') ||
@@ -809,6 +813,14 @@
                         <a href="#" class="dash-nav-sublink">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-list"></i></span>
                             <span class="nav-label">Agenda Kelas</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_persuratan'))
+                        <a href="{{ route('dashboard.persuratan.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.persuratan*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-envelope-open-text"></i></span>
+                            <span class="nav-label">Persuratan &amp; Arsip</span>
                         </a>
                     @endif
 

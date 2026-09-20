@@ -14,26 +14,57 @@
                     : ($hour < 18
                         ? 'Selamat Sore,'
                         : 'Selamat Malam,'));
+
+        $sessionUser = session('user');
+        $userName = is_array($sessionUser) ? ($sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Admin')) : ($sessionUser->name ?? ($sessionUser->nama ?? 'Admin'));
+        $fotoUrl = $fotoUrl ?? (is_array($sessionUser) ? ($sessionUser['foto_url'] ?? null) : ($sessionUser->foto_url ?? null));
+        if (!$fotoUrl) {
+            $uId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+            if ($uId) {
+                $fotoUrl = \App\Models\User::where('pengguna_id', $uId)->first()?->foto_url;
+            }
+        }
     @endphp
     <!-- Welcome Banner -->
-    <div class="dash-banner">
-        <div>
-            <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.3;">
-                <span
-                    style="display: block; font-size: 0.95rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">{{ $greeting }}</span>
-                {{ session('user.name', 'Admin') }}! 👋
-            </h2>
-            <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 8px;">
-                @if (!empty($sekolah->nama))
-                    <strong>{{ $sekolah->nama }}</strong> (NPSN: {{ $sekolah->npsn ?? '-' }}) &bull; Pusat Kendali &amp;
-                    Manajemen Terintegrasi
-                @else
-                    Pusat Kendali Administrasi &amp; Manajemen Data Satuan Pendidikan Terintegrasi.
-                @endif
-            </p>
-            <div
-                style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--primary);">
-                <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
+            @if ($fotoUrl)
+                <!-- Pasfoto Admin -->
+                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}" 
+                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                </div>
+            @endif
+
+            <div style="flex: 1; min-width: 0;">
+                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                    <span
+                        style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
+                    {{ $userName }}! 👋
+                </h2>
+                <div style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
+                    @if (!empty($sekolah->nama))
+                        <span title="Satuan Pendidikan">
+                            <i class="fas fa-school text-primary me-1"></i>
+                            <strong style="color: var(--text-color);">{{ $sekolah->nama }}</strong>
+                        </span>
+                        @if (!empty($sekolah->npsn))
+                            <span title="Nomor Pokok Sekolah Nasional (NPSN)">
+                                <i class="fas fa-barcode text-muted me-1"></i>
+                                <strong>{{ $sekolah->npsn }}</strong>
+                            </span>
+                        @endif
+                    @endif
+                    <span title="Level Hak Akses">
+                        <i class="fas fa-shield-halved text-danger me-1"></i>
+                        <span class="badge badge-danger" style="font-size: 0.72rem; padding: 2px 7px;">Administrator</span>
+                    </span>
+                </div>
+                <div
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--primary);">
+                    <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
+                </div>
             </div>
         </div>
         <div class="dash-banner-actions">

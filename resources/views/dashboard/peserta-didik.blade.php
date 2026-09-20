@@ -26,7 +26,8 @@
                 <!-- Pasfoto Peserta Didik (Tanpa Bingkai & Tanpa Latar Belakang) -->
                 <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
                     <img src="{{ $fotoUrl }}" alt="{{ session('user.name', 'Peserta Didik') }}" 
-                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));">
+                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
             @endif
 
@@ -39,17 +40,26 @@
                 @php
                     $currentNisn = $pd->nisn ?? session('user.nisn');
                 @endphp
-                <p style="color: var(--text-muted); font-size: 0.84rem; margin-bottom: 8px; line-height: 1.6; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <span>NISN:</span>
+                <div style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
                     <button type="button" class="btn-copy-nisn" data-nisn="{{ $currentNisn }}"
-                        title="Sentuh atau klik untuk menyalin NISN"
+                        title="Nomor Induk Siswa Nasional (NISN) — Sentuh untuk salin"
                         style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: rgba(6,182,212,0.12); border: 1px dashed rgba(6,182,212,0.45); border-radius: 6px; color: #38bdf8; font-family: monospace; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
+                        <i class="fas fa-barcode"></i>
                         <span class="nisn-text">{{ $currentNisn ?? '0071234567' }}</span>
-                        <i class="fas fa-copy" style="font-size: 0.75rem;"></i>
+                        <i class="fas fa-copy" style="font-size: 0.72rem; opacity: 0.8;"></i>
                     </button>
-                    <span>&bull; Kelas: <strong>{{ session('user.kelas', $pd->nama_rombel ?? 'XII RPL 1') }}</strong></span>
-                    <span>&bull; Status: <span class="text-success font-bold"><i class="fas fa-circle-check"></i> Aktif</span></span>
-                </p>
+                    @php $k = session('user.kelas', $pd->nama_rombel ?? 'XII RPL 1'); @endphp
+                    @if ($k)
+                        <span title="Rombongan Belajar / Kelas">
+                            <i class="fas fa-graduation-cap text-warning me-1"></i>
+                            <strong style="color: var(--text-color);">{{ $k }}</strong>
+                        </span>
+                    @endif
+                    <span title="Status Keaktifan Peserta Didik">
+                        <i class="fas fa-circle-check text-success me-1"></i>
+                        <strong class="text-success">Aktif</strong>
+                    </span>
+                </div>
                 <div
                     style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #06b6d4;">
                     <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
