@@ -25,9 +25,6 @@ class PermissionController extends Controller
             $activeRole = 'admin';
         }
 
-        // Sinkronisasi otomatis modul baru yang didaftarkan pada kode sistem
-        RolePermission::syncAvailablePermissions();
-
         $permissionsConfig = RolePermission::getAvailablePermissions();
 
         // Ambil data tugas tambahan jika tab tugas_tambahan aktif
@@ -56,6 +53,7 @@ class PermissionController extends Controller
                     'rtt.bidang as tugas_bidang',
                     'rtt.ekuivalensi_jam',
                     'rtt.icon as tugas_icon',
+                    'rtt.granted_permissions',
                     DB::raw("COALESCE(gtk.nama, p.nama, 'Belum Terhubung') as ptk_nama"),
                     DB::raw("COALESCE(gtk.nip, '-') as ptk_nip"),
                     'rb.nama as rombel_nama'
@@ -65,7 +63,27 @@ class PermissionController extends Controller
                 ->orderBy('ptk_nama')
                 ->get();
 
-            $refTugasList = DB::table('ref_tugas_tambahan')->where('is_active', true)->orderBy('kelompok')->orderBy('nama')->get();
+            $assignedDutyCounts = DB::table('ptk_tugas_tambahan')
+                ->where('is_active', true)
+                ->select('tugas_tambahan_id', DB::raw('count(*) as total'))
+                ->groupBy('tugas_tambahan_id')
+                ->pluck('total', 'tugas_tambahan_id')
+                ->toArray();
+
+            $refTugasList = DB::table('ref_tugas_tambahan')
+                ->where('is_active', true)
+                ->orderBy('kelompok')
+                ->orderBy('bidang')
+                ->orderBy('nama')
+                ->get()
+                ->map(function ($rt) use ($assignedDutyCounts) {
+                    $rt->assigned_count = $assignedDutyCounts[$rt->id] ?? 0;
+                    $rt->granted_perms = is_string($rt->granted_permissions)
+                        ? (json_decode($rt->granted_permissions, true) ?: [])
+                        : ($rt->granted_permissions ?: []);
+                    return $rt;
+                });
+
             $ptkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
             $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
         }
@@ -499,11 +517,26 @@ class PermissionController extends Controller
         $config = RolePermission::getPermissionConfig($permissionKey);
         $label = $config['label'] ?? $permissionKey;
 
+        // Hapus modul dari peran target
         RolePermission::where('role', $targetRole)->where('permission_key', $permissionKey)->delete();
+
+        // Jika modul kustom (bukan bawaan sistem) dan dihapus dari admin, hapus juga dari seluruh peran lain
+        $basePerms = RolePermission::getBasePermissions();
+        $isBase = false;
+        foreach ($basePerms as $grp => $items) {
+            if (isset($items[$permissionKey])) {
+                $isBase = true;
+                break;
+            }
+        }
+        if (!$isBase && $targetRole === 'admin') {
+            RolePermission::where('permission_key', $permissionKey)->delete();
+        }
 
         return response()->json([
             'status' => 'success',
             'message' => "Modul '{$label}' berhasil dihapus dari peran " . ucfirst(str_replace('_', ' ', $targetRole)) . " dan disembunyikan dari sidebar.",
+            'permission_key' => $permissionKey,
         ]);
     }
 }

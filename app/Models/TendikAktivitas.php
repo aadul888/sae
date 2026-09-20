@@ -68,4 +68,80 @@ class TendikAktivitas extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'pengguna_id');
     }
+
+    /**
+     * Catat aktivitas sistem tendik secara otomatis (Login, CRUD, dsb).
+     */
+    public static function recordActivity($userOrId, string $judul, string $bidang = 'umum', ?string $uraian = null, string $status = 'selesai', ?string $output = null): ?self
+    {
+        try {
+            $user = null;
+            $userId = null;
+            $ptkId = null;
+            $nama = 'Tenaga Kependidikan';
+
+            if ($userOrId instanceof User) {
+                $user = $userOrId;
+                $userId = $user->pengguna_id;
+                $ptkId = $user->ptk_id;
+                $nama = $user->nama ?: $user->name;
+            } elseif (is_array($userOrId)) {
+                $userId = $userOrId['pengguna_id'] ?? ($userOrId['id'] ?? null);
+                $ptkId = $userOrId['ptk_id'] ?? null;
+                $nama = $userOrId['nama'] ?? ($userOrId['name'] ?? 'Tenaga Kependidikan');
+            } elseif (is_string($userOrId)) {
+                $userId = $userOrId;
+                $user = User::where('pengguna_id', $userId)->first();
+                if ($user) {
+                    $ptkId = $user->ptk_id;
+                    $nama = $user->nama ?: $user->name;
+                }
+            } else {
+                $sessionUser = session('user');
+                if ($sessionUser) {
+                    return self::recordActivity($sessionUser, $judul, $bidang, $uraian, $status, $output);
+                }
+            }
+
+            if (!$userId && !$ptkId) {
+                return null;
+            }
+
+            $now = now();
+            $jam = $now->format('H:i:s');
+            $tanggal = $now->toDateString();
+
+            // Cegah duplikasi log identik dalam interval 5 menit
+            $existing = self::where(function ($q) use ($userId, $ptkId) {
+                    if ($userId) $q->where('user_id', $userId);
+                    if ($ptkId) $q->orWhere('ptk_id', $ptkId);
+                })
+                ->whereDate('tanggal', $tanggal)
+                ->where('judul_aktivitas', $judul)
+                ->where('created_at', '>=', $now->copy()->subMinutes(5))
+                ->first();
+
+            if ($existing) {
+                return $existing;
+            }
+
+            return self::create([
+                'user_id'          => $userId,
+                'ptk_id'           => $ptkId,
+                'nama_pegawai'     => $nama,
+                'bidang'           => $bidang ?: 'umum',
+                'tanggal'          => $tanggal,
+                'jam_mulai'        => $jam,
+                'jam_selesai'      => $jam,
+                'judul_aktivitas'  => $judul,
+                'uraian_pekerjaan' => $uraian ?: $judul,
+                'output_hasil'     => $output ?: 'Tercatat di Sistem',
+                'status'           => $status ?: 'selesai',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal mencatat aktivitas otomatis: ' . $e->getMessage());
+            return null;
+        }
+    }
 }
+

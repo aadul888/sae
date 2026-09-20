@@ -189,18 +189,25 @@ class TendikLaporanController extends Controller
         $userId = $profile['user_id'];
         $ptkId = $profile['ptk_id'];
 
-        $aktivitasList = TendikAktivitas::where(function ($q) use ($userId, $ptkId) {
-            if ($userId) {
-                $q->where('user_id', $userId);
-            }
-            if ($ptkId) {
-                $q->orWhere('ptk_id', $ptkId);
-            }
-        })
-            ->whereBetween('tanggal', [$range['start'], $range['end']])
-            ->orderBy('tanggal', 'desc')
-            ->orderBy('jam_mulai', 'desc')
-            ->get();
+        $filterBidang = $request->get('bidang');
+        $aktivitasQuery = TendikAktivitas::whereBetween('tanggal', [$range['start'], $range['end']]);
+
+        if ($profile['role'] !== 'admin' && !str_contains(strtolower($profile['role']), 'admin')) {
+            $aktivitasQuery->where(function ($q) use ($userId, $ptkId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                }
+                if ($ptkId) {
+                    $q->orWhere('ptk_id', $ptkId);
+                }
+            });
+        }
+
+        if ($filterBidang && $filterBidang !== 'all') {
+            $aktivitasQuery->where('bidang', $filterBidang);
+        }
+
+        $aktivitasList = $aktivitasQuery->orderBy('tanggal', 'desc')->orderBy('jam_mulai', 'desc')->get();
 
         // Hitung metrik capaian kinerja
         $totalAktivitas = $aktivitasList->count();

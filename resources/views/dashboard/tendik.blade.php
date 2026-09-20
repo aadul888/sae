@@ -1,7 +1,7 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Dashboard Tenaga Kependidikan — SAE')
-@section('dash_title', ($isKepalaTas ?? false) ? 'Portal Kepala Tenaga Administrasi Sekolah (TAS)' : 'Portal Tenaga Kependidikan & Administrasi')
+@section('title', 'Portal Tendik — SAE')
+@section('dash_title', ($isKepalaTas ?? false) ? 'Portal TAS' : 'Portal Tendik')
 
 @section('content')
     @php
@@ -28,10 +28,11 @@
             $fotoUrl = \App\Models\User::where('ptk_id', $gtk->ptk_id)->whereNotNull('foto_path')->first()?->foto_url;
         }
 
-        $activeSection = $viewSection ?? 'persuratan';
+        $activeSection = $viewSection ?? 'umum';
 
-        // Daftar semua bidang tugas untuk switcher Kepala TAS
+        // Daftar semua bidang tugas untuk switcher Kepala TAS & Tendik Multi-Tugas
         $allDomains = [
+            'umum' => ['label' => 'Portal Umum', 'icon' => 'fas fa-gauge-high', 'color' => '#3b82f6'],
             'kepala-tas' => ['label' => 'Ikhtisar Koordinator', 'icon' => 'fas fa-landmark', 'color' => '#10b981'],
             'piket' => ['label' => 'Guru Piket', 'icon' => 'fas fa-clipboard-user', 'color' => '#8b5cf6'],
             'kesiswaan' => ['label' => 'Kesiswaan', 'icon' => 'fas fa-user-graduate', 'color' => '#3b82f6'],
@@ -100,140 +101,91 @@
             </div>
         </div>
 
-        <!-- Dynamic Action Buttons Berdasarkan Bidang -->
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            @if ($activeSection === 'piket')
-                <a href="{{ route('dashboard.peserta-didik.izin.index') }}" class="btn btn-primary"
-                    style="background: #f59e0b; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-person-walking-arrow-right"></i> + Catat e-Izin Siswa
-                </a>
-                <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline"
-                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-calendar-check"></i> Presensi Guru Mengajar
-                </a>
-                <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline"
-                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-book-open-reader"></i> Jurnal Agenda KBM
-                </a>
-            @elseif ($activeSection === 'kesiswaan')
-                <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-primary"
-                    style="background: #3b82f6; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-user-graduate"></i> Buku Induk Siswa
-                </a>
-                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline"
-                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-layer-group"></i> Rombongan Belajar
-                </a>
-            @elseif ($activeSection === 'kepegawaian')
-                <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-primary"
-                    style="background: #8b5cf6; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-id-badge"></i> Data Tendik Aktif
-                </a>
-                <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline"
-                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-chalkboard-user"></i> Direktori Guru
-                </a>
-            @elseif ($activeSection === 'sarpras')
-                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-primary"
-                    style="background: #f59e0b; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-door-open"></i> Pemetaan Ruang &amp; Kelas
-                </a>
-            @elseif ($activeSection === 'laboran')
-                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-primary"
-                    style="background: #06b6d4; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-calendar-check"></i> Jadwal Praktikum
-                </a>
-            @elseif ($activeSection === 'keamanan')
-                <a href="{{ route('presensi.scan') }}" target="_blank" class="btn btn-primary"
-                    style="background: #ef4444; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-qrcode"></i> Buka Kiosk Gate Presensi
-                </a>
-            @elseif ($activeSection === 'teknisi')
-                <a href="{{ route('presensi.scan') }}" target="_blank" class="btn btn-primary"
-                    style="background: #6366f1; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-desktop"></i> Monitor Gerbang RFID
-                </a>
-            @else
-                @if (
-                    \App\Models\RolePermission::canAccess('tendik', 'menu_persuratan') ||
-                    \App\Models\RolePermission::canAccess('tendik', 'menu_surat_keluar') ||
-                    \App\Models\RolePermission::canAccess('tendik', 'menu_berkas_peserta_didik'))
-                    <a href="{{ route('dashboard.persuratan.index') }}" class="btn btn-primary"
-                        style="background: #10b981; border: none; padding: 9px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-plus"></i> Catat Surat / Dokumen
-                    </a>
-                @endif
-                <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
-                    style="padding: 9px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-address-book"></i> Direktori Pegawai
-                </a>
+        <!-- Kontrol Dropdown Pindah Bidang Kerja (Standar Baku SAE: .dash-custom-dropdown) -->
+        <div class="dash-banner-actions" style="display: flex; align-items: center;">
+            @php
+                // Kumpulkan opsi bidang kerja yang tersedia untuk user ini
+                $dropdownOptions = [];
+                $dropdownOptions['umum'] = [
+                    'label' => 'Portal Umum (Semua Tendik)',
+                    'short_label' => 'Portal Umum',
+                    'icon'  => 'fas fa-gauge-high',
+                    'color' => '#3b82f6',
+                    'url'   => route('dashboard.tendik'),
+                ];
+
+                if (($isKepalaTas ?? false) || ($userRole ?? '') === 'admin' || (session('user.role') ?? '') === 'admin') {
+                    foreach ($allDomains as $s => $d) {
+                        if ($s === 'umum') continue;
+                        $dropdownOptions[$s] = [
+                            'label' => 'Bidang ' . $d['label'],
+                            'short_label' => $d['label'],
+                            'icon'  => $d['icon'],
+                            'color' => $d['color'],
+                            'url'   => route('dashboard.tendik', ['bidang' => $s]),
+                        ];
+                    }
+                } elseif (isset($dutyCodes) && $dutyCodes->isNotEmpty()) {
+                    foreach ($allDomains as $s => $d) {
+                        if ($s === 'umum') continue;
+                        $dutyKey = match ($s) {
+                            'persuratan'   => 'STAF_PERSURATAN',
+                            'kesiswaan'    => 'STAF_KESISWAAN',
+                            'kepegawaian'  => 'STAF_KEPEGAWAIAN',
+                            'sarpras'      => 'STAF_SARPRAS',
+                            'laboran'      => 'LABORAN',
+                            'perpustakaan' => 'PUSTAKAWAN',
+                            'teknisi'      => 'TEKNISI_IT',
+                            'keamanan'     => 'SATPAM',
+                            'penjaga'      => 'PENJAGA_SEKOLAH',
+                            'piket'        => 'GURU_PIKET',
+                            default        => null,
+                        };
+                        if ($dutyKey && $dutyCodes->contains($dutyKey)) {
+                            $dropdownOptions[$s] = [
+                                'label' => 'Bidang ' . $d['label'],
+                                'short_label' => $d['label'],
+                                'icon'  => $d['icon'],
+                                'color' => $d['color'],
+                                'url'   => route('dashboard.tendik', ['bidang' => $s]),
+                            ];
+                        }
+                    }
+                }
+
+                $activeOpt = $dropdownOptions[$activeSection] ?? $dropdownOptions['umum'];
+            @endphp
+
+            {{-- Dropdown Baku SAE (.dash-custom-dropdown) --}}
+            @if (count($dropdownOptions) > 1)
+                <div class="dash-custom-dropdown" style="min-width: 240px; max-width: 300px;">
+                    <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                        <div class="custom-dropdown-trigger-label">
+                            <i class="{{ $activeOpt['icon'] }} text-primary me-2" style="color: {{ $activeOpt['color'] }} !important;"></i>
+                            <span>{{ $activeOpt['label'] }}</span>
+                        </div>
+                        <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+                    </button>
+                    <div class="custom-dropdown-menu" role="listbox">
+                        @foreach ($dropdownOptions as $s => $opt)
+                            @php $isActive = ($activeSection === $s); @endphp
+                            <a href="{{ $opt['url'] }}"
+                                class="custom-dropdown-item {{ $isActive ? 'active' : '' }}"
+                                style="text-decoration: none;">
+                                <div class="dropdown-item-left">
+                                    <i class="{{ $opt['icon'] }} text-primary me-2" style="color: {{ $opt['color'] }} !important; width: 18px; text-align: center;"></i>
+                                    <span>{{ $opt['label'] }}</span>
+                                </div>
+                                @if ($isActive)
+                                    <span class="badge badge-primary badge-sm ms-2"><i class="fas fa-check"></i></span>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
             @endif
         </div>
     </div>
-
-    <!-- Domain / Bidang Switcher Tabs -->
-    @if ($isKepalaTas ?? false)
-        <div class="dash-domain-switcher" style="margin-bottom: 22px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
-                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
-                    <i class="fas fa-sliders text-primary me-1"></i> Navigasi Bidang Kerja Tata Administrasi Sekolah (TAS)
-                </div>
-                <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">
-                    Mode Supervisi Koordinator
-                </span>
-            </div>
-            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch;">
-                @foreach ($allDomains as $slug => $domain)
-                    @php $isActive = ($activeSection === $slug); @endphp
-                    <a href="{{ route('dashboard.tendik', ['bidang' => $slug]) }}"
-                        style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: {{ $isActive ? '700' : '600' }}; text-decoration: none; white-space: nowrap; transition: all 0.2s ease;
-                        {{ $isActive 
-                            ? 'background: ' . $domain['color'] . '; color: #ffffff; box-shadow: 0 4px 12px ' . $domain['color'] . '40; border: 1px solid ' . $domain['color'] . ';' 
-                            : 'background: var(--card-bg, #ffffff); color: var(--text-color); border: 1px solid var(--border-color);' }}">
-                        <i class="{{ $domain['icon'] }}" style="{{ $isActive ? 'color: #ffffff;' : 'color: ' . $domain['color'] . ';' }}"></i>
-                        <span>{{ $domain['label'] }}</span>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-    @elseif (isset($userDuties) && count($userDuties) > 1)
-        <!-- Multi-Duty Switcher untuk Tendik dengan lebih dari 1 tugas tambahan -->
-        <div class="dash-domain-switcher" style="margin-bottom: 20px;">
-            <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
-                <i class="fas fa-layer-group text-primary me-1"></i> Penugasan Aktif Anda
-            </div>
-            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;">
-                @foreach ($userDuties as $ud)
-                    @php
-                        $codeMap = [
-                            'KEPALA_TAS' => 'kepala-tas',
-                            'GURU_PIKET' => 'piket',
-                            'STAF_KESISWAAN' => 'kesiswaan',
-                            'STAF_KEPEGAWAIAN' => 'kepegawaian',
-                            'STAF_SARPRAS' => 'sarpras',
-                            'LABORAN' => 'laboran',
-                            'PUSTAKAWAN' => 'perpustakaan',
-                            'TEKNISI_IT' => 'teknisi',
-                            'SATPAM' => 'keamanan',
-                            'PENJAGA_SEKOLAH' => 'penjaga',
-                            'STAF_PERSURATAN' => 'persuratan',
-                        ];
-                        $targetSlug = $codeMap[$ud->kode] ?? 'persuratan';
-                        $isActive = ($activeSection === $targetSlug);
-                        $info = $allDomains[$targetSlug] ?? ['label' => $ud->nama, 'icon' => 'fas fa-briefcase', 'color' => '#10b981'];
-                    @endphp
-                    <a href="{{ route('dashboard.tendik', ['bidang' => $targetSlug]) }}"
-                        style="display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: {{ $isActive ? '700' : '600' }}; text-decoration: none; white-space: nowrap;
-                        {{ $isActive 
-                            ? 'background: ' . $info['color'] . '; color: #ffffff; border: 1px solid ' . $info['color'] . ';' 
-                            : 'background: var(--card-bg, #ffffff); color: var(--text-color); border: 1px solid var(--border-color);' }}">
-                        <i class="{{ $info['icon'] }}"></i>
-                        <span>{{ $ud->nama }}</span>
-                    </a>
-                @endforeach
-            </div>
-        </div>
-    @endif
 
     <!-- Dynamic Section Content by Domain -->
     @include('dashboard.tendik.section-' . $activeSection)

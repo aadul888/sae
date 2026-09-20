@@ -210,6 +210,18 @@ class AuthController extends Controller
 
         session(['user' => $userData]);
 
+        // Auto-record aktivitas login ke log aktivitas sistem
+        try {
+            \App\Models\TendikAktivitas::recordActivity(
+                $userData,
+                'Autentikasi Masuk Sistem (Login)',
+                'umum',
+                'Berhasil masuk ke portal SAE melalui sesi web autentikasi (IP: ' . $request->ip() . ')',
+                'selesai',
+                'Sesi Login Aktif'
+            );
+        } catch (\Throwable) {}
+
         // Arahkan kembali ke formulir jika ada antrean URL yang dituju
         if (session()->has('url.intended')) {
             $intended = session()->pull('url.intended');

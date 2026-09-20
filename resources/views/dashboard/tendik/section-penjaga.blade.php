@@ -1,14 +1,13 @@
 {{-- Section Dashboard: Penjaga Sekolah / Staf Kebersihan & Rumah Tangga --}}
 
-<!-- Quick Stats Grid Penjaga Sekolah -->
-<div class="dash-stat-grid"
-    style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 24px; gap: 16px;">
+<!-- Quick Stats Grid Penjaga Sekolah (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
             <i class="fas fa-broom"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">36 Ruangan</div>
+            <div class="dash-stat-value">36 Ruang</div>
             <div class="dash-stat-label">Area Gedung Terawat</div>
         </div>
     </div>
@@ -19,7 +18,7 @@
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value">Normal</div>
-            <div class="dash-stat-label">Instalasi Air &amp; Sanitasi</div>
+            <div class="dash-stat-label">Air &amp; Sanitasi</div>
         </div>
     </div>
 
@@ -28,7 +27,7 @@
             <i class="fas fa-bolt"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">Siap Pakai</div>
+            <div class="dash-stat-value">Siap</div>
             <div class="dash-stat-label">Kelistrikan Gedung</div>
         </div>
     </div>
@@ -38,84 +37,107 @@
             <i class="fas fa-key"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.05rem;">Aman Terkunci</div>
-            <div class="dash-stat-label">Pengamanan Kunci Ruang</div>
+            <div class="dash-stat-value">Aman</div>
+            <div class="dash-stat-label">Kunci Ruang Terkontrol</div>
         </div>
     </div>
 </div>
 
-<!-- Main Content Grid Penjaga Sekolah -->
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+<!-- Main Content Grid Penjaga Sekolah (Responsive: 2fr 1fr desktop, 1fr mobile) -->
+<div class="dash-layout-grid">
     <!-- Left Column: Checklist Harian Kesiapan Gedung -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px;">
-            <div
-                style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
-                    <i class="fas fa-clipboard-check text-primary me-2"></i> Checklist Kesiapan Ruang Belajar &amp; Fasilitas Harian
+    <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); flex-wrap: wrap; gap: 8px;">
+                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-clipboard-check text-primary"></i> Checklist Kesiapan Fasilitas
                 </div>
-                <span class="badge badge-success" style="font-size: 0.72rem; padding: 4px 8px;">
-                    Shift Pagi &amp; Sore
+                <span class="badge badge-success" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 6px;">
+                    Shift Harian
                 </span>
             </div>
 
-            <div class="table-responsive">
-                <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
+                <table class="table-minimal-compact">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
-                            <th style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Area / Ruangan</th>
-                            <th style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Tugas Pemeriksaan</th>
-                            <th style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Waktu Rutin</th>
-                            <th style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">Status</th>
+                        <tr>
+                            <th style="min-width: 140px;">Area / Gedung</th>
+                            <th style="min-width: 130px;">Tugas Utama</th>
+                            <th style="min-width: 90px;">Waktu</th>
+                            <th style="min-width: 70px; text-align: center;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px; font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
-                                Ruang Kelas X, XI, XII (Gedung Belajar)
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-color); font-size: 0.84rem;">
+                                    Ruang Kelas X-XII
+                                </div>
                             </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted);">
-                                Membuka pintu &amp; jendela, sapu/pel lantai, cek papan tulis
+                            <td>
+                                <span style="font-size: 0.78rem; color: var(--text-muted);">
+                                    Buka jendela, sapu/pel, cek papan tulis
+                                </span>
                             </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem;">06:00 - 06:45 WIB</td>
-                            <td style="padding: 12px 16px; text-align: center;">
-                                <span class="badge badge-success" style="font-size: 0.74rem;">Selesai Bersih</span>
-                            </td>
-                        </tr>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px; font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
-                                Ruang Guru, Kepala Sekolah &amp; Kantor TAS
-                            </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted);">
-                                Pengadaan air galon, pembersihan meja, buang tempat sampah
-                            </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem;">06:30 - 07:00 WIB</td>
-                            <td style="padding: 12px 16px; text-align: center;">
-                                <span class="badge badge-success" style="font-size: 0.74rem;">Siap Pakai</span>
+                            <td><span style="font-size: 0.76rem; color: var(--text-muted);">06:00 - 06:45</span></td>
+                            <td style="text-align: center;">
+                                <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                                    <i class="fas fa-check"></i> Bersih
+                                </span>
                             </td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px; font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
-                                Fasilitas Toilet &amp; Tempat Wudhu Siswa
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-color); font-size: 0.84rem;">
+                                    Ruang Guru &amp; TAS
+                                </div>
                             </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted);">
-                                Cek kelancaran air tandon, sabun cuci tangan, pembersihan lantai
+                            <td>
+                                <span style="font-size: 0.78rem; color: var(--text-muted);">
+                                    Air galon, meja kerja, tempat sampah
+                                </span>
                             </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem;">07:00 &amp; 12:30 WIB</td>
-                            <td style="padding: 12px 16px; text-align: center;">
-                                <span class="badge badge-success" style="font-size: 0.74rem;">Bersih &amp; Mengalir</span>
+                            <td><span style="font-size: 0.76rem; color: var(--text-muted);">06:30 - 07:00</span></td>
+                            <td style="text-align: center;">
+                                <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                                    <i class="fas fa-check"></i> Siap
+                                </span>
                             </td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px; font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
-                                Penguncian Gedung &amp; Pemadaman Lampu
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-color); font-size: 0.84rem;">
+                                    Toilet &amp; Tempat Wudhu
+                                </div>
                             </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted);">
-                                Memastikan seluruh pintu kelas terkunci dan lampu tidak terpakai mati
+                            <td>
+                                <span style="font-size: 0.78rem; color: var(--text-muted);">
+                                    Cek debit air kran, sabun, kuras bak
+                                </span>
                             </td>
-                            <td style="padding: 12px 14px; font-size: 0.8rem;">16:00 - 17:00 WIB</td>
-                            <td style="padding: 12px 16px; text-align: center;">
-                                <span class="badge badge-info" style="font-size: 0.74rem;">Shift Sore</span>
+                            <td><span style="font-size: 0.76rem; color: var(--text-muted);">06:15 &amp; 12:00</span></td>
+                            <td style="text-align: center;">
+                                <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                                    <i class="fas fa-check"></i> Higienis
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 700; color: var(--text-color); font-size: 0.84rem;">
+                                    Halaman &amp; Lapangan
+                                </div>
+                            </td>
+                            <td>
+                                <span style="font-size: 0.78rem; color: var(--text-muted);">
+                                    Sapu guguran daun, siapkan tiang bendera
+                                </span>
+                            </td>
+                            <td><span style="font-size: 0.76rem; color: var(--text-muted);">06:00 - 06:30</span></td>
+                            <td style="text-align: center;">
+                                <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                                    <i class="fas fa-check"></i> Rapi
+                                </span>
                             </td>
                         </tr>
                     </tbody>
@@ -123,64 +145,72 @@
             </div>
         </div>
 
-        <!-- Standar Kebersihan & Rumah Tangga Sekolah -->
-        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px;">
-            <div
-                style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
-                    <i class="fas fa-trash-can text-success me-2"></i> Pengelolaan Sampah &amp; Halaman Sekolah
+        <!-- Log Pengamanan Sore -->
+        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); flex-wrap: wrap; gap: 8px;">
+                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-lock text-warning"></i> Protokol Penguncian Gedung (Sore)
                 </div>
             </div>
 
-            <div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--text-color);">Pengangkutan Sampah Organik &amp; Anorganik</div>
-                        <div style="font-size: 0.74rem; color: var(--text-muted);">Tempat pembuangan akhir sekolah bersih sebelum jam 08:00 WIB</div>
+            <div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 10px;">
+                    <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-color);">Pemadaman Lampu Kelas &amp; Kipas Angin</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Pemeriksaan sakelar seluruh ruang belajar &bull; 16:00 WIB</div>
                     </div>
-                    <span class="badge badge-success" style="font-size: 0.74rem;">Selesai</span>
+                    <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                        <i class="fas fa-check"></i> Aman
+                    </span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--text-color);">Penyiraman Tanaman &amp; Halaman Depan</div>
-                        <div style="font-size: 0.74rem; color: var(--text-muted);">Area taman sekolah asri dan hijau</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-color);">Penguncian Pintu Gedung &amp; Penyerahan Kunci</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Serah terima master kunci ke Pos Satpam &bull; 17:00 WIB</div>
                     </div>
-                    <span class="badge badge-success" style="font-size: 0.74rem;">Terawat</span>
+                    <span class="badge-compact" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                        <i class="fas fa-key"></i> Terkunci
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Right Column: Akses Cepat Penjaga Sekolah -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card" style="padding: 20px; border-radius: 14px;">
-            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-bolt text-warning"></i> Menu Tugas Penjaga
+    <!-- Right Column: Akses Cepat Penjaga (Stack di Mobile) -->
+    <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+        <div class="card" style="padding: 18px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-bolt text-warning"></i> Menu Kebersihan &amp; Gedung
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                    <span><i class="fas fa-door-open text-primary me-2"></i> Daftar Ruang Kelas Belajar</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-door-open text-primary me-2"></i> Daftar Ruang Kelas</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
                 </a>
-                <a href="{{ route('dashboard.profile') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                    <span><i class="fas fa-user-gear text-info me-2"></i> Profil &amp; Akun Penjaga</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
+                <a href="{{ route('dashboard.identitas-sekolah.index') }}" class="btn btn-outline"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-school text-info me-2"></i> Denah Area Sekolah</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-users text-warning me-2"></i> Rekan Staf TAS</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
                 </a>
             </div>
         </div>
 
-        <div class="card" style="padding: 20px; border-radius: 14px; background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(59,130,246,0.05) 100%); border: 1px solid rgba(16,185,129,0.2);">
-            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-leaf text-success"></i> Standar Sekolah Sehat &amp; Nyaman
+        <div class="card" style="padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(132,204,22,0.06) 0%, rgba(59,130,246,0.04) 100%); border: 1px solid rgba(132,204,22,0.18);">
+            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-hand-holding-heart text-success"></i> Budaya 5R Sekolah
             </div>
-            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 12px 0;">
-                Menciptakan lingkungan belajar yang bersih, higienis, dan ramah anak demi kenyamanan seluruh warga SMK.
+            <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; margin: 0 0 10px 0;">
+                Terapkan Ringkas, Rapi, Resik, Rawat, dan Rajin pada setiap lorong, toilet, dan taman sekolah setiap hari.
             </p>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
                 <span style="color: var(--text-muted);">Status Lingkungan:</span>
-                <strong style="color: #10b981;">Bersih &amp; Asri</strong>
+                <span class="badge badge-success" style="font-size: 0.68rem; padding: 2px 6px;">Asri &amp; Terjaga</span>
             </div>
         </div>
     </div>

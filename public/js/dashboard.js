@@ -144,22 +144,52 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Notification Bell & User Avatar Dropdown Toggles
+    // Notification Bell & User Avatar Dropdown Toggles with Backdrop Blur
     const notifBtn = document.getElementById("notifBellBtn");
     const notifDropdown = document.getElementById("notifDropdown");
     const userBtn = document.getElementById("userMenuBtn");
     const userDropdown = document.getElementById("userDropdown");
+    const dropdownBackdrop = document.getElementById("dashDropdownBackdrop");
+    const dashHeader = document.querySelector(".dash-header");
+    const notifContainer = document.querySelector(".dash-notif-container");
+    const userContainer = document.querySelector(".dash-user-container");
+
+    const updateHeaderBackdropState = (shouldOpen) => {
+        if (dropdownBackdrop) {
+            if (shouldOpen) {
+                dropdownBackdrop.classList.add("active");
+            } else {
+                dropdownBackdrop.classList.remove("active");
+            }
+        }
+        if (dashHeader) {
+            if (shouldOpen) {
+                dashHeader.classList.add("has-dropdown-open");
+            } else {
+                dashHeader.classList.remove("has-dropdown-open");
+            }
+        }
+    };
 
     const closeAllHeaderDropdowns = () => {
         if (notifDropdown) {
             notifDropdown.style.display = "none";
             if (notifBtn) notifBtn.setAttribute("aria-expanded", "false");
+            if (notifContainer) notifContainer.classList.remove("is-active");
         }
         if (userDropdown) {
             userDropdown.style.display = "none";
             if (userBtn) userBtn.setAttribute("aria-expanded", "false");
+            if (userContainer) userContainer.classList.remove("is-active");
         }
+        updateHeaderBackdropState(false);
     };
+
+    if (dropdownBackdrop) {
+        dropdownBackdrop.addEventListener("click", () => {
+            closeAllHeaderDropdowns();
+        });
+    }
 
     if (notifBtn && notifDropdown) {
         notifBtn.addEventListener("click", (e) => {
@@ -168,16 +198,22 @@ document.addEventListener("DOMContentLoaded", () => {
             if (userDropdown) {
                 userDropdown.style.display = "none";
                 if (userBtn) userBtn.setAttribute("aria-expanded", "false");
+                if (userContainer) userContainer.classList.remove("is-active");
             }
-            const isOpen = notifDropdown.style.display === "block";
-            notifDropdown.style.display = isOpen ? "none" : "block";
-            notifBtn.setAttribute("aria-expanded", String(!isOpen));
+            const isCurrentlyOpen = notifDropdown.style.display === "block";
+            const willOpen = !isCurrentlyOpen;
+            notifDropdown.style.display = willOpen ? "block" : "none";
+            notifBtn.setAttribute("aria-expanded", String(willOpen));
+            if (notifContainer) {
+                if (willOpen) notifContainer.classList.add("is-active");
+                else notifContainer.classList.remove("is-active");
+            }
+            updateHeaderBackdropState(willOpen);
         });
 
         document.addEventListener("click", (e) => {
-            if (!e.target.closest(".dash-notif-container")) {
-                notifDropdown.style.display = "none";
-                notifBtn.setAttribute("aria-expanded", "false");
+            if (!e.target.closest(".dash-notif-container") && !e.target.closest(".dash-user-container")) {
+                closeAllHeaderDropdowns();
             }
         });
     }
@@ -189,17 +225,17 @@ document.addEventListener("DOMContentLoaded", () => {
             if (notifDropdown) {
                 notifDropdown.style.display = "none";
                 if (notifBtn) notifBtn.setAttribute("aria-expanded", "false");
+                if (notifContainer) notifContainer.classList.remove("is-active");
             }
-            const isOpen = userDropdown.style.display === "block";
-            userDropdown.style.display = isOpen ? "none" : "block";
-            userBtn.setAttribute("aria-expanded", String(!isOpen));
-        });
-
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest(".dash-user-container")) {
-                userDropdown.style.display = "none";
-                userBtn.setAttribute("aria-expanded", "false");
+            const isCurrentlyOpen = userDropdown.style.display === "block";
+            const willOpen = !isCurrentlyOpen;
+            userDropdown.style.display = willOpen ? "block" : "none";
+            userBtn.setAttribute("aria-expanded", String(willOpen));
+            if (userContainer) {
+                if (willOpen) userContainer.classList.add("is-active");
+                else userContainer.classList.remove("is-active");
             }
+            updateHeaderBackdropState(willOpen);
         });
     }
 

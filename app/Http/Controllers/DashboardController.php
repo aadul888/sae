@@ -248,15 +248,40 @@ class DashboardController extends Controller
     public function tendik(?Request $request = null)
     {
         $request = $request ?: request();
-        if ($res = $this->checkAuth('tendik')) return $res;
-        if (!\App\Models\RolePermission::canAccess('tendik', 'menu_dashboard')) {
-            return view('errors.dashboard-disabled', ['roleName' => 'Tenaga Kependidikan', 'role' => 'tendik']);
-        }
 
         $user = session('user');
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? '')) : ($user->nama ?? ($user->name ?? ''));
         $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
+        $userRole = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+
+        // Cek apakah user memiliki tugas tambahan tendik (misal Kepala TAS, Staf Persuratan, dll)
+        $hasTendikDuty = false;
+        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            $hasTendikDuty = DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('ptt.is_active', true)
+                ->where('rtt.is_active', true)
+                ->where(function ($q) use ($userId, $ptkId) {
+                    if ($userId) $q->where('ptt.user_id', $userId);
+                    if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
+                })
+                ->whereIn('rtt.kode', [
+                    'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
+                    'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
+                ])
+                ->exists();
+        }
+
+        if (!$hasTendikDuty && $userRole !== 'admin') {
+            if ($res = $this->checkAuth('tendik')) return $res;
+        } else {
+            if ($res = $this->checkAuth()) return $res;
+        }
+
+        if (!\App\Models\RolePermission::canAccess('tendik', 'menu_dashboard') && !$hasTendikDuty) {
+            return view('errors.dashboard-disabled', ['roleName' => 'Tenaga Kependidikan', 'role' => 'tendik']);
+        }
 
         $gtk = null;
         if (Schema::hasTable('gtk')) {
@@ -296,7 +321,7 @@ class DashboardController extends Controller
             ? $activeDuties->implode(', ')
             : ($gtk?->jabatan_ptk_id_str ?: ($gtk?->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah'));
 
-        $isKepalaTas = $dutyCodes->contains('KEPALA_TAS');
+        $isKepalaTas = $dutyCodes->contains('KEPALA_TAS') || $userRole === 'admin';
 
         // Deteksi Primary Duty Code
         $primaryDuty = 'STAF_PERSURATAN';
@@ -327,7 +352,9 @@ class DashboardController extends Controller
         }
 
         // Peta domain untuk tab switcher
+        // Peta domain untuk tab switcher
         $bidangMap = [
+            'umum'         => 'UMUM',
             'kepala_tas'   => 'KEPALA_TAS',
             'kepala-tas'   => 'KEPALA_TAS',
             'piket'        => 'GURU_PIKET',
@@ -343,16 +370,9 @@ class DashboardController extends Controller
             'persuratan'   => 'STAF_PERSURATAN',
         ];
 
-        $reqBidang = $request->query('bidang') ?: $request->get('bidang');
-        $currentDuty = $primaryDuty;
-        if ($reqBidang && isset($bidangMap[$reqBidang])) {
-            if ($isKepalaTas || $dutyCodes->contains($bidangMap[$reqBidang])) {
-                $currentDuty = $bidangMap[$reqBidang];
-            }
-        }
-
         // Peta view section Blade berdasarkan duty code
         $viewSectionMap = [
+            'UMUM'             => 'umum',
             'KEPALA_TAS'       => 'kepala-tas',
             'GURU_PIKET'       => 'piket',
             'STAF_KESISWAAN'    => 'kesiswaan',
@@ -366,7 +386,95 @@ class DashboardController extends Controller
             'STAF_PERSURATAN'  => 'persuratan',
         ];
 
-        $viewSection = $viewSectionMap[$currentDuty] ?? 'persuratan';
+        $reqBidang = $request->query('bidang') ?: $request->get('bidang');
+        // Jika ada request bidang spesifik yang valid, buka dashboard bidang tersebut.
+        // Jika tidak ada parameter bidang (atau bidang=umum), buka PORTAL UMUM TENDIK.
+        if ($reqBidang && isset($bidangMap[$reqBidang]) && $reqBidang !== 'umum') {
+            $currentDuty = $bidangMap[$reqBidang];
+            $viewSection = $viewSectionMap[$currentDuty] ?? 'umum';
+        } else {
+            $currentDuty = 'UMUM';
+            $viewSection = 'umum';
+        }
+
+        // Data Universal Khusus Portal Umum Tendik
+        $todayDate = now()->toDateString();
+        $aktivitasHariIniCount = 0;
+        $aktivitasHariIniSelesai = 0;
+        $aktivitasHariIniProses = 0;
+        $aktivitasHariIniTertunda = 0;
+        $durasiBulanMenit = 0;
+        $durasiBulanLabel = '0 Jam 0 Menit';
+        $aktivitasSayaList = collect();
+
+        if (Schema::hasTable('tendik_aktivitas')) {
+            // Catat otomatis kehadiran login hari ini jika belum tercatat
+            try {
+                \App\Models\TendikAktivitas::recordActivity(
+                    $user,
+                    'Autentikasi Masuk Sistem (Login)',
+                    'umum',
+                    'Sesi pengguna aktif di Portal SAE melalui perangkat klien web (IP: ' . request()->ip() . ')',
+                    'selesai',
+                    'Sesi Login Terverifikasi'
+                );
+            } catch (\Throwable) {}
+
+            $userBaseQuery = DB::table('tendik_aktivitas')->where(function ($q) use ($userId, $ptkId) {
+                if ($userId) $q->where('user_id', $userId);
+                if ($ptkId) $q->orWhere('ptk_id', $ptkId);
+            });
+
+            $todayQuery = (clone $userBaseQuery)->whereDate('tanggal', $todayDate);
+            $aktivitasHariIniCount = (clone $todayQuery)->count();
+            $aktivitasHariIniSelesai = (clone $todayQuery)->where('status', 'selesai')->count();
+            $aktivitasHariIniProses = (clone $todayQuery)->where('status', 'proses')->count();
+            $aktivitasHariIniTertunda = (clone $todayQuery)->where('status', 'tertunda')->count();
+
+            $durasiBulanMenit = (clone $userBaseQuery)
+                ->whereYear('tanggal', now()->year)
+                ->whereMonth('tanggal', now()->month)
+                ->whereNotNull('jam_mulai')
+                ->whereNotNull('jam_selesai')
+                ->selectRaw('COALESCE(SUM(GREATEST(0, ROUND(TIME_TO_SEC(TIMEDIFF(jam_selesai, jam_mulai)) / 60))), 0) as total_menit')
+                ->value('total_menit') ?: 0;
+
+            $jamKerja = floor($durasiBulanMenit / 60);
+            $sisaMenit = $durasiBulanMenit % 60;
+            $durasiBulanLabel = $jamKerja > 0 ? "{$jamKerja} Jam {$sisaMenit} Menit" : "{$durasiBulanMenit} Menit";
+
+            $aktivitasSayaList = (clone $userBaseQuery)
+                ->orderByDesc('tanggal')
+                ->orderByDesc('jam_mulai')
+                ->limit(10)
+                ->get();
+        }
+
+        // Pengumuman Terkini untuk Tendik
+        $pengumumanList = collect();
+        if (Schema::hasTable('pengumuman')) {
+            $pengumumanList = \App\Models\Pengumuman::forUserRole('tendik')
+                ->orderByDesc('created_at')
+                ->limit(5)
+                ->get();
+        }
+
+        // Status Presensi Personal Tendik Hari Ini
+        $presensiMasuk = '06:50 WIB';
+        $statusPresensi = 'Hadir Tepat Waktu';
+        if (Schema::hasTable('presensi_harian') && (Schema::hasColumn('presensi_harian', 'user_id') || Schema::hasColumn('presensi_harian', 'ptk_id'))) {
+            $presensiRow = DB::table('presensi_harian')
+                ->where('tanggal', $todayDate)
+                ->where(function ($q) use ($userId, $ptkId) {
+                    if ($userId && Schema::hasColumn('presensi_harian', 'user_id')) $q->where('user_id', $userId);
+                    if ($ptkId && Schema::hasColumn('presensi_harian', 'ptk_id')) $q->orWhere('ptk_id', $ptkId);
+                })
+                ->first();
+            if ($presensiRow) {
+                $presensiMasuk = $presensiRow->jam_masuk ? \Carbon\Carbon::parse($presensiRow->jam_masuk)->format('H:i') . ' WIB' : '06:50 WIB';
+                $statusPresensi = $presensiRow->status ? ucfirst($presensiRow->status) : 'Hadir Tepat Waktu';
+            }
+        }
 
         // Agregasi Statistik & Data Berdasarkan Kebutuhan Modul
         $totalSuratMasuk = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 14;
@@ -389,8 +497,8 @@ class DashboardController extends Controller
             'total_surat_keluar' => $totalSuratKeluar,
             'total_persuratan'   => $totalPersuratan,
             'buku_tamu_hari_ini' => 12,
-            'presensi_masuk'     => '06:50 WIB',
-            'status_presensi'    => 'Hadir Tepat Waktu',
+            'presensi_masuk'     => $presensiMasuk,
+            'status_presensi'    => $statusPresensi,
             'total_siswa'        => $totalSiswa,
             'siswa_laki'         => $siswaLaki,
             'siswa_perempuan'    => $siswaPerempuan,
@@ -584,7 +692,10 @@ class DashboardController extends Controller
             'dutyCodes', 'isKepalaTas', 'primaryDuty', 'currentDuty', 'viewSection',
             'stafTas', 'persuratanTerbaru', 'persuratanList', 'rombelRekap', 'siswaTerbaru',
             'gtkTugasList', 'gtkList', 'ruangList', 'jadwalLab',
-            'piketStats', 'recentIzinSiswa', 'recentAgendaKbm', 'recentPresensiGuru'
+            'piketStats', 'recentIzinSiswa', 'recentAgendaKbm', 'recentPresensiGuru',
+            'aktivitasHariIniCount', 'aktivitasHariIniSelesai', 'aktivitasHariIniProses',
+            'aktivitasHariIniTertunda', 'durasiBulanLabel', 'aktivitasSayaList', 'pengumumanList',
+            'presensiMasuk', 'statusPresensi'
         ));
     }
 

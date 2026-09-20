@@ -4,8 +4,20 @@
 @section('dash_title', 'Hak Akses & Peran')
 
 @section('content')
-    <!-- Banner Header -->
-    <div class="dash-banner">
+    <div id="hakAksesContainer"
+        data-active-role="{{ $activeRole }}"
+        data-role-name="{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
+        data-toggle-url="{{ route('dashboard.hak-akses.toggle') }}"
+        data-sync-url="{{ route('dashboard.hak-akses.sync') }}"
+        data-reset-url="{{ route('dashboard.hak-akses.reset') }}"
+        data-add-module-url="{{ route('dashboard.hak-akses.add-module') }}"
+        data-remove-module-url="{{ route('dashboard.hak-akses.remove-module') }}"
+        data-store-duty-url="{{ route('dashboard.hak-akses.tugas-tambahan.store') }}"
+        data-destroy-duty-base-url="{{ url('/dashboard/hak-akses/tugas-tambahan') }}"
+        data-sync-wali-url="{{ route('dashboard.hak-akses.tugas-tambahan.sync-wali') }}">
+
+        <!-- Banner Header -->
+        <div class="dash-banner">
         <div>
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-shield-halved text-primary me-2"></i> Pengaturan Hak Akses &amp; CRUD
@@ -113,6 +125,101 @@
     </div>
 
     @if ($activeRole === 'tugas_tambahan')
+        <!-- Card: Katalog Master Bidang Tugas Tambahan & Hak Akses Otomatis -->
+        <div class="card" style="padding: 20px 24px; margin-bottom: 24px; border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-sitemap text-primary"></i> Katalog Master Bidang Tugas Tambahan &amp; Hak Akses Otomatis
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin: 4px 0 0 0;">
+                        Daftar 22 tugas tambahan Dapodik beserta bidang penugasan dan hak akses modul sistem yang otomatis terbuka saat personel ditugaskan.
+                    </p>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label for="filterDutyCatalog" style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">Kelompok:</label>
+                    <select id="filterDutyCatalog" class="per-page-select" style="min-width: 140px; font-size: 0.8rem;">
+                        <option value="">Semua ({{ count($refTugasList) }})</option>
+                        <option value="tendik">Tendik ({{ collect($refTugasList)->where('kelompok', 'tendik')->count() }} Bidang)</option>
+                        <option value="guru">Guru ({{ collect($refTugasList)->where('kelompok', 'guru')->count() }} Tugas)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive-stack" style="max-height: 380px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead style="position: sticky; top: 0; background: var(--card-bg, #1e293b); z-index: 2;">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <th style="padding: 10px 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">No</th>
+                            <th style="padding: 10px 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tugas Tambahan &amp; Kode</th>
+                            <th style="padding: 10px 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">Bidang</th>
+                            <th style="padding: 10px 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 90px; text-align: center;">Kelompok</th>
+                            <th style="padding: 10px 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 85px; text-align: center;">Beban Jam</th>
+                            <th style="padding: 10px 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Modul Izin Terbuka Otomatis</th>
+                            <th style="padding: 10px 14px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">Personel</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($refTugasList as $cIdx => $rt)
+                            <tr class="duty-catalog-row" data-group="{{ $rt->kelompok }}" style="border-bottom: 1px solid var(--border-color); font-size: 0.82rem;">
+                                <td style="padding: 10px 14px; text-align: center; color: var(--text-muted); font-weight: 600;">{{ $cIdx + 1 }}</td>
+                                <td style="padding: 10px 14px;">
+                                    <div style="font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas {{ $rt->icon }} text-primary"></i>
+                                        <span>{{ $rt->nama }}</span>
+                                    </div>
+                                    <span style="font-size: 0.7rem; font-family: monospace; color: var(--text-muted);">{{ $rt->kode }}</span>
+                                </td>
+                                <td style="padding: 10px 14px;">
+                                    <span class="badge badge-accent" style="font-size: 0.72rem; padding: 3px 8px; font-weight: 600;">
+                                        {{ $rt->bidang }}
+                                    </span>
+                                </td>
+                                <td style="padding: 10px 14px; text-align: center;">
+                                    <span class="badge {{ $rt->kelompok === 'guru' ? 'badge-primary' : 'badge-info' }}" style="font-size: 0.65rem; padding: 2px 6px; text-transform: uppercase;">
+                                        {{ $rt->kelompok }}
+                                    </span>
+                                </td>
+                                <td style="padding: 10px 14px; text-align: center; font-weight: 600;">
+                                    {{ $rt->ekuivalensi_jam ? $rt->ekuivalensi_jam . ' Jam' : '-' }}
+                                </td>
+                                <td style="padding: 10px 14px;">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                        @forelse ($rt->granted_perms as $gKey)
+                                            @php
+                                                $modConfig = \App\Models\RolePermission::getPermissionConfig($gKey);
+                                                $modLabel = $modConfig['label'] ?? str_replace('menu_', '', $gKey);
+                                            @endphp
+                                            <span class="badge badge-outline" style="font-size: 0.68rem; padding: 2px 6px; background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.25); color: var(--text-color);" title="{{ $gKey }}">
+                                                <i class="fas {{ $modConfig['icon'] ?? 'fa-cube' }} me-1 text-primary" style="font-size: 0.65rem;"></i>{{ $modLabel }}
+                                            </span>
+                                        @empty
+                                            <span style="color: var(--text-muted); font-size: 0.72rem; font-style: italic;">Mengikuti izin peran dasar</span>
+                                        @endforelse
+                                    </div>
+                                </td>
+                                <td style="padding: 10px 14px; text-align: center;">
+                                    <span class="badge {{ $rt->assigned_count > 0 ? 'badge-success' : 'badge-outline' }}" style="font-size: 0.72rem; padding: 2px 8px;">
+                                        {{ $rt->assigned_count }} Orang
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section: Penugasan Personel PTK -->
+        <div style="margin-bottom: 12px;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-users-gear text-primary"></i> Penugasan Personel PTK Aktif
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.8rem; margin: 4px 0 0 0;">
+                Penetapan guru &amp; tendik ke dalam tugas tambahan dan kelas perwalian aktif.
+            </p>
+        </div>
+
         <!-- Tampilan Datatable Khusus Tab Tugas Tambahan -->
         <div class="toolbar-row">
             <div class="toolbar-entries" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -627,831 +734,11 @@
                     </div>
                 </form>
             </div>
-        </div>
     @endif
-
-    @push('scripts')
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-
-                // Unified Alert/Toast (Style Tunggal Mengikuti Standar Aplikasi)
-                const showToast = (title, icon = 'success') => {
-                    const type = (icon === 'error' || icon === 'danger') ? 'danger' : (icon === 'warning' ?
-                        'warning' : 'success');
-                    if (window.SAE && typeof window.SAE.toast === 'function') {
-                        window.SAE.toast(title, type);
-                    }
-                };
-
-                // 1. Toggle 4 Aksi (Tambah, Lihat, Ubah, Hapus) di Kolom Aksi
-                document.querySelectorAll('.crud-toggle').forEach(toggle => {
-                    toggle.addEventListener('change', async (e) => {
-                        const target = e.target;
-                        const role = target.dataset.role;
-                        const key = target.dataset.key;
-                        const action = target.dataset.action;
-                        const color = target.dataset.color || '#10b981';
-                        const isAllowed = target.checked;
-                        const slider = target.nextElementSibling;
-                        const row = target.closest('tr');
-
-                        // Optimistic UI Update
-                        slider.style.backgroundColor = isAllowed ? color : '#64748b';
-
-                        try {
-                            const res = await fetch('{{ route('dashboard.hak-akses.toggle') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken
-                                },
-                                body: JSON.stringify({
-                                    role: role,
-                                    permission_key: key,
-                                    action: action,
-                                    is_allowed: isAllowed
-                                })
-                            });
-
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message || 'Izin berhasil diperbarui.');
-
-                                // Sinkronkan switch UI antar aksi jika read mati / create nyala
-                                if (data.data) {
-                                    ['create', 'read', 'update', 'delete'].forEach(act => {
-                                        const input = row.querySelector(
-                                            `.crud-toggle[data-action="${act}"]`);
-                                        if (input && typeof data.data['can_' + act] !==
-                                            'undefined') {
-                                            input.checked = data.data['can_' + act];
-                                            const s = input.nextElementSibling;
-                                            if (s) {
-                                                s.style.backgroundColor = input.checked ? (
-                                                        input.dataset.color || '#10b981') :
-                                                    '#64748b';
-                                            }
-                                        }
-                                    });
-                                }
-                            } else {
-                                throw new Error(data.message || 'Gagal mengubah izin ' + action);
-                            }
-                        } catch (err) {
-                            // Revert UI jika gagal
-                            target.checked = !isAllowed;
-                            slider.style.backgroundColor = !isAllowed ? color : '#64748b';
-                            showToast(err.message || 'Gagal mengubah izin ' + action, 'danger');
-                        }
-                    });
-                });
-
-                // 2. Client-side Search, Group Filter, Sorting & Pagination untuk Datatable Modul
-                const liveSearchInput = document.getElementById('liveSearch');
-                const clearSearchBtn = document.getElementById('clearSearch');
-                const filterGroupSelect = document.getElementById('filterGroup');
-                const perPageSelect = document.getElementById('perPageSelect');
-                let allRows = Array.from(document.querySelectorAll('.module-row'));
-                const noResultRow = document.getElementById('noSearchResultRow');
-                const paginationWrap = document.getElementById('tablePaginationWrap');
-                const totalBadge = document.getElementById('totalBadge');
-
-                let currentPage = 1;
-                let sortCol = 'no';
-                let sortDir = 'asc';
-
-                const sortRows = (rows) => {
-                    return rows.sort((a, b) => {
-                        let valA = '';
-                        let valB = '';
-                        if (sortCol === 'no') {
-                            valA = parseInt(a.querySelector('.row-number')?.textContent || '0', 10);
-                            valB = parseInt(b.querySelector('.row-number')?.textContent || '0', 10);
-                            return sortDir === 'asc' ? valA - valB : valB - valA;
-                        } else if (sortCol === 'modul') {
-                            valA = a.dataset.modul || '';
-                            valB = b.dataset.modul || '';
-                        } else if (sortCol === 'kelompok') {
-                            valA = a.dataset.kelompok || '';
-                            valB = b.dataset.kelompok || '';
-                        }
-                        const cmp = valA.localeCompare(valB);
-                        return sortDir === 'asc' ? cmp : -cmp;
-                    });
-                };
-
-                const renderTable = () => {
-                    const query = (liveSearchInput?.value || '').trim().toLowerCase();
-                    const groupFilter = (filterGroupSelect?.value || '').trim();
-                    const perPageVal = perPageSelect?.value || '25';
-                    const perPage = perPageVal === 'all' ? Infinity : parseInt(perPageVal, 10);
-
-                    // Filter baris
-                    let matchedRows = allRows.filter(row => {
-                        const name = row.dataset.name || '';
-                        const group = row.dataset.group || '';
-                        const matchQuery = !query || name.includes(query);
-                        const matchGroup = !groupFilter || group === groupFilter;
-                        return matchQuery && matchGroup;
-                    });
-
-                    matchedRows = sortRows(matchedRows);
-
-                    const totalMatched = matchedRows.length;
-                    if (totalBadge) {
-                        totalBadge.textContent = `Total: ${totalMatched} Modul`;
-                    }
-
-                    if (totalMatched === 0) {
-                        allRows.forEach(r => r.style.display = 'none');
-                        if (noResultRow) noResultRow.style.display = '';
-                        if (paginationWrap) paginationWrap.innerHTML = '';
-                        return;
-                    }
-
-                    if (noResultRow) noResultRow.style.display = 'none';
-
-                    // Hitung pagination
-                    const totalPages = Math.ceil(totalMatched / perPage);
-                    if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
-
-                    const startIdx = (currentPage - 1) * perPage;
-                    const endIdx = startIdx + perPage;
-
-                    // Sembunyikan semua dulu
-                    allRows.forEach(r => r.style.display = 'none');
-
-                    // Tampilkan hanya baris halaman aktif dan update nomor
-                    const tbody = document.getElementById('tableBody');
-                    matchedRows.forEach((row, i) => {
-                        if (i >= startIdx && i < endIdx) {
-                            row.style.display = '';
-                            const noCell = row.querySelector('.row-number');
-                            if (noCell) noCell.textContent = i + 1;
-                            if (tbody) tbody.appendChild(row); // Re-order in DOM
-                        }
-                    });
-
-                    // Render pagination buttons
-                    if (totalPages <= 1) {
-                        if (paginationWrap) paginationWrap.innerHTML = '';
-                        return;
-                    }
-
-                    let pagHtml = '';
-                    pagHtml +=
-                        `<button type="button" class="page-btn ${currentPage === 1 ? 'disabled' : ''}" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
-
-                    for (let p = 1; p <= totalPages; p++) {
-                        if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) {
-                            pagHtml +=
-                                `<button type="button" class="page-btn ${p === currentPage ? 'current' : ''}" data-page="${p}">${p}</button>`;
-                        } else if (p === currentPage - 3 || p === currentPage + 3) {
-                            pagHtml += `<span class="page-info">&hellip;</span>`;
-                        }
-                    }
-
-                    pagHtml +=
-                        `<button type="button" class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
-
-                    if (paginationWrap) {
-                        paginationWrap.innerHTML = pagHtml;
-                        paginationWrap.querySelectorAll('.page-btn[data-page]').forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                const targetP = parseInt(btn.dataset.page, 10);
-                                if (targetP >= 1 && targetP <= totalPages && targetP !==
-                                    currentPage) {
-                                    currentPage = targetP;
-                                    renderTable();
-                                }
-                            });
-                        });
-                    }
-                };
-
-                // Event listener klik header kolom untuk sorting modul
-                document.querySelectorAll('.module-th[data-col]').forEach(th => {
-                    th.addEventListener('click', () => {
-                        const col = th.dataset.col;
-                        if (sortCol === col) {
-                            sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-                        } else {
-                            sortCol = col;
-                            sortDir = 'asc';
-                        }
-
-                        document.querySelectorAll('.module-th').forEach(t => {
-                            t.classList.remove('sorted');
-                            const icon = t.querySelector('.sort-icon');
-                            if (icon) icon.innerHTML = '&#9650;&#9660;';
-                        });
-
-                        th.classList.add('sorted');
-                        const curIcon = th.querySelector('.sort-icon');
-                        if (curIcon) {
-                            curIcon.innerHTML = sortDir === 'asc' ? '&#9650;' : '&#9660;';
-                        }
-
-                        renderTable();
-                    });
-                });
-
-                if (liveSearchInput) {
-                    liveSearchInput.addEventListener('input', () => {
-                        if (clearSearchBtn) {
-                            clearSearchBtn.classList.toggle('visible', !!liveSearchInput.value);
-                        }
-                        currentPage = 1;
-                        renderTable();
-                    });
-                }
-
-                if (clearSearchBtn) {
-                    clearSearchBtn.addEventListener('click', () => {
-                        liveSearchInput.value = '';
-                        clearSearchBtn.classList.remove('visible');
-                        currentPage = 1;
-                        renderTable();
-                    });
-                }
-
-                if (filterGroupSelect) {
-                    filterGroupSelect.addEventListener('change', () => {
-                        currentPage = 1;
-                        renderTable();
-                    });
-                }
-
-                if (perPageSelect) {
-                    perPageSelect.addEventListener('change', () => {
-                        currentPage = 1;
-                        renderTable();
-                    });
-                }
-
-                // Inisialisasi awal render tabel
-                renderTable();
-
-                // 2b. Handler Tab Tugas Tambahan (Search, Sorting, Pagination, Modal, Sinkronisasi Wali Kelas, Hapus)
-                const liveSearchDuty = document.getElementById('liveSearchDuty');
-                const clearSearchDuty = document.getElementById('clearSearchDuty');
-                const perPageDuty = document.getElementById('perPageDuty');
-                const dutyTableBody = document.getElementById('dutyTableBody');
-                const dutyPaginationWrap = document.getElementById('dutyPaginationWrap');
-                const totalDutyBadge = document.getElementById('totalDutyBadge');
-                const noDutyResultRow = document.getElementById('noDutyResultRow');
-                let allDutyRows = Array.from(document.querySelectorAll('.duty-row'));
-
-                let currentDutyPage = 1;
-                let sortDutyCol = 'no';
-                let sortDutyDir = 'asc';
-
-                const sortDutyRows = (rows) => {
-                    return rows.sort((a, b) => {
-                        let valA = '';
-                        let valB = '';
-                        if (sortDutyCol === 'no') {
-                            valA = parseInt(a.querySelector('.duty-row-number')?.textContent || '0', 10);
-                            valB = parseInt(b.querySelector('.duty-row-number')?.textContent || '0', 10);
-                            return sortDutyDir === 'asc' ? valA - valB : valB - valA;
-                        } else if (sortDutyCol === 'nama') {
-                            valA = a.dataset.nama || '';
-                            valB = b.dataset.nama || '';
-                        } else if (sortDutyCol === 'tugas') {
-                            valA = a.dataset.tugas || '';
-                            valB = b.dataset.tugas || '';
-                        } else if (sortDutyCol === 'bidang') {
-                            valA = a.dataset.bidang || '';
-                            valB = b.dataset.bidang || '';
-                        } else if (sortDutyCol === 'jam') {
-                            valA = parseFloat(a.dataset.jam || '0');
-                            valB = parseFloat(b.dataset.jam || '0');
-                            return sortDutyDir === 'asc' ? valA - valB : valB - valA;
-                        }
-                        const cmp = valA.localeCompare(valB);
-                        return sortDutyDir === 'asc' ? cmp : -cmp;
-                    });
-                };
-
-                const renderDutyTable = () => {
-                    if (!dutyTableBody) return;
-
-                    const q = (liveSearchDuty?.value || '').trim().toLowerCase();
-                    const perPageVal = perPageDuty?.value || '25';
-                    const perPage = perPageVal === 'all' ? Infinity : parseInt(perPageVal, 10);
-
-                    let matched = allDutyRows.filter(r => {
-                        const search = r.dataset.search || '';
-                        return !q || search.includes(q);
-                    });
-
-                    matched = sortDutyRows(matched);
-
-                    const totalMatched = matched.length;
-                    if (totalDutyBadge) {
-                        totalDutyBadge.textContent = `Total: ${totalMatched} Penugasan`;
-                    }
-
-                    if (totalMatched === 0) {
-                        allDutyRows.forEach(r => r.style.display = 'none');
-                        if (noDutyResultRow) noDutyResultRow.style.display = '';
-                        if (dutyPaginationWrap) dutyPaginationWrap.innerHTML = '';
-                        return;
-                    }
-
-                    if (noDutyResultRow) noDutyResultRow.style.display = 'none';
-
-                    const totalPages = Math.ceil(totalMatched / perPage);
-                    if (currentDutyPage > totalPages) currentDutyPage = Math.max(1, totalPages);
-
-                    const startIdx = (currentDutyPage - 1) * perPage;
-                    const endIdx = startIdx + perPage;
-
-                    allDutyRows.forEach(r => r.style.display = 'none');
-
-                    matched.forEach((row, i) => {
-                        if (i >= startIdx && i < endIdx) {
-                            row.style.display = '';
-                            const noCell = row.querySelector('.duty-row-number');
-                            if (noCell) noCell.textContent = i + 1;
-                            dutyTableBody.appendChild(row);
-                        }
-                    });
-
-                    if (totalPages <= 1) {
-                        if (dutyPaginationWrap) dutyPaginationWrap.innerHTML = '';
-                        return;
-                    }
-
-                    let pagHtml = '';
-                    pagHtml +=
-                        `<button type="button" class="page-btn ${currentDutyPage === 1 ? 'disabled' : ''}" data-page="${currentDutyPage - 1}" ${currentDutyPage === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>`;
-
-                    for (let p = 1; p <= totalPages; p++) {
-                        if (p === 1 || p === totalPages || (p >= currentDutyPage - 2 && p <= currentDutyPage + 2)) {
-                            pagHtml +=
-                                `<button type="button" class="page-btn ${p === currentDutyPage ? 'current' : ''}" data-page="${p}">${p}</button>`;
-                        } else if (p === currentDutyPage - 3 || p === currentDutyPage + 3) {
-                            pagHtml += `<span class="page-info">&hellip;</span>`;
-                        }
-                    }
-
-                    pagHtml +=
-                        `<button type="button" class="page-btn ${currentDutyPage === totalPages ? 'disabled' : ''}" data-page="${currentDutyPage + 1}" ${currentDutyPage === totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
-
-                    if (dutyPaginationWrap) {
-                        dutyPaginationWrap.innerHTML = pagHtml;
-                        dutyPaginationWrap.querySelectorAll('.page-btn[data-page]').forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                const targetP = parseInt(btn.dataset.page, 10);
-                                if (targetP >= 1 && targetP <= totalPages && targetP !==
-                                    currentDutyPage) {
-                                    currentDutyPage = targetP;
-                                    renderDutyTable();
-                                }
-                            });
-                        });
-                    }
-                };
-
-                // Sorting klik header di tab Tugas Tambahan
-                document.querySelectorAll('.duty-th[data-col]').forEach(th => {
-                    th.addEventListener('click', () => {
-                        const col = th.dataset.col;
-                        if (sortDutyCol === col) {
-                            sortDutyDir = sortDutyDir === 'asc' ? 'desc' : 'asc';
-                        } else {
-                            sortDutyCol = col;
-                            sortDutyDir = 'asc';
-                        }
-
-                        document.querySelectorAll('.duty-th').forEach(t => {
-                            t.classList.remove('sorted');
-                            const icon = t.querySelector('.sort-icon');
-                            if (icon) icon.innerHTML = '&#9650;&#9660;';
-                        });
-
-                        th.classList.add('sorted');
-                        const curIcon = th.querySelector('.sort-icon');
-                        if (curIcon) {
-                            curIcon.innerHTML = sortDutyDir === 'asc' ? '&#9650;' : '&#9660;';
-                        }
-
-                        renderDutyTable();
-                    });
-                });
-
-                if (liveSearchDuty) {
-                    liveSearchDuty.addEventListener('input', () => {
-                        const q = liveSearchDuty.value.trim().toLowerCase();
-                        if (clearSearchDuty) clearSearchDuty.classList.toggle('visible', !!q);
-                        currentDutyPage = 1;
-                        renderDutyTable();
-                    });
-                }
-
-                if (clearSearchDuty) {
-                    clearSearchDuty.addEventListener('click', () => {
-                        liveSearchDuty.value = '';
-                        clearSearchDuty.classList.remove('visible');
-                        currentDutyPage = 1;
-                        renderDutyTable();
-                    });
-                }
-
-                if (perPageDuty) {
-                    perPageDuty.addEventListener('change', () => {
-                        currentDutyPage = 1;
-                        renderDutyTable();
-                    });
-                }
-
-                renderDutyTable();
-
-                // Modal Tambah Penugasan
-                const dutyModal = document.getElementById('dutyModal');
-                const btnOpenAssignModal = document.getElementById('btnOpenAssignModal');
-                const btnCloseDutyModal = document.getElementById('btnCloseDutyModal');
-                const btnCancelDutyModal = document.getElementById('btnCancelDutyModal');
-                const dutyTugasSelect = document.getElementById('dutyTugasSelect');
-                const dutyRombelWrap = document.getElementById('dutyRombelWrap');
-                const formAddDuty = document.getElementById('formAddDuty');
-
-                if (btnOpenAssignModal && dutyModal) {
-                    btnOpenAssignModal.addEventListener('click', () => {
-                        dutyModal.style.display = 'flex';
-                    });
-                }
-
-                const closeDutyModal = () => {
-                    if (dutyModal) {
-                        dutyModal.style.display = 'none';
-                        if (formAddDuty) formAddDuty.reset();
-                        if (dutyRombelWrap) dutyRombelWrap.style.display = 'none';
-                    }
-                };
-
-                if (btnCloseDutyModal) btnCloseDutyModal.addEventListener('click', closeDutyModal);
-                if (btnCancelDutyModal) btnCancelDutyModal.addEventListener('click', closeDutyModal);
-
-                if (dutyTugasSelect && dutyRombelWrap) {
-                    dutyTugasSelect.addEventListener('change', () => {
-                        const selectedOpt = dutyTugasSelect.options[dutyTugasSelect.selectedIndex];
-                        const kode = selectedOpt ? selectedOpt.dataset.kode : '';
-                        dutyRombelWrap.style.display = (kode === 'WALI_KELAS') ? 'block' : 'none';
-                    });
-                }
-
-                if (formAddDuty) {
-                    formAddDuty.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const formData = new FormData(formAddDuty);
-                        const payload = Object.fromEntries(formData.entries());
-
-                        try {
-                            const res = await fetch(
-                                '{{ route('dashboard.hak-akses.tugas-tambahan.store') }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-CSRF-TOKEN': csrfToken
-                                    },
-                                    body: JSON.stringify(payload)
-                                });
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message, 'success');
-                                closeDutyModal();
-                                setTimeout(() => window.location.reload(), 600);
-                            } else {
-                                throw new Error(data.message || 'Gagal menyimpan');
-                            }
-                        } catch (err) {
-                            showToast(err.message, 'danger');
-                        }
-                    });
-                }
-
-                // Hapus Penugasan
-                document.querySelectorAll('.btn-delete-duty').forEach(btn => {
-                    btn.addEventListener('click', async () => {
-                        const id = btn.dataset.id;
-                        const name = btn.dataset.name;
-
-                        let confirmed = false;
-                        if (window.SAE && typeof window.SAE.confirm === 'function') {
-                            confirmed = await window.SAE.confirm(
-                                `Hapus penugasan tugas tambahan untuk ${name}?`,
-                                'Hapus Penugasan',
-                                'warning'
-                            );
-                        } else {
-                            confirmed = confirm(`Hapus penugasan tugas tambahan untuk ${name}?`);
-                        }
-
-                        if (!confirmed) return;
-
-                        try {
-                            const res = await fetch(
-                                `{{ url('/dashboard/hak-akses/tugas-tambahan') }}/${id}`, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-CSRF-TOKEN': csrfToken
-                                    }
-                                });
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message, 'success');
-                                setTimeout(() => window.location.reload(), 600);
-                            } else {
-                                throw new Error(data.message || 'Gagal menghapus');
-                            }
-                        } catch (err) {
-                            showToast(err.message, 'danger');
-                        }
-                    });
-                });
-
-                // Sinkronkan Wali Kelas dari Dapodik
-                const btnSyncWaliKelas = document.getElementById('btnSyncWaliKelas');
-                if (btnSyncWaliKelas) {
-                    btnSyncWaliKelas.addEventListener('click', async () => {
-                        const originalHtml = btnSyncWaliKelas.innerHTML;
-                        btnSyncWaliKelas.disabled = true;
-                        btnSyncWaliKelas.innerHTML =
-                            '<i class="fas fa-spinner fa-spin me-1"></i> Menyinkronkan...';
-
-                        try {
-                            const res = await fetch(
-                                '{{ route('dashboard.hak-akses.tugas-tambahan.sync-wali') }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Accept': 'application/json',
-                                        'X-CSRF-TOKEN': csrfToken
-                                    }
-                                });
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message, 'success');
-                                setTimeout(() => window.location.reload(), 800);
-                            } else {
-                                throw new Error(data.message || 'Gagal menyinkronkan');
-                            }
-                        } catch (err) {
-                            showToast(err.message, 'danger');
-                        } finally {
-                            btnSyncWaliKelas.disabled = false;
-                            btnSyncWaliKelas.innerHTML = originalHtml;
-                        }
-                    });
-                }
-
-                // 3. Tombol Sinkronisasi Modul Baru Otomatis
-                const btnSync = document.getElementById('btnSyncModules');
-                if (btnSync) {
-                    btnSync.addEventListener('click', async () => {
-                        const originalHtml = btnSync.innerHTML;
-                        btnSync.disabled = true;
-                        btnSync.innerHTML =
-                            '<i class="fas fa-spinner fa-spin me-1"></i> Menyinkronkan...';
-
-                        try {
-                            const res = await fetch('{{ route('dashboard.hak-akses.sync') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken
-                                }
-                            });
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message, 'success');
-                                if (data.count > 0) {
-                                    setTimeout(() => window.location.reload(), 800);
-                                }
-                            } else {
-                                throw new Error(data.message || 'Gagal menyinkronkan modul');
-                            }
-                        } catch (err) {
-                            showToast(err.message || 'Terjadi kesalahan sinkronisasi', 'danger');
-                        } finally {
-                            btnSync.disabled = false;
-                            btnSync.innerHTML = originalHtml;
-                        }
-                    });
-                }
-
-                // 4. Tombol Reset Bawaan
-                const btnReset = document.getElementById('btnResetDefault');
-                if (btnReset) {
-                    btnReset.addEventListener('click', async () => {
-                        let confirmed = false;
-                        if (window.SAE && typeof window.SAE.confirm === 'function') {
-                            confirmed = await window.SAE.confirm(
-                                'Seluruh izin peran {{ ucfirst($activeRole) }} akan dikembalikan ke pengaturan default sistem.',
-                                'Reset ke Bawaan?',
-                                'warning'
-                            );
-                        } else {
-                            confirmed = confirm(
-                                'Reset izin peran {{ $activeRole }} ke pengaturan default?');
-                        }
-
-                        if (!confirmed) return;
-
-                        try {
-                            const res = await fetch('{{ route('dashboard.hak-akses.reset') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken
-                                },
-                                body: JSON.stringify({
-                                    role: '{{ $activeRole }}'
-                                })
-                            });
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message, 'success');
-                                setTimeout(() => window.location.reload(), 600);
-                            } else {
-                                throw new Error(data.message || 'Gagal mereset izin');
-                            }
-                        } catch (err) {
-                            showToast(err.message || 'Gagal mereset izin', 'danger');
-                        }
-                    });
-                }
-
-                // 5. Tambah Modul ke Peran
-                const btnOpenAddModule = document.getElementById('btnOpenAddModule');
-                const modalAddModule = document.getElementById('modalAddModule');
-                const btnCloseAddModule = document.getElementById('btnCloseAddModule');
-                const btnCancelAddModule = document.getElementById('btnCancelAddModule');
-                const formAddModule = document.getElementById('formAddModule');
-                const btnSubmitAddModule = document.getElementById('btnSubmitAddModule');
-
-                if (btnOpenAddModule && modalAddModule) {
-                    btnOpenAddModule.addEventListener('click', () => {
-                        modalAddModule.style.display = 'flex';
-                    });
-                }
-
-                if (btnCloseAddModule && modalAddModule) {
-                    btnCloseAddModule.addEventListener('click', () => {
-                        modalAddModule.style.display = 'none';
-                    });
-                }
-
-                if (btnCancelAddModule && modalAddModule) {
-                    btnCancelAddModule.addEventListener('click', () => {
-                        modalAddModule.style.display = 'none';
-                    });
-                }
-
-                if (modalAddModule) {
-                    modalAddModule.addEventListener('click', (e) => {
-                        if (e.target === modalAddModule) {
-                            modalAddModule.style.display = 'none';
-                        }
-                    });
-                }
-
-                const selectAddModule = document.getElementById('selectAddModule');
-                const customModuleFields = document.getElementById('customModuleFields');
-                const inputCustomModuleName = document.getElementById('inputCustomModuleName');
-
-                if (selectAddModule && customModuleFields) {
-                    selectAddModule.addEventListener('change', () => {
-                        if (selectAddModule.value === '__NEW_CUSTOM_MODULE__') {
-                            customModuleFields.style.display = 'flex';
-                            if (inputCustomModuleName) {
-                                inputCustomModuleName.required = true;
-                                inputCustomModuleName.focus();
-                            }
-                        } else {
-                            customModuleFields.style.display = 'none';
-                            if (inputCustomModuleName) {
-                                inputCustomModuleName.required = false;
-                            }
-                        }
-                    });
-                }
-
-                if (formAddModule) {
-                    formAddModule.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const permKey = selectAddModule?.value;
-                        const customName = inputCustomModuleName ? inputCustomModuleName.value.trim() : '';
-
-                        if (!permKey) {
-                            showToast('Silakan pilih modul terlebih dahulu.', 'warning');
-                            return;
-                        }
-
-                        if (permKey === '__NEW_CUSTOM_MODULE__' && !customName) {
-                            showToast('Silakan masukkan nama modul baru.', 'warning');
-                            inputCustomModuleName?.focus();
-                            return;
-                        }
-
-                        const origText = btnSubmitAddModule ? btnSubmitAddModule.innerHTML : '';
-                        if (btnSubmitAddModule) {
-                            btnSubmitAddModule.disabled = true;
-                            btnSubmitAddModule.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
-                        }
-
-                        try {
-                            const res = await fetch('{{ route('dashboard.hak-akses.add-module') }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken
-                                },
-                                body: JSON.stringify({
-                                    role: '{{ $activeRole }}',
-                                    permission_key: permKey,
-                                    custom_name: customName
-                                })
-                            });
-
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                showToast(data.message || 'Modul berhasil ditambahkan!', 'success');
-                                if (modalAddModule) modalAddModule.style.display = 'none';
-                                setTimeout(() => window.location.reload(), 600);
-                            } else {
-                                throw new Error(data.message || 'Gagal menambahkan modul');
-                            }
-                        } catch (err) {
-                            showToast(err.message || 'Terjadi kesalahan sistem', 'danger');
-                            if (btnSubmitAddModule) {
-                                btnSubmitAddModule.disabled = false;
-                                btnSubmitAddModule.innerHTML = origText;
-                            }
-                        }
-                    });
-                }
-
-                // 6. Hapus Modul dari Peran
-                document.addEventListener('click', async (e) => {
-                    const btn = e.target.closest('.btn-remove-module');
-                    if (!btn) return;
-
-                    const key = btn.dataset.key;
-                    const name = btn.dataset.name || key;
-
-                    let confirmed = false;
-                    const confirmMsg = `Hapus modul "${name}" dari peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}? Modul ini tidak akan lagi tampil di menu peran ini.`;
-
-                    if (window.SAE && typeof window.SAE.confirm === 'function') {
-                        confirmed = await window.SAE.confirm(confirmMsg, 'Hapus Modul?', 'warning');
-                    } else {
-                        confirmed = confirm(confirmMsg);
-                    }
-
-                    if (!confirmed) return;
-
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-                    try {
-                        const res = await fetch('{{ route('dashboard.hak-akses.remove-module') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            body: JSON.stringify({
-                                role: '{{ $activeRole }}',
-                                permission_key: key
-                            })
-                        });
-
-                        const data = await res.json();
-                        if (data.status === 'success') {
-                            showToast(data.message || 'Modul berhasil dihapus dari peran ini.', 'success');
-                            setTimeout(() => window.location.reload(), 600);
-                        } else {
-                            throw new Error(data.message || 'Gagal menghapus modul');
-                        }
-                    } catch (err) {
-                        showToast(err.message || 'Terjadi kesalahan saat menghapus modul', 'danger');
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-trash-can"></i>';
-                    }
-                });
-            });
-        </script>
-    @endpush
+    </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/hak-akses.js') }}"></script>
+@endpush
+

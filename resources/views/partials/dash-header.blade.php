@@ -1,4 +1,7 @@
 <header class="dash-header">
+    {{-- Global Backdrop Blur for Header Dropdowns --}}
+    <div class="dash-dropdown-backdrop" id="dashDropdownBackdrop"></div>
+
     <div class="dash-header-left">
         <button type="button" class="dash-toggle-btn" id="dashToggleBtn" aria-label="Toggle Sidebar">
             <i class="fas fa-bars-staggered"></i>
@@ -59,7 +62,7 @@
             <!-- Dropdown Menu Notifikasi (2 Tab) -->
             <div class="dash-notif-dropdown" id="notifDropdown" style="display: none; width: 360px; max-width: 95vw;">
                 <!-- Segmented Tabs Header -->
-                <div style="display: flex; border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.03);">
+                <div style="display: flex; border-bottom: 1px solid var(--border-color); background: var(--bg-hover);">
                     <button type="button" id="tabHeaderPengumuman" class="notif-tab-btn active"
                         style="flex: 1; padding: 11px 8px; background: transparent; border: none; border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <i class="fas fa-bullhorn"></i>

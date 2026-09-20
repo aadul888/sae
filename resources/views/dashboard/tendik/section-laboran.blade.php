@@ -1,14 +1,13 @@
 {{-- Section Dashboard: Laboran (Staf Khusus Ruang Laboratorium) --}}
 
-<!-- Quick Stats Grid Laboran -->
-<div class="dash-stat-grid"
-    style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 24px; gap: 16px;">
+<!-- Quick Stats Grid Laboran (Responsive) -->
+<div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
             <i class="fas fa-flask"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">6 Ruangan</div>
+            <div class="dash-stat-value">6 Ruang</div>
             <div class="dash-stat-label">Laboratorium &amp; Bengkel</div>
         </div>
     </div>
@@ -18,8 +17,8 @@
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['jam_praktik'] ?? 48 }} Jam/Mgg</div>
-            <div class="dash-stat-label">Jadwal Praktik Kejuruan</div>
+            <div class="dash-stat-value">{{ $stats['jam_praktik'] ?? 48 }} JP</div>
+            <div class="dash-stat-label">Praktik Kejuruan/Mgg</div>
         </div>
     </div>
 
@@ -28,8 +27,8 @@
             <i class="fas fa-microscope"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">96% Siap</div>
-            <div class="dash-stat-label">Kondisi Alat Praktik</div>
+            <div class="dash-stat-value">96%</div>
+            <div class="dash-stat-label">Alat Siap Pakai</div>
         </div>
     </div>
 
@@ -38,59 +37,64 @@
             <i class="fas fa-shield-virus"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.05rem;">Aman &amp; Tertib</div>
-            <div class="dash-stat-label">Standar K3 Laboratorium</div>
+            <div class="dash-stat-value">K3 Laik</div>
+            <div class="dash-stat-label">Standar Keselamatan</div>
         </div>
     </div>
 </div>
 
-<!-- Main Content Grid Laboran -->
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+<!-- Main Content Grid Laboran (Responsive: 2fr 1fr desktop, 1fr mobile) -->
+<div class="dash-layout-grid">
     <!-- Left Column: Jadwal Penggunaan Lab & Checklist Kesiapan -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px;">
-            <div
-                style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
-                    <i class="fas fa-calendar-day text-primary me-2"></i> Jadwal Pemakaian Laboratorium &amp; Mapel Praktik
+    <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); flex-wrap: wrap; gap: 8px;">
+                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-calendar-day text-primary"></i> Jadwal Pemakaian Laboratorium
                 </div>
-                <span class="badge badge-info" style="font-size: 0.72rem; padding: 4px 8px;">
+                <span class="badge badge-info" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 6px;">
                     Semester {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                 </span>
             </div>
 
-            <div class="table-responsive">
-                <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
+                <table class="table-minimal-compact">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.01);">
-                            <th style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Mata Pelajaran Praktik</th>
-                            <th style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Kelas / Rombel</th>
-                            <th style="padding: 10px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">Guru Pengampu</th>
-                            <th style="padding: 10px 16px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">Beban JJM</th>
+                        <tr>
+                            <th style="min-width: 140px;">Mapel Praktik</th>
+                            <th style="min-width: 90px;">Kelas</th>
+                            <th style="min-width: 120px;">Guru Pengampu</th>
+                            <th style="min-width: 70px; text-align: center;">JJM</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($jadwalLab ?? [] as $jb)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px; font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
-                                    <i class="fas fa-vial text-info me-1"></i> {{ $jb->nama_mata_pelajaran }}
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.84rem;">
+                                        <i class="fas fa-vial text-info me-1"></i> {{ $jb->nama_mata_pelajaran }}
+                                    </div>
                                 </td>
-                                <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted);">
-                                    {{ $jb->nama_rombel }}
+                                <td>
+                                    <span class="badge-compact" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+                                        {{ $jb->nama_rombel }}
+                                    </span>
                                 </td>
-                                <td style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-color);">
-                                    {{ $jb->nama_guru ?: '-' }}
+                                <td>
+                                    <div style="font-size: 0.8rem; color: var(--text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;" title="{{ $jb->nama_guru ?: '-' }}">
+                                        {{ $jb->nama_guru ?: '-' }}
+                                    </div>
                                 </td>
-                                <td style="padding: 12px 16px; text-align: center;">
-                                    <span class="badge badge-primary" style="font-size: 0.76rem; padding: 4px 8px;">
+                                <td style="text-align: center;">
+                                    <span class="badge-compact" style="background: rgba(99,102,241,0.12); color: #6366f1;">
                                         {{ $jb->jam_mengajar_per_minggu }} JP
                                     </span>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">
-                                    Belum ada jadwal pemakaian laboratorium.
+                                <td colspan="4" style="text-align: center; padding: 22px; color: var(--text-muted); font-size: 0.82rem;">
+                                    <i class="fas fa-flask-vial me-1"></i> Belum ada jadwal pemakaian laboratorium.
                                 </td>
                             </tr>
                         @endforelse
@@ -99,76 +103,87 @@
             </div>
         </div>
 
-        <!-- Standar K3 & Checklist Kesiapan Ruang Lab -->
-        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px;">
-            <div
-                style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color);">
-                    <i class="fas fa-shield-halved text-success me-2"></i> Checklist Kesiapan &amp; Keselamatan Kerja (K3)
+        <!-- Checklist Kesiapan Bahan & Alat -->
+        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); flex-wrap: wrap; gap: 8px;">
+                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-clipboard-check text-success"></i> Kesiapan Fasilitas Lab
                 </div>
             </div>
 
-            <div style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--text-color);">Pemeriksaan APAR &amp; Kotak P3K Laboratorium</div>
-                        <div style="font-size: 0.74rem; color: var(--text-muted);">Tekanan tabung dalam batas hijau, obat P3K tersegel lengkap</div>
+            <div style="padding: 14px 18px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 10px;">
+                    <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
+                            <i class="fas fa-laptop text-primary me-1"></i> Lab Komputer &amp; Multimedia
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">36 PC Klien &bull; LAN Gigabyte &bull; AC Normal</div>
                     </div>
-                    <span class="badge badge-success" style="font-size: 0.74rem;">Siap Operasi</span>
+                    <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                        <i class="fas fa-check"></i> Siap
+                    </span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--text-color);">Kelistrikan &amp; Jalur Grounding Meja Praktik</div>
-                        <div style="font-size: 0.74rem; color: var(--text-muted);">MCB stabil, tidak ada kabel terkelupas</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); gap: 10px;">
+                    <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
+                            <i class="fas fa-seedling text-success me-1"></i> Ruang Praktik Pertanian / Green House
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Instalasi Hidroponik &bull; Alat Semprot Siap</div>
                     </div>
-                    <span class="badge badge-success" style="font-size: 0.74rem;">Normal</span>
+                    <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                        <i class="fas fa-check"></i> Siap
+                    </span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-size: 0.84rem; font-weight: 600; color: var(--text-color);">Kebersihan Meja &amp; Penyimpanan Alat Praktik</div>
-                        <div style="font-size: 0.74rem; color: var(--text-muted);">Peralatan tertata rapi di lemari alat dan siap digunakan siswa</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div style="min-width: 0; flex: 1;">
+                        <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-color);">
+                            <i class="fas fa-tree text-warning me-1"></i> Bengkel Kehutanan &amp; Pengolahan Kayu
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Peralatan Ukur &bull; APD Keselamatan Kerja Lengkap</div>
                     </div>
-                    <span class="badge badge-primary" style="font-size: 0.74rem;">Terverifikasi</span>
+                    <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                        <i class="fas fa-check"></i> Siap
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Right Column: Akses Cepat Laboran -->
-    <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="card" style="padding: 20px; border-radius: 14px;">
-            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-color); margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-bolt text-warning"></i> Menu Operasional Laboran
+    <!-- Right Column: Akses Cepat Laboran (Stack di Mobile) -->
+    <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+        <div class="card" style="padding: 18px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
+            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-bolt text-warning"></i> Menu Laboran
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                    <span><i class="fas fa-calendar-check text-primary me-2"></i> Log Agenda KBM Praktek</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
-                </a>
                 <a href="{{ route('dashboard.pembelajaran.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                    <span><i class="fas fa-book-open text-info me-2"></i> Jadwal Mata Pelajaran</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-book-open text-primary me-2"></i> Jadwal Mapel Praktik</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
                 </a>
-                <a href="{{ route('dashboard.kompetensi-keahlian.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; font-size: 0.82rem; border-radius: 8px; text-align: left;">
-                    <span><i class="fas fa-screwdriver-wrench text-success me-2"></i> Kompetensi Keahlian</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.72rem;"></i>
+                <a href="{{ route('dashboard.rombel.index') }}" class="btn btn-outline"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-door-open text-info me-2"></i> Ruang &amp; Rombel Praktik</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-chalkboard-user text-success me-2"></i> Guru Pengampu Praktik</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
                 </a>
             </div>
         </div>
 
-        <div class="card" style="padding: 20px; border-radius: 14px; background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(6,182,212,0.05) 100%); border: 1px solid rgba(16,185,129,0.2);">
-            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-flask-vial text-success"></i> Tata Tertib Penggunaan Lab
+        <div class="card" style="padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(59,130,246,0.04) 100%); border: 1px solid rgba(16,185,129,0.18);">
+            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-circle-exclamation text-primary"></i> Standar K3 Laboratorium
             </div>
-            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 12px 0;">
-                Siswa dan guru wajib mengisi buku register pemakaian ruang praktik, mematuhi instruksi keselamatan, dan mengembalikan peralatan ke tempat semula dalam keadaan bersih.
+            <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; margin: 0 0 10px 0;">
+                Setiap pemakaian wajib mencatat log instrumen, menjaga kebersihan meja kerja, dan memastikan kelistrikan mati setelah KBM.
             </p>
-            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;">
-                <span style="color: var(--text-muted);">Status Ruang Praktik:</span>
-                <strong style="color: #10b981;">Siap Pakai</strong>
+            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                <span style="color: var(--text-muted);">Status Keamanan:</span>
+                <span class="badge badge-success" style="font-size: 0.68rem; padding: 2px 6px;">Terkendali</span>
             </div>
         </div>
     </div>
