@@ -281,13 +281,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/tendik/presensi/cetak', fn(\Illuminate\Http\Request $r) => redirect()->route('dashboard.tendik.laporan.cetak', $r->all()))->name('tendik.presensi.cetak');
 
     // Portal Peserta Didik — Modul Surat Izin & Sakit Mandiri
-    Route::get('/peserta-didik/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'index'])->name('peserta-didik.izin.index');
-    Route::post('/peserta-didik/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'store'])->name('peserta-didik.izin.store');
-    Route::delete('/peserta-didik/izin/{id}', [\App\Http\Controllers\PesertaDidikIzinController::class, 'destroy'])->name('peserta-didik.izin.destroy');
+    Route::get('/peserta-didik/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'index'])->name('peserta-didik.izin.index')->middleware('permission:menu_surat_izin_pd,read');
+    Route::post('/peserta-didik/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'store'])->name('peserta-didik.izin.store')->middleware('permission:menu_surat_izin_pd,create');
+    Route::delete('/peserta-didik/izin/{id}', [\App\Http\Controllers\PesertaDidikIzinController::class, 'destroy'])->name('peserta-didik.izin.destroy')->middleware('permission:menu_surat_izin_pd,delete');
 
     // Portal Peserta Didik — Modul Riwayat Presensi & Cetak Laporan (Bulan, Semester, Tahun)
-    Route::get('/peserta-didik/presensi', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('peserta-didik.presensi.index');
-    Route::get('/peserta-didik/presensi/cetak', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'cetak'])->name('peserta-didik.presensi.cetak');
+    Route::get('/peserta-didik/presensi', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('peserta-didik.presensi.index')->middleware('permission:menu_riwayat_rfid,read');
+    Route::get('/peserta-didik/presensi/cetak', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'cetak'])->name('peserta-didik.presensi.cetak')->middleware('permission:menu_riwayat_rfid,read');
     Route::get('/presensi/saya', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'index'])->name('presensi.riwayat-saya')->middleware('permission:menu_riwayat_rfid,read');
     Route::post('/peserta-didik/saya/izin', [\App\Http\Controllers\PesertaDidikIzinController::class, 'store'])->name('peserta-didik.presensi.izin');
 

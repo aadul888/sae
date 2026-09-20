@@ -94,11 +94,11 @@ class DashboardController extends Controller
     public function guru()
     {
         if ($res = $this->checkAuth('guru')) return $res;
-        if (!\App\Models\RolePermission::canAccess('guru', 'menu_dashboard')) {
+        $user = session('user');
+        if (!\App\Models\RolePermission::canAccess($user ?: 'guru', 'menu_dashboard')) {
             return view('errors.dashboard-disabled', ['roleName' => 'Guru & Pendidik', 'role' => 'guru']);
         }
 
-        $user = session('user');
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? '')) : ($user->nama ?? ($user->name ?? ''));
         $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
@@ -279,10 +279,6 @@ class DashboardController extends Controller
             if ($res = $this->checkAuth()) return $res;
         }
 
-        if (!\App\Models\RolePermission::canAccess('tendik', 'menu_dashboard') && !$hasTendikDuty) {
-            return view('errors.dashboard-disabled', ['roleName' => 'Tenaga Kependidikan', 'role' => 'tendik']);
-        }
-
         $gtk = null;
         if (Schema::hasTable('gtk')) {
             $gtk = $ptkId ? DB::table('gtk')->where('ptk_id', $ptkId)->first() : DB::table('gtk')->where('nama', $userName)->first();
@@ -395,6 +391,48 @@ class DashboardController extends Controller
         } else {
             $currentDuty = 'UMUM';
             $viewSection = 'umum';
+        }
+
+        $dutyPermissionMap = [
+            'KEPALA_TAS'       => 'menu_kepala_tas',
+            'GURU_PIKET'       => 'menu_piket',
+            'STAF_KESISWAAN'   => 'menu_kesiswaan',
+            'STAF_KEPEGAWAIAN' => 'menu_kepegawaian',
+            'STAF_SARPRAS'     => 'menu_sarpras',
+            'LABORAN'          => 'menu_laboran',
+            'PUSTAKAWAN'       => 'menu_perpustakaan',
+            'TEKNISI_IT'       => 'menu_teknisi',
+            'SATPAM'           => 'menu_keamanan',
+            'PENJAGA_SEKOLAH'  => 'menu_penjaga',
+            'STAF_PERSURATAN'  => 'menu_persuratan',
+        ];
+
+        $hasDashboardAccess = \App\Models\RolePermission::canAccess($user ?: 'tendik', 'menu_dashboard');
+
+        if ($viewSection === 'umum') {
+            if (!$hasDashboardAccess) {
+                // Cari apakah ada bidang tugas yang diizinkan untuk dialihkan
+                $fallbackBidang = null;
+                foreach ($dutyCodes as $dCode) {
+                    $permKey = $dutyPermissionMap[$dCode] ?? null;
+                    if ($permKey && \App\Models\RolePermission::canAccess($user ?: 'tendik', $permKey)) {
+                        $fallbackBidang = $viewSectionMap[$dCode] ?? null;
+                        break;
+                    }
+                }
+
+                if ($fallbackBidang) {
+                    return redirect()->route('dashboard.tendik', ['bidang' => $fallbackBidang]);
+                }
+
+                return view('errors.dashboard-disabled', ['roleName' => 'Tenaga Kependidikan', 'role' => 'tendik']);
+            }
+        } else {
+            // Bidang tugas spesifik
+            $permKey = $dutyPermissionMap[$currentDuty] ?? ('menu_' . strtolower($viewSection));
+            if (!\App\Models\RolePermission::canAccess($user ?: 'tendik', $permKey)) {
+                abort(403, 'Anda tidak memiliki izin untuk mengakses bidang tugas ini.');
+            }
         }
 
         // Data Universal Khusus Portal Umum Tendik
@@ -702,11 +740,11 @@ class DashboardController extends Controller
     public function pesertaDidik()
     {
         if ($res = $this->checkAuth('peserta_didik')) return $res;
-        if (!\App\Models\RolePermission::canAccess('peserta_didik', 'menu_dashboard')) {
+        $user = session('user');
+        if (!\App\Models\RolePermission::canAccess($user ?: 'peserta_didik', 'menu_dashboard')) {
             return view('errors.dashboard-disabled', ['roleName' => 'Peserta Didik', 'role' => 'peserta_didik']);
         }
 
-        $user = session('user');
         $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
         $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? '')) : ($user->nama ?? ($user->name ?? ''));
 

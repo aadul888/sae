@@ -788,14 +788,64 @@ class RolePermission extends Model
     }
 
     /**
-     * Cek apakah role / user tertentu diizinkan mengakses permission tertentu dengan aksi CRUD spesifik.
-     * Mendukung evaluasi gabungan (Role Dasar + Izin Tugas Tambahan Aktif).
-     *
-     * @param mixed $userOrRole Objek User, array sesi, atau string peran ('admin', 'guru', 'tendik', 'peserta_didik')
-     * @param string $permissionKey Key modul (contoh: 'menu_peserta_didik_aktif')
-     * @param string $action Aksi operasional: 'read' (default), 'create', 'update', 'delete'
+     * Cek apakah suatu modul diizinkan untuk peran tertentu di tabel role_permissions (tanpa tugas tambahan)
      */
-    public static function canAccess(mixed $userOrRole, string $permissionKey, string $action = 'read'): bool
+    public static function canRoleAccess(string $role, string $permissionKey, string $action = 'read'): bool
+    {
+        if ($role === 'admin') return true;
+        if (self::$runtimeHasTableRolePermissions === null) {
+            self::$runtimeHasTableRolePermissions = Schema::hasTable('role_permissions');
+        }
+        if (!self::$runtimeHasTableRolePermissions) return false;
+
+        if (!isset(self::$runtimeRolePermissionsCache[$role])) {
+            self::$runtimeRolePermissionsCache[$role] = self::where('role', $role)->get()->keyBy('permission_key');
+        }
+        $row = self::$runtimeRolePermissionsCache[$role]->get($permissionKey);
+        if (!$row || !$row->is_allowed || !$row->can_read) {
+            return false;
+        }
+
+        $action = strtolower(trim($action));
+        $actionCol = 'can_' . $action;
+        if (!in_array($actionCol, ['can_create', 'can_read', 'can_update', 'can_delete'])) {
+            $actionCol = 'can_read';
+        }
+
+        if ($actionCol === 'can_read') {
+            return (bool) $row->can_read;
+        }
+
+        return (bool) ($row->can_read && $row->{$actionCol});
+    }
+
+    /**
+     * Cek apakah permission key merupakan modul spesifik penugasan tugas tambahan
+     */
+    public static function isDutySpecificPermission(string $key): bool
+    {
+        return in_array($key, [
+            'menu_kepala_tas',
+            'menu_persuratan',
+            'menu_kesiswaan',
+            'menu_kepegawaian',
+            'menu_sarpras',
+            'menu_laboran',
+            'menu_perpustakaan',
+            'menu_teknisi',
+            'menu_keamanan',
+            'menu_penjaga',
+            'menu_piket',
+            'menu_wali_kelas_aktif',
+            'menu_wali_kelas_tidak_aktif',
+            'menu_wali_kelas_presensi',
+        ], true);
+    }
+
+    /**
+     * Cek apakah user atau role memiliki izin terhadap suatu permission_key
+     */
+    public static function canAccess($userOrRole, string $permissionKey, string $action = 'read'): bool
     {
         // Jika tabel belum ada (sebelum migrasi selesai), fallback allow default admin
         if (self::$runtimeHasTableRolePermissions === null) {
@@ -815,6 +865,27 @@ class RolePermission extends Model
             $actionCol = 'can_read';
         }
 
+        // Khusus Administrator:
+        if ($role === 'admin') {
+            if (in_array($permissionKey, ['menu_dashboard', 'menu_hak_akses'])) {
+                return true;
+            }
+            if (self::$runtimeAdminExistsCache === null) {
+                self::$runtimeAdminExistsCache = self::where('role', 'admin')->exists();
+            }
+            if (self::$runtimeAdminExistsCache) {
+                if (!isset(self::$runtimeRolePermissionsCache['admin'])) {
+                    self::$runtimeRolePermissionsCache['admin'] = self::where('role', 'admin')->get()->keyBy('permission_key');
+                }
+                $adminRow = self::$runtimeRolePermissionsCache['admin']->get($permissionKey);
+                if ($adminRow && $adminRow->is_allowed && $adminRow->can_read) {
+                    return $actionCol === 'can_read' ? true : (bool) $adminRow->{$actionCol};
+                }
+                return false;
+            }
+            return true;
+        }
+
         // Cache keberadaan tabel tugas tambahan
         if (self::$runtimeHasTableDuties === null) {
             self::$runtimeHasTableDuties = Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan');
@@ -831,93 +902,45 @@ class RolePermission extends Model
             }
         }
 
-        // 1. Otoritas Utama: Izin peran tersimpan di database (In-memory runtime cache)
+        // 1. Periksa izin peran di database (role_permissions)
         if (!isset(self::$runtimeRolePermissionsCache[$role])) {
             self::$runtimeRolePermissionsCache[$role] = self::where('role', $role)->get()->keyBy('permission_key');
         }
         $row = self::$runtimeRolePermissionsCache[$role]->get($permissionKey);
 
         if ($row) {
-            // Jika record ditemukan di database, status database adalah pengendali utama (Source of Truth)
             if (!$row->is_allowed || !$row->can_read) {
-                // Untuk guru & tendik, periksa apakah tugas tambahan memberikan hak akses khusus
-                if (in_array($role, ['guru', 'tendik']) && $hasDutyTables) {
-                    $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
-                    $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
-                    if ($userId || $ptkId) {
-                        if (self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
-                            return true;
-                        }
-                    }
-                }
                 return false;
             }
 
-            // Jika mengecek izin baca (read)
+            // Jika modul spesifik tugas tambahan (misal laboran, persuratan, dsb.),
+            // hanya personel yang memegang tugas tambahan tersebut yang boleh mengakses
+            if (in_array($role, ['guru', 'tendik']) && $hasDutyTables && self::isDutySpecificPermission($permissionKey)) {
+                $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
+                $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+                if (!self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
+                    return false;
+                }
+            }
+
             if ($actionCol === 'can_read') {
                 return (bool) $row->can_read;
             }
 
-            // Jika mengecek izin mutasi (create, update, delete):
-            // Wajib memenuhi can_read true dan kolom aksi spesifik true
-            if ($row->can_read && $row->{$actionCol}) {
-                return true;
-            }
-
-            // Jika di database false untuk mutasi, cek duty permission untuk guru/tendik jika ada
-            if (in_array($role, ['guru', 'tendik']) && $hasDutyTables) {
-                $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
-                $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
-                if ($userId || $ptkId) {
-                    if (self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return (bool) ($row->can_read && $row->{$actionCol});
         }
 
-        // 2. Evaluasi izin dari tugas tambahan aktif (Duty-based) jika record belum ada di DB
-        if (in_array($role, ['guru', 'tendik']) && $hasDutyTables) {
+        // 2. Jika modul TIDAK ADA di role_permissions untuk peran user:
+        // Cek kasus khusus: Guru yang memegang tugas Tendik (misal Kepala TAS / Kepala Lab)
+        if ($role === 'guru' && $hasDutyTables && self::isDutySpecificPermission($permissionKey)) {
             $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
             $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
-
-            if ($userId || $ptkId) {
-                if (self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
-                    return true;
-                }
-            }
-        }
-
-        // 3. Khusus Administrator:
-        if ($role === 'admin') {
-            // Modul vital inti sistem selalu diizinkan demi keselamatan sistem
-            if (in_array($permissionKey, ['menu_dashboard', 'menu_hak_akses'])) {
+            if (self::canRoleAccess('tendik', $permissionKey, $action) && self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
                 return true;
             }
-            if (self::$runtimeAdminExistsCache === null) {
-                self::$runtimeAdminExistsCache = self::where('role', 'admin')->exists();
-            }
-            if (self::$runtimeAdminExistsCache) {
-                return false;
-            }
-            return true;
         }
 
-        // 4. Fallback HANYA jika sistem belum pernah dikonfigurasi sama sekali di database
-        if (self::$runtimeAdminExistsCache === null) {
-            self::$runtimeAdminExistsCache = self::where('role', 'admin')->exists();
-        }
-        if (!self::$runtimeAdminExistsCache) {
-            if (!self::isDefaultAllowed($role, $permissionKey)) {
-                return false;
-            }
-            if ($actionCol === 'can_read') return true;
-            if (in_array($role, ['guru', 'tendik']) && in_array($actionCol, ['can_create', 'can_update'])) return true;
-            return false;
-        }
-
+        // JIKA MODUL BELUM DITAMBAHKAN OLEH ADMIN KE PERAN INI, MAKA AKSES DITOLAK!
         return false;
     }
 
@@ -1008,7 +1031,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'KEPALA_TAS') {
-                        foreach (['menu_kepala_tas', 'menu_tendik_aktif', 'menu_persuratan', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_buku_tamu', 'menu_agenda', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris', 'menu_guru_aktif', 'menu_peserta_didik_aktif'] as $k) {
+                        foreach (['menu_kepala_tas', 'menu_persuratan', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_buku_tamu', 'menu_agenda', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_PERSURATAN') {
