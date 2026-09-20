@@ -733,13 +733,18 @@
                             style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block;">
                             Pilih Modul Sistem <span style="color: #ef4444;">*</span>
                         </label>
+                        <div style="position: relative; margin-bottom: 8px;">
+                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none;"></i>
+                            <input type="text" id="filterModuleOptions" placeholder="Ketik untuk mencari modul (misal: Kesiswaan, Persuratan, Presensi)..."
+                                style="width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid rgba(255,255,255,0.15); background-color: #0f172a; color: #f8fafc; border-radius: 6px; font-size: 0.82rem; box-sizing: border-box;" autocomplete="off">
+                        </div>
                         <select name="permission_key" id="selectAddModule" required
                             style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: #1e293b !important; color: #f8fafc !important; border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;">
                             <option value="" style="background-color: #1e293b; color: #94a3b8;">-- Pilih Modul untuk Ditambahkan --</option>
                             @forelse ($availableModulesToAdd as $groupName => $groupModules)
                                 <optgroup label="📂 {{ $groupName }}" style="color: #94a3b8; background-color: #0f172a; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
                                     @foreach ($groupModules as $mVal)
-                                        <option value="{{ $mVal['key'] }}" style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">{{ $mVal['label'] }}</option>
+                                        <option value="{{ $mVal['key'] }}" style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">{{ $mVal['label'] }} ({{ $mVal['key'] }})</option>
                                     @endforeach
                                 </optgroup>
                             @empty

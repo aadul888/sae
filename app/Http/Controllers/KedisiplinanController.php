@@ -33,10 +33,10 @@ class KedisiplinanController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_poin', 'create') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'create');
-        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_poin', 'read') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read');
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_poin', 'update') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_poin', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete');
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'create') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'create') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'create');
+        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'read') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'read');
+        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'update') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'update');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_kedisiplinan', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_poin', 'delete');
 
         $activeTab = $request->get('tab', 'riwayat'); // tata_tertib, poin, riwayat, pembinaan, pemanggilan, tindak_lanjut, rekap
         $q = trim($request->get('q', ''));

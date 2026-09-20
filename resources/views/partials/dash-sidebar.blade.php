@@ -72,9 +72,7 @@
         $can('menu_pengumuman') ||
         $can('menu_rfid') ||
         $can('menu_e_izin') ||
-        $can('menu_poin') ||
-        $can('menu_inventaris') ||
-        $can('menu_kelulusan');
+        $can('menu_inventaris');
 
     // Section: Sistem
     $hasPengaturan =
@@ -1520,17 +1518,13 @@
                     request()->routeIs('dashboard.rfid') ||
                     request()->routeIs('dashboard.e-izin.*') ||
                     request()->routeIs('dashboard.e-izin') ||
-                    request()->routeIs('dashboard.poin.*') ||
-                    request()->routeIs('dashboard.poin') ||
                     (request()->routeIs('dashboard.agenda.*') &&
                         !request()->routeIs('dashboard.agenda-kbm.*') &&
                         !request()->routeIs('dashboard.agenda-kbm')) ||
                     request()->routeIs('dashboard.buku-tamu.*') ||
                     request()->routeIs('dashboard.buku-tamu') ||
                     request()->routeIs('dashboard.inventaris.*') ||
-                    request()->routeIs('dashboard.inventaris') ||
-                    request()->routeIs('dashboard.kelulusan.*') ||
-                    request()->routeIs('dashboard.kelulusan');
+                    request()->routeIs('dashboard.inventaris');
             @endphp
             <div class="dash-nav-group {{ $isLayananDigitalActive ? 'open active-group' : '' }}">
                 <button type="button" class="dash-nav-toggle">
@@ -1580,25 +1574,10 @@
                         </a>
                     @endif
 
-                    @if ($can('menu_poin'))
-                        <a href="#" class="dash-nav-sublink">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-star-half-stroke"></i></span>
-                            <span class="nav-label">Poin Pelanggaran</span>
-                        </a>
-                    @endif
-
-
                     @if ($can('menu_inventaris'))
                         <a href="#" class="dash-nav-sublink">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
                             <span class="nav-label">Inventaris</span>
-                        </a>
-                    @endif
-
-                    @if ($can('menu_kelulusan'))
-                        <a href="#" class="dash-nav-sublink">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-graduation-cap"></i></span>
-                            <span class="nav-label">Kelulusan</span>
                         </a>
                     @endif
                 </div>

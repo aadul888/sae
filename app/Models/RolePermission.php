@@ -163,16 +163,6 @@ class RolePermission extends Model
                     'icon' => 'fa-file-signature',
                     'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
-                'menu_poin' => [
-                    'label' => 'Poin & Pelanggaran',
-                    'icon' => 'fa-star-half-stroke',
-                    'roles' => ['admin', 'guru', 'tendik'],
-                ],
-                'menu_kelulusan' => [
-                    'label' => 'Kelulusan Peserta Didik',
-                    'icon' => 'fa-graduation-cap',
-                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
-                ],
             ],
 
             'Administrasi Guru' => [
@@ -1109,11 +1099,11 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'WAKA_KESISWAAN') {
-                        foreach (['menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_poin', 'menu_e_izin'] as $k) {
+                        foreach (['menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_e_izin'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'PEMBINA_OSIS') {
-                        foreach (['menu_kesiswaan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_pengumuman', 'menu_poin'] as $k) {
+                        foreach (['menu_kesiswaan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_pengumuman', 'menu_kesiswaan_kedisiplinan'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'PEMBINA_EKSKUL') {
@@ -1165,7 +1155,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_KESISWAAN') {
-                        foreach (['menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_berkas_peserta_didik', 'menu_perubahan_data', 'menu_kelulusan'] as $k) {
+                        foreach (['menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_berkas_peserta_didik', 'menu_perubahan_data'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_SARPRAS') {
@@ -1339,8 +1329,6 @@ class RolePermission extends Model
                 'menu_pengumuman',
                 'menu_rfid',
                 'menu_e_izin',
-                'menu_poin',
-                'menu_kelulusan',
                 'menu_presensi_mengajar',
                 'menu_agenda_kbm',
                 'menu_presensi_peserta_didik',
