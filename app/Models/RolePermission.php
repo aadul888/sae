@@ -186,11 +186,6 @@ class RolePermission extends Model
                     'icon' => 'fa-book-open-reader',
                     'roles' => ['admin', 'guru'],
                 ],
-                'menu_penilaian' => [
-                    'label' => 'Penilaian Peserta Didik',
-                    'icon' => 'fa-graduation-cap',
-                    'roles' => ['admin', 'guru'],
-                ],
             ],
 
             'Wali Kelas' => [
@@ -987,11 +982,11 @@ class RolePermission extends Model
                     // 2. Pemetaan bawaan berdasarkan kode tugas tambahan
                     $kode = $rec->kode;
                     if ($kode === 'WALI_KELAS') {
-                        foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_penilaian', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'] as $k) {
+                        foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['KEPALA_SEKOLAH', 'WAKA_KURIKULUM'], true)) {
-                        foreach (['menu_rombel', 'menu_pembelajaran', 'menu_jadwal_kbm', 'menu_kompetensi_keahlian', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian'] as $k) {
+                        foreach (['menu_rombel', 'menu_pembelajaran', 'menu_jadwal_kbm', 'menu_kompetensi_keahlian', 'menu_presensi_mengajar', 'menu_agenda_kbm'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['WAKA_KESISWAAN', 'PEMBINA_OSIS'], true)) {
@@ -1154,7 +1149,6 @@ class RolePermission extends Model
                 'menu_kelulusan',
                 'menu_presensi_mengajar',
                 'menu_agenda_kbm',
-                'menu_penilaian',
                 'menu_presensi_peserta_didik',
                 'menu_kepala_tas',
                 'menu_aktivitas_tendik',
@@ -1183,7 +1177,6 @@ class RolePermission extends Model
                 'menu_dashboard',
                 'menu_presensi_mengajar',
                 'menu_agenda_kbm',
-                'menu_penilaian',
                 'menu_presensi_peserta_didik',
                 'menu_formulir',
                 'menu_rfid',

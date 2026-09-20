@@ -41,6 +41,46 @@
             $mapelUtama = $mapelUtama ?: ($gtk->bidang_studi_terakhir ?? session('user.mapel', 'Mata Pelajaran'));
         }
     @endphp
+
+    @php
+        $isViewingAsSuperadmin = in_array($userRole ?? session('user.role'), ['admin', 'tendik'], true);
+    @endphp
+
+    @if ($isViewingAsSuperadmin)
+        <!-- Banner Mode Superadmin / Tendik: Pemantauan Dashboard Guru -->
+        <div class="dash-banner"
+            style="margin-bottom: 16px; padding: 12px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="badge badge-primary" style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700;">
+                    <i class="fas {{ ($userRole ?? session('user.role')) === 'admin' ? 'fa-crown' : 'fa-id-badge' }} me-1"></i>
+                    Mode {{ ($userRole ?? session('user.role')) === 'admin' ? 'Superadmin' : 'Tendik' }}
+                </span>
+                <span style="font-size: 0.84rem; color: var(--text-color); font-weight: 600;">
+                    Memantau Dashboard Guru: <strong class="text-primary">{{ $userName }}</strong>
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                @if (isset($allGtkList) && $allGtkList->isNotEmpty())
+                    <form method="GET" action="{{ route('dashboard.guru') }}" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <label for="selectGtkPreview" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Pilih Guru:</label>
+                        <select id="selectGtkPreview" name="ptk_id" onchange="this.form.submit()" class="per-page-select"
+                            style="font-size: 0.8rem; min-width: 220px; padding: 5px 10px; border-radius: 8px; background: var(--card-bg, #1e293b); color: var(--text-color); border: 1px solid var(--border-color);">
+                            @foreach ($allGtkList as $g)
+                                <option value="{{ $g->ptk_id }}" {{ ($ptkId ?? null) === $g->ptk_id ? 'selected' : '' }}>
+                                    {{ $g->nama }} {{ $g->nip ? '(' . $g->nip . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @endif
+                <a href="{{ route('dashboard.' . ($userRole ?? session('user.role', 'admin'))) }}" class="btn btn-outline"
+                    style="padding: 6px 14px; font-size: 0.78rem; border-radius: 8px;">
+                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Dashboard {{ ucfirst($userRole ?? session('user.role', 'admin')) }}
+                </a>
+            </div>
+        </div>
+    @endif
+
     <!-- Welcome Banner -->
     <div class="dash-banner" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(6,182,212,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">

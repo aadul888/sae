@@ -18,14 +18,51 @@
     @php
         $fotoUrl = $pd->foto_url ?? session('user.foto_url');
         $fotoSize = $pd->foto_size ?? null;
+        $isViewingAsSuperadmin = ($userRole ?? session('user.role')) === 'admin';
+        $displayPdName = $pd->nama ?? ($userName ?? session('user.name', 'Peserta Didik'));
     @endphp
+
+    @if ($isViewingAsSuperadmin)
+        <!-- Banner Mode Superadmin: Pemantauan Dashboard Siswa -->
+        <div class="dash-banner"
+            style="margin-bottom: 16px; padding: 12px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(6, 182, 212, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="badge badge-primary" style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700;">
+                    <i class="fas fa-crown me-1"></i> Mode Superadmin
+                </span>
+                <span style="font-size: 0.84rem; color: var(--text-color); font-weight: 600;">
+                    Memantau Dashboard Siswa: <strong class="text-primary">{{ $displayPdName }}</strong>
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                @if (isset($allPdList) && $allPdList->isNotEmpty())
+                    <form method="GET" action="{{ route('dashboard.peserta-didik') }}" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <label for="selectPdPreview" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Pilih Siswa:</label>
+                        <select id="selectPdPreview" name="peserta_didik_id" onchange="this.form.submit()" class="per-page-select"
+                            style="font-size: 0.8rem; min-width: 220px; padding: 5px 10px; border-radius: 8px; background: var(--card-bg, #1e293b); color: var(--text-color); border: 1px solid var(--border-color);">
+                            @foreach ($allPdList as $s)
+                                <option value="{{ $s->peserta_didik_id }}" {{ ($pd->peserta_didik_id ?? null) === $s->peserta_didik_id ? 'selected' : '' }}>
+                                    {{ $s->nama }} ({{ $s->nama_rombel ?: $s->nisn }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @endif
+                <a href="{{ route('dashboard.admin') }}" class="btn btn-outline"
+                    style="padding: 6px 14px; font-size: 0.78rem; border-radius: 8px;">
+                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Dashboard Admin
+                </a>
+            </div>
+        </div>
+    @endif
+
     <!-- Welcome Banner -->
     <div class="dash-banner" style="background: linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
             @if ($fotoUrl)
                 <!-- Pasfoto Peserta Didik (Tanpa Bingkai & Tanpa Latar Belakang) -->
                 <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
-                    <img src="{{ $fotoUrl }}" alt="{{ session('user.name', 'Peserta Didik') }}" 
+                    <img src="{{ $fotoUrl }}" alt="{{ $displayPdName }}" 
                          style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
                          onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
@@ -35,7 +72,7 @@
                 <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                     <span
                         style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
-                    {{ session('user.name', 'Peserta Didik') }}! 🎓
+                    {{ $displayPdName }}! 🎓
                 </h2>
                 @php
                     $currentNisn = $pd->nisn ?? session('user.nisn');

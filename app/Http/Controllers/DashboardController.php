@@ -38,6 +38,10 @@ class DashboardController extends Controller
         }
 
         if ($allowedRole && $userRole !== $allowedRole) {
+            // Superadmin (admin) memiliki kontrol penuh untuk mengakses seluruh dashboard peran
+            if ($userRole === 'admin') {
+                return null;
+            }
             return redirect()->route('dashboard.' . $userRole);
         }
         return null;
@@ -91,17 +95,53 @@ class DashboardController extends Controller
         return view('dashboard.admin', compact('stats', 'recent_logs', 'sekolah'));
     }
 
-    public function guru()
+    public function guru(?Request $request = null)
     {
-        if ($res = $this->checkAuth('guru')) return $res;
+        $request = $request ?: request();
         $user = session('user');
-        if (!\App\Models\RolePermission::canAccess($user ?: 'guru', 'menu_dashboard')) {
+        $userRole = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+
+        // Izinkan peran guru, admin (superadmin), atau tendik
+        if ($userRole !== 'admin' && $userRole !== 'tendik') {
+            if ($res = $this->checkAuth('guru')) return $res;
+        } else {
+            if ($res = $this->checkAuth()) return $res;
+        }
+
+        if ($userRole === 'guru' && !\App\Models\RolePermission::canAccess($user ?: 'guru', 'menu_dashboard')) {
             return view('errors.dashboard-disabled', ['roleName' => 'Guru & Pendidik', 'role' => 'guru']);
         }
 
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? '')) : ($user->nama ?? ($user->name ?? ''));
         $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
+
+        // Dukungan pemilihan guru untuk Superadmin / Tendik
+        $allGtkList = collect();
+        if (($userRole === 'admin' || $userRole === 'tendik') && Schema::hasTable('gtk')) {
+            $allGtkList = DB::table('gtk')
+                ->where(function ($q) {
+                    $q->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
+                        ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                        ->orWhereNull('jenis_ptk_id_str');
+                })
+                ->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')
+                ->orderBy('nama')
+                ->get();
+        }
+
+        $reqPtkId = $request->query('ptk_id');
+        if ($reqPtkId && ($userRole === 'admin' || $userRole === 'tendik')) {
+            $selectedGtk = DB::table('gtk')->where('ptk_id', $reqPtkId)->first();
+            if ($selectedGtk) {
+                $ptkId = $selectedGtk->ptk_id;
+                $userName = $selectedGtk->nama;
+            }
+        } elseif (!$ptkId && ($userRole === 'admin' || $userRole === 'tendik') && $allGtkList->isNotEmpty()) {
+            $firstGuru = $allGtkList->first();
+            $ptkId = $firstGuru->ptk_id;
+            $userName = $firstGuru->nama;
+        }
 
         $gtk = null;
         if (Schema::hasTable('gtk')) {
@@ -242,7 +282,10 @@ class DashboardController extends Controller
             $mapelUtama = $gtk->bidang_studi_terakhir ?? ($gtk->jabatan_ptk_id_str ?? 'Guru Mata Pelajaran');
         }
 
-        return view('dashboard.guru', compact('stats', 'jadwal_hari_ini', 'gtk', 'statusHariIni', 'agendaHariIni', 'hariIni', 'fotoUrl', 'mapelUtama'));
+        return view('dashboard.guru', compact(
+            'stats', 'jadwal_hari_ini', 'gtk', 'statusHariIni', 'agendaHariIni',
+            'hariIni', 'fotoUrl', 'mapelUtama', 'allGtkList', 'userRole', 'ptkId', 'userName'
+        ));
     }
 
     public function tendik(?Request $request = null)
@@ -737,16 +780,48 @@ class DashboardController extends Controller
         ));
     }
 
-    public function pesertaDidik()
+    public function pesertaDidik(?Request $request = null)
     {
-        if ($res = $this->checkAuth('peserta_didik')) return $res;
+        $request = $request ?: request();
         $user = session('user');
-        if (!\App\Models\RolePermission::canAccess($user ?: 'peserta_didik', 'menu_dashboard')) {
+        $userRole = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+
+        // Izinkan peran peserta didik atau admin (superadmin full control)
+        if ($userRole !== 'admin') {
+            if ($res = $this->checkAuth('peserta_didik')) return $res;
+        } else {
+            if ($res = $this->checkAuth()) return $res;
+        }
+
+        if ($userRole === 'peserta_didik' && !\App\Models\RolePermission::canAccess($user ?: 'peserta_didik', 'menu_dashboard')) {
             return view('errors.dashboard-disabled', ['roleName' => 'Peserta Didik', 'role' => 'peserta_didik']);
         }
 
         $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
         $userName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? '')) : ($user->nama ?? ($user->name ?? ''));
+
+        // Dukungan pemilihan siswa untuk Superadmin
+        $allPdList = collect();
+        if ($userRole === 'admin' && Schema::hasTable('peserta_didik')) {
+            $allPdList = DB::table('peserta_didik')
+                ->select('peserta_didik_id', 'nama', 'nisn', 'nama_rombel')
+                ->orderBy('nama')
+                ->limit(50)
+                ->get();
+        }
+
+        $reqPdId = $request->query('peserta_didik_id');
+        if ($reqPdId && $userRole === 'admin') {
+            $selectedPd = DB::table('peserta_didik')->where('peserta_didik_id', $reqPdId)->first();
+            if ($selectedPd) {
+                $pdId = $selectedPd->peserta_didik_id;
+                $userName = $selectedPd->nama;
+            }
+        } elseif (!$pdId && $userRole === 'admin' && $allPdList->isNotEmpty()) {
+            $firstPd = $allPdList->first();
+            $pdId = $firstPd->peserta_didik_id;
+            $userName = $firstPd->nama;
+        }
 
         $pd = null;
         if (Schema::hasTable('peserta_didik')) {
@@ -882,6 +957,6 @@ class DashboardController extends Controller
             ];
         }
 
-        return view('dashboard.peserta-didik', compact('stats', 'presensi_terakhir', 'jadwal_pelajaran', 'pd'));
+        return view('dashboard.peserta-didik', compact('stats', 'presensi_terakhir', 'jadwal_pelajaran', 'pd', 'allPdList', 'userRole', 'userName'));
     }
 }

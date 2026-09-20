@@ -127,19 +127,21 @@ class PermissionController extends Controller
             }
         }
 
-        // Modul sistem yang belum ditambahkan ke role aktif ini (harus tetap berupa associative array dengan key modul)
+        // Kelompokkan modul yang tersedia berdasarkan grup, urutkan alfabet per grup
         $allSystemModules = RolePermission::getAllSystemModules();
         $availableModulesToAdd = [];
         foreach ($allSystemModules as $k => $mod) {
             if (!isset($existingKeys[$k])) {
-                $availableModulesToAdd[$k] = $mod;
+                $group = $mod['group'] ?? 'Lainnya';
+                $availableModulesToAdd[$group][] = $mod;
             }
         }
-
-        // Urutkan modul yang dapat ditambahkan secara alfabetis berdasarkan nama modul
-        uasort($availableModulesToAdd, function ($a, $b) {
-            return strcasecmp($a['label'] ?? '', $b['label'] ?? '');
-        });
+        // Urutkan setiap grup secara alfabetis berdasarkan label modul
+        ksort($availableModulesToAdd);
+        foreach ($availableModulesToAdd as $grp => &$items) {
+            usort($items, fn($a, $b) => strcasecmp($a['label'] ?? '', $b['label'] ?? ''));
+        }
+        unset($items);
 
         // Ringkasan hitungan item aktif yang relevan untuk masing-masing role
         $counts = [];

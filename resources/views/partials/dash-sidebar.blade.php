@@ -88,7 +88,6 @@
     $hasAkademikGuru =
         $can('menu_presensi_mengajar') ||
         $can('menu_agenda_kbm') ||
-        $can('menu_penilaian') ||
         $can('menu_presensi_peserta_didik');
 
     // Section: Portal Peserta Didik
@@ -130,7 +129,6 @@
         'menu_perubahan_data',
         'menu_presensi_mengajar',
         'menu_agenda_kbm',
-        'menu_penilaian',
         'menu_presensi_peserta_didik',
         'menu_persuratan',
         'menu_kesiswaan',
@@ -511,14 +509,13 @@
 
         {{-- Layanan Guru (Tugas Pokok Guru) --}}
         @php
-            $hasAkademik = $can('menu_presensi_mengajar') || $can('menu_agenda_kbm') || $can('menu_penilaian');
+            $hasAkademik = $can('menu_presensi_mengajar') || $can('menu_agenda_kbm') || $role === 'admin';
             $isAkademikActive =
+                request()->routeIs('dashboard.guru') ||
                 request()->routeIs('dashboard.presensi-mengajar.*') ||
                 request()->routeIs('dashboard.presensi-mengajar') ||
                 request()->routeIs('dashboard.agenda-kbm.*') ||
-                request()->routeIs('dashboard.agenda-kbm') ||
-                request()->routeIs('dashboard.penilaian.*') ||
-                request()->routeIs('dashboard.penilaian');
+                request()->routeIs('dashboard.agenda-kbm');
         @endphp
         @if ($hasAkademik)
             <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
@@ -530,6 +527,14 @@
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
+                    @if ($can('menu_dashboard') || $role === 'admin')
+                        <a href="{{ route('dashboard.guru') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.guru') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
+                            <span class="nav-label">Dashboard</span>
+                        </a>
+                    @endif
+
                     @if ($can('menu_presensi_mengajar'))
                         <a href="{{ route('dashboard.presensi-mengajar.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') ? 'active' : '' }}">
@@ -546,12 +551,6 @@
                         </a>
                     @endif
 
-                    @if ($can('menu_penilaian'))
-                        <a href="#" class="dash-nav-sublink">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-graduation-cap"></i></span>
-                            <span class="nav-label">Penilaian Peserta Didik</span>
-                        </a>
-                    @endif
                 </div>
             </div>
         @endif
@@ -1322,6 +1321,8 @@
         @if ($hasPortalPesertaDidik)
             @php
                 $isPortalPesertaDidikActive =
+                    request()->routeIs('dashboard.peserta-didik') ||
+                    request()->routeIs('dashboard.peserta_didik') ||
                     request()->routeIs('dashboard.peserta-didik.izin.*') ||
                     request()->routeIs('dashboard.peserta-didik.izin') ||
                     request()->routeIs('dashboard.peserta-didik.presensi.*') ||
@@ -1345,6 +1346,14 @@
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
+                    @if ($can('menu_dashboard') || $role === 'admin')
+                        <a href="{{ route('dashboard.peserta-didik') }}"
+                            class="dash-nav-sublink {{ (request()->routeIs('dashboard.peserta-didik') || request()->routeIs('dashboard.peserta_didik')) ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
+                            <span class="nav-label">Dashboard</span>
+                        </a>
+                    @endif
+
                     @if ($can('menu_surat_izin_pd'))
                         <a href="{{ route('dashboard.peserta-didik.izin.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.izin*') ? 'active' : '' }}">

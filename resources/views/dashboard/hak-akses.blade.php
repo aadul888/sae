@@ -41,7 +41,7 @@
     <div class="dash-tabs-nav dash-desktop-tabs">
         <a href="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
             class="btn {{ $activeRole === 'admin' ? 'btn-primary' : 'btn-outline' }}">
-            <i class="fas fa-user-shield me-1"></i> Administrator ({{ $counts['admin'] }})
+            <i class="fas fa-user-shield me-1"></i> Administrator / Superadmin ({{ $counts['admin'] }})
         </a>
         <a href="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}"
             class="btn {{ $activeRole === 'guru' ? 'btn-primary' : 'btn-outline' }}">
@@ -69,7 +69,7 @@
                 <div class="custom-dropdown-trigger-label">
                     <i
                         class="fas {{ $activeRole === 'admin' ? 'fa-user-shield' : ($activeRole === 'guru' ? 'fa-chalkboard-user' : ($activeRole === 'tendik' ? 'fa-id-badge' : ($activeRole === 'tugas_tambahan' ? 'fa-briefcase' : 'fa-user-graduate'))) }} text-primary me-2"></i>
-                    <span>{{ $activeRole === 'admin' ? 'Administrator' : ($activeRole === 'guru' ? 'Guru' : ($activeRole === 'tendik' ? 'Tenaga Kependidikan' : ($activeRole === 'tugas_tambahan' ? 'Tugas Tambahan' : 'Peserta Didik'))) }}</span>
+                    <span>{{ $activeRole === 'admin' ? 'Administrator / Superadmin' : ($activeRole === 'guru' ? 'Guru' : ($activeRole === 'tendik' ? 'Tenaga Kependidikan' : ($activeRole === 'tugas_tambahan' ? 'Tugas Tambahan' : 'Peserta Didik'))) }}</span>
                     <span class="badge badge-primary badge-sm ms-2">{{ $counts[$activeRole] ?? 0 }}</span>
                 </div>
                 <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
@@ -79,7 +79,7 @@
                     class="custom-dropdown-item {{ $activeRole === 'admin' ? 'active' : '' }}">
                     <div class="dropdown-item-left">
                         <i class="fas fa-user-shield text-primary me-2"></i>
-                        <span>Administrator</span>
+                        <span>Administrator / Superadmin</span>
                     </div>
                     <span
                         class="badge {{ $activeRole === 'admin' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['admin'] }}</span>
@@ -457,6 +457,42 @@
             </div>
         </div>
     @else
+        @if ($activeRole === 'admin')
+            <!-- Card: Kontrol Penuh Superadmin & Pemantauan Seluruh Dashboard -->
+            <div class="card" style="padding: 18px 22px; margin-bottom: 20px; border-radius: 12px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 185, 129, 0.06) 100%); border: 1px solid rgba(99, 102, 241, 0.25);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <span>Superadmin Full Control</span>
+                                <span class="badge badge-primary" style="font-size: 0.68rem; padding: 2px 7px;">Akses Penuh</span>
+                            </h3>
+                            <p style="color: var(--text-muted); font-size: 0.82rem; margin: 3px 0 0 0;">
+                                Sebagai Superadmin, Anda memiliki hak penuh untuk mengakses dan memantau seluruh dashboard peran: Guru, Tendik, maupun Peserta Didik secara langsung.
+                            </p>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="{{ route('dashboard.guru') }}" class="btn btn-outline" style="padding: 7px 14px; font-size: 0.8rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-chalkboard-user"></i>
+                            <span>Buka Dashboard Guru</span>
+                        </a>
+                        <a href="{{ route('dashboard.tendik') }}" class="btn btn-outline" style="padding: 7px 14px; font-size: 0.8rem; border-color: rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-id-badge"></i>
+                            <span>Buka Dashboard Tendik</span>
+                        </a>
+                        <a href="{{ route('dashboard.peserta-didik') }}" class="btn btn-outline" style="padding: 7px 14px; font-size: 0.8rem; border-color: rgba(245, 158, 11, 0.4); color: #f59e0b; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Buka Dashboard Siswa</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Toolbar Datatable -->
         <div class="toolbar-row">
             <div class="toolbar-entries" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -700,9 +736,16 @@
                         <select name="permission_key" id="selectAddModule" required
                             style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: #1e293b !important; color: #f8fafc !important; border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;">
                             <option value="" style="background-color: #1e293b; color: #94a3b8;">-- Pilih Modul untuk Ditambahkan --</option>
-                            @foreach ($availableModulesToAdd as $mKey => $mVal)
-                                <option value="{{ $mVal['key'] }}" style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">{{ $mVal['label'] }}</option>
-                            @endforeach
+                            @forelse ($availableModulesToAdd as $groupName => $groupModules)
+                                <optgroup label="📂 {{ $groupName }}" style="color: #94a3b8; background-color: #0f172a; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
+                                    @foreach ($groupModules as $mVal)
+                                        <option value="{{ $mVal['key'] }}" style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">{{ $mVal['label'] }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @empty
+                                <option disabled style="background-color: #1e293b; color: #94a3b8;">Semua modul sistem sudah ditambahkan</option>
+                            @endforelse
+                            <optgroup label="─────────────────────" style="color: #334155; background-color: #0f172a;"></optgroup>
                             <option value="__NEW_CUSTOM_MODULE__" style="background-color: #0f172a; color: #38bdf8; font-weight: 600; padding: 8px 12px;">+ Daftarkan Modul Baru / Mendatang...</option>
                         </select>
 
