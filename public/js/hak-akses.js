@@ -628,19 +628,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. Tombol Reset Bawaan
+    // 4. Tombol Reset
     const btnReset = document.getElementById('btnResetDefault');
     if (btnReset) {
         btnReset.addEventListener('click', async () => {
             let confirmed = false;
-            const confirmMsg = `Seluruh izin peran ${roleName} akan dikembalikan ke pengaturan default sistem.`;
+            const confirmMsg = 'Tindakan ini akan menghapus semua hak akses modul pada peran Guru, Tendik, dan Peserta Didik, serta memberikan akses penuh ke seluruh modul untuk Administrator. Lanjutkan?';
             if (window.SAE && typeof window.SAE.confirm === 'function') {
-                confirmed = await window.SAE.confirm(confirmMsg, 'Reset ke Bawaan?', 'warning');
+                confirmed = await window.SAE.confirm(confirmMsg, 'Reset Hak Akses?', 'warning');
+            } else if (typeof Swal !== 'undefined') {
+                const result = await Swal.fire({
+                    title: 'Reset Hak Akses?',
+                    text: confirmMsg,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Ya, Reset Sekarang',
+                    cancelButtonText: 'Batal'
+                });
+                confirmed = result.isConfirmed;
             } else {
                 confirmed = confirm(confirmMsg);
             }
 
             if (!confirmed) return;
+
+            const originalHtml = btnReset.innerHTML;
+            btnReset.disabled = true;
+            btnReset.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
 
             try {
                 const res = await fetch(resetUrl, {
@@ -663,6 +679,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 showToast(err.message || 'Gagal mereset izin', 'danger');
+            } finally {
+                btnReset.disabled = false;
+                btnReset.innerHTML = originalHtml;
             }
         });
     }

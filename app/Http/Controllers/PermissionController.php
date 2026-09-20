@@ -92,7 +92,7 @@ class PermissionController extends Controller
         $savedPermissions = RolePermission::where('role', $activeRole)
             ->get()
             ->keyBy('permission_key');
-        $hasRoleRecords = $savedPermissions->isNotEmpty();
+        $isSystemConfigured = RolePermission::where('role', 'admin')->exists();
 
         // Bentuk data flat per modul untuk Datatable
         $tableModules = [];
@@ -106,8 +106,8 @@ class PermissionController extends Controller
                 $isDefault = in_array($activeRole, $perm['roles'] ?? []);
 
                 // Modul muncul jika tersimpan di database untuk role ini.
-                // Jika role belum pernah memiliki konfigurasi di DB, gunakan fallback default.
-                $isIncluded = $saved ? true : (!$hasRoleRecords && $isDefault);
+                // Jika sistem belum pernah dikonfigurasi sama sekali (tabel benar-benar kosong), gunakan fallback default.
+                $isIncluded = $saved ? true : (!$isSystemConfigured && $isDefault);
 
                 if ($isIncluded) {
                     $existingKeys[$permKey] = true;
@@ -402,7 +402,9 @@ class PermissionController extends Controller
     }
 
     /**
-     * Reset hak akses role ke default bawaan sistem
+     * Reset hak akses:
+     * - Menghapus semua hak akses di guru, tendik, dan peserta didik
+     * - Administrator mengakses semua modul secara full (CRUD penuh)
      */
     public function resetDefault(Request $request): JsonResponse
     {
@@ -412,18 +414,41 @@ class PermissionController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        $targetRole = $request->input('role');
-        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik'])) {
-            return response()->json(['status' => 'error', 'message' => 'Role tidak valid'], 422);
+        // 1. Hapus seluruh hak akses peran guru, tendik, dan peserta didik
+        RolePermission::whereIn('role', ['guru', 'tendik', 'peserta_didik'])->delete();
+
+        // 2. Berikan akses penuh ke seluruh modul sistem untuk peran admin
+        RolePermission::where('role', 'admin')->delete();
+
+        $allPermissions = RolePermission::getAvailablePermissions();
+        $records = [];
+        $now = now();
+
+        foreach ($allPermissions as $groupName => $modules) {
+            foreach ($modules as $permKey => $config) {
+                $records[] = [
+                    'role' => 'admin',
+                    'permission_key' => $permKey,
+                    'is_allowed' => true,
+                    'can_create' => true,
+                    'can_read' => true,
+                    'can_update' => true,
+                    'can_delete' => true,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
         }
 
-        // Hapus konfigurasi lama role tersebut dan sinkronkan ulang bawaan
-        RolePermission::where('role', $targetRole)->delete();
-        RolePermission::syncAvailablePermissions();
+        if (!empty($records)) {
+            foreach (array_chunk($records, 100) as $chunk) {
+                RolePermission::insert($chunk);
+            }
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => "Hak akses peran {$targetRole} telah direset ke bawaan sistem.",
+            'message' => 'Hak akses berhasil direset: seluruh hak akses modul pada peran Guru, Tendik, dan Peserta Didik telah dihapus, dan Administrator memiliki akses penuh ke seluruh modul.',
         ]);
     }
 

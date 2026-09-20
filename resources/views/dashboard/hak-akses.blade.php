@@ -32,7 +32,7 @@
             </button>
             <button type="button" id="btnResetDefault" class="btn btn-outline"
                 style="padding: 8px 16px; font-size: 0.82rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
-                <i class="fas fa-rotate-left me-1"></i> Reset Bawaan
+                <i class="fas fa-rotate-left me-1"></i> Reset
             </button>
         </div>
     </div>

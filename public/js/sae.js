@@ -215,9 +215,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Global UI Alert, Confirm & Toast Helper
+// Global UI Alert, Confirm & Toast Helper (Bridged with SweetAlert2 & graceful fallback)
 window.SAE = {
     clearToasts() {
+        if (typeof Swal !== "undefined" && Swal.isVisible()) {
+            Swal.close();
+        }
         const container = document.getElementById("saeToastContainer");
         if (container) {
             container.innerHTML = "";
@@ -225,6 +228,25 @@ window.SAE = {
     },
 
     toast(message, type = "info", duration = 3200) {
+        if (typeof Swal !== "undefined") {
+            const isDanger = type === "danger" || type === "error";
+            const swalIcon = isDanger ? "error" : (type === "warning" ? "warning" : (type === "success" ? "success" : "info"));
+            return Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: swalIcon,
+                title: message,
+                showConfirmButton: false,
+                timer: duration,
+                timerProgressBar: true,
+                background: "var(--card-bg, #1e293b)",
+                color: "var(--text-color, #f8fafc)",
+                customClass: {
+                    popup: "sae-swal-toast"
+                }
+            });
+        }
+
         let container = document.getElementById("saeToastContainer");
         if (!container) {
             container = document.createElement("div");
@@ -259,6 +281,25 @@ window.SAE = {
     },
 
     alert(message, title = "Informasi", type = "info", timeoutMs = 0) {
+        if (typeof Swal !== "undefined") {
+            const isDanger = type === "danger" || type === "error";
+            const swalIcon = isDanger ? "error" : (type === "warning" ? "warning" : (type === "success" ? "success" : "info"));
+            return Swal.fire({
+                title: title,
+                html: message,
+                icon: swalIcon,
+                confirmButtonText: "OK",
+                confirmButtonColor: "#3b82f6",
+                timer: timeoutMs > 0 ? timeoutMs : undefined,
+                timerProgressBar: timeoutMs > 0,
+                background: "var(--card-bg, #1e293b)",
+                color: "var(--text-color, #f8fafc)",
+                customClass: {
+                    popup: "sae-swal-popup"
+                }
+            }).then(() => true);
+        }
+
         return new Promise((resolve) => {
             const icons = {
                 success: "fa-circle-check",
@@ -315,6 +356,27 @@ window.SAE = {
         confirmText = "Lanjutkan",
         cancelText = "Batal",
     ) {
+        if (typeof Swal !== "undefined") {
+            const isDanger = type === "danger" || type === "error";
+            const swalIcon = isDanger ? "warning" : (type === "success" ? "success" : (type === "info" ? "info" : "warning"));
+            return Swal.fire({
+                title: title,
+                html: message,
+                icon: swalIcon,
+                showCancelButton: true,
+                confirmButtonText: confirmText,
+                cancelButtonText: cancelText,
+                confirmButtonColor: isDanger ? "#ef4444" : "#3b82f6",
+                cancelButtonColor: "#64748b",
+                reverseButtons: true,
+                background: "var(--card-bg, #1e293b)",
+                color: "var(--text-color, #f8fafc)",
+                customClass: {
+                    popup: "sae-swal-popup"
+                }
+            }).then((res) => res.isConfirmed);
+        }
+
         return new Promise((resolve) => {
             const icons = {
                 success: "fa-circle-check",

@@ -32,6 +32,27 @@ class RolePermission extends Model
     ];
 
     /**
+     * In-memory static cache per HTTP request untuk optimasi performa RBAC
+     */
+    protected static array $runtimeRolePermissionsCache = [];
+    protected static array $runtimeDutyPermissionsCache = [];
+    protected static ?bool $runtimeAdminExistsCache = null;
+    protected static ?bool $runtimeHasTableRolePermissions = null;
+    protected static ?bool $runtimeHasTableDuties = null;
+
+    /**
+     * Bersihkan static runtime cache (berguna saat pengujian atau setelah mutasi hak akses)
+     */
+    public static function clearRuntimeCache(): void
+    {
+        self::$runtimeRolePermissionsCache = [];
+        self::$runtimeDutyPermissionsCache = [];
+        self::$runtimeAdminExistsCache = null;
+        self::$runtimeHasTableRolePermissions = null;
+        self::$runtimeHasTableDuties = null;
+    }
+
+    /**
      * Definisi dasar modul & fitur bawaan sistem yang dikelompokkan berdasarkan cluster modul.
      */
     public static function getBasePermissions(): array
@@ -777,7 +798,10 @@ class RolePermission extends Model
     public static function canAccess(mixed $userOrRole, string $permissionKey, string $action = 'read'): bool
     {
         // Jika tabel belum ada (sebelum migrasi selesai), fallback allow default admin
-        if (!Schema::hasTable('role_permissions')) {
+        if (self::$runtimeHasTableRolePermissions === null) {
+            self::$runtimeHasTableRolePermissions = Schema::hasTable('role_permissions');
+        }
+        if (!self::$runtimeHasTableRolePermissions) {
             $r = is_string($userOrRole) ? $userOrRole : (is_array($userOrRole) ? ($userOrRole['role'] ?? '') : ($userOrRole->role ?? ''));
             return $r === 'admin';
         }
@@ -791,6 +815,12 @@ class RolePermission extends Model
             $actionCol = 'can_read';
         }
 
+        // Cache keberadaan tabel tugas tambahan
+        if (self::$runtimeHasTableDuties === null) {
+            self::$runtimeHasTableDuties = Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan');
+        }
+        $hasDutyTables = self::$runtimeHasTableDuties;
+
         // Khusus Peserta Didik yang ditunjuk sebagai Koordinator Kelas (Membantu tugas Wali Kelas)
         if ($role === 'peserta_didik' && self::isKoordinator($user)) {
             if (in_array($permissionKey, [
@@ -801,13 +831,17 @@ class RolePermission extends Model
             }
         }
 
-        // 1. Otoritas Utama: Izin peran tersimpan di database
-        $row = self::where('role', $role)->where('permission_key', $permissionKey)->first();
+        // 1. Otoritas Utama: Izin peran tersimpan di database (In-memory runtime cache)
+        if (!isset(self::$runtimeRolePermissionsCache[$role])) {
+            self::$runtimeRolePermissionsCache[$role] = self::where('role', $role)->get()->keyBy('permission_key');
+        }
+        $row = self::$runtimeRolePermissionsCache[$role]->get($permissionKey);
+
         if ($row) {
             // Jika record ditemukan di database, status database adalah pengendali utama (Source of Truth)
             if (!$row->is_allowed || !$row->can_read) {
                 // Untuk guru & tendik, periksa apakah tugas tambahan memberikan hak akses khusus
-                if (in_array($role, ['guru', 'tendik']) && Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+                if (in_array($role, ['guru', 'tendik']) && $hasDutyTables) {
                     $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
                     $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
                     if ($userId || $ptkId) {
@@ -831,7 +865,7 @@ class RolePermission extends Model
             }
 
             // Jika di database false untuk mutasi, cek duty permission untuk guru/tendik jika ada
-            if (in_array($role, ['guru', 'tendik']) && Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+            if (in_array($role, ['guru', 'tendik']) && $hasDutyTables) {
                 $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
                 $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
                 if ($userId || $ptkId) {
@@ -845,7 +879,7 @@ class RolePermission extends Model
         }
 
         // 2. Evaluasi izin dari tugas tambahan aktif (Duty-based) jika record belum ada di DB
-        if (in_array($role, ['guru', 'tendik']) && Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+        if (in_array($role, ['guru', 'tendik']) && $hasDutyTables) {
             $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
             $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
 
@@ -862,16 +896,20 @@ class RolePermission extends Model
             if (in_array($permissionKey, ['menu_dashboard', 'menu_hak_akses'])) {
                 return true;
             }
-            // Jika peran admin sudah memiliki konfigurasi di database,
-            // maka ketiadaan modul berarti modul tersebut telah dihapus/dinonaktifkan oleh pengguna.
-            if (self::where('role', 'admin')->exists()) {
+            if (self::$runtimeAdminExistsCache === null) {
+                self::$runtimeAdminExistsCache = self::where('role', 'admin')->exists();
+            }
+            if (self::$runtimeAdminExistsCache) {
                 return false;
             }
             return true;
         }
 
-        // 4. Fallback HANYA jika peran belum pernah dikonfigurasi sama sekali di database
-        if (!self::where('role', $role)->exists()) {
+        // 4. Fallback HANYA jika sistem belum pernah dikonfigurasi sama sekali di database
+        if (self::$runtimeAdminExistsCache === null) {
+            self::$runtimeAdminExistsCache = self::where('role', 'admin')->exists();
+        }
+        if (!self::$runtimeAdminExistsCache) {
             if (!self::isDefaultAllowed($role, $permissionKey)) {
                 return false;
             }
@@ -889,186 +927,124 @@ class RolePermission extends Model
     public static function hasDutyPermission(mixed $userId, ?string $ptkId, string $permissionKey, string $action = 'read'): bool
     {
         try {
-            $query = DB::table('ptk_tugas_tambahan as ptt')
-                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-                ->where('ptt.is_active', true)
-                ->where('rtt.is_active', true);
+            $cacheKey = ($userId ?: 'null') . '|' . ($ptkId ?: 'null');
 
-            if ($userId && $ptkId) {
-                $query->where(function ($q) use ($userId, $ptkId) {
-                    $q->where('ptt.user_id', (string) $userId)->orWhere('ptt.ptk_id', $ptkId);
-                });
-            } elseif ($userId) {
-                $query->where('ptt.user_id', (string) $userId);
-            } elseif ($ptkId) {
-                $query->where('ptt.ptk_id', $ptkId);
-            } else {
-                return false;
+            if (!isset(self::$runtimeDutyPermissionsCache[$cacheKey])) {
+                $query = DB::table('ptk_tugas_tambahan as ptt')
+                    ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                    ->where('ptt.is_active', true)
+                    ->where('rtt.is_active', true);
+
+                if ($userId && $ptkId) {
+                    $query->where(function ($q) use ($userId, $ptkId) {
+                        $q->where('ptt.user_id', (string) $userId)->orWhere('ptt.ptk_id', $ptkId);
+                    });
+                } elseif ($userId) {
+                    $query->where('ptt.user_id', (string) $userId);
+                } elseif ($ptkId) {
+                    $query->where('ptt.ptk_id', $ptkId);
+                } else {
+                    self::$runtimeDutyPermissionsCache[$cacheKey] = [];
+                    return false;
+                }
+
+                $allowedKeys = [];
+
+                // 1. Cek granted_permissions JSON dari tabel ref_tugas_tambahan
+                $records = $query->select('rtt.kode', 'rtt.kelompok', 'rtt.bidang', 'rtt.granted_permissions', 'ptt.rombel_id')->get();
+                foreach ($records as $rec) {
+                    $raw = $rec->granted_permissions;
+                    $perms = is_string($raw) ? json_decode($raw, true) : $raw;
+                    if (is_array($perms)) {
+                        foreach ($perms as $p) {
+                            $allowedKeys[$p] = true;
+                        }
+                    }
+
+                    // 2. Pemetaan bawaan berdasarkan kode tugas tambahan
+                    $kode = $rec->kode;
+                    if ($kode === 'WALI_KELAS') {
+                        foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_penilaian', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif (in_array($kode, ['KEPALA_SEKOLAH', 'WAKA_KURIKULUM'], true)) {
+                        foreach (['menu_rombel', 'menu_pembelajaran', 'menu_jadwal_kbm', 'menu_kompetensi_keahlian', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_penilaian'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif (in_array($kode, ['WAKA_KESISWAAN', 'PEMBINA_OSIS'], true)) {
+                        foreach (['menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_poin', 'menu_e_izin'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif (in_array($kode, ['WAKA_SARPRAS', 'KEPALA_LAB', 'KEPALA_BENGKEL'], true)) {
+                        foreach (['menu_sarpras', 'menu_inventaris'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif (in_array($kode, ['KEPALA_PERPUSTAKAAN', 'PUSTAKAWAN'], true)) {
+                        foreach (['menu_perpustakaan'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'LABORAN') {
+                        foreach (['menu_laboran'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif (in_array($kode, ['TEKNISI_IT', 'TEKNISI_GEDUNG', 'TEKNISI_LAPANGAN'], true)) {
+                        foreach (['menu_teknisi'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'PETUGAS_KEAMANAN' || $kode === 'SATPAM') {
+                        foreach (['menu_keamanan', 'menu_buku_tamu'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif (in_array($kode, ['PENJAGA_SEKOLAH', 'PESURUH'], true)) {
+                        foreach (['menu_penjaga', 'menu_buku_tamu'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'GURU_PIKET') {
+                        foreach (['menu_piket', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_buku_tamu', 'menu_e_izin', 'menu_riwayat_rfid'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'OPERATOR_DAPODIK') {
+                        foreach (['menu_dapodik', 'menu_peserta_didik_aktif', 'menu_guru_aktif', 'menu_tendik_aktif', 'menu_rombel', 'menu_pembelajaran'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'KEPALA_TAS') {
+                        foreach (['menu_kepala_tas', 'menu_tendik_aktif', 'menu_persuratan', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_buku_tamu', 'menu_agenda', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris', 'menu_guru_aktif', 'menu_peserta_didik_aktif'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'STAF_PERSURATAN') {
+                        foreach (['menu_persuratan', 'menu_buku_tamu', 'menu_agenda'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'STAF_KEPEGAWAIAN') {
+                        foreach (['menu_kepegawaian', 'menu_tendik_aktif', 'menu_guru_aktif', 'menu_guru_tidak_aktif', 'menu_tendik_tidak_aktif', 'menu_rfid'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'STAF_KESISWAAN') {
+                        foreach (['menu_kesiswaan', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_berkas_peserta_didik', 'menu_perubahan_data', 'menu_kelulusan'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'STAF_SARPRAS') {
+                        foreach (['menu_sarpras', 'menu_inventaris', 'menu_rombel'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    }
+
+                    // Tendik umum: Aktivitas & Laporan Kinerja
+                    if (in_array($kode, [
+                        'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
+                        'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
+                    ], true)) {
+                        $allowedKeys['menu_aktivitas_tendik'] = true;
+                        $allowedKeys['menu_laporan_tendik'] = true;
+                    }
+                }
+
+                self::$runtimeDutyPermissionsCache[$cacheKey] = $allowedKeys;
             }
 
             $action = strtolower(trim($action));
-
-            // 1. Cek granted_permissions JSON dari tabel ref_tugas_tambahan jika tersedia
-            $grantedJsonList = $query->pluck('rtt.granted_permissions');
-            foreach ($grantedJsonList as $raw) {
-                $perms = is_string($raw) ? json_decode($raw, true) : $raw;
-                if (is_array($perms) && in_array($permissionKey, $perms, true)) {
-                    return in_array($action, ['read', 'create', 'update']);
-                }
-            }
-
-            // 2. Pemetaan bawaan berdasarkan kode tugas tambahan
-            $duties = $query->select('rtt.kode', 'rtt.kelompok', 'rtt.bidang', 'ptt.rombel_id')->get();
-            foreach ($duties as $d) {
-                // Modul wali kelas
-                if ($d->kode === 'WALI_KELAS') {
-                    if (in_array($permissionKey, [
-                        'menu_wali_kelas_aktif',
-                        'menu_wali_kelas_tidak_aktif',
-                        'menu_wali_kelas_presensi',
-                        'menu_peserta_didik_aktif',
-                        'menu_presensi_peserta_didik',
-                        'menu_penilaian',
-                        'menu_agenda_kbm',
-                        'menu_berkas_peserta_didik',
-                    ], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul kepala sekolah / waka kurikulum
-                if (in_array($d->kode, ['KEPALA_SEKOLAH', 'WAKA_KURIKULUM'], true)) {
-                    if (in_array($permissionKey, [
-                        'menu_rombel',
-                        'menu_pembelajaran',
-                        'menu_jadwal_kbm',
-                        'menu_kompetensi_keahlian',
-                        'menu_presensi_mengajar',
-                        'menu_agenda_kbm',
-                        'menu_penilaian',
-                    ], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul kesiswaan
-                if (in_array($d->kode, ['WAKA_KESISWAAN', 'PEMBINA_OSIS'], true)) {
-                    if (in_array($permissionKey, [
-                        'menu_peserta_didik_aktif',
-                        'menu_peserta_didik_tidak_aktif',
-                        'menu_poin',
-                        'menu_e_izin',
-                    ], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul sarpras
-                if (in_array($d->kode, ['WAKA_SARPRAS', 'KEPALA_LAB', 'KEPALA_BENGKEL'], true)) {
-                    if (in_array($permissionKey, ['menu_sarpras', 'menu_inventaris'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul umum seluruh tendik & kepala TAS: Aktivitas & Laporan Kinerja
-                if (in_array($d->kode, [
-                    'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
-                    'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
-                ], true)) {
-                    if (in_array($permissionKey, ['menu_aktivitas_tendik', 'menu_laporan_tendik'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul Kepala TAS (Akses Lengkap Seluruh Bidang Tendik)
-                if ($d->kode === 'KEPALA_TAS') {
-                    if (in_array($permissionKey, [
-                        'menu_kepala_tas', 'menu_aktivitas_tendik', 'menu_laporan_tendik',
-                        'menu_persuratan', 'menu_kesiswaan', 'menu_kepegawaian', 'menu_keuangan',
-                        'menu_sarpras', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi',
-                        'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_buku_tamu',
-                        'menu_inventaris', 'menu_agenda',
-                        'menu_peserta_didik_aktif', 'menu_guru_aktif', 'menu_tendik_aktif',
-                    ], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul staf persuratan
-                if ($d->kode === 'STAF_PERSURATAN') {
-                    if (in_array($permissionKey, ['menu_persuratan', 'menu_buku_tamu', 'menu_agenda'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul staf kesiswaan
-                if ($d->kode === 'STAF_KESISWAAN') {
-                    if (in_array($permissionKey, [
-                        'menu_kesiswaan', 'menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif',
-                        'menu_berkas_peserta_didik', 'menu_perubahan_data', 'menu_kelulusan'
-                    ], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul staf kepegawaian
-                if ($d->kode === 'STAF_KEPEGAWAIAN') {
-                    if (in_array($permissionKey, [
-                        'menu_kepegawaian', 'menu_guru_aktif', 'menu_tendik_aktif',
-                        'menu_guru_tidak_aktif', 'menu_tendik_tidak_aktif', 'menu_rfid'
-                    ], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul staf sarpras
-                if ($d->kode === 'STAF_SARPRAS') {
-                    if (in_array($permissionKey, ['menu_sarpras', 'menu_inventaris', 'menu_rombel'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul laboran
-                if ($d->kode === 'LABORAN') {
-                    if (in_array($permissionKey, ['menu_laboran', 'menu_inventaris'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul pustakawan
-                if ($d->kode === 'PUSTAKAWAN') {
-                    if (in_array($permissionKey, ['menu_perpustakaan', 'menu_inventaris'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul teknisi IT
-                if ($d->kode === 'TEKNISI_IT') {
-                    if (in_array($permissionKey, ['menu_teknisi', 'menu_rfid', 'menu_inventaris'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul satpam / keamanan
-                if ($d->kode === 'SATPAM') {
-                    if (in_array($permissionKey, ['menu_keamanan', 'menu_buku_tamu', 'menu_rfid'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul penjaga sekolah
-                if ($d->kode === 'PENJAGA_SEKOLAH') {
-                    if (in_array($permissionKey, ['menu_penjaga', 'menu_buku_tamu'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
-
-                // Modul guru piket
-                if ($d->kode === 'GURU_PIKET') {
-                    if (in_array($permissionKey, ['menu_piket', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_buku_tamu', 'menu_e_izin', 'menu_riwayat_rfid'], true)) {
-                        return in_array($action, ['read', 'create', 'update']);
-                    }
-                }
+            if (isset(self::$runtimeDutyPermissionsCache[$cacheKey][$permissionKey])) {
+                return in_array($action, ['read', 'create', 'update']);
             }
 
             return false;
