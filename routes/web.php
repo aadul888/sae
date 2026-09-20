@@ -280,55 +280,55 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
         // 1. Kluster Peserta Didik (Aktif, Tidak Aktif, Alumni, Berkas, Usulan Perubahan)
         Route::prefix('peserta-didik')->name('peserta-didik.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan,read');
-            Route::post('/usulan', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'storeUsulan'])->name('usulan.store')->middleware('permission:menu_kesiswaan,create');
-            Route::post('/usulan/{id}/verifikasi', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiUsulan'])->name('usulan.verifikasi')->middleware('permission:menu_kesiswaan,update');
-            Route::post('/berkas/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateBerkas'])->name('berkas.update')->middleware('permission:menu_kesiswaan,update');
-            Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan,read');
+            Route::get('/', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_peserta_didik,read');
+            Route::post('/usulan', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'storeUsulan'])->name('usulan.store')->middleware('permission:menu_kesiswaan_peserta_didik,create');
+            Route::post('/usulan/{id}/verifikasi', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiUsulan'])->name('usulan.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik,update');
+            Route::post('/berkas/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateBerkas'])->name('berkas.update')->middleware('permission:menu_kesiswaan_peserta_didik,update');
+            Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan_peserta_didik,read');
         });
 
         // 2. Kluster Administrasi (Buku Klaper, Mutasi, Kelulusan)
         Route::prefix('administrasi')->name('administrasi.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\KesiswaanController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan,read');
-            Route::post('/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper'])->name('klaper.sync')->middleware('permission:menu_kesiswaan,create');
-            Route::put('/klaper/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateKlaper'])->name('klaper.update')->middleware('permission:menu_kesiswaan,update');
-            Route::post('/mutasi', [\App\Http\Controllers\KesiswaanController::class, 'storeMutasi'])->name('mutasi.store')->middleware('permission:menu_kesiswaan,create');
-            Route::get('/mutasi/{id}/cetak', [\App\Http\Controllers\KesiswaanController::class, 'cetakMutasi'])->name('mutasi.cetak')->middleware('permission:menu_kesiswaan,read');
-            Route::post('/kelulusan', [\App\Http\Controllers\KesiswaanController::class, 'storeKelulusan'])->name('kelulusan.store')->middleware('permission:menu_kesiswaan,create');
-            Route::get('/kelulusan/{id}/cetak-skl', [\App\Http\Controllers\KesiswaanController::class, 'cetakSkl'])->name('kelulusan.cetak-skl')->middleware('permission:menu_kesiswaan,read');
+            Route::get('/', [\App\Http\Controllers\KesiswaanController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_administrasi,read');
+            Route::post('/klaper/sync', [\App\Http\Controllers\KesiswaanController::class, 'syncKlaper'])->name('klaper.sync')->middleware('permission:menu_kesiswaan_administrasi,create');
+            Route::put('/klaper/{id}', [\App\Http\Controllers\KesiswaanController::class, 'updateKlaper'])->name('klaper.update')->middleware('permission:menu_kesiswaan_administrasi,update');
+            Route::post('/mutasi', [\App\Http\Controllers\KesiswaanController::class, 'storeMutasi'])->name('mutasi.store')->middleware('permission:menu_kesiswaan_administrasi,create');
+            Route::get('/mutasi/{id}/cetak', [\App\Http\Controllers\KesiswaanController::class, 'cetakMutasi'])->name('mutasi.cetak')->middleware('permission:menu_kesiswaan_administrasi,read');
+            Route::post('/kelulusan', [\App\Http\Controllers\KesiswaanController::class, 'storeKelulusan'])->name('kelulusan.store')->middleware('permission:menu_kesiswaan_administrasi,create');
+            Route::get('/kelulusan/{id}/cetak-skl', [\App\Http\Controllers\KesiswaanController::class, 'cetakSkl'])->name('kelulusan.cetak-skl')->middleware('permission:menu_kesiswaan_administrasi,read');
         });
 
         // 3. Kluster Kedisiplinan (Tata Tertib, Poin, Riwayat, Pembinaan, Pemanggilan Wali, Tindak Lanjut, Rekap)
         Route::prefix('kedisiplinan')->name('kedisiplinan.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\KedisiplinanController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan,read');
-            Route::post('/tatib', [\App\Http\Controllers\KedisiplinanController::class, 'storeTatib'])->name('tatib.store')->middleware('permission:menu_kesiswaan,create');
-            Route::put('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'updateTatib'])->name('tatib.update')->middleware('permission:menu_kesiswaan,update');
-            Route::delete('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyTatib'])->name('tatib.destroy')->middleware('permission:menu_kesiswaan,delete');
-            Route::post('/pelanggaran', [\App\Http\Controllers\KedisiplinanController::class, 'storePelanggaran'])->name('pelanggaran.store')->middleware('permission:menu_kesiswaan,create');
-            Route::delete('/pelanggaran/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyPelanggaran'])->name('pelanggaran.destroy')->middleware('permission:menu_kesiswaan,delete');
-            Route::post('/pembinaan', [\App\Http\Controllers\KedisiplinanController::class, 'storePembinaan'])->name('pembinaan.store')->middleware('permission:menu_kesiswaan,create');
-            Route::post('/panggilan-wali', [\App\Http\Controllers\KedisiplinanController::class, 'storePanggilanWali'])->name('panggilan-wali.store')->middleware('permission:menu_kesiswaan,create');
-            Route::get('/panggilan-wali/{id}/cetak', [\App\Http\Controllers\KedisiplinanController::class, 'cetakPanggilanWali'])->name('panggilan-wali.cetak')->middleware('permission:menu_kesiswaan,read');
-            Route::post('/pembinaan/{id}/tindak-lanjut', [\App\Http\Controllers\KedisiplinanController::class, 'updateTindakLanjut'])->name('pembinaan.tindak-lanjut')->middleware('permission:menu_kesiswaan,update');
+            Route::get('/', [\App\Http\Controllers\KedisiplinanController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_kedisiplinan,read');
+            Route::post('/tatib', [\App\Http\Controllers\KedisiplinanController::class, 'storeTatib'])->name('tatib.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
+            Route::put('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'updateTatib'])->name('tatib.update')->middleware('permission:menu_kesiswaan_kedisiplinan,update');
+            Route::delete('/tatib/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyTatib'])->name('tatib.destroy')->middleware('permission:menu_kesiswaan_kedisiplinan,delete');
+            Route::post('/pelanggaran', [\App\Http\Controllers\KedisiplinanController::class, 'storePelanggaran'])->name('pelanggaran.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
+            Route::delete('/pelanggaran/{id}', [\App\Http\Controllers\KedisiplinanController::class, 'destroyPelanggaran'])->name('pelanggaran.destroy')->middleware('permission:menu_kesiswaan_kedisiplinan,delete');
+            Route::post('/pembinaan', [\App\Http\Controllers\KedisiplinanController::class, 'storePembinaan'])->name('pembinaan.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
+            Route::post('/panggilan-wali', [\App\Http\Controllers\KedisiplinanController::class, 'storePanggilanWali'])->name('panggilan-wali.store')->middleware('permission:menu_kesiswaan_kedisiplinan,create');
+            Route::get('/panggilan-wali/{id}/cetak', [\App\Http\Controllers\KedisiplinanController::class, 'cetakPanggilanWali'])->name('panggilan-wali.cetak')->middleware('permission:menu_kesiswaan_kedisiplinan,read');
+            Route::post('/pembinaan/{id}/tindak-lanjut', [\App\Http\Controllers\KedisiplinanController::class, 'updateTindakLanjut'])->name('pembinaan.tindak-lanjut')->middleware('permission:menu_kesiswaan_kedisiplinan,update');
         });
 
         // 4. Kluster Kegiatan Siswa (OSIS, Organisasi, Ekstrakurikuler, Agenda)
         Route::prefix('kegiatan')->name('kegiatan.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\KegiatanSiswaController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan,read');
-            Route::post('/organisasi', [\App\Http\Controllers\KegiatanSiswaController::class, 'storeOrganisasi'])->name('organisasi.store')->middleware('permission:menu_kesiswaan,create');
-            Route::delete('/organisasi/{id}', [\App\Http\Controllers\KegiatanSiswaController::class, 'destroyOrganisasi'])->name('organisasi.destroy')->middleware('permission:menu_kesiswaan,delete');
-            Route::post('/ekskul', [\App\Http\Controllers\KegiatanSiswaController::class, 'storeEkskul'])->name('ekskul.store')->middleware('permission:menu_kesiswaan,create');
-            Route::delete('/ekskul/{id}', [\App\Http\Controllers\KegiatanSiswaController::class, 'destroyEkskul'])->name('ekskul.destroy')->middleware('permission:menu_kesiswaan,delete');
-            Route::post('/agenda', [\App\Http\Controllers\KegiatanSiswaController::class, 'storeAgenda'])->name('agenda.store')->middleware('permission:menu_kesiswaan,create');
-            Route::delete('/agenda/{id}', [\App\Http\Controllers\KegiatanSiswaController::class, 'destroyAgenda'])->name('agenda.destroy')->middleware('permission:menu_kesiswaan,delete');
+            Route::get('/', [\App\Http\Controllers\KegiatanSiswaController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_kegiatan,read');
+            Route::post('/organisasi', [\App\Http\Controllers\KegiatanSiswaController::class, 'storeOrganisasi'])->name('organisasi.store')->middleware('permission:menu_kesiswaan_kegiatan,create');
+            Route::delete('/organisasi/{id}', [\App\Http\Controllers\KegiatanSiswaController::class, 'destroyOrganisasi'])->name('organisasi.destroy')->middleware('permission:menu_kesiswaan_kegiatan,delete');
+            Route::post('/ekskul', [\App\Http\Controllers\KegiatanSiswaController::class, 'storeEkskul'])->name('ekskul.store')->middleware('permission:menu_kesiswaan_kegiatan,create');
+            Route::delete('/ekskul/{id}', [\App\Http\Controllers\KegiatanSiswaController::class, 'destroyEkskul'])->name('ekskul.destroy')->middleware('permission:menu_kesiswaan_kegiatan,delete');
+            Route::post('/agenda', [\App\Http\Controllers\KegiatanSiswaController::class, 'storeAgenda'])->name('agenda.store')->middleware('permission:menu_kesiswaan_kegiatan,create');
+            Route::delete('/agenda/{id}', [\App\Http\Controllers\KegiatanSiswaController::class, 'destroyAgenda'])->name('agenda.destroy')->middleware('permission:menu_kesiswaan_kegiatan,delete');
         });
 
         // 5. Kluster Prestasi (Akademik, Nonakademik, Rekap)
         Route::prefix('prestasi')->name('prestasi.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\PrestasiSiswaController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan,read');
-            Route::post('/', [\App\Http\Controllers\PrestasiSiswaController::class, 'storePrestasi'])->name('store')->middleware('permission:menu_kesiswaan,create');
-            Route::delete('/{id}', [\App\Http\Controllers\PrestasiSiswaController::class, 'destroyPrestasi'])->name('destroy')->middleware('permission:menu_kesiswaan,delete');
-            Route::get('/cetak', [\App\Http\Controllers\PrestasiSiswaController::class, 'cetakLaporan'])->name('cetak')->middleware('permission:menu_kesiswaan,read');
+            Route::get('/', [\App\Http\Controllers\PrestasiSiswaController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_prestasi,read');
+            Route::post('/', [\App\Http\Controllers\PrestasiSiswaController::class, 'storePrestasi'])->name('store')->middleware('permission:menu_kesiswaan_prestasi,create');
+            Route::delete('/{id}', [\App\Http\Controllers\PrestasiSiswaController::class, 'destroyPrestasi'])->name('destroy')->middleware('permission:menu_kesiswaan_prestasi,delete');
+            Route::get('/cetak', [\App\Http\Controllers\PrestasiSiswaController::class, 'cetakLaporan'])->name('cetak')->middleware('permission:menu_kesiswaan_prestasi,read');
         });
     });
 

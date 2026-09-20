@@ -697,6 +697,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnOpenAddModule && modalAddModule) {
         btnOpenAddModule.addEventListener('click', () => {
             modalAddModule.style.display = 'flex';
+            if (filterModuleOptions) {
+                filterModuleOptions.value = '';
+                doFilterOptions('');
+                setTimeout(() => filterModuleOptions.focus(), 80);
+            }
         });
     }
 
@@ -723,6 +728,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectAddModule = document.getElementById('selectAddModule');
     const customModuleFields = document.getElementById('customModuleFields');
     const inputCustomModuleName = document.getElementById('inputCustomModuleName');
+    const filterModuleOptions = document.getElementById('filterModuleOptions');
+
+    const doFilterOptions = (query) => {
+        if (!selectAddModule) return;
+        const q = (query || '').toLowerCase().trim();
+        const optgroups = selectAddModule.querySelectorAll('optgroup');
+
+        optgroups.forEach(group => {
+            const groupLabel = (group.label || '').toLowerCase();
+            const options = group.querySelectorAll('option');
+            let groupHasVisibleOption = false;
+
+            options.forEach(opt => {
+                const optText = (opt.textContent || '').toLowerCase();
+                const optVal = (opt.value || '').toLowerCase();
+                const isMatch = !q || optText.includes(q) || optVal.includes(q) || groupLabel.includes(q);
+
+                opt.style.display = isMatch ? '' : 'none';
+                if (isMatch) groupHasVisibleOption = true;
+            });
+
+            if (group.children.length > 0) {
+                group.style.display = groupHasVisibleOption ? '' : 'none';
+            }
+        });
+
+        const firstOption = selectAddModule.querySelector('option[value=""]');
+        if (firstOption) firstOption.style.display = '';
+
+        const customOption = selectAddModule.querySelector('option[value="__NEW_CUSTOM_MODULE__"]');
+        if (customOption) customOption.style.display = '';
+    };
+
+    if (filterModuleOptions) {
+        filterModuleOptions.addEventListener('input', (e) => {
+            doFilterOptions(e.target.value);
+        });
+        filterModuleOptions.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                filterModuleOptions.value = '';
+                doFilterOptions('');
+            }
+        });
+    }
 
     if (selectAddModule && customModuleFields) {
         selectAddModule.addEventListener('change', () => {

@@ -460,16 +460,25 @@ class RolePermission extends Model
             }
         }
 
-        // 1. Kumpulkan seluruh berkas rute, controller, dan view untuk pemindaian otomatis
-        $filesToScan = array_merge(
-            glob(base_path('routes/*.php')) ?: [],
-            glob(app_path('Http/Controllers/*.php')) ?: [],
-            glob(resource_path('views/partials/*.blade.php')) ?: [],
-            glob(resource_path('views/dashboard/*.blade.php')) ?: []
-        );
+        // 1. Kumpulkan seluruh berkas rute, controller, dan view secara rekursif
+        $dirsToScan = [
+            base_path('routes'),
+            app_path('Http/Controllers'),
+            resource_path('views/partials'),
+            resource_path('views/dashboard'),
+        ];
+        $filesToScan = [];
+        foreach ($dirsToScan as $dir) {
+            if (!is_dir($dir)) continue;
+            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS));
+            foreach ($it as $file) {
+                if ($file->isFile() && in_array(strtolower($file->getExtension()), ['php'])) {
+                    $filesToScan[] = $file->getPathname();
+                }
+            }
+        }
 
         foreach ($filesToScan as $filePath) {
-            if (!file_exists($filePath)) continue;
             $content = @file_get_contents($filePath);
             if (!$content) continue;
 
@@ -833,6 +842,24 @@ class RolePermission extends Model
         if (!$row && in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true)) {
             $row = self::$runtimeRolePermissionsCache[$role]->get('menu_kesiswaan');
         }
+        if (!$row && $permissionKey === 'menu_kesiswaan') {
+            foreach (['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'] as $sk) {
+                $sr = self::$runtimeRolePermissionsCache[$role]->get($sk);
+                if ($sr && $sr->is_allowed && $sr->can_read) {
+                    $row = $sr;
+                    break;
+                }
+            }
+        }
+        if (!$row && $permissionKey === 'menu_persuratan') {
+            foreach (['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'] as $sk) {
+                $sr = self::$runtimeRolePermissionsCache[$role]->get($sk);
+                if ($sr && $sr->is_allowed && $sr->can_read) {
+                    $row = $sr;
+                    break;
+                }
+            }
+        }
         if (!$row || !$row->is_allowed || !$row->can_read) {
             return false;
         }
@@ -923,6 +950,24 @@ class RolePermission extends Model
                 if (!$adminRow && in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true)) {
                     $adminRow = self::$runtimeRolePermissionsCache['admin']->get('menu_kesiswaan');
                 }
+                if (!$adminRow && $permissionKey === 'menu_kesiswaan') {
+                    foreach (['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'] as $sk) {
+                        $sr = self::$runtimeRolePermissionsCache['admin']->get($sk);
+                        if ($sr && $sr->is_allowed && $sr->can_read) {
+                            $adminRow = $sr;
+                            break;
+                        }
+                    }
+                }
+                if (!$adminRow && $permissionKey === 'menu_persuratan') {
+                    foreach (['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'] as $sk) {
+                        $sr = self::$runtimeRolePermissionsCache['admin']->get($sk);
+                        if ($sr && $sr->is_allowed && $sr->can_read) {
+                            $adminRow = $sr;
+                            break;
+                        }
+                    }
+                }
                 if ($adminRow && $adminRow->is_allowed && $adminRow->can_read) {
                     return $actionCol === 'can_read' ? true : (bool) $adminRow->{$actionCol};
                 }
@@ -957,6 +1002,24 @@ class RolePermission extends Model
         }
         if (!$row && in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true)) {
             $row = self::$runtimeRolePermissionsCache[$role]->get('menu_kesiswaan');
+        }
+        if (!$row && $permissionKey === 'menu_kesiswaan') {
+            foreach (['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'] as $sk) {
+                $sr = self::$runtimeRolePermissionsCache[$role]->get($sk);
+                if ($sr && $sr->is_allowed && $sr->can_read) {
+                    $row = $sr;
+                    break;
+                }
+            }
+        }
+        if (!$row && $permissionKey === 'menu_persuratan') {
+            foreach (['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'] as $sk) {
+                $sr = self::$runtimeRolePermissionsCache[$role]->get($sk);
+                if ($sr && $sr->is_allowed && $sr->can_read) {
+                    $row = $sr;
+                    break;
+                }
+            }
         }
 
         if ($row) {
@@ -1165,18 +1228,21 @@ class RolePermission extends Model
         $addedCount = 0;
         $now = now();
 
-        // Kumpulkan permission_key yang sudah ada di database
-        $existingKeysInDb = self::distinct()->pluck('permission_key')->toArray();
+        // Kumpulkan permission_key yang sudah ada per role
+        $existingByRole = self::select('role', 'permission_key')
+            ->get()
+            ->groupBy('role')
+            ->map(function ($items) {
+                return $items->pluck('permission_key')->flip()->toArray();
+            })
+            ->toArray();
 
         foreach ($allPermissions as $groupName => $items) {
             foreach ($items as $permKey => $config) {
-                // Hanya daftarkan otomatis jika modul ini benar-benar baru di sistem (belum pernah ada di database sama sekali)
-                $isBrandNew = !in_array($permKey, $existingKeysInDb, true);
+                $targetRoles = array_unique(array_merge(['admin'], $config['roles'] ?? []));
 
-                if ($isBrandNew) {
-                    $roles = array_unique(array_merge(['admin'], $config['roles'] ?? []));
-
-                    foreach ($roles as $role) {
+                foreach ($targetRoles as $role) {
+                    if (!isset($existingByRole[$role][$permKey])) {
                         $isDef = self::isDefaultAllowed($role, $permKey);
                         self::create([
                             'role' => $role,
@@ -1189,12 +1255,60 @@ class RolePermission extends Model
                             'created_at' => $now,
                             'updated_at' => $now,
                         ]);
+                        $existingByRole[$role][$permKey] = true;
                         $addedCount++;
                     }
-                    $existingKeysInDb[] = $permKey;
                 }
             }
         }
+
+        // Sinkronkan juga tugas tambahan otomatis jika tabelnya ada
+        if (Schema::hasTable('ref_tugas_tambahan')) {
+            $kesiswaanAll = [
+                'menu_kesiswaan',
+                'menu_kesiswaan_peserta_didik',
+                'menu_kesiswaan_administrasi',
+                'menu_kesiswaan_kedisiplinan',
+                'menu_kesiswaan_kegiatan',
+                'menu_kesiswaan_prestasi',
+            ];
+
+            foreach (['WAKA_KESISWAAN', 'STAF_KESISWAAN', 'KEPALA_TAS'] as $kode) {
+                $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+                if ($ref) {
+                    $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                    $merged = array_values(array_unique(array_merge($current, $kesiswaanAll)));
+                    if (count($merged) !== count($current)) {
+                        $ref->update(['granted_permissions' => $merged]);
+                    }
+                }
+            }
+
+            foreach (['PEMBINA_OSIS', 'PEMBINA_EKSKUL'] as $kode) {
+                $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+                if ($ref) {
+                    $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                    $merged = array_values(array_unique(array_merge($current, ['menu_kesiswaan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'])));
+                    if (count($merged) !== count($current)) {
+                        $ref->update(['granted_permissions' => $merged]);
+                    }
+                }
+            }
+
+            $persuratanAll = ['menu_persuratan', 'menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'];
+            foreach (['STAF_PERSURATAN', 'KEPALA_TAS'] as $kode) {
+                $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+                if ($ref) {
+                    $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                    $merged = array_values(array_unique(array_merge($current, $persuratanAll)));
+                    if (count($merged) !== count($current)) {
+                        $ref->update(['granted_permissions' => $merged]);
+                    }
+                }
+            }
+        }
+
+        self::clearRuntimeCache();
 
         return $addedCount;
     }

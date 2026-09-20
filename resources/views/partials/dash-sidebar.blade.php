@@ -1092,7 +1092,7 @@
 
             $hasTendikSection = $isTendikRole && !$hasKepalaTas && (
                 ($tendikDutyList->contains('kode', 'STAF_PERSURATAN') && ($can('menu_persuratan') || $can('menu_surat_masuk') || $can('menu_surat_keluar') || $can('menu_pengaturan_persuratan'))) ||
-                ($tendikDutyList->contains('kode', 'STAF_KESISWAAN') && $can('menu_kesiswaan')) ||
+                ($tendikDutyList->contains('kode', 'STAF_KESISWAAN') && ($can('menu_kesiswaan') || $can('menu_kesiswaan_peserta_didik') || $can('menu_kesiswaan_administrasi') || $can('menu_kesiswaan_kedisiplinan') || $can('menu_kesiswaan_kegiatan') || $can('menu_kesiswaan_prestasi'))) ||
                 ($tendikDutyList->contains('kode', 'STAF_KEPEGAWAIAN') && $can('menu_kepegawaian')) ||
                 ($tendikDutyList->contains('kode', 'STAF_SARPRAS') && $can('menu_sarpras')) ||
                 ($tendikDutyList->contains('kode', 'PUSTAKAWAN') && $can('menu_perpustakaan')) ||
@@ -1167,37 +1167,49 @@
                     @endif
 
                     {{-- Bidang Kesiswaan --}}
-                    @if ($tendikDutyList->contains('kode', 'STAF_KESISWAAN') && $can('menu_kesiswaan'))
-                        <a href="{{ route('dashboard.tendik', ['bidang' => 'kesiswaan']) }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'kesiswaan' ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
-                            <span class="nav-label">Dashboard Kesiswaan</span>
-                        </a>
-                        <a href="{{ route('dashboard.kesiswaan.peserta-didik.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.peserta-didik.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users"></i></span>
-                            <span class="nav-label">Peserta Didik</span>
-                        </a>
-                        <a href="{{ route('dashboard.kesiswaan.administrasi.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.administrasi.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
-                            <span class="nav-label">Administrasi</span>
-                        </a>
-                        <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.kedisiplinan.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-shield-halved"></i></span>
-                            <span class="nav-label">Kedisiplinan</span>
-                        </a>
-                        <a href="{{ route('dashboard.kesiswaan.kegiatan.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.kegiatan.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-people-group"></i></span>
-                            <span class="nav-label">Kegiatan Siswa</span>
-                        </a>
-                        <a href="{{ route('dashboard.kesiswaan.prestasi.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.prestasi.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-trophy"></i></span>
-                            <span class="nav-label">Prestasi</span>
-                        </a>
+                    @if ($tendikDutyList->contains('kode', 'STAF_KESISWAAN') && ($can('menu_kesiswaan') || $can('menu_kesiswaan_peserta_didik') || $can('menu_kesiswaan_administrasi') || $can('menu_kesiswaan_kedisiplinan') || $can('menu_kesiswaan_kegiatan') || $can('menu_kesiswaan_prestasi')))
+                        @if ($can('menu_kesiswaan'))
+                            <a href="{{ route('dashboard.tendik', ['bidang' => 'kesiswaan']) }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'kesiswaan' ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
+                                <span class="nav-label">Dashboard Kesiswaan</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_kesiswaan_peserta_didik') || $can('menu_kesiswaan'))
+                            <a href="{{ route('dashboard.kesiswaan.peserta-didik.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.peserta-didik.*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users"></i></span>
+                                <span class="nav-label">Peserta Didik</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_kesiswaan_administrasi') || $can('menu_kesiswaan'))
+                            <a href="{{ route('dashboard.kesiswaan.administrasi.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.administrasi.*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-bookmark"></i></span>
+                                <span class="nav-label">Administrasi</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_kesiswaan_kedisiplinan') || $can('menu_kesiswaan'))
+                            <a href="{{ route('dashboard.kesiswaan.kedisiplinan.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.kedisiplinan.*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-shield-halved"></i></span>
+                                <span class="nav-label">Kedisiplinan</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_kesiswaan_kegiatan') || $can('menu_kesiswaan'))
+                            <a href="{{ route('dashboard.kesiswaan.kegiatan.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.kegiatan.*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-people-group"></i></span>
+                                <span class="nav-label">Kegiatan Siswa</span>
+                            </a>
+                        @endif
+                        @if ($can('menu_kesiswaan_prestasi') || $can('menu_kesiswaan'))
+                            <a href="{{ route('dashboard.kesiswaan.prestasi.index') }}"
+                                class="dash-nav-sublink {{ request()->routeIs('dashboard.kesiswaan.prestasi.*') ? 'active' : '' }}">
+                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-trophy"></i></span>
+                                <span class="nav-label">Prestasi</span>
+                            </a>
+                        @endif
                     @endif
 
                     {{-- Bidang Kepegawaian --}}

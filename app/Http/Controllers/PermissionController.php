@@ -25,6 +25,19 @@ class PermissionController extends Controller
             $activeRole = 'admin';
         }
 
+        // Auto-sinkronisasi modul baru jika tabel role_permissions sudah ada tetapi belum lengkap untuk admin
+        if (\Illuminate\Support\Facades\Schema::hasTable('role_permissions')) {
+            $baseConfigs = RolePermission::getBasePermissions();
+            $adminCount = RolePermission::where('role', 'admin')->count();
+            $totalBase = 0;
+            foreach ($baseConfigs as $grp => $items) {
+                $totalBase += count($items);
+            }
+            if ($adminCount < $totalBase) {
+                RolePermission::syncAvailablePermissions();
+            }
+        }
+
         $permissionsConfig = RolePermission::getAvailablePermissions();
 
         // Ambil data tugas tambahan jika tab tugas_tambahan aktif
@@ -127,11 +140,13 @@ class PermissionController extends Controller
             }
         }
 
-        // Kelompokkan modul yang tersedia berdasarkan grup, urutkan alfabet per grup
+        // Kelompokkan modul yang tersedia untuk ditambahkan ke peran:
+        // Modul tersedia jika belum terdaftar untuk peran ini ATAU izin bacanya (can_read) sedang tidak aktif.
         $allSystemModules = RolePermission::getAllSystemModules();
         $availableModulesToAdd = [];
         foreach ($allSystemModules as $k => $mod) {
-            if (!isset($existingKeys[$k])) {
+            $saved = $savedPermissions->get($k);
+            if (!$saved || !$saved->can_read) {
                 $group = $mod['group'] ?? 'Lainnya';
                 $availableModulesToAdd[$group][] = $mod;
             }
@@ -517,6 +532,8 @@ class PermissionController extends Controller
             );
         }
 
+        RolePermission::clearRuntimeCache();
+
         return response()->json([
             'status' => 'success',
             'message' => "Modul '{$moduleLabel}' berhasil didaftarkan ke peran " . ucfirst(str_replace('_', ' ', $targetRole)) . " dan kini aktif di sidebar.",
@@ -559,6 +576,8 @@ class PermissionController extends Controller
         if (!$isBase && $targetRole === 'admin') {
             RolePermission::where('permission_key', $permissionKey)->delete();
         }
+
+        RolePermission::clearRuntimeCache();
 
         return response()->json([
             'status' => 'success',

@@ -719,7 +719,7 @@
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                     <h3
                         style="font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-plus-circle text-primary"></i> Tambah Modul ke Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}
+                        <i class="fas fa-plus-circle text-primary"></i> Tambah Modul ke Peran {{ ucfirst(str_replace('_', ' ', $activeRole)) }}
                     </h3>
                     <button type="button" id="btnCloseAddModule"
                         style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">
@@ -733,6 +733,10 @@
                             style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block;">
                             Pilih Modul Sistem <span style="color: #ef4444;">*</span>
                         </label>
+                        <div style="margin-bottom: 8px;">
+                            <input type="text" id="filterModuleOptions" placeholder="🔍 Cari modul (contoh: kesiswaan, surat, rapor)..." autocomplete="off"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.18); background-color: #0f172a; color: #f8fafc; border-radius: 8px; font-size: 0.84rem; box-sizing: border-box;">
+                        </div>
                         <select name="permission_key" id="selectAddModule" required
                             style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: #1e293b !important; color: #f8fafc !important; border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;">
                             <option value="" style="background-color: #1e293b; color: #94a3b8;">-- Pilih Modul untuk Ditambahkan --</option>
@@ -743,7 +747,7 @@
                                     @endforeach
                                 </optgroup>
                             @empty
-                                <option disabled style="background-color: #1e293b; color: #94a3b8;">Semua modul sistem sudah ditambahkan</option>
+                                <option disabled style="background-color: #1e293b; color: #94a3b8;">Semua modul sistem sudah aktif untuk peran ini</option>
                             @endforelse
                             <optgroup label="─────────────────────" style="color: #334155; background-color: #0f172a;"></optgroup>
                             <option value="__NEW_CUSTOM_MODULE__" style="background-color: #0f172a; color: #38bdf8; font-weight: 600; padding: 8px 12px;">+ Daftarkan Modul Baru / Mendatang...</option>
