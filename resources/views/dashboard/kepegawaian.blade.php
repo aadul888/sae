@@ -1,37 +1,43 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
-@section('title', 'Administrasi Kepegawaian GTK - SAE')
+@section('title', 'Administrasi Kepegawaian GTK — SAE')
+@section('dash_title', 'Kepegawaian & GTK')
 
 @section('content')
-<div class="dash-container">
+<div class="dash-content-inner">
     {{-- Header Modul --}}
-    <div class="dash-header-block" style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-id-card-alt"></i>
+            </div>
             <div>
-                <h1 style="font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin: 0;">
-                    <i class="fas fa-id-card-alt" style="color: var(--primary); margin-right: 8px;"></i>
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
                     Kepegawaian &amp; GTK
-                </h1>
+                </h2>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    Pengelolaan berkas digital pendidik/tenaga kependidikan, pelacakan KGB, permohonan cuti, dan surat tugas.
+                </div>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                @if($tab === 'berkas')
-                <button type="button" class="btn btn-primary" id="btnOpenModalUploadBerkas" title="Unggah Berkas PTK" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;">
-                    <i class="fas fa-plus"></i>
-                </button>
-                @elseif($tab === 'kgb')
-                <button type="button" class="btn btn-primary" id="btnOpenModalKgb" title="Catat / Update KGB" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;">
-                    <i class="fas fa-plus"></i>
-                </button>
-                @elseif($tab === 'cuti')
-                <button type="button" class="btn btn-primary" id="btnOpenModalCuti" title="Buat Surat Cuti / Izin" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;">
-                    <i class="fas fa-plus"></i>
-                </button>
-                @elseif($tab === 'spt')
-                <button type="button" class="btn btn-primary" id="btnOpenModalSpt" title="Terbitkan SPT Dinas" style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px;">
-                    <i class="fas fa-plus"></i>
-                </button>
-                @endif
-            </div>
+        </div>
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            @if($tab === 'berkas')
+            <button type="button" class="btn btn-primary" id="btnOpenModalUploadBerkas" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Unggah Berkas PTK">
+                <i class="fas fa-plus"></i> Unggah Berkas
+            </button>
+            @elseif($tab === 'kgb')
+            <button type="button" class="btn btn-primary" id="btnOpenModalKgb" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Catat / Update KGB">
+                <i class="fas fa-plus"></i> Catat KGB
+            </button>
+            @elseif($tab === 'cuti')
+            <button type="button" class="btn btn-primary" id="btnOpenModalCuti" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Buat Surat Cuti / Izin">
+                <i class="fas fa-plus"></i> Ajukan Cuti
+            </button>
+            @elseif($tab === 'spt')
+            <button type="button" class="btn btn-primary" id="btnOpenModalSpt" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Terbitkan SPT Dinas">
+                <i class="fas fa-plus"></i> Terbitkan SPT
+            </button>
+            @endif
         </div>
     </div>
 

@@ -4,47 +4,70 @@
 
 @section('content')
 <div class="dash-content-inner">
-    <!-- Header Page -->
-    <div class="dash-header-section" style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <!-- 1. Header Banner & Actions -->
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-user-check"></i>
+            </div>
             <div>
-                <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-heading); margin-bottom: 4px;">
-                    <i class="fas fa-user-check" style="color: var(--primary-color); margin-right: 8px;"></i>
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
                     Buku Kunjungan Perpustakaan
-                </h1>
-                <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                </h2>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
                     Pencatatan presensi dan log pengunjung harian perpustakaan sekolah.
-                </p>
+                </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="button" class="btn btn-primary" id="btnTambahKunjungan" style="display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-pen-fancy"></i> Catat Pengunjung
-                </button>
-            </div>
+        </div>
+
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" id="btnTambahKunjungan" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Catat Pengunjung">
+                <i class="fas fa-pen-fancy"></i>
+                <span>Catat Pengunjung</span>
+            </button>
         </div>
     </div>
 
-    <!-- Statistik Cards -->
-    <div class="grid-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #3b82f6;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pengunjung Hari Ini</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #3b82f6; margin-top: 4px;">{{ number_format($stats['hari_ini'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;"><i class="fas fa-calendar-day"></i> {{ date('d M Y') }}</div>
+    <!-- 2. Stat Grid Baku SAE -->
+    <div class="dash-stat-grid" style="margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['hari_ini'] ?? 0) }}</div>
+                <div class="dash-stat-label">Pengunjung Hari Ini</div>
+            </div>
         </div>
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #10b981;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pengunjung Bulan Ini</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #10b981; margin-top: 4px;">{{ number_format($stats['bulan_ini'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;"><i class="fas fa-calendar-alt"></i> Bulan {{ date('F Y') }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['bulan_ini'] ?? 0) }}</div>
+                <div class="dash-stat-label">Pengunjung Bulan Ini</div>
+            </div>
         </div>
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #8b5cf6;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Peserta Didik</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #8b5cf6; margin-top: 4px;">{{ number_format($stats['siswa'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;"><i class="fas fa-user-graduate"></i> Kunjungan siswa</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['siswa'] ?? 0) }}</div>
+                <div class="dash-stat-label">Peserta Didik</div>
+            </div>
         </div>
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #f59e0b;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Guru & Staf</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #f59e0b; margin-top: 4px;">{{ number_format($stats['guru_staf'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;"><i class="fas fa-chalkboard-teacher"></i> Kunjungan GTK</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['guru_staf'] ?? 0) }}</div>
+                <div class="dash-stat-label">Guru &amp; Staf</div>
+            </div>
         </div>
     </div>
 

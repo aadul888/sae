@@ -4,45 +4,80 @@
 
 @section('content')
 <div class="content-wrapper">
-    {{-- Header --}}
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-heading); margin-bottom: 4px;">
-                <i class="fas fa-id-card-alt" style="color: var(--primary); margin-right: 8px;"></i>
-                Monitoring Presensi Siswa Gerbang
-            </h1>
-            <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
-                Pemantauan kehadiran dan keluar-masuk murid secara realtime di pos keamanan/gerbang sekolah.
-            </p>
+    <!-- 1. Header Banner & Actions -->
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-id-card-alt"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    Monitoring Presensi Siswa Gerbang
+                </h2>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    Pemantauan kehadiran dan keluar-masuk murid secara realtime di pos keamanan/gerbang sekolah.
+                </div>
+            </div>
         </div>
-        <div>
-            <a href="{{ route('dashboard.keamanan.presensi.index') }}" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px;">
-                <i class="fas fa-sync"></i> Refresh Data
+
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a href="{{ route('dashboard.keamanan.presensi.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Refresh Data">
+                <i class="fas fa-sync"></i>
+                <span>Refresh Data</span>
             </a>
         </div>
     </div>
 
-    {{-- Stats Cards --}}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="padding: 16px; border-left: 4px solid var(--primary);">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Total Siswa Aktif</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-heading); margin-top: 4px;">{{ $stats['totalSiswa'] }}</div>
+    <!-- 2. Stat Grid Baku SAE -->
+    <div class="dash-stat-grid" style="margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['totalSiswa'] }}</div>
+                <div class="dash-stat-label">Total Siswa Aktif</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #10b981;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Hadir Tepat Waktu</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #10b981; margin-top: 4px;">{{ $stats['hadir'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['hadir'] }}</div>
+                <div class="dash-stat-label">Hadir Tepat Waktu</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #f59e0b;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Terlambat</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #f59e0b; margin-top: 4px;">{{ $stats['terlambat'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <i class="fas fa-user-clock"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['terlambat'] }}</div>
+                <div class="dash-stat-label">Terlambat</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #6366f1;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Izin / Sakit / Dispen</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #6366f1; margin-top: 4px;">{{ $stats['izin'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
+                <i class="fas fa-clipboard-user"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['izin'] }}</div>
+                <div class="dash-stat-label">Izin / Sakit / Dispen</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #06b6d4;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Sudah Pulang</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #06b6d4; margin-top: 4px;">{{ $stats['pulang'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: #06b6d4;">
+                <i class="fas fa-house-user"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['pulang'] }}</div>
+                <div class="dash-stat-label">Sudah Pulang</div>
+            </div>
         </div>
     </div>
 

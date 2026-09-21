@@ -4,47 +4,70 @@
 
 @section('content')
 <div class="dash-content-inner">
-    <!-- Header Page -->
-    <div class="dash-header-section" style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <!-- 1. Header Banner & Actions -->
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-tools"></i>
+            </div>
             <div>
-                <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-heading); margin-bottom: 4px;">
-                    <i class="fas fa-tools" style="color: var(--primary-color); margin-right: 8px;"></i>
-                    Work Order & Tiket Perbaikan
-                </h1>
-                <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    Work Order &amp; Tiket Perbaikan
+                </h2>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
                     Layanan perbaikan sarpras multi-bidang: Bangunan, Kelistrikan, Perairan/Plumbing, Kebersihan Lingkungan, AC, dan IT.
-                </p>
+                </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button type="button" class="btn btn-primary" id="btnBuatWorkOrder" style="display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-plus"></i> Buat Work Order
-                </button>
-            </div>
+        </div>
+
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" id="btnBuatWorkOrder" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Buat Work Order">
+                <i class="fas fa-plus"></i>
+                <span>Buat Work Order</span>
+            </button>
         </div>
     </div>
 
-    <!-- Statistik Cards -->
-    <div class="grid-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #f59e0b;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Antrean Tiket</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #d97706; margin-top: 4px;">{{ number_format($stats['total_antrean'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: #d97706; margin-top: 4px;"><i class="fas fa-clock"></i> Menunggu penanganan</div>
+    <!-- 2. Stat Grid Baku SAE -->
+    <div class="dash-stat-grid" style="margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_antrean'] ?? 0) }}</div>
+                <div class="dash-stat-label">Antrean Tiket</div>
+            </div>
         </div>
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #3b82f6;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Sedang Dikerjakan</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #2563eb; margin-top: 4px;">{{ number_format($stats['total_proses'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: #2563eb; margin-top: 4px;"><i class="fas fa-spinner fa-spin"></i> Dalam proses teknisi</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <i class="fas fa-screwdriver-wrench"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_proses'] ?? 0) }}</div>
+                <div class="dash-stat-label">Sedang Dikerjakan</div>
+            </div>
         </div>
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #10b981;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Perbaikan Selesai</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #10b981; margin-top: 4px;">{{ number_format($stats['total_selesai'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: #10b981; margin-top: 4px;"><i class="fas fa-check-circle"></i> Selesai dituntaskan</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <i class="fas fa-circle-check"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_selesai'] ?? 0) }}</div>
+                <div class="dash-stat-label">Perbaikan Selesai</div>
+            </div>
         </div>
-        <div class="card stat-card" style="padding: 16px; border-left: 4px solid #ef4444;">
-            <div style="color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Urgensi Darurat</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #ef4444; margin-top: 4px;">{{ number_format($stats['total_darurat'] ?? 0) }}</div>
-            <div style="font-size: 0.75rem; color: #ef4444; margin-top: 4px;"><i class="fas fa-exclamation-triangle"></i> Butuh respon cepat</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_darurat'] ?? 0) }}</div>
+                <div class="dash-stat-label">Urgensi Darurat</div>
+            </div>
         </div>
     </div>
 

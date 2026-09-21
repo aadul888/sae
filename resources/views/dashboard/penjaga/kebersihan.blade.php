@@ -4,44 +4,72 @@
 
 @section('content')
 <div class="content-wrapper">
-    {{-- Header --}}
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-heading); margin-bottom: 4px;">
-                <i class="fas fa-broom" style="color: var(--primary); margin-right: 8px;"></i>
-                Checklist Kebersihan & Sanitasi Harian
-            </h1>
-            <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
-                Pencatatan kontrol kebersihan toilet, ruang belajar, selasar, ketersediaan air & sabun.
-            </p>
-        </div>
-        @if ($canCreate)
+    <!-- 1. Header Banner & Actions -->
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-broom"></i>
+            </div>
             <div>
-                <button type="button" class="btn btn-primary" onclick="openModalKebersihan()" style="display: flex; align-items: center; gap: 8px;">
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    Checklist Kebersihan &amp; Sanitasi Harian
+                </h2>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    Pencatatan kontrol kebersihan toilet, ruang belajar, selasar, ketersediaan air &amp; sabun.
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            @if ($canCreate)
+                <button type="button" class="btn btn-primary" onclick="openModalKebersihan()" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Tambah Checklist">
                     <i class="fas fa-plus"></i>
                     <span>Tambah Checklist</span>
                 </button>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
-    {{-- Stats Cards --}}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="padding: 16px; border-left: 4px solid var(--primary);">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Total Pemeriksaan</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-heading); margin-top: 4px;">{{ $stats['total'] }}</div>
+    <!-- 2. Stat Grid Baku SAE -->
+    <div class="dash-stat-grid" style="margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['total'] }}</div>
+                <div class="dash-stat-label">Total Pemeriksaan</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #3b82f6;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Checklist Hari Ini</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #3b82f6; margin-top: 4px;">{{ $stats['hari_ini'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['hari_ini'] }}</div>
+                <div class="dash-stat-label">Checklist Hari Ini</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #f59e0b;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Perlu Tindakan</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #f59e0b; margin-top: 4px;">{{ $stats['perlu_tindakan'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['perlu_tindakan'] }}</div>
+                <div class="dash-stat-label">Perlu Tindakan</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #ef4444;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Masalah Air / Sanitasi</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #ef4444; margin-top: 4px;">{{ $stats['air_mati'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <i class="fas fa-faucet-drip"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['air_mati'] }}</div>
+                <div class="dash-stat-label">Masalah Air / Sanitasi</div>
+            </div>
         </div>
     </div>
 

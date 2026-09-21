@@ -4,44 +4,72 @@
 
 @section('content')
 <div class="content-wrapper">
-    {{-- Header --}}
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-heading); margin-bottom: 4px;">
-                <i class="fas fa-moon" style="color: var(--primary); margin-right: 8px;"></i>
-                Buku Jaga Malam & Ronda Penjaga Sekolah
-            </h1>
-            <p style="font-size: 0.875rem; color: var(--text-muted); margin: 0;">
-                Pencatatan kontrol keliling malam hari, pengecekan kunci pintu/jendela, lampu penerangan, dan keamanan aset.
-            </p>
-        </div>
-        @if ($canCreate)
+    <!-- 1. Header Banner & Actions -->
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-moon"></i>
+            </div>
             <div>
-                <button type="button" class="btn btn-primary" onclick="openModalRonda()" style="display: flex; align-items: center; gap: 8px;">
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                    Buku Jaga Malam &amp; Ronda Penjaga Sekolah
+                </h2>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                    Pencatatan kontrol keliling malam hari, pengecekan kunci pintu/jendela, lampu penerangan, dan keamanan aset.
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            @if ($canCreate)
+                <button type="button" class="btn btn-primary" onclick="openModalRonda()" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Catat Kontrol Ronda">
                     <i class="fas fa-plus"></i>
                     <span>Catat Kontrol Ronda</span>
                 </button>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
-    {{-- Stats Cards --}}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
-        <div class="card" style="padding: 16px; border-left: 4px solid var(--primary);">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Total Kontrol</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: var(--text-heading); margin-top: 4px;">{{ $stats['total'] }}</div>
+    <!-- 2. Stat Grid Baku SAE -->
+    <div class="dash-stat-grid" style="margin-bottom: 20px;">
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['total'] }}</div>
+                <div class="dash-stat-label">Total Kontrol</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #3b82f6;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Ronda Malam Ini</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #3b82f6; margin-top: 4px;">{{ $stats['malam_ini'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
+                <i class="fas fa-cloud-moon"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['malam_ini'] }}</div>
+                <div class="dash-stat-label">Ronda Malam Ini</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #10b981;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Kondusif</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #10b981; margin-top: 4px;">{{ $stats['kondusif'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <i class="fas fa-circle-check"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['kondusif'] }}</div>
+                <div class="dash-stat-label">Kondusif</div>
+            </div>
         </div>
-        <div class="card" style="padding: 16px; border-left: 4px solid #ef4444;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Perhatian Khusus</div>
-            <div style="font-size: 1.6rem; font-weight: 700; color: #ef4444; margin-top: 4px;">{{ $stats['insiden_keamanan'] }}</div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ $stats['insiden_keamanan'] }}</div>
+                <div class="dash-stat-label">Perhatian Khusus</div>
+            </div>
         </div>
     </div>
 

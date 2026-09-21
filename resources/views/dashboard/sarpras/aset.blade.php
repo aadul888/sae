@@ -1,27 +1,30 @@
-@extends('layouts.app')
+@extends('layouts.dashboard')
 
 @section('title', 'Inventaris Aset & Sarana — Sarpras SAE')
+@section('dash_title', 'Inventaris Aset')
 
 @section('content')
-<div class="dash-container">
+<div class="dash-content-inner">
     {{-- 1. Header Banner & Action Button --}}
-    <div class="dash-header-block" style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                <i class="fas fa-boxes-stacked"></i>
+            </div>
             <div>
-                <h1 style="font-size: 1.4rem; font-weight: 700; color: var(--text-color); margin: 0;">
-                    <i class="fas fa-boxes-stacked" style="color: var(--primary); margin-right: 8px;"></i>
+                <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0;">
                     Inventaris Aset &amp; Sarana
-                </h1>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 4px 0 0 0;">
+                </h2>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
                     Pencatatan barang milik sekolah, aset elektronik, mebel, mesin, dan status ketersediaannya.
-                </p>
+                </div>
             </div>
+        </div>
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
-            <div>
-                <button type="button" class="btn btn-primary" id="btnOpenModalAset">
-                    <i class="fas fa-plus me-1"></i> Tambah Aset
+                <button type="button" class="btn btn-primary" id="btnOpenModalAset" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;">
+                    <i class="fas fa-plus"></i> Tambah Aset
                 </button>
-            </div>
             @endif
         </div>
     </div>
