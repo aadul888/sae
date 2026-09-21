@@ -50,11 +50,17 @@ class TeknisiWorkOrderController extends Controller
         ];
 
         $teknisiList = Gtk::orderBy('nama', 'asc')->get(['ptk_id', 'nama']);
+        $daftarRuang = \Illuminate\Support\Facades\DB::table('sarpras_ruang')->orderBy('gedung', 'asc')->orderBy('nama_ruang', 'asc')->get();
+        $daftarAset = \Illuminate\Support\Facades\DB::table('sarpras_aset')->select('id', 'nama_barang', 'kode_aset', 'ruang_id')->orderBy('nama_barang', 'asc')->get();
+        $pelaporList = Gtk::orderBy('nama', 'asc')->get(['ptk_id', 'nama']);
 
         return view('dashboard.teknisi.work-order', compact(
             'workOrders',
             'stats',
             'teknisiList',
+            'daftarRuang',
+            'daftarAset',
+            'pelaporList',
             'q',
             'kategori',
             'status',

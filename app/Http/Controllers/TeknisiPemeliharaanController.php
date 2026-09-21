@@ -48,9 +48,16 @@ class TeknisiPemeliharaanController extends Controller
             'tertunda'  => TeknisiPemeliharaan::where('status', 'tertunda')->count(),
         ];
 
+        $daftarRuang = \Illuminate\Support\Facades\DB::table('sarpras_ruang')->orderBy('gedung', 'asc')->orderBy('nama_ruang', 'asc')->get();
+        $daftarAset = \Illuminate\Support\Facades\DB::table('sarpras_aset')->select('id', 'nama_barang', 'kode_aset', 'kategori')->orderBy('nama_barang', 'asc')->get();
+        $daftarGtk = \Illuminate\Support\Facades\DB::table('gtk')->select('ptk_id', 'nama', 'nip')->orderBy('nama', 'asc')->get();
+
         return view('dashboard.teknisi.pemeliharaan', compact(
             'pemeliharaan',
             'stats',
+            'daftarRuang',
+            'daftarAset',
+            'daftarGtk',
             'q',
             'kategori',
             'status',

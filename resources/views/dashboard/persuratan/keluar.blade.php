@@ -298,18 +298,36 @@
                 <tbody>
                     @forelse ($items as $item)
                         @php
-                            $suratKet = \App\Models\SuratKeteranganPd::where('nomor_surat', $item->nomor_surat)->first();
+                            $suratKet = $item->suratKeterangan;
                             $isKet = !empty($suratKet);
+                            $jenisKet = $suratKet?->jenis_surat;
+                            $labelKet = match($jenisKet) {
+                                'kelakuan_baik' => 'Berkelakuan Baik',
+                                'panggilan_ortu' => 'Panggilan Ortu',
+                                'rekomendasi' => 'Rekomendasi',
+                                default => 'Siswa Aktif',
+                            };
+                            $badgeKetStyle = match($jenisKet) {
+                                'kelakuan_baik' => 'background: rgba(16,185,129,0.1); color: #10b981;',
+                                'panggilan_ortu' => 'background: rgba(239,68,68,0.1); color: #ef4444;',
+                                'rekomendasi' => 'background: rgba(245,158,11,0.1); color: #f59e0b;',
+                                default => 'background: rgba(99,102,241,0.1); color: var(--primary);',
+                            };
                         @endphp
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 12px 16px;">
                                 <div style="font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
                                     {{ $item->nomor_surat }}
                                 </div>
-                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                    Indeks: <span class="badge-compact" style="background: rgba(16,185,129,0.1); color: #10b981;">{{ $item->kode_indeks ?: '-' }}</span>
+                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
+                                    <span class="badge-compact" style="background: rgba(16,185,129,0.1); color: #10b981;">Idx: {{ $item->kode_indeks ?: '-' }}</span>
                                     @if ($isKet)
-                                        <span class="badge-compact" style="background: rgba(99,102,241,0.1); color: var(--primary);">Surat Keterangan</span>
+                                        <span class="badge-compact" style="{{ $badgeKetStyle }}">{{ $labelKet }}</span>
+                                    @endif
+                                    @if ($item->sarprasAset)
+                                        <span class="badge-compact" style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.25);">
+                                            <i class="fas fa-boxes-stacked me-1"></i> Aset: {{ $item->sarprasAset->kode_aset }}
+                                        </span>
                                     @endif
                                 </div>
                             </td>
@@ -321,6 +339,16 @@
                                 <div style="font-size: 0.76rem; color: var(--text-muted);">
                                     <i class="fas fa-location-arrow text-success me-1"></i> Kepada: <strong>{{ $item->tujuan_penerima ?: '-' }}</strong>
                                 </div>
+                                @if ($item->sarprasAset)
+                                    <div style="font-size: 0.73rem; color: #d97706; margin-top: 3px;">
+                                        <i class="fas fa-box me-1"></i> Barang: <strong>{{ $item->sarprasAset->nama_barang }}</strong> ({{ $item->sarprasAset->merk_tipe ?: 'Merk -' }} &bull; Kondisi: {{ ucfirst($item->sarprasAset->kondisi) }})
+                                    </div>
+                                @endif
+                                @if ($isKet && $suratKet->siswa)
+                                    <div style="font-size: 0.73rem; color: var(--primary); margin-top: 3px;">
+                                        <i class="fas fa-user-graduate me-1"></i> Siswa: <strong>{{ $suratKet->siswa->nama }}</strong> (NISN: {{ $suratKet->siswa->nisn ?: '-' }})
+                                    </div>
+                                @endif
                             </td>
 
                             <td style="padding: 12px 16px;">
@@ -376,6 +404,7 @@
                                                 data-perihal="{{ $item->perihal }}"
                                                 data-tujuan="{{ $item->tujuan_penerima }}"
                                                 data-tgl-surat="{{ $item->tanggal_surat }}"
+                                                data-aset-id="{{ $item->sarpras_aset_id }}"
                                                 data-status="{{ $item->status }}"
                                                 data-keterangan="{{ $item->keterangan }}"
                                                 data-file-path="{{ $item->file_path }}"
@@ -543,6 +572,31 @@
                         </div>
                     </div>
 
+                    <!-- Integrasi Sarpras Aset (Opsional BAST / Pemeliharaan / Mutasi) -->
+                    <div style="background: rgba(245,158,11,0.05); border: 1px dashed rgba(245,158,11,0.3); border-radius: 10px; padding: 12px 14px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="font-size: 0.82rem; font-weight: 700; color: #d97706; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-boxes-stacked"></i> Kaitkan Barang Sarpras / BAST (Opsional):
+                            </label>
+                            <button type="button" id="btnQuickBastKeluar" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.72rem; border-color: rgba(245,158,11,0.4); color: #d97706;">
+                                <i class="fas fa-magic me-1"></i> Format BAST Otomatis
+                            </button>
+                        </div>
+                        <select name="sarpras_aset_id" id="selectSarprasAsetKeluar" style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                            <option value="">-- Tidak dikaitkan dengan aset sarpras --</option>
+                            @if(isset($daftarAset))
+                                @foreach($daftarAset as $ast)
+                                    <option value="{{ $ast->id }}" data-kode="{{ $ast->kode_aset }}" data-nama="{{ $ast->nama_barang }}" data-merk="{{ $ast->merk_tipe }}" data-kondisi="{{ $ast->kondisi }}">
+                                        [{{ $ast->kode_aset }}] {{ $ast->nama_barang }} ({{ $ast->merk_tipe ?: 'Merk -' }} &bull; Kondisi: {{ ucfirst($ast->kondisi) }})
+                                    </option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+                            Pilih aset sekolah jika surat keluar ini merupakan Berita Acara Serah Terima (BAST), penghapusan aset, atau surat permohonan servis.
+                        </div>
+                    </div>
+
                     <div>
                         <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
                             Keterangan Tambahan:
@@ -573,11 +627,11 @@
                         <i class="fas fa-file-signature"></i>
                     </div>
                     <div>
-                        <h4 style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0;">
-                            Terbitkan Surat Keterangan Siswa Aktif
+                        <h4 id="modalKetTitle" style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            Terbitkan Surat Keterangan / Panggilan Siswa
                         </h4>
                         <div style="font-size: 0.72rem; color: var(--text-muted);">
-                            Otomatis terhubung ke data induk siswa Dapodik &amp; menghasilkan QR Code verifikasi.
+                            Terintegrasi dengan data induk siswa Dapodik, Kedisiplinan &amp; QR Code verifikasi.
                         </div>
                     </div>
                 </div>
@@ -591,6 +645,19 @@
                 <input type="hidden" name="peserta_didik_id" id="inputPesertaDidikId" required>
 
                 <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+                    <!-- 1. Pilihan Jenis Surat -->
+                    <div>
+                        <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                            Jenis Surat yang Diterbitkan: <span class="text-danger">*</span>
+                        </label>
+                        <select name="jenis_surat" id="selectJenisSuratKet" style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-weight: 600;" required>
+                            <option value="siswa_aktif">Surat Keterangan Siswa Aktif</option>
+                            <option value="kelakuan_baik">Surat Keterangan Berkelakuan Baik</option>
+                            <option value="panggilan_ortu">Surat Panggilan Orang Tua / Wali (Integrasi BK &amp; Kedisiplinan)</option>
+                            <option value="rekomendasi">Surat Rekomendasi Siswa</option>
+                        </select>
+                    </div>
+
                     <!-- Autocomplete Siswa Dapodik -->
                     <div style="position: relative;">
                         <label style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
@@ -675,6 +742,37 @@
                         </select>
                         <input type="text" name="keperluan" id="inputKeperluan" placeholder="Tuliskan keperluan lengkap..."
                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;" required>
+                    </div>
+
+                    <!-- Rincian Khusus Surat Panggilan Orang Tua (Integrasi BK & Kedisiplinan) -->
+                    <div id="sectionPanggilanOrtu" style="display: none; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.25); border-radius: 10px; padding: 12px 14px; flex-direction: column; gap: 10px;">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: #ef4444; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-calendar-check"></i> Rincian Jadwal &amp; Agenda Pertemuan dengan Orang Tua:
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; color: var(--text-color);">Hari/Tanggal Menghadap:</label>
+                                <input type="date" name="tanggal_agenda" id="inputTanggalAgenda" value="{{ date('Y-m-d', strtotime('+1 day')) }}" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; color: var(--text-color);">Waktu / Pukul:</label>
+                                <input type="text" name="waktu_agenda" id="inputWaktuAgenda" value="08:30 WIB" placeholder="08:30 WIB" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; color: var(--text-color);">Tempat:</label>
+                                <input type="text" name="tempat_agenda" id="inputTempatAgenda" value="Ruang Bimbingan Konseling (BK)" placeholder="Ruang BK / Ruang TAS" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; color: var(--text-color);">Menghadap Kepada:</label>
+                                <input type="text" name="menghadap_agenda" id="inputMenghadapAgenda" value="Guru BK & Wali Kelas" placeholder="Guru BK / Wali Kelas" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; color: var(--text-color);">Catatan Khusus Pembinaan (Opsional):</label>
+                            <input type="text" name="catatan_khusus" id="inputCatatanKhusus" placeholder="Misal: Harap didampingi orang tua kandung..." style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                        </div>
                     </div>
 
                     <div>

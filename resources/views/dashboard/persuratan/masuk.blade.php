@@ -119,7 +119,16 @@
                     <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan</option>
                 </select>
 
-                @if (!empty($q) || !empty($status))
+                <select id="filterPtk" class="toolbar-filter-select">
+                    <option value="">Semua Tujuan Disposisi</option>
+                    @foreach ($ptkList as $ptk)
+                        <option value="{{ $ptk->ptk_id }}" {{ ($filterPtk ?? '') === $ptk->ptk_id ? 'selected' : '' }}>
+                            {{ $ptk->nama }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @if (!empty($q) || !empty($status) || !empty($filterPtk))
                     <a href="{{ route('dashboard.persuratan.masuk.index') }}"
                         class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
                         title="Reset filter">
@@ -184,6 +193,17 @@
                                 <div style="font-size: 0.76rem; color: var(--text-muted);">
                                     <i class="fas fa-building text-primary me-1"></i> Dari: <strong>{{ $item->pengirim_asal ?: '-' }}</strong>
                                 </div>
+                                @if ($item->latestDisposisi)
+                                    <div style="margin-top: 5px;">
+                                        <span class="badge-compact" style="background: rgba(37,99,235,0.08); color: #2563eb; font-size: 0.72rem; border: 1px solid rgba(37,99,235,0.2);">
+                                            <i class="fas fa-share-nodes me-1"></i> Disp: <strong>{{ $item->latestDisposisi->disposisi_ke }}</strong>
+                                            @if($item->latestDisposisi->ptk)
+                                                <small>({{ $item->latestDisposisi->ptk->jabatan_ptk_id_str ?: $item->latestDisposisi->ptk->jenis_ptk_id_str }})</small>
+                                            @endif
+                                            &bull; {{ $item->latestDisposisi->instruksi }}
+                                        </span>
+                                    </div>
+                                @endif
                             </td>
 
                             <td style="padding: 12px 16px;">
@@ -471,6 +491,14 @@
                     <div style="background: rgba(99,102,241,0.06); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.15);">
                         <div style="font-size: 0.76rem; color: var(--text-muted);">Perihal Surat:</div>
                         <div id="disposisiPerihalText" style="font-size: 0.84rem; font-weight: 600; color: var(--text-color);">-</div>
+                    </div>
+
+                    <!-- Riwayat Disposisi Sebelumnya (Jika Ada) -->
+                    <div id="existingDisposisiContainer" style="display: none; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px;">
+                        <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-clock-rotate-left text-primary"></i> Riwayat Disposisi Surat Ini:
+                        </div>
+                        <div id="existingDisposisiList" style="display: flex; flex-direction: column; gap: 6px; font-size: 0.78rem;"></div>
                     </div>
 
                     <div>

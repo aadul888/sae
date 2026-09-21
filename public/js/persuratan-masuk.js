@@ -97,6 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnCloseModalDisposisi = document.getElementById('btnCloseModalDisposisi');
     const btnCancelModalDisposisi = document.getElementById('btnCancelModalDisposisi');
 
+    const existingDisposisiContainer = document.getElementById('existingDisposisiContainer');
+    const existingDisposisiList = document.getElementById('existingDisposisiList');
+
     function openDisposisiModal(id, nomor, perihal) {
         if (!modalDisposisi) return;
 
@@ -110,6 +113,40 @@ document.addEventListener('DOMContentLoaded', function () {
         if (selectInstruksi) selectInstruksi.value = 'Tindak Lanjuti';
         inputDisposisiCatatan.value = '';
         inputTanggalDisposisi.value = new Date().toISOString().split('T')[0];
+
+        // Ambil riwayat disposisi yang sudah pernah dibuat
+        if (existingDisposisiContainer && existingDisposisiList) {
+            existingDisposisiContainer.style.display = 'none';
+            existingDisposisiList.innerHTML = '<div style="color: var(--text-muted); font-style: italic;">Memuat riwayat...</div>';
+
+            fetch(suratMasukBaseUrl + '/' + id)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.disposisi && data.disposisi.length > 0) {
+                        existingDisposisiList.innerHTML = '';
+                        data.disposisi.forEach(d => {
+                            const row = document.createElement('div');
+                            row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed var(--border-color);';
+                            const ptkJabatan = d.ptk ? ` <small style="color: var(--text-muted);">(${d.ptk.jabatan_ptk_id_str || d.ptk.jenis_ptk_id_str || ''})</small>` : '';
+                            row.innerHTML = `
+                                <div>
+                                    <strong style="color: var(--primary);">${d.disposisi_ke || '-'}</strong>${ptkJabatan}
+                                    <span style="color: var(--text-color); margin-left: 4px;">&bull; Instruksi: <em>${d.instruksi}</em></span>
+                                    ${d.catatan ? `<div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Catatan: ${d.catatan}</div>` : ''}
+                                </div>
+                                <span class="badge-compact badge-info" style="font-size: 0.7rem; flex-shrink: 0;">${d.tanggal_disposisi || '-'}</span>
+                            `;
+                            existingDisposisiList.appendChild(row);
+                        });
+                        existingDisposisiContainer.style.display = 'block';
+                    } else {
+                        existingDisposisiContainer.style.display = 'none';
+                    }
+                })
+                .catch(() => {
+                    existingDisposisiContainer.style.display = 'none';
+                });
+        }
 
         modalDisposisi.style.display = 'flex';
         document.body.classList.add('modal-open');
@@ -247,6 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearBtn = document.getElementById("clearSearch");
     const perPageSelect = document.getElementById("perPageSelect");
     const filterStatus = document.getElementById("filterStatus");
+    const filterPtk = document.getElementById("filterPtk");
 
     function applyFilter() {
         const url = new URL(window.location.href);
@@ -260,6 +298,12 @@ document.addEventListener('DOMContentLoaded', function () {
             url.searchParams.set("status", filterStatus.value);
         } else {
             url.searchParams.delete("status");
+        }
+
+        if (filterPtk && filterPtk.value) {
+            url.searchParams.set("ptk_id", filterPtk.value);
+        } else {
+            url.searchParams.delete("ptk_id");
         }
 
         if (perPageSelect && perPageSelect.value) {
@@ -302,6 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (filterStatus) filterStatus.addEventListener("change", applyFilter);
+    if (filterPtk) filterPtk.addEventListener("change", applyFilter);
     if (perPageSelect) perPageSelect.addEventListener("change", applyFilter);
 
     document.querySelectorAll(".sortable-th").forEach(function (th) {

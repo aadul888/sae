@@ -98,6 +98,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (modalCreateWO) modalCreateWO.style.display = 'flex';
         }
 
+    // Auto-fill aset Sarpras ke deskripsi kerusakan
+    const selectAsetTeknisi = document.getElementById('selectAsetTeknisi');
+    const deskripsiKerusakan = document.querySelector('textarea[name="deskripsi_kerusakan"]');
+    if (selectAsetTeknisi) {
+        selectAsetTeknisi.addEventListener('change', function () {
+            if (this.value && deskripsiKerusakan) {
+                if (!deskripsiKerusakan.value.includes(this.value)) {
+                    deskripsiKerusakan.value = `[Kerusakan Aset: ${this.value}] ` + deskripsiKerusakan.value;
+                }
+            }
+        });
+    }
+
         // Tombol Update Status WO
         const btnUpdate = e.target.closest('.btn-update-wo');
         if (btnUpdate) {

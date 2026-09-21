@@ -265,8 +265,19 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div>
-                    <label class="form-label">Tujuan Bertemu <span style="color:red;">*</span></label>
-                    <input type="text" name="tujuan_bertemu" id="tamu_tujuan" class="form-control" placeholder="Kepala Sekolah, Wakasek, Guru, TU..." required>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label class="form-label" style="margin: 0;">Tujuan Bertemu <span style="color:red;">*</span></label>
+                        <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-user-tie me-1"></i>GTK / Ruang</span>
+                    </div>
+                    <input list="listTujuanBertemu" name="tujuan_bertemu" id="tamu_tujuan" class="form-control" placeholder="Pilih Guru/Tendik/Ruang atau ketik..." required>
+                    <datalist id="listTujuanBertemu">
+                        @foreach ($daftarGtk as $gtk)
+                        <option value="{{ $gtk->nama }} ({{ $gtk->jenis_ptk_id_str ?? 'GTK' }})">{{ $gtk->nama }}</option>
+                        @endforeach
+                        @foreach ($daftarRuang as $rng)
+                        <option value="{{ $rng->nama_ruang }}">{{ $rng->nama_ruang }}</option>
+                        @endforeach
+                    </datalist>
                 </div>
                 <div>
                     <label class="form-label">Keperluan <span style="color:red;">*</span></label>

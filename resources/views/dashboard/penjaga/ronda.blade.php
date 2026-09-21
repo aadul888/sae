@@ -239,8 +239,16 @@
             </div>
 
             <div style="margin-bottom: 12px;">
-                <label class="form-label">Zona / Titik Kontrol <span style="color:red;">*</span></label>
-                <input type="text" name="zona_kontrol" id="ronda_zona" class="form-control" placeholder="Contoh: Gerbang Utama, Ruang Guru & TU, Lab Komputer, Gedung Belakang..." required>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label class="form-label" style="margin: 0;">Zona / Titik Kontrol <span style="color:red;">*</span></label>
+                    <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-building me-1"></i>Master Ruang & Sarpras</span>
+                </div>
+                <input list="listZonaRonda" name="zona_kontrol" id="ronda_zona" class="form-control" placeholder="Pilih dari daftar Ruang Sarpras atau ketik titik kontrol..." required>
+                <datalist id="listZonaRonda">
+                    @foreach ($daftarRuang as $rng)
+                    <option value="{{ $rng->nama_ruang }} ({{ $rng->gedung }})">{{ $rng->nama_ruang }} - Lantai {{ $rng->lantai }}</option>
+                    @endforeach
+                </datalist>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">

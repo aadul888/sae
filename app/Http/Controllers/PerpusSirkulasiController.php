@@ -64,8 +64,15 @@ class PerpusSirkulasiController extends Controller
             ->get();
 
         // Siswa & GTK untuk peminjam
-        $siswaList = DB::table('peserta_didik')->select('peserta_didik_id', 'nama', 'nisn')->orderBy('nama')->limit(200)->get();
+        $siswaList = DB::table('peserta_didik as pd')
+            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
+            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'rb.nama as nama_rombel')
+            ->orderBy('pd.nama')
+            ->limit(500)
+            ->get();
         $gtkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip')->orderBy('nama')->get();
+        $bukuList = $bukuTersedia;
 
         // Statistik Sirkulasi
         $stats = [
@@ -77,7 +84,7 @@ class PerpusSirkulasiController extends Controller
 
         return view('dashboard.perpus.sirkulasi', compact(
             'list', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
-            'bukuTersedia', 'siswaList', 'gtkList',
+            'bukuTersedia', 'bukuList', 'siswaList', 'gtkList',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }
@@ -87,7 +94,7 @@ class PerpusSirkulasiController extends Controller
         $request->validate([
             'buku_id' => 'required|exists:perpus_koleksi_buku,id',
             'peminjam_tipe' => 'required|string',
-            'peminjam_id' => 'required|string',
+            'peminjam_id' => 'nullable|string',
             'peminjam_nama' => 'required|string',
             'tgl_pinjam' => 'required|date',
             'tgl_jatuh_tempo' => 'required|date|after_or_equal:tgl_pinjam',
@@ -103,12 +110,14 @@ class PerpusSirkulasiController extends Controller
 
         $kodeTransaksi = 'PJM-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
 
-        DB::transaction(function () use ($request, $buku, $kodeTransaksi, $petugasPtkId) {
+        $peminjamId = $request->peminjam_id ?: ('ID-' . strtoupper(substr(md5($request->peminjam_nama), 0, 8)));
+
+        DB::transaction(function () use ($request, $buku, $kodeTransaksi, $petugasPtkId, $peminjamId) {
             DB::table('perpus_sirkulasi')->insert([
                 'kode_transaksi' => $kodeTransaksi,
                 'buku_id' => $request->buku_id,
                 'peminjam_tipe' => $request->peminjam_tipe,
-                'peminjam_id' => $request->peminjam_id,
+                'peminjam_id' => $peminjamId,
                 'peminjam_nama' => $request->peminjam_nama,
                 'tgl_pinjam' => $request->tgl_pinjam,
                 'tgl_jatuh_tempo' => $request->tgl_jatuh_tempo,

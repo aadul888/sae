@@ -66,11 +66,20 @@ class LaboranJadwalController extends Controller
         $statBerlangsung = DB::table('laboran_jadwal_penggunaan')->where('status', 'berlangsung')->count();
         $statSelesai = DB::table('laboran_jadwal_penggunaan')->where('status', 'selesai')->count();
 
-        $daftarLab = [
-            'Lab Komputer 1', 'Lab Komputer 2', 'Lab Komputer 3',
-            'Lab IPA / Kimia', 'Lab Fisika / Biologi', 'Lab Bahasa',
-            'Workshop Otomotif', 'Bengkel Pemesinan', 'Studio Multimedia'
-        ];
+        // Ambil daftar ruang & bengkel praktik dari Master Sarpras & Aset
+        $daftarRuangSarpras = DB::table('sarpras_ruang')
+            ->orderBy('gedung', 'asc')
+            ->orderBy('nama_ruang', 'asc')
+            ->get(['id', 'kode_ruang', 'nama_ruang', 'gedung', 'lantai', 'kondisi']);
+
+        // Ambil nama-nama ruang unik untuk dropdown / filter
+        $daftarLab = $daftarRuangSarpras->pluck('nama_ruang')->toArray();
+
+        // Gabungkan dengan ruang yang mungkin sudah tercatat sebelumnya di jadwal
+        $existingLabs = DB::table('laboran_jadwal_penggunaan')->distinct()->pluck('ruang_lab_nama')->toArray();
+        if (!empty($existingLabs)) {
+            $daftarLab = array_values(array_unique(array_merge($daftarLab, $existingLabs)));
+        }
 
         $allGtk = DB::table('gtk')->orderBy('nama', 'asc')->get(['ptk_id', 'nama', 'nip']);
         $allRombel = DB::table('rombongan_belajar')->orderBy('nama', 'asc')->get(['rombongan_belajar_id', 'nama']);
@@ -87,6 +96,7 @@ class LaboranJadwalController extends Controller
             'statusFilter',
             'tanggalFilter',
             'daftarLab',
+            'daftarRuangSarpras',
             'allGtk',
             'allRombel',
             'statTotal',

@@ -69,8 +69,17 @@ class KeamananPatroliController extends Controller
             'insiden_aktif' => DB::table('keamanan_insiden')->where('status_penyelesaian', 'dalam_penanganan')->count(),
         ];
 
+        $daftarRuang = DB::table('sarpras_ruang')
+            ->select('id', 'kode_ruang', 'nama_ruang', 'gedung', 'lantai')
+            ->orderBy('gedung', 'asc')
+            ->orderBy('nama_ruang', 'asc')
+            ->get();
+        $daftarSiswa = DB::table('peserta_didik')->select('peserta_didik_id', 'nama', 'nisn')->orderBy('nama')->limit(300)->get();
+        $daftarGtk = DB::table('gtk')->select('ptk_id', 'nama', 'nip')->orderBy('nama')->get();
+
         return view('dashboard.keamanan.patroli', compact(
             'patroliList', 'insidenList', 'tab', 'search', 'tanggal', 'perPage',
+            'daftarRuang', 'daftarSiswa', 'daftarGtk',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

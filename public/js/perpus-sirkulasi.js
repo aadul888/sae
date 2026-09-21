@@ -61,6 +61,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+    // Relasi Otomatis Peminjam Buku -> ID & Tipe
+    const pinjamNama = document.getElementById('pinjam_nama');
+    const pinjamIdVal = document.getElementById('pinjam_id_val');
+    const pinjamTipe = document.getElementById('pinjam_tipe');
+    const listPeminjamSirkulasi = document.getElementById('listPeminjamSirkulasi');
+
+    if (pinjamNama && listPeminjamSirkulasi) {
+        pinjamNama.addEventListener('input', function () {
+            const val = this.value.trim();
+            if (!val) {
+                if (pinjamIdVal) pinjamIdVal.value = '';
+                return;
+            }
+            const options = Array.from(listPeminjamSirkulasi.options);
+            const match = options.find(o => o.value.toLowerCase() === val.toLowerCase());
+            if (match) {
+                if (match.dataset.id && pinjamIdVal) {
+                    pinjamIdVal.value = match.dataset.id;
+                }
+                if (match.dataset.tipe && pinjamTipe) {
+                    pinjamTipe.value = match.dataset.tipe;
+                }
+            } else {
+                if (pinjamIdVal) pinjamIdVal.value = '';
+            }
+        });
+    }
+
         // Tombol Proses Kembalikan
         const btnKembalikan = e.target.closest('.btn-kembalikan');
         if (btnKembalikan) {

@@ -302,8 +302,19 @@
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
-                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Lokasi / Aset *</label>
-                        <input type="text" name="lokasi_aset" class="form-control" placeholder="Contoh: Toren Gedung B atau Lab TKJ" required>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Lokasi / Aset Sasaran *</label>
+                            <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-building me-1"></i>Sarpras</span>
+                        </div>
+                        <input list="listLokasiAsetPm" name="lokasi_aset" class="form-control" placeholder="Pilih Ruang/Aset Sarpras atau ketik..." required>
+                        <datalist id="listLokasiAsetPm">
+                            @foreach ($daftarRuang as $rng)
+                            <option value="{{ $rng->nama_ruang }} ({{ $rng->gedung }})">Ruang: {{ $rng->nama_ruang }} [Lantai {{ $rng->lantai }}]</option>
+                            @endforeach
+                            @foreach ($daftarAset as $ast)
+                            <option value="{{ $ast->nama_barang }} ({{ $ast->kode_aset }})">Aset: {{ $ast->nama_barang }} [{{ $ast->kategori }}]</option>
+                            @endforeach
+                        </datalist>
                     </div>
                     <div>
                         <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal Rencana Jadwal *</label>
@@ -312,8 +323,16 @@
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <div>
-                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Penanggung Jawab</label>
-                        <input type="text" name="penanggung_jawab" class="form-control" placeholder="Nama teknisi / tim sarpras">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Penanggung Jawab</label>
+                            <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-user-check me-1"></i>GTK</span>
+                        </div>
+                        <input list="listGtkPm" name="penanggung_jawab" class="form-control" placeholder="Pilih Guru / Tendik atau ketik...">
+                        <datalist id="listGtkPm">
+                            @foreach ($daftarGtk as $gtk)
+                            <option value="{{ $gtk->nama }}">{{ $gtk->nama }} {{ $gtk->nip ? '(NIP: '.$gtk->nip.')' : '' }}</option>
+                            @endforeach
+                        </datalist>
                     </div>
                     <div>
                         <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Estimasi Anggaran (Rp)</label>

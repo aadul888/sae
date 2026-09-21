@@ -221,22 +221,33 @@
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
                     <div>
-                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tipe *</label>
-                        <select name="pengunjung_tipe" class="form-control" required>
-                            <option value="siswa">Siswa</option>
+                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tipe Pengunjung *</label>
+                        <select name="pengunjung_tipe" id="tipeKunjunganSelect" class="form-control" required>
+                            <option value="siswa">Peserta Didik</option>
                             <option value="guru">Guru</option>
                             <option value="tendik">Tendik</option>
-                            <option value="tamu">Tamu</option>
+                            <option value="tamu">Tamu / Umum</option>
                         </select>
                     </div>
                     <div>
-                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Nama Lengkap *</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Nama pengunjung" required>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Nama Lengkap *</label>
+                            <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-search me-1"></i>Relasi Data</span>
+                        </div>
+                        <input list="listNamaPengunjung" name="nama" id="namaPengunjungInput" class="form-control" placeholder="Pilih dari data Siswa / GTK atau ketik..." required autocomplete="off">
+                        <datalist id="listNamaPengunjung">
+                            @foreach ($siswaList as $sw)
+                            <option value="{{ $sw->nama }}" data-tipe="siswa" data-unit="{{ $sw->nama_rombel ?? 'Peserta Didik' }}">{{ $sw->nisn ? 'NISN: '.$sw->nisn.' | ' : '' }}{{ $sw->nama_rombel ?? 'Siswa' }}</option>
+                            @endforeach
+                            @foreach ($gtkList as $gtk)
+                            <option value="{{ $gtk->nama }}" data-tipe="{{ stripos($gtk->jenis_ptk_id_str ?? '', 'guru') !== false ? 'guru' : 'tendik' }}" data-unit="{{ $gtk->jenis_ptk_id_str ?? 'GTK' }}">{{ $gtk->nama }} ({{ $gtk->jenis_ptk_id_str ?? 'GTK' }})</option>
+                            @endforeach
+                        </datalist>
                     </div>
                 </div>
                 <div>
                     <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Kelas / Unit Kerja</label>
-                    <input type="text" name="rombel_atau_unit" class="form-control" placeholder="Contoh: XII TKJ 1 atau Tata Usaha">
+                    <input type="text" name="rombel_atau_unit" id="unitPengunjungInput" class="form-control" placeholder="Contoh: XII TKJ 1 / Guru Matematika">
                 </div>
                 <div>
                     <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Keperluan Kunjungan *</label>

@@ -269,8 +269,20 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Nama Peminjam *</label>
-                        <input type="text" name="peminjam_nama" id="pinjam_nama" class="form-control" placeholder="Nama lengkap siswa/guru" required>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Nama Peminjam *</label>
+                            <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-users me-1"></i>Relasi Siswa / GTK</span>
+                        </div>
+                        <input type="hidden" name="peminjam_id" id="pinjam_id_val" value="">
+                        <input list="listPeminjamSirkulasi" name="peminjam_nama" id="pinjam_nama" class="form-control" placeholder="Pilih Siswa / GTK atau ketik nama..." required autocomplete="off">
+                        <datalist id="listPeminjamSirkulasi">
+                            @foreach ($siswaList as $sw)
+                            <option value="{{ $sw->nama }}" data-id="{{ $sw->peserta_didik_id }}" data-tipe="siswa">{{ $sw->nisn ? 'NISN: '.$sw->nisn.' | ' : '' }}{{ $sw->nama_rombel ?? 'Siswa' }}</option>
+                            @endforeach
+                            @foreach ($gtkList as $gtk)
+                            <option value="{{ $gtk->nama }}" data-id="{{ $gtk->ptk_id }}" data-tipe="guru">{{ $gtk->nama }} ({{ $gtk->nip ? 'NIP: '.$gtk->nip : 'GTK' }})</option>
+                            @endforeach
+                        </datalist>
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">

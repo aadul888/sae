@@ -101,6 +101,29 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Relasi Otomatis Nama Pengunjung -> Tipe & Unit/Kelas
+    const namaPengunjungInput = document.getElementById('namaPengunjungInput');
+    const unitPengunjungInput = document.getElementById('unitPengunjungInput');
+    const tipeKunjunganSelect = document.getElementById('tipeKunjunganSelect');
+    const listNamaPengunjung = document.getElementById('listNamaPengunjung');
+
+    if (namaPengunjungInput && listNamaPengunjung) {
+        namaPengunjungInput.addEventListener('input', function () {
+            const val = this.value.trim();
+            if (!val) return;
+            const options = Array.from(listNamaPengunjung.options);
+            const match = options.find(o => o.value.toLowerCase() === val.toLowerCase());
+            if (match) {
+                if (match.dataset.unit && unitPengunjungInput) {
+                    unitPengunjungInput.value = match.dataset.unit;
+                }
+                if (match.dataset.tipe && tipeKunjunganSelect) {
+                    tipeKunjunganSelect.value = match.dataset.tipe;
+                }
+            }
+        });
+    }
+
     window.closeModalKunjungan = function () {
         if (modalKunjungan) modalKunjungan.style.display = 'none';
     };

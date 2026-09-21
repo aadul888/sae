@@ -13,9 +13,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const methodInput = document.getElementById('labMethod');
     const wrapperStokTersedia = document.getElementById('wrapperStokTersedia');
 
+    const wrapperAsetSarpras = document.getElementById('wrapperAsetSarpras');
+    const selectAsetSarpras = document.getElementById('selectAsetSarpras');
+
     function openModal(isEdit = false, data = {}) {
         if (!modal) return;
         modal.style.display = 'flex';
+        if (selectAsetSarpras) selectAsetSarpras.value = '';
+
         if (isEdit) {
             modalTitle.textContent = 'Edit Alat / Bahan Lab';
             methodInput.value = 'PUT';
@@ -32,13 +37,46 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('labRak').value = data.rak || '';
             document.getElementById('labExp').value = data.exp || '';
             if (wrapperStokTersedia) wrapperStokTersedia.style.display = 'block';
+            if (wrapperAsetSarpras) wrapperAsetSarpras.style.display = 'none';
         } else {
             modalTitle.textContent = 'Tambah Alat / Bahan Lab';
             methodInput.value = 'POST';
             form.action = '/dashboard/laboran/inventaris';
             form.reset();
             if (wrapperStokTersedia) wrapperStokTersedia.style.display = 'none';
+            if (wrapperAsetSarpras) wrapperAsetSarpras.style.display = 'block';
         }
+    }
+
+    // Auto-fill form saat memilih aset dari Sarpras & Aset
+    if (selectAsetSarpras) {
+        selectAsetSarpras.addEventListener('change', function () {
+            const selectedOpt = this.options[this.selectedIndex];
+            if (!selectedOpt || !selectedOpt.value) return;
+
+            const nama = selectedOpt.getAttribute('data-nama') || '';
+            const kode = selectedOpt.getAttribute('data-kode') || '';
+            const ruang = selectedOpt.getAttribute('data-ruang') || '';
+            const satuan = selectedOpt.getAttribute('data-satuan') || 'unit';
+            const kondisi = selectedOpt.getAttribute('data-kondisi') || 'baik';
+            const spek = selectedOpt.getAttribute('data-spek') || '';
+
+            if (nama) document.getElementById('labNama').value = nama;
+            if (kode) document.getElementById('labKode').value = kode + '-LAB';
+            if (satuan) document.getElementById('labSatuan').value = satuan;
+            if (kondisi) document.getElementById('labKondisi').value = kondisi;
+            if (spek) document.getElementById('labSpek').value = spek;
+
+            if (ruang) {
+                const ruangSelect = document.getElementById('labRuang');
+                for (let i = 0; i < ruangSelect.options.length; i++) {
+                    if (ruangSelect.options[i].value === ruang) {
+                        ruangSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        });
     }
 
     function closeModal() {

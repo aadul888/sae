@@ -58,8 +58,15 @@ class PenjagaKebersihanController extends Controller
             'air_mati' => DB::table('kebersihan_checklist')->where('ketersediaan_air_sabun', 'air_mati')->count(),
         ];
 
+        $daftarRuang = DB::table('sarpras_ruang')
+            ->select('id', 'kode_ruang', 'nama_ruang', 'gedung', 'lantai')
+            ->orderBy('gedung', 'asc')
+            ->orderBy('nama_ruang', 'asc')
+            ->get();
+
         return view('dashboard.penjaga.kebersihan', compact(
             'list', 'search', 'tanggal', 'shift', 'perPage', 'sort', 'sortDir',
+            'daftarRuang',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

@@ -76,12 +76,20 @@
                 <input type="text" name="q" value="{{ $search }}" class="form-control" placeholder="Cari nama item, kode, lemari rak..." style="padding-left: 36px;">
                 <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem;"></i>
             </div>
-            <div style="min-width: 150px;">
+            <div style="min-width: 180px;">
                 <select name="lab" class="form-control" onchange="this.form.submit()">
-                    <option value="">-- Semua Lab / Bengkel --</option>
-                    @foreach ($daftarLab as $lab)
-                    <option value="{{ $lab }}" {{ $labFilter === $lab ? 'selected' : '' }}>{{ $lab }}</option>
-                    @endforeach
+                    <option value="">-- Semua Ruang (Sarpras) --</option>
+                    @if(isset($daftarRuangSarpras) && $daftarRuangSarpras->isNotEmpty())
+                        @foreach ($daftarRuangSarpras as $r)
+                        <option value="{{ $r->nama_ruang }}" {{ $labFilter === $r->nama_ruang ? 'selected' : '' }}>
+                            {{ $r->nama_ruang }} {{ $r->gedung ? "({$r->gedung})" : '' }}
+                        </option>
+                        @endforeach
+                    @else
+                        @foreach ($daftarLab as $lab)
+                        <option value="{{ $lab }}" {{ $labFilter === $lab ? 'selected' : '' }}>{{ $lab }}</option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
             <div style="min-width: 140px;">
@@ -262,14 +270,58 @@
             <input type="hidden" name="_method" id="labMethod" value="POST">
             <input type="hidden" name="id" id="labId">
 
+            @if(isset($daftarAsetSarpras) && $daftarAsetSarpras->isNotEmpty())
+            <div id="wrapperAsetSarpras" style="margin-bottom: 14px; padding: 10px 12px; background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.3); border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="font-size: 0.82rem; font-weight: 600; color: var(--primary); margin: 0;">
+                        <i class="fas fa-boxes-stacked me-1"></i> Referensi / Salin dari Aset Sarpras (Opsional)
+                    </label>
+                    <small style="color: var(--text-muted); font-size: 0.72rem;">Isi otomatis data</small>
+                </div>
+                <select id="selectAsetSarpras" class="form-control" style="font-size: 0.82rem; height: 36px;">
+                    <option value="">-- Ketik Baru atau Pilih Referensi Aset Sarpras --</option>
+                    @foreach($daftarAsetSarpras as $ast)
+                    <option value="{{ $ast->id }}"
+                            data-nama="{{ $ast->nama_barang }}"
+                            data-kode="{{ $ast->kode_aset }}"
+                            data-ruang="{{ $ast->ruang_nama }}"
+                            data-satuan="{{ $ast->satuan }}"
+                            data-kondisi="{{ $ast->kondisi }}"
+                            data-spek="{{ $ast->merk_tipe ? 'Merk/Tipe: ' . $ast->merk_tipe : '' }}">
+                        {{ $ast->nama_barang }} &bull; {{ $ast->kode_aset }} (Lokasi: {{ $ast->ruang_nama ?: 'Sarpras' }})
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                 <div>
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Ruang Lab / Bengkel <span style="color: #ef4444;">*</span></label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-color); margin: 0;">
+                            Ruang Lab / Bengkel <span style="color: #ef4444;">*</span>
+                        </label>
+                        <a href="{{ route('dashboard.sarpras.ruang.index') }}" target="_blank" style="font-size: 0.72rem; color: var(--primary); text-decoration: none;" title="Kelola Ruang di Sarpras & Aset">
+                            <i class="fas fa-arrow-up-right-from-square me-1"></i> Data Sarpras
+                        </a>
+                    </div>
                     <select name="ruang_lab_nama" id="labRuang" class="form-control" required>
-                        @foreach ($daftarLab as $l)
-                        <option value="{{ $l }}">{{ $l }}</option>
-                        @endforeach
+                        <option value="">-- Pilih Ruang dari Sarpras &amp; Aset --</option>
+                        @if(isset($daftarRuangSarpras) && $daftarRuangSarpras->isNotEmpty())
+                            @foreach ($daftarRuangSarpras as $r)
+                            <option value="{{ $r->nama_ruang }}">
+                                {{ $r->nama_ruang }} &bull; {{ $r->gedung ?: 'Sarpras' }} {{ $r->lantai ? '(Lt. ' . $r->lantai . ')' : '' }}
+                            </option>
+                            @endforeach
+                        @else
+                            @foreach ($daftarLab as $l)
+                            <option value="{{ $l }}">{{ $l }}</option>
+                            @endforeach
+                        @endif
                     </select>
+                    <div style="font-size: 0.71rem; color: var(--text-muted); margin-top: 4px;">
+                        <i class="fas fa-link me-1 text-primary"></i> Terhubung langsung dengan <strong>Ruang &amp; Gedung Sarpras</strong>.
+                    </div>
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jenis Item <span style="color: #ef4444;">*</span></label>

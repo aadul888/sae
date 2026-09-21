@@ -271,8 +271,16 @@
             </div>
 
             <div style="margin-bottom: 12px;">
-                <label class="form-label">Rute / Zona Patroli <span style="color:red;">*</span></label>
-                <input type="text" name="rute_zona" id="patroli_rute" class="form-control" placeholder="Contoh: Gerbang Utama, Gedung A-B, Kantin & Parkir Belakang" required>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label class="form-label" style="margin: 0;">Rute / Zona Patroli <span style="color:red;">*</span></label>
+                    <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-building me-1"></i>Master Ruang & Sarpras</span>
+                </div>
+                <input list="listRutePatroli" name="rute_zona" id="patroli_rute" class="form-control" placeholder="Pilih dari daftar Ruang Sarpras atau ketik rute..." required>
+                <datalist id="listRutePatroli">
+                    @foreach ($daftarRuang as $rng)
+                    <option value="{{ $rng->nama_ruang }} ({{ $rng->gedung }})">{{ $rng->nama_ruang }} - Lantai {{ $rng->lantai }}</option>
+                    @endforeach
+                </datalist>
             </div>
 
             <div style="margin-bottom: 12px;">
@@ -331,8 +339,16 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div>
-                    <label class="form-label">Lokasi Kejadian <span style="color:red;">*</span></label>
-                    <input type="text" name="lokasi_kejadian" id="insiden_lokasi" class="form-control" placeholder="Area parkir / Lab / Kantin" required>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label class="form-label" style="margin: 0;">Lokasi Kejadian <span style="color:red;">*</span></label>
+                        <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-building me-1"></i>Sarpras</span>
+                    </div>
+                    <input list="listLokasiInsiden" name="lokasi_kejadian" id="insiden_lokasi" class="form-control" placeholder="Pilih Ruang/Lokasi atau ketik..." required>
+                    <datalist id="listLokasiInsiden">
+                        @foreach ($daftarRuang as $rng)
+                        <option value="{{ $rng->nama_ruang }} ({{ $rng->gedung }})">{{ $rng->nama_ruang }} - Lantai {{ $rng->lantai }}</option>
+                        @endforeach
+                    </datalist>
                 </div>
                 <div>
                     <label class="form-label">Tingkat Urgensi</label>
@@ -346,8 +362,19 @@
             </div>
 
             <div style="margin-bottom: 12px;">
-                <label class="form-label">Pihak Terlibat / Saksi</label>
-                <input type="text" name="pihak_terlibat" id="insiden_pihak" class="form-control" placeholder="Nama siswa / staf / warga yang terlibat atau menyaksikan">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label class="form-label" style="margin: 0;">Pihak Terlibat / Saksi</label>
+                    <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-users me-1"></i>Siswa / GTK</span>
+                </div>
+                <input list="listPihakTerlibat" name="pihak_terlibat" id="insiden_pihak" class="form-control" placeholder="Pilih Siswa/GTK atau ketik nama pihak terkait...">
+                <datalist id="listPihakTerlibat">
+                    @foreach ($daftarSiswa as $sw)
+                    <option value="{{ $sw->nama }} (Siswa - {{ $sw->nisn }})">{{ $sw->nama }}</option>
+                    @endforeach
+                    @foreach ($daftarGtk as $gtk)
+                    <option value="{{ $gtk->nama }} (GTK)">{{ $gtk->nama }}</option>
+                    @endforeach
+                </datalist>
             </div>
 
             <div style="margin-bottom: 12px;">

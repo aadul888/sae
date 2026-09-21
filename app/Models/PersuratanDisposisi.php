@@ -30,4 +30,9 @@ class PersuratanDisposisi extends Model
     {
         return $this->belongsTo(Persuratan::class, 'persuratan_id');
     }
+
+    public function ptk()
+    {
+        return $this->belongsTo(Gtk::class, 'ptk_id_tujuan', 'ptk_id');
+    }
 }

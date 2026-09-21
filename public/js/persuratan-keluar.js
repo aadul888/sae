@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputTujuanKeluar = document.getElementById('inputTujuanKeluar');
     const inputTanggalSuratKeluar = document.getElementById('inputTanggalSuratKeluar');
     const selectStatusKeluar = document.getElementById('selectStatusKeluar');
+    const selectSarprasAsetKeluar = document.getElementById('selectSarprasAsetKeluar');
+    const btnQuickBastKeluar = document.getElementById('btnQuickBastKeluar');
     const inputKeteranganKeluar = document.getElementById('inputKeteranganKeluar');
     const fileInfoExistingKeluar = document.getElementById('fileInfoExistingKeluar');
     const btnAutoNumberKeluar = document.getElementById('btnAutoNumberKeluar');
@@ -63,6 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
             inputPerihalKeluar.value = data.perihal || '';
             inputTujuanKeluar.value = data.tujuan_penerima || '';
             inputTanggalSuratKeluar.value = data.tanggal_surat || '';
+            if (selectSarprasAsetKeluar) selectSarprasAsetKeluar.value = data.sarpras_aset_id || '';
             if (selectStatusKeluar) selectStatusKeluar.value = data.status || 'selesai';
             inputKeteranganKeluar.value = data.keterangan || '';
 
@@ -87,6 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
             inputPerihalKeluar.value = '';
             inputTujuanKeluar.value = '';
             inputTanggalSuratKeluar.value = new Date().toISOString().split('T')[0];
+            if (selectSarprasAsetKeluar) selectSarprasAsetKeluar.value = '';
             if (selectStatusKeluar) selectStatusKeluar.value = 'selesai';
             inputKeteranganKeluar.value = '';
 
@@ -130,6 +134,37 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    if (btnQuickBastKeluar) {
+        btnQuickBastKeluar.addEventListener('click', function () {
+            if (!selectSarprasAsetKeluar || !selectSarprasAsetKeluar.value) {
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Pilih Aset Terlebih Dahulu',
+                        text: 'Silakan pilih salah satu barang sarpras pada dropdown di bawah sebelum menggunakan format BAST otomatis.',
+                        confirmButtonColor: '#6366f1'
+                    });
+                }
+                return;
+            }
+            const opt = selectSarprasAsetKeluar.options[selectSarprasAsetKeluar.selectedIndex];
+            const kode = opt.dataset.kode || '';
+            const nama = opt.dataset.nama || '';
+            const merk = opt.dataset.merk || '-';
+            const kondisi = opt.dataset.kondisi || 'baik';
+
+            if (inputPerihalKeluar) {
+                inputPerihalKeluar.value = `Berita Acara Serah Terima (BAST) Barang: ${nama} (${kode})`;
+            }
+            if (inputTujuanKeluar) {
+                inputTujuanKeluar.value = 'Pengurus Barang / Pengguna Sarpras Sekolah';
+            }
+            if (inputKeteranganKeluar) {
+                inputKeteranganKeluar.value = `Telah dilaksanakan serah terima barang inventaris sarpras berupa ${nama} merk ${merk} (Kode Aset: ${kode}, Kondisi Fisik: ${kondisi}) untuk kebutuhan dinas operasional sekolah.`;
+            }
+        });
+    }
+
     if (btnOpenCreateKeluar) btnOpenCreateKeluar.addEventListener('click', () => openKeluarModal(false));
     if (btnCloseModalKeluar) btnCloseModalKeluar.addEventListener('click', closeKeluarModal);
     if (btnCancelModalKeluar) btnCancelModalKeluar.addEventListener('click', closeKeluarModal);
@@ -138,6 +173,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalSuratKeterangan = document.getElementById('modalSuratKeterangan');
     const formSuratKeterangan = document.getElementById('formSuratKeterangan');
     const selectKodeIndeksKet = document.getElementById('selectKodeIndeksKet');
+    const selectJenisSuratKet = document.getElementById('selectJenisSuratKet');
+    const sectionPanggilanOrtu = document.getElementById('sectionPanggilanOrtu');
+    const modalKetTitle = document.getElementById('modalKetTitle');
     const btnAutoNumberKet = document.getElementById('btnAutoNumberKet');
     const searchSiswaInput = document.getElementById('searchSiswaInput');
     const siswaSearchResults = document.getElementById('siswaSearchResults');
@@ -181,6 +219,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    if (selectJenisSuratKet) {
+        selectJenisSuratKet.addEventListener('change', function () {
+            const jenis = selectJenisSuratKet.value;
+            if (sectionPanggilanOrtu) {
+                sectionPanggilanOrtu.style.display = (jenis === 'panggilan_ortu') ? 'flex' : 'none';
+            }
+
+            if (jenis === 'panggilan_ortu') {
+                if (modalKetTitle) modalKetTitle.innerText = 'Terbitkan Surat Panggilan Orang Tua / Wali';
+                if (inputKeperluan) inputKeperluan.value = 'Konseling & Pembinaan Kedisiplinan Peserta Didik';
+            } else if (jenis === 'kelakuan_baik') {
+                if (modalKetTitle) modalKetTitle.innerText = 'Terbitkan Surat Keterangan Berkelakuan Baik';
+                if (inputKeperluan) inputKeperluan.value = 'Persyaratan Melanjutkan Pendidikan / Kedinasan / Melamar Kerja';
+            } else if (jenis === 'rekomendasi') {
+                if (modalKetTitle) modalKetTitle.innerText = 'Terbitkan Surat Rekomendasi Siswa';
+                if (inputKeperluan) inputKeperluan.value = 'Mengikuti Seleksi Beasiswa / Prestasi Siswa';
+            } else {
+                if (modalKetTitle) modalKetTitle.innerText = 'Terbitkan Surat Keterangan Siswa Aktif';
+                if (inputKeperluan) inputKeperluan.value = '';
+            }
+        });
+    }
+
     function openKetModal() {
         if (!modalSuratKeterangan) return;
 
@@ -189,6 +250,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (searchSiswaInput) searchSiswaInput.value = '';
         if (selectedSiswaCard) selectedSiswaCard.style.display = 'none';
         if (siswaSearchResults) siswaSearchResults.style.display = 'none';
+        if (selectJenisSuratKet) selectJenisSuratKet.value = 'siswa_aktif';
+        if (sectionPanggilanOrtu) sectionPanggilanOrtu.style.display = 'none';
+        if (modalKetTitle) modalKetTitle.innerText = 'Terbitkan Surat Keterangan / Panggilan Siswa';
         if (inputKeperluan) inputKeperluan.value = '';
         if (selectKeperluanPreset) selectKeperluanPreset.value = '';
 
@@ -345,6 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 perihal: btnEdit.dataset.perihal,
                 tujuan_penerima: btnEdit.dataset.tujuan,
                 tanggal_surat: btnEdit.dataset.tglSurat,
+                sarpras_aset_id: btnEdit.dataset.asetId || '',
                 status: btnEdit.dataset.status,
                 keterangan: btnEdit.dataset.keterangan,
                 file_path: btnEdit.dataset.filePath,

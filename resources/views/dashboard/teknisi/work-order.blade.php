@@ -307,13 +307,41 @@
                         </select>
                     </div>
                     <div>
-                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Lokasi / Ruangan *</label>
-                        <input type="text" name="lokasi_unit" class="form-control" placeholder="Contoh: Lab Komputer 2, Toilet Guru, R. Kelas XI" required>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin: 0;">Lokasi / Ruangan *</label>
+                            <span style="font-size: 0.74rem; color: var(--text-muted);"><i class="fas fa-building me-1"></i>Master Sarpras</span>
+                        </div>
+                        <input list="daftarRuangTeknisi" name="lokasi_unit" id="lokasiUnitInput" class="form-control" placeholder="Pilih dari Ruang Sarpras atau ketik lokasi..." required>
+                        <datalist id="daftarRuangTeknisi">
+                            @foreach ($daftarRuang as $rng)
+                            <option value="{{ $rng->nama_ruang }} ({{ $rng->gedung }})">{{ $rng->nama_ruang }} - Lantai {{ $rng->lantai }}</option>
+                            @endforeach
+                        </datalist>
                     </div>
                 </div>
-                <div>
-                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Nama Pelapor</label>
-                    <input type="text" name="pelapor_nama" class="form-control" placeholder="Nama guru, siswa, atau staf yang melapor" value="{{ session('user.nama') ?? '' }}">
+
+                {{-- Relasi Tambahan: Opsional Hubungkan Aset Sarpras & Pelapor GTK --}}
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">
+                            <i class="fas fa-box-open" style="color: var(--primary); margin-right: 4px;"></i> Hubungkan Aset Sarpras (Opsional)
+                        </label>
+                        <select id="selectAsetTeknisi" class="form-control">
+                            <option value="">-- Tidak Terkait Aset Spesifik --</option>
+                            @foreach ($daftarAset as $ast)
+                            <option value="{{ $ast->nama_barang }} ({{ $ast->kode_aset }})" data-ruang-id="{{ $ast->ruang_id }}">{{ $ast->nama_barang }} [{{ $ast->kode_aset }}]</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Nama Pelapor</label>
+                        <input list="daftarPelaporTeknisi" name="pelapor_nama" id="pelaporNamaInput" class="form-control" placeholder="Ketik / pilih Guru atau Tendik..." value="{{ session('user.nama') ?? '' }}">
+                        <datalist id="daftarPelaporTeknisi">
+                            @foreach ($pelaporList as $pl)
+                            <option value="{{ $pl->nama }}">{{ $pl->nama }}</option>
+                            @endforeach
+                        </datalist>
+                    </div>
                 </div>
                 <div>
                     <label class="form-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Deskripsi Kerusakan / Kendala *</label>

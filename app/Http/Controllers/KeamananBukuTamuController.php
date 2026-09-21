@@ -58,8 +58,12 @@ class KeamananBukuTamuController extends Controller
             'sudah_keluar' => DB::table('keamanan_buku_tamu')->where('status', 'sudah_keluar')->count(),
         ];
 
+        $daftarGtk = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
+        $daftarRuang = DB::table('sarpras_ruang')->select('id', 'kode_ruang', 'nama_ruang', 'gedung')->orderBy('nama_ruang')->get();
+
         return view('dashboard.keamanan.buku-tamu', compact(
             'list', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
+            'daftarGtk', 'daftarRuang',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

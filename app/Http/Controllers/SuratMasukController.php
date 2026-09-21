@@ -50,12 +50,14 @@ class SuratMasukController extends Controller
 
         $q          = trim($request->get('q', ''));
         $status     = $request->get('status', '');
+        $filterPtk  = $request->get('ptk_id', '');
         $sort       = $request->get('sort', 'tanggal_surat');
         $sortDir    = strtolower($request->get('sort_dir', $request->get('dir', 'desc'))) === 'asc' ? 'asc' : 'desc';
         $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
         $perPage    = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
-        $query = Persuratan::where('jenis_surat', 'masuk');
+        $query = Persuratan::where('jenis_surat', 'masuk')
+            ->with(['latestDisposisi.ptk', 'disposisi.ptk']);
 
         if ($q !== '') {
             $query->where(function ($b) use ($q) {
@@ -71,6 +73,12 @@ class SuratMasukController extends Controller
             $query->where('status', $status);
         }
 
+        if ($filterPtk !== '') {
+            $query->whereHas('disposisi', function ($b) use ($filterPtk) {
+                $b->where('ptk_id_tujuan', $filterPtk);
+            });
+        }
+
         $allowedSorts = ['nomor_surat', 'tanggal_surat', 'tanggal_diterima', 'status', 'created_at', 'pengirim_asal'];
         if (in_array($sort, $allowedSorts)) {
             $query->orderBy($sort, $sortDir);
@@ -82,7 +90,7 @@ class SuratMasukController extends Controller
 
         // Data PTK untuk tujuan disposisi
         $ptkList = DB::table('gtk')
-            ->select('ptk_id', 'nama', 'jenis_ptk_id_str', 'jabatan_ptk_id_str')
+            ->select('ptk_id', 'nama', 'jenis_ptk_id_str', 'jabatan_ptk_id_str', 'nip', 'nuptk')
             ->orderBy('nama')
             ->get();
 
@@ -97,6 +105,7 @@ class SuratMasukController extends Controller
             'items',
             'q',
             'status',
+            'filterPtk',
             'sort',
             'sortDir',
             'perPage',
@@ -175,7 +184,7 @@ class SuratMasukController extends Controller
     public function show($id): JsonResponse
     {
         $surat = Persuratan::where('jenis_surat', 'masuk')->findOrFail($id);
-        $disposisi = PersuratanDisposisi::where('persuratan_id', $id)->orderByDesc('id')->get();
+        $disposisi = PersuratanDisposisi::with('ptk')->where('persuratan_id', $id)->orderByDesc('id')->get();
 
         return response()->json([
             'success' => true,

@@ -56,8 +56,21 @@ class PerpusKunjunganController extends Controller
             'gtk_hari_ini' => DB::table('perpus_kunjungan')->where('tanggal', date('Y-m-d'))->where('pengunjung_tipe', 'gtk')->count(),
         ];
 
+        $siswaList = DB::table('peserta_didik as pd')
+            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
+            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'rb.nama as nama_rombel')
+            ->orderBy('pd.nama')
+            ->limit(500)
+            ->get();
+        $gtkList = DB::table('gtk')
+            ->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')
+            ->orderBy('nama')
+            ->get();
+
         return view('dashboard.perpus.kunjungan', compact(
             'list', 'search', 'tanggal', 'tipe', 'perPage', 'sort', 'sortDir',
+            'siswaList', 'gtkList',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

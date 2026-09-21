@@ -58,8 +58,15 @@ class PenjagaRondaController extends Controller
             'insiden_keamanan' => DB::table('penjaga_malam_log')->where('situasi_keamanan', '!=', 'kondusif')->count(),
         ];
 
+        $daftarRuang = DB::table('sarpras_ruang')
+            ->select('id', 'kode_ruang', 'nama_ruang', 'gedung', 'lantai')
+            ->orderBy('gedung', 'asc')
+            ->orderBy('nama_ruang', 'asc')
+            ->get();
+
         return view('dashboard.penjaga.ronda', compact(
             'list', 'search', 'tanggal', 'situasi', 'perPage', 'sort', 'sortDir',
+            'daftarRuang',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

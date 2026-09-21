@@ -63,6 +63,25 @@ class SarprasPeminjamanController extends Controller
             ->orderBy('nama_barang', 'asc')
             ->get(['id', 'nama_barang', 'kode_aset', 'jumlah', 'satuan', 'kondisi']);
 
+        // Data Relasi GTK, Siswa, dan Ruang Sarpras
+        $daftarGtk = DB::table('gtk')
+            ->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        $daftarSiswa = DB::table('peserta_didik as pd')
+            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
+            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'rb.nama as nama_rombel')
+            ->orderBy('pd.nama', 'asc')
+            ->limit(500)
+            ->get();
+
+        $daftarRuang = DB::table('sarpras_ruang')
+            ->select('id', 'kode_ruang', 'nama_ruang', 'gedung', 'lantai')
+            ->orderBy('nama_ruang', 'asc')
+            ->get();
+
         $perPage = (int) $request->query('per_page', 15);
         $perPage = in_array($perPage, [10, 15, 25, 50]) ? $perPage : 15;
 
@@ -77,6 +96,9 @@ class SarprasPeminjamanController extends Controller
             'statKembali',
             'statTerlambat',
             'asetTersedia',
+            'daftarGtk',
+            'daftarSiswa',
+            'daftarRuang',
             'canCreate',
             'canRead',
             'canUpdate',

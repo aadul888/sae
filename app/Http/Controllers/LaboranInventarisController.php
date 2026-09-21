@@ -67,11 +67,27 @@ class LaboranInventarisController extends Controller
                   ->orWhere('kondisi', '!=', 'baik');
             })->count();
 
-        $daftarLab = [
-            'Lab Komputer 1', 'Lab Komputer 2', 'Lab Komputer 3',
-            'Lab IPA / Kimia', 'Lab Fisika / Biologi', 'Lab Bahasa',
-            'Workshop Otomotif', 'Bengkel Pemesinan', 'Studio Multimedia'
-        ];
+        // Ambil daftar ruang & bengkel praktik dari Master Sarpras & Aset
+        $daftarRuangSarpras = DB::table('sarpras_ruang')
+            ->orderBy('gedung', 'asc')
+            ->orderBy('nama_ruang', 'asc')
+            ->get(['id', 'kode_ruang', 'nama_ruang', 'gedung', 'lantai', 'kondisi']);
+
+        // Ambil nama-nama ruang unik untuk dropdown / filter
+        $daftarLab = $daftarRuangSarpras->pluck('nama_ruang')->toArray();
+
+        // Gabungkan dengan ruang yang mungkin sudah tercatat sebelumnya di laboran_bahan_alat
+        $existingLabs = DB::table('laboran_bahan_alat')->distinct()->pluck('ruang_lab_nama')->toArray();
+        if (!empty($existingLabs)) {
+            $daftarLab = array_values(array_unique(array_merge($daftarLab, $existingLabs)));
+        }
+
+        // Ambil daftar aset dari Master Sarpras untuk opsi referensi/salin
+        $daftarAsetSarpras = DB::table('sarpras_aset as sa')
+            ->leftJoin('sarpras_ruang as sr', 'sa.ruang_id', '=', 'sr.id')
+            ->select('sa.id', 'sa.kode_aset', 'sa.nama_barang', 'sa.kategori', 'sa.merk_tipe', 'sa.kondisi', 'sa.jumlah', 'sa.satuan', 'sr.nama_ruang as ruang_nama')
+            ->orderBy('sa.nama_barang', 'asc')
+            ->get();
 
         $perPage = (int) $request->query('per_page', 15);
         $perPage = in_array($perPage, [10, 15, 25, 50]) ? $perPage : 15;
@@ -85,6 +101,8 @@ class LaboranInventarisController extends Controller
             'jenisFilter',
             'kondisiFilter',
             'daftarLab',
+            'daftarRuangSarpras',
+            'daftarAsetSarpras',
             'statTotal',
             'statAlat',
             'statBahan',

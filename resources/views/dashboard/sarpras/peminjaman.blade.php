@@ -240,15 +240,43 @@
             <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 14px;">
                 <div>
                     <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tipe Peminjam <span style="color: #ef4444;">*</span></label>
-                    <select name="peminjam_tipe" class="form-control" required>
-                        <option value="gtk">Guru / GTK</option>
+                    <select name="peminjam_tipe" id="pinjamTipeSelect" class="form-control" required>
+                        <option value="gtk">Guru / Tendik</option>
                         <option value="siswa">Peserta Didik</option>
                         <option value="umum">Pihak Luar / Umum</option>
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama Lengkap Peminjam <span style="color: #ef4444;">*</span></label>
-                    <input type="text" name="peminjam_nama" class="form-control" placeholder="Nama guru / siswa / organisasi" required>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih / Nama Peminjam <span style="color: #ef4444;">*</span></label>
+                    <input type="hidden" name="peminjam_id" id="pinjamIdVal" value="">
+                    
+                    {{-- 1. Pilihan GTK (Guru / Tendik) --}}
+                    <div id="wrapSelectGtk">
+                        <select id="selectPeminjamGtk" class="form-control">
+                            <option value="">-- Pilih Guru / Tendik --</option>
+                            @foreach ($daftarGtk as $gtk)
+                            <option value="{{ $gtk->ptk_id }}" data-nama="{{ $gtk->nama }}">{{ $gtk->nama }} {{ $gtk->nip ? '(NIP: '.$gtk->nip.')' : '' }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- 2. Pilihan Peserta Didik --}}
+                    <div id="wrapSelectSiswa" style="display: none;">
+                        <input list="listPeminjamSiswa" id="inputPeminjamSiswa" class="form-control" placeholder="Ketik & pilih nama / NISN siswa...">
+                        <datalist id="listPeminjamSiswa">
+                            @foreach ($daftarSiswa as $sw)
+                            <option value="{{ $sw->nama }}" data-id="{{ $sw->peserta_didik_id }}">{{ $sw->nisn ? 'NISN: '.$sw->nisn.' | ' : '' }}{{ $sw->nama_rombel ?? 'Siswa Aktif' }}</option>
+                            @endforeach
+                        </datalist>
+                    </div>
+
+                    {{-- 3. Input Bebas Pihak Luar --}}
+                    <div id="wrapInputUmum" style="display: none;">
+                        <input type="text" id="inputPeminjamUmum" class="form-control" placeholder="Ketik nama lengkap peminjam umum / lembaga...">
+                    </div>
+
+                    {{-- Input real peminjam_nama yang terkirim ke server --}}
+                    <input type="hidden" name="peminjam_nama" id="realPeminjamNama" required>
                 </div>
             </div>
 
@@ -264,8 +292,19 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 14px;">
-                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Keperluan Peminjaman <span style="color: #ef4444;">*</span></label>
-                <textarea name="keperluan" class="form-control" rows="2" placeholder="Contoh: Kegiatan presentasi KBM di Aula / Lomba OSIS" required></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin: 0; color: var(--text-color);">Keperluan & Lokasi Ruang Pemakaian <span style="color: #ef4444;">*</span></label>
+                    <span style="font-size: 0.76rem; color: var(--text-muted);"><i class="fas fa-building me-1"></i>Ruang Sarpras:</span>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                    <select id="suggestRuangSelect" class="form-control" style="font-size: 0.82rem; padding: 6px 10px;">
+                        <option value="">-- Pilih Ruang Pemakaian (Opsional) --</option>
+                        @foreach ($daftarRuang as $rng)
+                        <option value="di {{ $rng->nama_ruang }} ({{ $rng->gedung }})">{{ $rng->nama_ruang }} - {{ $rng->gedung }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <textarea name="keperluan" id="pinjamKeperluan" class="form-control" rows="2" placeholder="Contoh: Praktik KBM di Lab Komputer 1 / Kegiatan OSIS di Aula..." required></textarea>
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">

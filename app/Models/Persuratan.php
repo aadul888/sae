@@ -13,6 +13,7 @@ class Persuratan extends Model
 
     protected $fillable = [
         'nomor_surat',
+        'kode_indeks',
         'jenis_surat',
         'perihal',
         'pengirim_asal',
@@ -21,7 +22,10 @@ class Persuratan extends Model
         'tanggal_diterima',
         'status',
         'file_path',
+        'file_size',
+        'file_name_original',
         'keterangan',
+        'sarpras_aset_id',
         'created_by',
     ];
 
@@ -84,5 +88,25 @@ class Persuratan extends Model
             'icon'  => 'fa-file',
         ];
         return "<span class=\"badge\" style=\"background-color: {$info['color']}15; color: {$info['color']}; border: 1px solid {$info['color']}30;\"><i class=\"fas {$info['icon']} me-1\"></i>{$info['label']}</span>";
+    }
+
+    public function disposisi()
+    {
+        return $this->hasMany(PersuratanDisposisi::class, 'persuratan_id');
+    }
+
+    public function latestDisposisi()
+    {
+        return $this->hasOne(PersuratanDisposisi::class, 'persuratan_id')->latestOfMany();
+    }
+
+    public function suratKeterangan()
+    {
+        return $this->hasOne(SuratKeteranganPd::class, 'nomor_surat', 'nomor_surat');
+    }
+
+    public function sarprasAset()
+    {
+        return $this->belongsTo(SarprasAset::class, 'sarpras_aset_id');
     }
 }

@@ -17,6 +17,11 @@ class SuratKeteranganPd extends Model
         'jenis_surat',
         'keperluan',
         'tanggal_surat',
+        'tanggal_agenda',
+        'waktu_agenda',
+        'tempat_agenda',
+        'menghadap_agenda',
+        'catatan_khusus',
         'penandatangan_ptk_id',
         'penandatangan_nama',
         'penandatangan_jabatan',
@@ -27,10 +32,16 @@ class SuratKeteranganPd extends Model
 
     protected $casts = [
         'tanggal_surat' => 'date',
+        'tanggal_agenda' => 'date',
     ];
 
     public function siswa()
     {
         return $this->belongsTo(PesertaDidik::class, 'peserta_didik_id', 'peserta_didik_id');
+    }
+
+    public function persuratan()
+    {
+        return $this->belongsTo(Persuratan::class, 'nomor_surat', 'nomor_surat');
     }
 }

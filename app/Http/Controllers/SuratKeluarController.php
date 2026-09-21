@@ -81,7 +81,8 @@ class SuratKeluarController extends Controller
             }
             $items = $sptQuery->orderBy('tanggal_berangkat', 'desc')->paginate($perPage)->withQueryString();
         } else {
-            $query = Persuratan::where('jenis_surat', 'keluar');
+            $query = Persuratan::where('jenis_surat', 'keluar')
+                ->with(['suratKeterangan.siswa', 'sarprasAset']);
 
             if ($tab === 'keterangan') {
                 $query->whereIn('nomor_surat', SuratKeteranganPd::pluck('nomor_surat'));
@@ -115,6 +116,11 @@ class SuratKeluarController extends Controller
             $items = $query->paginate($perPage)->withQueryString();
         }
 
+        // Master Sarpras Aset untuk integrasi BAST / permohonan sarpras
+        $daftarAset = DB::table('sarpras_aset')
+            ->orderBy('nama_barang')
+            ->get(['id', 'kode_aset', 'nama_barang', 'merk_tipe', 'kondisi', 'kategori']);
+
         // Master Indeks Klasifikasi Surat
         $indeksList = DB::table('ref_indeks_surat')->where('is_active', true)->orderBy('kode')->get();
 
@@ -129,6 +135,7 @@ class SuratKeluarController extends Controller
             'stats',
             'items',
             'allGtk',
+            'daftarAset',
             'q',
             'tab',
             'status',
@@ -228,6 +235,7 @@ class SuratKeluarController extends Controller
             'tujuan_penerima' => 'required|string|max:200',
             'tanggal_surat' => 'required|date',
             'nomor_surat' => 'nullable|string|max:100',
+            'sarpras_aset_id' => 'nullable|integer|exists:sarpras_aset,id',
             'status' => 'nullable|string|in:draf,selesai,diarsipkan',
             'keterangan' => 'nullable|string|max:1000',
             'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
@@ -263,6 +271,7 @@ class SuratKeluarController extends Controller
             'tujuan_penerima' => trim($request->tujuan_penerima),
             'tanggal_surat' => $request->tanggal_surat,
             'tanggal_diterima' => null,
+            'sarpras_aset_id' => $request->sarpras_aset_id ?: null,
             'status' => $request->status ?: 'selesai',
             'file_path' => $filePath,
             'file_size' => $fileSize,
@@ -319,6 +328,7 @@ class SuratKeluarController extends Controller
             'perihal' => 'required|string|max:255',
             'tujuan_penerima' => 'required|string|max:200',
             'tanggal_surat' => 'required|date',
+            'sarpras_aset_id' => 'nullable|integer|exists:sarpras_aset,id',
             'status' => 'nullable|string|in:draf,selesai,diarsipkan',
             'keterangan' => 'nullable|string|max:1000',
             'file_arsip' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:25600',
@@ -330,6 +340,7 @@ class SuratKeluarController extends Controller
             'perihal' => trim($request->perihal),
             'tujuan_penerima' => trim($request->tujuan_penerima),
             'tanggal_surat' => $request->tanggal_surat,
+            'sarpras_aset_id' => $request->sarpras_aset_id ?: null,
             'status' => $request->status ?: $surat->status,
             'keterangan' => $request->keterangan ? trim($request->keterangan) : null,
         ];
@@ -395,14 +406,29 @@ class SuratKeluarController extends Controller
 
         $request->validate([
             'peserta_didik_id' => 'required|string|exists:peserta_didik,peserta_didik_id',
+            'jenis_surat' => 'nullable|string|in:siswa_aktif,kelakuan_baik,panggilan_ortu,rekomendasi',
             'kode_indeks' => 'nullable|string|max:50',
             'keperluan' => 'required|string|max:255',
             'tanggal_surat' => 'nullable|date',
             'nomor_surat' => 'nullable|string|max:100',
+            'tanggal_agenda' => 'nullable|date',
+            'waktu_agenda' => 'nullable|string|max:50',
+            'tempat_agenda' => 'nullable|string|max:100',
+            'menghadap_agenda' => 'nullable|string|max:100',
+            'catatan_khusus' => 'nullable|string|max:1000',
         ]);
 
         $siswa = PesertaDidik::findOrFail($request->peserta_didik_id);
-        $kodeIndeks = trim($request->get('kode_indeks', 'KS.02.23')) ?: 'KS.02.23';
+        $jenisSurat = $request->jenis_surat ?: 'siswa_aktif';
+
+        $defaultIndeks = match($jenisSurat) {
+            'kelakuan_baik' => 'KS.02.04',
+            'panggilan_ortu' => 'PP.03.02',
+            'rekomendasi' => 'KS.01.08',
+            default => 'KS.02.23',
+        };
+
+        $kodeIndeks = trim($request->get('kode_indeks', $defaultIndeks)) ?: $defaultIndeks;
 
         // Otomatis tentukan nomor surat mengikuti indeks
         $nomorSurat = trim($request->nomor_surat);
@@ -428,9 +454,14 @@ class SuratKeluarController extends Controller
         $suratKet = SuratKeteranganPd::create([
             'nomor_surat' => $nomorSurat,
             'peserta_didik_id' => $siswa->peserta_didik_id,
-            'jenis_surat' => 'siswa_aktif',
+            'jenis_surat' => $jenisSurat,
             'keperluan' => trim($request->keperluan),
             'tanggal_surat' => $request->tanggal_surat ?: date('Y-m-d'),
+            'tanggal_agenda' => $request->tanggal_agenda ?: null,
+            'waktu_agenda' => $request->waktu_agenda ? trim($request->waktu_agenda) : null,
+            'tempat_agenda' => $request->tempat_agenda ? trim($request->tempat_agenda) : null,
+            'menghadap_agenda' => $request->menghadap_agenda ? trim($request->menghadap_agenda) : null,
+            'catatan_khusus' => $request->catatan_khusus ? trim($request->catatan_khusus) : null,
             'penandatangan_ptk_id' => $kepsek?->ptk_id,
             'penandatangan_nama' => $kepsek?->nama ?: 'Kepala Sekolah',
             'penandatangan_jabatan' => 'Kepala Sekolah',
@@ -439,17 +470,45 @@ class SuratKeluarController extends Controller
             'created_by' => $userName,
         ]);
 
+        // Integrasi Otomatis: Jika Surat Panggilan Orang Tua, catat juga ke modul Kedisiplinan / BK
+        if ($jenisSurat === 'panggilan_ortu' && class_exists(\App\Models\KedisiplinanPemanggilanWali::class)) {
+            try {
+                \App\Models\KedisiplinanPemanggilanWali::create([
+                    'peserta_didik_id' => $siswa->peserta_didik_id,
+                    'nomor_surat' => $nomorSurat,
+                    'tanggal_surat' => $suratKet->tanggal_surat,
+                    'tanggal_hadir' => $request->tanggal_agenda ?: $suratKet->tanggal_surat,
+                    'jam_hadir' => $request->waktu_agenda ?: '08:00 WIB',
+                    'tempat' => $request->tempat_agenda ?: 'Ruang Bimbingan Konseling (BK)',
+                    'alasan' => trim($request->keperluan),
+                    'menghadap_ke' => $request->menghadap_agenda ?: 'Guru BK / Wali Kelas',
+                    'status' => 'terkirim',
+                    'catatan_hasil' => $request->catatan_khusus ? trim($request->catatan_khusus) : null,
+                    'doc_id' => $docId,
+                ]);
+            } catch (\Exception $e) {
+                // Abaikan jika ada field opsional yang berbeda
+            }
+        }
+
+        $jenisLabel = match($jenisSurat) {
+            'kelakuan_baik' => 'Surat Keterangan Berkelakuan Baik',
+            'panggilan_ortu' => 'Surat Panggilan Orang Tua / Wali',
+            'rekomendasi' => 'Surat Rekomendasi Siswa',
+            default => 'Surat Keterangan Siswa Aktif',
+        };
+
         // Catat otomatis ke buku agenda surat keluar
         Persuratan::create([
             'nomor_surat' => $nomorSurat,
             'kode_indeks' => $kodeIndeks,
             'jenis_surat' => 'keluar',
-            'perihal' => "Surat Keterangan Siswa Aktif: {$siswa->nama} (NISN: {$siswa->nisn})",
+            'perihal' => "{$jenisLabel}: {$siswa->nama} (NISN: {$siswa->nisn})",
             'pengirim_asal' => 'SMK SAE',
             'tujuan_penerima' => trim($request->keperluan),
             'tanggal_surat' => $suratKet->tanggal_surat,
             'status' => 'selesai',
-            'keterangan' => "Penerbitan Surat Keterangan Aktif Siswa a.n. {$siswa->nama} untuk keperluan: {$request->keperluan}. Indeks: {$kodeIndeks}. Doc ID: {$docId}",
+            'keterangan' => "Penerbitan {$jenisLabel} a.n. {$siswa->nama} untuk keperluan: {$request->keperluan}. Indeks: {$kodeIndeks}. Doc ID: {$docId}",
             'created_by' => $userName,
         ]);
 
@@ -458,7 +517,7 @@ class SuratKeluarController extends Controller
         }
 
         return redirect()->route('persuratan.keluar.index', ['tab' => 'keterangan'])
-            ->with('success', "Surat Keterangan Aktif Siswa nomor {$nomorSurat} berhasil diterbitkan.")
+            ->with('success', "{$jenisLabel} nomor {$nomorSurat} berhasil diterbitkan.")
             ->with('cetak_id', $suratKet->id);
     }
 

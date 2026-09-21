@@ -38,6 +38,91 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target === modalKembali) modalKembali.style.display = 'none';
     });
 
+    // Relasi Dinamis Peminjam (GTK / Siswa / Umum) & Ruang Sarpras
+    const pinjamTipeSelect = document.getElementById('pinjamTipeSelect');
+    const wrapSelectGtk = document.getElementById('wrapSelectGtk');
+    const wrapSelectSiswa = document.getElementById('wrapSelectSiswa');
+    const wrapInputUmum = document.getElementById('wrapInputUmum');
+    const selectPeminjamGtk = document.getElementById('selectPeminjamGtk');
+    const inputPeminjamSiswa = document.getElementById('inputPeminjamSiswa');
+    const inputPeminjamUmum = document.getElementById('inputPeminjamUmum');
+    const realPeminjamNama = document.getElementById('realPeminjamNama');
+    const pinjamIdVal = document.getElementById('pinjamIdVal');
+    const suggestRuangSelect = document.getElementById('suggestRuangSelect');
+    const pinjamKeperluan = document.getElementById('pinjamKeperluan');
+
+    function syncPeminjam() {
+        if (!pinjamTipeSelect) return;
+        const tipe = pinjamTipeSelect.value;
+        if (tipe === 'gtk') {
+            if (wrapSelectGtk) wrapSelectGtk.style.display = 'block';
+            if (wrapSelectSiswa) wrapSelectSiswa.style.display = 'none';
+            if (wrapInputUmum) wrapInputUmum.style.display = 'none';
+            if (selectPeminjamGtk) {
+                const opt = selectPeminjamGtk.options[selectPeminjamGtk.selectedIndex];
+                if (pinjamIdVal) pinjamIdVal.value = selectPeminjamGtk.value || '';
+                if (realPeminjamNama) realPeminjamNama.value = opt && opt.dataset.nama ? opt.dataset.nama : '';
+            }
+        } else if (tipe === 'siswa') {
+            if (wrapSelectGtk) wrapSelectGtk.style.display = 'none';
+            if (wrapSelectSiswa) wrapSelectSiswa.style.display = 'block';
+            if (wrapInputUmum) wrapInputUmum.style.display = 'none';
+            if (realPeminjamNama && inputPeminjamSiswa) realPeminjamNama.value = inputPeminjamSiswa.value.trim();
+            const dl = document.getElementById('listPeminjamSiswa');
+            if (dl && inputPeminjamSiswa && pinjamIdVal) {
+                const matched = Array.from(dl.options).find(o => o.value === inputPeminjamSiswa.value);
+                pinjamIdVal.value = matched && matched.dataset.id ? matched.dataset.id : '';
+            }
+        } else {
+            if (wrapSelectGtk) wrapSelectGtk.style.display = 'none';
+            if (wrapSelectSiswa) wrapSelectSiswa.style.display = 'none';
+            if (wrapInputUmum) wrapInputUmum.style.display = 'block';
+            if (pinjamIdVal) pinjamIdVal.value = '';
+            if (realPeminjamNama && inputPeminjamUmum) realPeminjamNama.value = inputPeminjamUmum.value.trim();
+        }
+    }
+
+    if (pinjamTipeSelect) {
+        pinjamTipeSelect.addEventListener('change', syncPeminjam);
+    }
+    if (selectPeminjamGtk) {
+        selectPeminjamGtk.addEventListener('change', function () {
+            const opt = selectPeminjamGtk.options[selectPeminjamGtk.selectedIndex];
+            if (pinjamIdVal) pinjamIdVal.value = selectPeminjamGtk.value || '';
+            if (realPeminjamNama) realPeminjamNama.value = opt && opt.dataset.nama ? opt.dataset.nama : '';
+        });
+    }
+    if (inputPeminjamSiswa) {
+        inputPeminjamSiswa.addEventListener('input', function () {
+            if (realPeminjamNama) realPeminjamNama.value = this.value.trim();
+            const dl = document.getElementById('listPeminjamSiswa');
+            if (dl && pinjamIdVal) {
+                const matched = Array.from(dl.options).find(o => o.value === inputPeminjamSiswa.value);
+                pinjamIdVal.value = matched && matched.dataset.id ? matched.dataset.id : '';
+            }
+        });
+    }
+    if (inputPeminjamUmum) {
+        inputPeminjamUmum.addEventListener('input', function () {
+            if (realPeminjamNama) realPeminjamNama.value = this.value.trim();
+            if (pinjamIdVal) pinjamIdVal.value = '';
+        });
+    }
+    if (suggestRuangSelect && pinjamKeperluan) {
+        suggestRuangSelect.addEventListener('change', function () {
+            if (this.value) {
+                if (pinjamKeperluan.value) {
+                    pinjamKeperluan.value += ' ' + this.value;
+                } else {
+                    pinjamKeperluan.value = 'Penggunaan ' + this.value;
+                }
+            }
+        });
+    }
+
+    // Inisialisasi awal sinkronisasi peminjam
+    syncPeminjam();
+
     // Event delegation tombol kembalikan
     document.addEventListener('click', function (e) {
         const btnKembali = e.target.closest('.btn-kembalikan');
