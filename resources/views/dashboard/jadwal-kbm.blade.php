@@ -1285,11 +1285,18 @@
                     </div>
                     <div>
                         <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Maksimal JP per Sesi:</label>
+                        @php
+                            $selectedMaxJp = (int) ($pengaturan->max_jp_per_sesi ?? 3);
+                        @endphp
                         <select name="max_jp_per_sesi" class="form-control" style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
-                            <option value="2">Maks 2 JP (Mapel teori dipecah)</option>
-                            <option value="3" selected>Maks 3 JP (Standar seimbang - Direkomendasikan)</option>
-                            <option value="4">Maks 4 JP (Sesi blok 4 JP)</option>
-                            <option value="5">Maks 5 JP (Sesi blok 5 JP)</option>
+                            <option value="2" {{ $selectedMaxJp === 2 ? 'selected' : '' }}>Maks 2 JP (Mapel teori dipecah fleksibel)</option>
+                            <option value="3" {{ $selectedMaxJp === 3 ? 'selected' : '' }}>Maks 3 JP (Standar seimbang - Direkomendasikan)</option>
+                            <option value="4" {{ $selectedMaxJp === 4 ? 'selected' : '' }}>Maks 4 JP (Sesi blok 4 JP)</option>
+                            <option value="5" {{ $selectedMaxJp === 5 ? 'selected' : '' }}>Maks 5 JP (Sesi blok 5 JP)</option>
+                            <option value="6" {{ $selectedMaxJp === 6 ? 'selected' : '' }}>Maks 6 JP (Sesi blok 6 JP / Praktik Kejuruan)</option>
+                            <option value="7" {{ $selectedMaxJp === 7 ? 'selected' : '' }}>Maks 7 JP (Sesi blok 7 JP / Praktik Kejuruan)</option>
+                            <option value="8" {{ $selectedMaxJp === 8 ? 'selected' : '' }}>Maks 8 JP (Sesi blok 8 JP / Praktik Kejuruan)</option>
+                            <option value="9" {{ $selectedMaxJp === 9 ? 'selected' : '' }}>Maks 9 JP (Sesi blok 9 JP / Full Day Kejuruan)</option>
                         </select>
                     </div>
                 </div>

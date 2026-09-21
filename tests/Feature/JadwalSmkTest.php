@@ -49,4 +49,18 @@ class JadwalSmkTest extends TestCase
         $this->assertLessThan(50, $res['unallocated']);
         $this->assertEquals(35, $res['total_rombel']);
     }
+
+    public function test_run_auto_scheduler_simulation_with_9_jp(): void
+    {
+        $service = new \App\Services\AutoSchedulerService();
+        $res = $service->generate([
+            'clear_existing' => true,
+            'max_jp_per_sesi' => 9,
+        ]);
+
+        $this->assertTrue($res['success']);
+        $this->assertGreaterThan(1500, $res['total_jp']);
+        $this->assertLessThan(50, $res['unallocated']);
+        $this->assertEquals(35, $res['total_rombel']);
+    }
 }

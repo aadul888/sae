@@ -10,6 +10,64 @@ class PembelajaranController extends Controller
 {
     private const SORTABLE = ['nama_mata_pelajaran', 'nama_rombel', 'nama_guru', 'jam_mengajar_per_minggu', 'status_di_kurikulum_str'];
 
+    /**
+     * Petakan rombel reguler dan rombel pilihan berdasarkan id_ruang
+     */
+    private function getRombelRoomMapping(): array
+    {
+        $regularRombels = DB::table('rombongan_belajar')
+            ->where('jenis_rombel', 1)
+            ->get(['rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id_str as tingkat', 'jurusan_id_str as jurusan', 'id_ruang', 'id_ruang_str'])
+            ->keyBy('rombongan_belajar_id');
+
+        $pilihanRombels = DB::table('rombongan_belajar')
+            ->where('jenis_rombel', '!=', 1)
+            ->get(['rombongan_belajar_id', 'nama', 'jenis_rombel', 'jenis_rombel_str', 'id_ruang', 'id_ruang_str']);
+
+        $rombelMap = []; // [any_rombel_id] => regular_rombel_object
+        $regNameToRombelIds = []; // [reg_nama] => [rombel_id1, rombel_id2, ...]
+
+        foreach ($regularRombels as $rId => $reg) {
+            $rombelMap[$rId] = $reg;
+            $regNameToRombelIds[$reg->nama] = [$rId];
+        }
+
+        foreach ($pilihanRombels as $pil) {
+            $matched = null;
+            if (!empty($pil->id_ruang)) {
+                $matches = $regularRombels->where('id_ruang', $pil->id_ruang);
+                if ($matches->count() === 1) {
+                    $matched = $matches->first();
+                } elseif ($matches->count() > 1) {
+                    $matched = $matches->first(function ($r) use ($pil) {
+                        return trim($r->nama) === trim($pil->nama)
+                            || str_starts_with(trim($pil->nama), trim($r->nama))
+                            || str_starts_with(trim($r->nama), trim($pil->nama));
+                    }) ?: $matches->first();
+                }
+            }
+
+            if (!$matched) {
+                $matched = $regularRombels->first(function ($r) use ($pil) {
+                    return trim($r->nama) === trim($pil->nama)
+                        || str_starts_with(trim($pil->nama), trim($r->nama))
+                        || str_starts_with(trim($r->nama), trim($pil->nama));
+                });
+            }
+
+            if ($matched) {
+                $rombelMap[$pil->rombongan_belajar_id] = $matched;
+                $regNameToRombelIds[$matched->nama][] = $pil->rombongan_belajar_id;
+            }
+        }
+
+        return [
+            'rombelMap'          => $rombelMap,
+            'regNameToRombelIds' => $regNameToRombelIds,
+            'filterRombel'       => $regularRombels->pluck('nama')->sort()->values(),
+        ];
+    }
+
     public function index(Request $request)
     {
         $user = session('user');
@@ -45,6 +103,9 @@ class PembelajaranController extends Controller
             ]);
         }
 
+        $mapping = $this->getRombelRoomMapping();
+        $filterRombel = $mapping['filterRombel'];
+
         $baseQuery = DB::table('pembelajaran')
             ->leftJoin('rombongan_belajar', 'pembelajaran.rombongan_belajar_id', '=', 'rombongan_belajar.rombongan_belajar_id')
             ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
@@ -59,6 +120,10 @@ class PembelajaranController extends Controller
                 'pembelajaran.status_di_kurikulum_str',
                 'pembelajaran.induk_pembelajaran_id',
                 'rombongan_belajar.nama as nama_rombel',
+                'rombongan_belajar.nama as raw_nama_rombel',
+                'rombongan_belajar.jenis_rombel',
+                'rombongan_belajar.id_ruang',
+                'rombongan_belajar.id_ruang_str',
                 'rombongan_belajar.tingkat_pendidikan_id_str as tingkat',
                 'rombongan_belajar.jurusan_id_str as jurusan',
                 'gtk.nama as nama_guru',
@@ -66,15 +131,6 @@ class PembelajaranController extends Controller
                 'gtk.nip',
                 'gtk.jenis_kelamin as guru_gender'
             );
-
-        // Filter dropdown options
-        $filterRombel = DB::table('rombongan_belajar')
-            ->whereNotNull('nama')
-            ->where('nama', '<>', '')
-            ->distinct()
-            ->pluck('nama')
-            ->sort()
-            ->values();
 
         $filterGuru = DB::table('pembelajaran')
             ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
@@ -93,19 +149,14 @@ class PembelajaranController extends Controller
             ->sort()
             ->values();
 
-        if ($q !== '') {
-            $baseQuery->where(function ($sub) use ($q) {
-                $sub->where('pembelajaran.nama_mata_pelajaran', 'LIKE', "%{$q}%")
-                    ->orWhere('pembelajaran.mata_pelajaran_id_str', 'LIKE', "%{$q}%")
-                    ->orWhere('rombongan_belajar.nama', 'LIKE', "%{$q}%")
-                    ->orWhere('gtk.nama', 'LIKE', "%{$q}%")
-                    ->orWhere('gtk.nuptk', 'LIKE', "%{$q}%")
-                    ->orWhere('gtk.nip', 'LIKE', "%{$q}%");
-            });
-        }
-
+        // Filter Rombel: Menggabungkan kelas reguler & mapel pilihan berdasarkan id_ruang
         if ($rombel !== '') {
-            $baseQuery->where('rombongan_belajar.nama', $rombel);
+            $targetIds = $mapping['regNameToRombelIds'][$rombel] ?? [];
+            if (!empty($targetIds)) {
+                $baseQuery->whereIn('pembelajaran.rombongan_belajar_id', $targetIds);
+            } else {
+                $baseQuery->where('rombongan_belajar.nama', $rombel);
+            }
         }
 
         if ($guru !== '') {
@@ -116,14 +167,54 @@ class PembelajaranController extends Controller
             $baseQuery->where('pembelajaran.status_di_kurikulum_str', $status);
         }
 
+        if ($q !== '') {
+            $matchedRombelIds = [];
+            foreach ($mapping['regNameToRombelIds'] as $regName => $ids) {
+                if (stripos($regName, $q) !== false) {
+                    $matchedRombelIds = array_merge($matchedRombelIds, $ids);
+                }
+            }
+
+            $baseQuery->where(function ($sub) use ($q, $matchedRombelIds) {
+                $sub->where('pembelajaran.nama_mata_pelajaran', 'LIKE', "%{$q}%")
+                    ->orWhere('pembelajaran.mata_pelajaran_id_str', 'LIKE', "%{$q}%")
+                    ->orWhere('rombongan_belajar.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('rombongan_belajar.id_ruang_str', 'LIKE', "%{$q}%")
+                    ->orWhere('gtk.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('gtk.nuptk', 'LIKE', "%{$q}%")
+                    ->orWhere('gtk.nip', 'LIKE', "%{$q}%");
+
+                if (!empty($matchedRombelIds)) {
+                    $sub->orWhereIn('pembelajaran.rombongan_belajar_id', array_unique($matchedRombelIds));
+                }
+            });
+        }
+
         $allResults = $baseQuery->get();
+
+        // Transformasi nama rombel, tingkat, dan ruang agar mapel pilihan terpadu ke rombel reguler ruangannya
+        $allResults->transform(function ($item) use ($mapping) {
+            $reg = $mapping['rombelMap'][$item->rombongan_belajar_id] ?? null;
+            $item->is_pilihan = ($item->jenis_rombel != 1);
+            if ($reg) {
+                $item->nama_rombel = $reg->nama;
+                $item->tingkat     = $reg->tingkat ?: $item->tingkat;
+                $item->jurusan     = $reg->jurusan ?: $item->jurusan;
+                $item->ruang       = $reg->id_ruang_str ?: $item->id_ruang_str;
+            } else {
+                $item->nama_rombel = $item->raw_nama_rombel ?: '-';
+                $item->ruang       = $item->id_ruang_str;
+            }
+            return $item;
+        });
+
         $total = $allResults->count();
 
         $summary = [
-            'total' => $total,
-            'rombel' => $allResults->pluck('rombongan_belajar_id')->filter()->unique()->count(),
-            'guru' => $allResults->pluck('ptk_id')->filter()->unique()->count(),
-            'jam' => $allResults->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
+            'total'  => $total,
+            'rombel' => $allResults->pluck('nama_rombel')->filter()->unique()->count(),
+            'guru'   => $allResults->pluck('ptk_id')->filter()->unique()->count(),
+            'jam'    => $allResults->sum(fn($p) => (int) ($p->jam_mengajar_per_minggu ?? 0)),
         ];
 
         $sorted = $allResults->sortBy(function ($item) use ($sort) {
@@ -177,10 +268,13 @@ class PembelajaranController extends Controller
             ->where('pembelajaran.pembelajaran_id', $id)
             ->select(
                 'pembelajaran.*',
-                'rombongan_belajar.nama as nama_rombel',
+                'rombongan_belajar.nama as raw_nama_rombel',
+                'rombongan_belajar.jenis_rombel',
+                'rombongan_belajar.jenis_rombel_str',
                 'rombongan_belajar.tingkat_pendidikan_id_str as tingkat',
                 'rombongan_belajar.jurusan_id_str as jurusan',
                 'rombongan_belajar.kurikulum_id_str as kurikulum',
+                'rombongan_belajar.id_ruang',
                 'rombongan_belajar.id_ruang_str as ruang',
                 'rombongan_belajar.ptk_id_str as wali_kelas',
                 'gtk.nama as nama_guru',
@@ -197,9 +291,23 @@ class PembelajaranController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Data pembelajaran tidak ditemukan'], 404);
         }
 
+        $mapping = $this->getRombelRoomMapping();
+        $reg = $mapping['rombelMap'][$pem->rombongan_belajar_id] ?? null;
+        $isPilihan = ($pem->jenis_rombel != 1);
+
+        $pem->is_pilihan = $isPilihan;
+        if ($reg) {
+            $pem->nama_rombel = $reg->nama . ($isPilihan ? ' (Mapel Pilihan Tergabung)' : '');
+            $pem->tingkat     = $reg->tingkat ?: $pem->tingkat;
+            $pem->jurusan     = $reg->jurusan ?: $pem->jurusan;
+            $pem->ruang       = $reg->id_ruang_str ?: $pem->ruang;
+        } else {
+            $pem->nama_rombel = $pem->raw_nama_rombel ?: '-';
+        }
+
         return response()->json([
             'status' => 'success',
-            'data' => $pem,
+            'data'   => $pem,
         ]);
     }
 }

@@ -183,12 +183,22 @@
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Kelas">
                             <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right;">
-                                <div style="font-weight: 600; color: var(--text-color);">{{ $item->nama_rombel ?: '-' }}</div>
-                                @if ($item->tingkat)
-                                    <div style="margin-top: 2px;">
+                                <div style="font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px;">
+                                    <span>{{ $item->nama_rombel ?: '-' }}</span>
+                                    @if (!empty($item->is_pilihan))
+                                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.68rem; padding: 2px 6px; font-weight: 700;" title="Matapelajaran Pilihan (Tergabung via Ruang)">Pilihan</span>
+                                    @endif
+                                </div>
+                                <div style="display: flex; gap: 4px; margin-top: 2px;">
+                                    @if ($item->tingkat)
                                         <span class="badge badge-outline" style="font-size: 0.70rem; padding: 2px 6px;">{{ $item->tingkat }}</span>
-                                    </div>
-                                @endif
+                                    @endif
+                                    @if (!empty($item->ruang))
+                                        <span class="badge badge-outline" style="font-size: 0.70rem; padding: 2px 6px; color: var(--text-muted);" title="Ruang Kelas: {{ $item->ruang }}">
+                                            <i class="fas fa-door-open me-1"></i>{{ $item->ruang }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Guru">
@@ -300,7 +310,7 @@
 
     {{-- Modal Detail Pembelajaran --}}
     <div id="pembelajaranModal" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card"
             style="max-width: 600px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
             <div
@@ -390,136 +400,7 @@
 
 @push('scripts')
     <script>
-        function applyFilter(paramName, paramValue) {
-            const url = new URL(window.location.href);
-            if (paramValue) {
-                url.searchParams.set(paramName, paramValue);
-            } else {
-                url.searchParams.delete(paramName);
-            }
-            url.searchParams.delete('page');
-            if (typeof window.refreshLiveTable === 'function') {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        }
-
-        document.getElementById('perPageSelect').addEventListener('change', function() {
-            applyFilter('perPage', this.value);
-        });
-
-        document.getElementById('filterRombel').addEventListener('change', function() {
-            applyFilter('rombel', this.value);
-        });
-
-        document.getElementById('filterGuru').addEventListener('change', function() {
-            applyFilter('guru', this.value);
-        });
-
-        document.getElementById('filterStatus').addEventListener('change', function() {
-            applyFilter('status', this.value);
-        });
-
-        const liveSearchInput = document.getElementById('liveSearch');
-        const clearSearchBtn = document.getElementById('clearSearch');
-        let debounceTimer;
-
-        liveSearchInput.addEventListener('input', function() {
-            const val = this.value;
-            clearSearchBtn.classList.toggle('visible', val.length > 0);
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                applyFilter('q', val.trim());
-            }, 300);
-        });
-
-        clearSearchBtn.addEventListener('click', function() {
-            liveSearchInput.value = '';
-            this.classList.remove('visible');
-            applyFilter('q', '');
-        });
-
-        document.querySelectorAll('.sortable-th').forEach(th => {
-            th.addEventListener('click', function() {
-                const sortKey = this.dataset.sort;
-                const url = new URL(window.location.href);
-                const currentSort = url.searchParams.get('sort');
-                const currentDir = url.searchParams.get('sort_dir') || 'asc';
-                let nextDir = 'asc';
-                if (currentSort === sortKey) {
-                    nextDir = currentDir === 'asc' ? 'desc' : 'asc';
-                }
-                url.searchParams.set('sort', sortKey);
-                url.searchParams.set('sort_dir', nextDir);
-                url.searchParams.delete('page');
-                if (typeof window.refreshLiveTable === 'function') {
-                    window.refreshLiveTable(url.toString());
-                } else {
-                    window.location.href = url.toString();
-                }
-            });
-        });
-
-        function openPembelajaranModal(id) {
-            const modal = document.getElementById('pembelajaranModal');
-            const loading = document.getElementById('pemModalLoading');
-            const content = document.getElementById('pemModalContent');
-            modal.style.display = 'flex';
-            loading.style.display = 'block';
-            content.style.display = 'none';
-
-            fetch(`{{ url('dashboard/master-data/pembelajaran') }}/${id}`)
-                .then(r => r.json())
-                .then(res => {
-                    loading.style.display = 'none';
-                    if (res.status === 'success' && res.data) {
-                        const d = res.data;
-                        document.getElementById('pemModalTitle').textContent = d.nama_mata_pelajaran || d
-                            .mata_pelajaran_id_str || 'Pembelajaran';
-                        document.getElementById('pemModalSubtitle').textContent = (d.nama_rombel ? 'Kelas ' + d
-                            .nama_rombel : '') + (d.tingkat ? ' • ' + d.tingkat : '');
-                        document.getElementById('pemMapel').textContent = d.nama_mata_pelajaran || d
-                            .mata_pelajaran_id_str || '-';
-                        const idArr = [
-                            d.mata_pelajaran_id ? 'Mapel ID: ' + d.mata_pelajaran_id : null,
-                            d.pembelajaran_id ? 'Pembelajaran ID: ' + d.pembelajaran_id : null
-                        ].filter(Boolean);
-                        document.getElementById('pemIdMapel').textContent = idArr.length > 0 ? idArr.join(' • ') : '-';
-                        document.getElementById('pemRombel').textContent = d.nama_rombel || '-';
-                        document.getElementById('pemTingkat').textContent = (d.tingkat || '-') + (d.jurusan ? ' / ' + d
-                            .jurusan : '');
-                        document.getElementById('pemKurikulum').textContent = d.kurikulum || '-';
-                        document.getElementById('pemGuru').textContent = d.nama_guru || 'Belum Ditugaskan';
-                        document.getElementById('pemGuruNip').textContent = (d.nuptk ? 'NUPTK: ' + d.nuptk : '') + (d
-                            .nip ? ' | NIP: ' + d.nip : (!d.nuptk ? '-' : ''));
-                        const guruKontakArr = [
-                            d.guru_status ? d.guru_status : null,
-                            d.guru_hp ? 'HP: ' + d.guru_hp : null,
-                            d.guru_email ? 'Email: ' + d.guru_email : null
-                        ].filter(Boolean);
-                        document.getElementById('pemGuruKontak').textContent = guruKontakArr.length > 0 ? guruKontakArr
-                            .join(' • ') : '-';
-                        document.getElementById('pemJam').textContent = (d.jam_mengajar_per_minggu || 0) +
-                            ' Jam Pelajaran (JP) / Minggu';
-                        document.getElementById('pemStatusKur').textContent = d.status_di_kurikulum_str || 'Wajib';
-                        document.getElementById('pemWali').textContent = d.wali_kelas || '-';
-                        document.getElementById('pemRuang').textContent = d.ruang || '-';
-                        content.style.display = 'block';
-                    }
-                })
-                .catch(() => {
-                    loading.innerHTML =
-                        '<div style="color: #ef4444;"><i class="fas fa-exclamation-triangle me-2"></i>Gagal memuat detail pembelajaran.</div>';
-                });
-        }
-
-        function closePembelajaranModal() {
-            document.getElementById('pembelajaranModal').style.display = 'none';
-        }
-
-        document.getElementById('pembelajaranModal').addEventListener('click', function(e) {
-            if (e.target === this) closePembelajaranModal();
-        });
+        window.PEMBELAJARAN_BASE_URL = "{{ url('dashboard/master-data/pembelajaran') }}";
     </script>
+    <script src="{{ asset('js/pembelajaran.js') }}"></script>
 @endpush

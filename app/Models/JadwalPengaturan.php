@@ -18,6 +18,7 @@ class JadwalPengaturan extends Model
         'durasi_per_jp',
         'total_slot_jp',
         'skema_hari',
+        'max_jp_per_sesi',
         'slot_harian',
         'jp_tingkat',
         'hari_aktif',
@@ -29,6 +30,7 @@ class JadwalPengaturan extends Model
     protected $casts = [
         'durasi_per_jp' => 'integer',
         'total_slot_jp' => 'integer',
+        'max_jp_per_sesi' => 'integer',
         'slot_harian' => 'array',
         'jp_tingkat' => 'array',
         'hari_aktif' => 'array',
@@ -104,6 +106,11 @@ class JadwalPengaturan extends Model
                 '11' => 48,
                 '12' => 46,
             ];
+            $setting->save();
+        }
+
+        if (empty($setting->max_jp_per_sesi)) {
+            $setting->max_jp_per_sesi = 3;
             $setting->save();
         }
 

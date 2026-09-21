@@ -55,7 +55,7 @@ class AutoSchedulerService
                   ->orWhere('jenis_rombel_str', 'Kelas')
                   ->orWhere('jenis_rombel_str', 'LIKE', '%reguler%');
             })
-            ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id', 'semester_id');
+            ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id', 'semester_id', 'id_ruang');
 
         if (!empty($targetRombelIds)) {
             $rombelQuery->whereIn('rombongan_belajar_id', $targetRombelIds);
@@ -124,17 +124,27 @@ class AutoSchedulerService
             }
         }
 
-        // Petakan Rombel Pilihan yang terafiliasi dengan masing-masing Rombel Reguler
+        // Petakan Rombel Pilihan yang terafiliasi dengan masing-masing Rombel Reguler (berdasarkan id_ruang & nama)
         $allPilihanRombels = DB::table('rombongan_belajar')
             ->where('jenis_rombel', '!=', 1)
-            ->get(['rombongan_belajar_id', 'nama']);
+            ->get(['rombongan_belajar_id', 'nama', 'id_ruang']);
 
         $pilihanToRegMap = [];
         $allFetchRombelIds = $selectedRombelIds;
 
         foreach ($rombels as $r) {
             $cleanName = trim($r->nama);
-            $matchingPilIds = $allPilihanRombels->filter(function ($p) use ($cleanName) {
+            $matchingPilIds = $allPilihanRombels->filter(function ($p) use ($r, $cleanName, $allPilihanRombels) {
+                if (!empty($r->id_ruang) && !empty($p->id_ruang) && $r->id_ruang === $p->id_ruang) {
+                    if (trim($p->nama) === $cleanName
+                        || str_starts_with(trim($p->nama), $cleanName)
+                        || str_starts_with($cleanName, trim($p->nama))) {
+                        return true;
+                    }
+                    if ($allPilihanRombels->where('id_ruang', $r->id_ruang)->count() === 1) {
+                        return true;
+                    }
+                }
                 return trim($p->nama) === $cleanName
                     || trim($p->nama) === ($cleanName . ' 1')
                     || str_starts_with(trim($p->nama), $cleanName);
@@ -969,33 +979,55 @@ class AutoSchedulerService
     }
 
     /**
-     * Memecah total jam mengajar mingguan (JJM) menjadi sesi blok pertemuan yang teratur dan fleksibel
+     * Memecah total jam mengajar mingguan (JJM) menjadi sesi blok pertemuan yang teratur dan fleksibel (hingga 9 JP)
      */
     private function decomposeJjmIntoBlocks(int $jjm, int $maxBlock = 3, ?int $istirahatJamKe = null): array
     {
         if ($jjm <= 0) return [];
         $maxBlock = max(2, min(9, $maxBlock));
 
-        // Jendela kontinyu maksimal sebelum istirahat
-        $maxContinuousWindow = $istirahatJamKe ? max(4, $istirahatJamKe - 1) : 7;
-        $effectiveMax = min($maxBlock, $maxContinuousWindow);
-
-        // Dekomposisi spesifik untuk keserasian jadwal
-        if ($jjm === 9) return [5, 4];
-        if ($jjm === 8) return [4, 4];
-        if ($jjm === 7) return [4, 3];
-        if ($jjm === 6) return [3, 3];
-        if ($jjm === 5) return [3, 2];
-        if ($jjm === 4) return [2, 2]; // 2 JP + 2 JP sangat fleksibel
-
-        if ($jjm <= $effectiveMax) {
+        // Jika JJM persis atau kurang dari maxBlock, jadikan 1 sesi utuh
+        // kecuali untuk JJM 4 dan 5 jika maxBlock diset ketat 2 atau 3
+        if ($jjm <= $maxBlock) {
+            if ($jjm === 4 && $maxBlock < 4) {
+                return [2, 2];
+            }
+            if ($jjm === 5 && $maxBlock < 5) {
+                return [3, 2];
+            }
             return [$jjm];
+        }
+
+        // Dekomposisi spesifik untuk JJM umum jika melebihi maxBlock
+        if ($jjm === 9) {
+            if ($maxBlock === 3) return [3, 3, 3];
+            if ($maxBlock === 2) return [3, 2, 2, 2];
+            return [5, 4];
+        }
+        if ($jjm === 8) {
+            if ($maxBlock >= 4) return [4, 4];
+            if ($maxBlock === 3) return [3, 3, 2];
+            return [2, 2, 2, 2];
+        }
+        if ($jjm === 7) {
+            if ($maxBlock >= 4) return [4, 3];
+            return [3, 2, 2];
+        }
+        if ($jjm === 6) {
+            if ($maxBlock >= 3) return [3, 3];
+            return [2, 2, 2];
+        }
+        if ($jjm === 5) {
+            return [3, 2];
+        }
+        if ($jjm === 4) {
+            return [2, 2];
         }
 
         $blocks = [];
         $remaining = $jjm;
         while ($remaining > 0) {
-            $take = min($effectiveMax, $remaining);
+            $take = min($maxBlock, $remaining);
             if ($take === 1 && count($blocks) > 0) {
                 $blocks[count($blocks) - 1] += 1;
                 break;

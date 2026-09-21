@@ -272,6 +272,7 @@ class JadwalKbmController extends Controller
             'jam_mulai_kbm'          => 'required|string',
             'durasi_per_jp'          => 'required|integer|min:20|max:90',
             'total_slot_jp'          => 'nullable|integer|min:0|max:16',
+            'max_jp_per_sesi'        => 'nullable|integer|min:2|max:9',
             'slot_harian'            => 'nullable|array',
             'slot_harian.*.total_jp' => 'nullable|integer|min:0|max:16',
             'jp_tingkat'             => 'nullable|array',
@@ -356,16 +357,17 @@ class JadwalKbmController extends Controller
 
         $pengaturan = JadwalPengaturan::getSettings();
         $pengaturan->update([
-            'jam_mulai_kbm' => $jamMulai,
-            'durasi_per_jp' => $validated['durasi_per_jp'],
-            'total_slot_jp' => $totalSlotJp,
-            'skema_hari'    => $skemaHari,
-            'slot_harian'   => $slotHarian,
-            'jp_tingkat'    => $jpTingkat,
-            'hari_aktif'    => $hariAktif,
-            'istirahat'     => $istirahatConfig,
-            'upacara'       => $upacaraConfig,
-            'pembiasaan'    => $pembiasaanConfig,
+            'jam_mulai_kbm'   => $jamMulai,
+            'durasi_per_jp'   => $validated['durasi_per_jp'],
+            'total_slot_jp'   => $totalSlotJp,
+            'max_jp_per_sesi' => $request->filled('max_jp_per_sesi') ? max(2, min(9, (int) $request->input('max_jp_per_sesi'))) : ($pengaturan->max_jp_per_sesi ?? 3),
+            'skema_hari'      => $skemaHari,
+            'slot_harian'     => $slotHarian,
+            'jp_tingkat'      => $jpTingkat,
+            'hari_aktif'      => $hariAktif,
+            'istirahat'       => $istirahatConfig,
+            'upacara'         => $upacaraConfig,
+            'pembiasaan'      => $pembiasaanConfig,
         ]);
 
         // Sinkronkan otomatis kegiatan rutin ke jadwal seluruh rombel reguler
@@ -404,12 +406,20 @@ class JadwalKbmController extends Controller
             ? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
             : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
+        $maxJpPerSesi = $request->filled('max_jp_per_sesi')
+            ? max(2, min(9, (int) $request->input('max_jp_per_sesi')))
+            : (int) ($pengaturan->max_jp_per_sesi ?? 3);
+
+        if ($pengaturan && $pengaturan->max_jp_per_sesi !== $maxJpPerSesi) {
+            $pengaturan->update(['max_jp_per_sesi' => $maxJpPerSesi]);
+        }
+
         $options = [
             'clear_existing'        => $request->boolean('clear_existing', true),
             'tingkat'               => $request->input('tingkat') ?: null,
             'rombongan_belajar_ids' => $request->input('rombongan_belajar_ids', []),
             'hari_aktif'            => $hariAktif,
-            'max_jp_per_sesi'       => (int) $request->input('max_jp_per_sesi', 3),
+            'max_jp_per_sesi'       => $maxJpPerSesi,
         ];
 
         $result = $scheduler->generate($options);
@@ -438,16 +448,26 @@ class JadwalKbmController extends Controller
         $targetRombelIds = [$rombelId];
 
         if ($rombel) {
-            $cleanName = trim($rombel->nama);
-            $pilihanRombelIds = DB::table('rombongan_belajar')
-                ->where('jenis_rombel', '!=', 1)
-                ->where(function ($q) use ($cleanName) {
+            $pilihanRombelQuery = DB::table('rombongan_belajar')
+                ->where('jenis_rombel', '!=', 1);
+
+            if (!empty($rombel->id_ruang)) {
+                $pilihanRombelQuery->where(function ($q) use ($rombel) {
+                    $q->where('id_ruang', $rombel->id_ruang)
+                      ->orWhere('nama', trim($rombel->nama))
+                      ->orWhere('nama', trim($rombel->nama) . ' 1')
+                      ->orWhere('nama', 'LIKE', trim($rombel->nama) . '%');
+                });
+            } else {
+                $cleanName = trim($rombel->nama);
+                $pilihanRombelQuery->where(function ($q) use ($cleanName) {
                     $q->where('nama', $cleanName)
                         ->orWhere('nama', $cleanName . ' 1')
                         ->orWhere('nama', 'LIKE', $cleanName . '%');
-                })
-                ->pluck('rombongan_belajar_id')
-                ->toArray();
+                });
+            }
+
+            $pilihanRombelIds = $pilihanRombelQuery->pluck('rombongan_belajar_id')->toArray();
             $targetRombelIds = array_unique(array_merge($targetRombelIds, $pilihanRombelIds));
         }
 
