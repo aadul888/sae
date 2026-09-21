@@ -767,25 +767,26 @@
                                     <span class="nav-icon nested-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                                     <span class="nav-label">Dashboard Kepegawaian</span>
                                 </a>
-                                <a href="{{ $href('dashboard.kepegawaian.index') }}"
-                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kepegawaian.*') ? 'active' : '' }}">
-                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
-                                    <span class="nav-label">Kepegawaian GTK &amp; KGB</span>
+                                <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'guru']) }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab', 'guru') === 'guru' ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-chalkboard-user"></i></span>
+                                    <span class="nav-label">Pegawai Guru</span>
                                 </a>
-                                @if ($can('menu_tendik_aktif'))
-                                    <a href="{{ $href('dashboard.tendik-aktif.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-id-badge"></i></span>
-                                        <span class="nav-label">Data Tendik</span>
-                                    </a>
-                                @endif
-                                @if ($can('menu_guru_aktif'))
-                                    <a href="{{ $href('dashboard.guru-aktif.index') }}"
-                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-chalkboard-user"></i></span>
-                                        <span class="nav-label">Data Guru</span>
-                                    </a>
-                                @endif
+                                <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'tendik']) }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab') === 'tendik' ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-id-badge"></i></span>
+                                    <span class="nav-label">Pegawai Tendik</span>
+                                </a>
+                                <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'kgb']) }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab') === 'kgb' ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-business-time"></i></span>
+                                    <span class="nav-label">KGB Tracker</span>
+                                </a>
+                                <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'cuti']) }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab') === 'cuti' ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i class="fas fa-fw fa-plane-departure"></i></span>
+                                    <span class="nav-label">Cuti &amp; Izin</span>
+                                </a>
                                 @if ($can('menu_aktivitas_tendik'))
                                     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'kepegawaian']) }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'kepegawaian' ? 'active' : '' }}">
@@ -1298,25 +1299,26 @@
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                             <span class="nav-label">Dashboard Kepegawaian</span>
                         </a>
-                        <a href="{{ $href('dashboard.kepegawaian.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kepegawaian.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-alt"></i></span>
-                            <span class="nav-label">Kepegawaian GTK &amp; KGB</span>
+                        <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'guru']) }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab', 'guru') === 'guru' ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-chalkboard-user"></i></span>
+                            <span class="nav-label">Pegawai Guru</span>
                         </a>
-                        @if ($can('menu_tendik_aktif'))
-                            <a href="{{ $href('dashboard.tendik-aktif.index') }}"
-                                class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik-aktif*') ? 'active' : '' }}">
-                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-badge"></i></span>
-                                <span class="nav-label">Data Tendik</span>
-                            </a>
-                        @endif
-                        @if ($can('menu_guru_aktif'))
-                            <a href="{{ $href('dashboard.guru-aktif.index') }}"
-                                class="dash-nav-sublink {{ request()->routeIs('dashboard.guru-aktif*') ? 'active' : '' }}">
-                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-chalkboard-user"></i></span>
-                                <span class="nav-label">Data Guru</span>
-                            </a>
-                        @endif
+                        <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'tendik']) }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab') === 'tendik' ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-badge"></i></span>
+                            <span class="nav-label">Pegawai Tendik</span>
+                        </a>
+                        <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'kgb']) }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab') === 'kgb' ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-business-time"></i></span>
+                            <span class="nav-label">KGB Tracker</span>
+                        </a>
+                        <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'cuti']) }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.kepegawaian.*') && request()->query('tab') === 'cuti' ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-plane-departure"></i></span>
+                            <span class="nav-label">Cuti &amp; Izin</span>
+                        </a>
                     @endif
 
                     {{-- Bidang Sarpras --}}

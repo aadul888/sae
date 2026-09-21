@@ -10,6 +10,9 @@ use App\Models\RolePermission;
 use App\Models\Persuratan;
 use App\Models\SuratKeteranganPd;
 use App\Models\PesertaDidik;
+use App\Models\Gtk;
+use App\Models\Sekolah;
+use Carbon\Carbon;
 use App\Services\PersuratanHddService;
 use App\Services\QrCodeService;
 
@@ -25,7 +28,7 @@ class SuratKeluarController extends Controller
     }
 
     /**
-     * Tampilan Buku Agenda Surat Keluar & Surat Keterangan Siswa
+     * Tampilan Buku Agenda Surat Keluar & Surat Keterangan Siswa & Surat Perintah Tugas (SPT)
      */
     public function index(Request $request)
     {
@@ -48,12 +51,13 @@ class SuratKeluarController extends Controller
         $stats = [
             'total'           => Persuratan::where('jenis_surat', 'keluar')->count(),
             'surat_keterangan'=> SuratKeteranganPd::count(),
+            'spt'             => DB::table('gtk_spt')->count(),
             'bulan_ini'       => Persuratan::where('jenis_surat', 'keluar')->where('tanggal_surat', 'like', "{$curMonth}%")->count(),
             'selesai'         => Persuratan::where('jenis_surat', 'keluar')->where('status', 'selesai')->count(),
         ];
 
         $q          = trim($request->get('q', ''));
-        $tab        = $request->get('tab', 'keluar'); // 'keluar' atau 'keterangan'
+        $tab        = $request->get('tab', 'keluar'); // 'keluar', 'keterangan', atau 'spt'
         $status     = $request->get('status', '');
         $kodeIndeks = $request->get('kode_indeks', '');
         $sort       = $request->get('sort', 'tanggal_surat');
@@ -61,39 +65,55 @@ class SuratKeluarController extends Controller
         $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
         $perPage    = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
-        // Query Surat Keluar
-        $query = Persuratan::where('jenis_surat', 'keluar');
+        // Master GTK untuk dropdown / referensi SPT
+        $allGtk = Gtk::orderBy('nama', 'asc')->get(['ptk_id', 'nama', 'nuptk', 'nik', 'nip', 'jenis_ptk_id_str']);
 
-        if ($tab === 'keterangan') {
-            $query->whereIn('nomor_surat', SuratKeteranganPd::pluck('nomor_surat'));
-        }
-
-        if ($q !== '') {
-            $query->where(function ($b) use ($q) {
-                $b->where('nomor_surat', 'like', "%{$q}%")
-                  ->orWhere('perihal', 'like', "%{$q}%")
-                  ->orWhere('tujuan_penerima', 'like', "%{$q}%")
-                  ->orWhere('keterangan', 'like', "%{$q}%")
-                  ->orWhere('kode_indeks', 'like', "%{$q}%");
-            });
-        }
-
-        if ($status !== '') {
-            $query->where('status', $status);
-        }
-
-        if ($kodeIndeks !== '') {
-            $query->where('kode_indeks', $kodeIndeks);
-        }
-
-        $allowedSorts = ['nomor_surat', 'tanggal_surat', 'status', 'created_at', 'tujuan_penerima'];
-        if (in_array($sort, $allowedSorts)) {
-            $query->orderBy($sort, $sortDir);
+        // Query berdasarkan Tab
+        if ($tab === 'spt') {
+            $sptQuery = DB::table('gtk_spt');
+            if ($q !== '') {
+                $sptQuery->where(function ($b) use ($q) {
+                    $b->where('nomor_spt', 'like', "%{$q}%")
+                      ->orWhere('nama_kegiatan', 'like', "%{$q}%")
+                      ->orWhere('lokasi_tujuan', 'like', "%{$q}%")
+                      ->orWhere('dasar_penugasan', 'like', "%{$q}%");
+                });
+            }
+            $items = $sptQuery->orderBy('tanggal_berangkat', 'desc')->paginate($perPage)->withQueryString();
         } else {
-            $query->orderBy('tanggal_surat', 'desc');
-        }
+            $query = Persuratan::where('jenis_surat', 'keluar');
 
-        $items = $query->paginate($perPage)->withQueryString();
+            if ($tab === 'keterangan') {
+                $query->whereIn('nomor_surat', SuratKeteranganPd::pluck('nomor_surat'));
+            }
+
+            if ($q !== '') {
+                $query->where(function ($b) use ($q) {
+                    $b->where('nomor_surat', 'like', "%{$q}%")
+                      ->orWhere('perihal', 'like', "%{$q}%")
+                      ->orWhere('tujuan_penerima', 'like', "%{$q}%")
+                      ->orWhere('keterangan', 'like', "%{$q}%")
+                      ->orWhere('kode_indeks', 'like', "%{$q}%");
+                });
+            }
+
+            if ($status !== '') {
+                $query->where('status', $status);
+            }
+
+            if ($kodeIndeks !== '') {
+                $query->where('kode_indeks', $kodeIndeks);
+            }
+
+            $allowedSorts = ['nomor_surat', 'tanggal_surat', 'status', 'created_at', 'tujuan_penerima'];
+            if (in_array($sort, $allowedSorts)) {
+                $query->orderBy($sort, $sortDir);
+            } else {
+                $query->orderBy('tanggal_surat', 'desc');
+            }
+
+            $items = $query->paginate($perPage)->withQueryString();
+        }
 
         // Master Indeks Klasifikasi Surat
         $indeksList = DB::table('ref_indeks_surat')->where('is_active', true)->orderBy('kode')->get();
@@ -108,6 +128,7 @@ class SuratKeluarController extends Controller
         return view('dashboard.persuratan.keluar', compact(
             'stats',
             'items',
+            'allGtk',
             'q',
             'tab',
             'status',
@@ -532,5 +553,119 @@ class SuratKeluarController extends Controller
         }
 
         return PersuratanHddService::downloadFile($surat->file_path, $surat->file_name_original);
+    }
+
+    /**
+     * Simpan Surat Perintah Tugas (SPT) GTK
+     */
+    public function storeSpt(Request $request)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::canAccess($user ?: $role, 'menu_surat_keluar', 'create')) {
+            abort(403, 'Akses penerbitan SPT tidak diizinkan.');
+        }
+
+        $request->validate([
+            'nama_kegiatan' => 'required|string|max:255',
+            'lokasi_tujuan' => 'required|string|max:255',
+            'tanggal_berangkat' => 'required|date',
+            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_berangkat',
+            'beban_anggaran' => 'required|string|max:50',
+            'daftar_ptk_id' => 'required|array|min:1',
+            'dasar_penugasan' => 'nullable|string|max:1000',
+        ], [
+            'nama_kegiatan.required' => 'Nama kegiatan penugasan wajib diisi.',
+            'lokasi_tujuan.required' => 'Lokasi tujuan penugasan wajib diisi.',
+            'daftar_ptk_id.required' => 'Pilih minimal satu GTK yang ditugaskan.',
+        ]);
+
+        $start = Carbon::parse($request->tanggal_berangkat);
+        $end = Carbon::parse($request->tanggal_kembali);
+        $lamaHari = $start->diffInDays($end) + 1;
+
+        // Auto generate nomor SPT
+        $year = date('Y');
+        $countThisYear = DB::table('gtk_spt')->whereYear('tanggal_berangkat', $year)->count() + 1;
+        $nomorSpt = sprintf('800/SPT/%s/%03d', $year, $countThisYear);
+
+        $kepsek = Gtk::where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
+              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
+        })->first();
+
+        DB::table('gtk_spt')->insert([
+            'nomor_spt' => $nomorSpt,
+            'dasar_penugasan' => $request->dasar_penugasan,
+            'nama_kegiatan' => $request->nama_kegiatan,
+            'lokasi_tujuan' => $request->lokasi_tujuan,
+            'tanggal_berangkat' => $request->tanggal_berangkat,
+            'tanggal_kembali' => $request->tanggal_kembali,
+            'lama_hari' => $lamaHari,
+            'beban_anggaran' => $request->beban_anggaran,
+            'pejabat_penandatangan_ptk_id' => $kepsek?->ptk_id,
+            'pejabat_nama' => $kepsek?->nama ?? 'Kepala Sekolah',
+            'pejabat_jabatan' => 'Kepala Sekolah',
+            'daftar_ptk_id' => json_encode($request->daftar_ptk_id, JSON_UNESCAPED_UNICODE),
+            'status' => 'disetujui',
+            'created_by' => session('user')['nama'] ?? 'Tendik Persuratan',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'spt'])
+            ->with('success', "Surat Perintah Tugas (SPT) {$nomorSpt} berhasil diterbitkan.");
+    }
+
+    /**
+     * Hapus Surat Perintah Tugas (SPT)
+     */
+    public function deleteSpt($id)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::canAccess($user ?: $role, 'menu_surat_keluar', 'delete')) {
+            abort(403, 'Akses penghapusan SPT tidak diizinkan.');
+        }
+
+        DB::table('gtk_spt')->where('id', $id)->delete();
+
+        return redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'spt'])
+            ->with('success', 'Surat Perintah Tugas berhasil dihapus.');
+    }
+
+    /**
+     * Cetak Surat Perintah Tugas (SPT) Resmi Format A4 Ber-KOP
+     */
+    public function cetakSpt($id)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::canAccess($user ?: $role, 'menu_surat_keluar', 'read')) {
+            abort(403, 'Akses pencetakan SPT tidak diizinkan.');
+        }
+
+        $spt = DB::table('gtk_spt')->where('id', $id)->first();
+        if (!$spt) {
+            abort(404, 'Data SPT tidak ditemukan.');
+        }
+
+        $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
+        $gtkList = Gtk::whereIn('ptk_id', $ptkIds)->orderBy('nama', 'asc')->get();
+
+        $sekolah = Sekolah::first();
+        $sekolahMeta = \App\Models\SekolahMeta::first();
+        $kepsek = Gtk::where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
+              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
+        })->first();
+
+        return view('dashboard.persuratan.cetak-spt', compact(
+            'spt',
+            'gtkList',
+            'sekolah',
+            'sekolahMeta',
+            'kepsek'
+        ));
     }
 }

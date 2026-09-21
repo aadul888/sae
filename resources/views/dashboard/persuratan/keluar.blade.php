@@ -36,14 +36,19 @@
             <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Pengaturan Persuratan &amp; Harddisk">
                 <i class="fas fa-sliders text-muted"></i>
             </a>
-
             @if ($canCreate)
-                <button type="button" class="btn btn-outline" id="btnOpenCreateKet" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(99,102,241,0.4); color: var(--primary);" title="Buat Surat Keterangan Siswa Aktif">
-                    <i class="fas fa-file-signature text-primary"></i>
-                </button>
-                <button type="button" class="btn btn-primary" id="btnOpenCreateKeluar" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Catat Surat Keluar Baru">
-                    <i class="fas fa-plus"></i>
-                </button>
+                @if (($tab ?? '') === 'spt')
+                    <button type="button" class="btn btn-primary" id="btnOpenModalSpt" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="Terbitkan Surat Perintah Tugas (SPT)">
+                        <i class="fas fa-plus"></i> Buat SPT Baru
+                    </button>
+                @else
+                    <button type="button" class="btn btn-outline" id="btnOpenCreateKet" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(99,102,241,0.4); color: var(--primary);" title="Buat Surat Keterangan Siswa Aktif">
+                        <i class="fas fa-file-signature text-primary"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnOpenCreateKeluar" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Catat Surat Keluar Baru">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                @endif
             @endif
         </div>
     </div>
@@ -86,11 +91,11 @@
 
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
-                <i class="fas fa-calendar-day"></i>
+                <i class="fas fa-file-contract"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['bulan_ini'] ?? 0) }}</div>
-                <div class="dash-stat-label">Surat Terbit Bulan Ini</div>
+                <div class="dash-stat-value">{{ number_format($stats['spt'] ?? 0) }}</div>
+                <div class="dash-stat-label">Surat Perintah Tugas (SPT)</div>
             </div>
         </div>
 
@@ -105,18 +110,22 @@
         </div>
     </div>
 
-    <!-- 4. Tab Pemilih: Semua Surat Keluar vs Surat Keterangan Siswa -->
-    <div style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-        <a href="{{ route('dashboard.persuratan.keluar.index') }}"
-           class="btn {{ ($tab ?? 'keluar') === 'keluar' ? 'btn-primary' : 'btn-outline' }}"
-           style="padding: 7px 16px; border-radius: 8px; font-size: 0.84rem;">
-            <i class="fas fa-list me-1"></i> Semua Surat Keluar
-        </a>
-        <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'keterangan']) }}"
-           class="btn {{ ($tab ?? '') === 'keterangan' ? 'btn-primary' : 'btn-outline' }}"
-           style="padding: 7px 16px; border-radius: 8px; font-size: 0.84rem;">
-            <i class="fas fa-graduation-cap me-1"></i> Khusus Surat Keterangan Siswa
-        </a>
+    <!-- 4. Tab Navigasi Baku SAE -->
+    <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+        <div class="periode-nav-desktop">
+            <a href="{{ route('dashboard.persuratan.keluar.index') }}"
+                class="periode-nav-tab {{ ($tab ?? 'keluar') === 'keluar' ? 'active' : '' }}">
+                <i class="fas fa-paper-plane"></i> Semua Surat Keluar
+            </a>
+            <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'keterangan']) }}"
+                class="periode-nav-tab {{ ($tab ?? '') === 'keterangan' ? 'active' : '' }}">
+                <i class="fas fa-graduation-cap"></i> Surat Keterangan Siswa
+            </a>
+            <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'spt']) }}"
+                class="periode-nav-tab {{ ($tab ?? '') === 'spt' ? 'active' : '' }}">
+                <i class="fas fa-file-contract"></i> Surat Perintah Tugas (SPT)
+            </a>
+        </div>
     </div>
 
     <!-- 5. Toolbar & Filter Standar SAE -->
@@ -133,21 +142,23 @@
                     <span>entri</span>
                 </div>
 
-                <select id="filterKodeIndeks" class="toolbar-filter-select">
-                    <option value="">Semua Indeks</option>
-                    @foreach ($indeksList as $idx)
-                        <option value="{{ $idx->kode }}" {{ ($kodeIndeks ?? '') === $idx->kode ? 'selected' : '' }}>
-                            {{ $idx->kode }} - {{ $idx->judul }}
-                        </option>
-                    @endforeach
-                </select>
+                @if (($tab ?? '') !== 'spt')
+                    <select id="filterKodeIndeks" class="toolbar-filter-select">
+                        <option value="">Semua Indeks</option>
+                        @foreach ($indeksList as $idx)
+                            <option value="{{ $idx->kode }}" {{ ($kodeIndeks ?? '') === $idx->kode ? 'selected' : '' }}>
+                                {{ $idx->kode }} - {{ $idx->judul }}
+                            </option>
+                        @endforeach
+                    </select>
 
-                <select id="filterStatus" class="toolbar-filter-select">
-                    <option value="">Semua Status</option>
-                    <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai / Terbit</option>
-                    <option value="draf" {{ ($status ?? '') === 'draf' ? 'selected' : '' }}>Draf</option>
-                    <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan</option>
-                </select>
+                    <select id="filterStatus" class="toolbar-filter-select">
+                        <option value="">Semua Status</option>
+                        <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai / Terbit</option>
+                        <option value="draf" {{ ($status ?? '') === 'draf' ? 'selected' : '' }}>Draf</option>
+                        <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan</option>
+                    </select>
+                @endif
 
                 @if (!empty($q) || !empty($status) || !empty($kodeIndeks))
                     <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => $tab ?? 'keluar']) }}"
@@ -160,7 +171,7 @@
 
             <div class="live-search-wrap">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari nomor surat / perihal / penerima..." value="{{ $q ?? '' }}" autocomplete="off">
+                <input type="text" id="liveSearch" placeholder="{{ ($tab ?? '') === 'spt' ? 'Cari nomor SPT, kegiatan, tujuan...' : 'Cari nomor surat, perihal, tujuan...' }}" value="{{ $q ?? '' }}" autocomplete="off">
                 <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
                     <i class="fas fa-times"></i>
                 </button>
@@ -168,22 +179,111 @@
         </div>
     </div>
 
-    <!-- Container Datatable Responsive-Stack Standar SAE -->
-    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-        <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                    <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}" data-sort="nomor_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        No. Surat &amp; Indeks
-                        <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                    </th>
-                    <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Perihal &amp; Tujuan Penerima
-                    </th>
-                    <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}" data-sort="tanggal_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
-                        Tgl Surat
-                        <span class="sort-icon">{!! ($sort ?? '') === 'tanggal_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                    </th>
+    @if (($tab ?? '') === 'spt')
+        <!-- Container Datatable Responsive-Stack: Surat Perintah Tugas (SPT) -->
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">No</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nomor SPT &amp; Anggaran</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Kegiatan &amp; Lokasi</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Waktu Penugasan</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">GTK Yang Ditugaskan</th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($items as $idx => $spt)
+                        @php
+                            $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
+                            $assignedGtk = isset($allGtk) ? $allGtk->whereIn('ptk_id', $ptkIds) : collect();
+                        @endphp
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 12px 16px; text-align: center; font-size: 0.88rem; color: var(--text-muted);" data-label="No">
+                                {{ $items->firstItem() + $idx }}
+                            </td>
+                            <td style="padding: 12px 16px;" data-label="Nomor SPT">
+                                <div style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: 0.88rem;">{{ $spt->nomor_spt }}</div>
+                                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                                    Beban: <span class="badge-compact" style="background: rgba(16,185,129,0.1); color: #10b981;">{{ $spt->beban_anggaran }}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 12px 16px;" data-label="Kegiatan & Lokasi">
+                                <div style="font-weight: 600; color: var(--text-color); font-size: 0.85rem;">{{ $spt->nama_kegiatan }}</div>
+                                <div style="font-size: 0.76rem; color: var(--text-muted);">
+                                    <i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $spt->lokasi_tujuan }}
+                                </div>
+                                @if(!empty($spt->dasar_penugasan))
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; font-style: italic;">
+                                        Dasar: {{ \Illuminate\Support\Str::limit($spt->dasar_penugasan, 60) }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td style="padding: 12px 16px;" data-label="Waktu">
+                                <div style="font-size: 0.82rem; color: var(--text-color);">
+                                    <i class="far fa-calendar-alt text-muted me-1"></i> {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d M Y') }} s/d {{ \Carbon\Carbon::parse($spt->tanggal_kembali)->translatedFormat('d M Y') }}
+                                </div>
+                                <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                    Durasi: <strong>{{ $spt->lama_hari }} Hari</strong>
+                                </div>
+                            </td>
+                            <td style="padding: 12px 16px;" data-label="GTK Ditugaskan">
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                    @forelse($assignedGtk as $g)
+                                        <span class="badge-compact" style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.76rem;">
+                                            <i class="fas fa-user-check me-1"></i> {{ $g->nama }}
+                                        </span>
+                                    @empty
+                                        <span style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">-</span>
+                                    @endforelse
+                                </div>
+                            </td>
+                            <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
+                                <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
+                                    <a href="{{ route('dashboard.persuratan.keluar.spt.cetak', $spt->id) }}" target="_blank" class="btn-icon" style="color: #2563eb;" title="Cetak Lembar SPT Resmi (A4 Ber-KOP)">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    @if($canDelete)
+                                        <form action="{{ route('dashboard.persuratan.keluar.spt.delete', $spt->id) }}" method="POST" style="display: inline;" data-confirm="delete" data-name="{{ $spt->nomor_spt }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-icon text-danger" title="Hapus SPT">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                <i class="fas fa-file-contract mb-2" style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                <div>Belum ada Surat Perintah Tugas (SPT) yang diterbitkan.</div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    @else
+        <!-- Container Datatable Responsive-Stack Standar SAE -->
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                        <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}" data-sort="nomor_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            No. Surat &amp; Indeks
+                            <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Perihal &amp; Tujuan Penerima
+                        </th>
+                        <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}" data-sort="tanggal_surat" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                            Tgl Surat
+                            <span class="sort-icon">{!! ($sort ?? '') === 'tanggal_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
                         <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
                             Arsip HDD
                         </th>
@@ -308,6 +408,7 @@
                 </tbody>
             </table>
         </div>
+    @endif
 
         <!-- Paginasi Baku SAE -->
         @if ($items->hasPages())
@@ -621,8 +722,76 @@
                 <iframe id="previewIframe" src="about:blank" style="width: 100%; height: 100%; border: none; display: none;"></iframe>
                 <img id="previewImage" src="" alt="Preview Berkas" style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;">
             </div>
+    <!-- Modal 4: Buat Surat Perintah Tugas (SPT) -->
+    <div class="modal-overlay" id="modalSpt" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-container" style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <h4 style="margin: 0; font-size: 1.1rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-file-contract text-primary"></i> Terbitkan Surat Perintah Tugas (SPT)
+                </h4>
+                <button type="button" id="btnCloseModalSpt" style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+            </div>
+
+            <form action="{{ route('dashboard.persuratan.keluar.spt.store') }}" method="POST" id="formSpt">
+                @csrf
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama Kegiatan / Tugas Dinas <span style="color: #ef4444;">*</span></label>
+                    <input type="text" name="nama_kegiatan" class="form-control" placeholder="Contoh: Mengikuti Bimtek Implementasi Kurikulum Merdeka" required style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi / Tempat Tujuan <span style="color: #ef4444;">*</span></label>
+                    <input type="text" name="lokasi_tujuan" class="form-control" placeholder="Contoh: Hotel Grand Sahid / BBGP Provinsi" required style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal Berangkat <span style="color: #ef4444;">*</span></label>
+                        <input type="date" name="tanggal_berangkat" class="form-control" required style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal Kembali <span style="color: #ef4444;">*</span></label>
+                        <input type="date" name="tanggal_kembali" class="form-control" required style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Beban Anggaran <span style="color: #ef4444;">*</span></label>
+                    <select name="beban_anggaran" class="form-control" required style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        <option value="BOS Reguler">BOS Reguler</option>
+                        <option value="BOS Kinerja">BOS Kinerja</option>
+                        <option value="Komite Sekolah">Komite Sekolah</option>
+                        <option value="Penyelenggara / Panitia">Biaya Penyelenggara / Gratis</option>
+                        <option value="Mandiri">Mandiri</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih GTK Yang Ditugaskan <span style="color: #ef4444;">*</span></label>
+                    <div style="max-height: 160px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: var(--bg-hover);">
+                        @if(isset($allGtk))
+                            @foreach($allGtk as $g)
+                            <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.84rem; cursor: pointer; color: var(--text-color);">
+                                <input type="checkbox" name="daftar_ptk_id[]" value="{{ $g->ptk_id }}">
+                                <span><strong>{{ $g->nama }}</strong> <small style="color: var(--text-muted);">(NIP: {{ $g->nip ?: '-' }})</small></span>
+                            </label>
+                            @endforeach
+                        @endif
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Dasar Penugasan (Opsional)</label>
+                    <textarea name="dasar_penugasan" class="form-control" rows="2" placeholder="Contoh: Surat Undangan Dinas Pendidikan No. 421/123/2026 tanggal 15 September 2026..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" id="btnCancelModalSpt" class="btn btn-outline" style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 8px 18px; border-radius: 8px; font-size: 0.84rem;"><i class="fas fa-check-circle me-1"></i> Terbitkan SPT</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 @endsection
 
 @push('scripts')

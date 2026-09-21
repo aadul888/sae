@@ -16,49 +16,72 @@ use Carbon\Carbon;
 class KepegawaianGtkController extends Controller
 {
     /**
-     * Tampilkan Halaman Utama Administrasi Kepegawaian GTK
+     * Tampilkan Halaman Utama Administrasi Kepegawaian GTK (Guru, Tendik, KGB, Cuti)
      */
     public function index(Request $request)
     {
         $user = session('user');
-        $tab = $request->query('tab', 'berkas'); // 'berkas', 'kgb', 'cuti', 'spt'
-        $search = $request->query('q', '');
-        $jenisFilter = $request->query('jenis', 'all');
+        $tab = $request->query('tab', 'guru');
+        if ($tab === 'berkas') {
+            $tab = 'guru';
+        }
+
+        $search = trim($request->query('q', ''));
+        $perPageVal = $request->query('perPage', $request->query('per_page', '25'));
+        $perPage = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
         // Master GTK untuk dropdown / referensi
         $allGtk = Gtk::orderBy('nama', 'asc')->get(['ptk_id', 'nama', 'nuptk', 'nik', 'nip', 'jenis_ptk_id_str']);
 
-        // 1. Tab Berkas Digital GTK
-        $gtkQuery = Gtk::with(['berkas' => function ($q) {
+        // 1. Tab Pegawai Guru
+        $guruQuery = Gtk::with(['berkas' => function ($q) {
             $q->orderBy('created_at', 'desc');
-        }]);
+        }])->where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'like', '%guru%')
+              ->orWhere('jenis_ptk_id_str', 'like', '%kepala sekolah%')
+              ->orWhere('jenis_ptk_id_str', 'like', '%pendidik%');
+        });
 
-        if ($search && $tab === 'berkas') {
-            $gtkQuery->where(function ($q) use ($search) {
+        if ($search && $tab === 'guru') {
+            $guruQuery->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('nuptk', 'like', "%{$search}%")
                   ->orWhere('nip', 'like', "%{$search}%")
                   ->orWhere('nik', 'like', "%{$search}%");
             });
         }
+        $guruList = $guruQuery->orderBy('nama', 'asc')->paginate($perPage)->withQueryString();
 
-        if ($jenisFilter === 'guru') {
-            $gtkQuery->where('jenis_ptk_id_str', 'like', '%guru%');
-        } elseif ($jenisFilter === 'tendik') {
-            $gtkQuery->where('jenis_ptk_id_str', 'not like', '%guru%');
+        // 2. Tab Pegawai Tendik
+        $tendikQuery = Gtk::with(['berkas' => function ($q) {
+            $q->orderBy('created_at', 'desc');
+        }])->where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'not like', '%guru%')
+              ->where('jenis_ptk_id_str', 'not like', '%kepala sekolah%')
+              ->where('jenis_ptk_id_str', 'not like', '%pendidik%');
+        });
+
+        if ($search && $tab === 'tendik') {
+            $tendikQuery->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('nuptk', 'like', "%{$search}%")
+                  ->orWhere('nip', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%");
+            });
         }
+        $tendikList = $tendikQuery->orderBy('nama', 'asc')->paginate($perPage)->withQueryString();
 
-        $gtkBerkasList = $gtkQuery->orderBy('nama', 'asc')->paginate(15)->withQueryString();
-
-        // 2. Tab KGB Tracker
+        // 3. Tab KGB Tracker
         $kgbQuery = GtkKgbTracker::with('gtk');
         if ($search && $tab === 'kgb') {
-            $kgbQuery->whereHas('gtk', function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nip', 'like', "%{$search}%");
-            })->orWhere('nomor_sk_terakhir', 'like', "%{$search}%");
+            $kgbQuery->where(function ($b) use ($search) {
+                $b->whereHas('gtk', function ($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                      ->orWhere('nip', 'like', "%{$search}%");
+                })->orWhere('nomor_sk_terakhir', 'like', "%{$search}%");
+            });
         }
-        $kgbList = $kgbQuery->orderBy('tmt_baru_target', 'asc')->paginate(15)->withQueryString();
+        $kgbList = $kgbQuery->orderBy('tmt_baru_target', 'asc')->paginate($perPage)->withQueryString();
 
         // Hitung KGB jatuh tempo dalam 90 hari ke depan
         $today = Carbon::today();
@@ -67,25 +90,31 @@ class KepegawaianGtkController extends Controller
             ->where('status_usulan', '!=', 'terbit_sk')
             ->count();
 
-        // 3. Tab Cuti & Tugas Dinas
+        // 4. Tab Cuti & Tugas Dinas
         $cutiQuery = GtkCutiIzin::with('gtk');
         if ($search && $tab === 'cuti') {
-            $cutiQuery->whereHas('gtk', function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%");
-            })->orWhere('keperluan', 'like', "%{$search}%");
-        }
-        $cutiList = $cutiQuery->orderBy('tanggal_mulai', 'desc')->paginate(15)->withQueryString();
-
-        // 4. Tab Surat Perintah Tugas (SPT)
-        $sptQuery = DB::table('gtk_spt');
-        if ($search && $tab === 'spt') {
-            $sptQuery->where(function ($q) use ($search) {
-                $q->where('nomor_spt', 'like', "%{$search}%")
-                  ->orWhere('nama_kegiatan', 'like', "%{$search}%")
-                  ->orWhere('lokasi_tujuan', 'like', "%{$search}%");
+            $cutiQuery->where(function ($b) use ($search) {
+                $b->whereHas('gtk', function ($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%");
+                })->orWhere('keperluan', 'like', "%{$search}%");
             });
         }
-        $sptList = $sptQuery->orderBy('tanggal_berangkat', 'desc')->paginate(15)->withQueryString();
+        $cutiList = $cutiQuery->orderBy('tanggal_mulai', 'desc')->paginate($perPage)->withQueryString();
+
+        // Statistik Ringkasan Kepegawaian
+        $stats = [
+            'total_guru'       => Gtk::where(function ($q) {
+                $q->where('jenis_ptk_id_str', 'like', '%guru%')
+                  ->orWhere('jenis_ptk_id_str', 'like', '%kepala sekolah%')
+                  ->orWhere('jenis_ptk_id_str', 'like', '%pendidik%');
+            })->count(),
+            'total_tendik'     => Gtk::where('jenis_ptk_id_str', 'not like', '%guru%')
+                ->where('jenis_ptk_id_str', 'not like', '%kepala sekolah%')
+                ->where('jenis_ptk_id_str', 'not like', '%pendidik%')
+                ->count(),
+            'kgb_jatuh_tempo'  => $kgbJatuhTempoCount,
+            'cuti_aktif'       => GtkCutiIzin::where('tanggal_selesai', '>=', date('Y-m-d'))->count(),
+        ];
 
         // Jenis berkas standar
         $jenisBerkasOptions = [
@@ -101,12 +130,13 @@ class KepegawaianGtkController extends Controller
         return view('dashboard.kepegawaian', compact(
             'tab',
             'search',
-            'jenisFilter',
+            'perPage',
             'allGtk',
-            'gtkBerkasList',
+            'guruList',
+            'tendikList',
             'kgbList',
             'cutiList',
-            'sptList',
+            'stats',
             'kgbJatuhTempoCount',
             'jenisBerkasOptions'
         ));
@@ -129,7 +159,7 @@ class KepegawaianGtkController extends Controller
         $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->getClientOriginalName());
         $filePath = $file->storeAs('gtk_berkas', $fileName, 'public');
 
-        $berkas = GtkBerkas::create([
+        GtkBerkas::create([
             'ptk_id' => $request->ptk_id,
             'jenis_dokumen' => $request->jenis_dokumen,
             'judul_dokumen' => $request->judul_dokumen,
@@ -138,14 +168,16 @@ class KepegawaianGtkController extends Controller
             'created_by' => session('user')['nama'] ?? 'Tendik Kepegawaian',
         ]);
 
-        return redirect()->route('dashboard.kepegawaian.index', ['tab' => 'berkas'])
+        $redirectTab = $request->input('tab_redirect', 'guru');
+
+        return redirect()->route('dashboard.kepegawaian.index', ['tab' => $redirectTab])
             ->with('success', 'Berkas digital GTK berhasil diunggah.');
     }
 
     /**
      * Hapus Berkas Digital GTK
      */
-    public function deleteBerkas($id)
+    public function deleteBerkas(Request $request, $id)
     {
         $berkas = GtkBerkas::findOrFail($id);
 
@@ -156,7 +188,9 @@ class KepegawaianGtkController extends Controller
 
         $berkas->delete();
 
-        return redirect()->route('dashboard.kepegawaian.index', ['tab' => 'berkas'])
+        $redirectTab = $request->input('tab_redirect', 'guru');
+
+        return redirect()->route('dashboard.kepegawaian.index', ['tab' => $redirectTab])
             ->with('success', 'Berkas digital berhasil dihapus.');
     }
 
@@ -200,7 +234,7 @@ class KepegawaianGtkController extends Controller
     }
 
     /**
-     * Simpan Pengajuan Cuti / Surat Tugas Dinas Luar
+     * Simpan Pengajuan Cuti / Izin GTK
      */
     public function storeCuti(Request $request)
     {
@@ -225,7 +259,7 @@ class KepegawaianGtkController extends Controller
         $end = Carbon::parse($request->tanggal_selesai);
         $durasi = $start->diffInDays($end) + 1;
 
-        $cuti = GtkCutiIzin::create([
+        GtkCutiIzin::create([
             'ptk_id' => $request->ptk_id,
             'jenis' => $request->jenis,
             'tanggal_mulai' => $request->tanggal_mulai,
@@ -233,7 +267,7 @@ class KepegawaianGtkController extends Controller
             'jumlah_hari' => $durasi,
             'keperluan' => $request->keperluan,
             'file_pendukung' => $filePath,
-            'status' => 'disetujui_kepsek', // Dibuat oleh staf kepegawaian langsung disetujui / aktif
+            'status' => 'disetujui_kepsek',
             'created_by' => session('user')['nama'] ?? 'Tendik Kepegawaian',
         ]);
 
@@ -242,7 +276,7 @@ class KepegawaianGtkController extends Controller
     }
 
     /**
-     * Cetak Surat Cuti / Surat Perintah Tugas (SPT) Resmi Format A4 Ber-Kop Surat
+     * Cetak Surat Cuti Resmi Format A4 Ber-Kop Surat
      */
     public function cetakCuti($id)
     {
@@ -258,102 +292,6 @@ class KepegawaianGtkController extends Controller
 
         return view('dashboard.kepegawaian.cetak-cuti', compact(
             'cuti',
-            'sekolah',
-            'sekolahMeta',
-            'kepsek'
-        ));
-    }
-
-    /**
-     * Simpan Surat Perintah Tugas (SPT) GTK
-     */
-    public function storeSpt(Request $request)
-    {
-        $request->validate([
-            'nama_kegiatan' => 'required|string|max:255',
-            'lokasi_tujuan' => 'required|string|max:255',
-            'tanggal_berangkat' => 'required|date',
-            'tanggal_kembali' => 'required|date|after_or_equal:tanggal_berangkat',
-            'beban_anggaran' => 'required|string|max:50',
-            'daftar_ptk_id' => 'required|array|min:1',
-            'dasar_penugasan' => 'nullable|string|max:1000',
-        ], [
-            'nama_kegiatan.required' => 'Nama kegiatan penugasan wajib diisi.',
-            'lokasi_tujuan.required' => 'Lokasi tujuan penugasan wajib diisi.',
-            'daftar_ptk_id.required' => 'Pilih minimal satu GTK yang ditugaskan.',
-        ]);
-
-        $start = Carbon::parse($request->tanggal_berangkat);
-        $end = Carbon::parse($request->tanggal_kembali);
-        $lamaHari = $start->diffInDays($end) + 1;
-
-        // Auto generate nomor SPT
-        $year = date('Y');
-        $countThisYear = DB::table('gtk_spt')->whereYear('tanggal_berangkat', $year)->count() + 1;
-        $nomorSpt = sprintf('800/SPT/%s/%03d', $year, $countThisYear);
-
-        $kepsek = Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
-        })->first();
-
-        DB::table('gtk_spt')->insert([
-            'nomor_spt' => $nomorSpt,
-            'dasar_penugasan' => $request->dasar_penugasan,
-            'nama_kegiatan' => $request->nama_kegiatan,
-            'lokasi_tujuan' => $request->lokasi_tujuan,
-            'tanggal_berangkat' => $request->tanggal_berangkat,
-            'tanggal_kembali' => $request->tanggal_kembali,
-            'lama_hari' => $lamaHari,
-            'beban_anggaran' => $request->beban_anggaran,
-            'pejabat_penandatangan_ptk_id' => $kepsek?->ptk_id,
-            'pejabat_nama' => $kepsek?->nama ?? 'Kepala Sekolah',
-            'pejabat_jabatan' => 'Kepala Sekolah',
-            'daftar_ptk_id' => json_encode($request->daftar_ptk_id, JSON_UNESCAPED_UNICODE),
-            'status' => 'disetujui',
-            'created_by' => session('user')['nama'] ?? 'Tendik Kepegawaian',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return redirect()->route('dashboard.kepegawaian.index', ['tab' => 'spt'])
-            ->with('success', "Surat Perintah Tugas (SPT) {$nomorSpt} berhasil diterbitkan.");
-    }
-
-    /**
-     * Hapus Surat Perintah Tugas (SPT)
-     */
-    public function deleteSpt($id)
-    {
-        DB::table('gtk_spt')->where('id', $id)->delete();
-
-        return redirect()->route('dashboard.kepegawaian.index', ['tab' => 'spt'])
-            ->with('success', 'Surat Perintah Tugas berhasil dihapus.');
-    }
-
-    /**
-     * Cetak Surat Perintah Tugas (SPT) Resmi Format A4 Ber-KOP
-     */
-    public function cetakSpt($id)
-    {
-        $spt = DB::table('gtk_spt')->where('id', $id)->first();
-        if (!$spt) {
-            abort(404, 'Data SPT tidak ditemukan.');
-        }
-
-        $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
-        $gtkList = Gtk::whereIn('ptk_id', $ptkIds)->orderBy('nama', 'asc')->get();
-
-        $sekolah = Sekolah::first();
-        $sekolahMeta = \App\Models\SekolahMeta::first();
-        $kepsek = Gtk::where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
-        })->first();
-
-        return view('dashboard.kepegawaian.cetak-spt', compact(
-            'spt',
-            'gtkList',
             'sekolah',
             'sekolahMeta',
             'kepsek'

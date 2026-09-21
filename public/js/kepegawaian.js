@@ -1,10 +1,68 @@
 /**
- * SAE - Kepegawaian GTK (Berkas Digital, KGB Tracker, Cuti & SPT)
- * Mematuhi Standar Pemisahan JS & Blade SAE
+ * SAE - Kepegawaian GTK (Pegawai Guru, Pegawai Tendik, KGB Tracker, Cuti & Izin)
+ * Mematuhi Standar Pemisahan JS & Blade SAE (Zero inline script)
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Modal Upload Berkas GTK
+    // 1. Live Search & PerPage Handler
+    const searchInput = document.getElementById('liveSearch');
+    const clearBtn = document.getElementById('clearSearch');
+    const perPageSelect = document.getElementById('perPageSelect');
+
+    function applyFilter() {
+        const url = new URL(window.location.href);
+
+        if (searchInput && searchInput.value.trim()) {
+            url.searchParams.set("q", searchInput.value.trim());
+        } else {
+            url.searchParams.delete("q");
+        }
+
+        if (perPageSelect && perPageSelect.value) {
+            url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        url.searchParams.set("page", "1");
+
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    if (searchInput) {
+        let timer = null;
+        searchInput.addEventListener("input", function () {
+            if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(applyFilter, 300);
+        });
+
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                clearTimeout(timer);
+                applyFilter();
+            }
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+            if (searchInput) {
+                searchInput.value = "";
+                clearBtn.classList.remove("visible");
+                applyFilter();
+            }
+        });
+    }
+
+    if (perPageSelect) {
+        perPageSelect.addEventListener("change", applyFilter);
+    }
+
+    // 2. Modal Upload Berkas GTK
     const modalUpload = document.getElementById('modalUploadBerkas');
     const btnOpenUpload = document.getElementById('btnOpenModalUploadBerkas');
     const btnCloseUpload = document.getElementById('btnCloseModalUpload');
@@ -14,22 +72,23 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnOpenUpload && modalUpload) {
         btnOpenUpload.addEventListener('click', function () {
             modalUpload.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         });
     }
 
+    function closeModalUpload() {
+        if (!modalUpload) return;
+        modalUpload.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
     [btnCloseUpload, btnCancelUpload].forEach(btn => {
-        if (btn && modalUpload) {
-            btn.addEventListener('click', function () {
-                modalUpload.style.display = 'none';
-            });
-        }
+        if (btn) btn.addEventListener('click', closeModalUpload);
     });
 
     if (modalUpload) {
         modalUpload.addEventListener('click', function (e) {
-            if (e.target === modalUpload) {
-                modalUpload.style.display = 'none';
-            }
+            if (e.target === modalUpload) closeModalUpload();
         });
     }
 
@@ -42,11 +101,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             if (modalUpload) {
                 modalUpload.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
             }
         });
     });
 
-    // 2. Modal KGB Tracker
+    // 3. Modal KGB Tracker
     const modalKgb = document.getElementById('modalKgb');
     const btnOpenKgb = document.getElementById('btnOpenModalKgb');
     const btnCloseKgb = document.getElementById('btnCloseModalKgb');
@@ -57,22 +117,23 @@ document.addEventListener('DOMContentLoaded', function () {
         btnOpenKgb.addEventListener('click', function () {
             if (formKgb) formKgb.reset();
             modalKgb.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         });
     }
 
+    function closeModalKgb() {
+        if (!modalKgb) return;
+        modalKgb.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
     [btnCloseKgb, btnCancelKgb].forEach(btn => {
-        if (btn && modalKgb) {
-            btn.addEventListener('click', function () {
-                modalKgb.style.display = 'none';
-            });
-        }
+        if (btn) btn.addEventListener('click', closeModalKgb);
     });
 
     if (modalKgb) {
         modalKgb.addEventListener('click', function (e) {
-            if (e.target === modalKgb) {
-                modalKgb.style.display = 'none';
-            }
+            if (e.target === modalKgb) closeModalKgb();
         });
     }
 
@@ -112,7 +173,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const catInput = document.getElementById('kgb_catatan');
             if (catInput) catInput.value = catatan;
 
-            if (modalKgb) modalKgb.style.display = 'flex';
+            if (modalKgb) {
+                modalKgb.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
         });
     });
 
@@ -129,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3. Modal Cuti & Tugas Dinas
+    // 4. Modal Cuti & Izin
     const modalCuti = document.getElementById('modalCuti');
     const btnOpenCuti = document.getElementById('btnOpenModalCuti');
     const btnCloseCuti = document.getElementById('btnCloseModalCuti');
@@ -140,45 +204,52 @@ document.addEventListener('DOMContentLoaded', function () {
         btnOpenCuti.addEventListener('click', function () {
             if (formCuti) formCuti.reset();
             modalCuti.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         });
     }
 
+    function closeModalCuti() {
+        if (!modalCuti) return;
+        modalCuti.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
     [btnCloseCuti, btnCancelCuti].forEach(btn => {
-        if (btn && modalCuti) {
-            btn.addEventListener('click', function () {
-                modalCuti.style.display = 'none';
-            });
-        }
+        if (btn) btn.addEventListener('click', closeModalCuti);
     });
 
     if (modalCuti) {
         modalCuti.addEventListener('click', function (e) {
-            if (e.target === modalCuti) {
-                modalCuti.style.display = 'none';
-            }
+            if (e.target === modalCuti) closeModalCuti();
         });
     }
 
-    // 4. Konfirmasi SweetAlert2 untuk form hapus berkas
+    // 5. Konfirmasi SweetAlert2 untuk form hapus berkas
     document.querySelectorAll('form[data-confirm="delete"]').forEach(form => {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             const name = this.dataset.name || 'berkas ini';
 
-            Swal.fire({
-                title: 'Hapus Berkas?',
-                text: `Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#6b7280'
-            }).then((result) => {
-                if (result.isConfirmed) {
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Hapus Berkas?',
+                    text: `Apakah Anda yakin ingin menghapus "${name}"? Tindakan ini tidak dapat dibatalkan.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Hapus',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            } else {
+                if (confirm(`Apakah Anda yakin ingin menghapus "${name}"?`)) {
                     form.submit();
                 }
-            });
+            }
         });
     });
 });

@@ -261,6 +261,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::delete('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'destroy'])->name('persuratan.keluar.destroy')->middleware('permission:menu_surat_keluar,delete');
     Route::post('/persuratan/keluar/keterangan', [\App\Http\Controllers\SuratKeluarController::class, 'suratKeteranganStore'])->name('persuratan.keterangan.store')->middleware('permission:menu_surat_keluar,create');
     Route::get('/persuratan/keluar/keterangan/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'suratKeteranganCetak'])->name('persuratan.keterangan.cetak')->middleware('permission:menu_surat_keluar,read');
+    Route::post('/persuratan/keluar/spt', [\App\Http\Controllers\SuratKeluarController::class, 'storeSpt'])->name('persuratan.keluar.spt.store')->middleware('permission:menu_surat_keluar,create');
+    Route::delete('/persuratan/keluar/spt/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteSpt'])->name('persuratan.keluar.spt.delete')->middleware('permission:menu_surat_keluar,delete');
+    Route::get('/persuratan/keluar/spt/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakSpt'])->name('persuratan.keluar.spt.cetak')->middleware('permission:menu_surat_keluar,read');
 
     // 3. Pengaturan Sistem Persuratan & Harddisk (HDD)
     Route::get('/persuratan/pengaturan', [\App\Http\Controllers\PersuratanSettingController::class, 'index'])->name('persuratan.pengaturan.index')->middleware('permission:menu_pengaturan_persuratan,read');
@@ -332,16 +335,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         });
     });
 
-    // Administrasi Tendik — Kepegawaian GTK (Berkas Digital, KGB Tracker, Cuti & SPT)
+    // Administrasi Tendik — Kepegawaian GTK (Berkas Digital, KGB Tracker, Cuti & Izin)
     Route::get('/kepegawaian', [\App\Http\Controllers\KepegawaianGtkController::class, 'index'])->name('kepegawaian.index')->middleware('permission:menu_kepegawaian,read');
     Route::post('/kepegawaian/berkas', [\App\Http\Controllers\KepegawaianGtkController::class, 'uploadBerkas'])->name('kepegawaian.berkas.upload')->middleware('permission:menu_kepegawaian,create');
     Route::delete('/kepegawaian/berkas/{id}', [\App\Http\Controllers\KepegawaianGtkController::class, 'deleteBerkas'])->name('kepegawaian.berkas.delete')->middleware('permission:menu_kepegawaian,delete');
     Route::post('/kepegawaian/kgb', [\App\Http\Controllers\KepegawaianGtkController::class, 'storeKgb'])->name('kepegawaian.kgb.store')->middleware('permission:menu_kepegawaian,create');
     Route::post('/kepegawaian/cuti', [\App\Http\Controllers\KepegawaianGtkController::class, 'storeCuti'])->name('kepegawaian.cuti.store')->middleware('permission:menu_kepegawaian,create');
     Route::get('/kepegawaian/cuti/{id}/cetak', [\App\Http\Controllers\KepegawaianGtkController::class, 'cetakCuti'])->name('kepegawaian.cuti.cetak')->middleware('permission:menu_kepegawaian,read');
-    Route::post('/kepegawaian/spt', [\App\Http\Controllers\KepegawaianGtkController::class, 'storeSpt'])->name('kepegawaian.spt.store')->middleware('permission:menu_kepegawaian,create');
-    Route::delete('/kepegawaian/spt/{id}', [\App\Http\Controllers\KepegawaianGtkController::class, 'deleteSpt'])->name('kepegawaian.spt.delete')->middleware('permission:menu_kepegawaian,delete');
-    Route::get('/kepegawaian/spt/{id}/cetak', [\App\Http\Controllers\KepegawaianGtkController::class, 'cetakSpt'])->name('kepegawaian.spt.cetak')->middleware('permission:menu_kepegawaian,read');
 
     // Administrasi Tendik — Pencatatan Aktivitas & Pekerjaan Harian
     Route::get('/tendik/aktivitas', [\App\Http\Controllers\TendikAktivitasController::class, 'index'])->name('tendik.aktivitas.index')->middleware('permission:menu_aktivitas_tendik,read');
