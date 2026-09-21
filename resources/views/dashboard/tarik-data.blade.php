@@ -15,6 +15,12 @@
             </p>
         </div>
         <div class="dash-banner-actions">
+            @if ($feederDownload)
+                <a href="{{ $feederDownload['url'] }}" class="btn btn-primary" download
+                    style="padding: 9px 16px; font-size: 0.85rem;">
+                    <i class="fas fa-download"></i> Unduh SAE-Feeder
+                </a>
+            @endif
             <a href="#feeder-guide" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
                 <i class="fas fa-book-open"></i> Panduan Feeder
             </a>
@@ -74,31 +80,39 @@
                 <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
                     <i class="fas fa-satellite-dish text-primary me-2"></i> Konfigurasi Endpoint SAE Feeder
                 </h3>
-                @if($syncAllowed)
-                    <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);"><i class="fas fa-unlock me-1"></i> Siap Sinkron</span>
+                @if ($syncAllowed)
+                    <span class="badge"
+                        style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);"><i
+                            class="fas fa-unlock me-1"></i> Siap Sinkron</span>
                 @else
-                    <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);"><i class="fas fa-lock me-1"></i> Terkunci (Wajib Arsip)</span>
+                    <span class="badge"
+                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);"><i
+                            class="fas fa-lock me-1"></i> Terkunci (Wajib Arsip)</span>
                 @endif
             </div>
 
-            @if(!$syncAllowed)
-                <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px 16px; margin-bottom: 1.25rem; font-size: 0.85rem; color: #ef4444; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            @if (!$syncAllowed)
+                <div
+                    style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 10px; padding: 12px 16px; margin-bottom: 1.25rem; font-size: 0.85rem; color: #ef4444; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                     <div>
                         <strong><i class="fas fa-triangle-exclamation me-1"></i> Proteksi Data Aktif:</strong>
                         Sinkronisasi ditolak sampai Anda mencadangkan data aktif semester ini.
                     </div>
-                    <a href="{{ route('dashboard.maintenance.index') }}" class="btn btn-primary btn-sm" style="white-space: nowrap; font-size: 0.8rem; padding: 6px 14px;">
+                    <a href="{{ route('dashboard.maintenance.index') }}" class="btn btn-primary btn-sm"
+                        style="white-space: nowrap; font-size: 0.8rem; padding: 6px 14px;">
                         <i class="fas fa-file-zipper me-1"></i> Unduh Arsip Sekarang
                     </a>
                 </div>
             @endif
 
             <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;">
-                Salin <b>URL Target SAE</b> dan <b>API Key</b> di bawah ini, lalu tempelkan (paste) pada bagian <b>APLIKASI SAE TARGET</b> di antarmuka web <b>SAE Feeder</b> pada komputer Dapodik Anda.
+                Salin <b>URL Target SAE</b> dan <b>API Key</b> di bawah ini, lalu tempelkan (paste) pada bagian <b>APLIKASI
+                    SAE TARGET</b> di antarmuka web <b>SAE Feeder</b> pada komputer Dapodik Anda.
             </p>
 
             <div class="form-group mb-3">
-                <label class="form-label" style="font-size: 0.8rem;"><i class="fas fa-link me-1"></i> URL Target Endpoint SAE</label>
+                <label class="form-label" style="font-size: 0.8rem;"><i class="fas fa-link me-1"></i> URL Target Endpoint
+                    SAE</label>
                 <div style="display: flex; gap: 8px;">
                     <input type="text" class="input-control" value="{{ url('/api/receive-data') }}" readonly
                         id="targetUrlInput" style="font-family: monospace; font-size: 0.85rem;">
@@ -108,7 +122,8 @@
                     </button>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">
-                    *Bisa juga memasukkan URL domain utama saja: <code style="color: var(--primary);">{{ url('/') }}</code>
+                    *Bisa juga memasukkan URL domain utama saja: <code
+                        style="color: var(--primary);">{{ url('/') }}</code>
                 </div>
             </div>
 
@@ -139,7 +154,8 @@
                         <i class="fas fa-info-circle text-primary me-1"></i> Status Penarikan Terakhir
                     </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted);">
-                        Arsip Terakhir: <b>{{ $archiveDownloadedAt ? \Carbon\Carbon::parse($archiveDownloadedAt)->format('d M Y, H:i') . ' WIB' : 'Belum Pernah' }}</b>
+                        Arsip Terakhir:
+                        <b>{{ $archiveDownloadedAt ? \Carbon\Carbon::parse($archiveDownloadedAt)->format('d M Y, H:i') . ' WIB' : 'Belum Pernah' }}</b>
                     </span>
                 </div>
                 <div style="color: var(--text-muted);">
@@ -156,15 +172,47 @@
                 </h3>
             </div>
 
+            @if ($feederDownload)
+                <div
+                    style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.22); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.82rem; color: var(--text-muted);">
+                    <div
+                        style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">
+                                <i class="fas fa-shield-halved" style="color: #10b981;"></i> Installer resmi dari server
+                                SAE
+                            </div>
+                            <div>
+                                Ukuran: <b>{{ number_format($feederDownload['size'] / 1024 / 1024, 1) }} MB</b> ·
+                                Diperbarui:
+                                <b>{{ \Carbon\Carbon::createFromTimestamp($feederDownload['updated_at'])->format('d M Y, H:i') }}
+                                    WIB</b>
+                            </div>
+                        </div>
+                        <a href="{{ $feederDownload['url'] }}" class="btn btn-primary btn-sm" download
+                            style="white-space: nowrap; font-size: 0.8rem; padding: 7px 14px;">
+                            <i class="fas fa-download me-1"></i> Klik Unduh SAE-Feeder
+                        </a>
+                    </div>
+                </div>
+            @else
+                <div
+                    style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.82rem; color: #f59e0b;">
+                    <i class="fas fa-triangle-exclamation me-1"></i> File installer SAE-Feeder belum tersedia di server.
+                </div>
+            @endif
+
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.85rem;">
                 <div style="display: flex; gap: 12px; align-items: flex-start;">
                     <div
                         style="width: 28px; height: 28px; border-radius: 50%; background: rgba(59, 130, 246, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
                         1</div>
                     <div>
-                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Buka Aplikasi SAE Feeder</div>
+                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Klik Unduh SAE-Feeder
+                        </div>
                         <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
-                            Di komputer server yang terpasang Dapodik lokal, buka folder aplikasi SAE Feeder lalu jalankan file <code style="color: var(--primary);">run_feeder.bat</code>. Jendela antarmuka SAE Feeder akan terbuka di browser Anda.
+                            Unduh installer resmi dari tombol <b>Klik Unduh SAE-Feeder</b> di atas, lalu salin file ke
+                            komputer server yang terpasang Dapodik lokal.
                         </div>
                     </div>
                 </div>
@@ -174,15 +222,11 @@
                         style="width: 28px; height: 28px; border-radius: 50%; background: rgba(59, 130, 246, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
                         2</div>
                     <div>
-                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Hubungkan Dapodik &amp; Masukkan Kunci SAE</div>
+                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Instal dan Buka
+                            Aplikasi SAE Feeder</div>
                         <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
-                            <ul style="margin: 4px 0 0 16px; padding: 0;">
-                                <li>Pada <b>DAPODIK WEB SERVICE</b>: Masukkan NPSN dan Token Web Service Dapodik, lalu klik <b>Simpan</b>.</li>
-                                <li>Pada <b>APLIKASI SAE TARGET</b>: Masukkan <b>URL Target SAE</b> dan <b>API Key</b> di samping ini, lalu klik <b>Simpan</b>.</li>
-                            </ul>
-                            <span style="font-size: 0.78rem; color: #10b981; margin-top: 4px; display: inline-block;">
-                                <i class="fas fa-check-circle me-1"></i>Pastikan kedua status indikator di atas bertuliskan <b>Terhubung</b>.
-                            </span>
+                            Ekstrak/instal paket <code style="color: var(--primary);">SAE-Feeder-Setup.zip</code>, lalu
+                            jalankan SAE Feeder. Jendela antarmuka SAE Feeder akan terbuka di browser Anda.
                         </div>
                     </div>
                 </div>
@@ -192,9 +236,34 @@
                         style="width: 28px; height: 28px; border-radius: 50%; background: rgba(59, 130, 246, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
                         3</div>
                     <div>
-                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Klik "Kirim Semua Data" di Feeder</div>
+                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Hubungkan Dapodik
+                            &amp; Masukkan Kunci SAE</div>
                         <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
-                            Klik tombol biru <b>"Kirim Semua Data"</b> pada SAE Feeder. Sistem akan mengekstrak data Sekolah, Rombel, GTK, dan Peserta Didik dari server Dapodik lokal lalu mengirimkannya langsung ke server SAE.
+                            <ul style="margin: 4px 0 0 16px; padding: 0;">
+                                <li>Pada <b>DAPODIK WEB SERVICE</b>: Masukkan NPSN dan Token Web Service Dapodik, lalu klik
+                                    <b>Simpan</b>.</li>
+                                <li>Pada <b>APLIKASI SAE TARGET</b>: Masukkan <b>URL Target SAE</b> dan <b>API Key</b> di
+                                    samping ini, lalu klik <b>Simpan</b>.</li>
+                            </ul>
+                            <span style="font-size: 0.78rem; color: #10b981; margin-top: 4px; display: inline-block;">
+                                <i class="fas fa-check-circle me-1"></i>Pastikan kedua status indikator di atas bertuliskan
+                                <b>Terhubung</b>.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div
+                        style="width: 28px; height: 28px; border-radius: 50%; background: rgba(59, 130, 246, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">
+                        4</div>
+                    <div>
+                        <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">Klik "Kirim Semua
+                            Data" di Feeder</div>
+                        <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
+                            Klik tombol biru <b>"Kirim Semua Data"</b> pada SAE Feeder. Sistem akan mengekstrak data
+                            Sekolah, Rombel, GTK, dan Peserta Didik dari server Dapodik lokal lalu mengirimkannya langsung
+                            ke server SAE.
                         </div>
                     </div>
                 </div>

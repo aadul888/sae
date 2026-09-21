@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class DapodikController extends Controller
 {
@@ -29,7 +30,7 @@ class DapodikController extends Controller
         $totalGtk = DB::table('gtk')->count();
         $totalPesertaDidik = DB::table('peserta_didik')->count();
         $totalRombel = DB::table('rombongan_belajar')->count();
-        
+
         $setting = DB::table('settings')->where('id', 1)->first();
         $apiKey = $setting->api_key ?? 'sae_secret_live_key_2026';
         $lastSync = $setting->last_sync ?? ($sekolah->updated_at ?? '-');
@@ -37,6 +38,12 @@ class DapodikController extends Controller
         $hasActiveData = ($totalPesertaDidik > 0 || $totalGtk > 0 || $totalRombel > 0);
         $syncAllowed = $hasActiveData ? (bool)($setting->sync_allowed ?? false) : true;
         $archiveDownloadedAt = $setting->archive_downloaded_at ?? null;
+        $feederFile = public_path('downloads/SAE-Feeder-Setup.zip');
+        $feederDownload = File::exists($feederFile) ? [
+            'url' => asset('downloads/SAE-Feeder-Setup.zip'),
+            'size' => File::size($feederFile),
+            'updated_at' => File::lastModified($feederFile),
+        ] : null;
 
         return view('dashboard.tarik-data', compact(
             'sekolah',
@@ -47,7 +54,8 @@ class DapodikController extends Controller
             'lastSync',
             'hasActiveData',
             'syncAllowed',
-            'archiveDownloadedAt'
+            'archiveDownloadedAt',
+            'feederDownload'
         ));
     }
 
