@@ -82,7 +82,18 @@ class FeederReceiverController extends Controller
             $settings = DB::table('settings')->where('id', 1)->first();
             $syncAllowed = (bool)($settings->sync_allowed ?? false);
 
-            if (!$syncAllowed) {
+            // Toleransi jika arsip baru saja diunduh dalam 24 jam terakhir (sesi aktif)
+            $isRecentArchive = false;
+            if (!empty($settings->archive_downloaded_at)) {
+                try {
+                    $archiveTime = \Carbon\Carbon::parse($settings->archive_downloaded_at);
+                    if ($archiveTime->diffInHours(now()) < 24) {
+                        $isRecentArchive = true;
+                    }
+                } catch (\Exception $e) { }
+            }
+
+            if (!$syncAllowed && !$isRecentArchive) {
                 return response()->json([
                     'status' => 'error',
                     'success' => false,
@@ -94,6 +105,8 @@ class FeederReceiverController extends Controller
         }
 
         try {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
             $count = 0;
             $details = [];
 
@@ -171,6 +184,10 @@ class FeederReceiverController extends Controller
                 'success' => false,
                 'message' => 'Gagal menyimpan ke database: ' . $e->getMessage()
             ], 500);
+        } finally {
+            try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            } catch (\Exception $fe) { }
         }
     }
 
@@ -235,7 +252,7 @@ class FeederReceiverController extends Controller
             'created_at' => now(),
         ];
 
-        DB::table('sekolah')->truncate();
+        DB::table('sekolah')->delete();
         DB::table('sekolah')->insert($record);
         return 1;
     }
@@ -337,21 +354,21 @@ class FeederReceiverController extends Controller
         $this->archiveTable('pembelajaran', 'backup_pembelajaran');
 
         // Overwrite rombongan_belajar
-        DB::table('rombongan_belajar')->truncate();
+        DB::table('rombongan_belajar')->delete();
         foreach (array_chunk($batchRombel, 200) as $chunk) {
             DB::table('rombongan_belajar')->insert($chunk);
         }
 
         // Overwrite relational anggota_rombel & pembelajaran
         if (!empty($batchAnggota)) {
-            DB::table('anggota_rombel')->truncate();
+            DB::table('anggota_rombel')->delete();
             foreach (array_chunk(array_values($batchAnggota), 200) as $chunk) {
                 DB::table('anggota_rombel')->insert($chunk);
             }
         }
 
         if (!empty($batchPembelajaran)) {
-            DB::table('pembelajaran')->truncate();
+            DB::table('pembelajaran')->delete();
             foreach (array_chunk(array_values($batchPembelajaran), 200) as $chunk) {
                 DB::table('pembelajaran')->insert($chunk);
             }
@@ -425,7 +442,7 @@ class FeederReceiverController extends Controller
         $this->archiveTable('gtk', 'backup_gtk');
 
         // Overwrite live gtk
-        DB::table('gtk')->truncate();
+        DB::table('gtk')->delete();
         foreach (array_chunk($batchGtk, 200) as $chunk) {
             DB::table('gtk')->insert($chunk);
         }
@@ -619,7 +636,7 @@ class FeederReceiverController extends Controller
         $this->archiveTable('peserta_didik', 'backup_peserta_didik');
 
         // Overwrite live peserta_didik
-        DB::table('peserta_didik')->truncate();
+        DB::table('peserta_didik')->delete();
         foreach (array_chunk($batchPd, 250) as $chunk) {
             DB::table('peserta_didik')->insert($chunk);
         }
@@ -834,7 +851,7 @@ class FeederReceiverController extends Controller
                 }
             }
             if (Schema::hasTable('sessions')) {
-                DB::table('sessions')->truncate();
+                DB::table('sessions')->delete();
             }
         } catch (\Exception $e) {
             // Ignore session purge warning
