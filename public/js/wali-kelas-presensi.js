@@ -232,18 +232,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Intercept pagination clicks universally
-    document.addEventListener('click', function (e) {
-        const pageLink = e.target.closest('.custom-pagination a.page-btn');
-        if (pageLink && pageLink.href) {
-            e.preventDefault();
-            if (typeof window.refreshLiveTable === 'function') {
-                window.refreshLiveTable(pageLink.href);
-            } else {
-                window.location.href = pageLink.href;
-            }
-        }
-    });
 
     // =========================================================================
     // 3. PRESENSI MANUAL OLEH WALI KELAS (Event Delegation agar tahan AJAX)

@@ -492,8 +492,17 @@ window.refreshLiveTable = async function (url, options = {}) {
         return;
     }
 
+    // Hindari pemanggilan ganda jika URL tujuan yang sama sedang diproses
+    if (container.dataset.liveRefreshing === targetUrl) {
+        return;
+    }
+    container.dataset.liveRefreshing = targetUrl;
+
     // 2. Subtle loading visual feedback
-    const originalOpacity = container.style.opacity || "1";
+    const originalOpacity =
+        container.style.opacity && container.style.opacity !== "0.45"
+            ? container.style.opacity
+            : "";
     container.style.transition = "opacity 0.15s ease";
     container.style.opacity = "0.45";
     container.style.pointerEvents = "none";
@@ -617,7 +626,8 @@ window.refreshLiveTable = async function (url, options = {}) {
         window.location.href = fallbackUrl;
     } finally {
         container.style.opacity = originalOpacity;
-        container.style.pointerEvents = "auto";
+        container.style.pointerEvents = "";
+        delete container.dataset.liveRefreshing;
     }
 };
 

@@ -323,19 +323,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 newDir = "desc";
             }
             applyFilters({ sort: sortField, sort_dir: newDir });
-            return;
-        }
-
-        // 5. Intercept Pagination Clicks Universally
-        const pageLink = e.target.closest(".custom-pagination a.page-btn");
-        if (pageLink && pageLink.href) {
-            e.preventDefault();
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(pageLink.href);
-            } else {
-                window.location.href = pageLink.href;
-            }
-            return;
         }
     });
 
