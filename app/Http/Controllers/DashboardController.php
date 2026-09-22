@@ -244,7 +244,7 @@ class DashboardController extends Controller
 
                 foreach ($grouped as $g) {
                     $j = $g['data'];
-                    $rombelNama = $j->nama_rombel;
+                    $rombelNama = $j->nama_rombel ?? null;
                     if (!$rombelNama && !empty($j->rombongan_belajar_id)) {
                         $rb = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->first();
                         $rombelNama = $rb?->nama ?: 'Rombel';

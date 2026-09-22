@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -112,7 +112,7 @@
     <div class="error-container">
         <div class="error-logo">
             <img src="{{ asset('img/logo-icon.png') }}" alt="SAE" onerror="this.style.display='none'">
-            <span>SAE &mdash; Sistem Aplikasi Edukasi</span>
+            <span>Sistem Aplikasi Edukasi</span>
         </div>
 
         <div class="error-card">
