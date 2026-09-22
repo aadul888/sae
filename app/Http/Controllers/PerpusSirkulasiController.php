@@ -55,7 +55,7 @@ class PerpusSirkulasiController extends Controller
             });
         }
 
-        $list = $query->orderBy('s.' . $sort, $sortDir)->paginate($perPage)->withQueryString();
+        $sirkulasi = $query->orderBy('s.' . $sort, $sortDir)->paginate($perPage)->withQueryString();
 
         // Daftar Buku Tersedia untuk Modal Pinjam
         $bukuTersedia = DB::table('perpus_koleksi_buku')
@@ -76,14 +76,14 @@ class PerpusSirkulasiController extends Controller
 
         // Statistik Sirkulasi
         $stats = [
-            'total_pinjam' => DB::table('perpus_sirkulasi')->count(),
-            'sedang_dipinjam' => DB::table('perpus_sirkulasi')->where('status', 'dipinjam')->count(),
-            'terlambat' => DB::table('perpus_sirkulasi')->where('status', 'dipinjam')->where('tgl_jatuh_tempo', '<', date('Y-m-d'))->count(),
-            'sudah_kembali' => DB::table('perpus_sirkulasi')->where('status', 'kembali')->count(),
+            'total_pinjam'    => DB::table('perpus_sirkulasi')->count(),
+            'total_dipinjam'  => DB::table('perpus_sirkulasi')->where('status', 'dipinjam')->count(),
+            'terlambat'       => DB::table('perpus_sirkulasi')->where('status', 'dipinjam')->where('tgl_jatuh_tempo', '<', date('Y-m-d'))->count(),
+            'total_kembali'   => DB::table('perpus_sirkulasi')->where('status', 'kembali')->count(),
         ];
 
         return view('dashboard.perpus.sirkulasi', compact(
-            'list', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
+            'sirkulasi', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
             'bukuTersedia', 'bukuList', 'siswaList', 'gtkList',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));

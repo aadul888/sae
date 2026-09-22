@@ -38,7 +38,7 @@
                     ->first();
                 $mapelUtama = $topM?->nama_mata_pelajaran;
             }
-            $mapelUtama = $mapelUtama ?: ($gtk->bidang_studi_terakhir ?? session('user.mapel', 'Mata Pelajaran'));
+            $mapelUtama = $mapelUtama ?: ($gtk?->bidang_studi_terakhir ?? session('user.mapel', 'Mata Pelajaran'));
         }
     @endphp
 
@@ -106,16 +106,16 @@
                             <strong style="color: var(--text-color);">{{ $mapelUtama }}</strong>
                         </span>
                     @endif
-                    @if (!empty(session('user.nip', $gtk->nip ?? null)))
+                    @if (!empty(session('user.nip', $gtk?->nip ?? null)))
                         <span title="Nomor Induk Pegawai (NIP)">
                             <i class="fas fa-id-badge text-warning me-1"></i>
-                            <strong style="color: var(--text-color);">{{ session('user.nip', $gtk->nip) }}</strong>
+                            <strong style="color: var(--text-color);">{{ session('user.nip', $gtk?->nip) }}</strong>
                         </span>
                     @endif
-                    @if(!empty($gtk->status_kepegawaian_id_str))
+                    @if(!empty($gtk?->status_kepegawaian_id_str))
                         <span title="Status Kepegawaian">
                             <i class="fas fa-id-card-clip text-info me-1"></i>
-                            <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk->status_kepegawaian_id_str }}</span>
+                            <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk?->status_kepegawaian_id_str }}</span>
                         </span>
                     @endif
                 </div>

@@ -47,7 +47,7 @@ class PerpusKunjunganController extends Controller
             });
         }
 
-        $list = $query->orderBy($sort, $sortDir)->paginate($perPage)->withQueryString();
+        $kunjungan = $query->orderBy($sort, $sortDir)->paginate($perPage)->withQueryString();
 
         $stats = [
             'total_kunjungan' => DB::table('perpus_kunjungan')->count(),
@@ -69,7 +69,7 @@ class PerpusKunjunganController extends Controller
             ->get();
 
         return view('dashboard.perpus.kunjungan', compact(
-            'list', 'search', 'tanggal', 'tipe', 'perPage', 'sort', 'sortDir',
+            'kunjungan', 'search', 'tanggal', 'tipe', 'perPage', 'sort', 'sortDir',
             'siswaList', 'gtkList',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));

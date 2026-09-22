@@ -211,26 +211,33 @@ class DashboardController extends Controller
         $jadwal_hari_ini = [];
 
         if (!$isLiburHariIni && $gtk && Schema::hasTable('jadwal_kbm')) {
-            $jadwalRiil = DB::table('jadwal_kbm')
+            $jadwalRiilQuery = DB::table('jadwal_kbm')
                 ->where('ptk_id', $gtk->ptk_id)
-                ->where('hari', $hariIni)
-                ->orderBy('jam_ke')
-                ->get();
+                ->where('hari', $hariIni);
+
+            if (Schema::hasColumn('jadwal_kbm', 'jam_ke')) {
+                $jadwalRiilQuery->orderBy('jam_ke');
+            } elseif (Schema::hasColumn('jadwal_kbm', 'jam_mulai')) {
+                $jadwalRiilQuery->orderBy('jam_mulai');
+            }
+
+            $jadwalRiil = $jadwalRiilQuery->get();
 
             if ($jadwalRiil->isNotEmpty()) {
                 // Group jam yang berurutan untuk mapel dan rombel yang sama
                 $grouped = [];
                 foreach ($jadwalRiil as $j) {
                     $key = $j->rombongan_belajar_id . '_' . $j->nama_mata_pelajaran;
+                    $jamKe = (int) ($j->jam_ke ?? 1);
                     if (!isset($grouped[$key])) {
                         $grouped[$key] = [
-                            'jam_mulai' => $j->jam_mulai ?: sprintf('%02d:00', 6 + $j->jam_ke),
-                            'jam_selesai' => $j->jam_selesai ?: sprintf('%02d:45', 6 + $j->jam_ke),
+                            'jam_mulai' => ($j->jam_mulai ?? null) ?: sprintf('%02d:00', 6 + $jamKe),
+                            'jam_selesai' => ($j->jam_selesai ?? null) ?: sprintf('%02d:45', 6 + $jamKe),
                             'data' => $j,
                             'total_jp' => 1
                         ];
                     } else {
-                        $grouped[$key]['jam_selesai'] = $j->jam_selesai ?: sprintf('%02d:45', 6 + $j->jam_ke);
+                        $grouped[$key]['jam_selesai'] = ($j->jam_selesai ?? null) ?: sprintf('%02d:45', 6 + $jamKe);
                         $grouped[$key]['total_jp']++;
                     }
                 }
@@ -283,8 +290,18 @@ class DashboardController extends Controller
         }
 
         return view('dashboard.guru', compact(
-            'stats', 'jadwal_hari_ini', 'gtk', 'statusHariIni', 'agendaHariIni',
-            'hariIni', 'fotoUrl', 'mapelUtama', 'allGtkList', 'userRole', 'ptkId', 'userName'
+            'stats',
+            'jadwal_hari_ini',
+            'gtk',
+            'statusHariIni',
+            'agendaHariIni',
+            'hariIni',
+            'fotoUrl',
+            'mapelUtama',
+            'allGtkList',
+            'userRole',
+            'ptkId',
+            'userName'
         ));
     }
 
@@ -310,8 +327,16 @@ class DashboardController extends Controller
                     if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
                 })
                 ->whereIn('rtt.kode', [
-                    'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
-                    'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
+                    'KEPALA_TAS',
+                    'STAF_PERSURATAN',
+                    'STAF_KESISWAAN',
+                    'STAF_KEPEGAWAIAN',
+                    'STAF_SARPRAS',
+                    'LABORAN',
+                    'PUSTAKAWAN',
+                    'TEKNISI_IT',
+                    'SATPAM',
+                    'PENJAGA_SEKOLAH'
                 ])
                 ->exists();
         }
@@ -499,7 +524,8 @@ class DashboardController extends Controller
                     'selesai',
                     'Sesi Login Terverifikasi'
                 );
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+            }
 
             $userBaseQuery = DB::table('tendik_aktivitas')->where(function ($q) use ($userId, $ptkId) {
                 if ($userId) $q->where('user_id', $userId);
@@ -594,9 +620,9 @@ class DashboardController extends Controller
             'gtk_tugas_tambahan' => $gtkTugasCount,
             'total_jam_kbm'      => $totalJamKbm,
             'total_ruangan'      => Schema::hasTable('rombongan_belajar') ? (DB::table('rombongan_belajar')->distinct('id_ruang_str')->count('id_ruang_str') ?: 33) : 33,
-            'jam_praktik'        => Schema::hasTable('pembelajaran') ? (DB::table('pembelajaran')->where(function($q){
+            'jam_praktik'        => Schema::hasTable('pembelajaran') ? (DB::table('pembelajaran')->where(function ($q) {
                 $q->where('nama_mata_pelajaran', 'like', '%praktik%')
-                  ->orWhere('nama_mata_pelajaran', 'like', '%kejuruan%');
+                    ->orWhere('nama_mata_pelajaran', 'like', '%kejuruan%');
             })->sum('jam_mengajar_per_minggu') ?: 48) : 48,
             'total_pengguna'     => Schema::hasTable('pengguna') ? DB::table('pengguna')->count() : 1230,
         ];
@@ -605,7 +631,7 @@ class DashboardController extends Controller
         $stafTas = collect();
         if (Schema::hasTable('gtk')) {
             $stafTas = DB::table('gtk')
-                ->leftJoin('ptk_tugas_tambahan as ptt', function($join) {
+                ->leftJoin('ptk_tugas_tambahan as ptt', function ($join) {
                     $join->on('gtk.ptk_id', '=', 'ptt.ptk_id')->where('ptt.is_active', true);
                 })
                 ->leftJoin('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
@@ -673,11 +699,11 @@ class DashboardController extends Controller
             $jadwalLab = DB::table('pembelajaran as p')
                 ->join('rombongan_belajar as rb', 'p.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
                 ->leftJoin('gtk', 'p.ptk_id', '=', 'gtk.ptk_id')
-                ->where(function($q) {
+                ->where(function ($q) {
                     $q->where('p.nama_mata_pelajaran', 'like', '%kejuruan%')
-                      ->orWhere('p.nama_mata_pelajaran', 'like', '%praktik%')
-                      ->orWhere('p.nama_mata_pelajaran', 'like', '%agribisnis%')
-                      ->orWhere('p.nama_mata_pelajaran', 'like', '%kehutanan%');
+                        ->orWhere('p.nama_mata_pelajaran', 'like', '%praktik%')
+                        ->orWhere('p.nama_mata_pelajaran', 'like', '%agribisnis%')
+                        ->orWhere('p.nama_mata_pelajaran', 'like', '%kehutanan%');
                 })
                 ->select('p.nama_mata_pelajaran', 'rb.nama as nama_rombel', 'gtk.nama as nama_guru', 'p.jam_mengajar_per_minggu')
                 ->orderByDesc('p.jam_mengajar_per_minggu')
@@ -698,9 +724,9 @@ class DashboardController extends Controller
         $piketStats = [
             'total_guru'   => $totalGuru ?: 48,
             'guru_hadir'   => 0,
-            'jurnal_terisi'=> 0,
-            'izin_hari_ini'=> 0,
-            'izin_menunggu'=> 0,
+            'jurnal_terisi' => 0,
+            'izin_hari_ini' => 0,
+            'izin_menunggu' => 0,
         ];
         $recentIzinSiswa = collect();
         $recentAgendaKbm = collect();
@@ -772,14 +798,38 @@ class DashboardController extends Controller
         if ($piketStats['izin_hari_ini'] === 0) $piketStats['izin_hari_ini'] = 5;
 
         return view('dashboard.tendik', compact(
-            'stats', 'administrasi_tugas', 'gtk', 'fotoUrl', 'bagianTugas',
-            'dutyCodes', 'isKepalaTas', 'primaryDuty', 'currentDuty', 'viewSection',
-            'stafTas', 'persuratanTerbaru', 'persuratanList', 'rombelRekap', 'siswaTerbaru',
-            'gtkTugasList', 'gtkList', 'ruangList', 'jadwalLab',
-            'piketStats', 'recentIzinSiswa', 'recentAgendaKbm', 'recentPresensiGuru',
-            'aktivitasHariIniCount', 'aktivitasHariIniSelesai', 'aktivitasHariIniProses',
-            'aktivitasHariIniTertunda', 'durasiBulanLabel', 'aktivitasSayaList', 'pengumumanList',
-            'presensiMasuk', 'statusPresensi'
+            'stats',
+            'administrasi_tugas',
+            'gtk',
+            'fotoUrl',
+            'bagianTugas',
+            'dutyCodes',
+            'isKepalaTas',
+            'primaryDuty',
+            'currentDuty',
+            'viewSection',
+            'stafTas',
+            'persuratanTerbaru',
+            'persuratanList',
+            'rombelRekap',
+            'siswaTerbaru',
+            'gtkTugasList',
+            'gtkList',
+            'ruangList',
+            'jadwalLab',
+            'piketStats',
+            'recentIzinSiswa',
+            'recentAgendaKbm',
+            'recentPresensiGuru',
+            'aktivitasHariIniCount',
+            'aktivitasHariIniSelesai',
+            'aktivitasHariIniProses',
+            'aktivitasHariIniTertunda',
+            'durasiBulanLabel',
+            'aktivitasSayaList',
+            'pengumumanList',
+            'presensiMasuk',
+            'statusPresensi'
         ));
     }
 
