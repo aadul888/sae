@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -26,32 +27,51 @@ class AuthController extends Controller
         $identifier = trim($request->input('username'));
         $password = $request->input('password');
 
-        // Cari user berdasarkan username, atau relasi GTK (nip/nuptk/nik) / Peserta Didik (nisn/nik/nipd)
-        $user = User::where('username', $identifier)
-            ->orWhereIn('ptk_id', function ($q) use ($identifier) {
-                $q->select('ptk_id')->from('gtk')
-                    ->where('nip', $identifier)
-                    ->orWhere('nuptk', $identifier)
-                    ->orWhere('nik', $identifier)
-                    ->orWhere('email', $identifier);
-            })
-            ->orWhereIn('peserta_didik_id', function ($q) use ($identifier) {
-                $q->select('peserta_didik_id')->from('peserta_didik')
-                    ->where('nisn', $identifier)
-                    ->orWhere('nik', $identifier)
-                    ->orWhere('nipd', $identifier)
-                    ->orWhere('email', $identifier);
-            })
-            ->first();
+        // Cari user berdasarkan username, atau relasi GTK/Peserta Didik jika tabel dan kolomnya tersedia.
+        $userQuery = User::where('username', $identifier);
+        if (Schema::hasTable('gtk')) {
+            $gtkColumns = array_values(array_filter(['nip', 'nuptk', 'nik', 'email'], fn($column) => Schema::hasColumn('gtk', $column)));
+            if ($gtkColumns) {
+                $userQuery->orWhereIn('ptk_id', function ($q) use ($identifier, $gtkColumns) {
+                    $q->select('ptk_id')->from('gtk')
+                        ->where(function ($sub) use ($identifier, $gtkColumns) {
+                            foreach ($gtkColumns as $column) {
+                                $sub->orWhere($column, $identifier);
+                            }
+                        });
+                });
+            }
+        }
+        if (Schema::hasTable('peserta_didik')) {
+            $pdColumns = array_values(array_filter(['nisn', 'nik', 'nipd', 'email'], fn($column) => Schema::hasColumn('peserta_didik', $column)));
+            if ($pdColumns) {
+                $userQuery->orWhereIn('peserta_didik_id', function ($q) use ($identifier, $pdColumns) {
+                    $q->select('peserta_didik_id')->from('peserta_didik')
+                        ->where(function ($sub) use ($identifier, $pdColumns) {
+                            foreach ($pdColumns as $column) {
+                                $sub->orWhere($column, $identifier);
+                            }
+                        });
+                });
+            }
+        }
+        $user = $userQuery->first();
 
         if (!$user) {
             // Cek apakah ada di tabel peserta_didik (misal belum dibuatkan record pengguna)
-            $pdCandidate = \Illuminate\Support\Facades\DB::table('peserta_didik')
-                ->where('nisn', $identifier)
-                ->orWhere('nik', $identifier)
-                ->orWhere('nipd', $identifier)
-                ->orWhere('email', $identifier)
-                ->first();
+            $pdCandidate = null;
+            $pdColumns = Schema::hasTable('peserta_didik')
+                ? array_values(array_filter(['nisn', 'nik', 'nipd', 'email'], fn($column) => Schema::hasColumn('peserta_didik', $column)))
+                : [];
+            if ($pdColumns) {
+                $pdCandidate = \Illuminate\Support\Facades\DB::table('peserta_didik')
+                    ->where(function ($q) use ($identifier, $pdColumns) {
+                        foreach ($pdColumns as $column) {
+                            $q->orWhere($column, $identifier);
+                        }
+                    })
+                    ->first();
+            }
 
             if ($pdCandidate) {
                 $studentNisn = $pdCandidate->nisn ?: $identifier;
@@ -220,7 +240,8 @@ class AuthController extends Controller
                 'selesai',
                 'Sesi Login Aktif'
             );
-        } catch (\Throwable) {}
+        } catch (\Throwable) {
+        }
 
         // Arahkan kembali ke formulir jika ada antrean URL yang dituju
         if (session()->has('url.intended')) {

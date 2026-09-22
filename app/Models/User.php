@@ -114,9 +114,11 @@ class User extends Authenticatable
 
             // 2. Jika mengampu mata pelajaran pada tabel pembelajaran, tugas utamanya adalah GURU
             if (!empty($this->ptk_id)) {
-                $isMengajar = \Illuminate\Support\Facades\DB::table('pembelajaran')->where('ptk_id', $this->ptk_id)->exists();
-                if ($isMengajar) {
-                    return 'guru';
+                if (\Illuminate\Support\Facades\Schema::hasTable('pembelajaran')) {
+                    $isMengajar = \Illuminate\Support\Facades\DB::table('pembelajaran')->where('ptk_id', $this->ptk_id)->exists();
+                    if ($isMengajar) {
+                        return 'guru';
+                    }
                 }
             }
 
@@ -131,8 +133,16 @@ class User extends Authenticatable
                         if (!empty($this->ptk_id)) $q->orWhere('ptt.ptk_id', $this->ptk_id);
                     })
                     ->whereIn('rtt.kode', [
-                        'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
-                        'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
+                        'KEPALA_TAS',
+                        'STAF_PERSURATAN',
+                        'STAF_KESISWAAN',
+                        'STAF_KEPEGAWAIAN',
+                        'STAF_SARPRAS',
+                        'LABORAN',
+                        'PUSTAKAWAN',
+                        'TEKNISI_IT',
+                        'SATPAM',
+                        'PENJAGA_SEKOLAH'
                     ])
                     ->exists();
 
