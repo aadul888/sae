@@ -200,7 +200,7 @@ class RolePermission extends Model
                 'menu_kepala_tas' => [
                     'label' => 'Dashboard & Manajemen Kepala TAS',
                     'icon' => 'fa-user-tie',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -208,22 +208,22 @@ class RolePermission extends Model
                 'menu_persuratan' => [
                     'label' => 'Dashboard & Modul Persuratan',
                     'icon' => 'fa-envelope-open-text',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_surat_masuk' => [
                     'label' => 'Buku Agenda Surat Masuk',
                     'icon' => 'fa-inbox',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_surat_keluar' => [
                     'label' => 'Buku Agenda Surat Keluar',
                     'icon' => 'fa-paper-plane',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_pengaturan_persuratan' => [
                     'label' => 'Pengaturan & Arsip HDD Persuratan',
                     'icon' => 'fa-sliders',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -231,40 +231,60 @@ class RolePermission extends Model
                 'menu_kesiswaan' => [
                     'label' => 'Administrasi Kesiswaan Terpadu',
                     'icon' => 'fa-user-graduate',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_kesiswaan_peserta_didik' => [
                     'label' => 'Kesiswaan: Data Peserta Didik',
                     'icon' => 'fa-users',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_kesiswaan_administrasi' => [
                     'label' => 'Kesiswaan: Administrasi (Klaper, Mutasi, Kelulusan)',
                     'icon' => 'fa-book-bookmark',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_kesiswaan_kedisiplinan' => [
                     'label' => 'Kesiswaan: Kedisiplinan & Tata Tertib',
                     'icon' => 'fa-shield-halved',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_kesiswaan_kegiatan' => [
                     'label' => 'Kesiswaan: Kegiatan Siswa & OSIS/Ekskul',
                     'icon' => 'fa-people-group',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_kesiswaan_prestasi' => [
                     'label' => 'Kesiswaan: Prestasi Peserta Didik',
                     'icon' => 'fa-trophy',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
             'Tendik: Kepegawaian' => [
                 'menu_kepegawaian' => [
-                    'label' => 'Kepegawaian GTK & KGB',
-                    'icon' => 'fa-id-card-clip',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'label' => 'Dashboard Kepegawaian GTK',
+                    'icon' => 'fa-gauge-high',
+                    'roles' => ['admin', 'tendik'],
+                ],
+                'menu_kepegawaian_guru' => [
+                    'label' => 'Kepegawaian: Pegawai Guru',
+                    'icon' => 'fa-chalkboard-user',
+                    'roles' => ['admin', 'tendik'],
+                ],
+                'menu_kepegawaian_tendik' => [
+                    'label' => 'Kepegawaian: Pegawai Tendik',
+                    'icon' => 'fa-id-badge',
+                    'roles' => ['admin', 'tendik'],
+                ],
+                'menu_kepegawaian_kgb' => [
+                    'label' => 'Kepegawaian: KGB Tracker',
+                    'icon' => 'fa-business-time',
+                    'roles' => ['admin', 'tendik'],
+                ],
+                'menu_kepegawaian_cuti' => [
+                    'label' => 'Kepegawaian: Cuti & Izin',
+                    'icon' => 'fa-plane-departure',
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -272,7 +292,7 @@ class RolePermission extends Model
                 'menu_keuangan' => [
                     'label' => 'Administrasi Keuangan & Komite',
                     'icon' => 'fa-wallet',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -280,12 +300,12 @@ class RolePermission extends Model
                 'menu_sarpras' => [
                     'label' => 'Sarana & Prasarana Sekolah',
                     'icon' => 'fa-building',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_inventaris' => [
                     'label' => 'Inventaris Sarpras',
                     'icon' => 'fa-boxes-stacked',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -293,7 +313,7 @@ class RolePermission extends Model
                 'menu_laboran' => [
                     'label' => 'Laboratorium & Praktik',
                     'icon' => 'fa-flask',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -301,7 +321,7 @@ class RolePermission extends Model
                 'menu_perpustakaan' => [
                     'label' => 'Perpustakaan & Buku Digital',
                     'icon' => 'fa-book-open',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -309,7 +329,7 @@ class RolePermission extends Model
                 'menu_teknisi' => [
                     'label' => 'Teknisi IT & Infrastruktur',
                     'icon' => 'fa-network-wired',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -317,7 +337,7 @@ class RolePermission extends Model
                 'menu_keamanan' => [
                     'label' => 'Keamanan & Pos Satpam',
                     'icon' => 'fa-shield-halved',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -325,7 +345,7 @@ class RolePermission extends Model
                 'menu_penjaga' => [
                     'label' => 'Fasilitas & Penjaga Sekolah',
                     'icon' => 'fa-broom',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -341,12 +361,12 @@ class RolePermission extends Model
                 'menu_aktivitas_tendik' => [
                     'label' => 'Aktivitas Harian Tendik',
                     'icon' => 'fa-list-check',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_laporan_tendik' => [
                     'label' => 'Laporan Kinerja Tendik',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['admin', 'tendik', 'guru'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
