@@ -289,11 +289,17 @@
             const btn = document.getElementById('btnSubmitKiosk');
 
             // Pastikan reader RFID selalu mengetik ke input
-            window.addEventListener('click', () => {
-                if (input && document.activeElement !== input) input.focus();
+            // Guard: jangan paksa fokus saat dialog/Swal aktif atau sedang submit
+            function shouldAutoFocus() {
+                if (typeof Swal !== 'undefined' && Swal.isVisible()) return false;
+                if (document.querySelector('.sae-dialog-overlay')) return false;
+                return true;
+            }
+            window.addEventListener('click', (e) => {
+                if (input && document.activeElement !== input && shouldAutoFocus()) input.focus();
             });
-            window.addEventListener('keydown', () => {
-                if (input && document.activeElement !== input) input.focus();
+            window.addEventListener('keydown', (e) => {
+                if (input && document.activeElement !== input && shouldAutoFocus()) input.focus();
             });
 
             // Helper: tampilkan alert dengan fallback jika SAE.alert belum siap
@@ -309,10 +315,13 @@
             }
 
             // Helper: reset tombol ke keadaan semula
-            function resetBtn() {
+            // Catatan: fokus ke input dilakukan SETELAH dialog tertutup agar tidak
+            // memicu loop rekursif antara keydown-listener dan SweetAlert2
+            function resetBtn(focusInput = false) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-key"></i> <span>Buka Terminal Pemindai</span>';
-                if (input) { input.value = ''; input.focus(); }
+                if (input) input.value = '';
+                if (focusInput && input) input.focus();
             }
 
             if (form) {
@@ -372,17 +381,19 @@
                             }
                             errMsg = errMsg || 'Kode akses atau kartu RFID tidak valid.';
 
-                            resetBtn();
+                            resetBtn(false); // reset dulu, fokus setelah Swal tutup
                             await showAlert(errMsg, 'Akses Ditolak', 'danger', 2500);
+                            if (input) input.focus();
                         }
                     } catch (err) {
-                        resetBtn();
+                        resetBtn(false);
                         await showAlert(
                             'Gagal terhubung ke server. Periksa jaringan Anda dan coba lagi.',
                             'Kesalahan Jaringan',
                             'danger',
                             2500
                         );
+                        if (input) input.focus();
                     }
                 });
             }
