@@ -640,15 +640,10 @@ class PresensiController extends Controller
         $presensi->nisn = $siswa->nisn;
         $presensi->rombongan_belajar_id = $siswa->rombongan_belajar_id;
 
-        // 6. Simpan Foto Snapshot Live Kamera jika ada
-        $snapshotPath = null;
-        if (!empty($snapshotBase64) && str_starts_with($snapshotBase64, 'data:image/')) {
-            try {
-                $snapshotPath = $this->saveSnapshotImage($snapshotBase64, $siswa->nisn ?: $siswa->peserta_didik_id, $now);
-            } catch (\Throwable $e) {
-                // Ignore snapshot error to prevent blocking attendance
-            }
-        }
+        // 6. Simpan Foto Snapshot Live Kamera — dilakukan SETELAH validasi duplikasi
+        // agar foto tidak tersimpan ganda saat siswa scan ulang
+        // (snapshotBase64 disimpan sementara, path baru dibuat saat benar-benar dibutuhkan)
+        $hasSnapshot = !empty($snapshotBase64) && str_starts_with($snapshotBase64, 'data:image/');
 
         // 7. Logika Penentuan Masuk vs Pulang
         $actionType = 'masuk';
@@ -675,6 +670,15 @@ class PresensiController extends Controller
 
             $presensi->jam_pulang = $currentTime;
             $presensi->metode_pulang = $metodeScan;
+
+            // Simpan snapshot HANYA saat presensi pulang baru dicatat
+            if ($hasSnapshot) {
+                try {
+                    $snapshotPath = $this->saveSnapshotImage($snapshotBase64, $siswa->nisn ?: $siswa->peserta_didik_id, $now);
+                } catch (\Throwable $e) {
+                    // Snapshot error tidak memblokir pencatatan presensi
+                }
+            }
             if ($snapshotPath) {
                 $presensi->foto_pulang = $snapshotPath;
             }
@@ -713,6 +717,15 @@ class PresensiController extends Controller
 
             $presensi->jam_masuk = $currentTime;
             $presensi->metode_masuk = $metodeScan;
+
+            // Simpan snapshot HANYA saat presensi masuk baru dicatat
+            if ($hasSnapshot) {
+                try {
+                    $snapshotPath = $this->saveSnapshotImage($snapshotBase64, $siswa->nisn ?: $siswa->peserta_didik_id, $now);
+                } catch (\Throwable $e) {
+                    // Snapshot error tidak memblokir pencatatan presensi
+                }
+            }
             if ($snapshotPath) {
                 $presensi->foto_masuk = $snapshotPath;
             }

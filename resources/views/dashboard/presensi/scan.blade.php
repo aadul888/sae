@@ -27,7 +27,8 @@
         href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">
     <link rel="stylesheet"
         href="{{ asset('css/presensi.css') }}?v={{ file_exists(public_path('css/presensi.css')) ? filemtime(public_path('css/presensi.css')) : time() }}">
-    <link rel="stylesheet" href="{{ asset('vendor/sweetalert2/sweetalert2.min.css') }}">
+    <!-- SweetAlert2 (bundle CSS+JS): wajib di head sebelum sae.js agar shim tidak aktif -->
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
     <link rel="shortcut icon" href="{{ asset('favicon.png') }}?v={{ @filemtime(public_path('favicon.png')) ?: '1' }}">
     @include('partials.pwa-head')
@@ -417,7 +418,7 @@
     </div>
 
     <!-- Vendor Scripts & Presensi Scan Logic -->
-    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    {{-- sweetalert2.all.min.js sudah dimuat di <head>, tidak perlu dimuat ulang --}}
     <script src="{{ asset('vendor/jsqr/jsqr.min.js') }}"></script>
     <script
         src="{{ asset('js/sae.js') }}?v={{ file_exists(public_path('js/sae.js')) ? filemtime(public_path('js/sae.js')) : time() }}">
