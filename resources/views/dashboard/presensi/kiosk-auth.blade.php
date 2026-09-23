@@ -296,6 +296,25 @@
                 if (input && document.activeElement !== input) input.focus();
             });
 
+            // Helper: tampilkan alert dengan fallback jika SAE.alert belum siap
+            function showAlert(msg, title, type, timeout) {
+                if (window.SAE && typeof window.SAE.alert === 'function') {
+                    return window.SAE.alert(msg, title, type, timeout);
+                }
+                // Fallback native — selalu resolve
+                return new Promise((resolve) => {
+                    alert(title + '\n' + msg);
+                    resolve();
+                });
+            }
+
+            // Helper: reset tombol ke keadaan semula
+            function resetBtn() {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-key"></i> <span>Buka Terminal Pemindai</span>';
+                if (input) { input.value = ''; input.focus(); }
+            }
+
             if (form) {
                 form.addEventListener('submit', async function (e) {
                     e.preventDefault();
@@ -319,36 +338,51 @@
                             body: JSON.stringify({ kode_akses: code })
                         });
 
+                        // Pastikan response benar-benar JSON (bukan HTML redirect/error page)
+                        const contentType = res.headers.get('Content-Type') || '';
+                        if (!contentType.includes('application/json')) {
+                            // Session expired / redirect — reload paksa agar CSRF token segar
+                            resetBtn();
+                            await showAlert(
+                                'Sesi habis atau server mengarahkan ulang. Halaman akan dimuat ulang.',
+                                'Sesi Berakhir',
+                                'warning',
+                                2000
+                            );
+                            window.location.reload();
+                            return;
+                        }
+
                         const data = await res.json();
 
                         if (res.ok && data.status === 'success') {
-                            window.SAE.alert(
+                            btn.innerHTML = '<i class="fas fa-check-circle"></i> <span>Akses Diterima!</span>';
+                            await showAlert(
                                 data.message || 'Membuka layar terminal scanner presensi...',
                                 'Akses Diterima',
                                 'success',
                                 1200
-                            ).then(() => {
-                                window.location.href = data.redirect_url || "{{ route('presensi.scan') }}";
-                            });
+                            );
+                            window.location.href = data.redirect_url || "{{ route('presensi.scan') }}";
                         } else {
-                            window.SAE.alert(
-                                data.message || 'Kode akses atau kartu RFID tidak valid.',
-                                'Akses Ditolak',
-                                'danger',
-                                1800
-                            ).then(() => {
-                                window.location.reload();
-                            });
+                            // Tangani pesan dari errors Laravel (422) maupun message biasa
+                            let errMsg = data.message || '';
+                            if (!errMsg && data.errors) {
+                                errMsg = Object.values(data.errors).flat().join(' ');
+                            }
+                            errMsg = errMsg || 'Kode akses atau kartu RFID tidak valid.';
+
+                            resetBtn();
+                            await showAlert(errMsg, 'Akses Ditolak', 'danger', 2500);
                         }
                     } catch (err) {
-                        window.SAE.alert(
-                            'Gagal terhubung ke server verifikasi. Silakan periksa jaringan Anda.',
-                            'Kesalahan Server',
+                        resetBtn();
+                        await showAlert(
+                            'Gagal terhubung ke server. Periksa jaringan Anda dan coba lagi.',
+                            'Kesalahan Jaringan',
                             'danger',
-                            2000
-                        ).then(() => {
-                            window.location.reload();
-                        });
+                            2500
+                        );
                     }
                 });
             }
