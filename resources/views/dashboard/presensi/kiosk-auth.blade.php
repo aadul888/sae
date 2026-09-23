@@ -14,6 +14,9 @@
     <!-- SAE Design System & CSS -->
     <link rel="stylesheet" href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
 
+    <!-- SweetAlert2: wajib dimuat sebelum sae.js agar shim fallback tidak aktif -->
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
+
     <style>
         body {
             min-height: 100vh;
@@ -302,12 +305,25 @@
                 if (input && document.activeElement !== input && shouldAutoFocus()) input.focus();
             });
 
-            // Helper: tampilkan alert dengan fallback jika SAE.alert belum siap
+            // Helper: tampilkan alert langsung via Swal.fire() — TIDAK melalui
+            // window.SAE.alert() untuk menghindari rekursi melalui shim polyfill
             function showAlert(msg, title, type, timeout) {
-                if (window.SAE && typeof window.SAE.alert === 'function') {
-                    return window.SAE.alert(msg, title, type, timeout);
+                if (typeof Swal !== 'undefined') {
+                    const iconMap = { success: 'success', danger: 'error', error: 'error', warning: 'warning', info: 'info' };
+                    return Swal.fire({
+                        title: title,
+                        html: msg,
+                        icon: iconMap[type] || 'info',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#4f46e5',
+                        timer: timeout > 0 ? timeout : undefined,
+                        timerProgressBar: timeout > 0,
+                        background: '#0f172a',
+                        color: '#f8fafc',
+                        customClass: { popup: 'sae-swal-popup' }
+                    });
                 }
-                // Fallback native — selalu resolve
+                // Fallback native jika Swal benar-benar tidak ada
                 return new Promise((resolve) => {
                     alert(title + '\n' + msg);
                     resolve();
