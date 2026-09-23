@@ -28,7 +28,8 @@
             $fotoUrl = \App\Models\User::where('ptk_id', $gtk->ptk_id)->whereNotNull('foto_path')->first()?->foto_url;
         }
 
-        if (!isset($mapelUtama) || empty($mapelUtama)) {
+        $mapelUtama = $mapelUtama ?? null;
+        if (empty($mapelUtama)) {
             if (!empty($gtk?->ptk_id)) {
                 $topM = \DB::table('pembelajaran')
                     ->where('ptk_id', $gtk->ptk_id)
@@ -176,18 +177,11 @@
                 <div class="dash-stat-label">Peserta Didik Terdaftar</div>
             </div>
         </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
-                <i class="fas fa-circle-check"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.15rem; color: #10b981;">{{ $stats['status_presensi'] }}
-                </div>
-                <div class="dash-stat-label">Masuk: {{ $stats['presensi_masuk'] }}</div>
-            </div>
-        </div>
     </div>
+
+
+
+
 
     @php
         $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false);

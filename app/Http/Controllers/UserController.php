@@ -120,11 +120,64 @@ class UserController extends Controller
         $tendiks = tap($tendikQuery, $orderFn)->paginate($perPage, ['*'], 'tendik_page');
         $pesertaDidiks  = tap($pesertaDidikQuery, $orderFn)->paginate($perPage, ['*'], 'peserta_didik_page');
 
+        // Tab 5: Tugas Tambahan & Penugasan
+        $tugasQuery = DB::table('ptk_tugas_tambahan as ptt')
+            ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+            ->leftJoin('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
+            ->leftJoin('pengguna as p', 'ptt.user_id', '=', 'p.pengguna_id')
+            ->leftJoin('rombongan_belajar as rb', 'ptt.rombel_id', '=', 'rb.rombongan_belajar_id')
+            ->select(
+                'ptt.id',
+                'ptt.user_id',
+                'ptt.ptk_id',
+                'ptt.nomor_sk',
+                'ptt.tmt_tugas',
+                'ptt.tst_tugas',
+                'ptt.keterangan',
+                'ptt.is_active',
+                'rtt.kode as tugas_kode',
+                'rtt.nama as tugas_nama',
+                'rtt.kelompok as tugas_kelompok',
+                'rtt.bidang as tugas_bidang',
+                'rtt.ekuivalensi_jam',
+                'rtt.icon as tugas_icon',
+                DB::raw("COALESCE(gtk.nama, p.nama, 'Belum Terhubung') as ptk_nama"),
+                DB::raw("COALESCE(gtk.nip, '-') as ptk_nip"),
+                'rb.nama as rombel_nama'
+            );
+
+        if ($q !== '') {
+            $tugasQuery->where(function ($sub) use ($q) {
+                $sub->where('gtk.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('p.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('gtk.nip', 'LIKE', "%{$q}%")
+                    ->orWhere('rtt.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('rtt.bidang', 'LIKE', "%{$q}%")
+                    ->orWhere('rb.nama', 'LIKE', "%{$q}%");
+            });
+        }
+
+        $tugasTambahanList = $tugasQuery->orderBy('rtt.kelompok')
+            ->orderBy('rtt.bidang')
+            ->orderBy('ptk_nama')
+            ->paginate($perPage, ['*'], 'tugas_page');
+
+        $refTugasList = DB::table('ref_tugas_tambahan')
+            ->where('is_active', true)
+            ->orderBy('kelompok')
+            ->orderBy('bidang')
+            ->orderBy('nama')
+            ->get();
+
+        $ptkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
+        $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
+
         $counts = [
-            'admin'         => (clone $adminQuery)->count(),
-            'guru'          => (clone $guruQuery)->count(),
-            'tendik'        => (clone $tendikQuery)->count(),
-            'peserta_didik' => (clone $pesertaDidikQuery)->count(),
+            'admin'          => (clone $adminQuery)->count(),
+            'guru'           => (clone $guruQuery)->count(),
+            'tendik'         => (clone $tendikQuery)->count(),
+            'peserta_didik'  => (clone $pesertaDidikQuery)->count(),
+            'tugas_tambahan' => DB::table('ptk_tugas_tambahan')->count(),
         ];
 
         return view('dashboard.pengguna', compact(
@@ -132,6 +185,10 @@ class UserController extends Controller
             'gurus',
             'tendiks',
             'pesertaDidiks',
+            'tugasTambahanList',
+            'refTugasList',
+            'ptkList',
+            'rombelList',
             'counts',
             'activeTab',
             'q',
@@ -243,5 +300,147 @@ class UserController extends Controller
         $user->save();
 
         return back()->with('success', "Password peserta didik {$user->nama} direset ke NISN.");
+    }
+
+    /**
+     * Simpan penugasan tugas tambahan PTK dari Manajemen Pengguna
+     */
+    public function storeTugasTambahan(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'create')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+        }
+
+        $request->validate([
+            'ptk_id' => 'required|string',
+            'tugas_tambahan_id' => 'required|integer|exists:ref_tugas_tambahan,id',
+            'nomor_sk' => 'nullable|string|max:100',
+            'tmt_tugas' => 'nullable|date',
+            'tst_tugas' => 'nullable|date',
+            'rombel_id' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+        ]);
+
+        $ptkId = $request->input('ptk_id');
+        $tugasId = (int) $request->input('tugas_tambahan_id');
+        $rombelId = $request->input('rombel_id');
+
+        $tugas = DB::table('ref_tugas_tambahan')->where('id', $tugasId)->first();
+        if (!$tugas) {
+            return response()->json(['status' => 'error', 'message' => 'Tugas tambahan tidak ditemukan.'], 422);
+        }
+
+        // 1. Cek apakah PTK ini sudah mengemban tugas tambahan yang sama
+        $existingPtkDuty = \App\Models\PtkTugasTambahan::where('ptk_id', $ptkId)
+            ->where('tugas_tambahan_id', $tugasId)
+            ->where('is_active', true)
+            ->first();
+
+        if ($existingPtkDuty) {
+            return response()->json([
+                'status' => 'error',
+                'message' => "Personel ini sudah memiliki tugas tambahan sebagai {$tugas->nama}.",
+            ], 422);
+        }
+
+        // 2. Khusus Wali Kelas: Validasi kelas tidak boleh memiliki lebih dari 1 wali kelas aktif
+        if ($tugas->kode === 'WALI_KELAS') {
+            if (empty($rombelId)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Silakan pilih rombongan belajar (kelas) untuk penugasan Wali Kelas.',
+                ], 422);
+            }
+
+            $existingClassWali = \App\Models\PtkTugasTambahan::where('tugas_tambahan_id', $tugasId)
+                ->where('rombel_id', $rombelId)
+                ->where('is_active', true)
+                ->first();
+
+            if ($existingClassWali) {
+                $ptkName = DB::table('gtk')->where('ptk_id', $existingClassWali->ptk_id)->value('nama') ?? 'Guru lain';
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Kelas tersebut sudah memiliki Wali Kelas aktif ({$ptkName}).",
+                ], 422);
+            }
+        }
+
+        // 3. Khusus Jabatan Tunggal (Waka, Kepala TAS, Operator): hanya 1 orang aktif di sekolah
+        $singleRoles = ['WAKA_KURIKULUM', 'WAKA_KESISWAAN', 'WAKA_HUBIN', 'WAKA_SARPRAS', 'KEPALA_TAS', 'OPERATOR_DAPODIK'];
+        if (in_array($tugas->kode, $singleRoles, true)) {
+            $existingSingle = \App\Models\PtkTugasTambahan::where('tugas_tambahan_id', $tugasId)
+                ->where('is_active', true)
+                ->first();
+
+            if ($existingSingle) {
+                $occupantName = DB::table('gtk')->where('ptk_id', $existingSingle->ptk_id)->value('nama')
+                    ?? (DB::table('pengguna')->where('ptk_id', $existingSingle->ptk_id)->value('nama') ?? 'Personel lain');
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Jabatan {$tugas->nama} saat ini sudah dijabat oleh {$occupantName}.",
+                ], 422);
+            }
+        }
+
+        $userId = DB::table('pengguna')->where('ptk_id', $ptkId)->value('pengguna_id');
+
+        \App\Models\PtkTugasTambahan::create([
+            'user_id' => $userId,
+            'ptk_id' => $ptkId,
+            'tugas_tambahan_id' => $tugasId,
+            'nomor_sk' => $request->input('nomor_sk'),
+            'tmt_tugas' => $request->input('tmt_tugas'),
+            'tst_tugas' => $request->input('tst_tugas'),
+            'rombel_id' => $rombelId,
+            'keterangan' => $request->input('keterangan'),
+            'is_active' => true,
+        ]);
+
+        \App\Models\RolePermission::clearRuntimeCache();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Penugasan tugas tambahan berhasil disimpan.',
+        ]);
+    }
+
+    /**
+     * Hapus penugasan tugas tambahan
+     */
+    public function destroyTugasTambahan(int $id): \Illuminate\Http\JsonResponse
+    {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'delete')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+        }
+
+        \App\Models\PtkTugasTambahan::where('id', $id)->delete();
+        \App\Models\RolePermission::clearRuntimeCache();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Penugasan tugas tambahan berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Pemicu sinkronisasi manual Wali Kelas dari Dapodik
+     */
+    public function syncWaliKelas(): \Illuminate\Http\JsonResponse
+    {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'update') && !\App\Models\RolePermission::canAccess($authUser, 'fitur_pengguna_edit')) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak: Anda tidak memiliki hak akses.'], 403);
+        }
+
+        $count = \App\Models\PtkTugasTambahan::syncWaliKelasFromDapodik();
+        \App\Models\RolePermission::clearRuntimeCache();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Sinkronisasi Wali Kelas dari Dapodik berhasil ({$count} rombel tersinkron).",
+        ]);
     }
 }

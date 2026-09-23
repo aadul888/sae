@@ -90,9 +90,8 @@
             ],
             [
                 'label' => 'Info',
-                'icon' => 'fa-bell',
+                'icon' => 'fa-bullhorn',
                 'href' => $href('dashboard.informasi.index'),
-                'permission' => 'menu_pengumuman',
                 'active' => request()->routeIs('dashboard.informasi.*'),
             ],
             [
@@ -108,7 +107,7 @@
                 'icon' => 'fa-file-lines',
                 'href' => $href('dashboard.tendik.laporan.index'),
                 'permission' => 'menu_laporan_tendik',
-                'active' => request()->routeIs('dashboard.tendik.laporan.*') || request()->routeIs('dashboard.tendik.presensi.*'),
+                'active' => request()->routeIs('dashboard.tendik.laporan.*'),
             ],
             [
                 'label' => 'Profil',

@@ -156,4 +156,217 @@ document.addEventListener("DOMContentLoaded", function () {
             targetForm.submit();
         }
     });
+
+    // =========================================================================
+    // TUGAS TAMBAHAN & PENUGASAN (TAB 5)
+    // =========================================================================
+    const dutyModal = document.getElementById("dutyModal");
+    const btnOpenAssignModal = document.getElementById("btnOpenAssignModal");
+    const btnCloseDutyModal = document.getElementById("btnCloseDutyModal");
+    const btnCancelDutyModal = document.getElementById("btnCancelDutyModal");
+    const dutyTugasSelect = document.getElementById("dutyTugasSelect");
+    const dutyRombelWrap = document.getElementById("dutyRombelWrap");
+    const dutyRombelSelect = document.getElementById("dutyRombelSelect");
+    const formAddDuty = document.getElementById("formAddDuty");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+    const showToast = (title, icon = "success") => {
+        const type = (icon === "error" || icon === "danger") ? "danger" : (icon === "warning" ? "warning" : "success");
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast(title, type);
+        } else if (typeof Swal !== "undefined") {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: type === "danger" ? "error" : type,
+                title: title,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
+    };
+
+    if (btnOpenAssignModal && dutyModal) {
+        btnOpenAssignModal.addEventListener("click", () => {
+            dutyModal.style.display = "flex";
+        });
+    }
+
+    const closeDutyModal = () => {
+        if (dutyModal) {
+            dutyModal.style.display = "none";
+            if (formAddDuty) formAddDuty.reset();
+            if (dutyRombelWrap) {
+                dutyRombelWrap.style.display = "none";
+                if (dutyRombelSelect) dutyRombelSelect.required = false;
+            }
+        }
+    };
+
+    if (btnCloseDutyModal) btnCloseDutyModal.addEventListener("click", closeDutyModal);
+    if (btnCancelDutyModal) btnCancelDutyModal.addEventListener("click", closeDutyModal);
+
+    if (dutyModal) {
+        dutyModal.addEventListener("click", (e) => {
+            if (e.target === dutyModal) closeDutyModal();
+        });
+    }
+
+    if (dutyTugasSelect && dutyRombelWrap) {
+        dutyTugasSelect.addEventListener("change", () => {
+            const selectedOpt = dutyTugasSelect.options[dutyTugasSelect.selectedIndex];
+            const kode = selectedOpt ? selectedOpt.dataset.kode : "";
+            const isWali = kode === "WALI_KELAS";
+            dutyRombelWrap.style.display = isWali ? "block" : "none";
+            if (dutyRombelSelect) dutyRombelSelect.required = isWali;
+        });
+    }
+
+    if (formAddDuty) {
+        formAddDuty.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btnSubmit = document.getElementById("btnSubmitDutyModal");
+            const originalText = btnSubmit ? btnSubmit.innerHTML : "";
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+            }
+
+            const formData = new FormData(formAddDuty);
+            const payload = Object.fromEntries(formData.entries());
+            const storeUrl = dutyModal?.dataset.storeUrl || "/dashboard/pengguna/tugas-tambahan/store";
+
+            try {
+                const res = await fetch(storeUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === "success") {
+                    showToast(data.message, "success");
+                    closeDutyModal();
+                    setTimeout(() => window.location.reload(), 600);
+                } else {
+                    throw new Error(data.message || "Gagal menyimpan penugasan");
+                }
+            } catch (err) {
+                showToast(err.message, "danger");
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+            }
+        });
+    }
+
+    // Hapus Penugasan Tugas Tambahan
+    document.querySelectorAll(".btn-delete-duty").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            const destroyBaseUrl = dutyModal?.dataset.destroyBaseUrl || "/dashboard/pengguna/tugas-tambahan";
+
+            let confirmed = false;
+            const confirmMsg = `Hapus penugasan tugas tambahan untuk <strong>${name}</strong>?`;
+            if (window.SAE && typeof window.SAE.confirm === "function") {
+                confirmed = await window.SAE.confirm(confirmMsg, "Hapus Penugasan?", "danger", "Ya, Hapus", "Batal");
+            } else if (typeof Swal !== "undefined") {
+                const result = await Swal.fire({
+                    title: "Hapus Penugasan?",
+                    html: confirmMsg,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Hapus",
+                    cancelButtonText: "Batal"
+                });
+                confirmed = result.isConfirmed;
+            }
+
+            if (!confirmed) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch(`${destroyBaseUrl}/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrfToken
+                    }
+                });
+                const data = await res.json();
+                if (data.status === "success") {
+                    showToast(data.message || "Penugasan berhasil dihapus", "success");
+                    setTimeout(() => window.location.reload(), 600);
+                } else {
+                    throw new Error(data.message || "Gagal menghapus penugasan");
+                }
+            } catch (err) {
+                showToast(err.message, "danger");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash-can"></i>';
+            }
+        });
+    });
+
+    // Pemicu Sinkronisasi Wali Kelas dari Dapodik
+    const btnSyncWaliKelas = document.getElementById("btnSyncWaliKelas");
+    if (btnSyncWaliKelas) {
+        btnSyncWaliKelas.addEventListener("click", async () => {
+            const syncUrl = dutyModal?.dataset.syncWaliUrl || "/dashboard/pengguna/tugas-tambahan/sync-wali";
+            const originalHtml = btnSyncWaliKelas.innerHTML;
+
+            let confirmed = false;
+            const confirmMsg = "Sistem akan membaca wali kelas seluruh rombel reguler aktif dari Dapodik dan menyinkronkan penugasan tugas tambahan secara otomatis.";
+            if (window.SAE && typeof window.SAE.confirm === "function") {
+                confirmed = await window.SAE.confirm(confirmMsg, "Tarik Wali Kelas?", "info", "Ya, Sinkronkan", "Batal");
+            } else if (typeof Swal !== "undefined") {
+                const result = await Swal.fire({
+                    title: "Tarik Wali Kelas?",
+                    text: confirmMsg,
+                    icon: "info",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Sinkronkan",
+                    cancelButtonText: "Batal"
+                });
+                confirmed = result.isConfirmed;
+            }
+
+            if (!confirmed) return;
+
+            btnSyncWaliKelas.disabled = true;
+            btnSyncWaliKelas.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyinkronkan...';
+
+            try {
+                const res = await fetch(syncUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrfToken
+                    }
+                });
+                const data = await res.json();
+                if (data.status === "success") {
+                    showToast(data.message, "success");
+                    setTimeout(() => window.location.reload(), 800);
+                } else {
+                    throw new Error(data.message || "Gagal menyinkronkan");
+                }
+            } catch (err) {
+                showToast(err.message, "danger");
+            } finally {
+                btnSyncWaliKelas.disabled = false;
+                btnSyncWaliKelas.innerHTML = originalHtml;
+            }
+        });
+    }
 });

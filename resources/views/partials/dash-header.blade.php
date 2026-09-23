@@ -46,6 +46,13 @@
 
             $totalNotifCount = $notifPengumumanCount + $notifTransaksiCount;
             $userFoto = session('user.foto_url');
+            if (empty($userFoto) && !empty($currentUserId)) {
+                $dbUser = \App\Models\User::find($currentUserId);
+                $userFoto = $dbUser?->foto_url;
+                if ($userFoto) {
+                    session(['user.foto_url' => $userFoto]);
+                }
+            }
         @endphp
 
         <!-- 1. Notification Bell & 2-Tab Dropdown Popup -->

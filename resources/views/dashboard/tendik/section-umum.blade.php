@@ -1,24 +1,8 @@
 {{-- Section: Portal Umum Tenaga Kependidikan & Administrasi (Universal untuk seluruh Tendik) --}}
 
-<!-- Quick Stats Grid Universal (Responsive) -->
+<!-- Quick Stats Grid Universal (4 Cards Maksimal) -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
-    {{-- Card 1: Kehadiran Hari Ini --}}
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
-            <i class="fas fa-user-check"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #10b981;">{{ $presensiMasuk ?? '06:50 WIB' }}</div>
-            <div class="dash-stat-label">Kehadiran Hari Ini</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                <span class="badge" style="background: rgba(16, 185, 129, 0.12); color: #10b981; padding: 2px 6px; font-size: 0.7rem;">
-                    {{ $statusPresensi ?? 'Hadir Tepat Waktu' }}
-                </span>
-            </div>
-        </div>
-    </div>
-
-    {{-- Card 2: Aktivitas Kerja Hari Ini --}}
+    {{-- Card 1: Aktivitas Kerja Hari Ini --}}
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
             <i class="fas fa-clipboard-list"></i>
@@ -32,30 +16,46 @@
         </div>
     </div>
 
-    {{-- Card 3: Akumulasi Jam Kerja Bulan Ini --}}
+    {{-- Card 2: Total Kinerja Bulan Ini --}}
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
-            <i class="fas fa-clock"></i>
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <i class="fas fa-calendar-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #f59e0b; font-size: 1.15rem;">{{ $durasiBulanLabel ?? '0 Jam' }}</div>
-            <div class="dash-stat-label">Total Kerja Bulan Ini</div>
+            <div class="dash-stat-value" style="color: #10b981;">{{ $aktivitasBulanIniCount ?? ($aktivitasSayaList?->count() ?? 0) }} Aktivitas</div>
+            <div class="dash-stat-label">Total Kinerja Bulan Ini</div>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
                 Bulan {{ now()->translatedFormat('F Y') }}
             </div>
         </div>
     </div>
 
-    {{-- Card 4: Status Sesi & Akun Pegawai --}}
+    {{-- Card 3: Penugasan Kedinasan --}}
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
-            <i class="fas fa-shield-halved"></i>
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <i class="fas fa-briefcase"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #8b5cf6; font-size: 1.15rem;">Sesi Aktif</div>
-            <div class="dash-stat-label">Status Akun Kedinasan</div>
+            <div class="dash-stat-value" style="color: #f59e0b; font-size: 1.15rem;">
+                {{ !empty($dutyRecords) && $dutyRecords->isNotEmpty() ? $dutyRecords->count() . ' Tugas' : 'Staf Reguler' }}
+            </div>
+            <div class="dash-stat-label">Penugasan GTK</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;" title="{{ $bagianTugas ?? 'Tenaga Kependidikan' }}">
+                {{ $bagianTugas ?? 'Tenaga Kependidikan' }}
+            </div>
+        </div>
+    </div>
+
+    {{-- Card 4: Pengumuman & Informasi Kedinasan --}}
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+            <i class="fas fa-bullhorn"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="color: #8b5cf6; font-size: 1.15rem;">{{ !empty($pengumumanList) ? $pengumumanList->count() : 0 }} Info</div>
+            <div class="dash-stat-label">Pengumuman &amp; Edaran</div>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                Portal Administrasi Terintegrasi
+                Agenda Kedinasan Aktif
             </div>
         </div>
     </div>

@@ -164,11 +164,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/tarik-data', [DapodikController::class, 'index'])->name('dapodik')->middleware('permission:menu_dapodik');
     Route::post('/tarik-data/apikey', [DapodikController::class, 'generateApiKey'])->name('dapodik.apikey')->middleware('permission:fitur_dapodik_sync');
 
-    // Manajemen Pengguna (4 Tab: Admin, Guru, Tendik, Peserta Didik)
+    // Manajemen Pengguna (5 Tab: Admin, Guru, Tendik, Peserta Didik, Tugas Tambahan & Penugasan)
     Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index')->middleware('permission:menu_pengguna');
     Route::put('/pengguna/{pengguna}', [UserController::class, 'update'])->name('pengguna.update')->middleware('permission:fitur_pengguna_edit');
     Route::delete('/pengguna/{pengguna}', [UserController::class, 'destroy'])->name('pengguna.destroy')->middleware('permission:fitur_pengguna_hapus');
     Route::post('/pengguna/{pengguna}/reset-password', [UserController::class, 'resetPassword'])->name('pengguna.resetPassword')->middleware('permission:fitur_pengguna_reset');
+    Route::post('/pengguna/tugas-tambahan/store', [UserController::class, 'storeTugasTambahan'])->name('pengguna.tugas-tambahan.store')->middleware('permission:menu_pengguna,create');
+    Route::delete('/pengguna/tugas-tambahan/{id}', [UserController::class, 'destroyTugasTambahan'])->name('pengguna.tugas-tambahan.destroy')->middleware('permission:menu_pengguna,delete');
+    Route::post('/pengguna/tugas-tambahan/sync-wali', [UserController::class, 'syncWaliKelas'])->name('pengguna.tugas-tambahan.sync-wali')->middleware('permission:menu_pengguna,update');
 
     // Update Sistem
     Route::get('/update', [UpdateController::class, 'index'])->name('update')->middleware('permission:menu_update');
@@ -183,9 +186,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset')->middleware('permission:menu_hak_akses,update');
     Route::post('/hak-akses/add-module', [PermissionController::class, 'addModule'])->name('hak-akses.add-module')->middleware('permission:menu_hak_akses,create');
     Route::post('/hak-akses/remove-module', [PermissionController::class, 'removeModule'])->name('hak-akses.remove-module')->middleware('permission:menu_hak_akses,delete');
-    Route::post('/hak-akses/tugas-tambahan/store', [PermissionController::class, 'storeTugasTambahan'])->name('hak-akses.tugas-tambahan.store')->middleware('permission:menu_hak_akses,create');
-    Route::delete('/hak-akses/tugas-tambahan/{id}', [PermissionController::class, 'destroyTugasTambahan'])->name('hak-akses.tugas-tambahan.destroy')->middleware('permission:menu_hak_akses,delete');
-    Route::post('/hak-akses/tugas-tambahan/sync-wali', [PermissionController::class, 'syncWaliKelas'])->name('hak-akses.tugas-tambahan.sync-wali')->middleware('permission:menu_hak_akses,update');
+    Route::post('/hak-akses/tugas-tambahan/update-permissions', [PermissionController::class, 'updateDutyPermissions'])->name('hak-akses.tugas-tambahan.update-permissions')->middleware('permission:menu_hak_akses,update');
+    // Fallback kompatibilitas penugasan tugas tambahan
+    Route::post('/hak-akses/tugas-tambahan/store', [UserController::class, 'storeTugasTambahan'])->name('hak-akses.tugas-tambahan.store')->middleware('permission:menu_pengguna,create');
+    Route::delete('/hak-akses/tugas-tambahan/{id}', [UserController::class, 'destroyTugasTambahan'])->name('hak-akses.tugas-tambahan.destroy')->middleware('permission:menu_pengguna,delete');
+    Route::post('/hak-akses/tugas-tambahan/sync-wali', [UserController::class, 'syncWaliKelas'])->name('hak-akses.tugas-tambahan.sync-wali')->middleware('permission:menu_pengguna,update');
+
+    // Dashboard Khusus Tugas Tambahan Terstandar
+    Route::get('/tugas-tambahan/{kode}', [\App\Http\Controllers\DutyDashboardController::class, 'show'])->name('tugas-tambahan.show');
 
     // Pengaturan — Identitas Sekolah (Sumber: Sekolah Dapodik)
     Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index')->middleware('permission:menu_pengaturan,read');
@@ -463,10 +471,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::delete('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'destroy'])->name('ruang.destroy')->middleware('permission:menu_sarpras,delete');
 
         // Inventaris & Aset
-        Route::get('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'index'])->name('aset.index')->middleware('permission:menu_inventaris,read');
-        Route::post('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'store'])->name('aset.store')->middleware('permission:menu_inventaris,create');
-        Route::put('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'update'])->name('aset.update')->middleware('permission:menu_inventaris,update');
-        Route::delete('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'destroy'])->name('aset.destroy')->middleware('permission:menu_inventaris,delete');
+        Route::get('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'index'])->name('aset.index')->middleware('permission:menu_sarpras,read');
+        Route::post('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'store'])->name('aset.store')->middleware('permission:menu_sarpras,create');
+        Route::put('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'update'])->name('aset.update')->middleware('permission:menu_sarpras,update');
+        Route::delete('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'destroy'])->name('aset.destroy')->middleware('permission:menu_sarpras,delete');
 
         // Peminjaman Sarpras
         Route::get('/peminjaman', [\App\Http\Controllers\SarprasPeminjamanController::class, 'index'])->name('peminjaman.index')->middleware('permission:menu_sarpras,read');

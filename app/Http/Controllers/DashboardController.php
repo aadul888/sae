@@ -289,6 +289,42 @@ class DashboardController extends Controller
             $mapelUtama = $gtk->bidang_studi_terakhir ?? ($gtk->jabatan_ptk_id_str ?? 'Guru Mata Pelajaran');
         }
 
+        // Ambil data perwalian jika guru bertugas sebagai Wali Kelas (1 Unified Dashboard)
+        $waliInfo = \App\Models\RolePermission::getWaliKelasRombelInfo($user);
+        $waliStats = null;
+        if ($waliInfo && Schema::hasTable('peserta_didik')) {
+            $rombelId = $waliInfo->rombongan_belajar_id ?? null;
+            if ($rombelId) {
+                $totalSiswaWali = DB::table('peserta_didik')->where('rombongan_belajar_id', $rombelId)->count();
+                $todayDate = now()->toDateString();
+                $hadirToday = 0;
+                $izinToday = 0;
+                $sakitToday = 0;
+                $alpaToday = 0;
+                if (Schema::hasTable('presensi_harian')) {
+                    $presensiKelas = DB::table('presensi_harian')
+                        ->where('tanggal', $todayDate)
+                        ->whereIn('peserta_didik_id', function ($q) use ($rombelId) {
+                            $q->select('peserta_didik_id')->from('peserta_didik')->where('rombongan_belajar_id', $rombelId);
+                        })
+                        ->get();
+                    $hadirToday = $presensiKelas->whereIn('status', ['H', 'T'])->count();
+                    $izinToday = $presensiKelas->where('status', 'I')->count();
+                    $sakitToday = $presensiKelas->where('status', 'S')->count();
+                    $alpaToday = $presensiKelas->where('status', 'A')->count();
+                }
+                $waliStats = [
+                    'rombel_nama' => $waliInfo->nama,
+                    'rombel_id'   => $rombelId,
+                    'total_siswa' => $totalSiswaWali,
+                    'hadir'       => $hadirToday,
+                    'izin'        => $izinToday,
+                    'sakit'       => $sakitToday,
+                    'alpa'        => $alpaToday,
+                ];
+            }
+        }
+
         return view('dashboard.guru', compact(
             'stats',
             'jadwal_hari_ini',
@@ -301,7 +337,8 @@ class DashboardController extends Controller
             'allGtkList',
             'userRole',
             'ptkId',
-            'userName'
+            'userName',
+            'waliStats'
         ));
     }
 
@@ -374,7 +411,7 @@ class DashboardController extends Controller
                     if ($userId) $q->where('ptt.user_id', $userId);
                     if ($ptkId) $q->orWhere('ptt.ptk_id', $ptkId);
                 })
-                ->select('rtt.kode', 'rtt.nama')
+                ->select('rtt.kode', 'rtt.nama', 'rtt.icon', 'rtt.bidang')
                 ->get();
         }
 
@@ -451,8 +488,6 @@ class DashboardController extends Controller
         ];
 
         $reqBidang = $request->query('bidang') ?: $request->get('bidang');
-        // Jika ada request bidang spesifik yang valid, buka dashboard bidang tersebut.
-        // Jika tidak ada parameter bidang (atau bidang=umum), buka PORTAL UMUM TENDIK.
         if ($reqBidang && isset($bidangMap[$reqBidang]) && $reqBidang !== 'umum') {
             $currentDuty = $bidangMap[$reqBidang];
             $viewSection = $viewSectionMap[$currentDuty] ?? 'umum';
@@ -538,17 +573,10 @@ class DashboardController extends Controller
             $aktivitasHariIniProses = (clone $todayQuery)->where('status', 'proses')->count();
             $aktivitasHariIniTertunda = (clone $todayQuery)->where('status', 'tertunda')->count();
 
-            $durasiBulanMenit = (clone $userBaseQuery)
+            $aktivitasBulanIniCount = (clone $userBaseQuery)
                 ->whereYear('tanggal', now()->year)
                 ->whereMonth('tanggal', now()->month)
-                ->whereNotNull('jam_mulai')
-                ->whereNotNull('jam_selesai')
-                ->selectRaw('COALESCE(SUM(GREATEST(0, ROUND(TIME_TO_SEC(TIMEDIFF(jam_selesai, jam_mulai)) / 60))), 0) as total_menit')
-                ->value('total_menit') ?: 0;
-
-            $jamKerja = floor($durasiBulanMenit / 60);
-            $sisaMenit = $durasiBulanMenit % 60;
-            $durasiBulanLabel = $jamKerja > 0 ? "{$jamKerja} Jam {$sisaMenit} Menit" : "{$durasiBulanMenit} Menit";
+                ->count();
 
             $aktivitasSayaList = (clone $userBaseQuery)
                 ->orderByDesc('tanggal')
@@ -566,22 +594,7 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        // Status Presensi Personal Tendik Hari Ini
-        $presensiMasuk = '06:50 WIB';
-        $statusPresensi = 'Hadir Tepat Waktu';
-        if (Schema::hasTable('presensi_harian') && (Schema::hasColumn('presensi_harian', 'user_id') || Schema::hasColumn('presensi_harian', 'ptk_id'))) {
-            $presensiRow = DB::table('presensi_harian')
-                ->where('tanggal', $todayDate)
-                ->where(function ($q) use ($userId, $ptkId) {
-                    if ($userId && Schema::hasColumn('presensi_harian', 'user_id')) $q->where('user_id', $userId);
-                    if ($ptkId && Schema::hasColumn('presensi_harian', 'ptk_id')) $q->orWhere('ptk_id', $ptkId);
-                })
-                ->first();
-            if ($presensiRow) {
-                $presensiMasuk = $presensiRow->jam_masuk ? \Carbon\Carbon::parse($presensiRow->jam_masuk)->format('H:i') . ' WIB' : '06:50 WIB';
-                $statusPresensi = $presensiRow->status ? ucfirst($presensiRow->status) : 'Hadir Tepat Waktu';
-            }
-        }
+
 
         // Agregasi Statistik & Data Berdasarkan Kebutuhan Modul
         $totalSuratMasuk = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 0;
@@ -607,8 +620,6 @@ class DashboardController extends Controller
             'total_surat_ket'    => $totalSuratKeterangan,
             'total_persuratan'   => $totalPersuratan,
             'hdd_status'         => $hddStatus,
-            'presensi_masuk'     => $presensiMasuk,
-            'status_presensi'    => $statusPresensi,
             'total_siswa'        => $totalSiswa,
             'siswa_laki'         => $siswaLaki,
             'siswa_perempuan'    => $siswaPerempuan,
@@ -804,6 +815,7 @@ class DashboardController extends Controller
             'fotoUrl',
             'bagianTugas',
             'dutyCodes',
+            'dutyRecords',
             'isKepalaTas',
             'primaryDuty',
             'currentDuty',
@@ -825,11 +837,9 @@ class DashboardController extends Controller
             'aktivitasHariIniSelesai',
             'aktivitasHariIniProses',
             'aktivitasHariIniTertunda',
-            'durasiBulanLabel',
+            'aktivitasBulanIniCount',
             'aktivitasSayaList',
-            'pengumumanList',
-            'presensiMasuk',
-            'statusPresensi'
+            'pengumumanList'
         ));
     }
 
@@ -1010,6 +1020,30 @@ class DashboardController extends Controller
             ];
         }
 
-        return view('dashboard.peserta-didik', compact('stats', 'presensi_terakhir', 'jadwal_pelajaran', 'pd', 'allPdList', 'userRole', 'userName'));
+        // Ambil data koordinator jika peserta didik bertugas sebagai Koordinator Kelas (1 Unified Dashboard)
+        $koordinatorInfo = \App\Models\RolePermission::isKoordinator($user) ? \App\Models\RolePermission::getWaliKelasRombelInfo($user) : null;
+        $koordinatorStats = null;
+        if ($koordinatorInfo && Schema::hasTable('peserta_didik')) {
+            $rombelId = $koordinatorInfo->rombongan_belajar_id ?? null;
+            if ($rombelId) {
+                $totalSiswa = DB::table('peserta_didik')->where('rombongan_belajar_id', $rombelId)->count();
+                $koordinatorStats = [
+                    'rombel_nama' => $koordinatorInfo->nama,
+                    'rombel_id'   => $rombelId,
+                    'total_siswa' => $totalSiswa,
+                ];
+            }
+        }
+
+        return view('dashboard.peserta-didik', compact(
+            'stats',
+            'presensi_terakhir',
+            'jadwal_pelajaran',
+            'pd',
+            'allPdList',
+            'userRole',
+            'userName',
+            'koordinatorStats'
+        ));
     }
 }

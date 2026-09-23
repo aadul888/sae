@@ -150,7 +150,7 @@ return new class extends Migration
                 'bidang' => 'Pendampingan & Khusus',
                 'ekuivalensi_jam' => 2.0,
                 'icon' => 'fa-chalkboard-user',
-                'granted_permissions' => json_encode(['menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_e_izin', 'menu_rapor']),
+                'granted_permissions' => json_encode(['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik', 'menu_poin']),
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,

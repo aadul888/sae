@@ -34,7 +34,7 @@ class PesertaDidikMeta extends Model
     ];
 
     /**
-     * Dapatkan URL publik dari pasfoto peserta didik
+     * Dapatkan URL publik dari pasfoto peserta didik dengan cache-busting
      */
     public function getFotoUrlAttribute(): ?string
     {
@@ -42,7 +42,12 @@ class PesertaDidikMeta extends Model
             return null;
         }
 
-        return asset('storage/' . ltrim($this->foto_path, '/'));
+        $cleanPath = ltrim($this->foto_path, '/');
+        $fullPath = storage_path('app/public/' . $cleanPath);
+        $version = file_exists($fullPath) ? filemtime($fullPath) : null;
+
+        $url = asset('storage/' . $cleanPath);
+        return $version ? ($url . '?v=' . $version) : $url;
     }
 
     /**

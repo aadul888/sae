@@ -73,15 +73,28 @@ class User extends Authenticatable
     }
 
     /**
-     * Dapatkan URL foto profil (khusus GTK/guru/tendik/admin)
+     * Dapatkan URL foto profil (GTK/guru/tendik/admin/peserta didik) dengan cache-busting
      */
     public function getFotoUrlAttribute(): ?string
     {
-        if (empty($this->foto_path)) {
+        $path = $this->foto_path;
+
+        // Fallback untuk peserta didik yang fotonya tersimpan di tabel peserta_didik_meta
+        if (empty($path) && !empty($this->peserta_didik_id)) {
+            $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $this->peserta_didik_id)->first();
+            $path = $meta?->foto_path;
+        }
+
+        if (empty($path)) {
             return null;
         }
 
-        return asset('storage/' . ltrim($this->foto_path, '/'));
+        $cleanPath = ltrim($path, '/');
+        $fullPath = storage_path('app/public/' . $cleanPath);
+        $version = file_exists($fullPath) ? filemtime($fullPath) : null;
+
+        $url = asset('storage/' . $cleanPath);
+        return $version ? ($url . '?v=' . $version) : $url;
     }
 
     /**

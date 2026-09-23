@@ -308,6 +308,17 @@ class PesertaDidikAktifController extends Controller
             $meta->foto_height = $result['height'];
             $meta->save();
 
+            // Sinkronkan ke tabel pengguna agar konsisten global
+            DB::table('pengguna')->where('peserta_didik_id', $pdId)->update(['foto_path' => $result['path']]);
+
+            // Jika sesi yang sedang login adalah siswa ini, perbarui session aktif seketika
+            $sessUser = session('user');
+            if (is_array($sessUser) && (($sessUser['peserta_didik_id'] ?? null) === $pdId || ($sessUser['pengguna_id'] ?? null) === $pdId)) {
+                $sessUser['foto_path'] = $result['path'];
+                $sessUser['foto_url'] = $meta->foto_url;
+                session(['user' => $sessUser]);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Foto peserta didik berhasil disimpan dan dikompresi.',
@@ -357,6 +368,17 @@ class PesertaDidikAktifController extends Controller
         $meta->foto_width = null;
         $meta->foto_height = null;
         $meta->save();
+
+        // Sinkronkan ke tabel pengguna
+        DB::table('pengguna')->where('peserta_didik_id', $id)->update(['foto_path' => null]);
+
+        // Perbarui sesi aktif jika siswa ini sedang login
+        $sessUser = session('user');
+        if (is_array($sessUser) && (($sessUser['peserta_didik_id'] ?? null) === $id || ($sessUser['pengguna_id'] ?? null) === $id)) {
+            $sessUser['foto_path'] = null;
+            $sessUser['foto_url'] = null;
+            session(['user' => $sessUser]);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -541,6 +563,9 @@ class PesertaDidikAktifController extends Controller
                 $meta->foto_height = $optResult['height'];
                 $meta->save();
 
+                // Sinkronkan ke tabel pengguna
+                DB::table('pengguna')->where('peserta_didik_id', $pdId)->update(['foto_path' => $optResult['path']]);
+
                 $successCount++;
                 $results[] = [
                     'peserta_didik_id' => $pdId,
@@ -647,6 +672,9 @@ class PesertaDidikAktifController extends Controller
                     $meta->foto_width = $optResult['width'];
                     $meta->foto_height = $optResult['height'];
                     $meta->save();
+
+                    // Sinkronkan ke tabel pengguna
+                    DB::table('pengguna')->where('peserta_didik_id', $student->peserta_didik_id)->update(['foto_path' => $optResult['path']]);
 
                     $successCount++;
                     $results[] = [

@@ -156,6 +156,8 @@
         </div>
     </div>
 
+
+
     <!-- 2 Columns: Attendance History & Schedule -->
     <div class="dash-grid-2">
         <!-- Recent Attendance -->
