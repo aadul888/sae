@@ -18,7 +18,6 @@
     if (isStandalone) {
         document.documentElement.classList.add('pwa-standalone');
         localStorage.setItem('sae_pwa_is_installed', 'true');
-        console.log('[SAE-PWA] Running in Standalone Application Mode');
     }
 
     // Helper: Periksa apakah aplikasi sudah terpasang
@@ -72,8 +71,6 @@
 
             navigator.serviceWorker.register(swPath, { scope: swScope })
                 .then((registration) => {
-                    console.log('[SAE-PWA] ServiceWorker registered with scope:', registration.scope);
-
                     // Cek jika sudah ada worker yang waiting
                     if (registration.waiting) {
                         newWorkerWaiting = registration.waiting;
@@ -243,7 +240,6 @@
         }
 
         if (hasNotifiedInstallSuccess) {
-            console.log('[SAE-PWA] Install success notification already shown, skipping duplicate.');
             return;
         }
         hasNotifiedInstallSuccess = true;
@@ -283,10 +279,6 @@
         // Mencegah mini-infobar default browser agar banner kustom SAE yang tampil rapi
         e.preventDefault();
         deferredPrompt = e;
-        console.log('[SAE-PWA] Native beforeinstallprompt captured and ready!');
-
-        // Browser memicu event ini menandakan aplikasi BELUM terpasang (atau baru saja di-uninstall).
-        // Hapus flag stale dari penyimpanan lokal agar status instalasi kembali segar:
         localStorage.removeItem('sae_pwa_is_installed');
         localStorage.removeItem('sae_pwa_installed_at');
 
@@ -349,10 +341,7 @@
             try {
                 deferredPrompt.prompt();
                 const choiceResult = await deferredPrompt.userChoice;
-                console.log('[SAE-PWA] User response to install prompt:', choiceResult.outcome);
-
                 if (choiceResult.outcome === 'accepted') {
-                    console.log('[SAE-PWA] User accepted the install prompt');
                     // Langsung hilangkan banner penawaran di halaman
                     if (banner) banner.remove();
                     updateInstallUI(false);
@@ -442,7 +431,6 @@
 
     // Event saat aplikasi telah berhasil diinstal (baik via prompt native maupun menu browser!)
     window.addEventListener('appinstalled', () => {
-        console.log('[SAE-PWA] Application was successfully installed!');
         deferredPrompt = null;
         notifyInstallSuccess();
     });
@@ -473,7 +461,6 @@
         if ('getInstalledRelatedApps' in navigator) {
             navigator.getInstalledRelatedApps().then((relatedApps) => {
                 if (relatedApps && relatedApps.length > 0) {
-                    console.log('[SAE-PWA] App is confirmed installed on device.');
                     localStorage.setItem('sae_pwa_is_installed', 'true');
                     updateInstallUI(false);
                     const banner = document.getElementById('saePwaInstallBanner');

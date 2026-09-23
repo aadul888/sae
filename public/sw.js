@@ -4,7 +4,7 @@
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = "sae-pwa-v1.2.0";
+const CACHE_NAME = "sae-pwa-v1.2.1";
 const OFFLINE_URL = "/offline";
 
 // Aset inti yang di-precache saat instalasi service worker
@@ -56,7 +56,6 @@ self.addEventListener("install", (event) => {
         caches
             .open(CACHE_NAME)
             .then(async (cache) => {
-                console.log("[SAE-PWA] Pre-caching core shell assets...");
                 // Gunakan addAll dengan toleransi kegagalan parsial jika beberapa vendor asset belum ada
                 for (const asset of PRECACHE_ASSETS) {
                     try {
@@ -83,10 +82,6 @@ self.addEventListener("activate", (event) => {
                 return Promise.all(
                     keys.map((key) => {
                         if (key !== CACHE_NAME) {
-                            console.log(
-                                "[SAE-PWA] Removing legacy cache:",
-                                key,
-                            );
                             return caches.delete(key);
                         }
                     }),
