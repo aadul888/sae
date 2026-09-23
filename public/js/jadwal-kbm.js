@@ -670,6 +670,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // PRESET DEFAULT DISTRIBUSI SLOT HARIAN PER TINGKAT
+    const defaultTingkatSlots = {
+        "5_hari": {
+            "10": { "Senin": 13, "Selasa": 12, "Rabu": 12, "Kamis": 12, "Jumat": 7, "Sabtu": 0 },
+            "11": { "Senin": 13, "Selasa": 12, "Rabu": 11, "Kamis": 11, "Jumat": 7, "Sabtu": 0 },
+            "12": { "Senin": 12, "Selasa": 11, "Rabu": 11, "Kamis": 11, "Jumat": 7, "Sabtu": 0 }
+        },
+        "6_hari": {
+            "10": { "Senin": 11, "Selasa": 10, "Rabu": 10, "Kamis": 10, "Jumat": 6, "Sabtu": 10 },
+            "11": { "Senin": 11, "Selasa": 10, "Rabu": 9,  "Kamis": 9,  "Jumat": 6, "Sabtu": 10 },
+            "12": { "Senin": 10, "Selasa": 9,  "Rabu": 9,  "Kamis": 9,  "Jumat": 6, "Sabtu": 10 }
+        }
+    };
+
     // TOGGLE INTERAKTIF SKEMA HARI SEKOLAH (5 HARI VS 6 HARI)
     function applySkemaHari(skema) {
         const cards = document.querySelectorAll(".skema-option-card");
@@ -688,30 +702,39 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // Set alokasi slot default berdasarkan skema
+        // Set alokasi slot per tingkat
+        const cfg = defaultTingkatSlots[skema] || defaultTingkatSlots["5_hari"];
+        document.querySelectorAll(".input-tingkat-slot").forEach((inp) => {
+            const t = inp.dataset.tingkat;
+            const dh = inp.dataset.hari;
+            if (cfg[t] && cfg[t][dh] !== undefined) {
+                inp.value = cfg[t][dh];
+            }
+        });
+
+        // Tampilkan/sembunyikan baris Sabtu pada tabel tingkat
+        document.querySelectorAll('.row-hari-slot[data-hari="Sabtu"]').forEach((r) => {
+            r.style.display = (skema === "5_hari" ? "none" : "table-row");
+        });
+
+        // Set alokasi slot default global berdasarkan skema
         if (skema === "5_hari") {
-            ["Senin", "Selasa", "Rabu", "Kamis"].forEach((dh) => {
+            const defaults5 = { "Senin": 13, "Selasa": 12, "Rabu": 12, "Kamis": 12, "Jumat": 7, "Sabtu": 0 };
+            ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].forEach((dh) => {
                 const inp = document.querySelector(`.input-slot-harian[data-hari="${dh}"]`);
-                if (inp) inp.value = 13;
+                if (inp) inp.value = defaults5[dh];
             });
-            const jumat = document.querySelector('.input-slot-harian[data-hari="Jumat"]');
-            if (jumat) jumat.value = 6;
-            const sabtu = document.querySelector('.input-slot-harian[data-hari="Sabtu"]');
-            if (sabtu) sabtu.value = 0;
 
             const sabtuCard = document.querySelector('.slot-day-card[data-hari="Sabtu"]');
             if (sabtuCard) {
                 sabtuCard.style.opacity = "0.5";
             }
         } else {
-            ["Senin", "Selasa", "Rabu", "Kamis"].forEach((dh) => {
+            const defaults6 = { "Senin": 11, "Selasa": 10, "Rabu": 10, "Kamis": 10, "Jumat": 6, "Sabtu": 10 };
+            ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"].forEach((dh) => {
                 const inp = document.querySelector(`.input-slot-harian[data-hari="${dh}"]`);
-                if (inp) inp.value = 10;
+                if (inp) inp.value = defaults6[dh];
             });
-            const jumat = document.querySelector('.input-slot-harian[data-hari="Jumat"]');
-            if (jumat) jumat.value = 6;
-            const sabtu = document.querySelector('.input-slot-harian[data-hari="Sabtu"]');
-            if (sabtu) sabtu.value = 6;
 
             const sabtuCard = document.querySelector('.slot-day-card[data-hari="Sabtu"]');
             if (sabtuCard) {
@@ -731,7 +754,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // REALTIME CALCULATOR JAM SELESAI
+    // REALTIME CALCULATOR JAM SELESAI & TOTAL KBM PER TINGKAT
     function updateRealtimeModalJamSelesai() {
         const jamMulaiInput = document.getElementById("setJamMulai");
         const durasiInput = document.getElementById("setDurasiJp");
@@ -742,13 +765,80 @@ document.addEventListener("DOMContentLoaded", function () {
         const istirahatJamKe = parseInt(document.getElementById("setIstirahatJamKe")?.value) || 8;
         const istirahatDurasi = parseInt(document.getElementById("setIstirahatDurasi")?.value) || 30;
 
+        const upacaraAktif = !!document.querySelector('input[name="upacara[aktif]"]')?.checked;
+        const pembiasaanAktif = !!document.querySelector('input[name="pembiasaan[aktif]"]')?.checked;
+
         const parts = jamMulaiVal.split(":");
         const startHour = parseInt(parts[0]) || 7;
         const startMin = parseInt(parts[1]) || 15;
         const baseMinutes = startHour * 60 + startMin;
 
+        const calcTime = (jp, isFriday = false) => {
+            if (jp <= 0) return "(Libur)";
+            let totalMins = baseMinutes;
+            for (let k = 1; k <= jp; k++) {
+                const slotDur = (istirahatAktif && k === istirahatJamKe && !isFriday) ? istirahatDurasi : durasiVal;
+                totalMins += slotDur;
+            }
+            const endHour = Math.floor(totalMins / 60) % 24;
+            const endMin = totalMins % 60;
+            return `${String(endHour).padStart(2, "0")}:${String(endMin).padStart(2, "0")}`;
+        };
+
+        // 1. Update Jam Pulang per Tingkat & Hitung Total KBM per Tingkat
+        const sumKbm = { "10": 0, "11": 0, "12": 0 };
+        const maxDaySlots = {};
+
+        document.querySelectorAll(".input-tingkat-slot").forEach((input) => {
+            const t = input.dataset.tingkat;
+            const dh = input.dataset.hari;
+            const rawVal = input.value.trim();
+            const jp = (rawVal === "" || isNaN(rawVal)) ? 0 : parseInt(rawVal);
+
+            maxDaySlots[dh] = Math.max(maxDaySlots[dh] || 0, jp);
+
+            // Hitung jam pulang
+            const pulangSpan = document.querySelector(`.pulang-tingkat-info[data-tingkat="${t}"][data-hari="${dh}"]`);
+            if (pulangSpan) {
+                if (jp <= 0) {
+                    pulangSpan.textContent = "(Libur)";
+                    pulangSpan.style.color = "#ef4444";
+                } else {
+                    const timeStr = calcTime(jp, dh === "Jumat");
+                    pulangSpan.textContent = `Pulang: ${timeStr}`;
+                    pulangSpan.style.color = "var(--text-muted)";
+                }
+            }
+
+            // Hitung net KBM
+            if (jp > 0) {
+                let netJp = jp;
+                if (dh === "Senin" && upacaraAktif && jp >= 1) netJp -= 1;
+                if (dh === "Jumat" && pembiasaanAktif && jp >= 1) netJp -= 1;
+                if (istirahatAktif && dh !== "Jumat" && jp >= istirahatJamKe) netJp -= 1;
+                sumKbm[t] = (sumKbm[t] || 0) + Math.max(0, netJp);
+            }
+        });
+
+        // Update Label & Hidden Inputs Total KBM
+        ["10", "11", "12"].forEach((t) => {
+            const totalSpan = document.getElementById(t === "10" ? "totalKbmX" : (t === "11" ? "totalKbmXI" : "totalKbmXII"));
+            if (totalSpan) {
+                totalSpan.textContent = `${sumKbm[t] || 0} JP`;
+            }
+            const hiddenInp = document.getElementById(`inputJpTingkat${t}`);
+            if (hiddenInp) {
+                hiddenInp.value = sumKbm[t] || 0;
+            }
+        });
+
+        // 2. Sinkronkan ke input slot harian global jika ada perubahan
         document.querySelectorAll(".input-slot-harian").forEach((input) => {
             const dh = input.dataset.hari;
+            if (maxDaySlots[dh] !== undefined && maxDaySlots[dh] > 0) {
+                input.value = maxDaySlots[dh];
+            }
+
             const selesaiSpan = document.querySelector(`.badge-jam-selesai[data-hari="${dh}"]`);
             if (!selesaiSpan) return;
 
@@ -761,15 +851,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            let totalMins = baseMinutes;
-            for (let k = 1; k <= jp; k++) {
-                const slotDur = (istirahatAktif && k === istirahatJamKe) ? istirahatDurasi : durasiVal;
-                totalMins += slotDur;
-            }
-
-            const endHour = Math.floor(totalMins / 60) % 24;
-            const endMin = totalMins % 60;
-            const formatted = `${String(endHour).padStart(2, "0")}:${String(endMin).padStart(2, "0")}`;
+            const formatted = calcTime(jp, dh === "Jumat");
             selesaiSpan.textContent = formatted;
             selesaiSpan.style.color = "var(--primary)";
         });
@@ -777,7 +859,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener("input", function (e) {
         if (
-            e.target.matches(".input-slot-harian") ||
+            e.target.matches(".input-slot-harian, .input-tingkat-slot") ||
             e.target.id === "setJamMulai" ||
             e.target.id === "setDurasiJp" ||
             e.target.id === "setIstirahatJamKe" ||
@@ -789,13 +871,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener("change", function (e) {
         if (
-            e.target.matches(".input-slot-harian") ||
+            e.target.matches(".input-slot-harian, .input-tingkat-slot") ||
             e.target.id === "setJamMulai" ||
             e.target.id === "setDurasiJp" ||
             e.target.id === "setIstirahatAktif" ||
             e.target.id === "setIstirahatJamKe" ||
             e.target.id === "setIstirahatDurasi" ||
-            e.target.name === "skema_hari"
+            e.target.name === "skema_hari" ||
+            e.target.name === "upacara[aktif]" ||
+            e.target.name === "pembiasaan[aktif]"
         ) {
             updateRealtimeModalJamSelesai();
         }
@@ -907,7 +991,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                     .then(async (res) => {
                         const data = await res.json();
-                        if (!res.ok) throw new Error(data.message || "Gagal menjalankan auto-generate jadwal.");
+                        if (!res.ok || data.success === false) {
+                            if (data.is_incomplete) {
+                                throw data;
+                            }
+                            throw new Error(data.message || "Gagal menjalankan auto-generate jadwal.");
+                        }
                         return data;
                     })
                     .then((data) => {
@@ -929,13 +1018,47 @@ document.addEventListener("DOMContentLoaded", function () {
                     })
                     .catch((err) => {
                         if (window.Swal) {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Gagal Generate",
-                                text: err.message,
-                            });
+                            if (err && err.is_incomplete) {
+                                let listHtml = '<div style="text-align: left; max-height: 250px; overflow-y: auto; font-size: 0.78rem; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 12px; margin-top: 10px;">';
+                                listHtml += `<p style="font-weight: 700; color: #b91c1c; margin-bottom: 8px;">${err.message || 'Validasi Ketat: Generate Dibatalkan karena ada jadwal yang belum terpetakan penuh.'}</p>`;
+
+                                if (Array.isArray(err.unfilled_rombels) && err.unfilled_rombels.length > 0) {
+                                    listHtml += '<div style="margin-bottom: 8px;"><strong style="color: #991b1b;">Rombel Belum Terisi Penuh:</strong><ul style="padding-left: 18px; margin: 4px 0;">';
+                                    err.unfilled_rombels.forEach(r => {
+                                        listHtml += `<li><strong>${r.nama_rombel}</strong>: Terjadwal ${r.scheduled_jp} JP dari target ${r.required_jp} JP (Kurang ${r.missing_jp} JP)</li>`;
+                                    });
+                                    listHtml += '</ul></div>';
+                                }
+
+                                if (Array.isArray(err.unmapped_subjects) && err.unmapped_subjects.length > 0) {
+                                    listHtml += '<div><strong style="color: #991b1b;">Mata Pelajaran Belum Terpetakan:</strong><ul style="padding-left: 18px; margin: 4px 0;">';
+                                    err.unmapped_subjects.slice(0, 8).forEach(u => {
+                                        listHtml += `<li><strong>${u.nama_rombel}</strong> &bull; ${u.nama_mata_pelajaran} (${u.durasi} JP) &bull; <em>${u.nama_guru || '-'}</em></li>`;
+                                    });
+                                    if (err.unmapped_subjects.length > 8) {
+                                        listHtml += `<li><em>...dan ${err.unmapped_subjects.length - 8} mata pelajaran lainnya</em></li>`;
+                                    }
+                                    listHtml += '</ul></div>';
+                                }
+                                listHtml += '</div>';
+
+                                Swal.fire({
+                                    icon: "warning",
+                                    title: "Validasi Ketat: Dibatalkan",
+                                    html: listHtml,
+                                    confirmButtonText: "Tutup & Evaluasi",
+                                    confirmButtonColor: "#ef4444",
+                                    width: "620px",
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: "error",
+                                    title: "Gagal Generate",
+                                    text: err.message || "Terjadi kendala saat menyusun jadwal KBM.",
+                                });
+                            }
                         } else {
-                            alert(err.message);
+                            alert(err.message || "Gagal generate");
                         }
                     })
                     .finally(() => {

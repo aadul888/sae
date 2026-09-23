@@ -307,9 +307,10 @@
                                     $item = $matrix[$rombel->rombongan_belajar_id][$h][$sK] ?? null;
                                     $isOccupied = !empty($occupied[$rombel->rombongan_belajar_id][$h][$sK]);
                                 @endphp
-                                @if ($item)
+                                @if ($item && !$isOccupied)
                                     @php
-                                        $rowSpan = $item->jam_ke_selesai - $item->jam_ke_mulai + 1;
+                                        $maxAllowedRowspan = count($slots) - $sK + 1;
+                                        $rowSpan = min(max(1, (int)$item->jam_ke_selesai - (int)$item->jam_ke_mulai + 1), $maxAllowedRowspan);
                                         $isUpacara = $item->mata_pelajaran_id === 'UPACARA';
                                         $isPembiasaan = $item->mata_pelajaran_id === 'PEMBIASAAN';
                                         $isIstirahat = $item->mata_pelajaran_id === 'ISTIRAHAT';

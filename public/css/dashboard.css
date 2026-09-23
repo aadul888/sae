@@ -4664,4 +4664,59 @@ input:disabled + .slider-toggle-crud {
     }
 }
 
+/* ==========================================================================
+   MODAL ATUR WAKTU & GENERATE JADWAL KBM (WIDESCREEN DESKTOP & RESPONSIVE)
+   ========================================================================== */
+.modal-atur-card {
+    width: 95vw !important;
+    max-width: 1320px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    margin: auto !important;
+    padding: 24px 28px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.modal-atur-grid {
+    display: grid !important;
+    grid-template-columns: 1.18fr 1fr !important;
+    gap: 24px !important;
+    align-items: start !important;
+}
+
+@media (max-width: 1024px) {
+    .modal-atur-card {
+        width: 96vw !important;
+        padding: 20px !important;
+    }
+    .modal-atur-grid {
+        grid-template-columns: 1fr !important;
+        gap: 18px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .slot-days-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+    }
+    .skema-options-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .modal-atur-footer {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    .modal-atur-footer > div:last-child {
+        width: 100% !important;
+        display: flex;
+        flex-direction: column !important;
+    }
+    .modal-atur-footer button {
+        width: 100% !important;
+    }
+}
+
+
 
