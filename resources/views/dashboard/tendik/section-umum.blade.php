@@ -36,12 +36,12 @@
             <i class="fas fa-briefcase"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #f59e0b; font-size: 1.15rem;">
-                {{ !empty($dutyRecords) && $dutyRecords->isNotEmpty() ? $dutyRecords->count() . ' Tugas' : 'Staf Reguler' }}
+            <div class="dash-stat-value" style="color: #f59e0b;">
+                {{ !empty($dutyRecords) && $dutyRecords->isNotEmpty() ? $dutyRecords->count() . ' Tugas' : 'Staf' }}
             </div>
             <div class="dash-stat-label">Penugasan GTK</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px;" title="{{ $bagianTugas ?? 'Tenaga Kependidikan' }}">
-                {{ $bagianTugas ?? 'Tenaga Kependidikan' }}
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $bagianTugas ?? 'Tenaga Kependidikan' }}">
+                {{ Str::limit($bagianTugas ?? 'Tenaga Kependidikan', 28) }}
             </div>
         </div>
     </div>
@@ -52,7 +52,7 @@
             <i class="fas fa-bullhorn"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #8b5cf6; font-size: 1.15rem;">{{ !empty($pengumumanList) ? $pengumumanList->count() : 0 }} Info</div>
+            <div class="dash-stat-value" style="color: #8b5cf6;">{{ !empty($pengumumanList) ? $pengumumanList->count() : 0 }} Info</div>
             <div class="dash-stat-label">Pengumuman &amp; Edaran</div>
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
                 Agenda Kedinasan Aktif
@@ -60,6 +60,7 @@
         </div>
     </div>
 </div>
+
 
 {{-- 2. Konten Utama: Tabel Aktivitas Sistem Otomatis (Full Width) --}}
 <div class="card" style="border-radius: 14px; padding: 22px; border: 1px solid var(--border-color); background: var(--card-bg); margin-bottom: 24px;">

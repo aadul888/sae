@@ -46,11 +46,18 @@
 
             $totalNotifCount = $notifPengumumanCount + $notifTransaksiCount;
             $userFoto = session('user.foto_url');
-            if (empty($userFoto) && !empty($currentUserId)) {
-                $dbUser = \App\Models\User::find($currentUserId);
-                $userFoto = $dbUser?->foto_url;
-                if ($userFoto) {
-                    session(['user.foto_url' => $userFoto]);
+
+            // Untuk peserta didik: selalu baca foto dari model (foto tersimpan di peserta_didik_meta, bukan di kolom pengguna.foto_path saat login lama)
+            // Untuk semua role: refresh jika sesi kosong
+            if (!empty($currentUserId) && ($currentUserRole === 'peserta_didik' || empty($userFoto))) {
+                try {
+                    $dbUser = \App\Models\User::find($currentUserId);
+                    if ($dbUser?->foto_url) {
+                        $userFoto = $dbUser->foto_url;
+                        session(['user.foto_url' => $userFoto]);
+                    }
+                } catch (\Throwable $e) {
+                    // silent fail
                 }
             }
         @endphp
