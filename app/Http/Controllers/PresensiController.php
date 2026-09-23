@@ -660,11 +660,13 @@ class PresensiController extends Controller
             // Cek apakah sudah pernah scan pulang
             if (!empty($presensi->jam_pulang)) {
                 return response()->json([
-                    'status' => 'info',
-                    'title' => 'Sudah Presensi Pulang',
-                    'message' => "{$siswa->nama} sudah tercatat presensi pulang pada pukul {$presensi->jam_pulang} WIB.",
-                    'speech_text' => "{$siswa->nama}, sudah pulang.",
-                    'data' => $this->formatSiswaResponseData($siswa, $presensi),
+                    'status'       => 'info',
+                    'is_duplicate' => true,
+                    'action'       => 'pulang',
+                    'title'        => 'Sudah Presensi Pulang',
+                    'message'      => "{$siswa->nama} sudah tercatat presensi pulang pada pukul {$presensi->jam_pulang} WIB.",
+                    'speech_text'  => "{$siswa->nama}, sudah pulang.",
+                    'data'         => $this->formatSiswaResponseData($siswa, $presensi),
                 ]);
             }
 
@@ -707,11 +709,13 @@ class PresensiController extends Controller
 
             if (!empty($presensi->jam_masuk)) {
                 return response()->json([
-                    'status' => 'info',
-                    'title' => 'Sudah Presensi Masuk',
-                    'message' => "{$siswa->nama} sudah tercatat presensi masuk pada pukul {$presensi->jam_masuk} WIB.",
-                    'speech_text' => "{$siswa->nama}, sudah masuk.",
-                    'data' => $this->formatSiswaResponseData($siswa, $presensi),
+                    'status'       => 'info',
+                    'is_duplicate' => true,
+                    'action'       => 'masuk',
+                    'title'        => 'Sudah Presensi Masuk',
+                    'message'      => "{$siswa->nama} sudah tercatat presensi masuk pada pukul {$presensi->jam_masuk} WIB.",
+                    'speech_text'  => "{$siswa->nama}, sudah masuk.",
+                    'data'         => $this->formatSiswaResponseData($siswa, $presensi),
                 ]);
             }
 

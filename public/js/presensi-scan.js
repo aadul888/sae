@@ -762,6 +762,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 showVerificationPopup(res);
                 if (res.speech_text) speakGreeting(res.speech_text);
                 addRecentScanFeed(res.data);
+            } else if (res.status === 'info' && res.is_duplicate) {
+                // Scan duplikat — tampilkan popup khusus dengan visual berbeda
+                playSound('warning');
+                showDuplicateScanCard(res);
+                if (res.speech_text) speakGreeting(res.speech_text);
             } else if (res.status === 'info') {
                 playSound('warning');
                 showVerificationPopup(res, 'info');
@@ -865,6 +870,74 @@ document.addEventListener('DOMContentLoaded', function () {
                 position: 'top-end'
             });
         }
+    }
+
+    // Tampilan khusus untuk scan duplikat (sudah presensi masuk/pulang)
+    function showDuplicateScanCard(res) {
+        if (!popupOverlay) {
+            // Fallback: gunakan showNoticeCard jika popup overlay tidak ada
+            showNoticeCard(res.title, res.message, 'warning');
+            return;
+        }
+
+        const d = res.data;
+        const isPulang = res.action === 'pulang';
+        const waktuTercatat = isPulang ? (d.jam_pulang || '--:--') : (d.jam_masuk || '--:--');
+
+        if (popupFoto) popupFoto.src = d.foto_url || '/img/logo-dark.png';
+        if (popupNama) popupNama.textContent = d.nama || 'Peserta Didik';
+        if (popupRombel) popupRombel.textContent = d.rombel || '-';
+        if (popupNisn) popupNisn.textContent = 'NISN: ' + (d.nisn || '-');
+
+        if (popupWaktu) {
+            popupWaktu.textContent = `Pukul ${waktuTercatat} WIB`;
+            popupWaktu.style.color = 'var(--warning, #f59e0b)';
+        }
+        if (popupPesan) {
+            popupPesan.style.color = 'var(--warning, #f59e0b)';
+            popupPesan.textContent = isPulang
+                ? `Sudah tercatat pulang pukul ${waktuTercatat}. Presensi tidak direkam ulang.`
+                : `Sudah tercatat masuk pukul ${waktuTercatat}. Presensi tidak direkam ulang.`;
+        }
+
+        // Badge khusus warna amber untuk duplikat
+        if (popupStatusBadge) {
+            popupStatusBadge.className = 'badge badge-warning';
+            popupStatusBadge.innerHTML = isPulang
+                ? '<i class="fas fa-clock-rotate-left"></i> SUDAH PULANG'
+                : '<i class="fas fa-clock-rotate-left"></i> SUDAH MASUK';
+        }
+
+        // Sembunyikan info lokasi saat duplikat
+        const popupLokasiWrap = document.getElementById('popupLokasiPresensi');
+        if (popupLokasiWrap) popupLokasiWrap.style.display = 'none';
+
+        // Warna card berbeda: amber border agar jelas ini bukan scan baru
+        const card = popupOverlay.querySelector('.verify-popup-card');
+        if (card) {
+            card.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+            card.style.boxShadow = '0 0 0 2px rgba(245, 158, 11, 0.2), 0 20px 60px rgba(0,0,0,0.5)';
+        }
+
+        popupOverlay.classList.add('active');
+
+        // Efek shake visual agar operator tahu ini duplikat
+        if (card) {
+            card.classList.add('shake-anim');
+            setTimeout(() => card.classList.remove('shake-anim'), 600);
+        }
+
+        // Reset warna card setelah ditutup
+        clearTimeout(popupTimer);
+        popupTimer = setTimeout(() => {
+            popupOverlay.classList.remove('active');
+            if (card) {
+                card.style.borderColor = '';
+                card.style.boxShadow = '';
+            }
+            if (popupWaktu) popupWaktu.style.color = '';
+            if (popupPesan) popupPesan.style.color = '';
+        }, 4000);
     }
 
     // 8. Update Recent Scans Feed with Anti-Duplicate Filter
