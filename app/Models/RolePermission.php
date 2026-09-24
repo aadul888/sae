@@ -1257,8 +1257,12 @@ class RolePermission extends Model
                         foreach (['menu_kesiswaan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_pengumuman'] as $k) {
                             $allowedKeys[$k] = true;
                         }
-                    } elseif (in_array($kode, ['WAKA_SARPRAS', 'KEPALA_LAB', 'KEPALA_BENGKEL'], true)) {
+                    } elseif (in_array($kode, ['WAKA_SARPRAS', 'KEPALA_BENGKEL'], true)) {
                         foreach (['menu_sarpras', 'menu_inventaris'] as $k) {
+                            $allowedKeys[$k] = true;
+                        }
+                    } elseif ($kode === 'KEPALA_LAB') {
+                        foreach (['menu_laboran', 'menu_sarpras', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['KEPALA_PERPUSTAKAAN', 'PUSTAKAWAN'], true)) {
@@ -1266,7 +1270,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'LABORAN') {
-                        foreach (['menu_laboran'] as $k) {
+                        foreach (['menu_laboran', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['TEKNISI_IT', 'TEKNISI_GEDUNG', 'TEKNISI_LAPANGAN'], true)) {

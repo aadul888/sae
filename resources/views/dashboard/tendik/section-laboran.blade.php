@@ -156,6 +156,16 @@
                 <i class="fas fa-bolt text-warning"></i> Menu Laboran
             </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
+                <a href="{{ route('dashboard.sarpras.aset.index') }}" class="btn btn-outline"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-boxes-stacked text-primary me-2"></i> Inventaris &amp; Aset</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
+                </a>
+                <a href="{{ route('dashboard.sarpras.peminjaman.index') }}" class="btn btn-outline"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
+                    <span><i class="fas fa-hand-holding text-warning me-2"></i> Peminjaman Sarpras</span>
+                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
+                </a>
                 <a href="{{ route('dashboard.pembelajaran.index') }}" class="btn btn-outline"
                     style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
                     <span><i class="fas fa-book-open text-primary me-2"></i> Jadwal Mapel Praktik</span>

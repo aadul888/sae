@@ -483,17 +483,17 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::delete('/ruang/{id}', [\App\Http\Controllers\SarprasRuangController::class, 'destroy'])->name('ruang.destroy')->middleware('permission:menu_sarpras,delete');
 
         // Inventaris & Aset
-        Route::get('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'index'])->name('aset.index')->middleware('permission:menu_sarpras,read');
-        Route::post('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'store'])->name('aset.store')->middleware('permission:menu_sarpras,create');
-        Route::put('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'update'])->name('aset.update')->middleware('permission:menu_sarpras,update');
-        Route::delete('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'destroy'])->name('aset.destroy')->middleware('permission:menu_sarpras,delete');
+        Route::get('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'index'])->name('aset.index')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,read');
+        Route::post('/aset', [\App\Http\Controllers\SarprasAsetController::class, 'store'])->name('aset.store')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,create');
+        Route::put('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'update'])->name('aset.update')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,update');
+        Route::delete('/aset/{id}', [\App\Http\Controllers\SarprasAsetController::class, 'destroy'])->name('aset.destroy')->middleware('permission:menu_sarpras|menu_inventaris|menu_laboran,delete');
 
         // Peminjaman Sarpras
-        Route::get('/peminjaman', [\App\Http\Controllers\SarprasPeminjamanController::class, 'index'])->name('peminjaman.index')->middleware('permission:menu_sarpras,read');
-        Route::post('/peminjaman', [\App\Http\Controllers\SarprasPeminjamanController::class, 'store'])->name('peminjaman.store')->middleware('permission:menu_sarpras,create');
-        Route::put('/peminjaman/{id}', [\App\Http\Controllers\SarprasPeminjamanController::class, 'update'])->name('peminjaman.update')->middleware('permission:menu_sarpras,update');
-        Route::post('/peminjaman/{id}/kembali', [\App\Http\Controllers\SarprasPeminjamanController::class, 'kembalikan'])->name('peminjaman.kembali')->middleware('permission:menu_sarpras,update');
-        Route::delete('/peminjaman/{id}', [\App\Http\Controllers\SarprasPeminjamanController::class, 'destroy'])->name('peminjaman.destroy')->middleware('permission:menu_sarpras,delete');
+        Route::get('/peminjaman', [\App\Http\Controllers\SarprasPeminjamanController::class, 'index'])->name('peminjaman.index')->middleware('permission:menu_sarpras|menu_laboran,read');
+        Route::post('/peminjaman', [\App\Http\Controllers\SarprasPeminjamanController::class, 'store'])->name('peminjaman.store')->middleware('permission:menu_sarpras|menu_laboran,create');
+        Route::put('/peminjaman/{id}', [\App\Http\Controllers\SarprasPeminjamanController::class, 'update'])->name('peminjaman.update')->middleware('permission:menu_sarpras|menu_laboran,update');
+        Route::post('/peminjaman/{id}/kembali', [\App\Http\Controllers\SarprasPeminjamanController::class, 'kembalikan'])->name('peminjaman.kembali')->middleware('permission:menu_sarpras|menu_laboran,update');
+        Route::delete('/peminjaman/{id}', [\App\Http\Controllers\SarprasPeminjamanController::class, 'destroy'])->name('peminjaman.destroy')->middleware('permission:menu_sarpras|menu_laboran,delete');
     });
 
     // 2. Laboratorium & Laboran

@@ -650,12 +650,19 @@
                 request()->routeIs('dashboard.kepegawaian') ||
                 (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'kepegawaian') ||
                 (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'kepegawaian');
+            $isSarprasDuty = collect($userDuties)->contains('kode', 'STAF_SARPRAS');
+            $isLaboranDuty = collect($userDuties)->contains('kode', 'LABORAN');
+
             $isSarprasActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'sarpras') ||
+                request()->routeIs('dashboard.sarpras.ruang*') ||
+                ((request()->routeIs('dashboard.sarpras.aset*') || request()->routeIs('dashboard.sarpras.peminjaman*')) && (!$isLaboranDuty || $isSarprasDuty)) ||
                 (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'sarpras') ||
                 (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'sarpras');
             $isLaboranActive =
                 (request()->routeIs('dashboard.tendik') && request()->query('bidang') === 'laboran') ||
+                request()->routeIs('dashboard.laboran.*') ||
+                ((request()->routeIs('dashboard.sarpras.aset*') || request()->routeIs('dashboard.sarpras.peminjaman*')) && $isLaboranDuty && !$isSarprasDuty) ||
                 (request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'laboran') ||
                 (request()->routeIs('dashboard.tendik.laporan*') && request()->query('bidang') === 'laboran');
             $isPerpustakaanActive =
@@ -1015,6 +1022,18 @@
                                             class="fas fa-fw fa-calendar-days"></i></span>
                                     <span class="nav-label">Jadwal &amp; Pemakaian Lab</span>
                                 </a>
+                                <a href="{{ route('dashboard.sarpras.aset.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.aset*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i
+                                            class="fas fa-fw fa-boxes-stacked"></i></span>
+                                    <span class="nav-label">Inventaris &amp; Aset</span>
+                                </a>
+                                <a href="{{ route('dashboard.sarpras.peminjaman.index') }}"
+                                    class="dash-nav-nested-link {{ request()->routeIs('dashboard.sarpras.peminjaman*') ? 'active' : '' }}">
+                                    <span class="nav-icon nested-icon"><i
+                                            class="fas fa-fw fa-hand-holding"></i></span>
+                                    <span class="nav-label">Peminjaman Sarpras</span>
+                                </a>
                                 @if ($can('menu_aktivitas_tendik'))
                                     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'laboran']) }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.tendik.aktivitas*') && request()->query('bidang') === 'laboran' ? 'active' : '' }}">
@@ -1366,8 +1385,11 @@
                 request()->routeIs('dashboard.kesiswaan') ||
                 request()->routeIs('dashboard.kepegawaian.*') ||
                 request()->routeIs('dashboard.kepegawaian') ||
+                request()->routeIs('dashboard.sarpras.*') ||
+                request()->routeIs('dashboard.laboran.*') ||
                 request()->routeIs('dashboard.perpustakaan.*') ||
-                request()->routeIs('dashboard.teknisi.*');
+                request()->routeIs('dashboard.teknisi.*') ||
+                request()->routeIs('dashboard.keamanan.*');
         @endphp
         @if ($hasTendikSection)
             <div class="dash-nav-group {{ $isTendikActive ? 'open active-group' : '' }}">
@@ -1572,6 +1594,16 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.laboran.jadwal*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                             <span class="nav-label">Jadwal &amp; Pemakaian Lab</span>
+                        </a>
+                        <a href="{{ route('dashboard.sarpras.aset.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.sarpras.aset*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-boxes-stacked"></i></span>
+                            <span class="nav-label">Inventaris &amp; Aset</span>
+                        </a>
+                        <a href="{{ route('dashboard.sarpras.peminjaman.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.sarpras.peminjaman*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding"></i></span>
+                            <span class="nav-label">Peminjaman Sarpras</span>
                         </a>
                     @endif
 

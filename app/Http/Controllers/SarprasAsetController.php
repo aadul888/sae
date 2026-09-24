@@ -25,10 +25,10 @@ class SarprasAsetController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'create');
-        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'read');
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'delete');
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'create') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create');
+        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'read') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'read');
+        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'update') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_inventaris', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete');
 
         $search = trim($request->query('q', ''));
         $kategoriFilter = trim($request->query('kategori', ''));

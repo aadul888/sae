@@ -24,10 +24,10 @@ class SarprasPeminjamanController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create');
-        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read');
-        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update');
-        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete');
+        $canCreate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'create') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'create');
+        $canRead   = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'read') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'read');
+        $canUpdate = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'update') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'update');
+        $canDelete = RolePermission::canAccess($user ?: $role, 'menu_sarpras', 'delete') || RolePermission::canAccess($user ?: $role, 'menu_laboran', 'delete');
 
         $search = trim($request->query('q', ''));
         $statusFilter = trim($request->query('status', ''));

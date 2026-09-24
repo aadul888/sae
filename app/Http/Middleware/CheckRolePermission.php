@@ -31,8 +31,17 @@ class CheckRolePermission
 
         $role = is_array($user) ? ($user['role'] ?? 'peserta_didik') : ($user->role ?? 'peserta_didik');
 
-        // Evaluasi gabungan hak akses: role dasar + tugas tambahan aktif pengguna
-        if (!RolePermission::canAccess($user, $permissionKey, $action)) {
+        // Evaluasi gabungan hak akses: role dasar + tugas tambahan aktif pengguna (mendukung multiple permission keys dengan '|')
+        $keys = explode('|', $permissionKey);
+        $hasAccess = false;
+        foreach ($keys as $k) {
+            if (RolePermission::canAccess($user, trim($k), $action)) {
+                $hasAccess = true;
+                break;
+            }
+        }
+
+        if (!$hasAccess) {
             $actionLabel = match (strtolower($action)) {
                 'create' => 'Menambah / Mengunggah Data',
                 'update' => 'Mengubah / Memperbarui Data',
