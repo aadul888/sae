@@ -104,11 +104,11 @@
             $can('menu_rapor') ||
             $can('menu_validasi_berkas'));
 
-    // Section: Wali Kelas (Khusus Admin sebagai pengelola & Guru dengan tugas tambahan Wali Kelas)
+    // Section: Wali Kelas (Khusus Admin sebagai pengelola & Guru dengan tugas tambahan Wali Kelas atau Siswa Koordinator)
     $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
     $hasWaliKelas =
         $isWaliOrAdmin &&
-        ($can('menu_wali_kelas_aktif') || $can('menu_wali_kelas_tidak_aktif') || $can('menu_wali_kelas_presensi'));
+        ($can('menu_wali_kelas') || $can('menu_wali_kelas_aktif') || $can('menu_wali_kelas_tidak_aktif') || $can('menu_wali_kelas_presensi') || $can('menu_wali_kelas_jadwal'));
     $waliKelasRombelName = in_array($role, ['guru', 'peserta_didik'], true)
         ? \App\Models\RolePermission::getWaliKelasRombel($user)
         : null;
@@ -124,9 +124,11 @@
         'menu_kalender_pendidikan',
         'menu_peserta_didik_aktif',
         'menu_peserta_didik_tidak_aktif',
+        'menu_wali_kelas',
         'menu_wali_kelas_aktif',
         'menu_wali_kelas_tidak_aktif',
         'menu_wali_kelas_presensi',
+        'menu_wali_kelas_jadwal',
         'menu_guru_aktif',
         'menu_guru_tidak_aktif',
         'menu_tendik_aktif',
@@ -371,11 +373,32 @@
                         @endif
 
                         @if ($can('menu_jadwal_kbm'))
-                            <a href="{{ route('dashboard.jadwal-kbm.index') }}"
-                                class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm*') ? 'active' : '' }}">
-                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-alt"></i></span>
-                                <span class="nav-label">Jadwal KBM</span>
-                            </a>
+                            @php
+                                $isJadwalKbmActive = request()->routeIs('dashboard.jadwal-kbm*');
+                            @endphp
+                            <div class="dash-nav-nested-group {{ $isJadwalKbmActive ? 'open active-group' : '' }}">
+                                <button type="button" class="dash-nav-nested-toggle">
+                                    <div class="dash-nav-nested-toggle-main">
+                                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-alt"></i></span>
+                                        <span class="nav-label">Jadwal KBM</span>
+                                    </div>
+                                    <i class="fas fa-chevron-right nested-arrow-icon"></i>
+                                </button>
+                                <div class="dash-nav-nested-menu">
+                                    <a href="{{ route('dashboard.jadwal-kbm.index') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.jadwal-kbm.index') ? 'active' : '' }}">
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-wand-magic-sparkles"></i></span>
+                                        <span class="nav-label">Generate Jadwal</span>
+                                    </a>
+                                    <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
+                                        class="dash-nav-nested-link {{ request()->routeIs('dashboard.jadwal-kbm.manual*') ? 'active' : '' }}">
+                                        <span class="nav-icon nested-icon"><i
+                                                class="fas fa-fw fa-pen-to-square"></i></span>
+                                        <span class="nav-label">Jadwal Manual</span>
+                                    </a>
+                                </div>
+                            </div>
                         @endif
 
                         @if ($can('menu_kalender_pendidikan'))
@@ -535,13 +558,18 @@
 
         {{-- Layanan Guru (Tugas Pokok Guru) --}}
         @php
-            $hasAkademik = $can('menu_presensi_mengajar') || $can('menu_agenda_kbm') || $role === 'admin';
+            $hasAkademik =
+                $can('menu_presensi_mengajar') ||
+                $can('menu_agenda_kbm') ||
+                $can('menu_presensi_peserta_didik') ||
+                $role === 'admin';
             $isAkademikActive =
                 request()->routeIs('dashboard.guru') ||
                 request()->routeIs('dashboard.presensi-mengajar.*') ||
                 request()->routeIs('dashboard.presensi-mengajar') ||
                 request()->routeIs('dashboard.agenda-kbm.*') ||
-                request()->routeIs('dashboard.agenda-kbm');
+                request()->routeIs('dashboard.agenda-kbm') ||
+                request()->routeIs('dashboard.presensi.kelas*');
         @endphp
         @if ($hasAkademik)
             <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
@@ -559,6 +587,14 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
                             <span class="nav-label">Presensi Mengajar</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_presensi_peserta_didik'))
+                        <a href="{{ route('dashboard.presensi.kelas') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-viewfinder"></i></span>
+                            <span class="nav-label">Presensi Kelas</span>
                         </a>
                     @endif
 
@@ -1617,11 +1653,13 @@
                 $hasGuruPiketDuty &&
                 ($can('menu_piket') ||
                     $can('menu_presensi_mengajar') ||
+                    $can('menu_presensi_peserta_didik') ||
                     $can('menu_agenda_kbm') ||
                     $can('menu_e_izin') ||
                     $can('menu_buku_tamu'));
             $isPiketActive =
-                (request()->routeIs('dashboard.presensi-mengajar.*') && $hasGuruPiket) ||
+                ((request()->routeIs('dashboard.presensi-mengajar.*') || request()->routeIs('dashboard.presensi.kelas*')) && $hasGuruPiket) ||
+                request()->routeIs('dashboard.piket.*') ||
                 request()->routeIs('dashboard.peserta-didik.izin.*');
         @endphp
         @if ($hasGuruPiket)
@@ -1643,6 +1681,13 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
                             <span class="nav-label">Presensi Guru Mengajar</span>
+                        </a>
+                    @endif
+                    @if ($can('menu_presensi_peserta_didik') || $can('menu_piket'))
+                        <a href="{{ $href('dashboard.presensi.kelas') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.kelas*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-users-viewfinder"></i></span>
+                            <span class="nav-label">Presensi Kelas</span>
                         </a>
                     @endif
                     @if ($can('menu_agenda_kbm') || $can('menu_piket'))
@@ -1765,11 +1810,13 @@
                     <i class="fas fa-chevron-right arrow-icon"></i>
                 </button>
                 <div class="dash-nav-submenu">
-                    <a href="{{ route('dashboard.tugas-tambahan.show', ['kode' => 'wali-kelas']) }}"
-                        class="dash-nav-sublink {{ request()->routeIs('dashboard.tugas-tambahan.show') && request()->route('kode') === 'wali-kelas' ? 'active' : '' }}">
-                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
-                        <span class="nav-label">Dashboard Wali Kelas</span>
-                    </a>
+                    @if ($can('menu_wali_kelas'))
+                        <a href="{{ route('dashboard.tugas-tambahan.show', ['kode' => 'wali-kelas']) }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tugas-tambahan.show') && request()->route('kode') === 'wali-kelas' ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
+                            <span class="nav-label">Dashboard Wali Kelas</span>
+                        </a>
+                    @endif
                     @if ($can('menu_wali_kelas_aktif'))
                         <a href="{{ route('dashboard.wali-kelas.peserta-didik-aktif.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.peserta-didik-aktif*') ? 'active' : '' }}">
@@ -1791,6 +1838,14 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.presensi*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-user"></i></span>
                             <span class="nav-label">Presensi Kelas</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_wali_kelas_jadwal'))
+                        <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm.manual*') || request()->routeIs('dashboard.wali-kelas.jadwal*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-plus"></i></span>
+                            <span class="nav-label">Input Jadwal KBM</span>
                         </a>
                     @endif
                 </div>

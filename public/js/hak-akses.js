@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 2. Generic CRUD Toggle Handler (Untuk Tabel Per-Peran & Modal Granular)
+    // 2. Generic CRUD Toggle Handler (Untuk Tabel Tab Peran Spesifik & Modal Granular)
     const bindCrudToggles = (parent = document) => {
         parent.querySelectorAll('.crud-toggle').forEach(toggle => {
             if (toggle.dataset.bound) return;
@@ -460,11 +460,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnReset) {
         btnReset.addEventListener('click', async () => {
             let confirmed = false;
-            const confirmMsg = 'Tindakan ini akan mengembalikan matriks hak akses ke standar murni per peran (Admin mendapatkan akses penuh, Guru/Tendik/Siswa terbatas pada modul pokok). Lanjutkan?';
+            const isGlobal = !activeRole || activeRole === 'global';
+            const titleMsg = isGlobal ? 'Reset Hak Akses Semua Peran?' : `Reset Default ${roleName}?`;
+            const confirmMsg = isGlobal
+                ? 'Tindakan ini akan mengembalikan matriks hak akses SELURUH PERAN (Administrator, Guru, Tendik, Peserta Didik) ke standar baku default kelompoknya masing-masing. Lanjutkan?'
+                : `Tindakan ini akan mengembalikan hak akses peran ${roleName} ke standar default kelompoknya saja. Modul peran lain tidak akan terpengaruh. Lanjutkan?`;
 
             if (typeof Swal !== 'undefined') {
                 const result = await Swal.fire({
-                    title: 'Reset Hak Akses?',
+                    title: titleMsg,
                     text: confirmMsg,
                     icon: 'warning',
                     showCancelButton: true,

@@ -20,7 +20,11 @@
                     <i class="fas fa-shield-halved text-primary me-2"></i> Pengaturan Hak Akses &amp; Peran
                 </h2>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
-                    Kelola matriks izin modul dan aksi operasional CRUD pengguna dalam satu datatable global terpadu.
+                    @if ($activeRole === 'global')
+                        Kelola matriks izin modul dan aksi operasional CRUD pengguna dalam satu datatable global terpadu.
+                    @else
+                        Kelola matriks hak akses modul dan aksi operasional CRUD untuk peran <strong>{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}</strong>.
+                    @endif
                 </p>
             </div>
             <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -29,7 +33,12 @@
                 </button>
                 <button type="button" id="btnResetDefault" class="btn btn-outline"
                     style="padding: 8px 16px; font-size: 0.82rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
-                    <i class="fas fa-rotate-left me-1"></i> Reset Default
+                    <i class="fas fa-rotate-left me-1"></i>
+                    @if ($activeRole === 'global')
+                        Reset Default (Semua Peran)
+                    @else
+                        Reset Default ({{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }})
+                    @endif
                 </button>
             </div>
         </div>

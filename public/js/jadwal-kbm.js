@@ -3,6 +3,120 @@
  * Sistem Aplikasi Edukasi (SAE)
  */
 
+// ==========================================
+// TOGGLE PEMBERLAKUAN JADWAL AKTIF OLEH ADMIN
+// ==========================================
+window.handleTogglePemberlakuan = function (btn) {
+    if (!btn) return;
+    const targetStatus = btn.dataset.status;
+    const targetMode = btn.dataset.mode || "otomatis";
+    const url = btn.dataset.url;
+    const isAktifkan = (targetStatus === "aktif");
+
+    const modeLabel = targetMode === "otomatis" ? "Otomatis (Generate)" : "Manual (Wali Kelas)";
+    const otherLabel = targetMode === "otomatis" ? "Manual" : "Otomatis";
+
+    const title = isAktifkan
+        ? `Berlakukan Jadwal KBM ${modeLabel}?`
+        : "Alihkan Status Jadwal ke Draft?";
+    const text = isAktifkan
+        ? `Setelah diberlakukan, Jadwal ${modeLabel} akan resmi aktif di dashboard Guru, Siswa, dan Presensi. Jadwal ${otherLabel} otomatis dialihkan ke status Draft.`
+        : "Saat berstatus draft, seluruh jadwal KBM dinonaktifkan sementara dan guru/siswa akan melihat info jadwal dalam tahap penyusunan.";
+    const confirmBtnText = isAktifkan ? "Ya, Berlakukan Sekarang!" : "Ya, Jadikan Draft";
+    const confirmBtnColor = isAktifkan ? "#10b981" : "#f59e0b";
+
+    const executeToggle = () => {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") ||
+                      document.querySelector('input[name="_token"]')?.value;
+
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": token,
+                Accept: "application/json",
+            },
+            body: JSON.stringify({ 
+                status: targetStatus,
+                mode: targetMode
+            }),
+        })
+        .then(async (res) => {
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.message || "Gagal mengubah status pemberlakuan jadwal.");
+            }
+            return data;
+        })
+        .then((data) => {
+            const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
+            if (swalObj) {
+                swalObj.fire({
+                    icon: "success",
+                    title: "Berhasil!",
+                    text: data.message || "Status pemberlakuan jadwal berhasil diperbarui.",
+                    timer: 1800,
+                    showConfirmButton: false,
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                alert(data.message || "Status jadwal berhasil diperbarui.");
+                window.location.reload();
+            }
+        })
+        .catch((err) => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
+            if (swalObj) {
+                swalObj.fire({
+                    icon: "error",
+                    title: "Gagal Mengubah Status",
+                    text: err.message,
+                });
+            } else {
+                alert("Error: " + err.message);
+            }
+        });
+    };
+
+    const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
+    if (swalObj) {
+        swalObj.fire({
+            title: title,
+            text: text,
+            icon: isAktifkan ? "question" : "warning",
+            showCancelButton: true,
+            confirmButtonColor: confirmBtnColor,
+            cancelButtonColor: "#64748b",
+            confirmButtonText: confirmBtnText,
+            cancelButtonText: "Batal",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                executeToggle();
+            }
+        });
+    } else {
+        if (confirm(`${title}\n\n${text}`)) {
+            executeToggle();
+        }
+    }
+};
+
+document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".btn-toggle-pemberlakuan");
+    if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.handleTogglePemberlakuan(btn);
+    }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("modalJadwalKbm");
     const form = document.getElementById("formJadwalKbm");
@@ -385,8 +499,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Submit Form Tambah/Edit Jadwal
     if (form) {
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
+        function sendSaveJadwal(forceOverwrite = false) {
             btnSimpan.disabled = true;
             btnSimpan.innerHTML =
                 '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
@@ -408,6 +521,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 jam_selesai: inputJamSelesai.value,
                 ruangan: document.getElementById("modalRuangan").value,
                 keterangan: document.getElementById("modalKeterangan").value,
+                overwrite: forceOverwrite,
             };
 
             const token =
@@ -428,6 +542,31 @@ document.addEventListener("DOMContentLoaded", function () {
                 .then(async (res) => {
                     const data = await res.json();
                     if (!res.ok) {
+                        if (data.can_overwrite) {
+                            const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
+                            if (swalObj) {
+                                swalObj.fire({
+                                    icon: "warning",
+                                    title: "Slot Waktu Sudah Terisi",
+                                    html: `Kelas ini sudah memiliki jadwal <strong>${data.conflicting_mapel || "mata pelajaran lain"}</strong> pada jam tersebut.<br><br>Apakah Anda ingin <strong>menimpa / mengganti</strong> jadwal lama tersebut dengan mata pelajaran baru ini?`,
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#f59e0b",
+                                    cancelButtonColor: "#64748b",
+                                    confirmButtonText: '<i class="fas fa-sync-alt me-1"></i> Ya, Timpa Jadwal',
+                                    cancelButtonText: "Batal",
+                                }).then((swalRes) => {
+                                    if (swalRes.isConfirmed) {
+                                        sendSaveJadwal(true);
+                                    } else {
+                                        btnSimpan.disabled = false;
+                                        btnSimpan.innerHTML = id
+                                            ? '<i class="fas fa-save me-1"></i> Perbarui'
+                                            : '<i class="fas fa-save me-1"></i> Simpan Jadwal';
+                                    }
+                                });
+                                return null;
+                            }
+                        }
                         throw new Error(
                             data.message || "Terjadi kesalahan sistem.",
                         );
@@ -435,6 +574,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     return data;
                 })
                 .then((data) => {
+                    if (!data) return;
                     tutupModal();
                     if (window.Swal) {
                         Swal.fire({
@@ -473,6 +613,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     btnSimpan.innerHTML =
                         '<i class="fas fa-save me-1"></i> Simpan Jadwal';
                 });
+        }
+
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            sendSaveJadwal(false);
         });
     }
 
@@ -765,19 +910,31 @@ document.addEventListener("DOMContentLoaded", function () {
         const istirahatJamKe = parseInt(document.getElementById("setIstirahatJamKe")?.value) || 8;
         const istirahatDurasi = parseInt(document.getElementById("setIstirahatDurasi")?.value) || 30;
 
-        const upacaraAktif = !!document.querySelector('input[name="upacara[aktif]"]')?.checked;
-        const pembiasaanAktif = !!document.querySelector('input[name="pembiasaan[aktif]"]')?.checked;
+        const upacaraAktif = !!document.getElementById("setUpacaraAktif")?.checked;
+        const upacaraJamKe = parseInt(document.getElementById("setUpacaraJamKe")?.value) || 1;
+        const upacaraDurasi = parseInt(document.getElementById("setUpacaraDurasi")?.value) || 45;
+
+        const pembiasaanAktif = !!document.getElementById("setPembiasaanAktif")?.checked;
+        const pembiasaanJamKe = parseInt(document.getElementById("setPembiasaanJamKe")?.value) || 1;
+        const pembiasaanDurasi = parseInt(document.getElementById("setPembiasaanDurasi")?.value) || 40;
 
         const parts = jamMulaiVal.split(":");
         const startHour = parseInt(parts[0]) || 7;
         const startMin = parseInt(parts[1]) || 15;
         const baseMinutes = startHour * 60 + startMin;
 
-        const calcTime = (jp, isFriday = false) => {
+        const calcTime = (jp, dh) => {
             if (jp <= 0) return "(Libur)";
             let totalMins = baseMinutes;
             for (let k = 1; k <= jp; k++) {
-                const slotDur = (istirahatAktif && k === istirahatJamKe && !isFriday) ? istirahatDurasi : durasiVal;
+                let slotDur = durasiVal;
+                if (dh === "Senin" && upacaraAktif && k === upacaraJamKe) {
+                    slotDur = upacaraDurasi;
+                } else if (dh === "Jumat" && pembiasaanAktif && k === pembiasaanJamKe) {
+                    slotDur = pembiasaanDurasi;
+                } else if (istirahatAktif && k === istirahatJamKe && dh !== "Jumat") {
+                    slotDur = istirahatDurasi;
+                }
                 totalMins += slotDur;
             }
             const endHour = Math.floor(totalMins / 60) % 24;
@@ -804,7 +961,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     pulangSpan.textContent = "(Libur)";
                     pulangSpan.style.color = "#ef4444";
                 } else {
-                    const timeStr = calcTime(jp, dh === "Jumat");
+                    const timeStr = calcTime(jp, dh);
                     pulangSpan.textContent = `Pulang: ${timeStr}`;
                     pulangSpan.style.color = "var(--text-muted)";
                 }
@@ -813,8 +970,8 @@ document.addEventListener("DOMContentLoaded", function () {
             // Hitung net KBM
             if (jp > 0) {
                 let netJp = jp;
-                if (dh === "Senin" && upacaraAktif && jp >= 1) netJp -= 1;
-                if (dh === "Jumat" && pembiasaanAktif && jp >= 1) netJp -= 1;
+                if (dh === "Senin" && upacaraAktif && jp >= upacaraJamKe) netJp -= 1;
+                if (dh === "Jumat" && pembiasaanAktif && jp >= pembiasaanJamKe) netJp -= 1;
                 if (istirahatAktif && dh !== "Jumat" && jp >= istirahatJamKe) netJp -= 1;
                 sumKbm[t] = (sumKbm[t] || 0) + Math.max(0, netJp);
             }
@@ -822,9 +979,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Update Label & Hidden Inputs Total KBM
         ["10", "11", "12"].forEach((t) => {
+            const chk = document.querySelector(`.chk-tingkat-scope[data-tingkat="${t}"]`);
+            const isExcluded = chk && !chk.checked;
             const totalSpan = document.getElementById(t === "10" ? "totalKbmX" : (t === "11" ? "totalKbmXI" : "totalKbmXII"));
             if (totalSpan) {
-                totalSpan.textContent = `${sumKbm[t] || 0} JP`;
+                if (isExcluded) {
+                    totalSpan.textContent = "PKL / Off";
+                    totalSpan.style.color = "#ef4444";
+                } else {
+                    totalSpan.textContent = `${sumKbm[t] || 0} JP`;
+                    totalSpan.style.color = (t === "10" ? "#3b82f6" : (t === "11" ? "#8b5cf6" : "#ec4899"));
+                }
             }
             const hiddenInp = document.getElementById(`inputJpTingkat${t}`);
             if (hiddenInp) {
@@ -851,11 +1016,105 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            const formatted = calcTime(jp, dh === "Jumat");
+            const formatted = calcTime(jp, dh);
             selesaiSpan.textContent = formatted;
             selesaiSpan.style.color = "var(--primary)";
         });
     }
+
+    // SINKRONISASI CAKUPAN TINGKAT & PENGECUALIAN KELAS (PKL)
+    const selectCakupanTingkat = document.getElementById("selectCakupanTingkat");
+    const chkTingkatScopes = document.querySelectorAll(".chk-tingkat-scope");
+
+    function applyTingkatScopeState() {
+        chkTingkatScopes.forEach((chk) => {
+            const t = chk.dataset.tingkat;
+            const isChecked = chk.checked;
+
+            const th = document.querySelector(`.th-col-tingkat[data-col-tingkat="${t}"]`);
+            const tds = document.querySelectorAll(`.td-col-tingkat[data-col-tingkat="${t}"]`);
+            const badgeHdr = th?.querySelector(".badge-tingkat-header");
+
+            if (isChecked) {
+                if (th) {
+                    th.style.opacity = "1";
+                    th.style.pointerEvents = "auto";
+                }
+                tds.forEach((td) => {
+                    td.style.opacity = "1";
+                    td.style.pointerEvents = "auto";
+                    const inp = td.querySelector(".input-tingkat-slot");
+                    if (inp) inp.disabled = false;
+                });
+                if (badgeHdr) {
+                    badgeHdr.style.background = (t === "10" ? "#3b82f6" : (t === "11" ? "#8b5cf6" : "#ec4899"));
+                    badgeHdr.textContent = (t === "10" ? "Kelas X" : (t === "11" ? "Kelas XI" : "Kelas XII"));
+                }
+            } else {
+                if (th) {
+                    th.style.opacity = "0.35";
+                    th.style.pointerEvents = "none";
+                }
+                tds.forEach((td) => {
+                    td.style.opacity = "0.35";
+                    td.style.pointerEvents = "none";
+                    const inp = td.querySelector(".input-tingkat-slot");
+                    if (inp) inp.disabled = true;
+                });
+                if (badgeHdr) {
+                    badgeHdr.style.background = "#ef4444";
+                    badgeHdr.textContent = (t === "12" ? "Kelas XII (PKL)" : `Kelas ${t === "10" ? "X" : "XI"} (Off)`);
+                }
+            }
+        });
+
+        // Tampilkan/sembunyikan badge PKL pada pil checkbox Kelas XII
+        const chk12 = document.querySelector('.chk-tingkat-scope[data-tingkat="12"]');
+        const badgePkl = document.querySelector(".badge-pkl-status");
+        if (badgePkl && chk12) {
+            badgePkl.style.display = chk12.checked ? "none" : "inline-block";
+        }
+
+        updateRealtimeModalJamSelesai();
+    }
+
+    if (selectCakupanTingkat) {
+        selectCakupanTingkat.addEventListener("change", function () {
+            const val = this.value;
+            if (val === "" || val === "all") {
+                chkTingkatScopes.forEach((chk) => (chk.checked = true));
+            } else if (val === "no_12") {
+                chkTingkatScopes.forEach((chk) => (chk.checked = chk.dataset.tingkat !== "12"));
+            } else if (val === "no_11") {
+                chkTingkatScopes.forEach((chk) => (chk.checked = chk.dataset.tingkat !== "11"));
+            } else if (val === "no_10") {
+                chkTingkatScopes.forEach((chk) => (chk.checked = chk.dataset.tingkat !== "10"));
+            } else if (val === "10" || val === "11" || val === "12") {
+                chkTingkatScopes.forEach((chk) => (chk.checked = chk.dataset.tingkat === val));
+            }
+            applyTingkatScopeState();
+        });
+    }
+
+    chkTingkatScopes.forEach((chk) => {
+        chk.addEventListener("change", function () {
+            const checkedVals = Array.from(chkTingkatScopes).filter((c) => c.checked).map((c) => c.dataset.tingkat);
+            if (checkedVals.length === 3) {
+                if (selectCakupanTingkat) selectCakupanTingkat.value = "";
+            } else if (checkedVals.length === 2 && !checkedVals.includes("12")) {
+                if (selectCakupanTingkat) selectCakupanTingkat.value = "no_12";
+            } else if (checkedVals.length === 2 && !checkedVals.includes("11")) {
+                if (selectCakupanTingkat) selectCakupanTingkat.value = "no_11";
+            } else if (checkedVals.length === 2 && !checkedVals.includes("10")) {
+                if (selectCakupanTingkat) selectCakupanTingkat.value = "no_10";
+            } else if (checkedVals.length === 1) {
+                if (selectCakupanTingkat) selectCakupanTingkat.value = checkedVals[0];
+            } else {
+                if (selectCakupanTingkat) selectCakupanTingkat.value = "custom";
+            }
+            applyTingkatScopeState();
+        });
+    });
 
     document.addEventListener("input", function (e) {
         if (
@@ -863,7 +1122,11 @@ document.addEventListener("DOMContentLoaded", function () {
             e.target.id === "setJamMulai" ||
             e.target.id === "setDurasiJp" ||
             e.target.id === "setIstirahatJamKe" ||
-            e.target.id === "setIstirahatDurasi"
+            e.target.id === "setIstirahatDurasi" ||
+            e.target.id === "setUpacaraJamKe" ||
+            e.target.id === "setUpacaraDurasi" ||
+            e.target.id === "setPembiasaanJamKe" ||
+            e.target.id === "setPembiasaanDurasi"
         ) {
             updateRealtimeModalJamSelesai();
         }
@@ -877,6 +1140,12 @@ document.addEventListener("DOMContentLoaded", function () {
             e.target.id === "setIstirahatAktif" ||
             e.target.id === "setIstirahatJamKe" ||
             e.target.id === "setIstirahatDurasi" ||
+            e.target.id === "setUpacaraAktif" ||
+            e.target.id === "setUpacaraJamKe" ||
+            e.target.id === "setUpacaraDurasi" ||
+            e.target.id === "setPembiasaanAktif" ||
+            e.target.id === "setPembiasaanJamKe" ||
+            e.target.id === "setPembiasaanDurasi" ||
             e.target.name === "skema_hari" ||
             e.target.name === "upacara[aktif]" ||
             e.target.name === "pembiasaan[aktif]"
@@ -1294,4 +1563,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
         });
     }
+
 });
+

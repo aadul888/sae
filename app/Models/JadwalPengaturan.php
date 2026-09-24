@@ -14,6 +14,12 @@ class JadwalPengaturan extends Model
     protected $table = 'jadwal_pengaturan';
 
     protected $fillable = [
+        'status_jadwal',
+        'mode_pemberlakuan',
+        'is_diberlakukan',
+        'diberlakukan_pada',
+        'diberlakukan_oleh',
+        'catatan_pemberlakuan',
         'jam_mulai_kbm',
         'durasi_per_jp',
         'total_slot_jp',
@@ -29,6 +35,8 @@ class JadwalPengaturan extends Model
     ];
 
     protected $casts = [
+        'is_diberlakukan' => 'boolean',
+        'diberlakukan_pada' => 'datetime',
         'durasi_per_jp' => 'integer',
         'total_slot_jp' => 'integer',
         'max_jp_per_sesi' => 'integer',
@@ -40,6 +48,64 @@ class JadwalPengaturan extends Model
         'upacara' => 'array',
         'pembiasaan' => 'array',
     ];
+
+    /**
+     * Cek apakah Jadwal KBM saat ini resmi diberlakukan ke Guru & Siswa.
+     * Jika $mode diberikan ('otomatis' atau 'manual'), cek apakah mode tersebut yang aktif.
+     */
+    public static function isDiberlakukan(?string $mode = null): bool
+    {
+        $setting = self::getSettings();
+        if ($setting->status_jadwal === 'draft' || empty($setting->is_diberlakukan)) {
+            return false;
+        }
+
+        $activeMode = $setting->mode_pemberlakuan ?: 'otomatis';
+        if ($activeMode === 'draft') {
+            return false;
+        }
+
+        if ($mode !== null) {
+            return $activeMode === $mode;
+        }
+
+        return true;
+    }
+
+    /**
+     * Ambil mode jadwal yang saat ini aktif diberlakukan ('otomatis', 'manual', atau null jika draft)
+     */
+    public static function getModeAktif(): ?string
+    {
+        $setting = self::getSettings();
+        if ($setting->status_jadwal === 'draft' || empty($setting->is_diberlakukan)) {
+            return null;
+        }
+
+        $mode = $setting->mode_pemberlakuan ?: 'otomatis';
+        return ($mode === 'draft') ? null : $mode;
+    }
+
+    /**
+     * Ambil mode pemberlakuan ('otomatis', 'manual', atau 'draft')
+     */
+    public static function getModePemberlakuan(): string
+    {
+        $setting = self::getSettings();
+        if ($setting->status_jadwal === 'draft' || empty($setting->is_diberlakukan)) {
+            return 'draft';
+        }
+        return $setting->mode_pemberlakuan ?: 'otomatis';
+    }
+
+    /**
+     * Ambil status pemberlakuan jadwal (aktif / draft)
+     */
+    public static function getStatusJadwal(): string
+    {
+        $setting = self::getSettings();
+        return $setting->status_jadwal ?: ($setting->is_diberlakukan ? 'aktif' : 'draft');
+    }
 
     /**
      * Ambil instance konfigurasi jadwal (Singleton row ID: 1)
@@ -298,12 +364,33 @@ class JadwalPengaturan extends Model
             }
         }
 
+        // Konfigurasi Rutin Pagi (Upacara & Pembiasaan)
+        $upacaraConfig = $setting->upacara ?? [];
+        $isUpacaraAktif = !empty($upacaraConfig['aktif']);
+        $upacaraHari = $upacaraConfig['hari'] ?? 'Senin';
+        $upacaraJamKe = (int) ($upacaraConfig['jam_ke'] ?? 1);
+        $upacaraDurasi = max(10, min(90, (int) ($upacaraConfig['durasi_menit'] ?? 45)));
+
+        $pembiasaanConfig = $setting->pembiasaan ?? [];
+        $isPembiasaanAktif = !empty($pembiasaanConfig['aktif']);
+        $pembiasaanHari = $pembiasaanConfig['hari'] ?? 'Jumat';
+        $pembiasaanJamKe = (int) ($pembiasaanConfig['jam_ke'] ?? 1);
+        $pembiasaanDurasi = max(10, min(90, (int) ($pembiasaanConfig['durasi_menit'] ?? 40)));
+
         $slots = [];
         $current = Carbon::createFromFormat('H:i', $jamMulai);
 
         for ($ke = 1; $ke <= $totalSlots; $ke++) {
             $isBreak = isset($istirahatMap[$ke]);
-            $slotDurasi = $isBreak ? $istirahatMap[$ke]['durasi'] : $durasi;
+            $slotDurasi = $durasi;
+
+            if ($hari === $upacaraHari && $isUpacaraAktif && $ke === $upacaraJamKe) {
+                $slotDurasi = $upacaraDurasi;
+            } elseif ($hari === $pembiasaanHari && $isPembiasaanAktif && $ke === $pembiasaanJamKe) {
+                $slotDurasi = $pembiasaanDurasi;
+            } elseif ($isBreak && ($hari !== 'Jumat' || $ke !== $istirahatMap[$ke])) {
+                $slotDurasi = $istirahatMap[$ke]['durasi'];
+            }
 
             $startStr = $current->format('H:i');
             $end = $current->copy()->addMinutes($slotDurasi);
@@ -311,8 +398,11 @@ class JadwalPengaturan extends Model
 
             $slots[$ke] = [
                 'ke'             => $ke,
+                'jam_ke'         => $ke,
                 'mulai'          => $startStr,
+                'jam_mulai'      => strlen($startStr) === 5 ? $startStr . ':00' : $startStr,
                 'selesai'        => $endStr,
+                'jam_selesai'    => strlen($endStr) === 5 ? $endStr . ':00' : $endStr,
                 'label'          => $isBreak ? "Jam Ke-{$ke} (Istirahat)" : "Jam Ke-{$ke}",
                 'is_break'       => $isBreak,
                 'break_duration' => $isBreak ? $istirahatMap[$ke]['durasi'] : 0,
@@ -329,7 +419,7 @@ class JadwalPengaturan extends Model
     /**
      * Hitung jam selesai perkiraan untuk jumlah slot dan hari tertentu
      */
-    public static function calculateJamSelesai(int $totalJp, ?string $jamMulai = null, ?int $durasiPerJp = null): string
+    public static function calculateJamSelesai(int $totalJp, ?string $jamMulai = null, ?int $durasiPerJp = null, ?string $hari = null): string
     {
         if ($totalJp <= 0) {
             return '-';
@@ -350,9 +440,28 @@ class JadwalPengaturan extends Model
             }
         }
 
+        $upacaraConfig = $setting->upacara ?? [];
+        $isUpacaraAktif = !empty($upacaraConfig['aktif']);
+        $upacaraHari = $upacaraConfig['hari'] ?? 'Senin';
+        $upacaraJamKe = (int) ($upacaraConfig['jam_ke'] ?? 1);
+        $upacaraDurasi = max(10, min(90, (int) ($upacaraConfig['durasi_menit'] ?? 45)));
+
+        $pembiasaanConfig = $setting->pembiasaan ?? [];
+        $isPembiasaanAktif = !empty($pembiasaanConfig['aktif']);
+        $pembiasaanHari = $pembiasaanConfig['hari'] ?? 'Jumat';
+        $pembiasaanJamKe = (int) ($pembiasaanConfig['jam_ke'] ?? 1);
+        $pembiasaanDurasi = max(10, min(90, (int) ($pembiasaanConfig['durasi_menit'] ?? 40)));
+
         $current = Carbon::createFromFormat('H:i', $start);
         for ($k = 1; $k <= $totalJp; $k++) {
-            $slotDur = $istirahatMap[$k] ?? $dur;
+            $slotDur = $dur;
+            if ($hari === $upacaraHari && $isUpacaraAktif && $k === $upacaraJamKe) {
+                $slotDur = $upacaraDurasi;
+            } elseif ($hari === $pembiasaanHari && $isPembiasaanAktif && $k === $pembiasaanJamKe) {
+                $slotDur = $pembiasaanDurasi;
+            } elseif (isset($istirahatMap[$k]) && $hari !== 'Jumat') {
+                $slotDur = $istirahatMap[$k];
+            }
             $current->addMinutes($slotDur);
         }
 
@@ -362,7 +471,7 @@ class JadwalPengaturan extends Model
     /**
      * Sinkronkan kegiatan rutin sekolah (Upacara Bendera, Pembiasaan & Istirahat) ke seluruh kelas reguler
      */
-    public static function syncRoutineActivities(): void
+    public static function syncRoutineActivities(?string $targetSumber = null): void
     {
         $setting = self::getSettings();
         $regRombels = \Illuminate\Support\Facades\DB::table('rombongan_belajar')
@@ -376,6 +485,7 @@ class JadwalPengaturan extends Model
 
         $slots = self::getSlots();
         $dailySlots = self::getDailySlotCounts();
+        $sumbers = $targetSumber ? [$targetSumber] : ['otomatis', 'manual'];
 
         // 1. Sinkronisasi Upacara Bendera Otomatis
         $upacara = $setting->upacara;
@@ -388,33 +498,42 @@ class JadwalPengaturan extends Model
             $uNama = !empty($upacara['nama']) ? $upacara['nama'] : 'Upacara Bendera';
 
             // Bersihkan jika hari upacara berubah
-            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'UPACARA')->where('hari', '!=', $uHari)->delete();
+            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'UPACARA')
+                ->where('hari', '!=', $uHari)
+                ->when($targetSumber, fn($q) => $q->where('sumber', $targetSumber))
+                ->delete();
 
             foreach ($regRombels as $r) {
-                \App\Models\JadwalKbm::updateOrCreate(
-                    [
-                        'rombongan_belajar_id' => $r->rombongan_belajar_id,
-                        'mata_pelajaran_id'    => 'UPACARA',
-                        'hari'                 => $uHari,
-                    ],
-                    [
-                        'nama_mata_pelajaran'  => $uNama,
-                        'pembelajaran_id'      => 'ROUTINE_UPACARA',
-                        'ptk_id'               => null,
-                        'hari'                 => $uHari,
-                        'jam_ke_mulai'         => $uJamKe,
-                        'jam_ke_selesai'       => $uJamKe,
-                        'jam_mulai'            => (strlen($uSlot['mulai']) === 5 ? $uSlot['mulai'] . ':00' : $uSlot['mulai']),
-                        'jam_selesai'          => (strlen($uSlot['selesai']) === 5 ? $uSlot['selesai'] . ':00' : $uSlot['selesai']),
-                        'ruangan'              => 'Lapangan Upacara',
-                        'semester_id'          => $r->semester_id ?? null,
-                        'is_active'            => true,
-                        'keterangan'           => 'Kegiatan Rutin Sekolah (Upacara Bendera)',
-                    ]
-                );
+                foreach ($sumbers as $sumber) {
+                    \App\Models\JadwalKbm::updateOrCreate(
+                        [
+                            'rombongan_belajar_id' => $r->rombongan_belajar_id,
+                            'mata_pelajaran_id'    => 'UPACARA',
+                            'hari'                 => $uHari,
+                            'sumber'               => $sumber,
+                        ],
+                        [
+                            'nama_mata_pelajaran'  => $uNama,
+                            'pembelajaran_id'      => 'ROUTINE_UPACARA',
+                            'ptk_id'               => null,
+                            'hari'                 => $uHari,
+                            'jam_ke_mulai'         => $uJamKe,
+                            'jam_ke_selesai'       => $uJamKe,
+                            'jam_mulai'            => (strlen($uSlot['mulai']) === 5 ? $uSlot['mulai'] . ':00' : $uSlot['mulai']),
+                            'jam_selesai'          => (strlen($uSlot['selesai']) === 5 ? $uSlot['selesai'] . ':00' : $uSlot['selesai']),
+                            'ruangan'              => 'Lapangan Upacara',
+                            'semester_id'          => $r->semester_id ?? null,
+                            'sumber'               => $sumber,
+                            'is_active'            => true,
+                            'keterangan'           => 'Kegiatan Rutin Sekolah (Upacara Bendera)',
+                        ]
+                    );
+                }
             }
         } else {
-            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'UPACARA')->delete();
+            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'UPACARA')
+                ->when($targetSumber, fn($q) => $q->where('sumber', $targetSumber))
+                ->delete();
         }
 
         // 2. Sinkronisasi Pembiasaan Rutin (Jumat / Hari Tertentu)
@@ -428,33 +547,42 @@ class JadwalPengaturan extends Model
             $pNama = !empty($pembiasaan['nama']) ? $pembiasaan['nama'] : 'Pembiasaan';
 
             // Bersihkan jika hari pembiasaan berubah
-            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'PEMBIASAAN')->where('hari', '!=', $pHari)->delete();
+            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'PEMBIASAAN')
+                ->where('hari', '!=', $pHari)
+                ->when($targetSumber, fn($q) => $q->where('sumber', $targetSumber))
+                ->delete();
 
             foreach ($regRombels as $r) {
-                \App\Models\JadwalKbm::updateOrCreate(
-                    [
-                        'rombongan_belajar_id' => $r->rombongan_belajar_id,
-                        'mata_pelajaran_id'    => 'PEMBIASAAN',
-                        'hari'                 => $pHari,
-                    ],
-                    [
-                        'nama_mata_pelajaran'  => $pNama,
-                        'pembelajaran_id'      => 'ROUTINE_PEMBIASAAN',
-                        'ptk_id'               => null,
-                        'hari'                 => $pHari,
-                        'jam_ke_mulai'         => $pJamKe,
-                        'jam_ke_selesai'       => $pJamKe,
-                        'jam_mulai'            => (strlen($pSlot['mulai']) === 5 ? $pSlot['mulai'] . ':00' : $pSlot['mulai']),
-                        'jam_selesai'          => (strlen($pSlot['selesai']) === 5 ? $pSlot['selesai'] . ':00' : $pSlot['selesai']),
-                        'ruangan'              => 'Masjid / Lapangan / Kelas',
-                        'semester_id'          => $r->semester_id ?? null,
-                        'is_active'            => true,
-                        'keterangan'           => 'Kegiatan Rutin Sekolah (Pembiasaan)',
-                    ]
-                );
+                foreach ($sumbers as $sumber) {
+                    \App\Models\JadwalKbm::updateOrCreate(
+                        [
+                            'rombongan_belajar_id' => $r->rombongan_belajar_id,
+                            'mata_pelajaran_id'    => 'PEMBIASAAN',
+                            'hari'                 => $pHari,
+                            'sumber'               => $sumber,
+                        ],
+                        [
+                            'nama_mata_pelajaran'  => $pNama,
+                            'pembelajaran_id'      => 'ROUTINE_PEMBIASAAN',
+                            'ptk_id'               => null,
+                            'hari'                 => $pHari,
+                            'jam_ke_mulai'         => $pJamKe,
+                            'jam_ke_selesai'       => $pJamKe,
+                            'jam_mulai'            => (strlen($pSlot['mulai']) === 5 ? $pSlot['mulai'] . ':00' : $pSlot['mulai']),
+                            'jam_selesai'          => (strlen($pSlot['selesai']) === 5 ? $pSlot['selesai'] . ':00' : $pSlot['selesai']),
+                            'ruangan'              => 'Masjid / Lapangan / Kelas',
+                            'semester_id'          => $r->semester_id ?? null,
+                            'sumber'               => $sumber,
+                            'is_active'            => true,
+                            'keterangan'           => 'Kegiatan Rutin Sekolah (Pembiasaan)',
+                        ]
+                    );
+                }
             }
         } else {
-            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'PEMBIASAAN')->delete();
+            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'PEMBIASAAN')
+                ->when($targetSumber, fn($q) => $q->where('sumber', $targetSumber))
+                ->delete();
         }
 
         // 3. Sinkronisasi Waktu Istirahat Otomatis ke Seluruh Hari KBM Aktif
@@ -470,9 +598,11 @@ class JadwalPengaturan extends Model
 
             foreach ($hariAktif as $h) {
                 $maxSlotsForDay = $dailySlots[$h] ?? (int)$setting->total_slot_jp;
-                // Jika jam_ke melebihi total JP hari tersebut (misal Jumat hanya 5 JP sedangkan istirahat diatur jam ke-6), lewati
                 if ($bJamKe > $maxSlotsForDay) {
-                    \App\Models\JadwalKbm::where('mata_pelajaran_id', 'ISTIRAHAT')->where('hari', $h)->delete();
+                    \App\Models\JadwalKbm::where('mata_pelajaran_id', 'ISTIRAHAT')
+                        ->where('hari', $h)
+                        ->when($targetSumber, fn($q) => $q->where('sumber', $targetSumber))
+                        ->delete();
                     continue;
                 }
 
@@ -480,65 +610,74 @@ class JadwalPengaturan extends Model
                 $bSlot = $daySlots[$bJamKe] ?? ['mulai' => '10:15', 'selesai' => '10:45'];
 
                 foreach ($regRombels as $r) {
-                    // Cek apakah rombel ini memiliki pelajaran di hari ini
-                    $hasAnyLessonsOnDay = \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
-                        ->where('hari', $h)
-                        ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
-                        ->exists();
-
-                    if ($hasAnyLessonsOnDay) {
-                        $hasAfternoon = \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
+                    foreach ($sumbers as $sumber) {
+                        $hasAnyLessonsOnDay = \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
                             ->where('hari', $h)
+                            ->where('sumber', $sumber)
                             ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
-                            ->where('jam_ke_mulai', '>', $bJamKe)
                             ->exists();
 
-                        $morningReachedBreak = \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
-                            ->where('hari', $h)
-                            ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
-                            ->where('jam_ke_selesai', '>=', $bJamKe - 1)
-                            ->exists();
-
-                        // Jika KBM hari ini selesai sebelum batas istirahat dan tidak ada KBM siang, jangan pasang istirahat
-                        if (!$hasAfternoon && !$morningReachedBreak) {
-                            \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
-                                ->where('mata_pelajaran_id', 'ISTIRAHAT')
+                        if ($hasAnyLessonsOnDay) {
+                            $hasAfternoon = \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
                                 ->where('hari', $h)
-                                ->delete();
-                            continue;
-                        }
-                    }
+                                ->where('sumber', $sumber)
+                                ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
+                                ->where('jam_ke_mulai', '>', $bJamKe)
+                                ->exists();
 
-                    \App\Models\JadwalKbm::updateOrCreate(
-                        [
-                            'rombongan_belajar_id' => $r->rombongan_belajar_id,
-                            'mata_pelajaran_id'    => 'ISTIRAHAT',
-                            'hari'                 => $h,
-                        ],
-                        [
-                            'nama_mata_pelajaran'  => $bNama,
-                            'pembelajaran_id'      => 'ROUTINE_ISTIRAHAT',
-                            'ptk_id'               => null,
-                            'hari'                 => $h,
-                            'jam_ke_mulai'         => $bJamKe,
-                            'jam_ke_selesai'       => $bJamKe,
-                            'jam_mulai'            => (strlen($bSlot['mulai']) === 5 ? $bSlot['mulai'] . ':00' : $bSlot['mulai']),
-                            'jam_selesai'          => (strlen($bSlot['selesai']) === 5 ? $bSlot['selesai'] . ':00' : $bSlot['selesai']),
-                            'ruangan'              => 'Kantin / Area Sekolah',
-                            'semester_id'          => $r->semester_id ?? null,
-                            'is_active'            => true,
-                            'keterangan'           => 'Waktu Istirahat Sekolah',
-                        ]
-                    );
+                            $morningReachedBreak = \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
+                                ->where('hari', $h)
+                                ->where('sumber', $sumber)
+                                ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
+                                ->where('jam_ke_selesai', '>=', $bJamKe - 1)
+                                ->exists();
+
+                            if (!$hasAfternoon && !$morningReachedBreak) {
+                                \App\Models\JadwalKbm::where('rombongan_belajar_id', $r->rombongan_belajar_id)
+                                    ->where('mata_pelajaran_id', 'ISTIRAHAT')
+                                    ->where('hari', $h)
+                                    ->where('sumber', $sumber)
+                                    ->delete();
+                                continue;
+                            }
+                        }
+
+                        \App\Models\JadwalKbm::updateOrCreate(
+                            [
+                                'rombongan_belajar_id' => $r->rombongan_belajar_id,
+                                'mata_pelajaran_id'    => 'ISTIRAHAT',
+                                'hari'                 => $h,
+                                'sumber'               => $sumber,
+                            ],
+                            [
+                                'nama_mata_pelajaran'  => $bNama,
+                                'pembelajaran_id'      => 'ROUTINE_ISTIRAHAT',
+                                'ptk_id'               => null,
+                                'hari'                 => $h,
+                                'jam_ke_mulai'         => $bJamKe,
+                                'jam_ke_selesai'       => $bJamKe,
+                                'jam_mulai'            => (strlen($bSlot['mulai']) === 5 ? $bSlot['mulai'] . ':00' : $bSlot['mulai']),
+                                'jam_selesai'          => (strlen($bSlot['selesai']) === 5 ? $bSlot['selesai'] . ':00' : $bSlot['selesai']),
+                                'ruangan'              => 'Kantin / Area Sekolah',
+                                'semester_id'          => $r->semester_id ?? null,
+                                'sumber'               => $sumber,
+                                'is_active'            => true,
+                                'keterangan'           => 'Waktu Istirahat Sekolah',
+                            ]
+                        );
+                    }
                 }
             }
 
             // Hapus dari hari yang tidak aktif
             \App\Models\JadwalKbm::where('mata_pelajaran_id', 'ISTIRAHAT')
                 ->whereNotIn('hari', $hariAktif)
+                ->when($targetSumber, fn($q) => $q->where('sumber', $targetSumber))
                 ->delete();
         } else {
-            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'ISTIRAHAT')->delete();
+            \App\Models\JadwalKbm::where('mata_pelajaran_id', 'ISTIRAHAT')
+                ->when($targetSumber, fn($q) => $q->where('sumber', $targetSumber))
+                ->delete();
         }
     }
 }

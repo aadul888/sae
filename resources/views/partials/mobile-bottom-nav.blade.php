@@ -70,7 +70,7 @@
                 'label' => 'Kelas',
                 'icon' => 'fa-clipboard-check',
                 'href' => $href('dashboard.presensi.kelas'),
-                'permission' => 'menu_wali_kelas_presensi',
+                'permission' => 'menu_presensi_peserta_didik',
                 'active' => request()->routeIs('dashboard.presensi.kelas'),
             ],
             [

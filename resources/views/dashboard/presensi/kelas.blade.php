@@ -19,6 +19,10 @@
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline"
+                style="padding: 9px 14px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-calendar-check"></i> Presensi Mengajar
+            </a>
             @if ($selectedRombel)
                 <button type="button" class="btn btn-danger" id="btnTandaiAlpha"
                     data-rombel="{{ $selectedRombelId }}"

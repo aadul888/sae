@@ -230,6 +230,23 @@
                 {{ date('l, d F Y') }}</span>
         </div>
 
+        @if (empty($isJadwalDiberlakukan))
+            <div style="text-align: center; padding: 26px 16px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: 12px; margin-bottom: 12px;">
+                <i class="fas fa-clock" style="font-size: 2.2rem; color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal KBM Masih Berstatus Draft</h4>
+                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0; max-width: 520px; display: inline-block;">
+                    Jadwal KBM semester ini sedang dalam tahap penyusunan dan finalisasi oleh Tim Kurikulum. Jadwal mengajar harian Anda akan tampil otomatis di sini setelah resmi diberlakukan.
+                </p>
+            </div>
+        @elseif (empty($jadwal_hari_ini) || count($jadwal_hari_ini) === 0)
+            <div style="text-align: center; padding: 30px 16px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 12px; margin-bottom: 12px;">
+                <i class="fas fa-mug-hot" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada Jadwal Mengajar Hari Ini</h4>
+                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0; max-width: 540px; display: inline-block;">
+                    Anda tidak memiliki jadwal tatap muka/mengajar di kelas pada hari {{ $hariIni ?? 'ini' }}. Manfaatkan waktu untuk evaluasi pembelajaran, pembuatan perangkat ajar, atau kegiatan tugas tambahan.
+                </p>
+            </div>
+        @else
         <!-- Desktop Table View -->
         <div class="d-none d-md-block" style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
@@ -260,6 +277,11 @@
                                         style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.78rem;">
                                         <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
                                     </span>
+                                @elseif ($j['status'] === 'Selesai')
+                                    <span
+                                        style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                        <i class="fas fa-check"></i> {{ $j['status'] }}
+                                    </span>
                                 @else
                                     <span
                                         style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
@@ -267,12 +289,19 @@
                                     </span>
                                 @endif
                             </td>
-                            <td style="padding: 14px; text-align: right;">
-                                @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
-                                    <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;">
-                                        <i class="fas fa-pen-to-square"></i> Jurnal KBM
-                                    </button>
-                                @endif
+                            <td style="padding: 14px; text-align: right; white-space: nowrap;">
+                                <div style="display: inline-flex; gap: 6px;">
+                                    @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
+                                        <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary" style="padding: 6px 10px; font-size: 0.76rem;" title="Presensi Mengajar">
+                                            <i class="fas fa-clipboard-user"></i> Presensi
+                                        </a>
+                                    @endif
+                                    @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
+                                        <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.76rem;" title="Jurnal KBM">
+                                            <i class="fas fa-pen-to-square"></i> Jurnal
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -294,6 +323,11 @@
                                 style="background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.72rem;">
                                 <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
                             </span>
+                        @elseif ($j['status'] === 'Selesai')
+                            <span
+                                style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem;">
+                                <i class="fas fa-check"></i> {{ $j['status'] }}
+                            </span>
                         @else
                             <span
                                 style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px; font-size: 0.72rem;">
@@ -314,16 +348,23 @@
                         </div>
                     </div>
 
-                    @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
-                        <div style="margin-top: 2px;">
-                            <button class="btn btn-outline"
-                                style="width: 100%; justify-content: center; padding: 8px 12px; font-size: 0.8rem;">
+                    <div style="display: flex; gap: 8px; margin-top: 2px;">
+                        @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
+                            <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary"
+                                style="flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.78rem;">
+                                <i class="fas fa-clipboard-user"></i> Presensi
+                            </a>
+                        @endif
+                        @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
+                            <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline"
+                                style="flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.78rem;">
                                 <i class="fas fa-pen-to-square"></i> Jurnal KBM
-                            </button>
-                        </div>
-                    @endif
+                            </a>
+                        @endif
+                    </div>
                 </div>
             @endforeach
         </div>
+        @endif
     </div>
 @endsection

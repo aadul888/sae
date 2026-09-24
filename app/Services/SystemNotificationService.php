@@ -193,114 +193,120 @@ class SystemNotificationService
             return $list;
         }
 
-        // Cek Jadwal Mengajar Guru Hari Ini
+        // Cek Jadwal Mengajar Guru Hari Ini (Hanya dari mode yang resmi diberlakukan)
         if (Schema::hasTable('jadwal_kbm')) {
             try {
-                $jadwalHariIni = JadwalKbm::where('is_active', true)
-                    ->where('ptk_id', $ptkId)
-                    ->where('hari', $hariIni)
-                    ->excludePkl()
-                    ->get();
+                $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
+                $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
 
-                $totalKelas = $jadwalHariIni->count();
+                if ($isJadwalDiberlakukan && $modeAktif) {
+                    $jadwalHariIni = JadwalKbm::where('is_active', true)
+                        ->where('sumber', $modeAktif)
+                        ->where('ptk_id', $ptkId)
+                        ->where('hari', $hariIni)
+                        ->excludePkl()
+                        ->get();
 
-                if ($totalKelas === 0) {
-                    $list->push((object) [
-                        'id'         => 'dyn_guru_no_schedule',
-                        'judul'      => 'Jadwal Mengajar Hari Ini',
-                        'pesan'      => "Tidak ada jadwal tatap muka/KBM untuk Anda pada hari {$hariIni}.",
-                        'kategori'   => 'jadwal',
-                        'tipe'       => 'info',
-                        'icon'       => 'fas fa-calendar-check',
-                        'url'        => route('dashboard.agenda-kbm.index'),
-                        'created_at' => now(),
-                        'time_diff'  => 'Hari Ini',
-                        'is_read'    => true,
-                        'is_dynamic' => true,
-                    ]);
-                } else {
-                    // Cek Presensi Mengajar Terisi Hari Ini
-                    $presensiDone = Schema::hasTable('presensi_mengajar')
-                        ? PresensiMengajar::where('ptk_id', $ptkId)->whereDate('tanggal', $today)->count()
-                        : 0;
+                    $totalKelas = $jadwalHariIni->count();
 
-                    if ($presensiDone === 0) {
+                    if ($totalKelas === 0) {
                         $list->push((object) [
-                            'id'         => 'dyn_guru_presensi_empty',
-                            'judul'      => 'Pengingat Presensi Mengajar',
-                            'pesan'      => "Anda memiliki {$totalKelas} kelas hari ini dan belum mencatat presensi mengajar.",
-                            'kategori'   => 'presensi_mengajar',
-                            'tipe'       => 'warning',
-                            'icon'       => 'fas fa-chalkboard-user',
-                            'url'        => route('dashboard.presensi-mengajar.index'),
-                            'created_at' => now(),
-                            'time_diff'  => 'Hari Ini',
-                            'is_read'    => false,
-                            'is_dynamic' => true,
-                        ]);
-                    } elseif ($presensiDone < $totalKelas) {
-                        $list->push((object) [
-                            'id'         => 'dyn_guru_presensi_partial',
-                            'judul'      => 'Presensi Mengajar Belum Lengkap',
-                            'pesan'      => "Baru {$presensiDone} dari {$totalKelas} kelas hari ini yang telah dipresensi.",
-                            'kategori'   => 'presensi_mengajar',
-                            'tipe'       => 'warning',
-                            'icon'       => 'fas fa-chalkboard-user',
-                            'url'        => route('dashboard.presensi-mengajar.index'),
-                            'created_at' => now(),
-                            'time_diff'  => 'Hari Ini',
-                            'is_read'    => false,
-                            'is_dynamic' => true,
-                        ]);
-                    } else {
-                        $list->push((object) [
-                            'id'         => 'dyn_guru_presensi_complete',
-                            'judul'      => 'Presensi Mengajar Lengkap',
-                            'pesan'      => "Seluruh {$totalKelas} kelas jadwal mengajar hari ini telah dipresensi.",
-                            'kategori'   => 'presensi_mengajar',
-                            'tipe'       => 'success',
-                            'icon'       => 'fas fa-circle-check',
-                            'url'        => route('dashboard.presensi-mengajar.index'),
-                            'created_at' => now(),
-                            'time_diff'  => 'Hari Ini',
-                            'is_read'    => true,
-                            'is_dynamic' => true,
-                        ]);
-                    }
-
-                    // Cek Agenda KBM Terisi Hari Ini
-                    $agendaDone = Schema::hasTable('agenda_kbm')
-                        ? AgendaKbm::where('ptk_id', $ptkId)->whereDate('tanggal', $today)->count()
-                        : 0;
-
-                    if ($agendaDone < $totalKelas) {
-                        $list->push((object) [
-                            'id'         => 'dyn_guru_agenda_warning',
-                            'judul'      => 'Pengingat Jurnal & Agenda KBM',
-                            'pesan'      => "Jurnal materi KBM untuk kelas hari ini belum lengkap ({$agendaDone}/{$totalKelas} terisi).",
-                            'kategori'   => 'agenda_kbm',
-                            'tipe'       => 'warning',
-                            'icon'       => 'fas fa-book-open',
-                            'url'        => route('dashboard.agenda-kbm.index'),
-                            'created_at' => now(),
-                            'time_diff'  => 'Hari Ini',
-                            'is_read'    => false,
-                            'is_dynamic' => true,
-                        ]);
-                    } else {
-                        $list->push((object) [
-                            'id'         => 'dyn_guru_agenda_complete',
-                            'judul'      => 'Jurnal & Agenda KBM Lengkap',
-                            'pesan'      => 'Seluruh catatan jurnal & agenda materi KBM hari ini telah tercatat.',
-                            'kategori'   => 'agenda_kbm',
-                            'tipe'       => 'success',
-                            'icon'       => 'fas fa-check-double',
+                            'id'         => 'dyn_guru_no_schedule',
+                            'judul'      => 'Jadwal Mengajar Hari Ini',
+                            'pesan'      => "Tidak ada jadwal tatap muka/KBM untuk Anda pada hari {$hariIni}.",
+                            'kategori'   => 'jadwal',
+                            'tipe'       => 'info',
+                            'icon'       => 'fas fa-calendar-check',
                             'url'        => route('dashboard.agenda-kbm.index'),
                             'created_at' => now(),
                             'time_diff'  => 'Hari Ini',
                             'is_read'    => true,
                             'is_dynamic' => true,
                         ]);
+                    } else {
+                        // Cek Presensi Mengajar Terisi Hari Ini
+                        $presensiDone = Schema::hasTable('presensi_mengajar')
+                            ? PresensiMengajar::where('ptk_id', $ptkId)->whereDate('tanggal', $today)->count()
+                            : 0;
+
+                        if ($presensiDone === 0) {
+                            $list->push((object) [
+                                'id'         => 'dyn_guru_presensi_empty',
+                                'judul'      => 'Pengingat Presensi Mengajar',
+                                'pesan'      => "Anda memiliki {$totalKelas} kelas hari ini dan belum mencatat presensi mengajar.",
+                                'kategori'   => 'presensi_mengajar',
+                                'tipe'       => 'warning',
+                                'icon'       => 'fas fa-chalkboard-user',
+                                'url'        => route('dashboard.presensi-mengajar.index'),
+                                'created_at' => now(),
+                                'time_diff'  => 'Hari Ini',
+                                'is_read'    => false,
+                                'is_dynamic' => true,
+                            ]);
+                        } elseif ($presensiDone < $totalKelas) {
+                            $list->push((object) [
+                                'id'         => 'dyn_guru_presensi_partial',
+                                'judul'      => 'Presensi Mengajar Belum Lengkap',
+                                'pesan'      => "Baru {$presensiDone} dari {$totalKelas} kelas hari ini yang telah dipresensi.",
+                                'kategori'   => 'presensi_mengajar',
+                                'tipe'       => 'warning',
+                                'icon'       => 'fas fa-chalkboard-user',
+                                'url'        => route('dashboard.presensi-mengajar.index'),
+                                'created_at' => now(),
+                                'time_diff'  => 'Hari Ini',
+                                'is_read'    => false,
+                                'is_dynamic' => true,
+                            ]);
+                        } else {
+                            $list->push((object) [
+                                'id'         => 'dyn_guru_presensi_complete',
+                                'judul'      => 'Presensi Mengajar Lengkap',
+                                'pesan'      => "Seluruh {$totalKelas} kelas jadwal mengajar hari ini telah dipresensi.",
+                                'kategori'   => 'presensi_mengajar',
+                                'tipe'       => 'success',
+                                'icon'       => 'fas fa-circle-check',
+                                'url'        => route('dashboard.presensi-mengajar.index'),
+                                'created_at' => now(),
+                                'time_diff'  => 'Hari Ini',
+                                'is_read'    => true,
+                                'is_dynamic' => true,
+                            ]);
+                        }
+
+                        // Cek Agenda KBM Terisi Hari Ini
+                        $agendaDone = Schema::hasTable('agenda_kbm')
+                            ? AgendaKbm::where('ptk_id', $ptkId)->whereDate('tanggal', $today)->count()
+                            : 0;
+
+                        if ($agendaDone < $totalKelas) {
+                            $list->push((object) [
+                                'id'         => 'dyn_guru_agenda_warning',
+                                'judul'      => 'Pengingat Jurnal & Agenda KBM',
+                                'pesan'      => "Jurnal materi KBM untuk kelas hari ini belum lengkap ({$agendaDone}/{$totalKelas} terisi).",
+                                'kategori'   => 'agenda_kbm',
+                                'tipe'       => 'warning',
+                                'icon'       => 'fas fa-book-open',
+                                'url'        => route('dashboard.agenda-kbm.index'),
+                                'created_at' => now(),
+                                'time_diff'  => 'Hari Ini',
+                                'is_read'    => false,
+                                'is_dynamic' => true,
+                            ]);
+                        } else {
+                            $list->push((object) [
+                                'id'         => 'dyn_guru_agenda_complete',
+                                'judul'      => 'Jurnal & Agenda KBM Lengkap',
+                                'pesan'      => 'Seluruh catatan jurnal & agenda materi KBM hari ini telah tercatat.',
+                                'kategori'   => 'agenda_kbm',
+                                'tipe'       => 'success',
+                                'icon'       => 'fas fa-check-double',
+                                'url'        => route('dashboard.agenda-kbm.index'),
+                                'created_at' => now(),
+                                'time_diff'  => 'Hari Ini',
+                                'is_read'    => true,
+                                'is_dynamic' => true,
+                            ]);
+                        }
                     }
                 }
             } catch (\Throwable $e) {}

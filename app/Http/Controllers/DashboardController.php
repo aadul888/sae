@@ -196,7 +196,7 @@ class DashboardController extends Controller
             'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];
 
-        // Ambil Jadwal KBM Riil Hari Ini dari Master Jadwal
+        // Ambil Jadwal KBM Riil Hari Ini dari Master Jadwal Sesuai Mode Aktif & Diberlakukan
         $hariIni = match (now()->dayOfWeekIso) {
             1 => 'Senin',
             2 => 'Selasa',
@@ -207,72 +207,65 @@ class DashboardController extends Controller
             default => 'Minggu',
         };
 
-        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || in_array($hariIni, ['Sabtu', 'Minggu']);
+        $pengaturanJadwal = \App\Models\JadwalPengaturan::getSettings();
+        $hariAktifSekolah = $pengaturanJadwal->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
+        $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
+        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || !in_array($hariIni, $hariAktifSekolah);
         $jadwal_hari_ini = [];
 
-        if (!$isLiburHariIni && $gtk && Schema::hasTable('jadwal_kbm')) {
-            $jadwalRiilQuery = DB::table('jadwal_kbm')
-                ->where('ptk_id', $gtk->ptk_id)
-                ->where('hari', $hariIni);
+        if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && $gtk && !empty($gtk->ptk_id) && Schema::hasTable('jadwal_kbm')) {
+            $jadwalRiil = DB::table('jadwal_kbm as j')
+                ->leftJoin('rombongan_belajar as rb', 'j.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->where('j.sumber', $modeAktif)
+                ->where('j.is_active', true)
+                ->where('j.ptk_id', $gtk->ptk_id)
+                ->where('j.hari', $hariIni)
+                ->orderBy('j.jam_ke_mulai', 'asc')
+                ->orderBy('j.jam_mulai', 'asc')
+                ->select('j.*', 'rb.nama as nama_rombel')
+                ->get();
 
-            if (Schema::hasColumn('jadwal_kbm', 'jam_ke')) {
-                $jadwalRiilQuery->orderBy('jam_ke');
-            } elseif (Schema::hasColumn('jadwal_kbm', 'jam_mulai')) {
-                $jadwalRiilQuery->orderBy('jam_mulai');
-            }
+            $nowTime = now()->format('H:i');
 
-            $jadwalRiil = $jadwalRiilQuery->get();
+            foreach ($jadwalRiil as $j) {
+                $jamMulai = $j->jam_mulai ? substr($j->jam_mulai, 0, 5) : null;
+                $jamSelesai = $j->jam_selesai ? substr($j->jam_selesai, 0, 5) : null;
+                $jamStr = ($jamMulai && $jamSelesai)
+                    ? "{$jamMulai} - {$jamSelesai}"
+                    : (($j->jam_ke_mulai == $j->jam_ke_selesai) ? "Jam ke-{$j->jam_ke_mulai}" : "Jam ke-{$j->jam_ke_mulai} s/d {$j->jam_ke_selesai}");
 
-            if ($jadwalRiil->isNotEmpty()) {
-                // Group jam yang berurutan untuk mapel dan rombel yang sama
-                $grouped = [];
-                foreach ($jadwalRiil as $j) {
-                    $key = $j->rombongan_belajar_id . '_' . $j->nama_mata_pelajaran;
-                    $jamKe = (int) ($j->jam_ke ?? 1);
-                    if (!isset($grouped[$key])) {
-                        $grouped[$key] = [
-                            'jam_mulai' => ($j->jam_mulai ?? null) ?: sprintf('%02d:00', 6 + $jamKe),
-                            'jam_selesai' => ($j->jam_selesai ?? null) ?: sprintf('%02d:45', 6 + $jamKe),
-                            'data' => $j,
-                            'total_jp' => 1
-                        ];
-                    } else {
-                        $grouped[$key]['jam_selesai'] = ($j->jam_selesai ?? null) ?: sprintf('%02d:45', 6 + $jamKe);
-                        $grouped[$key]['total_jp']++;
+                $status = 'Mendatang';
+                if ($jamMulai && $jamSelesai) {
+                    if ($nowTime >= $jamMulai && $nowTime <= $jamSelesai) {
+                        $status = 'Berlangsung';
+                    } elseif ($nowTime > $jamSelesai) {
+                        $status = 'Selesai';
                     }
                 }
 
-                foreach ($grouped as $g) {
-                    $j = $g['data'];
-                    $rombelNama = $j->nama_rombel ?? null;
-                    if (!$rombelNama && !empty($j->rombongan_belajar_id)) {
-                        $rb = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->first();
-                        $rombelNama = $rb?->nama ?: 'Rombel';
-                    }
-
-                    $jadwal_hari_ini[] = [
-                        'jam'    => substr($g['jam_mulai'], 0, 5) . ' - ' . substr($g['jam_selesai'], 0, 5),
-                        'kelas'  => $rombelNama,
-                        'mapel'  => $j->nama_mata_pelajaran ?: 'Mata Pelajaran',
-                        'ruang'  => $j->ruangan ?: 'Ruang Kelas',
-                        'status' => 'Terjadwal'
-                    ];
-                }
+                $jadwal_hari_ini[] = [
+                    'id'      => $j->id,
+                    'jam'     => $jamStr,
+                    'kelas'   => $j->nama_rombel ?: 'Rombel',
+                    'mapel'   => $j->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                    'ruang'   => $j->ruangan ?: 'Ruang Kelas',
+                    'status'  => $status,
+                ];
             }
         }
 
-        // Fallback jika belum ada jadwal KBM tersimpan
-        if (!$isLiburHariIni && empty($jadwal_hari_ini)) {
-            if ($pembelajaran->isNotEmpty()) {
-                foreach ($pembelajaran as $idx => $pem) {
-                    $jadwal_hari_ini[] = [
-                        'jam'    => sprintf('%02d:30 - %02d:00', 7 + ($idx * 2), 9 + ($idx * 2)),
-                        'kelas'  => $pem->nama_rombel ?: 'Rombel',
-                        'mapel'  => $pem->nama_mata_pelajaran ?: 'Mata Pelajaran',
-                        'ruang'  => $pem->ruang ?: 'Ruang Kelas',
-                        'status' => $idx === 0 ? 'Berlangsung' : 'Mendatang'
-                    ];
-                }
+        // HANYA tampilkan estimasi sementara dari pembelajaran jika jadwal KBM semester ini belum diberlakukan (masih draft)
+        if (!$isJadwalDiberlakukan && !$isLiburHariIni && empty($jadwal_hari_ini) && $pembelajaran->isNotEmpty()) {
+            foreach ($pembelajaran->take(4) as $idx => $pem) {
+                $jadwal_hari_ini[] = [
+                    'id'     => null,
+                    'jam'    => sprintf('%02d:30 - %02d:00', 7 + ($idx * 2), 9 + ($idx * 2)),
+                    'kelas'  => $pem->nama_rombel ?: 'Rombel',
+                    'mapel'  => $pem->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                    'ruang'  => $pem->ruang ?: 'Ruang Kelas',
+                    'status' => 'Draft',
+                ];
             }
         }
 
@@ -338,7 +331,8 @@ class DashboardController extends Controller
             'userRole',
             'ptkId',
             'userName',
-            'waliStats'
+            'waliStats',
+            'isJadwalDiberlakukan'
         ));
     }
 
@@ -1003,21 +997,74 @@ class DashboardController extends Controller
         }
 
         $jadwal_pelajaran = [];
-        if ($pembelajaran->isNotEmpty()) {
-            foreach ($pembelajaran as $idx => $pem) {
+        $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
+        $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
+        $pengaturanJadwal = \App\Models\JadwalPengaturan::getSettings();
+        $hariAktifSekolah = $pengaturanJadwal->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariIni = match (now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            default => 'Minggu',
+        };
+        $isLiburHariIni = !in_array($hariIni, $hariAktifSekolah);
+
+        if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && !empty($pd->rombongan_belajar_id) && Schema::hasTable('jadwal_kbm')) {
+            $jadwalSiswa = DB::table('jadwal_kbm as j')
+                ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
+                ->where('j.rombongan_belajar_id', $pd->rombongan_belajar_id)
+                ->where('j.sumber', $modeAktif)
+                ->where('j.hari', $hariIni)
+                ->where('j.is_active', true)
+                ->orderBy('j.jam_ke_mulai', 'asc')
+                ->orderBy('j.jam_mulai', 'asc')
+                ->select('j.*', 'g.nama as nama_guru')
+                ->get();
+
+            $nowTime = now()->format('H:i');
+
+            foreach ($jadwalSiswa as $js) {
+                $jamMulai = $js->jam_mulai ? substr($js->jam_mulai, 0, 5) : null;
+                $jamSelesai = $js->jam_selesai ? substr($js->jam_selesai, 0, 5) : null;
+                $jamStr = ($jamMulai && $jamSelesai)
+                    ? "{$jamMulai} - {$jamSelesai}"
+                    : sprintf('Jam ke-%d s/d %d', $js->jam_ke_mulai, $js->jam_ke_selesai);
+
+                $status = 'Mendatang';
+                if ($jamMulai && $jamSelesai) {
+                    if ($nowTime >= $jamMulai && $nowTime <= $jamSelesai) {
+                        $status = 'Berlangsung';
+                    } elseif ($nowTime > $jamSelesai) {
+                        $status = 'Selesai';
+                    }
+                }
+
                 $jadwal_pelajaran[] = [
-                    'jam' => sprintf('%02d:30 - %02d:00', 7 + ($idx * 2), 9 + ($idx * 2)),
-                    'mapel' => $pem->nama_mata_pelajaran ?: 'Mata Pelajaran',
-                    'guru' => $pem->guru_pengampu ?: 'Guru Pengampu',
-                    'ruang' => $pd->nama_rombel ?? 'Ruang Kelas'
+                    'id'     => $js->id,
+                    'jam'    => $jamStr,
+                    'mapel'  => $js->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                    'guru'   => $js->nama_guru ?: 'Guru Pengampu',
+                    'ruang'  => $js->ruangan ?: ($pd->nama_rombel ?? 'Ruang Kelas'),
+                    'status' => $status,
                 ];
             }
-        } else {
-            $jadwal_pelajaran = [
-                ['jam' => '07:30 - 09:00', 'mapel' => 'Pemrograman Web & Mobile', 'guru' => 'Budi Santoso, S.Pd.', 'ruang' => 'Lab Komputer 2'],
-                ['jam' => '09:15 - 10:45', 'mapel' => 'Bahasa Inggris Lanjut', 'guru' => 'Siti Nurhaliza, M.Pd.', 'ruang' => 'Ruang 12'],
-                ['jam' => '11:00 - 12:30', 'mapel' => 'Pendidikan Pancasila', 'guru' => 'Drs. Hendro Wibowo', 'ruang' => 'Ruang 12'],
-            ];
+        }
+
+        // HANYA jika jadwal KBM belum diberlakukan (masih draft) dan bukan libur, tampilkan estimasi sementara dari pembelajaran jika ada
+        if (!$isJadwalDiberlakukan && !$isLiburHariIni && empty($jadwal_pelajaran) && $pembelajaran->isNotEmpty()) {
+            foreach ($pembelajaran->take(4) as $idx => $pem) {
+                $jadwal_pelajaran[] = [
+                    'id'     => null,
+                    'jam'    => sprintf('%02d:30 - %02d:00', 7 + ($idx * 2), 9 + ($idx * 2)),
+                    'mapel'  => $pem->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                    'guru'   => $pem->guru_pengampu ?: 'Guru Pengampu',
+                    'ruang'  => $pd->nama_rombel ?? 'Ruang Kelas',
+                    'status' => 'Draft',
+                ];
+            }
         }
 
         // Ambil data koordinator jika peserta didik bertugas sebagai Koordinator Kelas (1 Unified Dashboard)
@@ -1043,7 +1090,10 @@ class DashboardController extends Controller
             'allPdList',
             'userRole',
             'userName',
-            'koordinatorStats'
+            'koordinatorStats',
+            'isJadwalDiberlakukan',
+            'modeAktif',
+            'hariIni'
         ));
     }
 }

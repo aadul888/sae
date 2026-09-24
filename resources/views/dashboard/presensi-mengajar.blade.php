@@ -130,6 +130,10 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a href="{{ route('dashboard.presensi.kelas') }}" class="btn btn-outline"
+                style="font-size: 0.8rem; padding: 7px 14px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-users-viewfinder"></i> Presensi Kelas
+            </a>
             <div
                 style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.78rem; font-weight: 600; color: var(--text-color);">
                 <i class="fas fa-calendar-day text-primary"></i>
@@ -286,6 +290,13 @@
                 <i class="fas fa-umbrella-beach" style="font-size: 2rem; color: #ef4444; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
                 <strong style="color: #ef4444; font-size: 0.92rem; display: block; margin-bottom: 2px;">Hari Ini Libur Sekolah — KBM Reguler Ditiadakan</strong>
                 <span>Sesuai Kalender Pendidikan, Anda tidak memiliki jadwal mengajar aktif untuk hari ini.</span>
+            </div>
+        @elseif (!empty($isGuru) && empty($isJadwalDiberlakukan))
+            <div
+                style="text-align: center; padding: 22px 14px; background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.3); border-radius: 10px; color: var(--text-muted); font-size: 0.84rem;">
+                <i class="fas fa-clock" style="font-size: 2rem; color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                <strong style="color: #f59e0b; font-size: 0.92rem; display: block; margin-bottom: 2px;">Jadwal KBM Masih Berstatus Draft</strong>
+                <span>Jadwal KBM semester ini sedang dalam proses penyusunan/finalisasi oleh Tim Kurikulum dan belum resmi diberlakukan.</span>
             </div>
         @elseif (count($jadwalHariIni) > 0)
             <div class="card-kbm-today-grid">

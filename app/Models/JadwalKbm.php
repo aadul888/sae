@@ -25,6 +25,7 @@ class JadwalKbm extends Model
         'jam_selesai',
         'ruangan',
         'semester_id',
+        'sumber',
         'is_active',
         'keterangan',
     ];
@@ -73,8 +74,59 @@ class JadwalKbm extends Model
      * Memeriksa potensi bentrok jadwal (Ketersediaan Guru, Bentrok Guru, Bentrok Rombel, Bentrok Ruangan)
      * Overlap waktu: (startA < endB) AND (endA > startB)
      */
-    public static function checkConflict($ptkId, $rombelId, $hari, $jamMulai, $jamSelesai, $excludeId = null, $ruangan = null, $jamKeMulai = 1, $jamKeSelesai = 1): array
+    public static function checkConflict($ptkId, $rombelId, $hari, $jamMulai, $jamSelesai, $excludeId = null, $ruangan = null, $jamKeMulai = 1, $jamKeSelesai = 1, $sumber = 'otomatis'): array
     {
+        // 0. Cek Bentrok Kegiatan Rutin Sekolah (Upacara Bendera, Pembiasaan & Istirahat)
+        $pengaturan = JadwalPengaturan::getSettings();
+
+        // A. Cek Upacara Bendera
+        if (!empty($pengaturan->upacara['aktif'])) {
+            $uHari = $pengaturan->upacara['hari'] ?? 'Senin';
+            $uJam = (int) ($pengaturan->upacara['jam_ke'] ?? 1);
+            if ($hari === $uHari && (int) $jamKeMulai <= $uJam && (int) $jamKeSelesai >= $uJam) {
+                $uNama = $pengaturan->upacara['nama'] ?? 'Upacara Bendera';
+                return [
+                    'has_conflict'  => true,
+                    'type'          => 'routine',
+                    'message'       => "Bentrok Kegiatan Rutin: Hari {$hari} Jam Ke-{$uJam} dialokasikan untuk {$uNama}. Tidak dapat menjadwalkan pelajaran KBM pada jam tersebut.",
+                    'conflict_with' => null,
+                ];
+            }
+        }
+
+        // B. Cek Pembiasaan
+        if (!empty($pengaturan->pembiasaan['aktif'])) {
+            $pHari = $pengaturan->pembiasaan['hari'] ?? 'Jumat';
+            $pJam = (int) ($pengaturan->pembiasaan['jam_ke'] ?? 1);
+            if ($hari === $pHari && (int) $jamKeMulai <= $pJam && (int) $jamKeSelesai >= $pJam) {
+                $pNama = $pengaturan->pembiasaan['nama'] ?? 'Pembiasaan';
+                return [
+                    'has_conflict'  => true,
+                    'type'          => 'routine',
+                    'message'       => "Bentrok Kegiatan Rutin: Hari {$hari} Jam Ke-{$pJam} dialokasikan untuk {$pNama}. Tidak dapat menjadwalkan pelajaran KBM pada jam tersebut.",
+                    'conflict_with' => null,
+                ];
+            }
+        }
+
+        // C. Cek Istirahat
+        if (!empty($pengaturan->istirahat) && is_array($pengaturan->istirahat)) {
+            foreach ($pengaturan->istirahat as $ist) {
+                if (!empty($ist['aktif']) && !empty($ist['jam_ke'])) {
+                    $iJam = (int) $ist['jam_ke'];
+                    if ((int) $jamKeMulai <= $iJam && (int) $jamKeSelesai >= $iJam) {
+                        $iNama = $ist['nama'] ?? 'Istirahat';
+                        return [
+                            'has_conflict'  => true,
+                            'type'          => 'routine',
+                            'message'       => "Bentrok Waktu Istirahat: Jam Ke-{$iJam} adalah waktu {$iNama} sekolah. Tidak dapat menjadwalkan pelajaran KBM pada jam tersebut.",
+                            'conflict_with' => null,
+                        ];
+                    }
+                }
+            }
+        }
+
         // 1. Cek Ketersediaan Guru (Off-Days / Jam Berhalangan)
         if (!empty($ptkId)) {
             $prefCheck = JadwalGuruPreferensi::isGuruAvailable($ptkId, $hari, (int) $jamKeMulai, (int) $jamKeSelesai);
@@ -92,10 +144,11 @@ class JadwalKbm extends Model
         $start = strlen($jamMulai) === 5 ? "{$jamMulai}:00" : $jamMulai;
         $end = strlen($jamSelesai) === 5 ? "{$jamSelesai}:00" : $jamSelesai;
 
-        // 2. Cek Bentrok Guru (PTK yang sama mengajar di kelas lain pada jam yang sama)
+        // 2. Cek Bentrok Guru (PTK yang sama mengajar di kelas lain pada jam yang sama dalam sumber yang sama)
         if (!empty($ptkId)) {
             $guruConflictQuery = self::where('ptk_id', $ptkId)
                 ->where('hari', $hari)
+                ->where('sumber', $sumber)
                 ->where('is_active', true)
                 ->where(function ($q) use ($start, $end) {
                     $q->where('jam_mulai', '<', $end)
@@ -125,10 +178,11 @@ class JadwalKbm extends Model
             }
         }
 
-        // 3. Cek Bentrok Rombel (Kelas yang sama memiliki 2 mapel/guru pada jam yang sama)
+        // 3. Cek Bentrok Rombel (Kelas yang sama memiliki 2 mapel/guru pada jam yang sama dalam sumber yang sama)
         if (!empty($rombelId)) {
             $rombelConflictQuery = self::where('rombongan_belajar_id', $rombelId)
                 ->where('hari', $hari)
+                ->where('sumber', $sumber)
                 ->where('is_active', true)
                 ->where(function ($q) use ($start, $end) {
                     $q->where('jam_mulai', '<', $end)
@@ -154,10 +208,11 @@ class JadwalKbm extends Model
             }
         }
 
-        // 4. Cek Bentrok Ruangan (Lab / Bengkel / Fasilitas Bersama)
+        // 4. Cek Bentrok Ruangan (Lab / Bengkel / Fasilitas Bersama dalam sumber yang sama)
         if (!empty($ruangan) && trim($ruangan) !== '') {
             $roomConflictQuery = self::where('ruangan', trim($ruangan))
                 ->where('hari', $hari)
+                ->where('sumber', $sumber)
                 ->where('is_active', true)
                 ->where(function ($q) use ($start, $end) {
                     $q->where('jam_mulai', '<', $end)
@@ -230,5 +285,41 @@ class JadwalKbm extends Model
               ->where('nama_mata_pelajaran', 'NOT LIKE', '%PRAKTIK KERJA%')
               ->where('nama_mata_pelajaran', 'NOT LIKE', '%PRAKTEK KERJA%');
         });
+    }
+
+    /**
+     * Scope query hanya untuk jadwal yang aktif dan resmi diberlakukan
+     */
+    public function scopeDiberlakukan($query, ?string $mode = null)
+    {
+        $isDiberlakukan = JadwalPengaturan::isDiberlakukan();
+        $activeMode = $mode ?: JadwalPengaturan::getModeAktif();
+
+        if (!$isDiberlakukan || !$activeMode) {
+            return $query->whereRaw('0 = 1');
+        }
+
+        return $query->where('is_active', true)->where('sumber', $activeMode);
+    }
+
+    /**
+     * Accessor nama rombongan belajar
+     */
+    public function getNamaRombelAttribute(): string
+    {
+        if (empty($this->rombongan_belajar_id)) {
+            return '-';
+        }
+        return DB::table('rombongan_belajar')
+            ->where('rombongan_belajar_id', $this->rombongan_belajar_id)
+            ->value('nama') ?? (string) $this->rombongan_belajar_id;
+    }
+
+    /**
+     * Relasi ke GTK (Guru Pengampu)
+     */
+    public function gtk()
+    {
+        return $this->belongsTo(Gtk::class, 'ptk_id', 'ptk_id');
     }
 }

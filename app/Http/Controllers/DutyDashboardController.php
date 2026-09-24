@@ -81,6 +81,31 @@ class DutyDashboardController extends Controller
             if (!$isAssigned) {
                 return redirect()->route("dashboard.{$role}")->with('error', "Anda tidak memiliki penugasan aktif untuk tugas '{$duty->nama}'.");
             }
+
+            // Dual-Key RBAC: Validasi bahwa modul tugas tambahan ini diizinkan di matriks hak akses peran
+            $dutyPermMap = [
+                'WALI_KELAS' => 'menu_wali_kelas',
+                'WALI-KELAS' => 'menu_wali_kelas',
+                'GURU_PIKET' => 'menu_piket',
+                'KEPALA_TAS' => 'menu_kepala_tas',
+                'STAF_PERSURATAN' => 'menu_persuratan',
+                'WAKA_KESISWAAN' => 'menu_kesiswaan',
+                'STAF_KESISWAAN' => 'menu_kesiswaan',
+                'PEMBINA_OSIS' => 'menu_kesiswaan',
+                'PEMBINA_EKSKUL' => 'menu_kesiswaan',
+                'STAF_KEPEGAWAIAN' => 'menu_kepegawaian',
+                'STAF_SARPRAS' => 'menu_sarpras',
+                'LABORAN' => 'menu_laboran',
+                'PUSTAKAWAN' => 'menu_perpustakaan',
+                'TEKNISI_IT' => 'menu_teknisi',
+                'SATPAM' => 'menu_keamanan',
+                'PENJAGA_SEKOLAH' => 'menu_penjaga',
+            ];
+            $targetPerm = $dutyPermMap[$duty->kode] ?? ('menu_' . strtolower(str_replace('-', '_', $duty->kode)));
+
+            if (!RolePermission::canAccess($sessionUser, $targetPerm)) {
+                return redirect()->route("dashboard.{$role}")->with('error', "Hak akses ke modul '{$duty->nama}' dinonaktifkan oleh Administrator.");
+            }
         }
 
         // Dekode izin yang diberikan untuk tugas ini

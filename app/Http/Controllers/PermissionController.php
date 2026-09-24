@@ -134,7 +134,7 @@ class PermissionController extends Controller
         }
 
         $roles = [
-            'global' => ['name' => 'Semua Peran (Global)', 'icon' => 'fa-table-cells', 'color' => 'var(--primary)'],
+            'global' => ['name' => 'Semua Peran (Global)', 'icon' => 'fa-globe', 'color' => 'var(--primary)'],
             'admin' => ['name' => 'Administrator', 'icon' => 'fa-user-shield', 'color' => '#6366f1'],
             'guru' => ['name' => 'Guru', 'icon' => 'fa-chalkboard-user', 'color' => '#10b981'],
             'tendik' => ['name' => 'Tenaga Kependidikan', 'icon' => 'fa-id-badge', 'color' => '#0ea5e9'],
@@ -214,6 +214,55 @@ class PermissionController extends Controller
         }
 
         $perm->save();
+
+        // Sinkronisasi cascading induk-anak untuk modul hierarkis (Wali Kelas, Persuratan, Kesiswaan)
+        if ($action === 'read') {
+            if ($permissionKey === 'menu_wali_kelas') {
+                RolePermission::where('role', $targetRole)
+                    ->whereIn('permission_key', [
+                        'menu_wali_kelas_aktif',
+                        'menu_wali_kelas_tidak_aktif',
+                        'menu_wali_kelas_presensi',
+                        'menu_wali_kelas_jadwal',
+                    ])
+                    ->update([
+                        'is_allowed' => $isAllowed,
+                        'can_read' => $isAllowed,
+                    ]);
+            } elseif (in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal'], true) && $isAllowed) {
+                RolePermission::where('role', $targetRole)
+                    ->where('permission_key', 'menu_wali_kelas')
+                    ->update(['is_allowed' => true, 'can_read' => true]);
+            }
+
+            if ($permissionKey === 'menu_persuratan') {
+                RolePermission::where('role', $targetRole)
+                    ->whereIn('permission_key', ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'])
+                    ->update([
+                        'is_allowed' => $isAllowed,
+                        'can_read' => $isAllowed,
+                    ]);
+            } elseif (in_array($permissionKey, ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'], true) && $isAllowed) {
+                RolePermission::where('role', $targetRole)
+                    ->where('permission_key', 'menu_persuratan')
+                    ->update(['is_allowed' => true, 'can_read' => true]);
+            }
+
+            if ($permissionKey === 'menu_kesiswaan') {
+                RolePermission::where('role', $targetRole)
+                    ->whereIn('permission_key', ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'])
+                    ->update([
+                        'is_allowed' => $isAllowed,
+                        'can_read' => $isAllowed,
+                    ]);
+            } elseif (in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true) && $isAllowed) {
+                RolePermission::where('role', $targetRole)
+                    ->where('permission_key', 'menu_kesiswaan')
+                    ->update(['is_allowed' => true, 'can_read' => true]);
+            }
+        }
+
+        RolePermission::clearRuntimeCache();
 
         return response()->json([
             'status' => 'success',
@@ -433,8 +482,47 @@ class PermissionController extends Controller
     }
 
     /**
+     * Toggle satu hak akses modul untuk Tugas Tambahan (AJAX)
+     */
+    public function toggleDutyPermission(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $dutyId = $request->input('duty_id');
+        $permissionKey = $request->input('permission_key');
+        $isAllowed = filter_var($request->input('is_allowed'), FILTER_VALIDATE_BOOLEAN);
+
+        if (empty($dutyId) || empty($permissionKey)) {
+            return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
+        }
+
+        $duty = \App\Models\RefTugasTambahan::where('id', $dutyId)->orWhere('kode', $dutyId)->first();
+        if (!$duty) {
+            return response()->json(['status' => 'error', 'message' => 'Tugas tambahan tidak ditemukan.'], 404);
+        }
+
+        $updatedPerms = RolePermission::toggleDutyPermission($duty->id, $permissionKey, $isAllowed);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Hak akses modul '{$permissionKey}' untuk {$duty->nama} berhasil " . ($isAllowed ? 'diaktifkan' : 'dinonaktifkan') . ".",
+            'duty_id' => $duty->id,
+            'duty_kode' => $duty->kode,
+            'permission_key' => $permissionKey,
+            'is_allowed' => $isAllowed,
+            'count' => count($updatedPerms),
+        ]);
+    }
+
+    /**
      * Reset hak akses:
-     * - Mengembalikan seluruh peran (Admin, Guru, Tendik, Peserta Didik) ke standar baku bersih kelompoknya masing-masing
+     * - Jika request membawa parameter role='global', reset tugas tambahan yang dipilih (atau seluruh tugas tambahan).
+     * - Jika request membawa parameter role spesifik (admin, guru, tendik, peserta_didik), hanya peran tersebut yang direset.
+     * - Jika parameter role kosong, seluruh peran dan tugas tambahan direset secara serentak.
      */
     public function resetDefault(Request $request): JsonResponse
     {
@@ -444,11 +532,44 @@ class PermissionController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
         }
 
-        RolePermission::resetDefaultPermissions();
+        $targetRole = $request->input('role');
+        $validRoles = ['admin', 'guru', 'tendik', 'peserta_didik'];
+
+        if ($targetRole === 'global' || empty($targetRole)) {
+            foreach ($validRoles as $r) {
+                RolePermission::resetDefaultPermissions($r);
+            }
+            RolePermission::resetDutyDefaults(null);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Hak akses seluruh peran berhasil direset ke standar baku default kelompoknya masing-masing.',
+            ]);
+        }
+
+        if (in_array($targetRole, $validRoles, true)) {
+            RolePermission::resetDefaultPermissions($targetRole);
+
+            $roleNames = [
+                'admin' => 'Administrator',
+                'guru' => 'Guru',
+                'tendik' => 'Tenaga Kependidikan',
+                'peserta_didik' => 'Peserta Didik',
+            ];
+            $roleName = $roleNames[$targetRole] ?? ucfirst($targetRole);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => "Hak akses peran {$roleName} berhasil direset ke standar default kelompoknya.",
+            ]);
+        }
+
+        RolePermission::resetDefaultPermissions(null);
+        RolePermission::resetDutyDefaults(null);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Hak akses berhasil direset ke standar baku: seluruh peran (Administrator, Guru, Tendik, Peserta Didik) telah dipulihkan ke modul dan izin aksi sesuai kelompoknya masing-masing.',
+            'message' => 'Hak akses seluruh peran dan tugas tambahan berhasil direset ke standar baku kelompoknya masing-masing.',
         ]);
     }
 

@@ -216,28 +216,46 @@
                     <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
                         <i class="fas fa-book-bookmark text-primary"></i> Jadwal Pelajaran Hari Ini
                     </h3>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">Kelas XII RPL 1</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ $pd->nama_rombel ?? 'Kelas' }}</span>
                 </div>
 
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    @foreach ($jadwal_pelajaran as $jp)
-                        <div
-                            style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                @if (empty($isJadwalDiberlakukan))
+                    <div style="text-align: center; padding: 24px 14px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: 12px;">
+                        <i class="fas fa-clock" style="font-size: 2rem; color: #f59e0b; margin-bottom: 6px; display: block; opacity: 0.85;"></i>
+                        <h4 style="font-size: 0.9rem; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal Pelajaran Masih Draft</h4>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">
+                            Jadwal KBM semester ini sedang disiapkan oleh pihak sekolah dan akan segera aktif.
+                        </p>
+                    </div>
+                @elseif (empty($jadwal_pelajaran) || count($jadwal_pelajaran) === 0)
+                    <div style="text-align: center; padding: 26px 14px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 12px;">
+                        <i class="fas fa-calendar-check" style="font-size: 2rem; color: var(--primary); margin-bottom: 6px; display: block; opacity: 0.85;"></i>
+                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada KBM Hari Ini</h4>
+                        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">
+                            Tidak ada jadwal pelajaran tatap muka untuk kelas {{ $pd->nama_rombel ?? '' }} pada hari {{ $hariIni ?? 'ini' }}.
+                        </p>
+                    </div>
+                @else
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        @foreach ($jadwal_pelajaran as $jp)
                             <div
-                                style="min-width: 90px; font-size: 0.78rem; font-weight: 700; color: var(--accent); background: rgba(6,182,212,0.1); padding: 6px; border-radius: 8px; text-align: center;">
-                                {{ $jp['jam'] }}
-                            </div>
-                            <div style="flex: 1;">
-                                <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
-                                    {{ $jp['mapel'] }}</div>
-                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                                    <i class="fas fa-chalkboard-user"></i> {{ $jp['guru'] }} &bull; <i
-                                        class="fas fa-location-dot"></i> {{ $jp['ruang'] }}
+                                style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
+                                <div
+                                    style="min-width: 90px; font-size: 0.78rem; font-weight: 700; color: var(--accent); background: rgba(6,182,212,0.1); padding: 6px; border-radius: 8px; text-align: center;">
+                                    {{ $jp['jam'] }}
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
+                                        {{ $jp['mapel'] }}</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                        <i class="fas fa-chalkboard-user"></i> {{ $jp['guru'] }} &bull; <i
+                                            class="fas fa-location-dot"></i> {{ $jp['ruang'] }}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
         @endif
     </div>

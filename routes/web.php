@@ -186,6 +186,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/hak-akses/reset', [PermissionController::class, 'resetDefault'])->name('hak-akses.reset')->middleware('permission:menu_hak_akses,update');
     Route::post('/hak-akses/add-module', [PermissionController::class, 'addModule'])->name('hak-akses.add-module')->middleware('permission:menu_hak_akses,create');
     Route::post('/hak-akses/remove-module', [PermissionController::class, 'removeModule'])->name('hak-akses.remove-module')->middleware('permission:menu_hak_akses,delete');
+    Route::post('/hak-akses/tugas-tambahan/toggle', [PermissionController::class, 'toggleDutyPermission'])->name('hak-akses.tugas-tambahan.toggle')->middleware('permission:menu_hak_akses,update');
     Route::post('/hak-akses/tugas-tambahan/update-permissions', [PermissionController::class, 'updateDutyPermissions'])->name('hak-akses.tugas-tambahan.update-permissions')->middleware('permission:menu_hak_akses,update');
     // Fallback kompatibilitas penugasan tugas tambahan
     Route::post('/hak-akses/tugas-tambahan/store', [UserController::class, 'storeTugasTambahan'])->name('hak-akses.tugas-tambahan.store')->middleware('permission:menu_pengguna,create');
@@ -392,6 +393,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Master Data — Jadwal KBM (Anti-Bentrok & Integrasi Presensi/Jurnal Guru)
     Route::get('/master-data/jadwal-kbm', [\App\Http\Controllers\JadwalKbmController::class, 'index'])->name('jadwal-kbm.index')->middleware('permission:menu_jadwal_kbm,read');
+    Route::post('/master-data/jadwal-kbm/toggle-pemberlakuan', [\App\Http\Controllers\JadwalKbmController::class, 'togglePemberlakuan'])->name('jadwal-kbm.toggle-pemberlakuan')->middleware('permission:menu_jadwal_kbm,update');
     Route::get('/master-data/jadwal-kbm/pembelajaran-by-rombel', [\App\Http\Controllers\JadwalKbmController::class, 'getPembelajaranByRombel'])->name('jadwal-kbm.pembelajaran-by-rombel')->middleware('permission:menu_jadwal_kbm,read');
     Route::post('/master-data/jadwal-kbm/check-conflict', [\App\Http\Controllers\JadwalKbmController::class, 'checkConflictApi'])->name('jadwal-kbm.check-conflict')->middleware('permission:menu_jadwal_kbm,read');
     Route::post('/master-data/jadwal-kbm/pengaturan', [\App\Http\Controllers\JadwalKbmController::class, 'simpanPengaturan'])->name('jadwal-kbm.pengaturan')->middleware('permission:menu_jadwal_kbm,update');
@@ -404,6 +406,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/master-data/jadwal-kbm', [\App\Http\Controllers\JadwalKbmController::class, 'store'])->name('jadwal-kbm.store')->middleware('permission:menu_jadwal_kbm,create');
     Route::put('/master-data/jadwal-kbm/{id}', [\App\Http\Controllers\JadwalKbmController::class, 'update'])->name('jadwal-kbm.update')->middleware('permission:menu_jadwal_kbm,update');
     Route::delete('/master-data/jadwal-kbm/{id}', [\App\Http\Controllers\JadwalKbmController::class, 'destroy'])->name('jadwal-kbm.destroy')->middleware('permission:menu_jadwal_kbm,delete');
+
+    // Modul Khusus: Input Jadwal KBM Manual (Koordinator Kelas / Wali Kelas / Admin)
+    Route::get('/master-data/jadwal-kbm/manual', [\App\Http\Controllers\JadwalKbmManualController::class, 'index'])->name('jadwal-kbm.manual.index');
+    Route::post('/master-data/jadwal-kbm/manual/store-slot', [\App\Http\Controllers\JadwalKbmManualController::class, 'storeSlot'])->name('jadwal-kbm.manual.store-slot');
+    Route::put('/master-data/jadwal-kbm/manual/update-slot/{id}', [\App\Http\Controllers\JadwalKbmManualController::class, 'updateSlot'])->name('jadwal-kbm.manual.update-slot');
+    Route::delete('/master-data/jadwal-kbm/manual/delete-slot/{id}', [\App\Http\Controllers\JadwalKbmManualController::class, 'deleteSlot'])->name('jadwal-kbm.manual.delete-slot');
+    Route::post('/master-data/jadwal-kbm/manual/clear-rombel', [\App\Http\Controllers\JadwalKbmManualController::class, 'clearRombel'])->name('jadwal-kbm.manual.clear-rombel');
 
     // Master Data — Kalender Pendidikan
     Route::get('/master-data/kalender-pendidikan', [\App\Http\Controllers\KalenderPendidikanController::class, 'index'])->name('kalender-pendidikan.index')->middleware('permission:menu_kalender_pendidikan,read');
@@ -452,6 +461,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::post('/presensi/manual', [\App\Http\Controllers\WaliKelasController::class, 'simpanPresensiManual'])->name('presensi.manual')->middleware('permission:menu_wali_kelas_presensi,update');
         Route::get('/presensi/pdf/{tipe}', [\App\Http\Controllers\WaliKelasController::class, 'downloadPdf'])->name('presensi.pdf')->middleware('permission:menu_wali_kelas_presensi,read');
         Route::post('/presensi/izin/{id}/verifikasi', [\App\Http\Controllers\WaliKelasController::class, 'verifikasiIzin'])->name('presensi.izin.verifikasi')->middleware('permission:menu_wali_kelas_presensi,update');
+
+        // Input Jadwal KBM Manual Kelas Binaan
+        Route::get('/jadwal', [\App\Http\Controllers\JadwalKbmManualController::class, 'index'])->name('jadwal.index')->middleware('permission:menu_wali_kelas_jadwal,read');
     });
 
     // Realtime Server-Sent Events (SSE) & Polling Fallback

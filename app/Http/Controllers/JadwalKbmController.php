@@ -60,6 +60,7 @@ class JadwalKbmController extends Controller
         $query = DB::table('jadwal_kbm as j')
             ->leftJoin('rombongan_belajar as r', 'j.rombongan_belajar_id', '=', 'r.rombongan_belajar_id')
             ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
+            ->where('j.sumber', 'otomatis')
             ->select(
                 'j.*',
                 'r.nama as nama_rombel',
@@ -152,6 +153,7 @@ class JadwalKbmController extends Controller
         // Data Matriks Grid untuk Hari Terpilih
         $daySchedulesQuery = DB::table('jadwal_kbm as j')
             ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
+            ->where('j.sumber', 'otomatis')
             ->where('j.hari', $selectedHari)
             ->where('j.is_active', true)
             ->select(
@@ -189,6 +191,7 @@ class JadwalKbmController extends Controller
 
         // Hitung total jadwal aktif per hari untuk badge di Tab Hari
         $countPerHari = DB::table('jadwal_kbm')
+            ->where('sumber', 'otomatis')
             ->where('is_active', true)
             ->select('hari', DB::raw('COUNT(*) as total'))
             ->groupBy('hari')
@@ -209,12 +212,12 @@ class JadwalKbmController extends Controller
             ->whereDate('tanggal_selesai', '>=', $tanggalHariIni)
             ->first();
 
-        // Statistik Ringkasan
+        // Statistik Ringkasan (Khusus Jadwal Otomatis)
         $summary = [
-            'total_jadwal'          => DB::table('jadwal_kbm')->count(),
-            'total_rombel'          => DB::table('jadwal_kbm')->distinct('rombongan_belajar_id')->count('rombongan_belajar_id'),
-            'total_guru'            => DB::table('jadwal_kbm')->whereNotNull('ptk_id')->distinct('ptk_id')->count('ptk_id'),
-            'total_jp'              => DB::table('jadwal_kbm')->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)')),
+            'total_jadwal'          => DB::table('jadwal_kbm')->where('sumber', 'otomatis')->count(),
+            'total_rombel'          => DB::table('jadwal_kbm')->where('sumber', 'otomatis')->distinct('rombongan_belajar_id')->count('rombongan_belajar_id'),
+            'total_guru'            => DB::table('jadwal_kbm')->where('sumber', 'otomatis')->whereNotNull('ptk_id')->distinct('ptk_id')->count('ptk_id'),
+            'total_jp'              => DB::table('jadwal_kbm')->where('sumber', 'otomatis')->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)')),
             'hari_efektif_semester' => $hariEfektifSemester,
             'hari_efektif_berjalan' => $hariEfektifBerjalan,
         ];
@@ -223,7 +226,14 @@ class JadwalKbmController extends Controller
         $pengaturan = JadwalPengaturan::getSettings();
         $dailySlotCounts = JadwalPengaturan::getDailySlotCounts();
         $tingkatDailySlots = JadwalPengaturan::getTingkatDailySlotCounts();
-        $timeSlots  = JadwalPengaturan::getSlots($selectedHari);
+        $timeSlots      = JadwalPengaturan::getSlots($selectedHari);
+
+        // Evaluasi Mode Pemberlakuan Eksklusif
+        $modePemberlakuan = JadwalPengaturan::getModePemberlakuan();
+        $isOtomatisAktif = JadwalPengaturan::isDiberlakukan('otomatis');
+        $isManualAktif   = JadwalPengaturan::isDiberlakukan('manual');
+        $isDiberlakukan  = $isOtomatisAktif;
+        $statusJadwal    = $isOtomatisAktif ? 'aktif' : 'draft';
 
         return view('dashboard.jadwal-kbm', compact(
             'list',
@@ -255,8 +265,95 @@ class JadwalKbmController extends Controller
             'statusHariIni',
             'agendaHariIni',
             'tahunAjaranAktif',
-            'semesterAktif'
+            'semesterAktif',
+            'isDiberlakukan',
+            'statusJadwal',
+            'isOtomatisAktif',
+            'isManualAktif',
+            'modePemberlakuan'
         ));
+    }
+
+    /**
+     * API: Toggle Pemberlakuan Jadwal Aktif oleh Admin (Eksklusif: Otomatis vs Manual vs Draft)
+     */
+    public function togglePemberlakuan(Request $request)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!RolePermission::can($user ?: $role, 'menu_jadwal_kbm', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak memiliki wewenang mengubah status pemberlakuan jadwal.'], 403);
+        }
+
+        $pengaturan = JadwalPengaturan::getSettings();
+
+        // Mode yang ditarget: 'otomatis' atau 'manual'
+        $targetMode = $request->input('mode', 'otomatis');
+        if (!in_array($targetMode, ['otomatis', 'manual'], true)) {
+            $targetMode = 'otomatis';
+        }
+
+        // Status yang diinginkan: 'aktif' atau 'draft'
+        $reqStatus = $request->input('status');
+        if (!in_array($reqStatus, ['aktif', 'draft'], true)) {
+            $currentActiveMode = JadwalPengaturan::getModeAktif();
+            $reqStatus = ($currentActiveMode === $targetMode) ? 'draft' : 'aktif';
+        }
+
+        $adminName = is_array($user) ? ($user['nama'] ?? ($user['username'] ?? 'Administrator')) : ($user->nama ?? ($user->username ?? 'Administrator'));
+
+        if ($reqStatus === 'aktif') {
+            // Mengaktifkan mode ini -> mode yang lain OTOMATIS menjadi DRAFT
+            $newMode = $targetMode;
+            $newStatus = 'aktif';
+            $isAktif = true;
+            $modeLabel = ($targetMode === 'otomatis') ? 'Otomatis (Generate)' : 'Manual (Wali Kelas/Koordinator)';
+            $otherLabel = ($targetMode === 'otomatis') ? 'Manual' : 'Otomatis';
+            $message = "Jadwal KBM {$modeLabel} RESMI DIBERLAKUKAN! Jadwal {$otherLabel} otomatis dialihkan ke status Draft. Jadwal aktif kini ditampilkan pada dashboard Guru, Siswa, dan Presensi Mengajar.";
+            $catatan = $request->input('catatan') ?: "Jadwal {$modeLabel} diberlakukan secara resmi oleh {$adminName}.";
+        } else {
+            // Menjadikan DRAFT -> Keduanya menjadi draft (tidak ada yang diberlakukan)
+            $newMode = 'draft';
+            $newStatus = 'draft';
+            $isAktif = false;
+            $message = "Status Jadwal KBM dialihkan ke DRAFT. Seluruh jadwal dinonaktifkan sementara dan guru/siswa akan melihat info jadwal dalam tahap penyusunan.";
+            $catatan = $request->input('catatan') ?: "Status jadwal dialihkan ke Draft oleh {$adminName}.";
+        }
+
+        $pengaturan->update([
+            'mode_pemberlakuan'    => $newMode,
+            'status_jadwal'        => $newStatus,
+            'is_diberlakukan'      => $isAktif,
+            'diberlakukan_pada'    => $isAktif ? now() : null,
+            'diberlakukan_oleh'    => $isAktif ? $adminName : null,
+            'catatan_pemberlakuan' => $catatan,
+        ]);
+
+        if ($isAktif) {
+            try {
+                JadwalPengaturan::syncRoutineActivities($newMode);
+            } catch (\Throwable $e) {
+                // Jangan gagalkan respon jika sync rutin menemui kendala minor
+            }
+        }
+
+        RealtimeService::trigger('jadwal.changed', [
+            'action'            => 'pemberlakuan_updated',
+            'mode_pemberlakuan' => $newMode,
+            'status'            => $newStatus,
+            'is_diberlakukan'   => $isAktif,
+        ]);
+
+        return response()->json([
+            'success'           => true,
+            'message'           => $message,
+            'mode_pemberlakuan' => $newMode,
+            'status'            => $newStatus,
+            'is_diberlakukan'   => $isAktif,
+            'is_otomatis_aktif' => ($isAktif && $newMode === 'otomatis'),
+            'is_manual_aktif'   => ($isAktif && $newMode === 'manual'),
+            'diberlakukan_pada' => $pengaturan->diberlakukan_pada ? $pengaturan->diberlakukan_pada->format('d/m/Y H:i') : null,
+        ]);
     }
 
     /**
@@ -449,6 +546,7 @@ class JadwalKbmController extends Controller
         $options = [
             'clear_existing'        => $request->boolean('clear_existing', true),
             'tingkat'               => $request->input('tingkat') ?: null,
+            'tingkat_aktif'         => $request->input('tingkat_aktif', []),
             'rombongan_belajar_ids' => $request->input('rombongan_belajar_ids', []),
             'hari_aktif'            => $hariAktif,
             'max_jp_per_sesi'       => $maxJpPerSesi,
@@ -548,11 +646,23 @@ class JadwalKbmController extends Controller
         $jamKeMulai   = (int) $request->get('jam_ke_mulai', 1);
         $jamKeSelesai = (int) $request->get('jam_ke_selesai', 1);
 
+        // Jika jam mulai / selesai belum ditentukan, hitung otomatis dari slot jam_ke pada hari tersebut
+        if ((!$jamMulai || !$jamSelesai) && $hari) {
+            $slots = JadwalPengaturan::getSlots($hari);
+            $startSlot = collect($slots)->firstWhere('jam_ke', $jamKeMulai);
+            $endSlot = collect($slots)->firstWhere('jam_ke', $jamKeSelesai);
+            if ($startSlot && $endSlot) {
+                $jamMulai = $startSlot['jam_mulai'] ?? null;
+                $jamSelesai = $endSlot['jam_selesai'] ?? null;
+            }
+        }
+
         if (!$hari || !$jamMulai || !$jamSelesai) {
             return response()->json(['has_conflict' => false, 'message' => 'Lengkapi jam dan hari terlebih dahulu.']);
         }
 
-        $result = JadwalKbm::checkConflict($ptkId, $rombelId, $hari, $jamMulai, $jamSelesai, $excludeId, $ruangan, $jamKeMulai, $jamKeSelesai);
+        $sumber = $request->get('sumber', 'otomatis');
+        $result = JadwalKbm::checkConflict($ptkId, $rombelId, $hari, $jamMulai, $jamSelesai, $excludeId, $ruangan, $jamKeMulai, $jamKeSelesai, $sumber);
         return response()->json($result);
     }
 
@@ -663,8 +773,10 @@ class JadwalKbmController extends Controller
             ->orderBy('nama', 'asc')
             ->get();
 
+        $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
         $allSchedules = DB::table('jadwal_kbm as j')
             ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
+            ->where('j.sumber', $sumber)
             ->where('j.is_active', true)
             ->select('j.*', 'g.nama as nama_guru')
             ->get();
@@ -727,6 +839,7 @@ class JadwalKbmController extends Controller
         if (empty($hariList)) {
             $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         }
+        $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
         $ptkId = $request->get('ptk_id');
 
         $guruQuery = DB::table('gtk')
@@ -737,6 +850,7 @@ class JadwalKbmController extends Controller
             $guruQuery->where('ptk_id', $ptkId);
         } else {
             $activePtkIds = DB::table('jadwal_kbm')
+                ->where('sumber', $sumber)
                 ->where('is_active', true)
                 ->whereNotNull('ptk_id')
                 ->distinct()
@@ -748,6 +862,7 @@ class JadwalKbmController extends Controller
 
         $allSchedules = DB::table('jadwal_kbm as j')
             ->leftJoin('rombongan_belajar as r', 'j.rombongan_belajar_id', '=', 'r.rombongan_belajar_id')
+            ->where('j.sumber', $sumber)
             ->where('j.is_active', true)
             ->select('j.*', 'r.nama as nama_rombel')
             ->get();
@@ -940,10 +1055,13 @@ class JadwalKbmController extends Controller
             ->orderBy('r.tingkat_pendidikan_id', 'asc')
             ->orderBy('r.nama', 'asc');
 
+        $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
+
         if ($rombelId) {
             $rombelQuery->where('r.rombongan_belajar_id', $rombelId);
         } else {
             $activeRombelIds = DB::table('jadwal_kbm')
+                ->where('sumber', $sumber)
                 ->where('is_active', true)
                 ->distinct()
                 ->pluck('rombongan_belajar_id');
@@ -962,6 +1080,7 @@ class JadwalKbmController extends Controller
 
         $allSchedules = DB::table('jadwal_kbm as j')
             ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
+            ->where('j.sumber', $sumber)
             ->where('j.is_active', true)
             ->select('j.*', 'g.nama as nama_guru')
             ->get();
@@ -1026,6 +1145,10 @@ class JadwalKbmController extends Controller
         $mapelId = $pembelajaran->mata_pelajaran_id;
         $namaMapel = $pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str;
 
+        $overwrite = $request->boolean('overwrite', false);
+        $jamMulaiFormatted = strlen($validated['jam_mulai']) === 5 ? "{$validated['jam_mulai']}:00" : $validated['jam_mulai'];
+        $jamSelesaiFormatted = strlen($validated['jam_selesai']) === 5 ? "{$validated['jam_selesai']}:00" : $validated['jam_selesai'];
+
         // Validasi Anti-Bentrok Lengkap
         $conflict = JadwalKbm::checkConflict(
             $ptkId,
@@ -1036,15 +1159,41 @@ class JadwalKbmController extends Controller
             null,
             $validated['ruangan'] ?? null,
             (int) $validated['jam_ke_mulai'],
-            (int) $validated['jam_ke_selesai']
+            (int) $validated['jam_ke_selesai'],
+            'otomatis'
         );
 
         if ($conflict['has_conflict']) {
-            return response()->json([
-                'success' => false,
-                'message' => $conflict['message'],
-                'conflict' => $conflict,
-            ], 422);
+            if ($conflict['type'] === 'rombel') {
+                if ($overwrite) {
+                    JadwalKbm::where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
+                        ->where('hari', $validated['hari'])
+                        ->where('sumber', 'otomatis')
+                        ->where('is_active', true)
+                        ->where(function ($q) use ($jamMulaiFormatted, $jamSelesaiFormatted) {
+                            $q->where('jam_mulai', '<', $jamSelesaiFormatted)
+                              ->where('jam_selesai', '>', $jamMulaiFormatted);
+                        })
+                        ->delete();
+                } else {
+                    return response()->json([
+                        'success'           => false,
+                        'can_overwrite'     => true,
+                        'conflict_type'     => 'rombel',
+                        'conflicting_mapel' => $conflict['conflict_with']->nama_mata_pelajaran ?? 'Pelajaran Lain',
+                        'message'           => $conflict['message'],
+                        'conflict'          => $conflict,
+                    ], 422);
+                }
+            } else {
+                return response()->json([
+                    'success'       => false,
+                    'can_overwrite' => false,
+                    'conflict_type' => $conflict['type'] ?? 'unknown',
+                    'message'       => $conflict['message'],
+                    'conflict'      => $conflict,
+                ], 422);
+            }
         }
 
         $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])->first();
@@ -1062,6 +1211,7 @@ class JadwalKbmController extends Controller
             'jam_selesai'          => strlen($validated['jam_selesai']) === 5 ? "{$validated['jam_selesai']}:00" : $validated['jam_selesai'],
             'ruangan'              => $validated['ruangan'] ?? null,
             'semester_id'          => $rombel->semester_id ?? null,
+            'sumber'               => 'otomatis',
             'is_active'            => true,
             'keterangan'           => $validated['keterangan'] ?? null,
         ]);
@@ -1114,6 +1264,10 @@ class JadwalKbmController extends Controller
         $mapelId = $pembelajaran->mata_pelajaran_id;
         $namaMapel = $pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str;
 
+        $overwrite = $request->boolean('overwrite', false);
+        $jamMulaiFormatted = strlen($validated['jam_mulai']) === 5 ? "{$validated['jam_mulai']}:00" : $validated['jam_mulai'];
+        $jamSelesaiFormatted = strlen($validated['jam_selesai']) === 5 ? "{$validated['jam_selesai']}:00" : $validated['jam_selesai'];
+
         // Validasi Anti-Bentrok Lengkap
         $conflict = JadwalKbm::checkConflict(
             $ptkId,
@@ -1124,15 +1278,42 @@ class JadwalKbmController extends Controller
             $id,
             $validated['ruangan'] ?? null,
             (int) $validated['jam_ke_mulai'],
-            (int) $validated['jam_ke_selesai']
+            (int) $validated['jam_ke_selesai'],
+            'otomatis'
         );
 
         if ($conflict['has_conflict']) {
-            return response()->json([
-                'success' => false,
-                'message' => $conflict['message'],
-                'conflict' => $conflict,
-            ], 422);
+            if ($conflict['type'] === 'rombel') {
+                if ($overwrite) {
+                    JadwalKbm::where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
+                        ->where('id', '!=', $id)
+                        ->where('hari', $validated['hari'])
+                        ->where('sumber', 'otomatis')
+                        ->where('is_active', true)
+                        ->where(function ($q) use ($jamMulaiFormatted, $jamSelesaiFormatted) {
+                            $q->where('jam_mulai', '<', $jamSelesaiFormatted)
+                              ->where('jam_selesai', '>', $jamMulaiFormatted);
+                        })
+                        ->delete();
+                } else {
+                    return response()->json([
+                        'success'           => false,
+                        'can_overwrite'     => true,
+                        'conflict_type'     => 'rombel',
+                        'conflicting_mapel' => $conflict['conflict_with']->nama_mata_pelajaran ?? 'Pelajaran Lain',
+                        'message'           => $conflict['message'],
+                        'conflict'          => $conflict,
+                    ], 422);
+                }
+            } else {
+                return response()->json([
+                    'success'       => false,
+                    'can_overwrite' => false,
+                    'conflict_type' => $conflict['type'] ?? 'unknown',
+                    'message'       => $conflict['message'],
+                    'conflict'      => $conflict,
+                ], 422);
+            }
         }
 
         $jadwal->update([

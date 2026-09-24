@@ -140,38 +140,46 @@ class AgendaKbmController extends Controller
             'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];
 
-        // Daftar Jadwal Guru untuk Form Modal (Kecualikan PKL untuk guru)
-        $jadwalQuery = JadwalKbm::where('is_active', true);
-        if ($isGuru) {
-            $jadwalQuery->excludePkl();
-            if ($ptkId) {
-                $jadwalQuery->where('ptk_id', $ptkId);
-            }
-        }
-        $jadwalList = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get()->map(function ($j) {
-            $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
-            $jamMulaiWaktu = !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '';
-            $jamSelesaiWaktu = !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '';
-            $jamWaktuRange = ($jamMulaiWaktu && $jamSelesaiWaktu) ? "{$jamMulaiWaktu} - {$jamSelesaiWaktu}" : '';
-            $durasiJp = max(1, ((int) ($j->jam_ke_selesai ?? 1)) - ((int) ($j->jam_ke_mulai ?? 1)) + 1);
+        // Daftar Jadwal Guru untuk Form Modal (Hanya mode yang aktif & diberlakukan, kecualikan PKL untuk guru)
+        $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
+        $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
 
-            return [
-                'id' => $j->id,
-                'hari' => $j->hari,
-                'jam_ke_mulai' => $j->jam_ke_mulai,
-                'jam_ke_selesai' => $j->jam_ke_selesai,
-                'jam_mulai' => $jamMulaiWaktu,
-                'jam_selesai' => $jamSelesaiWaktu,
-                'jam_waktu_range' => $jamWaktuRange,
-                'durasi_jp' => $durasiJp,
-                'rombongan_belajar_id' => $j->rombongan_belajar_id,
-                'rombel_nama' => $rombelNama,
-                'nama_mata_pelajaran' => $j->nama_mata_pelajaran,
-                'pembelajaran_id' => $j->pembelajaran_id,
-                'mata_pelajaran_id' => $j->mata_pelajaran_id,
-                'ptk_id' => $j->ptk_id,
-            ];
-        });
+        if (!$isJadwalDiberlakukan || !$modeAktif) {
+            $jadwalList = collect();
+        } else {
+            $jadwalQuery = JadwalKbm::where('is_active', true)
+                ->where('sumber', $modeAktif);
+            if ($isGuru) {
+                $jadwalQuery->excludePkl();
+                if ($ptkId) {
+                    $jadwalQuery->where('ptk_id', $ptkId);
+                }
+            }
+            $jadwalList = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get()->map(function ($j) {
+                $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
+                $jamMulaiWaktu = !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '';
+                $jamSelesaiWaktu = !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '';
+                $jamWaktuRange = ($jamMulaiWaktu && $jamSelesaiWaktu) ? "{$jamMulaiWaktu} - {$jamSelesaiWaktu}" : '';
+                $durasiJp = max(1, ((int) ($j->jam_ke_selesai ?? 1)) - ((int) ($j->jam_ke_mulai ?? 1)) + 1);
+
+                return [
+                    'id' => $j->id,
+                    'hari' => $j->hari,
+                    'jam_ke_mulai' => $j->jam_ke_mulai,
+                    'jam_ke_selesai' => $j->jam_ke_selesai,
+                    'jam_mulai' => $jamMulaiWaktu,
+                    'jam_selesai' => $jamSelesaiWaktu,
+                    'jam_waktu_range' => $jamWaktuRange,
+                    'durasi_jp' => $durasiJp,
+                    'rombongan_belajar_id' => $j->rombongan_belajar_id,
+                    'rombel_nama' => $rombelNama,
+                    'nama_mata_pelajaran' => $j->nama_mata_pelajaran,
+                    'pembelajaran_id' => $j->pembelajaran_id,
+                    'mata_pelajaran_id' => $j->mata_pelajaran_id,
+                    'ptk_id' => $j->ptk_id,
+                ];
+            });
+        }
 
         $rombelList = DB::table('rombongan_belajar')
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
@@ -212,7 +220,9 @@ class AgendaKbmController extends Controller
             'canUpdate',
             'canDelete',
             'sort',
-            'sortDir'
+            'sortDir',
+            'isJadwalDiberlakukan',
+            'modeAktif'
         ));
     }
 
