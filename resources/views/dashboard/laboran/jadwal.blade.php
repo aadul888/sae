@@ -233,7 +233,7 @@
 <div id="modalJadwal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
     <div class="card" style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">
+            <h3 id="modalJadwalTitle" style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-color);">
                 Jadwalkan Penggunaan Lab
             </h3>
             <button type="button" id="btnCloseModalJadwal" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer;">&times;</button>

@@ -168,10 +168,19 @@ class LaboranJadwalController extends Controller
         return redirect()->route('dashboard.laboran.jadwal.index')->with('success', 'Status penggunaan lab berhasil diperbarui.');
     }
 
-    public function destroy($id)
+    public function update(Request $request, $id)
+    {
+        return $this->updateStatus($request, $id);
+    }
+
+    public function destroy(Request $request, $id)
     {
         DB::table('laboran_jadwal_penggunaan')->where('id', $id)->delete();
 
-        return response()->json(['status' => 'success', 'message' => 'Jadwal lab berhasil dihapus.']);
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['status' => 'success', 'message' => 'Jadwal lab berhasil dihapus.']);
+        }
+
+        return redirect()->route('dashboard.laboran.jadwal.index')->with('success', 'Jadwal lab berhasil dihapus.');
     }
 }
