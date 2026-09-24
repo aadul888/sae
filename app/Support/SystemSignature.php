@@ -26,6 +26,7 @@ final class SystemSignature
         118,
         122,
         9,
+        116,
         17,
         53,
         55,
@@ -133,7 +134,7 @@ final class SystemSignature
         39
     ];
 
-    private const DIGEST = 'ce20156fa40cf3fb7e6992ec3a575483a73c058e01ca5eeae86df0661be9ae15';
+    private const DIGEST = '6115b46465f07a789350ceb97718bb3c7f5bad730a48c1c9d03c3466ae032c70';
 
     public static function verify(): bool
     {
