@@ -727,33 +727,11 @@ class WaliKelasController extends Controller
             if ($item->is_mandiri) {
                 $item->is_locked = true;
                 $item->lock_reason = "Presensi Mandiri (" . strtoupper($item->metode_masuk) . ")";
-                $item->can_pulang = false; // Presensi mandiri tidak boleh diintervensi wali kelas
-            } elseif ($item->is_manual) {
-                if (in_array($item->status, ['S', 'I', 'A'], true)) {
-                    $item->is_locked = true;
-                    $item->lock_reason = "Manual Tercatat ({$item->status_label}) — Final";
-                    $item->can_pulang = false;
-                } elseif (in_array($item->status, ['H', 'T'], true)) {
-                    if (!empty($item->jam_pulang)) {
-                        $item->is_locked = true;
-                        $item->lock_reason = "Selesai (Masuk & Pulang Tercatat)";
-                        $item->can_pulang = false;
-                    } else {
-                        // Belum pulang: hanya tombol Pulang yang aktif
-                        $item->is_locked = false;
-                        $item->lock_reason = "Menunggu Pulang";
-                        $item->can_pulang = true;
-                    }
-                } else {
-                    $item->is_locked = true;
-                    $item->lock_reason = "Manual Final";
-                    $item->can_pulang = false;
-                }
+                $item->can_pulang = false; // Presensi mandiri terlindungi gerbang
             } else {
-                // Belum absen sama sekali: tombol Masuk, Terlambat, Izin, Sakit aktif
                 $item->is_locked = false;
                 $item->lock_reason = null;
-                $item->can_pulang = false;
+                $item->can_pulang = in_array($item->status, ['H', 'T'], true);
             }
 
             return $item;
@@ -867,9 +845,7 @@ class WaliKelasController extends Controller
 
     /**
      * API Simpan Presensi Manual oleh Wali Kelas
-     * Aturan:
-     * 1. Presensi mandiri (RFID/QR) TIDAK DAPAT diubah.
-     * 2. Presensi manual HANYA BISA dicatat 1 KALI per peserta didik (bersifat final).
+     * Membantu pencatatan kehadiran harian siswa selain RFID / QR Code
      */
     public function simpanPresensiManual(Request $request)
     {
@@ -885,14 +861,31 @@ class WaliKelasController extends Controller
         $request->validate([
             'peserta_didik_id' => 'required|string',
             'tanggal'          => 'required|date',
-            'action'           => 'required|string|in:masuk,terlambat,sakit,izin,pulang',
+            'action'           => 'required|string',
             'keterangan'       => 'nullable|string|max:255',
         ]);
 
         $pdId    = $request->input('peserta_didik_id');
         $tanggal = $request->input('tanggal');
-        $action  = $request->input('action');
-        $ket     = trim($request->input('keterangan', ''));
+        $action  = strtolower(trim((string) $request->input('action')));
+        $ket     = trim((string) $request->input('keterangan', ''));
+
+        $statusMap = [
+            'masuk'     => 'H',
+            'h'         => 'H',
+            'terlambat' => 'T',
+            't'         => 'T',
+            'sakit'     => 'S',
+            's'         => 'S',
+            'izin'      => 'I',
+            'i'         => 'I',
+            'alpha'     => 'A',
+            'a'         => 'A',
+        ];
+
+        if ($action !== 'pulang' && !isset($statusMap[$action])) {
+            return response()->json(['status' => 'error', 'message' => 'Tindakan presensi tidak valid.'], 422);
+        }
 
         $ctx = $this->resolveWaliKelasContext($request, $user);
         $activeRombel = $ctx['activeRombel'];
@@ -916,7 +909,7 @@ class WaliKelasController extends Controller
 
         // Periksa Kalender Pendidikan
         $statusHari = KalenderPendidikan::getStatusHari($tanggal, 'pd');
-        if ($statusHari['mode'] === 'libur') {
+        if (($statusHari['mode'] ?? '') === 'libur') {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Hari ini adalah hari libur sekolah resmi (' . ($statusHari['agenda']?->nama_kegiatan ?? 'Kalender Pendidikan') . '). Presensi tidak dapat dilakukan.',
@@ -928,25 +921,36 @@ class WaliKelasController extends Controller
             ->first();
 
         // ATURAN 1: Wali kelas TIDAK BISA mengubah presensi mandiri (RFID/QR)
-        if ($presensi && in_array($presensi->metode_masuk, ['rfid', 'qr', 'kiosk'], true)) {
+        if ($presensi && in_array($presensi->metode_masuk, ['rfid', 'qr', 'kiosk'], true) && !$ctx['isAdmin']) {
             $metodeStr = strtoupper($presensi->metode_masuk);
             return response()->json([
                 'status'  => 'error',
-                'message' => "Peserta didik {$siswa->nama} telah melakukan presensi secara mandiri melalui {$metodeStr}. Presensi mandiri tidak dapat diubah oleh Wali Kelas.",
+                'message' => "Peserta didik {$siswa->nama} telah melakukan presensi secara mandiri melalui {$metodeStr}. Presensi mandiri gerbang sekolah terlindungi.",
             ], 403);
         }
 
-        // ATURAN 2: Presensi manual hanya bisa dilakukan 1x (tidak dapat diubah)
-        if ($presensi && $presensi->metode_masuk === 'manual') {
-            if ($action === 'pulang') {
-                if (!empty($presensi->jam_pulang)) {
-                    return response()->json([
-                        'status'  => 'error',
-                        'message' => "Presensi kepulangan untuk {$siswa->nama} sudah tercatat pada pukul {$presensi->jam_pulang} WIB dan tidak dapat diubah.",
-                    ], 422);
-                }
+        $currentTime = now()->format('H:i:s');
 
-                $presensi->jam_pulang = now()->format('H:i:s');
+        if ($action === 'pulang') {
+            if (!$presensi) {
+                // Buat hadir dan langsung catat pulang
+                $presensi = PresensiHarian::create([
+                    'peserta_didik_id'        => $siswa->peserta_didik_id,
+                    'nisn'                    => $siswa->nisn,
+                    'rombongan_belajar_id'    => $siswa->rombongan_belajar_id,
+                    'tanggal'                 => $tanggal,
+                    'status'                  => 'H',
+                    'jam_masuk'               => '07:00:00',
+                    'jam_pulang'              => $currentTime,
+                    'status_ketepatan_masuk'  => 'tepat_waktu',
+                    'status_ketepatan_pulang' => 'tepat_waktu',
+                    'metode_masuk'            => 'manual',
+                    'metode_pulang'           => 'manual',
+                    'keterangan'              => $ket ?: "Presensi pulang manual oleh Wali Kelas: {$ctx['waliNama']}",
+                    'verified_by'             => $ctx['waliNama'],
+                ]);
+            } else {
+                $presensi->jam_pulang = $currentTime;
                 $presensi->metode_pulang = 'manual';
                 $presensi->status_ketepatan_pulang = 'tepat_waktu';
                 $presensi->verified_by = $ctx['waliNama'];
@@ -954,55 +958,64 @@ class WaliKelasController extends Controller
                     $presensi->keterangan = ($presensi->keterangan ? $presensi->keterangan . '; ' : '') . $ket;
                 }
                 $presensi->save();
-
-                return response()->json([
-                    'status'  => 'success',
-                    'message' => "Presensi kepulangan manual untuk {$siswa->nama} berhasil dicatat ({$presensi->jam_pulang} WIB).",
-                ]);
             }
 
-            // Mencoba mengubah status masuk/izin/sakit yang sudah pernah dicatat manual
             return response()->json([
-                'status'  => 'error',
-                'message' => "Presensi manual untuk {$siswa->nama} sudah pernah dicatat hari ini ({$presensi->status_label}) dan bersifat final (hanya 1x per hari).",
-            ], 422);
+                'status'     => 'success',
+                'message'    => "Presensi kepulangan manual untuk {$siswa->nama} berhasil dicatat ({$currentTime} WIB).",
+                'badge'      => PresensiHarian::STATUS_BADGES[$presensi->status] ?? $presensi->status,
+                'status_val' => $presensi->status,
+                'jam_masuk'  => $presensi->jam_masuk ? substr($presensi->jam_masuk, 0, 5) : '—',
+                'jam_pulang' => $presensi->jam_pulang ? substr($presensi->jam_pulang, 0, 5) : '—',
+            ]);
         }
 
-        // Kasus presensi belum ada:
-        if ($action === 'pulang') {
-            return response()->json([
-                'status'  => 'error',
-                'message' => "Peserta didik {$siswa->nama} belum memiliki catatan kehadiran masuk hari ini.",
-            ], 422);
+        $statusBaru = $statusMap[$action] ?? 'H';
+        $menitTerlambat = ($statusBaru === 'T') ? 15 : 0;
+
+        if ($presensi) {
+            $presensi->status = $statusBaru;
+            if (in_array($statusBaru, ['H', 'T'], true)) {
+                if (empty($presensi->jam_masuk)) {
+                    $presensi->jam_masuk = $currentTime;
+                }
+                $presensi->status_ketepatan_masuk = ($statusBaru === 'T' ? 'terlambat' : 'tepat_waktu');
+                $presensi->menit_terlambat = $menitTerlambat;
+            } else {
+                $presensi->jam_masuk = null;
+                $presensi->jam_pulang = null;
+                $presensi->status_ketepatan_masuk = null;
+                $presensi->status_ketepatan_pulang = null;
+                $presensi->menit_terlambat = 0;
+            }
+            if ($ket !== '') {
+                $presensi->keterangan = $ket;
+            }
+            $presensi->verified_by = $ctx['waliNama'];
+            $presensi->save();
+        } else {
+            $presensi = PresensiHarian::create([
+                'peserta_didik_id'       => $siswa->peserta_didik_id,
+                'nisn'                   => $siswa->nisn,
+                'rombongan_belajar_id'   => $siswa->rombongan_belajar_id,
+                'tanggal'                => $tanggal,
+                'status'                 => $statusBaru,
+                'jam_masuk'              => in_array($statusBaru, ['H', 'T'], true) ? $currentTime : null,
+                'menit_terlambat'        => $menitTerlambat,
+                'status_ketepatan_masuk' => ($statusBaru === 'T' ? 'terlambat' : ($statusBaru === 'H' ? 'tepat_waktu' : null)),
+                'metode_masuk'           => 'manual',
+                'keterangan'             => $ket ?: "Dicatat manual oleh Wali Kelas: {$ctx['waliNama']}",
+                'verified_by'            => $ctx['waliNama'],
+            ]);
         }
-
-        $statusBaru = match ($action) {
-            'masuk'     => 'H',
-            'terlambat' => 'T',
-            'sakit'     => 'S',
-            'izin'      => 'I',
-        };
-
-        $currentTime = now()->format('H:i:s');
-        $menitTerlambat = ($action === 'terlambat') ? 15 : 0;
-
-        $presensi = PresensiHarian::create([
-            'peserta_didik_id'       => $siswa->peserta_didik_id,
-            'nisn'                   => $siswa->nisn,
-            'rombongan_belajar_id'   => $siswa->rombongan_belajar_id,
-            'tanggal'                => $tanggal,
-            'status'                 => $statusBaru,
-            'jam_masuk'              => in_array($statusBaru, ['H', 'T']) ? $currentTime : null,
-            'menit_terlambat'        => $menitTerlambat,
-            'status_ketepatan_masuk' => ($statusBaru === 'T' ? 'terlambat' : ($statusBaru === 'H' ? 'tepat_waktu' : null)),
-            'metode_masuk'           => 'manual',
-            'keterangan'             => $ket ?: "Dicatat manual oleh Wali Kelas: {$ctx['waliNama']}",
-            'verified_by'            => $ctx['waliNama'],
-        ]);
 
         return response()->json([
-            'status'  => 'success',
-            'message' => "Presensi manual ({$presensi->status_label}) untuk {$siswa->nama} berhasil dicatat dan telah dikunci.",
+            'status'     => 'success',
+            'message'    => "Presensi manual ({$presensi->status_label}) untuk {$siswa->nama} berhasil dicatat.",
+            'badge'      => PresensiHarian::STATUS_BADGES[$presensi->status] ?? $presensi->status,
+            'status_val' => $presensi->status,
+            'jam_masuk'  => $presensi->jam_masuk ? substr($presensi->jam_masuk, 0, 5) : '—',
+            'jam_pulang' => $presensi->jam_pulang ? substr($presensi->jam_pulang, 0, 5) : '—',
         ]);
     }
 

@@ -3,6 +3,10 @@
 @section('title', 'Presensi Kelas Binaan — Wali Kelas — SAE')
 @section('dash_title', 'Presensi Kelas Binaan')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/presensi.css') }}?v={{ file_exists(public_path('css/presensi.css')) ? filemtime(public_path('css/presensi.css')) : time() }}">
+@endpush
+
 @section('content')
     <!-- Header Banner -->
     <div class="dash-banner" style="margin-bottom: 20px;">
@@ -323,7 +327,7 @@
                     </thead>
                     <tbody>
                         @forelse ($list as $item)
-                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                            <tr id="row-siswa-{{ $item->peserta_didik_id }}" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <!-- Kolom Peserta Didik -->
                                 <td class="cell-pd-nama" style="padding: 14px 18px;" data-label="Peserta Didik">
                                     <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
@@ -352,32 +356,32 @@
                                 </td>
 
                                 <!-- Kolom Status Kehadiran -->
-                                <td class="cell-pd-status" style="padding: 14px 18px;" data-label="Status Kehadiran">
+                                <td class="cell-pd-status" id="badge-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px; text-align: center;" data-label="Status Kehadiran">
                                     @php
                                         $st = strtoupper($item->status ?? '');
                                     @endphp
                                     @if ($st === 'H')
-                                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
+                                        <span class="badge badge-success" style="font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
                                             <i class="fas fa-check-circle me-1"></i> Hadir
                                         </span>
                                     @elseif ($st === 'T')
-                                        <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
+                                        <span class="badge badge-warning" style="font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
                                             <i class="fas fa-clock me-1"></i> Terlambat (+{{ $item->menit_terlambat }}m)
                                         </span>
                                     @elseif ($st === 'I')
-                                        <span class="badge" style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
+                                        <span class="badge badge-primary" style="font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
                                             <i class="fas fa-envelope-open-text me-1"></i> Izin
                                         </span>
                                     @elseif ($st === 'S')
-                                        <span class="badge" style="background: rgba(236,72,153,0.15); color: #ec4899; border: 1px solid rgba(236,72,153,0.3); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
+                                        <span class="badge" style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
                                             <i class="fas fa-notes-medical me-1"></i> Sakit
                                         </span>
                                     @elseif ($st === 'D')
-                                        <span class="badge" style="background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.3); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
+                                        <span class="badge badge-info" style="font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
                                             <i class="fas fa-award me-1"></i> Dispensasi
                                         </span>
                                     @elseif ($st === 'A')
-                                        <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
+                                        <span class="badge badge-danger" style="font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 6px;">
                                             <i class="fas fa-circle-xmark me-1"></i> Alpha
                                         </span>
                                     @else
@@ -388,17 +392,17 @@
                                 </td>
 
                                 <!-- Kolom Waktu Masuk & Pulang -->
-                                <td class="cell-pd-waktu" style="padding: 14px 18px;" data-label="Waktu Masuk & Pulang">
+                                <td class="cell-pd-waktu" id="waktu-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px;" data-label="Waktu Masuk & Pulang">
                                     <div style="font-size: 0.84rem; color: var(--text-color);">
                                         <span style="color: var(--text-muted); font-size: 0.74rem;">Masuk:</span>
-                                        <strong>{{ $item->jam_masuk ? substr($item->jam_masuk, 0, 5) : '—' }}</strong>
+                                        <strong class="text-jam-masuk">{{ $item->jam_masuk ? substr($item->jam_masuk, 0, 5) : '—' }}</strong>
                                         @if ($item->metode_masuk)
                                             <span style="font-size: 0.7rem; color: var(--primary);">({{ $item->metode_masuk }})</span>
                                         @endif
                                     </div>
                                     <div style="font-size: 0.84rem; color: var(--text-color); margin-top: 2px;">
                                         <span style="color: var(--text-muted); font-size: 0.74rem;">Pulang:</span>
-                                        <strong>{{ $item->jam_pulang ? substr($item->jam_pulang, 0, 5) : '—' }}</strong>
+                                        <strong class="text-jam-pulang">{{ $item->jam_pulang ? substr($item->jam_pulang, 0, 5) : '—' }}</strong>
                                         @if ($item->metode_pulang)
                                             <span style="font-size: 0.7rem; color: var(--accent);">({{ $item->metode_pulang }})</span>
                                         @endif
@@ -406,7 +410,7 @@
                                 </td>
 
                                 <!-- Kolom Catatan / Verifikasi -->
-                                <td class="cell-pd-ket" style="padding: 14px 18px;" data-label="Catatan / Verifikasi">
+                                <td class="cell-pd-ket" id="ket-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px;" data-label="Catatan / Verifikasi">
                                     @if ($item->keterangan)
                                         <div style="font-size: 0.82rem; color: var(--text-color); line-height: 1.35;">{{ $item->keterangan }}</div>
                                     @else
@@ -421,56 +425,66 @@
 
                                 <!-- Kolom Aksi Presensi -->
                                 <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi Presensi">
-                                    <div class="table-actions" style="justify-content: flex-end; gap: 4px;">
-                                        @if ($canUpdate && !$item->is_locked)
-                                            <button type="button" class="btn-action-absen btn btn-sm btn-outline"
+                                    <div class="table-actions" style="justify-content: flex-end; gap: 4px; display: inline-flex;">
+                                        @if ($item->is_mandiri)
+                                            <span class="badge badge-success" style="font-size: 0.72rem; padding: 4px 8px;" title="Presensi mandiri oleh siswa via {{ strtoupper($item->metode_masuk) }}">
+                                                <i class="fas fa-id-card-clip me-1"></i> Mandiri ({{ strtoupper($item->metode_masuk) }})
+                                            </span>
+                                        @elseif ($canUpdate)
+                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'H' ? 'active-H' : '' }}"
                                                 data-id="{{ $item->peserta_didik_id }}"
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="masuk"
-                                                title="Catat Hadir Manual"
-                                                style="color: #10b981; border-color: rgba(16,185,129,0.3); padding: 3px 7px; font-size: 0.74rem;">
+                                                data-status="H"
+                                                title="Catat Hadir Harian">
                                                 H
                                             </button>
-                                            <button type="button" class="btn-action-absen btn btn-sm btn-outline"
+                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'T' ? 'active-T' : '' }}"
                                                 data-id="{{ $item->peserta_didik_id }}"
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="terlambat"
-                                                title="Catat Terlambat Manual"
-                                                style="color: #f59e0b; border-color: rgba(245,158,11,0.3); padding: 3px 7px; font-size: 0.74rem;">
+                                                data-status="T"
+                                                title="Catat Terlambat Harian">
                                                 T
                                             </button>
-                                            <button type="button" class="btn-action-absen btn btn-sm btn-outline"
+                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'I' ? 'active-I' : '' }}"
                                                 data-id="{{ $item->peserta_didik_id }}"
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="izin"
-                                                title="Catat Izin Manual"
-                                                style="color: #3b82f6; border-color: rgba(59,130,246,0.3); padding: 3px 7px; font-size: 0.74rem;">
+                                                data-status="I"
+                                                title="Catat Izin Harian">
                                                 I
                                             </button>
-                                            <button type="button" class="btn-action-absen btn btn-sm btn-outline"
+                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'S' ? 'active-S' : '' }}"
                                                 data-id="{{ $item->peserta_didik_id }}"
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="sakit"
-                                                title="Catat Sakit Manual"
-                                                style="color: #ec4899; border-color: rgba(236,72,153,0.3); padding: 3px 7px; font-size: 0.74rem;">
+                                                data-status="S"
+                                                title="Catat Sakit Harian">
                                                 S
                                             </button>
-                                        @endif
-
-                                        @if ($canUpdate && $item->can_pulang)
-                                            <button type="button" class="btn-action-absen btn btn-sm btn-outline"
+                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'A' ? 'active-A' : '' }}"
                                                 data-id="{{ $item->peserta_didik_id }}"
                                                 data-nama="{{ $item->nama }}"
-                                                data-action="pulang"
-                                                title="Catat Jam Pulang"
-                                                style="color: #06b6d4; border-color: rgba(6,182,212,0.3); padding: 3px 7px; font-size: 0.74rem;">
-                                                Pulang
+                                                data-action="alpha"
+                                                data-status="A"
+                                                title="Catat Alpha Harian">
+                                                A
                                             </button>
-                                        @endif
-
-                                        @if ($item->is_locked && !$item->can_pulang)
-                                            <span class="badge badge-outline" style="font-size: 0.7rem; color: var(--text-muted);">
-                                                <i class="fas fa-lock me-1"></i> Final
+                                            @if (in_array($st, ['H', 'T'], true))
+                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ !empty($item->jam_pulang) ? 'active-D' : '' }}"
+                                                    data-id="{{ $item->peserta_didik_id }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-action="pulang"
+                                                    data-status="pulang"
+                                                    title="{{ !empty($item->jam_pulang) ? 'Sudah Pulang (' . substr($item->jam_pulang, 0, 5) . ')' : 'Catat Kepulangan' }}"
+                                                    style="min-width: 52px; font-size: 0.72rem;">
+                                                    <i class="fas fa-walking me-1"></i>{{ !empty($item->jam_pulang) ? substr($item->jam_pulang, 0, 5) : 'Pulang' }}
+                                                </button>
+                                            @endif
+                                        @else
+                                            <span class="badge badge-outline" style="font-size: 0.72rem; color: var(--text-muted);">
+                                                Read-Only
                                             </span>
                                         @endif
                                     </div>
@@ -1030,6 +1044,42 @@
             <div id="previewContainerWali" style="flex: 1; overflow: auto; text-align: center; min-height: 240px; display: flex; align-items: center; justify-content: center;">
                 <!-- Konten Gambar / PDF dinamis -->
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Pencatatan Izin / Sakit Harian oleh Wali Kelas -->
+    <div id="modalIzinSakitWali" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box;">
+        <div class="card" style="max-width: 480px; width: 92%; margin: auto; padding: 22px; border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--bg-card);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h3 id="titleModalIzinWali" style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-notes-medical text-primary"></i> Pencatatan Izin / Sakit Harian
+                </h3>
+                <button type="button" id="btnCloseIzinModalWali" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="formIzinSakitWali">
+                <input type="hidden" id="izinWaliPdId">
+                <input type="hidden" id="izinWaliAction">
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px;">Peserta Didik:</label>
+                    <div id="izinWaliPdNama" style="font-size: 0.95rem; font-weight: 700; color: var(--text-color);">-</div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <label for="izinWaliKeteranganInput" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-color); margin-bottom: 6px;">
+                        Keterangan / Alasan <span style="color: var(--danger);">*</span>:
+                    </label>
+                    <textarea id="izinWaliKeteranganInput" rows="3" required class="form-control"
+                        placeholder="Tuliskan keterangan izin atau surat dokter..."
+                        style="width: 100%; font-size: 0.84rem; border-radius: 8px; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" id="btnCancelIzinModalWali" class="btn btn-outline" style="padding: 7px 14px; font-size: 0.82rem; border-radius: 8px;">Batal</button>
+                    <button type="submit" id="btnSaveIzinModalWali" class="btn btn-primary" style="padding: 7px 18px; font-size: 0.82rem; border-radius: 8px; font-weight: 600;">
+                        <i class="fas fa-check me-1"></i> Simpan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

@@ -35,11 +35,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputJamKeSelesai = document.getElementById("inputJamKeSelesai");
     const inputJamMasuk = document.getElementById("inputJamMasuk");
     const inputJamKeluar = document.getElementById("inputJamKeluar");
+    const inputHari = document.getElementById("inputHari");
     const inputGuruPengganti = document.getElementById(
         "inputNamaGuruPengganti",
     );
     const inputKeterangan = document.getElementById("inputKeterangan");
     const btnSavePresensi = document.getElementById("btnSavePresensi");
+
+    const getIndoDayName = (dateStr) => {
+        if (!dateStr) return "";
+        const parts = dateStr.split("-");
+        if (parts.length !== 3) return "";
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+        return days[d.getDay()] || "";
+    };
 
     // Filter & Search elements
     const liveSearchInput = document.getElementById("liveSearchInput");
@@ -162,6 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 inputJamKeMulai.value = opt.dataset.jamMulai;
             if (inputJamKeSelesai && opt.dataset.jamSelesai)
                 inputJamKeSelesai.value = opt.dataset.jamSelesai;
+            if (inputHari && opt.dataset.hari)
+                inputHari.value = opt.dataset.hari;
 
             // Jam masuk & selesai otomatis dari jadwal
             if (inputJamMasuk && opt.dataset.jamMasuk) {
@@ -203,6 +215,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (inputJamMasuk) inputJamMasuk.value = `${hours}:${minutes}`;
         if (inputJamKeluar) inputJamKeluar.value = "";
 
+        if (inputHari && inputTanggal) {
+            inputHari.value = getIndoDayName(inputTanggal.value);
+        }
+
         if (modalTitle) {
             modalTitle.innerHTML =
                 '<i class="fas fa-calendar-check text-primary"></i> Catat Presensi Mengajar';
@@ -211,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
             modalForm.style.display = "flex";
             lockPageScroll();
             modalForm
-                .querySelector(".modal-card-responsive")
+                .querySelector(".modal-body-scroll")
                 ?.scrollTo({ top: 0 });
         }
 
@@ -258,6 +274,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (inputTanggal) {
         inputTanggal.addEventListener("change", (e) => {
+            if (inputHari) {
+                inputHari.value = getIndoDayName(e.target.value);
+            }
             checkKalenderDate(e.target.value);
         });
     }
@@ -284,6 +303,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 inputJamKeMulai.value = d.jamMulai;
             if (inputJamKeSelesai && d.jamSelesai)
                 inputJamKeSelesai.value = d.jamSelesai;
+            if (inputHari && d.hari)
+                inputHari.value = d.hari;
 
             // Jam masuk & selesai otomatis dari jadwal KBM
             if (inputJamMasuk && d.jamMasuk) {
@@ -459,6 +480,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 payload[key] = val;
             });
 
+            // Sanitasi jam masuk & jam keluar
+            if (payload.jam_masuk) {
+                payload.jam_masuk = payload.jam_masuk.replace(".", ":");
+            }
+            if (payload.jam_keluar) {
+                payload.jam_keluar = payload.jam_keluar.replace(".", ":");
+            }
+
+            // Pastikan hari terisi dari inputTanggal jika kosong
+            if (!payload.hari && inputTanggal && inputTanggal.value) {
+                payload.hari = getIndoDayName(inputTanggal.value);
+            }
+
             if (btnSavePresensi) {
                 btnSavePresensi.disabled = true;
                 btnSavePresensi.innerHTML =
@@ -474,15 +508,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
                 body: JSON.stringify(payload),
             })
-                .then((res) => res.json())
-                .then((data) => {
+                .then(async (res) => {
+                    const data = await res.json().catch(() => ({}));
+
                     if (btnSavePresensi) {
                         btnSavePresensi.disabled = false;
                         btnSavePresensi.innerHTML =
                             '<i class="fas fa-check me-1"></i> Simpan';
                     }
 
-                    if (data.status === "success") {
+                    if (res.ok && data.status === "success") {
                         closeModals();
                         if (typeof Swal !== "undefined") {
                             Swal.fire({
@@ -498,16 +533,21 @@ document.addEventListener("DOMContentLoaded", () => {
                             window.location.reload();
                         }
                     } else {
+                        let errMsg = data.message || "Gagal menyimpan presensi.";
+                        if (data.errors && typeof data.errors === "object") {
+                            const errVals = Object.values(data.errors);
+                            if (errVals.length > 0 && Array.isArray(errVals[0]) && errVals[0].length > 0) {
+                                errMsg = errVals[0][0];
+                            }
+                        }
                         if (typeof Swal !== "undefined") {
                             Swal.fire({
                                 icon: "error",
                                 title: "Gagal Menyimpan",
-                                text:
-                                    data.message ||
-                                    "Terjadi kesalahan validasi.",
+                                text: errMsg,
                             });
                         } else {
-                            alert(data.message || "Gagal menyimpan.");
+                            alert(errMsg);
                         }
                     }
                 })
@@ -522,7 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         Swal.fire({
                             icon: "error",
                             title: "Kesalahan Sistem",
-                            text: "Terjadi kesalahan saat memproses data presensi.",
+                            text: err.message || "Terjadi kesalahan saat memproses data presensi.",
                         });
                     }
                 });

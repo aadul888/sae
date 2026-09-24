@@ -878,8 +878,10 @@ class PresensiController extends Controller
     public function kelas(Request $request)
     {
         $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+        $isAdmin = in_array($role, ['admin', 'kepala_sekolah', 'waka_kurikulum', 'waka_kesiswaan'], true);
 
         // Ambil daftar rombel yang diampu sebagai Wali Kelas jika ada
         $waliRombel = null;
@@ -900,25 +902,71 @@ class PresensiController extends Controller
             }
         }
 
-        // Daftar Seluruh Rombel
-        $rombelList = DB::table('rombongan_belajar')
-            ->where('jenis_rombel', '1')
+        // Daftar Rombel: Jika Guru (Bukan Admin), hanya tampilkan kelas di mana guru ini mengajar
+        $rombelQuery = DB::table('rombongan_belajar');
+
+        if (!$isAdmin && $ptkId) {
+            $pembelajaranRombelIds = DB::table('pembelajaran')
+                ->where('ptk_id', $ptkId)
+                ->pluck('rombongan_belajar_id')
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            $jadwalRombelIds = DB::table('jadwal_kbm')
+                ->where('ptk_id', $ptkId)
+                ->pluck('rombongan_belajar_id')
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            $guruRombelIds = array_unique(array_filter(array_merge(
+                $pembelajaranRombelIds,
+                $jadwalRombelIds,
+                $waliRombel ? [$waliRombel] : []
+            )));
+
+            $rombelQuery->whereIn('rombongan_belajar_id', $guruRombelIds);
+        } else {
+            $rombelQuery->where('jenis_rombel', '1');
+        }
+
+        $rombelList = $rombelQuery
             ->orderBy('tingkat_pendidikan_id', 'asc')
             ->orderBy('nama', 'asc')
             ->select('rombongan_belajar_id', 'nama')
             ->get();
 
-        $selectedRombelId = $request->input('rombel_id', $waliRombel ?: ($rombelList->first()?->rombongan_belajar_id ?? ''));
+        $validRombelIds = $rombelList->pluck('rombongan_belajar_id')->toArray();
+        $requestedRombelId = $request->input('rombel_id');
+
+        if ($requestedRombelId && in_array($requestedRombelId, $validRombelIds, true)) {
+            $selectedRombelId = $requestedRombelId;
+        } else {
+            $selectedRombelId = $waliRombel && in_array($waliRombel, $validRombelIds, true)
+                ? $waliRombel
+                : ($rombelList->first()?->rombongan_belajar_id ?? '');
+        }
+
         $tanggal = $request->input('tanggal', now()->toDateString());
         $jamKe = $request->input('jam_ke', '');
 
         // Daftar Pembelajaran / Mata Pelajaran di Rombel Terpilih
         $pembelajaranList = collect();
         if ($selectedRombelId) {
-            $pembelajaranList = DB::table('pembelajaran as p')
+            $pQuery = DB::table('pembelajaran as p')
                 ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
-                ->where('p.rombongan_belajar_id', $selectedRombelId)
-                ->select(
+                ->where('p.rombongan_belajar_id', $selectedRombelId);
+
+            if (!$isAdmin && $ptkId) {
+                // Prioritaskan/batasi mapel yang diampu oleh guru ini di kelas tersebut
+                $guruMapelCount = (clone $pQuery)->where('p.ptk_id', $ptkId)->count();
+                if ($guruMapelCount > 0) {
+                    $pQuery->where('p.ptk_id', $ptkId);
+                }
+            }
+
+            $pembelajaranList = $pQuery->select(
                     'p.pembelajaran_id',
                     'p.nama_mata_pelajaran',
                     'p.ptk_id',
@@ -930,18 +978,24 @@ class PresensiController extends Controller
         }
 
         // Default mapel terpilih: prioritaskan mapel yang diampu oleh PTK jika guru login
-        $defaultPembelajaranId = null;
-        if ($ptkId) {
-            $guruPembelajaran = $pembelajaranList->firstWhere('ptk_id', $ptkId);
-            if ($guruPembelajaran) {
-                $defaultPembelajaranId = $guruPembelajaran->pembelajaran_id;
+        $validPembelajaranIds = $pembelajaranList->pluck('pembelajaran_id')->toArray();
+        $requestedPemId = $request->input('pembelajaran_id');
+        if ($requestedPemId && in_array($requestedPemId, $validPembelajaranIds, true)) {
+            $selectedPembelajaranId = $requestedPemId;
+        } else {
+            $defaultPembelajaranId = null;
+            if ($ptkId) {
+                $guruPembelajaran = $pembelajaranList->firstWhere('ptk_id', $ptkId);
+                if ($guruPembelajaran) {
+                    $defaultPembelajaranId = $guruPembelajaran->pembelajaran_id;
+                }
             }
-        }
-        if (!$defaultPembelajaranId && $pembelajaranList->isNotEmpty()) {
-            $defaultPembelajaranId = $pembelajaranList->first()->pembelajaran_id;
+            if (!$defaultPembelajaranId && $pembelajaranList->isNotEmpty()) {
+                $defaultPembelajaranId = $pembelajaranList->first()->pembelajaran_id;
+            }
+            $selectedPembelajaranId = $defaultPembelajaranId;
         }
 
-        $selectedPembelajaranId = $request->input('pembelajaran_id', $defaultPembelajaranId);
         $selectedPembelajaran = $pembelajaranList->firstWhere('pembelajaran_id', $selectedPembelajaranId);
 
         // Ambil Siswa di Rombel Terpilih

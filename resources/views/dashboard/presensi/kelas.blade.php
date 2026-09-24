@@ -35,92 +35,139 @@
         </div>
     </div>
 
-    <!-- Filter Bar Card -->
-    <div class="card" style="padding: 18px 20px; border-radius: 14px; margin-bottom: 20px;">
-        <form action="{{ route('dashboard.presensi.kelas') }}" method="GET" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
-            <div style="flex: 1; min-width: 200px;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
-                    Pilih Rombongan Belajar:
-                </label>
-                <select name="rombel_id" class="form-control" style="width: 100%; padding: 9px 12px; font-size: 0.88rem;" onchange="this.form.submit()">
-                    @foreach ($rombelList as $r)
-                        <option value="{{ $r->rombongan_belajar_id }}" {{ $selectedRombelId == $r->rombongan_belajar_id ? 'selected' : '' }}>
-                            {{ $r->nama }} {{ $waliRombel === $r->rombongan_belajar_id ? '(Kelas Binaan Anda)' : '' }}
-                        </option>
-                    @endforeach
-                </select>
+    @if ($rombelList->isEmpty())
+        <!-- Empty State jika Guru belum ada tugas rombel / jadwal KBM -->
+        <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
+            <div style="width: 70px; height: 70px; border-radius: 50%; background: rgba(99,102,241,0.12); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 16px;">
+                <i class="fas fa-chalkboard-user"></i>
             </div>
-
-            <div style="flex: 1; min-width: 220px;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
-                    Mata Pelajaran (KBM):
-                </label>
-                <select name="pembelajaran_id" id="kelasPembelajaranSelect" class="form-control" style="width: 100%; padding: 9px 12px; font-size: 0.88rem;">
-                    @if ($pembelajaranList->isEmpty())
-                        <option value="">-- Tidak ada mapel terdaftar di rombel ini --</option>
-                    @else
-                        @foreach ($pembelajaranList as $p)
-                            <option value="{{ $p->pembelajaran_id }}" {{ $selectedPembelajaranId == $p->pembelajaran_id ? 'selected' : '' }}>
-                                {{ $p->nama_mata_pelajaran }} {{ $p->nama_guru ? '— ' . $p->nama_guru : '' }}
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Belum Ada Kelas Mengajar Terdaftar</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 540px; margin: 0 auto;">
+                Akun Anda belum terdaftar mengampu rombongan belajar pada data Pembelajaran atau Jadwal KBM. Silakan hubungi Waka Kurikulum atau Operator Dapodik sekolah untuk sinkronisasi pembagian jam mengajar Anda.
+            </p>
+        </div>
+    @else
+        <!-- Filter Bar Card -->
+        <div class="card" style="padding: 18px 20px; border-radius: 14px; margin-bottom: 20px;">
+            <form action="{{ route('dashboard.presensi.kelas') }}" method="GET" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
+                        Pilih Rombongan Belajar:
+                    </label>
+                    <select name="rombel_id" class="form-control" style="width: 100%; padding: 9px 12px; font-size: 0.88rem;" onchange="this.form.submit()">
+                        @foreach ($rombelList as $r)
+                            <option value="{{ $r->rombongan_belajar_id }}" {{ $selectedRombelId == $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                {{ $r->nama }} {{ $waliRombel === $r->rombongan_belajar_id ? '(Kelas Binaan Anda)' : '' }}
                             </option>
                         @endforeach
-                    @endif
-                </select>
-            </div>
+                    </select>
+                </div>
 
-            <div style="min-width: 150px;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
-                    Tanggal Presensi:
-                </label>
-                <input type="date" id="kelasTanggalInput" name="tanggal" value="{{ $tanggal }}" class="form-control" style="padding: 9px 12px; font-size: 0.88rem;">
-            </div>
+                <div style="flex: 1; min-width: 220px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
+                        Mata Pelajaran (KBM):
+                    </label>
+                    <select name="pembelajaran_id" id="kelasPembelajaranSelect" class="form-control" style="width: 100%; padding: 9px 12px; font-size: 0.88rem;">
+                        @if ($pembelajaranList->isEmpty())
+                            <option value="">-- Tidak ada mapel terdaftar di rombel ini --</option>
+                        @else
+                            @foreach ($pembelajaranList as $p)
+                                <option value="{{ $p->pembelajaran_id }}" {{ $selectedPembelajaranId == $p->pembelajaran_id ? 'selected' : '' }}>
+                                    {{ $p->nama_mata_pelajaran }} {{ $p->nama_guru ? '— ' . $p->nama_guru : '' }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
 
-            <div style="width: 95px;">
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
-                    Jam Ke:
-                </label>
-                <input type="text" id="kelasJamKeInput" name="jam_ke" value="{{ $jamKe }}" placeholder="1-2" class="form-control" style="padding: 9px 12px; font-size: 0.88rem;">
-            </div>
+                <div style="min-width: 150px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
+                        Tanggal Presensi:
+                    </label>
+                    <input type="date" id="kelasTanggalInput" name="tanggal" value="{{ $tanggal }}" class="form-control" style="padding: 9px 12px; font-size: 0.88rem;">
+                </div>
 
-            <div>
-                <button type="submit" class="btn btn-primary" style="padding: 9px 20px; font-size: 0.88rem; font-weight: 600;">
-                    <i class="fas fa-filter me-1"></i> Tampilkan
-                </button>
-            </div>
-        </form>
-    </div>
+                <div style="width: 95px;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 5px;">
+                        Jam Ke:
+                    </label>
+                    <input type="text" id="kelasJamKeInput" name="jam_ke" value="{{ $jamKe }}" placeholder="1-2" class="form-control" style="padding: 9px 12px; font-size: 0.88rem;">
+                </div>
 
-    <!-- Rekap Status Kelas Mini-Stats -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
-        <div class="card" style="padding: 12px 16px; border-radius: 12px; text-align: center;">
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-color);">{{ $rekap['total'] }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Total Peserta Didik</div>
+                <div>
+                    <button type="submit" class="btn btn-primary" style="padding: 9px 20px; font-size: 0.88rem; font-weight: 600;">
+                        <i class="fas fa-filter me-1"></i> Tampilkan
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="card" style="padding: 12px 16px; border-radius: 12px; text-align: center; border-left: 3px solid var(--success);">
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--success);">{{ $rekap['hadir'] }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Hadir Mapel</div>
+
+        <!-- Rekap Status Kelas Mini-Stats (Baku SAE, seragam dengan Wali Kelas) -->
+        <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ $rekap['total'] }}</div>
+                    <div class="dash-stat-label">Total Peserta Didik</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">{{ $rekap['hadir'] }}</div>
+                    <div class="dash-stat-label">Hadir Mapel</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">{{ $rekap['terlambat'] }}</div>
+                    <div class="dash-stat-label">Terlambat</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+                    <i class="fas fa-file-signature"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #3b82f6;">{{ $rekap['izin'] }}</div>
+                    <div class="dash-stat-label">Izin Mapel</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.15); color: #8b5cf6;">
+                    <i class="fas fa-notes-medical"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #8b5cf6;">{{ $rekap['sakit'] }}</div>
+                    <div class="dash-stat-label">Sakit</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">{{ $rekap['alpha'] }}</div>
+                    <div class="dash-stat-label">Alpha Mapel</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(100,116,139,0.15); color: #64748b;">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #64748b;">{{ $rekap['belum'] }}</div>
+                    <div class="dash-stat-label">Belum Dicatat</div>
+                </div>
+            </div>
         </div>
-        <div class="card" style="padding: 12px 16px; border-radius: 12px; text-align: center; border-left: 3px solid var(--warning);">
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--warning);">{{ $rekap['terlambat'] }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Terlambat</div>
-        </div>
-        <div class="card" style="padding: 12px 16px; border-radius: 12px; text-align: center; border-left: 3px solid var(--primary);">
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">{{ $rekap['izin'] }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Izin</div>
-        </div>
-        <div class="card" style="padding: 12px 16px; border-radius: 12px; text-align: center; border-left: 3px solid #8b5cf6;">
-            <div style="font-size: 1.25rem; font-weight: 800; color: #8b5cf6;">{{ $rekap['sakit'] }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Sakit</div>
-        </div>
-        <div class="card" style="padding: 12px 16px; border-radius: 12px; text-align: center; border-left: 3px solid var(--danger);">
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--danger);">{{ $rekap['alpha'] }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Alpha</div>
-        </div>
-        <div class="card" style="padding: 12px 16px; border-radius: 12px; text-align: center; border-left: 3px solid var(--text-muted);">
-            <div style="font-size: 1.25rem; font-weight: 800; color: var(--text-muted);">{{ $rekap['belum'] }}</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Belum Dicatat</div>
-        </div>
-    </div>
 
     <!-- Table Daftar Siswa & Presensi Mapel -->
     <div class="card" style="padding: 20px; border-radius: 14px; margin-bottom: 24px;">
@@ -245,6 +292,7 @@
             </table>
         </div>
     </div>
+    @endif
 
     <!-- Modal Form Pencatatan Izin / Sakit Mapel -->
     <div id="modalIzinSakit" class="modal-backdrop" style="display: none; z-index: 99999 !important;">

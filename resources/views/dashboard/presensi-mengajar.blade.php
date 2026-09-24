@@ -5,96 +5,98 @@
 
 @push('styles')
     <style>
-        #modalFormPresensi .modal-card-responsive {
-            max-width: 540px !important;
-            padding: 14px !important;
-            border-radius: 12px !important;
-            overflow-y: auto !important;
+        #modalFormPresensi .modal-card-responsive,
+        #modalDetailPresensi .modal-card-responsive {
+            max-width: 580px !important;
+            border-radius: 14px !important;
             display: flex !important;
             flex-direction: column !important;
+            overflow: hidden !important;
+            padding: 18px 20px !important;
         }
 
-        #modalFormPresensi.pm-keyboard-open {
-            align-items: flex-start !important;
+        #modalFormPresensi .modal-body-scroll,
+        #modalDetailPresensi .modal-body-scroll {
             overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
             touch-action: pan-y !important;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        #modalFormPresensi.pm-keyboard-open .modal-card-responsive {
-            margin: 8px auto calc(var(--pm-keyboard-offset, 0px) + 16px) !important;
-            max-height: none !important;
         }
 
         #modalFormPresensi .pm-modal-head {
             margin-bottom: 10px !important;
             padding-bottom: 8px !important;
+            flex-shrink: 0 !important;
         }
 
         #modalFormPresensi .pm-field,
         #modalFormPresensi .form-grid-2,
         #modalFormPresensi .form-grid-3 {
-            margin-bottom: 8px !important;
+            margin-bottom: 10px !important;
         }
 
         #modalFormPresensi .form-grid-2,
         #modalFormPresensi .form-grid-3 {
-            gap: 8px !important;
+            gap: 10px !important;
         }
 
         #modalFormPresensi label {
-            font-size: 0.72rem !important;
-            margin-bottom: 3px !important;
+            font-size: 0.74rem !important;
+            margin-bottom: 4px !important;
         }
 
         #modalFormPresensi input,
         #modalFormPresensi select {
-            height: 32px !important;
-            font-size: 0.78rem !important;
-            border-radius: 7px !important;
+            height: 36px !important;
+            font-size: 0.82rem !important;
+            border-radius: 8px !important;
         }
 
         #modalFormPresensi textarea {
-            min-height: 46px !important;
-            font-size: 0.78rem !important;
-            border-radius: 7px !important;
+            min-height: 48px !important;
+            font-size: 0.82rem !important;
+            border-radius: 8px !important;
         }
 
         #modalFormPresensi #infoKalenderTanggalPresensi,
         #modalFormPresensi #wrapWaktuKbm,
         #modalFormPresensi #wrapGuruPengganti {
-            margin-bottom: 8px !important;
-            padding: 6px 9px !important;
-            font-size: 0.72rem !important;
-            border-radius: 7px !important;
+            margin-bottom: 10px !important;
+            padding: 8px 12px !important;
+            font-size: 0.76rem !important;
+            border-radius: 8px !important;
         }
 
         #modalFormPresensi .status-pill-group {
             display: flex !important;
-            gap: 4px !important;
+            gap: 6px !important;
             padding: 4px !important;
         }
 
         #modalFormPresensi .status-pill-item {
             flex: 1 1 0;
             min-width: 0;
-            padding: 6px 3px !important;
-            font-size: 0.72rem !important;
-            gap: 3px !important;
+            padding: 7px 4px !important;
+            font-size: 0.74rem !important;
+            gap: 4px !important;
         }
 
         #modalFormPresensi .pm-actions {
-            padding-top: 8px !important;
+            flex-shrink: 0 !important;
+            padding-top: 10px !important;
+            margin-top: 8px !important;
         }
 
         @media (max-width: 520px) {
-            #modalFormPresensi {
-                padding: 8px !important;
+            #modalFormPresensi,
+            #modalDetailPresensi {
+                padding: 10px !important;
             }
 
-            #modalFormPresensi .modal-card-responsive {
-                max-height: 94vh !important;
-                padding: 12px !important;
+            #modalFormPresensi .modal-card-responsive,
+            #modalDetailPresensi .modal-card-responsive {
+                max-height: 90vh !important;
+                padding: 14px 14px !important;
+                width: 96% !important;
             }
 
             #modalFormPresensi .form-grid-2,
@@ -308,6 +310,11 @@
                             \Illuminate\Support\Facades\DB::table('rombongan_belajar')
                                 ->where('rombongan_belajar_id', $j->rombongan_belajar_id)
                                 ->value('nama') ?? $j->rombongan_belajar_id;
+
+                        // Periksa apakah waktu saat ini belum mencapai jam_mulai jadwal KBM
+                        $nowTime = \Carbon\Carbon::now()->format('H:i');
+                        $jamMulai = !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : null;
+                        $isBelumSaatnya = $jamMulai && ($nowTime < $jamMulai);
                     @endphp
                     <div class="today-kbm-item {{ $presensiToday ? 'done' : '' }}">
                         <div>
@@ -350,6 +357,12 @@
                                     style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px; flex-shrink: 0;">
                                     <i class="fas fa-pen"></i>
                                 </button>
+                            @elseif ($isBelumSaatnya)
+                                <span
+                                    style="font-size: 0.74rem; color: var(--text-muted); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;"
+                                    title="Sesi KBM belum dimulai (dimulai pukul {{ $jamMulai }})">
+                                    <i class="fas fa-hourglass-start text-muted"></i> Belum Saatnya
+                                </span>
                             @else
                                 <span
                                     style="font-size: 0.74rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
@@ -475,13 +488,13 @@
 
     <!-- 6. Modal Form Catat Presensi Mengajar (z-index: 99999 !important) -->
     <div id="modalFormPresensi" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow: hidden; overscroll-behavior: contain; touch-action: none;">
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; box-sizing: border-box; overflow-y: auto;">
         <div class="card modal-card-responsive"
-            style="max-width: 600px; width: 100%; max-height: 92vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
+            style="max-width: 580px; width: 96%; max-height: 88vh; display: flex; flex-direction: column; margin: auto; border-radius: 14px; padding: 18px 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--bg-card); box-sizing: border-box; overflow: hidden;">
             <div class="pm-modal-head"
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;">
                 <h3 id="modalPresensiTitle"
-                    style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-calendar-check text-primary"></i> Presensi Mengajar
                 </h3>
                 <button type="button" class="btn-close-modal"
@@ -490,13 +503,17 @@
                 </button>
             </div>
 
-            <form id="formPresensiMengajar">
+            <form id="formPresensiMengajar" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
                 @csrf
                 <input type="hidden" id="presensiId" name="id">
                 <input type="hidden" id="inputJadwalKbmId" name="jadwal_kbm_id">
                 <input type="hidden" id="inputPembelajaranId" name="pembelajaran_id">
                 <input type="hidden" id="inputMataPelajaranId" name="mata_pelajaran_id">
                 <input type="hidden" id="inputPtkId" name="ptk_id" value="{{ $ptkId }}">
+                <input type="hidden" id="inputHari" name="hari">
+
+                <!-- Body Modal Scrollable (persis seperti peserta-didik-aktif) -->
+                <div class="modal-body-scroll" style="overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; -webkit-overflow-scrolling: touch;">
 
                 <!-- Selector Sumber Jadwal -->
                 <div class="pm-field" style="margin-bottom: 12px;">
@@ -696,8 +713,11 @@
                         style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box; resize: vertical;"></textarea>
                 </div>
 
+                </div>
+
+                <!-- Footer Modal (tetap di dasar modal) -->
                 <div class="pm-actions"
-                    style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                    style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 8px; flex-shrink: 0;">
                     <button type="button" class="btn btn-outline btn-close-modal"
                         style="padding: 7px 14px; font-size: 0.82rem; border-radius: 8px;">
                         Batal
@@ -711,15 +731,15 @@
         </div>
     </div>
 
-    <!-- 7. Modal Detail Presensi Mengajar (z-index: 99999 !important) -->
+    <!-- 7. Modal Detail Presensi Mengajar -->
     <div id="modalDetailPresensi" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow: hidden; overscroll-behavior: contain; touch-action: none;">
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; box-sizing: border-box; overflow-y: auto;">
         <div class="card modal-card-responsive"
-            style="max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+            style="max-width: 520px; width: 96%; max-height: 88vh; display: flex; flex-direction: column; margin: auto; border-radius: 14px; padding: 18px 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--bg-card); box-sizing: border-box; overflow: hidden;">
+            <div class="pm-modal-head"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;">
                 <h3
-                    style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-circle-info text-primary"></i> Rincian Presensi
                 </h3>
                 <button type="button" class="btn-close-detail"
@@ -728,12 +748,14 @@
                 </button>
             </div>
 
-            <div id="detailPresensiContent" style="font-size: 0.84rem; display: flex; flex-direction: column; gap: 8px;">
-                <!-- Konten dinamis via JS -->
+            <div class="modal-body-scroll" style="overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; -webkit-overflow-scrolling: touch;">
+                <div id="detailPresensiContent" style="font-size: 0.84rem; display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Konten dinamis via JS -->
+                </div>
             </div>
 
             <div
-                style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 14px;">
+                style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 10px; flex-shrink: 0;">
                 <button type="button" class="btn btn-outline btn-close-detail"
                     style="padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
                     Tutup
@@ -745,22 +767,4 @@
 
 @push('scripts')
     <script src="{{ asset('js/presensi-mengajar.js') }}"></script>
-    <script>
-        (() => {
-            const modal = document.getElementById('modalFormPresensi');
-            if (!modal || !window.visualViewport) return;
-
-            const syncKeyboardSpace = () => {
-                const offset = Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport
-                    .offsetTop);
-                modal.classList.toggle('pm-keyboard-open', offset > 80);
-                modal.style.setProperty('--pm-keyboard-offset', `${offset}px`);
-            };
-
-            window.visualViewport.addEventListener('resize', syncKeyboardSpace);
-            window.visualViewport.addEventListener('scroll', syncKeyboardSpace);
-            modal.addEventListener('focusin', syncKeyboardSpace);
-            modal.addEventListener('focusout', () => setTimeout(syncKeyboardSpace, 200));
-        })();
-    </script>
 @endpush

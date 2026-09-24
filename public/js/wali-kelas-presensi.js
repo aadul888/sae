@@ -234,138 +234,204 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // =========================================================================
-    // 3. PRESENSI MANUAL OLEH WALI KELAS (Event Delegation agar tahan AJAX)
+    // 3. PRESENSI MANUAL OLEH WALI KELAS (Event Delegation & Instant Toggle Baku SAE)
     // =========================================================================
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-presensi-manual');
+    const modalIzinSakitWali    = document.getElementById('modalIzinSakitWali');
+    const formIzinSakitWali     = document.getElementById('formIzinSakitWali');
+    const izinWaliPdId          = document.getElementById('izinWaliPdId');
+    const izinWaliAction        = document.getElementById('izinWaliAction');
+    const izinWaliKeterangan    = document.getElementById('izinWaliKeteranganInput');
+    const izinWaliPdNama        = document.getElementById('izinWaliPdNama');
+    const titleModalIzinWali    = document.getElementById('titleModalIzinWali');
+    const btnCloseIzinModalWali = document.getElementById('btnCloseIzinModalWali');
+    const btnCancelIzinModalWali= document.getElementById('btnCancelIzinModalWali');
+
+    function closeIzinModalWali() {
+        if (modalIzinSakitWali) modalIzinSakitWali.style.display = 'none';
+        if (formIzinSakitWali) formIzinSakitWali.reset();
+    }
+
+    if (btnCloseIzinModalWali)  btnCloseIzinModalWali.addEventListener('click', closeIzinModalWali);
+    if (btnCancelIzinModalWali) btnCancelIzinModalWali.addEventListener('click', closeIzinModalWali);
+
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.btn-presensi-manual, .btn-action-absen');
         if (!btn) return;
 
         const pdId    = btn.getAttribute('data-id');
         const nama    = btn.getAttribute('data-nama');
-        const action  = btn.getAttribute('data-action');
+        const action  = (btn.getAttribute('data-action') || btn.getAttribute('data-status') || '').toLowerCase();
         const tanggal = btn.getAttribute('data-tanggal') || document.getElementById('filterTanggal')?.value || new Date().toISOString().slice(0, 10);
 
-        let actionLabel = 'Hadir Tepat Waktu (H)';
-        let actionColor = '#10b981';
-        let iconHtml    = '<i class="fas fa-check-circle me-1"></i>';
-        let needNote    = false;
-        let notePlaceholder = 'Catatan kehadiran (opsional)...';
+        if (!pdId || !action) return;
 
-        switch (action) {
-            case 'masuk':
-                actionLabel = 'Hadir Tepat Waktu (H)';
-                actionColor = '#10b981';
-                iconHtml = '<i class="fas fa-check me-1"></i>';
-                break;
-            case 'terlambat':
-                actionLabel = 'Terlambat (T)';
-                actionColor = '#f59e0b';
-                iconHtml = '<i class="fas fa-clock me-1"></i>';
-                notePlaceholder = 'Alasan keterlambatan (opsional)...';
-                break;
-            case 'sakit':
-                actionLabel = 'Sakit (S)';
-                actionColor = '#6366f1';
-                iconHtml = '<i class="fas fa-notes-medical me-1"></i>';
-                needNote = true;
-                notePlaceholder = 'Keterangan sakit / surat dokter...';
-                break;
-            case 'izin':
-                actionLabel = 'Izin (I)';
-                actionColor = '#3b82f6';
-                iconHtml = '<i class="fas fa-envelope me-1"></i>';
-                needNote = true;
-                notePlaceholder = 'Keperluan izin...';
-                break;
-            case 'pulang':
-                actionLabel = 'Presensi Kepulangan';
-                actionColor = '#8b5cf6';
-                iconHtml = '<i class="fas fa-arrow-right-from-bracket me-1"></i>';
-                break;
+        // Jika Izin atau Sakit, tampilkan modal catatan/alasan
+        if (action === 'izin' || action === 'i' || action === 'sakit' || action === 's') {
+            const isSakit = (action === 'sakit' || action === 's');
+            if (izinWaliPdId) izinWaliPdId.value = pdId;
+            if (izinWaliAction) izinWaliAction.value = isSakit ? 'sakit' : 'izin';
+            if (izinWaliPdNama) izinWaliPdNama.textContent = nama || '-';
+            if (izinWaliKeterangan) izinWaliKeterangan.value = '';
+            if (titleModalIzinWali) {
+                titleModalIzinWali.innerHTML = isSakit
+                    ? '<i class="fas fa-notes-medical text-primary"></i> Pencatatan Sakit Harian'
+                    : '<i class="fas fa-file-signature text-primary"></i> Pencatatan Izin Harian';
+            }
+            if (modalIzinSakitWali) modalIzinSakitWali.style.display = 'flex';
+            return;
         }
 
-        Swal.fire({
-            title: `Catat Presensi Manual?`,
-            html: `
-                <div style="text-align: left; font-size: 0.88rem; color: var(--text-color);">
-                    <p style="margin-bottom: 8px;"><strong>Nama Peserta Didik:</strong> ${nama}</p>
-                    <p style="margin-bottom: 8px;"><strong>Tanggal:</strong> ${tanggal}</p>
-                    <p style="margin-bottom: 12px;"><strong>Tindakan:</strong> <span class="badge" style="background: ${actionColor}; color: #fff;">${actionLabel}</span></p>
-                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; font-size: 0.78rem; color: #f59e0b;">
-                        <i class="fas fa-triangle-exclamation me-1"></i> <strong>Perhatian:</strong> Tindakan presensi manual hanya dapat dicatat <strong>1 kali</strong> per peserta didik hari ini dan <strong>tidak dapat diubah kembali</strong>.
-                    </div>
-                    <label style="display:block; margin-bottom: 5px; font-weight: 600; font-size: 0.8rem;">Keterangan Manual ${needNote ? '<span style="color: var(--danger); font-weight: bold;">*</span>' : '(Opsional)'}:</label>
-                    <input type="text" id="swalManualKeterangan" class="form-control" style="width: 100%; font-size: 0.84rem;" placeholder="${notePlaceholder}">
-                </div>
-            `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: `${iconHtml} Simpan Presensi`,
-            cancelButtonText: 'Batal',
-            confirmButtonColor: actionColor,
-            preConfirm: () => {
-                const ket = document.getElementById('swalManualKeterangan')?.value.trim();
-                if (needNote && !ket) {
-                    Swal.showValidationMessage('Keterangan wajib diisi untuk izin atau sakit.');
-                    return false;
-                }
-                return { keterangan: ket };
-            }
-        }).then(async (result) => {
-            if (result.isConfirmed) {
-                const payload = {
+        // Untuk Hadir (H/masuk), Terlambat (T), Alpha (A), atau Pulang: eksekusi cepat AJAX
+        try {
+            const res = await fetch('/dashboard/wali-kelas/presensi/manual', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
                     peserta_didik_id: pdId,
-                    action: action,
                     tanggal: tanggal,
-                    keterangan: result.value?.keterangan || ''
-                };
+                    action: action
+                })
+            });
 
-                try {
-                    Swal.fire({
-                        title: 'Mencatat Presensi...',
-                        allowOutsideClick: false,
-                        didOpen: () => Swal.showLoading()
-                    });
+            const data = await res.json();
 
-                    const res = await fetch('/dashboard/wali-kelas/presensi/manual', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const data = await res.json();
-
-                    if (res.ok && data.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Berhasil!',
-                            text: data.message,
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            if (typeof window.refreshLiveTable === 'function') {
-                                window.refreshLiveTable(window.location.href);
+            if (res.ok && data.status === 'success') {
+                const row = document.getElementById('row-siswa-' + pdId);
+                if (row) {
+                    const statusVal = data.status_val || (action === 'masuk' ? 'H' : (action === 'terlambat' ? 'T' : (action === 'alpha' ? 'A' : '')));
+                    if (statusVal) {
+                        row.querySelectorAll('.btn-status-toggle:not([data-action="pulang"])').forEach(b => {
+                            const bStatus = (b.getAttribute('data-status') || b.getAttribute('data-action') || '').toUpperCase();
+                            if (bStatus === statusVal || (statusVal === 'H' && bStatus === 'MASUK') || (statusVal === 'T' && bStatus === 'TERLAMBAT') || (statusVal === 'A' && bStatus === 'ALPHA')) {
+                                b.className = `btn-status-toggle btn-presensi-manual active-${statusVal}`;
                             } else {
-                                window.location.reload();
+                                b.className = 'btn-status-toggle btn-presensi-manual';
                             }
                         });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Presensi Ditolak',
-                            text: data.message || 'Gagal mencatat presensi manual.'
-                        });
                     }
-                } catch (e) {
-                    Swal.fire('Kesalahan Sistem', 'Tidak dapat menghubungi server.', 'error');
+
+                    const badgeCell = document.getElementById('badge-status-' + pdId);
+                    if (badgeCell && data.badge) {
+                        badgeCell.innerHTML = data.badge;
+                    }
+
+                    const waktuCell = document.getElementById('waktu-status-' + pdId);
+                    if (waktuCell && (data.jam_masuk || data.jam_pulang)) {
+                        const txtMasuk = waktuCell.querySelector('.text-jam-masuk');
+                        if (txtMasuk && data.jam_masuk) txtMasuk.textContent = data.jam_masuk;
+                        const txtPulang = waktuCell.querySelector('.text-jam-pulang');
+                        if (txtPulang && data.jam_pulang) txtPulang.textContent = data.jam_pulang;
+                    }
+
+                    if (action === 'pulang') {
+                        const btnPulang = row.querySelector('.btn-status-toggle[data-action="pulang"]');
+                        if (btnPulang) {
+                            btnPulang.className = 'btn-status-toggle btn-presensi-manual active-D';
+                            btnPulang.innerHTML = `<i class="fas fa-walking me-1"></i>${data.jam_pulang || 'Pulang'}`;
+                        }
+                    }
                 }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Presensi Harian Disimpan',
+                    text: data.message,
+                    timer: 1200,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+            } else {
+                Swal.fire('Presensi Gagal', data.message || 'Gagal mencatat presensi manual.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'Terjadi kesalahan koneksi ke server.', 'error');
+        }
+    });
+
+    // Form Submit Izin / Sakit Harian
+    if (formIzinSakitWali) {
+        formIzinSakitWali.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const pdId    = izinWaliPdId?.value;
+            const action  = izinWaliAction?.value || 'izin';
+            const ket     = izinWaliKeterangan?.value?.trim() || '';
+            const tanggal = document.getElementById('filterTanggal')?.value || new Date().toISOString().slice(0, 10);
+
+            if (!pdId) return;
+
+            try {
+                Swal.fire({
+                    title: 'Menyimpan...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                const res = await fetch('/dashboard/wali-kelas/presensi/manual', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        peserta_didik_id: pdId,
+                        tanggal: tanggal,
+                        action: action,
+                        keterangan: ket
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    closeIzinModalWali();
+
+                    const row = document.getElementById('row-siswa-' + pdId);
+                    if (row) {
+                        const statusVal = data.status_val || (action === 'sakit' ? 'S' : 'I');
+                        row.querySelectorAll('.btn-status-toggle:not([data-action="pulang"])').forEach(b => {
+                            const bStatus = (b.getAttribute('data-status') || b.getAttribute('data-action') || '').toUpperCase();
+                            if (bStatus === statusVal || (statusVal === 'I' && bStatus === 'IZIN') || (statusVal === 'S' && bStatus === 'SAKIT')) {
+                                b.className = `btn-status-toggle btn-presensi-manual active-${statusVal}`;
+                            } else {
+                                b.className = 'btn-status-toggle btn-presensi-manual';
+                            }
+                        });
+
+                        const badgeCell = document.getElementById('badge-status-' + pdId);
+                        if (badgeCell && data.badge) {
+                            badgeCell.innerHTML = data.badge;
+                        }
+
+                        const ketCell = document.getElementById('ket-status-' + pdId);
+                        if (ketCell) {
+                            ketCell.textContent = ket || '-';
+                        }
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Tersimpan!',
+                        text: data.message,
+                        timer: 1300,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                } else {
+                    Swal.fire('Gagal', data.message || 'Gagal menyimpan data izin/sakit.', 'error');
+                }
+            } catch (err) {
+                Swal.fire('Error', 'Gagal memproses data.', 'error');
             }
         });
-    });
+    }
 
     // =========================================================================
     // 4. APPROVAL & VERIFIKASI SURAT IZIN / SAKIT (TAB 2)

@@ -204,6 +204,12 @@ class PermissionController extends Controller
                     $perm->can_create = false;
                     $perm->can_update = false;
                     $perm->can_delete = false;
+                } else {
+                    // Jika modul operasional guru dinyalakan, berikan izin create & update default
+                    if ($targetRole === 'guru' && in_array($permissionKey, ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik'], true)) {
+                        $perm->can_create = true;
+                        $perm->can_update = true;
+                    }
                 }
             }
 

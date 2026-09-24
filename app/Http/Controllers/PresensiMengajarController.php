@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class PresensiMengajarController extends Controller
 {
@@ -287,144 +289,197 @@ class PresensiMengajarController extends Controller
      */
     public function store(Request $request)
     {
-        $user = session('user');
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        $isGuru = ($role === 'guru');
-        $sessionPtkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+        try {
+            $user = session('user');
+            $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+            $isGuru = ($role === 'guru');
+            $sessionPtkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
 
-        if (!RolePermission::canAccess($user ?: $role, 'menu_presensi_mengajar', 'create')) {
-            if ($request->expectsJson()) {
-                return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mencatat presensi.'], 403);
-            }
-            return back()->with('error', 'Akses ditolak: Anda tidak memiliki hak akses untuk mencatat presensi.');
-        }
-
-        $validated = $request->validate([
-            'jadwal_kbm_id'         => 'nullable|integer',
-            'ptk_id'                => 'nullable|string|max:50',
-            'rombongan_belajar_id'  => 'required|string|max:50',
-            'nama_mata_pelajaran'   => 'required|string|max:150',
-            'pembelajaran_id'       => 'nullable|string|max:50',
-            'mata_pelajaran_id'     => 'nullable|string|max:50',
-            'tanggal'               => 'required|date',
-            'hari'                  => 'nullable|string|max:20',
-            'jam_ke_mulai'          => 'required|integer|min:0|max:20',
-            'jam_ke_selesai'        => 'required|integer|min:0|max:20',
-            'status'                => 'required|string|in:H,I,S,T,D',
-            'jam_masuk'             => 'nullable|string',
-            'jam_keluar'            => 'nullable|string',
-            'jumlah_siswa_hadir'    => 'nullable|integer|min:0',
-            'jumlah_siswa_tidak_hadir' => 'nullable|integer|min:0',
-            'guru_pengganti_ptk_id' => 'nullable|string|max:50',
-            'nama_guru_pengganti'   => 'nullable|string|max:150',
-            'keterangan'            => 'nullable|string|max:500',
-        ]);
-
-        $finalPtkId = ($isGuru && $sessionPtkId) ? $sessionPtkId : ($validated['ptk_id'] ?? $sessionPtkId);
-        if (!$finalPtkId) {
-            return back()->with('error', 'PTK / Guru pengampu KBM tidak valid atau belum terikat.');
-        }
-
-        $statusKalender = KalenderPendidikan::getStatusHari($validated['tanggal'], 'gtk');
-        if (($statusKalender['mode'] ?? null) === 'libur') {
-            $namaAgenda = $statusKalender['nama_agenda'] ?? ($statusKalender['agenda']?->nama_kegiatan ?? 'Kalender Pendidikan');
-            $msg = "Hari ini libur guru ({$namaAgenda}). Presensi mengajar tidak dapat dicatat.";
-            if ($request->expectsJson()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 422);
-            }
-            return back()->with('error', $msg);
-        }
-
-        // Sinkronkan jam & jadwal KBM jika jadwal_kbm_id disertakan
-        if (!empty($validated['jadwal_kbm_id'])) {
-            $jadwal = JadwalKbm::find($validated['jadwal_kbm_id']);
-            if ($jadwal) {
-                $validated['jam_ke_mulai'] = $jadwal->jam_ke_mulai;
-                $validated['jam_ke_selesai'] = $jadwal->jam_ke_selesai;
-                if (empty($validated['jam_masuk']) && $jadwal->jam_mulai) {
-                    $validated['jam_masuk'] = $jadwal->jam_mulai;
+            if (!RolePermission::canAccess($user ?: $role, 'menu_presensi_mengajar', 'create')) {
+                if ($request->expectsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mencatat presensi.'], 403);
                 }
-                if (empty($validated['jam_keluar']) && $jadwal->jam_selesai) {
-                    $validated['jam_keluar'] = $jadwal->jam_selesai;
-                }
+                return back()->with('error', 'Akses ditolak: Anda tidak memiliki hak akses untuk mencatat presensi.');
             }
-        }
 
-        // Otomatisasi jumlah peserta didik dari data rombel KBM
-        $totalSiswaRombel = DB::table('anggota_rombel')
-            ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
-            ->count();
-
-        if (!isset($validated['jumlah_siswa_hadir']) || $validated['jumlah_siswa_hadir'] === null) {
-            if ($validated['status'] === 'H') {
-                $validated['jumlah_siswa_hadir'] = $totalSiswaRombel;
-                $validated['jumlah_siswa_tidak_hadir'] = 0;
-            } else {
-                $validated['jumlah_siswa_hadir'] = 0;
-                $validated['jumlah_siswa_tidak_hadir'] = $totalSiswaRombel;
-            }
-        }
-
-        $hari = $validated['hari'] ?: $this->getIndoDayName($validated['tanggal']);
-        $totalJp = max(1, (int) $validated['jam_ke_selesai'] - (int) $validated['jam_ke_mulai'] + 1);
-
-        // Cek duplikasi presensi untuk guru, rombel, tanggal, dan jam_ke_mulai yang sama
-        $exists = PresensiMengajar::where('ptk_id', $finalPtkId)
-            ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
-            ->where('tanggal', $validated['tanggal'])
-            ->where('jam_ke_mulai', $validated['jam_ke_mulai'])
-            ->first();
-
-        if ($exists) {
-            $msg = 'Presensi mengajar untuk kelas dan jam tersebut pada tanggal ini sudah pernah dicatat.';
-            if ($request->expectsJson()) {
-                return response()->json(['status' => 'error', 'message' => $msg], 422);
-            }
-            return back()->with('error', $msg);
-        }
-
-        // Deteksi agenda kalender pendidikan untuk auto-keterangan jika kosong
-        $agendaTanggal = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $validated['tanggal'])
-            ->whereDate('tanggal_selesai', '>=', $validated['tanggal'])
-            ->first();
-
-        $keteranganAkhir = $validated['keterangan'] ?? null;
-        if (empty($keteranganAkhir) && $agendaTanggal) {
-            $keteranganAkhir = "[Agenda: {$agendaTanggal->nama_agenda}]" . ($agendaTanggal->keterangan ? " - {$agendaTanggal->keterangan}" : '');
-        }
-
-        $presensi = PresensiMengajar::create([
-            'jadwal_kbm_id'         => $validated['jadwal_kbm_id'] ?? null,
-            'ptk_id'                => $finalPtkId,
-            'rombongan_belajar_id'  => $validated['rombongan_belajar_id'],
-            'pembelajaran_id'       => $validated['pembelajaran_id'] ?? null,
-            'mata_pelajaran_id'     => $validated['mata_pelajaran_id'] ?? null,
-            'nama_mata_pelajaran'   => $validated['nama_mata_pelajaran'],
-            'tanggal'               => $validated['tanggal'],
-            'hari'                  => $hari,
-            'jam_ke_mulai'          => $validated['jam_ke_mulai'],
-            'jam_ke_selesai'        => $validated['jam_ke_selesai'],
-            'total_jp'              => $totalJp,
-            'status'                => $validated['status'],
-            'jam_masuk'             => !empty($validated['jam_masuk']) ? $validated['jam_masuk'] : Carbon::now()->format('H:i:s'),
-            'jam_keluar'            => $validated['jam_keluar'] ?? null,
-            'jumlah_siswa_hadir'    => $validated['jumlah_siswa_hadir'],
-            'jumlah_siswa_tidak_hadir' => $validated['jumlah_siswa_tidak_hadir'],
-            'guru_pengganti_ptk_id' => $validated['guru_pengganti_ptk_id'] ?? null,
-            'nama_guru_pengganti'   => $validated['nama_guru_pengganti'] ?? null,
-            'keterangan'            => $keteranganAkhir,
-            'created_by'            => is_array($user) ? ($user['username'] ?? 'guru') : ($user->username ?? 'guru'),
-        ]);
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Presensi mengajar berhasil dicatat.',
-                'data'    => $presensi,
+            $validated = $request->validate([
+                'jadwal_kbm_id'         => 'nullable|integer',
+                'ptk_id'                => 'nullable|string|max:50',
+                'rombongan_belajar_id'  => 'required|string|max:50',
+                'nama_mata_pelajaran'   => 'required|string|max:150',
+                'pembelajaran_id'       => 'nullable|string|max:50',
+                'mata_pelajaran_id'     => 'nullable|string|max:50',
+                'tanggal'               => 'required|date',
+                'hari'                  => 'nullable|string|max:20',
+                'jam_ke_mulai'          => 'required|integer|min:0|max:20',
+                'jam_ke_selesai'        => 'required|integer|min:0|max:20',
+                'status'                => 'required|string|in:H,I,S,T,D',
+                'jam_masuk'             => 'nullable|string',
+                'jam_keluar'            => 'nullable|string',
+                'jumlah_siswa_hadir'    => 'nullable|integer|min:0',
+                'jumlah_siswa_tidak_hadir' => 'nullable|integer|min:0',
+                'guru_pengganti_ptk_id' => 'nullable|string|max:50',
+                'nama_guru_pengganti'   => 'nullable|string|max:150',
+                'keterangan'            => 'nullable|string|max:500',
             ]);
-        }
 
-        return back()->with('success', 'Presensi mengajar berhasil disimpan.');
+            $finalPtkId = ($isGuru && $sessionPtkId) ? $sessionPtkId : ($validated['ptk_id'] ?? $sessionPtkId);
+            if (!$finalPtkId) {
+                if ($request->expectsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'PTK / Guru pengampu KBM tidak valid atau belum terikat.'], 422);
+                }
+                return back()->with('error', 'PTK / Guru pengampu KBM tidak valid atau belum terikat.');
+            }
+
+            $statusKalender = KalenderPendidikan::getStatusHari($validated['tanggal'], 'gtk');
+            if (($statusKalender['mode'] ?? null) === 'libur') {
+                $namaAgenda = $statusKalender['nama_agenda'] ?? ($statusKalender['agenda']?->nama_kegiatan ?? 'Kalender Pendidikan');
+                $msg = "Hari ini libur guru ({$namaAgenda}). Presensi mengajar tidak dapat dicatat.";
+                if ($request->expectsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $msg], 422);
+                }
+                return back()->with('error', $msg);
+            }
+
+            // Validasi jadwal KBM jika jadwal_kbm_id disertakan
+            if (!empty($validated['jadwal_kbm_id'])) {
+                $jadwal = JadwalKbm::find($validated['jadwal_kbm_id']);
+                if ($jadwal) {
+                    // Validasi: belum saatnya KBM jika hari ini dan jam_mulai belum tercapai
+                    if (!empty($jadwal->jam_mulai) && $validated['tanggal'] === Carbon::today()->toDateString()) {
+                        $nowTime = Carbon::now()->format('H:i');
+                        $jadwalMulai = substr($jadwal->jam_mulai, 0, 5);
+                        if ($nowTime < $jadwalMulai) {
+                            $msg = "Sesi KBM mata pelajaran ini belum dimulai (Jadwal: {$jadwalMulai}). Presensi dapat dicatat saat jam KBM dimulai.";
+                            if ($request->expectsJson()) {
+                                return response()->json(['status' => 'error', 'message' => $msg], 422);
+                            }
+                            return back()->with('error', $msg);
+                        }
+                    }
+
+                    $validated['jam_ke_mulai'] = $jadwal->jam_ke_mulai;
+                    $validated['jam_ke_selesai'] = $jadwal->jam_ke_selesai;
+                    if (empty($validated['jam_masuk']) && $jadwal->jam_mulai) {
+                        $validated['jam_masuk'] = $jadwal->jam_mulai;
+                    }
+                    if (empty($validated['jam_keluar']) && $jadwal->jam_selesai) {
+                        $validated['jam_keluar'] = $jadwal->jam_selesai;
+                    }
+                }
+            }
+
+            // Normalisasi jam masuk & jam keluar (ubah titik ke titik dua, lengkapi detik, ubah empty ke null)
+            $jamMasuk = !empty($validated['jam_masuk']) ? str_replace('.', ':', trim($validated['jam_masuk'])) : Carbon::now()->format('H:i:s');
+            if (strlen($jamMasuk) === 5) {
+                $jamMasuk .= ':00';
+            }
+            $jamKeluar = !empty($validated['jam_keluar']) ? str_replace('.', ':', trim($validated['jam_keluar'])) : null;
+            if ($jamKeluar && strlen($jamKeluar) === 5) {
+                $jamKeluar .= ':00';
+            }
+
+            // Otomatisasi jumlah peserta didik dari data rombel KBM
+            $totalSiswaRombel = 0;
+            if (Schema::hasTable('anggota_rombel')) {
+                $totalSiswaRombel = DB::table('anggota_rombel')
+                    ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
+                    ->count();
+            }
+            if ($totalSiswaRombel === 0 && Schema::hasTable('peserta_didik')) {
+                $totalSiswaRombel = DB::table('peserta_didik')
+                    ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
+                    ->count();
+            }
+
+            if (!isset($validated['jumlah_siswa_hadir']) || $validated['jumlah_siswa_hadir'] === null) {
+                if ($validated['status'] === 'H') {
+                    $validated['jumlah_siswa_hadir'] = $totalSiswaRombel;
+                    $validated['jumlah_siswa_tidak_hadir'] = 0;
+                } else {
+                    $validated['jumlah_siswa_hadir'] = 0;
+                    $validated['jumlah_siswa_tidak_hadir'] = $totalSiswaRombel;
+                }
+            }
+
+            $hari = !empty($validated['hari']) ? $validated['hari'] : $this->getIndoDayName($validated['tanggal']);
+            $totalJp = max(1, (int) $validated['jam_ke_selesai'] - (int) $validated['jam_ke_mulai'] + 1);
+
+            // Cek duplikasi presensi untuk guru, rombel, tanggal, dan jam_ke_mulai yang sama
+            $exists = PresensiMengajar::where('ptk_id', $finalPtkId)
+                ->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
+                ->where('tanggal', $validated['tanggal'])
+                ->where('jam_ke_mulai', $validated['jam_ke_mulai'])
+                ->first();
+
+            if ($exists) {
+                $msg = 'Presensi mengajar untuk kelas dan jam tersebut pada tanggal ini sudah pernah dicatat.';
+                if ($request->expectsJson()) {
+                    return response()->json(['status' => 'error', 'message' => $msg], 422);
+                }
+                return back()->with('error', $msg);
+            }
+
+            // Deteksi agenda kalender pendidikan untuk auto-keterangan jika kosong
+            $agendaTanggal = KalenderPendidikan::whereDate('tanggal_mulai', '<=', $validated['tanggal'])
+                ->whereDate('tanggal_selesai', '>=', $validated['tanggal'])
+                ->first();
+
+            $keteranganAkhir = $validated['keterangan'] ?? null;
+            if (empty($keteranganAkhir) && $agendaTanggal) {
+                $namaKeg = $agendaTanggal->nama_kegiatan ?: ($agendaTanggal->nama_agenda ?: 'Agenda');
+                $keteranganAkhir = "[Agenda: {$namaKeg}]" . ($agendaTanggal->keterangan ? " - {$agendaTanggal->keterangan}" : '');
+            }
+
+            $username = is_array($user) ? ($user['username'] ?? 'guru') : ($user->username ?? 'guru');
+
+            $presensi = PresensiMengajar::create([
+                'jadwal_kbm_id'         => $validated['jadwal_kbm_id'] ?? null,
+                'ptk_id'                => $finalPtkId,
+                'rombongan_belajar_id'  => $validated['rombongan_belajar_id'],
+                'pembelajaran_id'       => $validated['pembelajaran_id'] ?? null,
+                'mata_pelajaran_id'     => $validated['mata_pelajaran_id'] ?? null,
+                'nama_mata_pelajaran'   => $validated['nama_mata_pelajaran'],
+                'tanggal'               => $validated['tanggal'],
+                'hari'                  => $hari,
+                'jam_ke_mulai'          => $validated['jam_ke_mulai'],
+                'jam_ke_selesai'        => $validated['jam_ke_selesai'],
+                'total_jp'              => $totalJp,
+                'status'                => $validated['status'],
+                'jam_masuk'             => $jamMasuk,
+                'jam_keluar'            => $jamKeluar,
+                'jumlah_siswa_hadir'    => $validated['jumlah_siswa_hadir'],
+                'jumlah_siswa_tidak_hadir' => $validated['jumlah_siswa_tidak_hadir'],
+                'guru_pengganti_ptk_id' => $validated['guru_pengganti_ptk_id'] ?? null,
+                'nama_guru_pengganti'   => $validated['nama_guru_pengganti'] ?? null,
+                'keterangan'            => $keteranganAkhir,
+                'created_by'            => substr($username, 0, 50),
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Presensi mengajar berhasil dicatat.',
+                    'data'    => $presensi,
+                ]);
+            }
+
+            return back()->with('success', 'Presensi mengajar berhasil disimpan.');
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
+        } catch (\Throwable $e) {
+            Log::error('PresensiMengajar store error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Gagal menyimpan presensi: ' . $e->getMessage(),
+                ], 500);
+            }
+            return back()->with('error', 'Gagal menyimpan presensi: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -482,52 +537,92 @@ class PresensiMengajarController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $user = session('user');
-        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        try {
+            $user = session('user');
+            $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        if (!RolePermission::canAccess($user ?: $role, 'menu_presensi_mengajar', 'update')) {
-            if ($request->expectsJson()) {
-                return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+            if (!RolePermission::canAccess($user ?: $role, 'menu_presensi_mengajar', 'update')) {
+                if ($request->expectsJson()) {
+                    return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+                }
+                return back()->with('error', 'Akses ditolak.');
             }
-            return back()->with('error', 'Akses ditolak.');
-        }
 
-        $presensi = PresensiMengajar::findOrFail($id);
+            $presensi = PresensiMengajar::findOrFail($id);
 
-        $validated = $request->validate([
-            'status'                   => 'required|string|in:H,I,S,T,D',
-            'jam_masuk'                => 'nullable|string',
-            'jam_keluar'               => 'nullable|string',
-            'jumlah_siswa_hadir'       => 'nullable|integer|min:0',
-            'jumlah_siswa_tidak_hadir' => 'nullable|integer|min:0',
-            'guru_pengganti_ptk_id'    => 'nullable|string|max:50',
-            'nama_guru_pengganti'      => 'nullable|string|max:150',
-            'keterangan'               => 'nullable|string|max:500',
-        ]);
-
-        if (!isset($validated['jumlah_siswa_hadir']) || $validated['jumlah_siswa_hadir'] === null) {
-            $totalSiswaRombel = DB::table('anggota_rombel')
-                ->where('rombongan_belajar_id', $presensi->rombongan_belajar_id)
-                ->count();
-            if ($validated['status'] === 'H') {
-                $validated['jumlah_siswa_hadir'] = $presensi->jumlah_siswa_hadir ?? $totalSiswaRombel;
-                $validated['jumlah_siswa_tidak_hadir'] = $presensi->jumlah_siswa_tidak_hadir ?? 0;
-            } else {
-                $validated['jumlah_siswa_hadir'] = 0;
-                $validated['jumlah_siswa_tidak_hadir'] = $totalSiswaRombel;
-            }
-        }
-
-        $presensi->update($validated);
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'status'  => 'success',
-                'message' => 'Presensi mengajar berhasil diperbarui.',
+            $validated = $request->validate([
+                'status'                   => 'required|string|in:H,I,S,T,D',
+                'jam_masuk'                => 'nullable|string',
+                'jam_keluar'               => 'nullable|string',
+                'jumlah_siswa_hadir'       => 'nullable|integer|min:0',
+                'jumlah_siswa_tidak_hadir' => 'nullable|integer|min:0',
+                'guru_pengganti_ptk_id'    => 'nullable|string|max:50',
+                'nama_guru_pengganti'      => 'nullable|string|max:150',
+                'keterangan'               => 'nullable|string|max:500',
             ]);
-        }
 
-        return back()->with('success', 'Presensi mengajar berhasil diperbarui.');
+            if (array_key_exists('jam_masuk', $validated)) {
+                $jamMasuk = !empty($validated['jam_masuk']) ? str_replace('.', ':', trim($validated['jam_masuk'])) : null;
+                if ($jamMasuk && strlen($jamMasuk) === 5) {
+                    $jamMasuk .= ':00';
+                }
+                $validated['jam_masuk'] = $jamMasuk ?: Carbon::now()->format('H:i:s');
+            }
+            if (array_key_exists('jam_keluar', $validated)) {
+                $jamKeluar = !empty($validated['jam_keluar']) ? str_replace('.', ':', trim($validated['jam_keluar'])) : null;
+                if ($jamKeluar && strlen($jamKeluar) === 5) {
+                    $jamKeluar .= ':00';
+                }
+                $validated['jam_keluar'] = $jamKeluar;
+            }
+
+            if (!isset($validated['jumlah_siswa_hadir']) || $validated['jumlah_siswa_hadir'] === null) {
+                $totalSiswaRombel = 0;
+                if (Schema::hasTable('anggota_rombel')) {
+                    $totalSiswaRombel = DB::table('anggota_rombel')
+                        ->where('rombongan_belajar_id', $presensi->rombongan_belajar_id)
+                        ->count();
+                }
+                if ($totalSiswaRombel === 0 && Schema::hasTable('peserta_didik')) {
+                    $totalSiswaRombel = DB::table('peserta_didik')
+                        ->where('rombongan_belajar_id', $presensi->rombongan_belajar_id)
+                        ->count();
+                }
+
+                if ($validated['status'] === 'H') {
+                    $validated['jumlah_siswa_hadir'] = $presensi->jumlah_siswa_hadir ?? $totalSiswaRombel;
+                    $validated['jumlah_siswa_tidak_hadir'] = $presensi->jumlah_siswa_tidak_hadir ?? 0;
+                } else {
+                    $validated['jumlah_siswa_hadir'] = 0;
+                    $validated['jumlah_siswa_tidak_hadir'] = $totalSiswaRombel;
+                }
+            }
+
+            $presensi->update($validated);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Presensi mengajar berhasil diperbarui.',
+                ]);
+            }
+
+            return back()->with('success', 'Presensi mengajar berhasil diperbarui.');
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
+        } catch (\Throwable $e) {
+            Log::error('PresensiMengajar update error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Gagal memperbarui presensi: ' . $e->getMessage(),
+                ], 500);
+            }
+            return back()->with('error', 'Gagal memperbarui presensi: ' . $e->getMessage());
+        }
     }
 
     /**
