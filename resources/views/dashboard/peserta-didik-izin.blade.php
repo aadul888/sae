@@ -49,6 +49,7 @@
     </div>
 
     @if ($tab === 'surat')
+        <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                 <i class="fas fa-folder-open"></i>
@@ -157,23 +158,29 @@
         <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
                 <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                        Jenis
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">
+                        <span class="desktop-label">Jenis</span>
+                        <span class="mobile-label" style="display:none;"><i class="fas fa-file-lines"></i></span>
                     </th>
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Rentang Waktu
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">
+                        <span class="desktop-label">Rentang Waktu</span>
+                        <span class="mobile-label" style="display:none;"><i class="fas fa-calendar-alt"></i></span>
                     </th>
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Alasan &amp; Bukti
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">
+                        <span class="desktop-label">Alasan &amp; Bukti</span>
+                        <span class="mobile-label" style="display:none;"><i class="fas fa-paperclip"></i></span>
                     </th>
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
-                        Status Validasi
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); width: 160px;">
+                        <span class="desktop-label">Status Validasi</span>
+                        <span class="mobile-label" style="display:none;"><i class="fas fa-check-circle"></i></span>
                     </th>
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
-                        Diajukan Pada
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); width: 130px;">
+                        <span class="desktop-label">Diajukan Pada</span>
+                        <span class="mobile-label" style="display:none;"><i class="fas fa-clock"></i></span>
                     </th>
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 90px;">
-                        Aksi
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-align: right; width: 90px;">
+                        <span class="desktop-label">Aksi</span>
+                        <span class="mobile-label" style="display:none;"><i class="fas fa-ellipsis-h"></i></span>
                     </th>
                 </tr>
             </thead>
@@ -218,22 +225,16 @@
 
                         <!-- Kolom Alasan & Bukti -->
                         <td class="cell-pd-alasan" style="padding: 14px 18px; vertical-align: middle;" data-label="Alasan & Bukti">
-                            <div style="font-size: 0.86rem; color: var(--text-color); font-weight: 500; line-height: 1.4; margin-bottom: 4px;">
-                                {{ $item->alasan }}
-                            </div>
+                            <div style="font-size: 0.86rem; color: var(--text-color); font-weight: 500; line-height: 1.4; margin-bottom: 4px;">{{ $item->alasan }}</div>
                             @if (!empty($item->lampiran_path))
-                                <div>
-                                    <button type="button" class="btn btn-outline btn-sm btn-preview-lampiran"
-                                        data-url="{{ asset('storage/' . ltrim($item->lampiran_path, '/')) }}"
-                                        data-title="Lampiran Surat {{ $item->jenis_label }}"
-                                        style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px;">
-                                        <i class="fas fa-paperclip me-1 text-primary"></i> Lihat Berkas Lampiran
-                                    </button>
-                                </div>
+                                <button type="button" class="btn btn-outline btn-sm btn-preview-lampiran"
+                                    data-url="{{ asset('storage/' . ltrim($item->lampiran_path, '/')) }}"
+                                    data-title="Lampiran Surat {{ $item->jenis_label }}"
+                                    style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px;">
+                                    <i class="fas fa-paperclip me-1 text-primary"></i> Lihat Berkas Lampiran
+                                </button>
                             @else
-                                <span style="font-size: 0.74rem; color: var(--text-muted); font-style: italic;">
-                                    Tanpa lampiran berkas
-                                </span>
+                                <span style="font-size: 0.74rem; color: var(--text-muted); font-style: italic;">Tanpa lampiran berkas</span>
                             @endif
                         </td>
 

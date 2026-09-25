@@ -201,11 +201,6 @@ class RolePermission extends Model
                     'icon' => 'fa-clipboard-user',
                     'roles' => ['guru'],
                 ],
-                'menu_jadwal_pelajaran' => [
-                    'label' => 'Jadwal Pelajaran & Mengajar',
-                    'icon' => 'fa-calendar-days',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
-                ],
             ],
 
             'Wali Kelas' => [
@@ -1424,7 +1419,6 @@ class RolePermission extends Model
                 'menu_peserta_didik_aktif',
                 'menu_peserta_didik_tidak_aktif',
                 'menu_e_izin',
-                'menu_poin',
                 'menu_kelulusan',
             ],
             'WAKA_HUBIN' => [
@@ -1461,13 +1455,6 @@ class RolePermission extends Model
                 'menu_presensi_peserta_didik',
                 'menu_agenda_kbm',
                 'menu_berkas_peserta_didik',
-                'menu_poin',
-            ],
-            'PEMBINA_OSIS' => [
-                'menu_kesiswaan',
-                'menu_kesiswaan_kegiatan',
-                'menu_kesiswaan_prestasi',
-                'menu_pengumuman',
                 'menu_poin',
             ],
             'PEMBINA_EKSKUL' => [

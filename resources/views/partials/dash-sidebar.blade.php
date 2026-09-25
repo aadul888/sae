@@ -469,6 +469,14 @@
                                             <span class="nav-label">Tidak Aktif</span>
                                         </a>
                                     @endif
+                                    @if ($can('menu_jadwal_pelajaran_pd'))
+                                        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
+                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
+                                            <span class="nav-icon nested-icon"><i
+                                                    class="fas fa-fw fa-calendar-days"></i></span>
+                                            <span class="nav-label">Jadwal Pelajaran</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         @endif
@@ -558,13 +566,12 @@
 
         {{-- Layanan Guru (Tugas Pokok Guru) --}}
         @php
-            $hasAkademik =
-                $role === 'guru' ||
-                $role === 'admin' ||
-                $can('menu_presensi_mengajar') ||
-                $can('menu_agenda_kbm') ||
-                $can('menu_presensi_peserta_didik') ||
-                $can('menu_jadwal_pelajaran');
+                $hasAkademik =
+                    $role === 'guru' ||
+                    $role === 'admin' ||
+                    $can('menu_presensi_mengajar') ||
+                    $can('menu_agenda_kbm') ||
+                    $can('menu_presensi_peserta_didik');
             $isAkademikActive =
                 request()->routeIs('dashboard.guru') ||
                 request()->routeIs('dashboard.presensi-mengajar.*') ||
@@ -609,7 +616,7 @@
                         </a>
                     @endif
 
-                    @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm') || $role === 'guru')
+                    @if ($can('menu_jadwal_pelajaran_guru') || $can('menu_jadwal_kbm') || $role === 'guru')
                         <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
@@ -1802,7 +1809,7 @@
                         </a>
                     @endif
 
-                    @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm') || $role === 'peserta_didik')
+                    @if ($can('menu_jadwal_pelajaran_pd') || $can('menu_jadwal_kbm') || $role === 'peserta_didik')
                         <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>

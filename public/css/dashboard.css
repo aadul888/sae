@@ -723,6 +723,7 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
+    line-clamp: 2;
 }
 
 .dash-notif-author {
@@ -1722,6 +1723,8 @@
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
+     flex-wrap: wrap;
+    margin-right: 8px;
 }
 .per-page-select {
     display: inline-block;
@@ -2210,8 +2213,18 @@ input[type="month"] {
         max-width: 100%;
         box-sizing: border-box;
     }
+    /* Hide header on small screens, show on larger */
     .table-responsive-stack thead {
         display: none;
+    }
+    @media (min-width: 768px) {
+        .table-responsive-stack {overflow-x: auto;}
+        .table-responsive-stack table {display: table; width: auto;}
+        .table-responsive-stack thead {display: table-header-group;}
+        .table-responsive-stack tbody {display: table-row-group;}
+        .table-responsive-stack tbody tr {display: table-row; border: none; border-radius: 0; padding: 0; margin: 0; background: transparent;}
+        .table-responsive-stack tbody td {display: table-cell; text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--border-color);}
+        .table-responsive-stack tbody td::before {content: none;}
     }
     .table-responsive-stack tbody,
     .table-responsive-stack tbody tr {
@@ -2270,6 +2283,15 @@ input[type="month"] {
         word-break: break-word;
         overflow-wrap: anywhere;
         text-align: right;
+    }
+    @media (max-width: 767px) {
+        .table-responsive-stack tbody td > *:not(style):not(script) {
+            max-width: 100% !important;
+            text-align: left !important;
+        }
+        .table-responsive-stack tbody td {
+            padding: 8px 12px !important;
+        }
     }
 
     /* Flex item inside td (avatar + name + email) */
@@ -4163,6 +4185,25 @@ input:disabled + .slider-toggle-crud {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+
+.btn-preview-lampiran {
+    cursor: pointer;
+}
+
+/* Desktop vs Mobile label toggles */
+.desktop-label {display:inline;}
+.mobile-label {display:none;}
+.desktop-content {display:inline;}
+.mobile-content {display:none;}
+
+@media (max-width: 767px) {
+    .desktop-label {display:none;}
+    .mobile-label {display:inline;}
+    .desktop-content {display:none;}
+    .mobile-content {display:inline;}
+    /* Reduce padding in table cells for compact view */
+    .table-responsive-stack tbody td {padding:8px 12px !important;}
 }
 
 /* Modul KBM & Presensi Responsive Form Grid */
