@@ -152,34 +152,25 @@ class PresensiMengajarController extends Controller
         $items = $query->paginate($perPage)->withQueryString();
 
         // Rekap Presensi per Mapel & Rombel (berdasarkan filter tanggal & ptk aktif)
-        $rekapQuery = PresensiMengajar::query();
-        if ($isGuru && $ptkId) {
-            $rekapQuery->where('ptk_id', $ptkId);
-        } elseif ($request->filled('filter_ptk_id')) {
-            $rekapQuery->where('ptk_id', $request->filter_ptk_id);
+        // Lampirkan rekap kehadiran peserta didik per baris presensi mengajar
+        // (dari presensi_mapel: rombel + mapel + tanggal yang sama saat guru mengajar)
+        foreach ($items as $item) {
+            $siswaAgg = DB::table('presensi_mapel')
+                ->where('rombongan_belajar_id', $item->rombongan_belajar_id)
+                ->whereDate('tanggal', $item->tanggal)
+                ->where(function ($q) use ($item) {
+                    $q->where('nama_mata_pelajaran', $item->nama_mata_pelajaran)
+                      ->orWhere('pembelajaran_id', $item->pembelajaran_id);
+                })
+                ->select(
+                    DB::raw('COUNT(*) as total'),
+                    DB::raw("SUM(CASE WHEN status = 'H' THEN 1 ELSE 0 END) as hadir")
+                )
+                ->first();
+            $item->siswa_total   = (int) ($siswaAgg->total ?? 0);
+            $item->siswa_hadir   = (int) ($siswaAgg->hadir ?? 0);
+            $item->siswa_tidak_hadir = $item->siswa_total - $item->siswa_hadir;
         }
-        if ($request->filled('tanggal_mulai')) {
-            $rekapQuery->whereDate('tanggal', '>=', $request->tanggal_mulai);
-        }
-        if ($request->filled('tanggal_selesai')) {
-            $rekapQuery->whereDate('tanggal', '<=', $request->tanggal_selesai);
-        }
-        if ($request->filled('rombongan_belajar_id')) {
-            $rekapQuery->where('rombongan_belajar_id', $request->rombongan_belajar_id);
-        }
-        $rekapMapel = $rekapQuery
-            ->select('nama_mata_pelajaran', 'rombongan_belajar_id', DB::raw('COUNT(*) as total'),
-                DB::raw("SUM(CASE WHEN status = 'H' THEN 1 ELSE 0 END) as hadir"),
-                DB::raw("SUM(CASE WHEN status IN ('I','S') THEN 1 ELSE 0 END) as izin_sakit"),
-                DB::raw("SUM(CASE WHEN status IN ('T','D') THEN 1 ELSE 0 END) as inval"))
-            ->groupBy('nama_mata_pelajaran', 'rombongan_belajar_id')
-            ->get()
-            ->map(function ($row) {
-                $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $row->rombongan_belajar_id)->value('nama') ?? $row->rombongan_belajar_id;
-                $row->rombel_nama = $rombel;
-                $row->persentase = $row->total > 0 ? round(($row->hadir / $row->total) * 100, 1) : 0;
-                return $row;
-            });
 
         // 3. Ringkasan Statistik & Hari Efektif Belajar Kalender Pendidikan
         $statsBaseQuery = PresensiMengajar::query();
@@ -303,8 +294,7 @@ class PresensiMengajarController extends Controller
             'sort',
             'sortDir',
             'isJadwalDiberlakukan',
-            'modeAktif',
-            'rekapMapel'
+            'modeAktif'
         ));
     }
 

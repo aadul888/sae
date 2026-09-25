@@ -91,7 +91,19 @@
                     @endif
                 </td>
                 <td data-label="Siswa" style="padding: 12px 16px; text-align: center;">
-                    @if (!is_null($item->jumlah_siswa_hadir))
+                    @if (($item->siswa_total ?? 0) > 0)
+                        <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem;">
+                            <span title="{{ $item->siswa_hadir }} dari {{ $item->siswa_total }} Hadir" style="color: #10b981; font-weight: 700;">
+                                <i class="fas fa-user-check me-1"></i>{{ $item->siswa_hadir }}
+                            </span>
+                            @if (($item->siswa_tidak_hadir ?? 0) > 0)
+                                <span title="{{ $item->siswa_tidak_hadir }} Tidak Hadir" style="color: #ef4444; font-weight: 600; font-size: 0.78rem;">
+                                    <i class="fas fa-user-xmark me-1"></i>{{ $item->siswa_tidak_hadir }}
+                                </span>
+                            @endif
+                            <span title="Total siswa tercatat" style="color: var(--text-muted); font-size: 0.72rem;">/ {{ $item->siswa_total }}</span>
+                        </div>
+                    @elseif (!is_null($item->jumlah_siswa_hadir))
                         <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem;">
                             <span title="{{ $item->jumlah_siswa_hadir }} Hadir" style="color: #10b981; font-weight: 700;">
                                 <i class="fas fa-user-check me-1"></i>{{ $item->jumlah_siswa_hadir }}
