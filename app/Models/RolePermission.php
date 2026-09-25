@@ -201,6 +201,11 @@ class RolePermission extends Model
                     'icon' => 'fa-clipboard-user',
                     'roles' => ['guru'],
                 ],
+                'menu_jadwal_pelajaran' => [
+                    'label' => 'Jadwal Pelajaran & Mengajar',
+                    'icon' => 'fa-calendar-days',
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                ],
             ],
 
             'Wali Kelas' => [
@@ -417,9 +422,9 @@ class RolePermission extends Model
                     'roles' => ['peserta_didik'],
                 ],
                 'menu_jadwal_pelajaran' => [
-                    'label' => 'Jadwal Pelajaran',
+                    'label' => 'Jadwal Pelajaran & Mengajar',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['peserta_didik'],
+                    'roles' => ['admin', 'guru', 'peserta_didik'],
                 ],
                 'menu_rapor' => [
                     'label' => 'Transkrip & Rapor',
@@ -1190,6 +1195,16 @@ class RolePermission extends Model
             if (self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
                 return true;
             }
+        }
+
+        // 3. Fallback: Jika modul terdaftar secara default untuk role ini (misal sebelum sinkronisasi/migrasi DB selesai)
+        if (self::isDefaultAllowed($role, $permissionKey)) {
+            $defaultCrud = self::getDefaultCrudForRole($role, $permissionKey);
+            $actionCol = 'can_' . $action;
+            if ($actionCol === 'can_read') {
+                return (bool) $defaultCrud['can_read'];
+            }
+            return (bool) ($defaultCrud['can_read'] && ($defaultCrud[$actionCol] ?? false));
         }
 
         return false;
@@ -1977,6 +1992,7 @@ class RolePermission extends Model
                 'menu_presensi_mengajar',
                 'menu_agenda_kbm',
                 'menu_presensi_peserta_didik',
+                'menu_jadwal_pelajaran',
             ];
             return in_array($permissionKey, $allowedForGuru, true);
         }

@@ -35,8 +35,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!pdId || !targetStatus) return;
 
-        // Jika status Izin (I) atau Sakit (S), tampilkan modal input alasan
-        if (targetStatus === 'I' || targetStatus === 'S') {
+        const isActive = btn.classList.contains('active-' + targetStatus);
+        const finalStatus = isActive ? 'reset' : targetStatus;
+
+        // Jika status Izin (I) atau Sakit (S) dan belum aktif, tampilkan modal input alasan
+        if ((targetStatus === 'I' || targetStatus === 'S') && !isActive) {
             if (inputIzinPdId) inputIzinPdId.value = pdId;
             if (inputIzinStatus) inputIzinStatus.value = targetStatus;
             if (textIzinPdNama) textIzinPdNama.textContent = namaSiswa;
@@ -50,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Untuk status H, T, A langsung eksekusi update cepat
+        // Untuk status H, T, A atau reset/toggle-off langsung eksekusi update cepat
         try {
             const response = await fetch('/dashboard/presensi/kelas/status', {
                 method: 'POST',
@@ -62,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify({
                     peserta_didik_id: pdId,
                     tanggal: ctx.tanggal,
-                    status: targetStatus,
+                    status: finalStatus,
                     pembelajaran_id: ctx.pembelajaranId,
                     rombongan_belajar_id: ctx.rombelId,
                     jam_ke: ctx.jamKe
@@ -78,7 +81,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     row.querySelectorAll('.btn-status-toggle').forEach(b => {
                         b.className = 'btn-status-toggle';
                     });
-                    btn.className = `btn-status-toggle active-${targetStatus}`;
+                    if (finalStatus !== 'reset') {
+                        btn.className = `btn-status-toggle active-${targetStatus}`;
+                    }
 
                     const badgeCell = document.getElementById('badge-status-' + pdId);
                     if (badgeCell) badgeCell.innerHTML = res.badge;
@@ -86,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 Swal.fire({
                     icon: 'success',
-                    title: 'Status Mapel Disimpan',
+                    title: finalStatus === 'reset' ? 'Presensi Dibatalkan' : 'Status Mapel Disimpan',
                     text: res.message,
                     timer: 1200,
                     showConfirmButton: false,
@@ -185,33 +190,33 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3. Tombol Tandai Sisa Peserta Didik sebagai Alpha di Mapel
-    const btnTandaiAlpha = document.getElementById('btnTandaiAlpha');
-    if (btnTandaiAlpha) {
-        btnTandaiAlpha.addEventListener('click', function () {
+    // 3. Tombol Hadir Semua di Mapel
+    const btnHadirSemua = document.getElementById('btnHadirSemua') || document.getElementById('btnTandaiAlpha');
+    if (btnHadirSemua) {
+        btnHadirSemua.addEventListener('click', function () {
             const rombelId = this.getAttribute('data-rombel');
             const rombelNama = this.getAttribute('data-rombel-nama');
             const ctx = getContextData();
 
             Swal.fire({
-                title: 'Tandai Sisa sebagai Alpha?',
-                text: `Seluruh peserta didik di kelas ${rombelNama} yang belum memiliki data presensi pada mapel ini akan otomatis dicatat sebagai Alpha. Presensi gerbang sekolah tidak akan terpengaruh.`,
-                icon: 'warning',
+                title: 'Tandai Hadir Semua?',
+                text: `Tandai seluruh peserta didik di kelas ${rombelNama} sebagai Hadir (H) pada mata pelajaran ini?`,
+                icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#ef4444',
+                confirmButtonColor: '#10b981',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fas fa-check"></i> Ya, Tandai Alpha',
+                confirmButtonText: '<i class="fas fa-check-double me-1"></i> Ya, Hadir Semua',
                 cancelButtonText: 'Batal'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
                         Swal.fire({
-                            title: 'Memproses...',
+                            title: 'Memproses Presensi...',
                             allowOutsideClick: false,
                             didOpen: () => Swal.showLoading()
                         });
 
-                        const response = await fetch('/dashboard/presensi/kelas/auto-alpha', {
+                        const response = await fetch('/dashboard/presensi/kelas/hadir-semua', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -221,7 +226,8 @@ document.addEventListener('DOMContentLoaded', function () {
                             body: JSON.stringify({
                                 rombongan_belajar_id: rombelId,
                                 tanggal: ctx.tanggal,
-                                pembelajaran_id: ctx.pembelajaranId
+                                pembelajaran_id: ctx.pembelajaranId,
+                                jam_ke: ctx.jamKe
                             })
                         });
 
@@ -243,6 +249,100 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             });
+        });
+    }
+
+    // 4. Tombol Reset / Kosongkan Presensi Kelas
+    const btnResetPresensiKelas = document.getElementById('btnResetPresensiKelas');
+    if (btnResetPresensiKelas) {
+        btnResetPresensiKelas.addEventListener('click', function () {
+            const rombelId = this.getAttribute('data-rombel');
+            const rombelNama = this.getAttribute('data-rombel-nama');
+            const ctx = getContextData();
+
+            Swal.fire({
+                title: 'Reset Presensi Kelas?',
+                text: `Seluruh catatan presensi siswa kelas ${rombelNama} pada mata pelajaran ini akan dikosongkan kembali agar dapat diulang.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-rotate-left me-1"></i> Ya, Reset Presensi',
+                cancelButtonText: 'Batal'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        Swal.fire({
+                            title: 'Mereset Presensi...',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+
+                        const response = await fetch('/dashboard/presensi/kelas/reset', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                rombongan_belajar_id: rombelId,
+                                tanggal: ctx.tanggal,
+                                pembelajaran_id: ctx.pembelajaranId
+                            })
+                        });
+
+                        const res = await response.json();
+
+                        if (response.ok && res.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Presensi Dikosongkan!',
+                                text: res.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => window.location.reload());
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Gagal mereset presensi.', 'error');
+                        }
+                    } catch (e) {
+                        Swal.fire('Error', 'Terjadi kesalahan sistem.', 'error');
+                    }
+                }
+            });
+        });
+    }
+
+    // 5. Live Search Filter Siswa di Kelas (Client-Side Instant Search)
+    const liveSearchKelasInput = document.getElementById('liveSearchKelasInput');
+    const clearSearchKelasBtn  = document.getElementById('clearSearchKelasBtn');
+
+    if (liveSearchKelasInput) {
+        liveSearchKelasInput.addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            if (clearSearchKelasBtn) {
+                clearSearchKelasBtn.style.display = q ? 'block' : 'none';
+            }
+
+            document.querySelectorAll('.row-siswa-item').forEach(row => {
+                const nama = row.querySelector('.text-nama-siswa')?.textContent.toLowerCase() || '';
+                const nisn = row.querySelector('.text-nisn-siswa')?.textContent.toLowerCase() || '';
+                if (!q || nama.includes(q) || nisn.includes(q)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    if (clearSearchKelasBtn) {
+        clearSearchKelasBtn.addEventListener('click', function () {
+            if (liveSearchKelasInput) {
+                liveSearchKelasInput.value = '';
+                liveSearchKelasInput.dispatchEvent(new Event('input'));
+                liveSearchKelasInput.focus();
+            }
         });
     }
 });

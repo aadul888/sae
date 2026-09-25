@@ -147,6 +147,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/presensi-mengajar/{id}', [\App\Http\Controllers\PresensiMengajarController::class, 'show'])->name('presensi-mengajar.show')->middleware('permission:menu_presensi_mengajar,read');
     Route::put('/presensi-mengajar/{id}', [\App\Http\Controllers\PresensiMengajarController::class, 'update'])->name('presensi-mengajar.update')->middleware('permission:menu_presensi_mengajar,update');
     Route::delete('/presensi-mengajar/{id}', [\App\Http\Controllers\PresensiMengajarController::class, 'destroy'])->name('presensi-mengajar.destroy')->middleware('permission:menu_presensi_mengajar,delete');
+
+    // Modul Jadwal Pelajaran (Read-Only untuk Guru & Peserta Didik)
+    Route::get('/jadwal-pelajaran', [\App\Http\Controllers\JadwalPelajaranController::class, 'index'])->name('jadwal-pelajaran.index')->middleware('permission:menu_jadwal_pelajaran|menu_jadwal_kbm|menu_presensi_mengajar,read');
+
     Route::get('/admin', [DashboardController::class, 'admin'])->name('admin');
     Route::get('/guru', [DashboardController::class, 'guru'])->name('guru');
     Route::get('/tendik', [DashboardController::class, 'tendik'])->name('tendik');
@@ -242,7 +246,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Administrasi Guru — Presensi Kelas (Wali Kelas & Guru)
     Route::get('/presensi/kelas', [\App\Http\Controllers\PresensiController::class, 'kelas'])->name('presensi.kelas')->middleware('permission:menu_presensi_peserta_didik,read');
     Route::post('/presensi/kelas/status', [\App\Http\Controllers\PresensiController::class, 'updateStatusKelas'])->name('presensi.kelas.status')->middleware('permission:menu_presensi_peserta_didik,update');
-    Route::post('/presensi/kelas/auto-alpha', [\App\Http\Controllers\PresensiController::class, 'tandaiAlphaRombel'])->name('presensi.kelas.auto-alpha')->middleware('permission:menu_presensi_peserta_didik,update');
+    Route::post('/presensi/kelas/hadir-semua', [\App\Http\Controllers\PresensiController::class, 'hadirSemuaRombel'])->name('presensi.kelas.hadir-semua')->middleware('permission:menu_presensi_peserta_didik,update');
+    Route::post('/presensi/kelas/reset', [\App\Http\Controllers\PresensiController::class, 'resetPresensiKelas'])->name('presensi.kelas.reset')->middleware('permission:menu_presensi_peserta_didik,update');
+    Route::post('/presensi/kelas/auto-alpha', [\App\Http\Controllers\PresensiController::class, 'hadirSemuaRombel'])->name('presensi.kelas.auto-alpha')->middleware('permission:menu_presensi_peserta_didik,update');
 
     // Layanan Digital — Notifikasi Transaksi Pengguna
     Route::post('/notifikasi-transaksi/mark-all-read', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'markAllTransactionsRead'])->name('notifikasi-transaksi.mark-all-read');
@@ -459,6 +465,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         // Presensi Kelas Binaan (Kontrol Kendala & Rekap PDF)
         Route::get('/presensi', [\App\Http\Controllers\WaliKelasController::class, 'presensi'])->name('presensi.index')->middleware('permission:menu_wali_kelas_presensi,read');
         Route::post('/presensi/manual', [\App\Http\Controllers\WaliKelasController::class, 'simpanPresensiManual'])->name('presensi.manual')->middleware('permission:menu_wali_kelas_presensi,update');
+        Route::post('/presensi/reset', [\App\Http\Controllers\WaliKelasController::class, 'resetPresensiKelas'])->name('presensi.reset')->middleware('permission:menu_wali_kelas_presensi,update');
         Route::get('/presensi/pdf/{tipe}', [\App\Http\Controllers\WaliKelasController::class, 'downloadPdf'])->name('presensi.pdf')->middleware('permission:menu_wali_kelas_presensi,read');
         Route::post('/presensi/izin/{id}/verifikasi', [\App\Http\Controllers\WaliKelasController::class, 'verifikasiIzin'])->name('presensi.izin.verifikasi')->middleware('permission:menu_wali_kelas_presensi,update');
 

@@ -131,11 +131,16 @@ class AgendaKbmController extends Controller
             ->whereDate('tanggal_selesai', '>=', now()->toDateString())
             ->first();
 
+        $totalAgenda = (clone $statsBase)->count();
+        $totalTerlaksana = (clone $statsBase)->where('status_kbm', 'Terlaksana')->count();
+        $persenTerlaksana = $totalAgenda > 0 ? round(($totalTerlaksana / $totalAgenda) * 100, 1) : 0;
+
         $stats = [
-            'total'                 => (clone $statsBase)->count(),
-            'terlaksana'            => (clone $statsBase)->where('status_kbm', 'Terlaksana')->count(),
+            'total'                 => $totalAgenda,
+            'terlaksana'            => $totalTerlaksana,
             'sebagian'              => (clone $statsBase)->where('status_kbm', 'Sebagian')->count(),
             'tertunda'              => (clone $statsBase)->whereIn('status_kbm', ['Tertunda', 'Digantikan'])->count(),
+            'persen'                => $persenTerlaksana,
             'hari_efektif'          => $hebBulanIni,
             'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];

@@ -26,10 +26,16 @@
                 @endif
             </p>
         </div>
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
             @if ($hasRombel && $activeRombel)
                 <button type="button" id="btnOpenModalPdf" class="btn btn-outline btn-responsive-icon" style="padding: 9px 16px; font-size: 0.85rem;" title="Cetak Laporan Presensi">
                     <i class="fas fa-print me-1"></i> <span class="btn-responsive-text">Cetak Laporan</span>
+                </button>
+                <button type="button" id="btnResetPresensiWali" class="btn btn-outline btn-responsive-icon"
+                    data-rombel="{{ $activeRombel->rombongan_belajar_id }}"
+                    data-tanggal="{{ $tanggal }}"
+                    style="padding: 9px 16px; font-size: 0.85rem; font-weight: 700; color: #ef4444; border-color: rgba(239,68,68,0.4);" title="Reset Presensi Manual Kelas">
+                    <i class="fas fa-rotate-left me-1"></i> <span class="btn-responsive-text">Reset Presensi</span>
                 </button>
             @endif
         </div>
@@ -329,7 +335,7 @@
                         @forelse ($list as $item)
                             <tr id="row-siswa-{{ $item->peserta_didik_id }}" style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                                 <!-- Kolom Peserta Didik -->
-                                <td class="cell-pd-nama" style="padding: 14px 18px;" data-label="Peserta Didik">
+                                <td class="cell-pd-nama" style="padding: 14px 18px;" data-label="Siswa">
                                     <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                         @if (!empty($item->foto_path))
                                             <div class="pd-foto-thumb" style="width: 42px; height: 42px; border-radius: 10px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
@@ -343,20 +349,18 @@
                                         <div class="pd-info">
                                             <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                                 <span class="pd-nama" style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
-                                                <span class="badge badge-outline" style="font-size: 0.7rem; padding: 1px 5px;">{{ $item->jenis_kelamin }}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- Kolom NISN / NIPD -->
-                                <td class="cell-pd-nisn" style="padding: 14px 18px;" data-label="NISN / NIPD">
+                                <td class="cell-pd-nisn" style="padding: 14px 18px;" data-label="NISN">
                                     <div style="font-family: monospace; font-size: 0.85rem; color: var(--text-color);">{{ $item->nisn ?: '-' }}</div>
-                                    <div style="font-size: 0.74rem; color: var(--text-muted);">NIPD: {{ $item->nipd ?: '-' }}</div>
                                 </td>
 
                                 <!-- Kolom Status Kehadiran -->
-                                <td class="cell-pd-status" id="badge-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px; text-align: center;" data-label="Status Kehadiran">
+                                <td class="cell-pd-status" id="badge-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px; text-align: center;" data-label="Status">
                                     @php
                                         $st = strtoupper($item->status ?? '');
                                     @endphp
@@ -391,44 +395,43 @@
                                     @endif
                                 </td>
 
-                                <!-- Kolom Waktu Masuk & Pulang -->
-                                <td class="cell-pd-waktu" id="waktu-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px;" data-label="Waktu Masuk & Pulang">
-                                    <div style="font-size: 0.84rem; color: var(--text-color);">
-                                        <span style="color: var(--text-muted); font-size: 0.74rem;">Masuk:</span>
-                                        <strong class="text-jam-masuk">{{ $item->jam_masuk ? substr($item->jam_masuk, 0, 5) : '—' }}</strong>
-                                        @if ($item->metode_masuk)
-                                            <span style="font-size: 0.7rem; color: var(--primary);">({{ $item->metode_masuk }})</span>
-                                        @endif
-                                    </div>
-                                    <div style="font-size: 0.84rem; color: var(--text-color); margin-top: 2px;">
-                                        <span style="color: var(--text-muted); font-size: 0.74rem;">Pulang:</span>
-                                        <strong class="text-jam-pulang">{{ $item->jam_pulang ? substr($item->jam_pulang, 0, 5) : '—' }}</strong>
-                                        @if ($item->metode_pulang)
-                                            <span style="font-size: 0.7rem; color: var(--accent);">({{ $item->metode_pulang }})</span>
-                                        @endif
+                                <!-- Kolom Waktu Masuk & Pulang (Ikon Ringkas Minimalis) -->
+                                <td class="cell-pd-waktu" id="waktu-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px;" data-label="Waktu">
+                                    <div style="font-size: 0.82rem; color: var(--text-color); display: inline-flex; align-items: center; gap: 8px;">
+                                        <span title="Jam Masuk" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fas fa-arrow-right-to-bracket text-success" style="font-size: 0.75rem;"></i>
+                                            <strong class="text-jam-masuk">{{ $item->jam_masuk ? substr($item->jam_masuk, 0, 5) : '—' }}</strong>
+                                        </span>
+                                        <span style="color: var(--border-color);">&bull;</span>
+                                        <span title="Jam Pulang" style="display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fas fa-arrow-right-from-bracket text-info" style="font-size: 0.75rem;"></i>
+                                            <strong class="text-jam-pulang">{{ $item->jam_pulang ? substr($item->jam_pulang, 0, 5) : '—' }}</strong>
+                                        </span>
                                     </div>
                                 </td>
 
-                                <!-- Kolom Catatan / Verifikasi -->
-                                <td class="cell-pd-ket" id="ket-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px;" data-label="Catatan / Verifikasi">
-                                    @if ($item->keterangan)
-                                        <div style="font-size: 0.82rem; color: var(--text-color); line-height: 1.35;">{{ $item->keterangan }}</div>
+                                <!-- Kolom Catatan / Verifikasi (Ringkas) -->
+                                <td class="cell-pd-ket" id="ket-status-{{ $item->peserta_didik_id }}" style="padding: 14px 18px;" data-label="Catatan">
+                                    @php
+                                        $isAutoKet = !empty($item->keterangan) && str_starts_with($item->keterangan, 'Dicatat manual');
+                                    @endphp
+                                    @if (!empty($item->keterangan) && !$isAutoKet)
+                                        <span style="font-size: 0.8rem; color: var(--text-color); line-height: 1.35;" title="{{ $item->keterangan }}">{{ $item->keterangan }}</span>
+                                    @elseif ($item->verified_by)
+                                        <span style="font-size: 0.75rem; color: var(--text-muted);" title="Diverifikasi oleh {{ $item->verified_by }}">
+                                            <i class="fas fa-user-pen text-primary me-1"></i>{{ $item->verified_by }}
+                                        </span>
                                     @else
                                         <span style="color: var(--text-muted); font-size: 0.8rem;">&mdash;</span>
-                                    @endif
-                                    @if ($item->verified_by)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
-                                            <i class="fas fa-user-check me-1 text-primary"></i> {{ $item->verified_by }}
-                                        </div>
                                     @endif
                                 </td>
 
                                 <!-- Kolom Aksi Presensi -->
-                                <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi Presensi">
+                                <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                     <div class="table-actions" style="justify-content: flex-end; gap: 4px; display: inline-flex;">
                                         @if ($item->is_mandiri)
                                             <span class="badge badge-success" style="font-size: 0.72rem; padding: 4px 8px;" title="Presensi mandiri oleh siswa via {{ strtoupper($item->metode_masuk) }}">
-                                                <i class="fas fa-id-card-clip me-1"></i> Mandiri ({{ strtoupper($item->metode_masuk) }})
+                                                <i class="fas fa-id-card-clip me-1"></i> {{ strtoupper($item->metode_masuk) }}
                                             </span>
                                         @elseif ($canUpdate)
                                             <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'H' ? 'active-H' : '' }}"
@@ -436,7 +439,7 @@
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="masuk"
                                                 data-status="H"
-                                                title="Catat Hadir Harian">
+                                                title="Catat Hadir">
                                                 H
                                             </button>
                                             <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'T' ? 'active-T' : '' }}"
@@ -444,7 +447,7 @@
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="terlambat"
                                                 data-status="T"
-                                                title="Catat Terlambat Harian">
+                                                title="Catat Terlambat">
                                                 T
                                             </button>
                                             <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'I' ? 'active-I' : '' }}"
@@ -452,7 +455,7 @@
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="izin"
                                                 data-status="I"
-                                                title="Catat Izin Harian">
+                                                title="Catat Izin">
                                                 I
                                             </button>
                                             <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'S' ? 'active-S' : '' }}"
@@ -460,7 +463,7 @@
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="sakit"
                                                 data-status="S"
-                                                title="Catat Sakit Harian">
+                                                title="Catat Sakit">
                                                 S
                                             </button>
                                             <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'A' ? 'active-A' : '' }}"
@@ -468,20 +471,17 @@
                                                 data-nama="{{ $item->nama }}"
                                                 data-action="alpha"
                                                 data-status="A"
-                                                title="Catat Alpha Harian">
+                                                title="Catat Alpha">
                                                 A
                                             </button>
-                                            @if (in_array($st, ['H', 'T'], true))
-                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ !empty($item->jam_pulang) ? 'active-D' : '' }}"
-                                                    data-id="{{ $item->peserta_didik_id }}"
-                                                    data-nama="{{ $item->nama }}"
-                                                    data-action="pulang"
-                                                    data-status="pulang"
-                                                    title="{{ !empty($item->jam_pulang) ? 'Sudah Pulang (' . substr($item->jam_pulang, 0, 5) . ')' : 'Catat Kepulangan' }}"
-                                                    style="min-width: 52px; font-size: 0.72rem;">
-                                                    <i class="fas fa-walking me-1"></i>{{ !empty($item->jam_pulang) ? substr($item->jam_pulang, 0, 5) : 'Pulang' }}
-                                                </button>
-                                            @endif
+                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ !empty($item->jam_pulang) ? 'active-P active-D' : '' }}"
+                                                data-id="{{ $item->peserta_didik_id }}"
+                                                data-nama="{{ $item->nama }}"
+                                                data-action="pulang"
+                                                data-status="pulang"
+                                                title="{{ !empty($item->jam_pulang) ? 'Sudah Pulang (' . substr($item->jam_pulang, 0, 5) . ')' : 'Catat Pulang' }}">
+                                                P
+                                            </button>
                                         @else
                                             <span class="badge badge-outline" style="font-size: 0.72rem; color: var(--text-muted);">
                                                 Read-Only

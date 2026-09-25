@@ -559,17 +559,20 @@
         {{-- Layanan Guru (Tugas Pokok Guru) --}}
         @php
             $hasAkademik =
+                $role === 'guru' ||
+                $role === 'admin' ||
                 $can('menu_presensi_mengajar') ||
                 $can('menu_agenda_kbm') ||
                 $can('menu_presensi_peserta_didik') ||
-                $role === 'admin';
+                $can('menu_jadwal_pelajaran');
             $isAkademikActive =
                 request()->routeIs('dashboard.guru') ||
                 request()->routeIs('dashboard.presensi-mengajar.*') ||
                 request()->routeIs('dashboard.presensi-mengajar') ||
                 request()->routeIs('dashboard.agenda-kbm.*') ||
                 request()->routeIs('dashboard.agenda-kbm') ||
-                request()->routeIs('dashboard.presensi.kelas*');
+                request()->routeIs('dashboard.presensi.kelas*') ||
+                request()->routeIs('dashboard.jadwal-pelajaran*');
         @endphp
         @if ($hasAkademik)
             <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
@@ -603,6 +606,14 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.agenda-kbm*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
                             <span class="nav-label">Jurnal &amp; Agenda KBM</span>
+                        </a>
+                    @endif
+
+                    @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm') || $role === 'guru')
+                        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                            <span class="nav-label">Jadwal Mengajar</span>
                         </a>
                     @endif
 
@@ -1791,9 +1802,9 @@
                         </a>
                     @endif
 
-                    @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm'))
-                        <a href="{{ route('dashboard.jadwal-kbm.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm*') ? 'active' : '' }}">
+                    @if ($can('menu_jadwal_pelajaran') || $can('menu_jadwal_kbm') || $role === 'peserta_didik')
+                        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                             <span class="nav-label">Jadwal Pelajaran</span>
                         </a>

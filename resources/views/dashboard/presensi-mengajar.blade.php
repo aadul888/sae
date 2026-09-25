@@ -401,35 +401,30 @@
         @endif
     </div>
 
-    <!-- 5. Main Card Datatable Riwayat Presensi -->
-    <div class="card"
-        style="padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-        <!-- Toolbar Filter & Search Responsif -->
-        <div class="toolbar-row"
-            style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 220px;">
-                <div class="live-search-wrap" style="width: 100%;">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearchInput" placeholder="Cari mapel, kelas, catatan..."
-                        value="{{ request('q') }}" autocomplete="off">
-                    <button type="button" class="clear-search" title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <!-- 5. Toolbar & Filter Presensi Mengajar Baku SAE -->
+    <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" class="per-page-select">
+                        @foreach ([10, 15, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" {{ request('per_page', 15) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
                 </div>
-            </div>
 
-            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <!-- Filter Tanggal -->
-                <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}"
-                    title="Tanggal Mulai" class="toolbar-filter-select"
-                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.78rem;">
-                <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}"
-                    title="Tanggal Selesai" class="toolbar-filter-select"
-                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.78rem;">
+                <div class="toolbar-entries">
+                    <label style="margin: 0; white-space: nowrap;"><i class="fas fa-calendar-day me-1"></i> Tanggal:</label>
+                    <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}" title="Tanggal Mulai" class="form-control" style="font-size: 0.85rem; padding: 7px 10px; border-radius: 8px;">
+                    <span style="color: var(--text-muted);">&ndash;</span>
+                    <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}" title="Tanggal Selesai" class="form-control" style="font-size: 0.85rem; padding: 7px 10px; border-radius: 8px;">
+                </div>
 
                 <!-- Filter Rombel -->
-                <select id="filterRombel" class="toolbar-filter-select"
-                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
+                <select id="filterRombel" class="toolbar-filter-select" style="min-width: 140px;">
                     <option value="">Semua Kelas</option>
                     @foreach ($rombelList as $r)
                         <option value="{{ $r->rombongan_belajar_id }}"
@@ -440,8 +435,7 @@
                 </select>
 
                 <!-- Filter Status -->
-                <select id="filterStatus" class="toolbar-filter-select"
-                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
+                <select id="filterStatus" class="toolbar-filter-select" style="min-width: 130px;">
                     <option value="">Semua Status</option>
                     <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir</option>
                     <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
@@ -451,39 +445,38 @@
                 </select>
 
                 @if (!$isGuru && count($guruList) > 0)
-                    <select id="filterPtk" class="toolbar-filter-select"
-                        style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem; max-width: 150px;">
+                    <select id="filterPtk" class="toolbar-filter-select" style="min-width: 140px;">
                         <option value="">Semua Guru</option>
                         @foreach ($guruList as $g)
-                            <option value="{{ $g->ptk_id }}"
-                                {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
+                            <option value="{{ $g->ptk_id }}" {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
                                 {{ $g->nama }}
                             </option>
                         @endforeach
                     </select>
                 @endif
 
-                <!-- Per Page -->
-                <select id="perPageSelect" class="per-page-select"
-                    style="height: 36px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.8rem;">
-                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
-                    <option value="15" {{ request('per_page', 15) == 15 ? 'selected' : '' }}>15</option>
-                    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
-                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
-                </select>
+                @if (request('q') || request('tanggal_mulai') || request('tanggal_selesai') || request('rombongan_belajar_id') || request('status') || request('filter_ptk_id'))
+                    <button type="button" id="btnResetFilter" class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
+                        <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
+                    </button>
+                @endif
+            </div>
 
-                <button type="button" id="btnResetFilter" class="btn btn-outline" title="Reset Filter"
-                    style="height: 36px; width: 36px; padding: 0; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-rotate-left"></i>
+            <!-- Live Search Box Baku SAE -->
+            <div class="live-search-wrap">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="liveSearchInput" placeholder="Cari mapel, kelas, catatan..." value="{{ request('q') }}" autocomplete="off">
+                <button type="button" class="clear-search {{ request('q') ? 'visible' : '' }}" title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
+    </div>
 
-        <!-- Datatable Container Baku SAE -->
-        <div class="card table-responsive-stack" id="tableDataContainer"
-            style="padding: 0; margin-bottom: 0; border: 1px solid var(--border-color); overflow: hidden; border-radius: 10px;">
-            @include('dashboard.presensi-mengajar-table')
-        </div>
+    <!-- 6. Datatable Container Baku SAE -->
+    <div class="card table-responsive-stack" id="tableDataContainer"
+        style="padding: 0; margin-bottom: 24px; border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
+        @include('dashboard.presensi-mengajar-table')
     </div>
 
     <!-- 6. Modal Form Catat Presensi Mengajar (z-index: 99999 !important) -->

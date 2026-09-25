@@ -168,12 +168,27 @@ class PresensiMengajarController extends Controller
             ->whereDate('tanggal_selesai', '>=', $tanggalHariIni)
             ->first();
 
+        // Beban JP diampu guru (dari pembagian jam mengajar mingguan di pembelajaran / jadwal)
+        $bebanJpGuru = 0;
+        if ($ptkId && Schema::hasTable('pembelajaran')) {
+            $bebanJpGuru = (int) DB::table('pembelajaran')->where('ptk_id', $ptkId)->sum('jam_mengajar_per_minggu');
+        }
+        if ($bebanJpGuru === 0 && $ptkId && Schema::hasTable('jadwal_kbm')) {
+            $bebanJpGuru = (int) DB::table('jadwal_kbm')
+                ->where('ptk_id', $ptkId)
+                ->where('is_active', true)
+                ->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)'));
+        }
+        if (!$isGuru || !$ptkId) {
+            $bebanJpGuru = (int) (DB::table('pembelajaran')->sum('jam_mengajar_per_minggu') ?: 0);
+        }
+
         $stats = [
             'total_sesi'           => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->count(),
             'total_hadir'          => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->count(),
             'total_izin'           => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->whereIn('status', ['I', 'S'])->count(),
             'total_inval'          => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->whereIn('status', ['T', 'D'])->count(),
-            'total_jp'             => (clone $statsBaseQuery)->whereMonth('tanggal', $currentMonth)->whereYear('tanggal', $currentYear)->where('status', 'H')->sum('total_jp'),
+            'total_jp'             => $bebanJpGuru,
             'hari_efektif'         => $hebBulanIni,
             'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];

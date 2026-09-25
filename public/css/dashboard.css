@@ -2573,7 +2573,7 @@ input[type="month"] {
         overflow-wrap: anywhere !important;
     }
 
-    .table-pd tbody td.cell-pd-nama .badge {
+    .table-pd tbody td.cell-pd-nama .badge:not(.badge-gender):not(.d-none-mobile) {
         display: inline-flex !important;
         align-items: center !important;
         white-space: nowrap !important;
@@ -2581,6 +2581,13 @@ input[type="month"] {
         font-size: 0.68rem !important;
         padding: 3px 8px !important;
         border-radius: 6px !important;
+    }
+
+    .table-pd tbody td.cell-pd-nama .badge-gender,
+    .table-pd tbody td.cell-pd-nama .badge.badge-gender,
+    .table-pd tbody td.cell-pd-nama .d-none-mobile,
+    .table-pd tbody td.cell-pd-nama .badge.d-none-mobile {
+        display: none !important;
     }
 
     /* 2. BARIS-BARIS DETAIL METRIK */

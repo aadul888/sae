@@ -592,4 +592,12 @@
         }
     };
 
+    // Auto-prompt request izin notifikasi saat interaksi pertama pengguna di dashboard
+    document.addEventListener('click', function requestNotifOnce() {
+        if ('Notification' in window && Notification.permission === 'default' && window.SaeNotification) {
+            window.SaeNotification.requestPermission();
+        }
+        document.removeEventListener('click', requestNotifOnce);
+    }, { once: true });
+
 })();

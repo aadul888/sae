@@ -265,8 +265,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!pdId || !action) return;
 
-        // Jika Izin atau Sakit, tampilkan modal catatan/alasan
-        if (action === 'izin' || action === 'i' || action === 'sakit' || action === 's') {
+        const isActive = btn.classList.contains('active-' + action.toUpperCase()) ||
+                         (action === 'pulang' && (btn.classList.contains('active-P') || btn.classList.contains('active-D')));
+        const finalAction = isActive ? 'reset' : action;
+
+        // Jika Izin atau Sakit dan belum aktif, tampilkan modal catatan/alasan
+        if ((action === 'izin' || action === 'i' || action === 'sakit' || action === 's') && !isActive) {
             const isSakit = (action === 'sakit' || action === 's');
             if (izinWaliPdId) izinWaliPdId.value = pdId;
             if (izinWaliAction) izinWaliAction.value = isSakit ? 'sakit' : 'izin';
@@ -281,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Untuk Hadir (H/masuk), Terlambat (T), Alpha (A), atau Pulang: eksekusi cepat AJAX
+        // Untuk Hadir (H/masuk), Terlambat (T), Alpha (A), Pulang, atau Reset: eksekusi cepat AJAX
         try {
             const res = await fetch('/dashboard/wali-kelas/presensi/manual', {
                 method: 'POST',
@@ -293,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 body: JSON.stringify({
                     peserta_didik_id: pdId,
                     tanggal: tanggal,
-                    action: action
+                    action: finalAction
                 })
             });
 
@@ -302,16 +306,26 @@ document.addEventListener('DOMContentLoaded', function () {
             if (res.ok && data.status === 'success') {
                 const row = document.getElementById('row-siswa-' + pdId);
                 if (row) {
-                    const statusVal = data.status_val || (action === 'masuk' ? 'H' : (action === 'terlambat' ? 'T' : (action === 'alpha' ? 'A' : '')));
-                    if (statusVal) {
-                        row.querySelectorAll('.btn-status-toggle:not([data-action="pulang"])').forEach(b => {
-                            const bStatus = (b.getAttribute('data-status') || b.getAttribute('data-action') || '').toUpperCase();
-                            if (bStatus === statusVal || (statusVal === 'H' && bStatus === 'MASUK') || (statusVal === 'T' && bStatus === 'TERLAMBAT') || (statusVal === 'A' && bStatus === 'ALPHA')) {
-                                b.className = `btn-status-toggle btn-presensi-manual active-${statusVal}`;
-                            } else {
-                                b.className = 'btn-status-toggle btn-presensi-manual';
+                    if (finalAction === 'reset') {
+                        row.querySelectorAll('.btn-status-toggle').forEach(b => {
+                            b.className = 'btn-status-toggle btn-presensi-manual';
+                            if (b.getAttribute('data-action') === 'pulang') {
+                                b.textContent = 'P';
+                                b.title = 'Catat Pulang';
                             }
                         });
+                    } else {
+                        const statusVal = data.status_val || (action === 'masuk' ? 'H' : (action === 'terlambat' ? 'T' : (action === 'alpha' ? 'A' : '')));
+                        if (statusVal) {
+                            row.querySelectorAll('.btn-status-toggle:not([data-action="pulang"])').forEach(b => {
+                                const bStatus = (b.getAttribute('data-status') || b.getAttribute('data-action') || '').toUpperCase();
+                                if (bStatus === statusVal || (statusVal === 'H' && bStatus === 'MASUK') || (statusVal === 'T' && bStatus === 'TERLAMBAT') || (statusVal === 'A' && bStatus === 'ALPHA')) {
+                                    b.className = `btn-status-toggle btn-presensi-manual active-${statusVal}`;
+                                } else {
+                                    b.className = 'btn-status-toggle btn-presensi-manual';
+                                }
+                            });
+                        }
                     }
 
                     const badgeCell = document.getElementById('badge-status-' + pdId);
@@ -320,25 +334,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     const waktuCell = document.getElementById('waktu-status-' + pdId);
-                    if (waktuCell && (data.jam_masuk || data.jam_pulang)) {
+                    if (waktuCell) {
                         const txtMasuk = waktuCell.querySelector('.text-jam-masuk');
-                        if (txtMasuk && data.jam_masuk) txtMasuk.textContent = data.jam_masuk;
+                        if (txtMasuk) txtMasuk.textContent = data.jam_masuk || '—';
                         const txtPulang = waktuCell.querySelector('.text-jam-pulang');
-                        if (txtPulang && data.jam_pulang) txtPulang.textContent = data.jam_pulang;
+                        if (txtPulang) txtPulang.textContent = data.jam_pulang || '—';
                     }
 
-                    if (action === 'pulang') {
+                    if (finalAction === 'pulang') {
                         const btnPulang = row.querySelector('.btn-status-toggle[data-action="pulang"]');
                         if (btnPulang) {
-                            btnPulang.className = 'btn-status-toggle btn-presensi-manual active-D';
-                            btnPulang.innerHTML = `<i class="fas fa-walking me-1"></i>${data.jam_pulang || 'Pulang'}`;
+                            btnPulang.className = 'btn-status-toggle btn-presensi-manual active-P active-D';
+                            btnPulang.textContent = 'P';
+                            btnPulang.title = `Sudah Pulang (${data.jam_pulang || ''})`;
                         }
                     }
                 }
 
                 Swal.fire({
                     icon: 'success',
-                    title: 'Presensi Harian Disimpan',
+                    title: finalAction === 'reset' ? 'Presensi Dikosongkan' : 'Presensi Harian Disimpan',
                     text: data.message,
                     timer: 1200,
                     showConfirmButton: false,
@@ -430,6 +445,71 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (err) {
                 Swal.fire('Error', 'Gagal memproses data.', 'error');
             }
+        });
+    }
+
+    // Tombol Bulk Reset Presensi Manual Kelas Binaan
+    const btnResetPresensiWali = document.getElementById('btnResetPresensiWali');
+    if (btnResetPresensiWali) {
+        btnResetPresensiWali.addEventListener('click', function () {
+            const rombelId = this.getAttribute('data-rombel');
+            const tanggal = this.getAttribute('data-tanggal') || document.getElementById('filterTanggal')?.value || new Date().toISOString().slice(0, 10);
+
+            Swal.fire({
+                title: 'Reset Presensi Kelas?',
+                text: 'Seluruh catatan presensi manual untuk tanggal terpilih akan dikosongkan kembali agar dapat diulangi. Presensi mandiri (RFID/QR) tetap terlindungi.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-rotate-left me-1"></i> Ya, Reset Presensi',
+                cancelButtonText: 'Batal'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        Swal.fire({
+                            title: 'Mereset Presensi...',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+
+                        const res = await fetch('/dashboard/wali-kelas/presensi/reset', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                rombongan_belajar_id: rombelId,
+                                tanggal: tanggal
+                            })
+                        });
+
+                        const data = await res.json();
+
+                        if (res.ok && data.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Presensi Dikosongkan!',
+                                text: data.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                if (typeof window.refreshLiveTable === 'function') {
+                                    window.refreshLiveTable(window.location.href);
+                                } else {
+                                    window.location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire('Gagal', data.message || 'Gagal mereset presensi manual.', 'error');
+                        }
+                    } catch (e) {
+                        Swal.fire('Error', 'Terjadi kesalahan sistem.', 'error');
+                    }
+                }
+            });
         });
     }
 

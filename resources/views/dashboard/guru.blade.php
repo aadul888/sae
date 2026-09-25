@@ -126,7 +126,11 @@
                 </div>
             </div>
         </div>
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ route('dashboard.jadwal-pelajaran.index') }}" class="btn btn-outline"
+                style="padding: 9px 14px; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-calendar-days text-primary"></i> Jadwal Mengajar
+            </a>
             @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
                 <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary"
                     style="padding: 9px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
@@ -223,11 +227,17 @@
     <div class="card">
         <div
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-color);">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0;">
                 <i class="fas fa-calendar-day text-success"></i> Jadwal Mengajar Hari Ini
             </h3>
-            <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fas fa-calendar"></i>
-                {{ date('l, d F Y') }}</span>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fas fa-calendar"></i>
+                    {{ date('l, d F Y') }}</span>
+                <a href="{{ route('dashboard.jadwal-pelajaran.index') }}" class="btn btn-outline"
+                    style="padding: 5px 12px; font-size: 0.78rem; text-decoration: none; border-radius: 8px;">
+                    <i class="fas fa-calendar-days me-1"></i> Semua Jadwal
+                </a>
+            </div>
         </div>
 
         @if (empty($isJadwalDiberlakukan))

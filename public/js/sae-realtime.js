@@ -279,11 +279,47 @@
             }
         }
 
-        // 4. Perbarui otomatis card rekap (stat grid) di modul yang sedang terbuka
+        // 4. Handler Notifikasi Transaksi Presensi untuk Murid & Wali Kelas (PWA Device Notification & In-App Toast)
+        if (eventName === "presensi.recorded") {
+            const curUserId = document.querySelector('meta[name="user-id"]')?.getAttribute("content");
+            const curPdId = document.querySelector('meta[name="user-pd-id"]')?.getAttribute("content");
+
+            let targetTitle = null;
+            let targetMsg = null;
+            let targetUrl = null;
+
+            if (curPdId && data.peserta_didik_id === curPdId) {
+                targetTitle = data.judul_murid || "Presensi Anda Dicatat";
+                targetMsg = data.pesan_murid || "Data kehadiran Anda telah diperbarui.";
+                targetUrl = data.url_murid || "/dashboard/peserta-didik/presensi";
+            } else if (curUserId && data.wali_user_id === curUserId) {
+                targetTitle = data.judul_wali || "Presensi Siswa Binaan";
+                targetMsg = data.pesan_wali || "Catatan presensi siswa di kelas binaan Anda telah dicatat.";
+                targetUrl = data.url_wali || "/dashboard/wali-kelas/presensi";
+            }
+
+            if (targetTitle) {
+                showToast(targetTitle, targetMsg, "calendar-check", targetUrl);
+
+                // Tampilkan notifikasi perangkat OS melalui PWA Service Worker
+                if (window.SaeNotification && typeof window.SaeNotification.showLocal === "function") {
+                    window.SaeNotification.showLocal(targetTitle, {
+                        body: targetMsg,
+                        data: { url: targetUrl },
+                        icon: "/img/icons/icon-192x192.png",
+                        badge: "/img/icons/icon-96x96.png",
+                        vibrate: [200, 100, 200],
+                    });
+                }
+            }
+        }
+
+        // 5. Perbarui otomatis card rekap (stat grid) di modul yang sedang terbuka
         updateRekapCards({
             refreshTable:
                 eventName === "data.changed" ||
                 eventName === "presensi.scanned" ||
+                eventName === "presensi.recorded" ||
                 eventName === "jadwal.changed",
         });
     }
@@ -319,6 +355,7 @@
             "pengumuman.created",
             "pengumuman.updated",
             "presensi.scanned",
+            "presensi.recorded",
             "data.changed",
             "jadwal.changed",
         ].forEach((ev) => {

@@ -128,8 +128,8 @@
                 </td>
             </tr>
         @empty
-            <tr>
-                <td colspan="9" style="text-align: center; padding: 42px 16px; color: var(--text-muted);">
+            <tr class="empty-row">
+                <td colspan="9" class="cell-empty" style="text-align: center; padding: 42px 16px; color: var(--text-muted);">
                     <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(99,102,241,0.08); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 10px auto;">
                         <i class="fas fa-calendar-xmark"></i>
                     </div>

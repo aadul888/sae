@@ -96,6 +96,15 @@
                 <div class="dash-stat-label">Tertunda</div>
             </div>
         </div>
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: var(--accent);">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="color: var(--accent);">{{ $stats['persen'] ?? 0 }}%</div>
+                <div class="dash-stat-label">% Terlaksana</div>
+            </div>
+        </div>
     </div>
 
     @php

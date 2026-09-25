@@ -708,10 +708,14 @@ input[type="month"] {
 
 /* Presensi Kelas Quick Status Badges */
 .btn-status-toggle {
-    min-width: 38px;
-    height: 34px;
-    padding: 0 8px;
-    font-size: 0.78rem;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
     font-weight: 700;
     border-radius: 8px;
     border: 1px solid var(--border-color);
@@ -719,6 +723,7 @@ input[type="month"] {
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
+    box-sizing: border-box;
 }
 
 .btn-status-toggle.active-H {
@@ -756,7 +761,8 @@ input[type="month"] {
     box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
 }
 
-.btn-status-toggle.active-D {
+.btn-status-toggle.active-D,
+.btn-status-toggle.active-P {
     background: var(--accent);
     color: #fff;
     border-color: var(--accent);
@@ -926,6 +932,92 @@ input[type="month"] {
         justify-content: flex-end !important;
         gap: 8px !important;
         width: 100% !important;
+    }
+
+    /* 5. Presensi Kelas & Presensi Wali Kelas Mobile Card Order */
+    .table-responsive-stack .badge-gender,
+    .table-responsive-stack .d-none-mobile,
+    .table-pd tbody td.cell-pd-nama .badge-gender,
+    .table-pd tbody td.cell-pd-nama .badge.badge-gender,
+    .table-pd tbody td.cell-pd-nama .d-none-mobile,
+    .table-pd tbody td.cell-pd-nama .badge.d-none-mobile,
+    .badge-gender,
+    .d-none-mobile {
+        display: none !important;
+    }
+
+    .table-responsive-stack tbody tr.empty-row td,
+    .table-responsive-stack tbody td.cell-empty,
+    .table-responsive-stack tbody td[colspan] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 32px 16px !important;
+    }
+
+    .table-responsive-stack tbody tr.empty-row td::before,
+    .table-responsive-stack tbody td.cell-empty::before,
+    .table-responsive-stack tbody td[colspan]::before {
+        display: none !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-nama {
+        order: 1 !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding-bottom: 10px !important;
+        margin-bottom: 4px !important;
+        text-align: left !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-nisn {
+        order: 2 !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-status {
+        order: 3 !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-waktu {
+        order: 4 !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-gerbang {
+        order: 5 !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-ket {
+        order: 6 !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-aksi {
+        order: 7 !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        border-bottom: none !important;
+        padding-top: 10px !important;
+        margin-top: 4px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-aksi .table-actions {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
+        justify-content: flex-end !important;
+        max-width: 100% !important;
+    }
+
+    .table-responsive-stack tbody td.cell-pd-aksi .btn-status-toggle {
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        font-size: 0.8rem !important;
+        border-radius: 7px !important;
     }
 }
 

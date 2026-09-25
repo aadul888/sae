@@ -902,7 +902,59 @@ class PresensiController extends Controller
             }
         }
 
-        // Daftar Rombel: Jika Guru (Bukan Admin), hanya tampilkan kelas di mana guru ini mengajar
+        $hariIni = match (now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        };
+        $nowHi = now()->format('H:i');
+        $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
+
+        // Cari jadwal mengajar guru yang saat ini aktif (hari ini dan jam saat ini)
+        $activeJadwal = null;
+        if ($ptkId && Schema::hasTable('jadwal_kbm')) {
+            $jq = DB::table('jadwal_kbm')
+                ->where('is_active', true)
+                ->where('ptk_id', $ptkId)
+                ->where('hari', $hariIni);
+            if ($modeAktif) {
+                $jq->where('sumber', $modeAktif);
+            }
+            $todaySchedules = $jq->orderBy('jam_ke_mulai', 'asc')->get();
+
+            // 1. Prioritas utama: jadwal yang sedang berlangsung sekarang
+            foreach ($todaySchedules as $j) {
+                if (!empty($j->jam_mulai) && !empty($j->jam_selesai)) {
+                    $jm = substr($j->jam_mulai, 0, 5);
+                    $js = substr($j->jam_selesai, 0, 5);
+                    if ($nowHi >= $jm && $nowHi <= $js) {
+                        $activeJadwal = $j;
+                        break;
+                    }
+                }
+            }
+
+            // 2. Prioritas kedua: jadwal terdekat berikutnya hari ini
+            if (!$activeJadwal) {
+                foreach ($todaySchedules as $j) {
+                    if (!empty($j->jam_selesai) && substr($j->jam_selesai, 0, 5) >= $nowHi) {
+                        $activeJadwal = $j;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Prioritas ketiga: jadwal pertama hari ini
+            if (!$activeJadwal && $todaySchedules->isNotEmpty()) {
+                $activeJadwal = $todaySchedules->first();
+            }
+        }
+
+        // Daftar Rombel: HANYA menampilkan kelas yang diajar oleh guru tersebut
         $rombelQuery = DB::table('rombongan_belajar');
 
         if (!$isAdmin && $ptkId) {
@@ -920,11 +972,10 @@ class PresensiController extends Controller
                 ->unique()
                 ->toArray();
 
-            $guruRombelIds = array_unique(array_filter(array_merge(
+            $guruRombelIds = array_values(array_unique(array_filter(array_merge(
                 $pembelajaranRombelIds,
-                $jadwalRombelIds,
-                $waliRombel ? [$waliRombel] : []
-            )));
+                $jadwalRombelIds
+            ))));
 
             $rombelQuery->whereIn('rombongan_belajar_id', $guruRombelIds);
         } else {
@@ -940,54 +991,59 @@ class PresensiController extends Controller
         $validRombelIds = $rombelList->pluck('rombongan_belajar_id')->toArray();
         $requestedRombelId = $request->input('rombel_id');
 
+        // Default rombel: utamakan jadwal aktif saat ini
         if ($requestedRombelId && in_array($requestedRombelId, $validRombelIds, true)) {
             $selectedRombelId = $requestedRombelId;
+        } elseif ($activeJadwal && in_array($activeJadwal->rombongan_belajar_id, $validRombelIds, true)) {
+            $selectedRombelId = $activeJadwal->rombongan_belajar_id;
         } else {
-            $selectedRombelId = $waliRombel && in_array($waliRombel, $validRombelIds, true)
-                ? $waliRombel
-                : ($rombelList->first()?->rombongan_belajar_id ?? '');
+            $selectedRombelId = $rombelList->first()?->rombongan_belajar_id ?? '';
         }
 
         $tanggal = $request->input('tanggal', now()->toDateString());
-        $jamKe = $request->input('jam_ke', '');
 
-        // Daftar Pembelajaran / Mata Pelajaran di Rombel Terpilih
+        // Default jam ke: otomatis dari jadwal aktif saat ini jika memilih kelas aktif tersebut
+        $defaultJamKe = '';
+        if ($activeJadwal && ($selectedRombelId === $activeJadwal->rombongan_belajar_id)) {
+            $defaultJamKe = ($activeJadwal->jam_ke_mulai == $activeJadwal->jam_ke_selesai)
+                ? (string) $activeJadwal->jam_ke_mulai
+                : "{$activeJadwal->jam_ke_mulai}-{$activeJadwal->jam_ke_selesai}";
+        }
+        $jamKe = $request->has('jam_ke') ? $request->input('jam_ke', '') : $defaultJamKe;
+
+        // Daftar Pembelajaran / Mata Pelajaran di Rombel Terpilih (TIDAK menampilkan guru lain)
         $pembelajaranList = collect();
         if ($selectedRombelId) {
             $pQuery = DB::table('pembelajaran as p')
-                ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
                 ->where('p.rombongan_belajar_id', $selectedRombelId);
 
             if (!$isAdmin && $ptkId) {
-                // Prioritaskan/batasi mapel yang diampu oleh guru ini di kelas tersebut
-                $guruMapelCount = (clone $pQuery)->where('p.ptk_id', $ptkId)->count();
-                if ($guruMapelCount > 0) {
-                    $pQuery->where('p.ptk_id', $ptkId);
-                }
+                $pQuery->where('p.ptk_id', $ptkId);
             }
 
             $pembelajaranList = $pQuery->select(
                     'p.pembelajaran_id',
                     'p.nama_mata_pelajaran',
                     'p.ptk_id',
-                    'p.jam_mengajar_per_minggu',
-                    'g.nama as nama_guru'
+                    'p.jam_mengajar_per_minggu'
                 )
                 ->orderBy('p.nama_mata_pelajaran', 'asc')
                 ->get();
         }
 
-        // Default mapel terpilih: prioritaskan mapel yang diampu oleh PTK jika guru login
+        // Default mapel terpilih: otomatis sesuai jadwal saat ini yang aktif
         $validPembelajaranIds = $pembelajaranList->pluck('pembelajaran_id')->toArray();
         $requestedPemId = $request->input('pembelajaran_id');
+
         if ($requestedPemId && in_array($requestedPemId, $validPembelajaranIds, true)) {
             $selectedPembelajaranId = $requestedPemId;
         } else {
             $defaultPembelajaranId = null;
-            if ($ptkId) {
-                $guruPembelajaran = $pembelajaranList->firstWhere('ptk_id', $ptkId);
-                if ($guruPembelajaran) {
-                    $defaultPembelajaranId = $guruPembelajaran->pembelajaran_id;
+            if ($activeJadwal && ($selectedRombelId === $activeJadwal->rombongan_belajar_id)) {
+                $matchPem = $pembelajaranList->firstWhere('pembelajaran_id', $activeJadwal->pembelajaran_id)
+                    ?: $pembelajaranList->firstWhere('nama_mata_pelajaran', $activeJadwal->nama_mata_pelajaran);
+                if ($matchPem) {
+                    $defaultPembelajaranId = $matchPem->pembelajaran_id;
                 }
             }
             if (!$defaultPembelajaranId && $pembelajaranList->isNotEmpty()) {
@@ -1054,14 +1110,20 @@ class PresensiController extends Controller
         }
 
         // Rekap presensi mapel kelas hari ini
+        $countHadir = $siswaList->where('mapel_status', 'H')->count();
+        $countTerlambat = $siswaList->where('mapel_status', 'T')->count();
+        $totalSiswa = $siswaList->count();
+        $totalKehadiran = $countHadir + $countTerlambat;
+
         $rekap = [
-            'total' => $siswaList->count(),
-            'hadir' => $siswaList->where('mapel_status', 'H')->count(),
-            'terlambat' => $siswaList->where('mapel_status', 'T')->count(),
-            'izin' => $siswaList->where('mapel_status', 'I')->count(),
-            'sakit' => $siswaList->where('mapel_status', 'S')->count(),
-            'alpha' => $siswaList->where('mapel_status', 'A')->count(),
-            'belum' => $siswaList->whereNull('mapel_status')->count(),
+            'total'     => $totalSiswa,
+            'hadir'     => $countHadir,
+            'terlambat' => $countTerlambat,
+            'izin'      => $siswaList->where('mapel_status', 'I')->count(),
+            'sakit'     => $siswaList->where('mapel_status', 'S')->count(),
+            'alpha'     => $siswaList->where('mapel_status', 'A')->count(),
+            'belum'     => $siswaList->whereNull('mapel_status')->count(),
+            'persen'    => $totalSiswa > 0 ? round(($totalKehadiran / $totalSiswa) * 100, 1) : 0,
         ];
 
         return view('dashboard.presensi.kelas', compact(
@@ -1085,13 +1147,13 @@ class PresensiController extends Controller
     public function updateStatusKelas(Request $request)
     {
         $request->validate([
-            'peserta_didik_id' => 'required|string',
-            'tanggal' => 'required|date',
-            'status' => 'required|string|in:H,T,I,S,A',
-            'pembelajaran_id' => 'nullable|string',
+            'peserta_didik_id'     => 'required|string',
+            'tanggal'              => 'required|date',
+            'status'               => 'required|string|in:H,T,I,S,A,reset,batal',
+            'pembelajaran_id'      => 'nullable|string',
             'rombongan_belajar_id' => 'nullable|string',
-            'jam_ke' => 'nullable|string|max:20',
-            'keterangan' => 'nullable|string|max:500',
+            'jam_ke'               => 'nullable|string|max:20',
+            'keterangan'           => 'nullable|string|max:500',
         ]);
 
         $user = session('user');
@@ -1100,7 +1162,7 @@ class PresensiController extends Controller
 
         $pdId = $request->input('peserta_didik_id');
         $tanggal = $request->input('tanggal');
-        $status = $request->input('status');
+        $status = strtoupper($request->input('status'));
         $pembelajaranId = $request->input('pembelajaran_id');
         $rombelId = $request->input('rombongan_belajar_id');
         $jamKe = $request->input('jam_ke');
@@ -1111,6 +1173,8 @@ class PresensiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Peserta didik tidak ditemukan.'], 404);
         }
 
+        $targetRombelId = $rombelId ?: $siswa->rombongan_belajar_id;
+
         $pembelajaran = null;
         if ($pembelajaranId) {
             $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $pembelajaranId)->first();
@@ -1118,46 +1182,75 @@ class PresensiController extends Controller
 
         $matchCondition = [
             'peserta_didik_id' => $pdId,
-            'tanggal' => $tanggal,
+            'tanggal'          => $tanggal,
         ];
         if ($pembelajaranId) {
             $matchCondition['pembelajaran_id'] = $pembelajaranId;
         } else {
-            $matchCondition['rombongan_belajar_id'] = $rombelId ?: $siswa->rombongan_belajar_id;
+            $matchCondition['rombongan_belajar_id'] = $targetRombelId;
+        }
+
+        // Jika aksi adalah reset / pembatalan presensi siswa
+        if (in_array($status, ['RESET', 'BATAL'], true)) {
+            PresensiMapel::where($matchCondition)->delete();
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => "Presensi mapel {$siswa->nama} berhasil dibatalkan / dikosongkan.",
+                'badge'   => '<span class="badge badge-outline" style="color: var(--text-muted); font-size: 0.74rem;">Belum</span>',
+            ]);
         }
 
         $presensiMapel = PresensiMapel::updateOrCreate(
             $matchCondition,
             [
-                'nisn' => $siswa->nisn,
-                'rombongan_belajar_id' => $rombelId ?: ($pembelajaran?->rombongan_belajar_id ?: $siswa->rombongan_belajar_id),
-                'pembelajaran_id' => $pembelajaranId ?: null,
-                'ptk_id' => $pembelajaran?->ptk_id ?: $ptkId,
-                'mata_pelajaran_id' => $pembelajaran?->mata_pelajaran_id,
-                'nama_mata_pelajaran' => $pembelajaran?->nama_mata_pelajaran,
-                'jam_ke' => $jamKe,
-                'status' => $status,
-                'keterangan' => $keterangan,
-                'created_by' => $verifiedBy,
+                'nisn'                 => $siswa->nisn,
+                'rombongan_belajar_id' => $targetRombelId,
+                'pembelajaran_id'      => $pembelajaranId ?: null,
+                'ptk_id'               => $pembelajaran?->ptk_id ?: $ptkId,
+                'mata_pelajaran_id'    => $pembelajaran?->mata_pelajaran_id,
+                'nama_mata_pelajaran'  => $pembelajaran?->nama_mata_pelajaran,
+                'jam_ke'               => $jamKe,
+                'status'               => $status,
+                'keterangan'           => $keterangan,
+                'created_by'           => $verifiedBy,
             ]
         );
 
+        $mapelNama = $pembelajaran?->nama_mata_pelajaran ?: 'Mata Pelajaran';
+        $statusLabel = PresensiMapel::STATUS_LABELS[$status] ?? $status;
+        $notifTipe = ($status === 'H') ? 'success' : (($status === 'A') ? 'danger' : 'warning');
+        $tglStr = \Carbon\Carbon::parse($tanggal)->format('d/m/Y');
+
+        // Sampaikan notifikasi transaksi ke murid dan wali kelas serta push ke perangkat PWA
+        \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
+            $siswa->peserta_didik_id,
+            $targetRombelId,
+            "Presensi Mapel: {$mapelNama} ({$statusLabel})",
+            "Kehadiran Anda pada mata pelajaran {$mapelNama} ({$tglStr}) dicatat sebagai {$statusLabel}.",
+            "Presensi Siswa: {$siswa->nama}",
+            "Siswa {$siswa->nama} dicatat {$statusLabel} pada mata pelajaran {$mapelNama} ({$tglStr}).",
+            $notifTipe,
+            'fa-solid fa-chalkboard-user'
+        );
+
         return response()->json([
-            'status' => 'success',
-            'message' => "Status presensi {$siswa->nama} pada mapel " . ($pembelajaran?->nama_mata_pelajaran ?: 'ini') . " diubah ke " . (PresensiMapel::STATUS_LABELS[$status] ?? $status),
-            'badge' => PresensiMapel::STATUS_BADGES[$status] ?? $status,
+            'status'  => 'success',
+            'message' => "Status presensi {$siswa->nama} pada mapel {$mapelNama} diubah ke {$statusLabel}",
+            'badge'   => PresensiMapel::STATUS_BADGES[$status] ?? $status,
         ]);
     }
 
     /**
-     * API: Tandai Siswa yang Belum Dicatat di Mapel sebagai Alpha
+     * API: Tandai Seluruh Siswa di Rombel Hadir pada Mapel KBM (Hadir Semua)
      */
-    public function tandaiAlphaRombel(Request $request)
+    public function hadirSemuaRombel(Request $request)
     {
         $request->validate([
             'rombongan_belajar_id' => 'required|string',
-            'tanggal' => 'required|date',
-            'pembelajaran_id' => 'nullable|string',
+            'tanggal'              => 'required|date',
+            'pembelajaran_id'      => 'nullable|string',
+            'jam_ke'               => 'nullable|string|max:20',
         ]);
 
         $user = session('user');
@@ -1167,49 +1260,105 @@ class PresensiController extends Controller
         $rombelId = $request->input('rombongan_belajar_id');
         $tanggal = $request->input('tanggal');
         $pembelajaranId = $request->input('pembelajaran_id');
+        $jamKe = $request->input('jam_ke');
 
         $pembelajaran = null;
         if ($pembelajaranId) {
             $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $pembelajaranId)->first();
         }
 
+        $mapelNama = $pembelajaran?->nama_mata_pelajaran ?: 'Mata Pelajaran';
+        $tglStr = \Carbon\Carbon::parse($tanggal)->format('d/m/Y');
+
         // Ambil semua siswa di rombel
         $siswaList = DB::table('peserta_didik')->where('rombongan_belajar_id', $rombelId)->get();
 
         $markedCount = 0;
         foreach ($siswaList as $siswa) {
-            $query = PresensiMapel::where('peserta_didik_id', $siswa->peserta_didik_id)
-                ->where('tanggal', $tanggal);
+            $matchCondition = [
+                'peserta_didik_id'     => $siswa->peserta_didik_id,
+                'tanggal'              => $tanggal,
+            ];
             if ($pembelajaranId) {
-                $query->where('pembelajaran_id', $pembelajaranId);
+                $matchCondition['pembelajaran_id'] = $pembelajaranId;
             } else {
-                $query->where('rombongan_belajar_id', $rombelId);
+                $matchCondition['rombongan_belajar_id'] = $rombelId;
             }
-            $exists = $query->exists();
 
-            if (!$exists) {
-                PresensiMapel::create([
-                    'peserta_didik_id' => $siswa->peserta_didik_id,
-                    'nisn' => $siswa->nisn,
+            PresensiMapel::updateOrCreate(
+                $matchCondition,
+                [
+                    'nisn'                 => $siswa->nisn,
                     'rombongan_belajar_id' => $rombelId,
-                    'pembelajaran_id' => $pembelajaranId ?: null,
-                    'ptk_id' => $pembelajaran?->ptk_id ?: $ptkId,
-                    'mata_pelajaran_id' => $pembelajaran?->mata_pelajaran_id,
-                    'nama_mata_pelajaran' => $pembelajaran?->nama_mata_pelajaran,
-                    'tanggal' => $tanggal,
-                    'status' => 'A',
-                    'keterangan' => 'Alpha pada jam pelajaran',
-                    'created_by' => $verifiedBy,
-                ]);
-                $markedCount++;
-            }
+                    'pembelajaran_id'      => $pembelajaranId ?: null,
+                    'ptk_id'               => $pembelajaran?->ptk_id ?: $ptkId,
+                    'mata_pelajaran_id'    => $pembelajaran?->mata_pelajaran_id,
+                    'nama_mata_pelajaran'  => $pembelajaran?->nama_mata_pelajaran,
+                    'tanggal'              => $tanggal,
+                    'status'               => 'H',
+                    'jam_ke'               => $jamKe,
+                    'created_by'           => $verifiedBy,
+                ]
+            );
+
+            // Sampaikan notifikasi transaksi presensi murid & wali kelas
+            \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
+                $siswa->peserta_didik_id,
+                $rombelId,
+                "Presensi Mapel: {$mapelNama} (Hadir)",
+                "Kehadiran Anda pada mata pelajaran {$mapelNama} ({$tglStr}) dicatat Hadir.",
+                "Presensi Siswa: {$siswa->nama}",
+                "Siswa {$siswa->nama} dicatat Hadir pada mata pelajaran {$mapelNama} ({$tglStr}).",
+                'success',
+                'fa-solid fa-check-double'
+            );
+
+            $markedCount++;
         }
 
         return response()->json([
-            'status' => 'success',
-            'message' => "Sebanyak {$markedCount} peserta didik yang belum absen di mapel ini berhasil ditandai sebagai Alpha.",
-            'count' => $markedCount,
+            'status'  => 'success',
+            'message' => "Berhasil menandai Hadir untuk seluruh peserta didik ({$markedCount} siswa) pada mapel ini.",
+            'count'   => $markedCount,
         ]);
+    }
+
+    /**
+     * API: Reset / Kosongkan Presensi Mapel KBM di Kelas (Guru Mapel)
+     */
+    public function resetPresensiKelas(Request $request)
+    {
+        $request->validate([
+            'rombongan_belajar_id' => 'required|string',
+            'tanggal'              => 'required|date',
+            'pembelajaran_id'      => 'nullable|string',
+        ]);
+
+        $rombelId = $request->input('rombongan_belajar_id');
+        $tanggal = $request->input('tanggal');
+        $pembelajaranId = $request->input('pembelajaran_id');
+
+        $query = PresensiMapel::where('rombongan_belajar_id', $rombelId)
+            ->where('tanggal', $tanggal);
+
+        if ($pembelajaranId) {
+            $query->where('pembelajaran_id', $pembelajaranId);
+        }
+
+        $deleted = $query->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Presensi mapel di kelas ini berhasil dikosongkan ({$deleted} catatan direset) untuk dapat diulangi.",
+        ]);
+    }
+
+    /**
+     * Alias backward-compatible untuk fungsi lama
+     */
+    public function tandaiAlphaRombel(Request $request)
+    {
+        return $this->hadirSemuaRombel($request);
     }
 
     /**

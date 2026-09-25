@@ -883,7 +883,7 @@ class WaliKelasController extends Controller
             'a'         => 'A',
         ];
 
-        if ($action !== 'pulang' && !isset($statusMap[$action])) {
+        if ($action !== 'pulang' && $action !== 'reset' && $action !== 'batal' && !isset($statusMap[$action])) {
             return response()->json(['status' => 'error', 'message' => 'Tindakan presensi tidak valid.'], 422);
         }
 
@@ -930,6 +930,29 @@ class WaliKelasController extends Controller
         }
 
         $currentTime = now()->format('H:i:s');
+        $tglStr = \Carbon\Carbon::parse($tanggal)->format('d/m/Y');
+
+        // Aksi Reset / Batal Presensi Manual Siswa
+        if ($action === 'reset' || $action === 'batal') {
+            if ($presensi) {
+                if (in_array($presensi->metode_masuk, ['rfid', 'qr', 'kiosk'], true) && !$ctx['isAdmin']) {
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => "Presensi mandiri {$siswa->nama} tidak dapat direset.",
+                    ], 403);
+                }
+                $presensi->delete();
+            }
+
+            return response()->json([
+                'status'     => 'success',
+                'message'    => "Presensi {$siswa->nama} berhasil direset / dikosongkan.",
+                'badge'      => '<span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px; color: var(--text-muted);">Belum Absen</span>',
+                'status_val' => '',
+                'jam_masuk'  => '—',
+                'jam_pulang' => '—',
+            ]);
+        }
 
         if ($action === 'pulang') {
             if (!$presensi) {
@@ -959,6 +982,20 @@ class WaliKelasController extends Controller
                 }
                 $presensi->save();
             }
+
+            $jamPulangShort = substr($currentTime, 0, 5);
+
+            // Sampaikan notifikasi transaksi ke murid dan wali kelas serta push ke perangkat PWA
+            \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
+                $siswa->peserta_didik_id,
+                $siswa->rombongan_belajar_id,
+                "Presensi Pulang Tercatat ({$jamPulangShort} WIB)",
+                "Presensi pulang Anda pada tanggal {$tglStr} dicatat pukul {$jamPulangShort} WIB oleh Wali Kelas.",
+                "Presensi Pulang: {$siswa->nama}",
+                "Siswa {$siswa->nama} dicatat pulang pada pukul {$jamPulangShort} WIB.",
+                'info',
+                'fa-solid fa-door-open'
+            );
 
             return response()->json([
                 'status'     => 'success',
@@ -1009,6 +1046,21 @@ class WaliKelasController extends Controller
             ]);
         }
 
+        $statusLabel = PresensiHarian::STATUS_LABELS[$statusBaru] ?? $statusBaru;
+        $notifTipe = ($statusBaru === 'H') ? 'success' : (($statusBaru === 'A') ? 'danger' : 'warning');
+
+        // Sampaikan notifikasi transaksi ke murid dan wali kelas serta push ke perangkat PWA
+        \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
+            $siswa->peserta_didik_id,
+            $siswa->rombongan_belajar_id,
+            "Presensi Harian: {$statusLabel}",
+            "Presensi kehadiran harian Anda pada tanggal {$tglStr} dicatat sebagai {$statusLabel} oleh Wali Kelas.",
+            "Presensi Harian: {$siswa->nama}",
+            "Siswa {$siswa->nama} dicatat {$statusLabel} pada tanggal {$tglStr}.",
+            $notifTipe,
+            'fa-solid fa-clipboard-user'
+        );
+
         return response()->json([
             'status'     => 'success',
             'message'    => "Presensi manual ({$presensi->status_label}) untuk {$siswa->nama} berhasil dicatat.",
@@ -1016,6 +1068,45 @@ class WaliKelasController extends Controller
             'status_val' => $presensi->status,
             'jam_masuk'  => $presensi->jam_masuk ? substr($presensi->jam_masuk, 0, 5) : '—',
             'jam_pulang' => $presensi->jam_pulang ? substr($presensi->jam_pulang, 0, 5) : '—',
+        ]);
+    }
+
+    /**
+     * API: Reset / Kosongkan Presensi Manual Rombel untuk Tanggal Tertentu (Wali Kelas)
+     */
+    public function resetPresensiKelas(Request $request)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+
+        if (!RolePermission::isWaliKelasOrAdmin($user) || !RolePermission::canAccess($user, 'menu_wali_kelas_presensi', 'update')) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses mereset presensi kelas.'], 403);
+        }
+
+        $request->validate([
+            'tanggal'              => 'required|date',
+            'rombongan_belajar_id' => 'required|string',
+        ]);
+
+        $tanggal  = $request->input('tanggal');
+        $rombelId = $request->input('rombongan_belajar_id');
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        if (!$ctx['isAdmin'] && ($ctx['activeRombel']?->rombongan_belajar_id !== $rombelId)) {
+            return response()->json(['status' => 'error', 'message' => 'Rombongan belajar di luar binaan Anda.'], 403);
+        }
+
+        // Hapus hanya presensi manual (presensi mandiri RFID/QR tetap terlindungi)
+        $deleted = PresensiHarian::where('rombongan_belajar_id', $rombelId)
+            ->where('tanggal', $tanggal)
+            ->where('metode_masuk', 'manual')
+            ->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Sebanyak {$deleted} catatan presensi manual berhasil dikosongkan kembali untuk diulangi.",
         ]);
     }
 

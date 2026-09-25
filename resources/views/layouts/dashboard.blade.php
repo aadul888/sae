@@ -5,6 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @php
+        $authUser = session('user');
+        $authUserId = is_array($authUser) ? ($authUser['id'] ?? ($authUser['pengguna_id'] ?? '')) : ($authUser->id ?? ($authUser->pengguna_id ?? ''));
+        $authPdId = is_array($authUser) ? ($authUser['peserta_didik_id'] ?? '') : ($authUser->peserta_didik_id ?? '');
+        $authPtkId = is_array($authUser) ? ($authUser['ptk_id'] ?? '') : ($authUser->ptk_id ?? '');
+        $authRole = is_array($authUser) ? ($authUser['role'] ?? '') : ($authUser->role ?? '');
+    @endphp
+    <meta name="user-id" content="{{ $authUserId }}">
+    <meta name="user-pd-id" content="{{ $authPdId }}">
+    <meta name="user-ptk-id" content="{{ $authPtkId }}">
+    <meta name="user-role" content="{{ $authRole }}">
     <title>@yield('title', 'Dashboard — SAE (Sistem Aplikasi Edukasi)')</title>
 
     <!-- Standard SEO & Description -->
