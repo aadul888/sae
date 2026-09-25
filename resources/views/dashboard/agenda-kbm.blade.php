@@ -216,8 +216,8 @@
 
     <!-- 5. Modal Form Tambah / Edit Jurnal Agenda KBM (z-index: 99999 !important) -->
     <div id="modalFormAgenda" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; overflow-y: auto;">
-        <div class="card modal-card-responsive" style="max-width: 620px; width: 100%; max-height: 92vh; overflow-y: auto; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+        <div class="card modal-card-responsive" style="max-width: 620px; width: 100%; max-height: 92vh; display: flex; flex-direction: column; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-color); background: var(--bg-card);">
+            <div class="ma-modal-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;">
                 <h3 id="modalAgendaTitle" style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-book-open-reader text-primary"></i> Jurnal &amp; Agenda KBM
                 </h3>
@@ -226,7 +226,8 @@
                 </button>
             </div>
 
-            <form id="formAgendaKbm">
+            <div class="modal-body-scroll" style="overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
+                <form id="formAgendaKbm">
                 @csrf
                 <input type="hidden" id="agendaId" name="id">
                 <input type="hidden" id="inputJadwalKbmId" name="jadwal_kbm_id">
@@ -386,7 +387,7 @@
                         style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                <div class="ma-actions" style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; flex-shrink: 0;">
                     <button type="button" class="btn btn-outline btn-close-modal" style="padding: 7px 14px; font-size: 0.82rem; border-radius: 8px;">
                         Batal
                     </button>
@@ -395,6 +396,7 @@
                     </button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
 
@@ -425,4 +427,97 @@
 
 @push('scripts')
     <script src="{{ asset('js/agenda-kbm.js') }}"></script>
+@endpush
+
+@push('styles')
+    <style>
+        #modalFormAgenda .modal-card-responsive {
+            max-width: 620px !important;
+            border-radius: 14px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            padding: 20px !important;
+        }
+
+        #modalFormAgenda .modal-body-scroll {
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y !important;
+        }
+
+        #modalFormAgenda .ma-modal-head {
+            margin-bottom: 14px !important;
+            padding-bottom: 10px !important;
+            flex-shrink: 0 !important;
+        }
+
+        #modalFormAgenda .ma-field,
+        #modalFormAgenda .form-grid-2,
+        #modalFormAgenda .form-grid-3 {
+            margin-bottom: 12px !important;
+        }
+
+        #modalFormAgenda .form-grid-2,
+        #modalFormAgenda .form-grid-3 {
+            gap: 10px !important;
+        }
+
+        #modalFormAgenda label {
+            font-size: 0.78rem !important;
+            margin-bottom: 4px !important;
+        }
+
+        #modalFormAgenda input,
+        #modalFormAgenda select {
+            height: 38px !important;
+            font-size: 0.82rem !important;
+            border-radius: 8px !important;
+        }
+
+        #modalFormAgenda textarea {
+            min-height: 48px !important;
+            font-size: 0.82rem !important;
+            border-radius: 8px !important;
+        }
+
+        #modalFormAgenda #infoKalenderTanggalAgenda {
+            margin-bottom: 12px !important;
+            padding: 8px 12px !important;
+            font-size: 0.8rem !important;
+            border-radius: 8px !important;
+        }
+
+        #modalFormAgenda .status-pill-group {
+            display: flex !important;
+            gap: 6px !important;
+            padding: 4px !important;
+        }
+
+        #modalFormAgenda .status-pill-item {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 7px 4px !important;
+            font-size: 0.74rem !important;
+            gap: 4px !important;
+        }
+
+        #modalFormAgenda .ma-actions {
+            flex-shrink: 0 !important;
+            padding-top: 12px !important;
+            margin-top: 8px !important;
+        }
+
+        @media (max-width: 520px) {
+            #modalFormAgenda {
+                padding: 10px !important;
+            }
+
+            #modalFormAgenda .modal-card-responsive {
+                max-height: 90vh !important;
+                padding: 14px 14px !important;
+                width: 96% !important;
+            }
+        }
+    </style>
 @endpush

@@ -756,6 +756,60 @@
             </div>
         </div>
     </div>
+
+    <!-- 7. Recap Presensi per Mapel (Berdasarkan Filter Tanggal) -->
+    @if ($rekapMapel->isNotEmpty())
+        <div class="card" style="padding: 16px 18px; margin-bottom: 20px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--bg-card);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(6,182,212,0.12); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--text-color); margin: 0;">Rekap Presensi per Mapel</h3>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">Berdasarkan tanggal yang dipilih</p>
+                </div>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="table table-sm" style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); text-align: left;">
+                            <th style="padding: 8px 12px; font-weight: 700; color: var(--text-muted);">Mapel</th>
+                            <th style="padding: 8px 12px; font-weight: 700; color: var(--text-muted); text-align: center;">Kelas</th>
+                            <th style="padding: 8px 12px; font-weight: 700; color: var(--text-muted); text-align: center;">Total</th>
+                            <th style="padding: 8px 12px; font-weight: 700; color: #10b981; text-align: center;">Hadir</th>
+                            <th style="padding: 8px 12px; font-weight: 700; color: #f59e0b; text-align: center;">Izin/Sakit</th>
+                            <th style="padding: 8px 12px; font-weight: 700; color: #ef4444; text-align: center;">Inval</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($rekapMapel as $rekap)
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 10px 12px; font-weight: 600; color: var(--text-color);">
+                                    {{ $rekap->nama_mata_pelajaran }}
+                                </td>
+                                <td style="padding: 10px 12px; text-align: center; color: var(--text-muted);">
+                                    {{ $rekap->nama_rombel }}
+                                </td>
+                                <td style="padding: 10px 12px; text-align: center; font-weight: 700;">
+                                    {{ $rekap->total_presensi }}
+                                </td>
+                                <td style="padding: 10px 12px; text-align: center;">
+                                    <span style="color: #10b981; font-weight: 700;">{{ $rekap->total_hadir }}</span>
+                                </td>
+                                <td style="padding: 10px 12px; text-align: center;">
+                                    <span style="color: #f59e0b; font-weight: 600;">{{ $rekap->total_izin_sakit }}</span>
+                                </td>
+                                <td style="padding: 10px 12px; text-align: center;">
+                                    <span style="color: #ef4444; font-weight: 600;">{{ $rekap->total_inval }}</span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')

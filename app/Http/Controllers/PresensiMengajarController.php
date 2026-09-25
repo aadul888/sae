@@ -273,7 +273,8 @@ class PresensiMengajarController extends Controller
             'sort',
             'sortDir',
             'isJadwalDiberlakukan',
-            'modeAktif'
+            'modeAktif',
+            'rekapMapel'
         ));
     }
 
