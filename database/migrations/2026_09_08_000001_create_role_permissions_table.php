@@ -48,12 +48,14 @@ return new class extends Migration
                 ['role' => 'guru', 'permission_key' => 'menu_presensi_mengajar', 'is_allowed' => true],
                 ['role' => 'guru', 'permission_key' => 'menu_agenda_kbm', 'is_allowed' => true],
                 ['role' => 'guru', 'permission_key' => 'menu_penilaian', 'is_allowed' => true],
+                ['role' => 'guru', 'permission_key' => 'menu_jadwal_pelajaran_guru', 'is_allowed' => true],
                 ['role' => 'guru', 'permission_key' => 'menu_presensi_peserta_didik', 'is_allowed' => true],
                 ['role' => 'guru', 'permission_key' => 'menu_pengumuman', 'is_allowed' => true],
 
                 // Peserta Didik default
                 ['role' => 'peserta_didik', 'permission_key' => 'menu_dashboard', 'is_allowed' => true],
                 ['role' => 'peserta_didik', 'permission_key' => 'menu_riwayat_rfid', 'is_allowed' => true],
+                ['role' => 'peserta_didik', 'permission_key' => 'menu_jadwal_pelajaran_pd', 'is_allowed' => true],
                 ['role' => 'peserta_didik', 'permission_key' => 'menu_jadwal_pelajaran', 'is_allowed' => true],
                 ['role' => 'peserta_didik', 'permission_key' => 'menu_rapor', 'is_allowed' => true],
                 ['role' => 'peserta_didik', 'permission_key' => 'menu_validasi_berkas', 'is_allowed' => true],
