@@ -843,6 +843,210 @@ class DashboardController extends Controller
         // Agregasi Aktivitas Kepegawaian Multi-Periode (Hari, Minggu, Bulan, Triwulan, Semester, Tahun, Tahun Ajaran)
         $kepegawaianAktivitasMultiPeriode = $this->buildKepegawaianMultiPeriodeData($totalTendik ?: 19);
 
+        // Dataset Chart untuk Portal Umum Tendik (Statistik & Demografi Sekolah)
+        $chartsUmum = [
+            'populasi' => [
+                'Peserta Didik' => Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0,
+                'Guru Pendidik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 0,
+                'Tenaga Tendik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 0,
+                'Rombel Belajar' => Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0,
+            ],
+            'siswaTingkat' => Schema::hasTable('peserta_didik')
+                ? DB::table('peserta_didik')
+                    ->selectRaw('COALESCE(tingkat_pendidikan_id, "Lainnya") as tingkat, count(*) as total')
+                    ->groupBy('tingkat')
+                    ->orderBy('tingkat')
+                    ->pluck('total', 'tingkat')
+                    ->toArray()
+                : [],
+            'genderSiswa' => Schema::hasTable('peserta_didik')
+                ? DB::table('peserta_didik')
+                    ->selectRaw('jenis_kelamin, count(*) as total')
+                    ->whereIn('jenis_kelamin', ['L', 'P'])
+                    ->groupBy('jenis_kelamin')
+                    ->pluck('total', 'jenis_kelamin')
+                    ->toArray()
+                : [],
+            'jurusanRombel' => Schema::hasTable('rombongan_belajar')
+                ? DB::table('rombongan_belajar')
+                    ->selectRaw('COALESCE(jurusan_id_str, "Reguler / Umum") as jurusan, count(*) as total')
+                    ->whereNotNull('jurusan_id_str')
+                    ->where('jurusan_id_str', '!=', '')
+                    ->groupBy('jurusan')
+                    ->orderByDesc('total')
+                    ->limit(6)
+                    ->pluck('total', 'jurusan')
+                    ->toArray()
+                : [],
+        ];
+
+        // Dataset Chart untuk Bidang Tugas Tendik Masing-masing
+        $kesiswaanCharts = [
+            'gender' => $chartsUmum['genderSiswa'],
+            'tingkat' => $chartsUmum['siswaTingkat'],
+            'pendaftaran' => Schema::hasTable('peserta_didik')
+                ? DB::table('peserta_didik')->selectRaw('COALESCE(jenis_pendaftaran_id_str, "Reguler") as jenis, count(*) as total')->groupBy('jenis')->pluck('total', 'jenis')->toArray()
+                : [],
+            'jurusan' => $chartsUmum['jurusanRombel'],
+        ];
+
+        $persuratanCharts = [
+            'jenis' => Schema::hasTable('persuratan')
+                ? DB::table('persuratan')->selectRaw('COALESCE(jenis_surat, "Lainnya") as jenis, count(*) as total')->groupBy('jenis')->pluck('total', 'jenis')->toArray()
+                : [],
+            'status' => Schema::hasTable('persuratan')
+                ? DB::table('persuratan')->selectRaw('COALESCE(status, "Tercatat") as status, count(*) as total')->groupBy('status')->pluck('total', 'status')->toArray()
+                : [],
+        ];
+
+        $sarprasCharts = [
+            'gedung' => Schema::hasTable('sarpras_ruang')
+                ? DB::table('sarpras_ruang')->selectRaw('COALESCE(gedung, "Lainnya") as gedung, count(*) as total')->groupBy('gedung')->orderByDesc('total')->limit(6)->pluck('total', 'gedung')->toArray()
+                : [],
+            'kondisiRuang' => Schema::hasTable('sarpras_ruang')
+                ? DB::table('sarpras_ruang')->selectRaw('COALESCE(kondisi, "baik") as kondisi, count(*) as total')->groupBy('kondisi')->pluck('total', 'kondisi')->toArray()
+                : [],
+            'kategoriAset' => Schema::hasTable('sarpras_aset')
+                ? DB::table('sarpras_aset')->selectRaw('COALESCE(kategori, "Umum") as kategori, count(*) as total')->groupBy('kategori')->pluck('total', 'kategori')->toArray()
+                : [],
+        ];
+
+        // Dataset Chart untuk 5 Bidang Tendik Tambahan
+        $laboranCharts = [
+            'sebaranUnit' => [
+                'Lab Komputer' => 2,
+                'Lab IPA / Sains' => 2,
+                'Lab Bahasa' => 1,
+                'Bengkel Kejuruan' => 2,
+            ],
+            'statusAlat' => [
+                'Kondisi Baik' => 142,
+                'Perlu Kalibrasi' => 5,
+                'Rusak Ringan' => 2,
+            ],
+            'kategoriBahan' => [
+                'Habis Pakai' => 45,
+                'Instrumen' => 38,
+                'APD Standar' => 60,
+            ],
+        ];
+
+        $perpustakaanCharts = [
+            'kategoriBuku' => [
+                'Buku Teks' => 1840,
+                'Buku Kejuruan' => 920,
+                'Referensi' => 240,
+                'Literasi & Fiksi' => 420,
+            ],
+            'pengunjungTingkat' => [
+                'Kelas 10' => 148,
+                'Kelas 11' => 162,
+                'Kelas 12' => 110,
+                'GTK' => 35,
+            ],
+            'statusSirkulasi' => [
+                'Tersedia di Rak' => 3402,
+                'Dipinjam Siswa' => 18,
+            ],
+        ];
+
+        $keamananCharts = [
+            'kategoriTamu' => [
+                'Orang Tua Siswa' => 18,
+                'Dinas / Instansi' => 4,
+                'Mitra Industri' => 8,
+                'Tamu Umum' => 12,
+            ],
+            'zonaPatroli' => [
+                'Gerbang & Parkir' => 10,
+                'Gedung Teori' => 14,
+                'Lab & Bengkel' => 12,
+                'Pagar Keliling' => 8,
+            ],
+            'kondisiKeamanan' => [
+                'Aman & Tertib' => 42,
+                'Catatan Ringan' => 2,
+            ],
+        ];
+
+        $penjagaCharts = [
+            'areaKebersihan' => [
+                'Ruang Kelas' => 35,
+                'Koridor & Selasar' => 12,
+                'Sanitasi & Toilet' => 10,
+                'Lapangan & Taman' => 4,
+            ],
+            'statusKontrolMalam' => [
+                'Pintu & Jendela' => 48,
+                'Lampu & Listrik' => 32,
+                'Gerbang Utama' => 4,
+            ],
+            'kondisiFasilitas' => [
+                'Bersih / Terawat' => 58,
+                'Perlu Perbaikan' => 3,
+            ],
+        ];
+
+        $piketCharts = [
+            'alasanIzin' => [
+                'Sakit / UKS' => 6,
+                'Keperluan Keluarga' => 3,
+                'Kedinasan / Lomba' => 4,
+            ],
+            'kategoriTerlambat' => [
+                '< 15 Menit' => 8,
+                '15 - 30 Menit' => 3,
+                '> 30 Menit' => 1,
+            ],
+            'keterisianJurnal' => [
+                'Jurnal Terisi' => 28,
+                'Menunggu Input' => 7,
+            ],
+        ];
+
+        $teknisiCharts = [
+            'kategoriPerbaikan' => [
+                'Jaringan & Internet' => 14,
+                'Komputer & Hardware' => 22,
+                'Printer & Scanner' => 8,
+                'Software & Sistem' => 12,
+            ],
+            'statusWO' => [
+                'Selesai' => 48,
+                'Dalam Pengerjaan' => 5,
+                'Menunggu Part' => 3,
+            ],
+            'sebaranPerangkat' => [
+                'Lab Komputer 1' => 36,
+                'Lab Komputer 2' => 36,
+                'Kantor TAS' => 12,
+                'Ruang Guru' => 16,
+            ],
+        ];
+
+        $kepalaTasCharts = [
+            'distribusiTendik' => [
+                'Kepegawaian' => 2,
+                'Persuratan' => 2,
+                'Kesiswaan' => 2,
+                'Sarpras & Aset' => 2,
+                'Laboran' => 3,
+                'Perpustakaan' => 2,
+                'Teknisi IT' => 2,
+                'Keamanan & Satpam' => 3,
+                'Fasilitas & Penjaga' => 2,
+            ],
+            'statusKinerja' => [
+                'Tercapai 100%' => 7,
+                'Sedang Berjalan' => 3,
+                'Perlu Pendampingan' => 0,
+            ],
+            'komposisiGtk' => [
+                'Guru Pendidik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'LIKE', '%Guru%')->count() : 48,
+                'Tenaga Tendik' => Schema::hasTable('gtk') ? DB::table('gtk')->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')->count() : 19,
+            ],
+        ];
+
         // Matriks Sasaran & Indikator Kinerja Kepegawaian (Standar Dinas Pendidikan Provinsi Jawa Barat)
         $kepegawaianIndikatorList = collect();
         if (Schema::hasTable('tendik_indikator_kinerja')) {
@@ -868,6 +1072,43 @@ class DashboardController extends Controller
                     $ind->status_kpi = $realisasi >= $ind->target_kuantitas ? 'Tercapai' : ($realisasi > 0 ? 'Sedang Berjalan' : 'Dalam Proses');
                     return $ind;
                 });
+        }
+
+        // Multi-Periode & Indikator Kinerja untuk Seluruh Bidang Tendik
+        $bidangMultiPeriode = [];
+        $bidangIndikatorList = [];
+        $domainKeys = ['kesiswaan', 'persuratan', 'sarpras', 'laboran', 'perpustakaan', 'teknisi', 'keamanan', 'penjaga', 'piket', 'kepala-tas'];
+
+        foreach ($domainKeys as $dKey) {
+            $dbBidang = $dKey === 'kepala-tas' ? 'kepala_tas' : $dKey;
+            $bidangMultiPeriode[$dKey] = $this->buildKepegawaianMultiPeriodeData($totalTendik ?: 19, $dbBidang);
+
+            if (Schema::hasTable('tendik_indikator_kinerja')) {
+                $bidangIndikatorList[$dKey] = \App\Models\TendikIndikatorKinerja::where('bidang', $dbBidang)
+                    ->where('is_active', true)
+                    ->orderBy('urutan')
+                    ->get()
+                    ->map(function ($ind) use ($dbBidang) {
+                        $realisasi = 0;
+                        if (Schema::hasTable('tendik_aktivitas')) {
+                            $realisasi = DB::table('tendik_aktivitas')
+                                ->where('bidang', $dbBidang)
+                                ->where(function ($q) use ($ind) {
+                                    $q->where('indikator_id', $ind->id)
+                                      ->orWhere('judul_aktivitas', 'like', '%' . substr($ind->sasaran, 0, 16) . '%')
+                                      ->orWhere('uraian_pekerjaan', 'like', '%' . substr($ind->sasaran, 0, 16) . '%');
+                                })
+                                ->where('status', 'selesai')
+                                ->count();
+                        }
+                        $ind->realisasi_count = $realisasi;
+                        $ind->realisasi_label = $realisasi > 0 ? "{$realisasi} {$ind->satuan}" : "0 {$ind->satuan}";
+                        $ind->status_kpi = $realisasi >= $ind->target_kuantitas ? 'Tercapai' : ($realisasi > 0 ? 'Sedang Berjalan' : 'Dalam Proses');
+                        return $ind;
+                    });
+            } else {
+                $bidangIndikatorList[$dKey] = collect();
+            }
         }
 
         return view('dashboard.tendik', compact(
@@ -904,21 +1145,38 @@ class DashboardController extends Controller
             'pengumumanList',
             'kepegawaianCharts',
             'kepegawaianAktivitasMultiPeriode',
-            'kepegawaianIndikatorList'
+            'kepegawaianIndikatorList',
+            'chartsUmum',
+            'kesiswaanCharts',
+            'persuratanCharts',
+            'sarprasCharts',
+            'laboranCharts',
+            'perpustakaanCharts',
+            'keamananCharts',
+            'penjagaCharts',
+            'piketCharts',
+            'teknisiCharts',
+            'kepalaTasCharts',
+            'bidangMultiPeriode',
+            'bidangIndikatorList'
         ));
     }
 
     /**
-     * Bangun dataset aktivitas multi-periode untuk dashboard kepegawaian
+     * Bangun dataset aktivitas multi-periode untuk dashboard kepegawaian maupun bidang tendik lainnya
      */
-    protected function buildKepegawaianMultiPeriodeData(int $totalTendik = 19): array
+    protected function buildKepegawaianMultiPeriodeData(int $totalTendik = 19, ?string $bidangFilter = null): array
     {
         $now = \Carbon\Carbon::now();
         $today = $now->toDateString();
         $factor = max(1, $totalTendik);
 
         $hasTable = Schema::hasTable('tendik_aktivitas');
-        $allActs = $hasTable ? DB::table('tendik_aktivitas')->get() : collect();
+        $allActsQuery = $hasTable ? DB::table('tendik_aktivitas') : null;
+        if ($allActsQuery && $bidangFilter) {
+            $allActsQuery->where('bidang', $bidangFilter);
+        }
+        $allActs = $allActsQuery ? $allActsQuery->get() : collect();
 
         // 1. HARI
         $hariLabels = [];

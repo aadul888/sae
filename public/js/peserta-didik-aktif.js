@@ -1138,6 +1138,7 @@ async function handleBulkZipUpload(file) {
     const csrfToken =
         document.querySelector('meta[name="csrf-token"]')?.content || "";
     const btnStart = document.getElementById("btnStartBulkUpload");
+    const btnText = document.getElementById("btnStartBulkUploadText");
     const progressWrap = document.getElementById("bulkProgressContainer");
     const progressBar = document.getElementById("bulkProgressBar");
     const progressPercent = document.getElementById("bulkProgressPercent");
@@ -1147,16 +1148,29 @@ async function handleBulkZipUpload(file) {
     const formData = new FormData();
     formData.append("zip", file);
 
+    const rombelSelect = document.getElementById("bulkRombelSelect");
+    const rombelVal = rombelSelect ? rombelSelect.value : "";
+    if (rombelVal) {
+        formData.append("rombel", rombelVal);
+    }
+
     isBulkUploading = true;
-    if (btnStart) btnStart.disabled = true;
+    if (btnStart) {
+        btnStart.disabled = true;
+        btnStart.style.opacity = "0.75";
+    }
+    if (btnText) {
+        btnText.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-1"></i> Memproses ZIP & Kompresi...';
+    }
     if (progressWrap) progressWrap.style.display = "block";
-    if (progressBar) progressBar.style.width = "25%";
-    if (progressPercent) progressPercent.textContent = "25%";
+    if (progressBar) progressBar.style.width = "30%";
+    if (progressPercent) progressPercent.textContent = "30%";
     if (progressDetail)
-        progressDetail.textContent = `Mengunggah ZIP ${file.name}...`;
+        progressDetail.textContent = `Mengunggah berkas ZIP ${file.name}...`;
     if (progressTitle)
         progressTitle.innerHTML =
-            '<i class="fas fa-spinner fa-spin me-1"></i> Membaca ZIP & menyimpan pasfoto...';
+            '<i class="fas fa-spinner fa-spin me-1"></i> Mengekstrak ZIP & mencocokkan pasfoto...';
 
     try {
         const res = await fetch(
@@ -1177,6 +1191,13 @@ async function handleBulkZipUpload(file) {
 
         (json.data || []).forEach((item) => {
             if (item.status === "success") {
+                const s = bulkStudents.find(
+                    (st) => st.peserta_didik_id === item.peserta_didik_id,
+                );
+                if (s) {
+                    s.foto_url = item.foto_url;
+                    s.foto_size = item.foto_size;
+                }
                 updateRowFotoUI(
                     item.peserta_didik_id,
                     item.foto_url,
@@ -1185,24 +1206,54 @@ async function handleBulkZipUpload(file) {
             }
         });
 
+        // Render ulang tabel modal agar foto baru langsung tampil
+        renderBulkStudentsTable();
+
+        // Update counter statistik foto di modal
+        const withFoto = bulkStudents.filter((s) => Boolean(s.foto_url)).length;
+        const withoutFoto = Math.max(0, bulkStudents.length - withFoto);
+        const elSudah = document.getElementById("bulkSudahFotoCount");
+        const elBelum = document.getElementById("bulkBelumFotoCount");
+        if (elSudah) elSudah.textContent = withFoto;
+        if (elBelum) elBelum.textContent = withoutFoto;
+
         if (progressBar) progressBar.style.width = "100%";
         if (progressPercent) progressPercent.textContent = "100%";
         if (progressDetail)
-            progressDetail.textContent = `${json.success_count || 0} berhasil, ${json.failed_count || 0} gagal`;
+            progressDetail.textContent = `${json.success_count || 0} berhasil disimpan, ${json.failed_count || 0} gagal`;
         if (progressTitle)
             progressTitle.innerHTML = `<i class="fas fa-circle-check text-success me-1"></i> ${escapeHtml(json.message)}`;
 
+        const isFull =
+            (json.failed_count || 0) === 0 && (json.success_count || 0) > 0;
+        const toastType = isFull
+            ? "success"
+            : (json.success_count || 0) > 0
+              ? "warning"
+              : "danger";
         if (window.SAE && typeof window.SAE.toast === "function") {
-            window.SAE.toast(
-                json.message,
-                (json.failed_count || 0) > 0 ? "warning" : "success",
-            );
+            window.SAE.toast(json.message, toastType);
+        }
+
+        if (btnStart) {
+            btnStart.disabled = false;
+            btnStart.style.opacity = "1";
+        }
+        if (btnText) {
+            btnText.innerHTML = `<i class="fas fa-check-circle me-1"></i> Selesai (${json.success_count || 0} Tersimpan)`;
         }
     } catch (err) {
         if (progressTitle)
-            progressTitle.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Gagal memproses ZIP: ${escapeHtml(err.message || "")} `;
+            progressTitle.innerHTML = `<i class="fas fa-exclamation-triangle text-danger me-1"></i> Gagal memproses ZIP: ${escapeHtml(err.message || "")}`;
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast(err.message || "Gagal memproses ZIP.", "danger");
+        }
+        if (btnStart) {
+            btnStart.disabled = false;
+            btnStart.style.opacity = "1";
+        }
+        if (btnText) {
+            btnText.innerHTML = '<i class="fas fa-redo me-1"></i> Coba Unggah Lagi';
         }
     } finally {
         isBulkUploading = false;
@@ -1264,12 +1315,18 @@ function updateBulkSummaryUI() {
     if (bulkZipFile) {
         if (summaryBanner) summaryBanner.style.display = "flex";
         if (summaryText) {
-            summaryText.innerHTML = `<strong>ZIP: ${escapeHtml(bulkZipFile.name)}</strong> siap diunggah. Server akan mencocokkan foto dengan NISN/NIPD peserta didik.`;
+            summaryText.innerHTML = `<strong>ZIP: ${escapeHtml(bulkZipFile.name)}</strong> siap diunggah &amp; dikompresi untuk kelas ini.`;
         }
-        if (filesBadge) filesBadge.textContent = `ZIP Siap`;
+        if (filesBadge) filesBadge.textContent = `1 Berkas ZIP Siap`;
         if (btnReset) btnReset.style.display = "inline-flex";
-        if (btnStart) btnStart.disabled = false;
-        if (btnText) btnText.textContent = `Mulai Unggah & Kompresi ZIP`;
+        if (btnStart) {
+            btnStart.disabled = false;
+            btnStart.style.opacity = "1";
+            btnStart.style.cursor = "pointer";
+        }
+        if (btnText) {
+            btnText.innerHTML = `<i class="fas fa-cloud-arrow-up me-1"></i> Mulai Unggah &amp; Kompresi ZIP (${totalCount} Peserta Didik)`;
+        }
     } else if (matchedCount > 0) {
         if (summaryBanner) summaryBanner.style.display = "flex";
         if (summaryText) {
@@ -1277,41 +1334,72 @@ function updateBulkSummaryUI() {
         }
         if (filesBadge) filesBadge.textContent = `${matchedCount} Foto Siap`;
         if (btnReset) btnReset.style.display = "inline-flex";
-        if (btnStart) btnStart.disabled = false;
-        if (btnText)
-            btnText.textContent = `Mulai Unggah & Kompresi Masal (${matchedCount} Foto)`;
+        if (btnStart) {
+            btnStart.disabled = false;
+            btnStart.style.opacity = "1";
+            btnStart.style.cursor = "pointer";
+        }
+        if (btnText) {
+            btnText.innerHTML = `<i class="fas fa-cloud-arrow-up me-1"></i> Mulai Unggah &amp; Kompresi Masal (${matchedCount} Foto)`;
+        }
     } else {
         if (summaryBanner) summaryBanner.style.display = "none";
         if (btnReset) btnReset.style.display = "none";
-        if (btnStart) btnStart.disabled = true;
-        if (btnText)
-            btnText.textContent = `Mulai Unggah & Kompresi Masal (0 Foto)`;
+        if (btnStart) {
+            btnStart.disabled = false;
+            btnStart.style.opacity = "0.7";
+            btnStart.style.cursor = "pointer";
+        }
+        if (btnText) {
+            btnText.innerHTML = `<i class="fas fa-cloud-arrow-up me-1"></i> Mulai Unggah &amp; Kompresi Masal (0 Foto)`;
+        }
     }
 }
 
 // Queue Engine: Unggah dan kompresi secara paralel (concurrency 2)
 window.executeBulkUploadQueue = async function () {
+    if (isBulkUploading) return;
+
     // Jika ada ZIP pending, jalankan upload ZIP
     if (bulkZipFile) {
         const zipToUpload = bulkZipFile;
-        bulkZipFile = null;
         await handleBulkZipUpload(zipToUpload);
         return;
     }
 
     const matchedEntries = Object.entries(bulkFileMatches);
-    if (matchedEntries.length === 0) return;
+    if (matchedEntries.length === 0) {
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast(
+                "Silakan pilih berkas ZIP atau seret pasfoto PNG ke kotak unggah terlebih dahulu.",
+                "warning",
+            );
+        } else {
+            alert(
+                "Silakan pilih berkas ZIP atau pasfoto PNG terlebih dahulu.",
+            );
+        }
+        return;
+    }
 
     isBulkUploading = true;
 
     const btnStart = document.getElementById("btnStartBulkUpload");
+    const btnText = document.getElementById("btnStartBulkUploadText");
     const progressWrap = document.getElementById("bulkProgressContainer");
     const progressBar = document.getElementById("bulkProgressBar");
     const progressPercent = document.getElementById("bulkProgressPercent");
     const progressDetail = document.getElementById("bulkProgressDetail");
     const progressTitle = document.getElementById("bulkProgressTitle");
 
-    if (btnStart) btnStart.disabled = true;
+    if (btnStart) {
+        btnStart.disabled = true;
+        btnStart.style.opacity = "0.75";
+    }
+    if (btnText) {
+        btnText.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-1"></i> Mengompresi & Menyimpan...';
+    }
     if (progressWrap) progressWrap.style.display = "block";
 
     let completed = 0;
@@ -1361,6 +1449,16 @@ window.executeBulkUploadQueue = async function () {
                         : "";
                     statusCell.innerHTML = `<span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;" title="${json.data.foto_size}${savingsStr}"><i class="fas fa-check-double me-1"></i> ${json.data.foto_size}</span>`;
                 }
+
+                // Update data di array bulkStudents
+                const st = bulkStudents.find(
+                    (s) => s.peserta_didik_id === pdId,
+                );
+                if (st) {
+                    st.foto_url = json.data.foto_url;
+                    st.foto_size = json.data.foto_size;
+                }
+
                 // Update baris tabel utama jika ada
                 updateRowFotoUI(pdId, json.data.foto_url, json.data.foto_size);
             } else {
@@ -1407,10 +1505,23 @@ window.executeBulkUploadQueue = async function () {
         );
     }
 
+    // Render ulang tabel modal agar foto baru terlihat di modal
+    renderBulkStudentsTable();
+
+    // Update counter statistik foto rombel di modal
+    const withFoto = bulkStudents.filter((s) => Boolean(s.foto_url)).length;
+    const withoutFoto = Math.max(0, bulkStudents.length - withFoto);
+    const elSudah = document.getElementById("bulkSudahFotoCount");
+    const elBelum = document.getElementById("bulkBelumFotoCount");
+    if (elSudah) elSudah.textContent = withFoto;
+    if (elBelum) elBelum.textContent = withoutFoto;
+
     if (btnStart) {
         btnStart.disabled = false;
-        document.getElementById("btnStartBulkUploadText").textContent =
-            "Selesai";
+        btnStart.style.opacity = "1";
+    }
+    if (btnText) {
+        btnText.innerHTML = `<i class="fas fa-check-circle me-1"></i> Selesai (${completed - failed} Tersimpan)`;
     }
 };
 

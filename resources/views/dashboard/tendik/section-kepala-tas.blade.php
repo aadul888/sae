@@ -1,250 +1,341 @@
 {{-- Section Dashboard: Kepala Tenaga Administrasi Sekolah (Kepala TAS / KTU) --}}
 
-<!-- Quick Stats Grid Kepala TAS (Responsive Grid) -->
+<!-- 1. Akses Cepat Menu Kepala TAS (Responsive Grid Seimbang & Genap) -->
+<div class="kepegawaian-quick-grid">
+    <a href="{{ route('dashboard.tendik-aktif.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Direktori Staf Tendik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+            <i class="fas fa-users"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Data Tendik</span>
+    </a>
+
+    <a href="{{ route('dashboard.guru-aktif.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #10b981;" title="Direktori Guru Pendidik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <i class="fas fa-chalkboard-user"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Data Guru</span>
+    </a>
+
+    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Data Pokok Siswa">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+            <i class="fas fa-user-graduate"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Buku Induk</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.target.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Target Capaian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.aktivitas.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Monitoring Aktivitas Tendik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.laporan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #ec4899;" title="Laporan &amp; Rekapitulasi Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
+    </a>
+</div>
+
+<!-- 2. Quick Stats Grid Kepala TAS (Responsive) -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
             <i class="fas fa-users-gear"></i>
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value">{{ $stats['total_tendik'] ?? 19 }} Staf</div>
-            <div class="dash-stat-label">Tendik Terdaftar</div>
-        </div>
-    </div>
-
-    <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
-            <i class="fas fa-chalkboard-user"></i>
-        </div>
-        <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_guru'] ?? 48 }} Guru</div>
-            <div class="dash-stat-label">Guru Terdaftar</div>
+            <div class="dash-stat-label">Tenaga Administrasi</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
-            <i class="fas fa-file-signature"></i>
+            <i class="fas fa-award"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ $stats['total_persuratan'] ?? 5 }} Dok</div>
-            <div class="dash-stat-label">Total Arsip Surat</div>
+            <div class="dash-stat-value">{{ $stats['gtk_tugas_tambahan'] ?? 38 }} GTK</div>
+            <div class="dash-stat-label">SK Tugas Tambahan</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
-            <i class="fas fa-user-graduate"></i>
+            <i class="fas fa-inbox"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value">{{ number_format($stats['total_siswa'] ?? 1126, 0, ',', '.') }}</div>
-            <div class="dash-stat-label">Siswa Aktif</div>
+            <div class="dash-stat-value">{{ ($stats['total_surat_masuk'] ?? 0) + ($stats['total_surat_keluar'] ?? 0) }} Dok</div>
+            <div class="dash-stat-label">Tata Kelola Surat</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary);">
+            <i class="fas fa-school"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value">Aktif</div>
+            <div class="dash-stat-label">Operasional Satuan</div>
         </div>
     </div>
 </div>
 
-<!-- Main Content Grid Kepala TAS (Responsive: 2fr 1fr desktop, 1fr mobile) -->
-<div class="dash-layout-grid">
-    <!-- Left Column: Matriks Pembagian Tugas Staf TAS & Pengawasan Dokumen -->
-    <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
-        <!-- Matriks Pembagian Tugas Staf TAS -->
-        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
-            <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); flex-wrap: wrap; gap: 8px;">
-                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-sitemap text-primary"></i> Matriks Pembagian Tugas Staf TAS
-                </div>
-                <span class="badge badge-primary" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 6px;">
-                    <i class="fas fa-users me-1"></i> {{ count($stafTas ?? []) }} Staf
-                </span>
-            </div>
-
-            <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
-                <table class="table-minimal-compact">
-                    <thead>
-                        <tr>
-                            <th style="min-width: 140px;">Staf</th>
-                            <th style="min-width: 80px; text-align: center;">Jabatan</th>
-                            <th style="min-width: 120px;">Tugas Bidang</th>
-                            <th style="min-width: 70px; text-align: center;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($stafTas ?? [] as $staf)
-                            @php
-                                $dutyStr = strtolower($staf->tugas_tambahan ?? '');
-                                $dutyBadge = match(true) {
-                                    str_contains($dutyStr, 'laboran') => ['label' => 'Laboran', 'icon' => 'fas fa-flask', 'bg' => 'rgba(6,182,212,0.12)', 'color' => '#06b6d4'],
-                                    str_contains($dutyStr, 'keamanan') || str_contains($dutyStr, 'satpam') => ['label' => 'Keamanan', 'icon' => 'fas fa-shield-halved', 'bg' => 'rgba(239,68,68,0.12)', 'color' => '#ef4444'],
-                                    str_contains($dutyStr, 'kesiswaan') => ['label' => 'Kesiswaan', 'icon' => 'fas fa-user-graduate', 'bg' => 'rgba(59,130,246,0.12)', 'color' => '#3b82f6'],
-                                    str_contains($dutyStr, 'persuratan') => ['label' => 'Persuratan', 'icon' => 'fas fa-envelope-open-text', 'bg' => 'rgba(20,184,166,0.12)', 'color' => '#14b8a6'],
-                                    str_contains($dutyStr, 'kepegawaian') => ['label' => 'Kepegawaian', 'icon' => 'fas fa-id-card', 'bg' => 'rgba(139,92,246,0.12)', 'color' => '#8b5cf6'],
-                                    str_contains($dutyStr, 'sarpras') => ['label' => 'Sarpras', 'icon' => 'fas fa-boxes-stacked', 'bg' => 'rgba(245,158,11,0.12)', 'color' => '#f59e0b'],
-                                    str_contains($dutyStr, 'pustaka') => ['label' => 'Pustakawan', 'icon' => 'fas fa-book', 'bg' => 'rgba(236,72,153,0.12)', 'color' => '#ec4899'],
-                                    str_contains($dutyStr, 'teknisi') => ['label' => 'Teknisi IT', 'icon' => 'fas fa-laptop-code', 'bg' => 'rgba(99,102,241,0.12)', 'color' => '#6366f1'],
-                                    default => !empty($staf->tugas_tambahan) 
-                                        ? ['label' => \Illuminate\Support\Str::limit($staf->tugas_tambahan, 14), 'icon' => 'fas fa-briefcase', 'bg' => 'rgba(59,130,246,0.12)', 'color' => '#3b82f6']
-                                        : ['label' => 'Umum', 'icon' => 'fas fa-folder', 'bg' => 'rgba(100,116,139,0.12)', 'color' => '#64748b']
-                                };
-                            @endphp
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.84rem;">
-                                        {{ $staf->nama }}
-                                    </div>
-                                    @if (!empty($staf->nip))
-                                        <div style="font-size: 0.7rem; color: var(--text-muted); font-family: monospace;" title="NIP: {{ $staf->nip }}">
-                                            <i class="fas fa-fingerprint text-warning me-1"></i>{{ $staf->nip }}
-                                        </div>
-                                    @endif
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="badge-compact" style="background: rgba(59,130,246,0.1); color: #3b82f6;" title="{{ $staf->jabatan_ptk_id_str ?: 'Tenaga Administrasi Sekolah' }}">
-                                        <i class="fas fa-id-badge"></i> TAS
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge-compact" style="background: {{ $dutyBadge['bg'] }}; color: {{ $dutyBadge['color'] }};" title="{{ $staf->tugas_tambahan ?: 'Staf Pelaksana Umum' }}">
-                                        <i class="{{ $dutyBadge['icon'] }}"></i> {{ $dutyBadge['label'] }}
-                                    </span>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;" title="Status: Aktif">
-                                        <i class="fas fa-circle-check"></i>
-                                    </span>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.82rem;">
-                                    <i class="fas fa-users-slash me-1"></i> Belum ada data personel staf TAS.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+<!-- 3. Section: Visualisasi Statistik Koordinasi & Supervisi Tendik -->
+<div class="card" style="padding: 20px 22px; margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-chart-pie text-primary"></i> Statistik Supervisi &amp; Manajemen Tenaga Administrasi (TAS)
+            </h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">
+                Visualisasi pembagian penugasan staf per bidang, evaluasi pencapaian target kerja, dan rasio personel sekolah.
+            </p>
         </div>
-
-        <!-- Log Persuratan & Disposisi Terbaru -->
-        <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
-            <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); flex-wrap: wrap; gap: 8px;">
-                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-file-invoice text-primary"></i> Pengawasan Dokumen Terkini
-                </div>
-                <a href="{{ route('dashboard.persuratan.index') }}" class="btn btn-outline btn-icon" style="width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;" title="Buka Modul Persuratan">
-                    <i class="fas fa-arrow-right" style="font-size: 0.76rem;"></i>
-                </a>
-            </div>
-
-            <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
-                <table class="table-minimal-compact">
-                    <thead>
-                        <tr>
-                            <th style="min-width: 140px;">No. Dokumen</th>
-                            <th style="min-width: 70px; text-align: center;">Tipe</th>
-                            <th style="min-width: 130px;">Perihal</th>
-                            <th style="min-width: 60px; text-align: center;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($persuratanTerbaru ?? [] as $surat)
-                            @php
-                                $isMasuk = (($surat->jenis_surat ?? '') === 'masuk');
-                            @endphp
-                            <tr>
-                                <td>
-                                    <div style="font-size: 0.78rem; font-family: monospace; font-weight: 700; color: var(--text-color);">
-                                        {{ $surat->nomor_surat ?? '-' }}
-                                    </div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">
-                                        <i class="far fa-calendar-alt me-1"></i>{{ date('d/m/Y', strtotime($surat->created_at)) }}
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="badge-compact" style="{{ $isMasuk ? 'background: rgba(59,130,246,0.12); color: #3b82f6;' : 'background: rgba(16,185,129,0.12); color: #10b981;' }}" title="Surat {{ ucfirst($surat->jenis_surat ?? 'dokumen') }}">
-                                        <i class="{{ $isMasuk ? 'fas fa-inbox' : 'fas fa-paper-plane' }}"></i>
-                                        <span class="d-none d-sm-inline">{{ $isMasuk ? 'Masuk' : 'Keluar' }}</span>
-                                    </span>
-                                </td>
-                                <td>
-                                    <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-color); max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $surat->perihal ?? '-' }}">
-                                        {{ $surat->perihal ?? '-' }}
-                                    </div>
-                                </td>
-                                <td style="text-align: center;">
-                                    <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;" title="Status: {{ $surat->status ?? 'Tercatat' }}">
-                                        <i class="fas fa-check"></i>
-                                    </span>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.82rem;">
-                                    <i class="fas fa-folder-open me-1"></i> Belum ada catatan surat masuk/keluar.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+        <div style="font-size: 0.76rem; font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.25);">
+            <i class="fas fa-crown me-1"></i> Koordinator TAS
         </div>
     </div>
 
-    <!-- Right Column: Menu Koordinasi & Info Kalender (Stack di Mobile) -->
-    <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
-        <!-- Card Menu Koordinasi Kepala TAS -->
-        <div class="card" style="padding: 18px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
-            <div style="font-weight: 700; font-size: 0.9rem; color: var(--text-color); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-bolt text-warning"></i> Menu Koordinasi Kepala TAS
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <!-- Chart 1: Sebaran Staf per Bidang (Bar) -->
+        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-users-gear text-primary"></i> Distribusi Personel per Urusan
             </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-users text-primary me-2"></i> Data Tendik</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
-                <a href="{{ route('dashboard.guru-aktif.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-chalkboard-user text-info me-2"></i> Direktori Guru</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
-                <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-user-graduate text-success me-2"></i> Data Induk Siswa</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
-                <a href="{{ route('dashboard.persuratan.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-envelope-open-text text-warning me-2"></i> Administrasi Surat</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
-                <a href="{{ route('dashboard.hak-akses.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-shield-halved text-danger me-2"></i> SK Tugas Tambahan</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Sebaran staf administrasi di tiap bidang</div>
+            <div style="height: 180px; position: relative; flex: 1;">
+                <canvas id="tasChartDistribusi"></canvas>
             </div>
         </div>
 
-        <!-- Info Efektif & Kalender Sekolah -->
-        <div class="card" style="padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(59,130,246,0.04) 100%); border: 1px solid rgba(99,102,241,0.18);">
-            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-calendar-check text-primary"></i> Info Efektif Sekolah
+        <!-- Chart 2: Status Capaian Target (Doughnut) -->
+        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-bullseye text-success"></i> Evaluasi Ketercapaian KPI
             </div>
-            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.78rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <span style="color: var(--text-muted);">Hari &amp; Tanggal:</span>
-                    <strong style="color: var(--text-color);">{{ \Carbon\Carbon::now()->translatedFormat('d M Y') }}</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <span style="color: var(--text-muted);">Status Hari:</span>
-                    <span class="badge badge-success" style="font-size: 0.68rem; padding: 2px 6px;">Hari Efektif</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: var(--text-muted);">Semester:</span>
-                    <strong style="color: #3b82f6;">TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}</strong>
-                </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Progres pencapaian sasaran bidang</div>
+            <div style="height: 180px; position: relative; flex: 1;">
+                <canvas id="tasChartKinerja"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 3: Rasio Pendidik vs Tendik (Doughnut) -->
+        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-chalkboard-user text-warning"></i> Komposisi GTK Sekolah
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Perbandingan Guru vs Staf Tendik</div>
+            <div style="height: 180px; position: relative; flex: 1;">
+                <canvas id="tasChartKomposisi"></canvas>
             </div>
         </div>
     </div>
 </div>
+
+<!-- 4. Section: Target & Capaian Aktivitas & Indikator Kinerja Kepala TAS -->
+@include('dashboard.tendik.partials-kinerja-chart', [
+    'bidangKey' => 'kepala-tas',
+    'bidangTitle' => 'Kepala TAS / Koordinator'
+])
+
+<!-- Payload JSON Data Chart Kepala TAS untuk JS -->
+<script type="application/json" id="sectionKepalaTasChartPayload">
+    {!! json_encode($kepalaTasCharts ?? [], JSON_UNESCAPED_UNICODE) !!}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const payloadEl = document.getElementById('sectionKepalaTasChartPayload');
+    if (!payloadEl || typeof Chart === 'undefined') return;
+
+    let payload = {};
+    try {
+        payload = JSON.parse(payloadEl.textContent);
+    } catch (e) {
+        console.error('Gagal parsing sectionKepalaTasChartPayload', e);
+        return;
+    }
+
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const textColor = isLight ? '#1e293b' : '#f8fafc';
+    const textMuted = isLight ? '#64748b' : '#94a3b8';
+    const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)';
+
+    // Plugin Angka Permanen pada Bar
+    const barDataLabelsPlugin = {
+        id: 'barDataLabelsTas',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            ctx.save();
+            chart.data.datasets.forEach((dataset, dIdx) => {
+                const meta = chart.getDatasetMeta(dIdx);
+                if (meta.hidden) return;
+                meta.data.forEach((bar, index) => {
+                    const val = dataset.data[index];
+                    if (val !== undefined && val !== null && val > 0) {
+                        ctx.fillStyle = textColor;
+                        ctx.font = 'bold 10px Inter, system-ui, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(Number(val).toLocaleString('id-ID'), bar.x, bar.y - 3);
+                    }
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    // Plugin Doughnut Data Labels Permanen di Segmen Lingkaran
+    const doughnutDataLabelsPlugin = {
+        id: 'doughnutDataLabelsTas',
+        afterDatasetsDraw(chart) {
+            const { ctx, data } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data || !meta.data.length) return;
+
+            const dataset = data.datasets[0];
+            const total = dataset.data.reduce((a, b) => a + Number(b || 0), 0);
+
+            ctx.save();
+            meta.data.forEach((element, index) => {
+                const val = dataset.data[index];
+                if (!val || val <= 0) return;
+
+                const pos = element.tooltipPosition();
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Inter, system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                if (pct >= 10) {
+                    ctx.fillText(Number(val).toLocaleString('id-ID'), pos.x, pos.y - 5);
+                    ctx.font = '600 9px Inter, system-ui, sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.fillText(pct + '%', pos.x, pos.y + 6);
+                } else {
+                    ctx.fillText(Number(val).toLocaleString('id-ID'), pos.x, pos.y);
+                }
+            });
+
+            if (total > 0 && meta.data[0]) {
+                const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+
+                ctx.fillStyle = textMuted;
+                ctx.font = '700 8px Inter, system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('TOTAL', centerX, centerY - 9);
+
+                ctx.fillStyle = textColor;
+                ctx.font = '800 15px Inter, system-ui, sans-serif';
+                ctx.fillText(Number(total).toLocaleString('id-ID'), centerX, centerY + 7);
+            }
+            ctx.restore();
+        }
+    };
+
+    // 1. Chart Distribusi Tendik (Bar)
+    const ctxDis = document.getElementById('tasChartDistribusi')?.getContext('2d');
+    if (ctxDis && payload.distribusiTendik) {
+        new Chart(ctxDis, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(payload.distribusiTendik),
+                datasets: [{
+                    data: Object.values(payload.distribusiTendik),
+                    backgroundColor: ['rgba(59,130,246,0.85)', 'rgba(16,185,129,0.85)', 'rgba(6,182,212,0.85)', 'rgba(245,158,11,0.85)', 'rgba(99,102,241,0.85)', 'rgba(236,72,153,0.85)', 'rgba(139,92,246,0.85)', 'rgba(239,68,68,0.85)', 'rgba(132,204,22,0.85)'],
+                    borderRadius: 6,
+                    maxBarThickness: 30
+                }]
+            },
+            plugins: [barDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            color: textMuted,
+                            font: { size: 9 },
+                            callback: function (val, index) {
+                                const lbl = Object.keys(payload.distribusiTendik)[index] || '';
+                                return lbl.length > 12 ? lbl.substring(0, 10) + '...' : lbl;
+                            }
+                        }
+                    },
+                    y: { grid: { color: gridColor }, ticks: { color: textMuted, font: { size: 10 } }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // 2. Chart Evaluasi Kinerja (Doughnut)
+    const ctxKin = document.getElementById('tasChartKinerja')?.getContext('2d');
+    if (ctxKin && payload.statusKinerja) {
+        new Chart(ctxKin, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(payload.statusKinerja),
+                datasets: [{
+                    data: Object.values(payload.statusKinerja),
+                    backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
+                    borderWidth: 2,
+                    borderColor: isLight ? '#ffffff' : '#1e293b',
+                    hoverOffset: 4
+                }]
+            },
+            plugins: [doughnutDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '62%'
+            }
+        });
+    }
+
+    // 3. Chart Komposisi GTK (Doughnut)
+    const ctxKomp = document.getElementById('tasChartKomposisi')?.getContext('2d');
+    if (ctxKomp && payload.komposisiGtk) {
+        new Chart(ctxKomp, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(payload.komposisiGtk),
+                datasets: [{
+                    data: Object.values(payload.komposisiGtk),
+                    backgroundColor: ['#3b82f6', '#10b981'],
+                    borderWidth: 2,
+                    borderColor: isLight ? '#ffffff' : '#1e293b',
+                    hoverOffset: 4
+                }]
+            },
+            plugins: [doughnutDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '62%'
+            }
+        });
+    }
+});
+</script>

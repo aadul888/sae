@@ -616,6 +616,27 @@ class PesertaDidikAktifController extends Controller
             return response()->json(['status' => 'error', 'message' => 'File ZIP tidak dapat dibuka atau rusak.'], 422);
         }
 
+        $rombel = trim($request->input('rombel', ''));
+        // Jika parameter rombel tidak dikirim, coba tebak dari nama file ZIP (contoh: "X KHT 1.zip")
+        if (!$rombel) {
+            $zipBaseName = pathinfo($zipFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $foundRombel = DB::table('peserta_didik')
+                ->where('nama_rombel', $zipBaseName)
+                ->value('nama_rombel');
+            if ($foundRombel) {
+                $rombel = $foundRombel;
+            }
+        }
+
+        $rombelStudents = collect();
+        if ($rombel) {
+            $rombelStudents = DB::table('peserta_didik')
+                ->where('nama_rombel', $rombel)
+                ->select('peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'nama_rombel')
+                ->orderBy('nama', 'asc')
+                ->get();
+        }
+
         $tempDir = storage_path('app/temp/foto_zip_' . uniqid('', true));
         File::makeDirectory($tempDir, 0755, true, true);
 
@@ -630,7 +651,8 @@ class PesertaDidikAktifController extends Controller
                 $entry = $zip->getNameIndex($i);
                 $basename = basename(str_replace('\\', '/', $entry));
 
-                if ($basename === '' || str_ends_with($entry, '/')) {
+                // Abaikan direktori, berkas kosong, berkas tersembunyi, atau file sampah Mac
+                if ($basename === '' || str_ends_with($entry, '/') || str_starts_with($basename, '._') || str_contains($entry, '__MACOSX')) {
                     continue;
                 }
 
@@ -640,32 +662,95 @@ class PesertaDidikAktifController extends Controller
                 }
 
                 $rawName = pathinfo($basename, PATHINFO_FILENAME);
-
-                // Cari peserta didik: cocokkan NISN, NIPD, atau peserta_didik_id dari nama file
-                // Ekstrak angka dari nama file untuk pencocokan lebih fleksibel
                 $cleanName = preg_replace('/[^0-9a-zA-Z]/', '', $rawName);
                 $numbersOnly = preg_replace('/[^0-9]/', '', $rawName);
 
-                $student = DB::table('peserta_didik')
-                    ->where(function ($q) use ($rawName, $cleanName, $numbersOnly) {
-                        $q->where('nisn', $rawName)
-                          ->orWhere('nisn', $cleanName)
-                          ->orWhere('nipd', $rawName)
-                          ->orWhere('nipd', $cleanName)
-                          ->orWhere('peserta_didik_id', $rawName)
-                          ->orWhere('peserta_didik_id', $cleanName);
-                        // Cocokkan angka murni (NISN biasanya 10 digit)
-                        if (strlen($numbersOnly) >= 5) {
-                            $q->orWhere('nisn', $numbersOnly)
-                              ->orWhere('nipd', $numbersOnly)
-                              ->orWhere('peserta_didik_id', $numbersOnly);
+                $student = null;
+                $matchedVia = '';
+
+                // A. Pencocokan jika ada rombel (Nomor Urut Absen / NISN / NIPD / Nama)
+                if ($rombelStudents->isNotEmpty()) {
+                    // 1. Cocokkan nomor urut absen (contoh: "1", "01", "29", "1_nama", "01-nama", dsb.)
+                    if (preg_match('/^0*(\d{1,2})(?:[_\s\.\-].*)?$/', $rawName, $m)) {
+                        $noUrut = (int) $m[1];
+                        if ($noUrut >= 1 && $noUrut <= $rombelStudents->count()) {
+                            $student = $rombelStudents->get($noUrut - 1);
+                            $matchedVia = "No. Urut {$noUrut}";
                         }
-                    })
-                    ->first();
+                    }
+
+                    // 2. Cocokkan NISN / NIPD / NIK peserta didik di rombel ini
+                    if (!$student) {
+                        foreach ($rombelStudents as $s) {
+                            $sNisn = (string) ($s->nisn ?? '');
+                            $sNipd = (string) ($s->nipd ?? '');
+                            $sNik  = (string) ($s->nik ?? '');
+
+                            if ($sNisn !== '' && ($rawName === $sNisn || $cleanName === $sNisn || (strlen($numbersOnly) >= 5 && $numbersOnly === $sNisn))) {
+                                $student = $s;
+                                $matchedVia = "NISN";
+                                break;
+                            }
+                            if ($sNipd !== '' && ($rawName === $sNipd || $cleanName === $sNipd || (strlen($numbersOnly) >= 5 && $numbersOnly === $sNipd))) {
+                                $student = $s;
+                                $matchedVia = "NIPD";
+                                break;
+                            }
+                            if ($sNik !== '' && ($rawName === $sNik || $cleanName === $sNik)) {
+                                $student = $s;
+                                $matchedVia = "NIK";
+                                break;
+                            }
+                        }
+                    }
+
+                    // 3. Cocokkan Nama Lengkap di rombel ini
+                    if (!$student) {
+                        $cleanRaw = strtolower(preg_replace('/[^a-z0-9]/', '', $rawName));
+                        if (strlen($cleanRaw) >= 4) {
+                            foreach ($rombelStudents as $s) {
+                                $cleanNama = strtolower(preg_replace('/[^a-z0-9]/', '', $s->nama ?? ''));
+                                if (strlen($cleanNama) >= 4 && (str_contains($cleanRaw, $cleanNama) || str_contains($cleanNama, $cleanRaw))) {
+                                    $student = $s;
+                                    $matchedVia = "Nama";
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // B. Fallback pencarian global di seluruh tabel peserta_didik
+                if (!$student) {
+                    $found = DB::table('peserta_didik')
+                        ->where(function ($q) use ($rawName, $cleanName, $numbersOnly) {
+                            $q->where('nisn', $rawName)
+                              ->orWhere('nisn', $cleanName)
+                              ->orWhere('nipd', $rawName)
+                              ->orWhere('nipd', $cleanName)
+                              ->orWhere('peserta_didik_id', $rawName)
+                              ->orWhere('peserta_didik_id', $cleanName);
+                            if (strlen($numbersOnly) >= 5) {
+                                $q->orWhere('nisn', $numbersOnly)
+                                  ->orWhere('nipd', $numbersOnly)
+                                  ->orWhere('peserta_didik_id', $numbersOnly);
+                            }
+                        })
+                        ->first();
+
+                    if ($found) {
+                        $student = $found;
+                        $matchedVia = "NISN/NIPD Global";
+                    }
+                }
 
                 if (!$student) {
                     $failedCount++;
-                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => "Tidak ditemukan peserta didik dengan NISN/NIPD/ID yang cocok dengan nama file \"{$rawName}\"."];
+                    $results[] = [
+                        'filename' => $basename,
+                        'status' => 'error',
+                        'message' => "Tidak ditemukan peserta didik yang cocok untuk berkas \"{$basename}\"." . ($rombel ? " (Rombel: {$rombel})" : "")
+                    ];
                     continue;
                 }
 
@@ -725,6 +810,7 @@ class PesertaDidikAktifController extends Controller
                         'nama' => $student->nama,
                         'nisn' => $student->nisn,
                         'filename' => $basename,
+                        'matched_by' => $matchedVia,
                         'status' => 'success',
                         'foto_url' => $meta->foto_url,
                         'foto_size' => $meta->formatted_foto_size,

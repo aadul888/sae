@@ -858,8 +858,8 @@
 
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <button type="button" id="btnStartBulkUpload" onclick="executeBulkUploadQueue()"
-                        class="btn btn-primary" disabled
-                        style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                        class="btn btn-primary"
+                        style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s ease;">
                         <i class="fas fa-cloud-arrow-up"></i>
                         <span id="btnStartBulkUploadText">Mulai Unggah &amp; Kompresi Masal (0 Foto)</span>
                     </button>

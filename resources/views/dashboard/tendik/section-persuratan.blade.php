@@ -10,7 +10,58 @@
     ];
 @endphp
 
-<!-- Quick Stats Grid Persuratan -->
+<!-- 1. Akses Cepat Menu Persuratan (Responsive Grid Seimbang & Genap) -->
+<div class="kepegawaian-quick-grid">
+    <a href="{{ route('dashboard.persuratan.masuk.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Buku Agenda Surat Masuk">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Surat Masuk</span>
+    </a>
+
+    <a href="{{ route('dashboard.persuratan.keluar.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #10b981;" title="Buku Agenda Surat Keluar">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <i class="fas fa-paper-plane"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Surat Keluar</span>
+    </a>
+
+    <a href="{{ route('dashboard.persuratan.pengaturan.index') }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Pengaturan &amp; Kearsipan HDD">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <i class="fas fa-sliders"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Pengaturan &amp; Arsip</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'persuratan']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Target Capaian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'persuratan']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Input Log Aktivitas Harian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Aktivitas Harian</span>
+    </a>
+
+    <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => 'persuratan']) }}"
+        class="kepegawaian-quick-btn" style="--quick-color: #ec4899;" title="Laporan &amp; Rekapitulasi Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
+            <i class="fas fa-file-invoice"></i>
+        </div>
+        <span class="kepegawaian-quick-label">Laporan Kinerja</span>
+    </a>
+</div>
+
+<!-- 2. Quick Stats Grid Persuratan -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
@@ -53,143 +104,207 @@
     </div>
 </div>
 
-<!-- Main Content Grid Persuratan (Responsive Layout) -->
-<div class="dash-layout-grid">
-    <!-- Left: Administrasi & Persuratan Terbaru -->
-    <div class="card" style="padding: 0; overflow: hidden; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
-        <div style="padding: 14px 18px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); flex-wrap: wrap; gap: 8px;">
-            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-file-invoice text-primary"></i> Log Administrasi &amp; Surat Terkini
-            </div>
-            <div style="display: flex; gap: 6px;">
-                <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.76rem; border-radius: 6px;">
-                    <i class="fas fa-inbox me-1"></i> Masuk
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.76rem; border-radius: 6px;">
-                    <i class="fas fa-paper-plane me-1"></i> Keluar
-                </a>
-            </div>
+<!-- Section: Visualisasi Statistik & Distribusi Persuratan -->
+<div class="card" style="padding: 20px 22px; margin-bottom: 24px; border-radius: 16px; border: 1px solid var(--border-color); background: var(--card-bg);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+        <div>
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-chart-pie text-primary"></i> Statistik &amp; Distribusi Persuratan
+            </h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">
+                Visualisasi volume surat berdasarkan jenis administrasi serta status pemrosesan dokumen resmi.
+            </p>
         </div>
-
-        <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
-            <table class="table-minimal-compact">
-                <thead>
-                    <tr>
-                        <th style="min-width: 140px;">No. Agenda / Surat</th>
-                        <th style="min-width: 80px; text-align: center;">Jenis</th>
-                        <th style="min-width: 160px;">Perihal &amp; Pihak Terkait</th>
-                        <th style="min-width: 80px; text-align: center;">Status</th>
-                        <th style="min-width: 60px; text-align: center;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($persuratanList ?? [] as $surat)
-                        @php
-                            $isMasuk = (($surat->jenis_surat ?? '') === 'masuk');
-                        @endphp
-                        <tr>
-                            <td>
-                                <div style="font-size: 0.78rem; font-family: monospace; font-weight: 700; color: var(--text-color);">
-                                    {{ $surat->nomor_surat ?? '-' }}
-                                </div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted);">
-                                    <i class="far fa-calendar-alt me-1"></i>{{ date('d/m/Y', strtotime($surat->tanggal_surat ?? $surat->created_at)) }}
-                                </div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="badge-compact" style="{{ $isMasuk ? 'background: rgba(59,130,246,0.12); color: #3b82f6;' : 'background: rgba(16,185,129,0.12); color: #10b981;' }}">
-                                    <i class="{{ $isMasuk ? 'fas fa-inbox' : 'fas fa-paper-plane' }}"></i>
-                                    {{ $isMasuk ? 'Masuk' : 'Keluar' }}
-                                </span>
-                            </td>
-                            <td>
-                                <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-color); max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $surat->perihal ?? '-' }}">
-                                    {{ $surat->perihal ?? '-' }}
-                                </div>
-                                <div style="font-size: 0.7rem; color: var(--text-muted); max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ $isMasuk ? 'Dari: ' . ($surat->pengirim_asal ?? '-') : 'Ke: ' . ($surat->tujuan_penerima ?? '-') }}
-                                </div>
-                            </td>
-                            <td style="text-align: center;">
-                                <span class="badge-compact" style="background: rgba(16,185,129,0.12); color: #10b981;">
-                                    {{ ucfirst($surat->status ?? 'Tercatat') }}
-                                </span>
-                            </td>
-                            <td style="text-align: center;">
-                                <a href="{{ $isMasuk ? route('dashboard.persuratan.masuk.index') : route('dashboard.persuratan.keluar.index') }}"
-                                   class="btn btn-outline btn-icon"
-                                   style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;"
-                                   title="Buka Agenda">
-                                    <i class="fas fa-arrow-right" style="font-size: 0.72rem;"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 30px 16px; color: var(--text-muted); font-size: 0.82rem;">
-                                Belum ada catatan surat dalam sistem.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <div style="font-size: 0.76rem; font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16,185,129,0.25);">
+            <i class="fas fa-envelope-open-text me-1"></i> Tata Kelola Arsip Digital
         </div>
     </div>
 
-    <!-- Right: Menu Cepat Administrasi & Status Harddisk -->
-    <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
-        <!-- Akses Cepat Persuratan -->
-        <div class="card" style="padding: 16px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg);">
-            <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-bolt text-primary"></i> Akses Cepat Persuratan
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <!-- Chart 1: Jenis Surat (Doughnut) -->
+        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-mail-bulk text-primary"></i> Distribusi Jenis Surat
             </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-inbox text-primary me-2"></i> Surat Masuk &amp; Disposisi</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
-                <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-paper-plane text-success me-2"></i> Surat Keluar &amp; Keterangan</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
-                <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-sliders text-warning me-2"></i> Pengaturan &amp; Arsip HDD</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
-                <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'persuratan']) }}" class="btn btn-outline"
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; font-size: 0.8rem; border-radius: 8px; text-decoration: none;">
-                    <span><i class="fas fa-clipboard-check text-info me-2"></i> Log Aktivitas Harian</span>
-                    <i class="fas fa-chevron-right text-muted" style="font-size: 0.7rem;"></i>
-                </a>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Surat Masuk, Keluar, SK, &amp; Tugas</div>
+            <div style="height: 180px; position: relative; flex: 1;">
+                <canvas id="persuratanChartJenis"></canvas>
             </div>
         </div>
 
-        <!-- Status Harddisk (HDD) -->
-        <div class="card" style="padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(16,185,129,0.04) 100%); border: 1px solid rgba(99,102,241,0.2);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-hard-drive text-primary"></i> Penyimpanan Arsip HDD
-                </div>
-                <span class="badge-compact {{ ($hdd['is_ready'] ?? false) ? 'badge-success' : 'badge-danger' }}" style="font-size: 0.7rem;">
-                    {{ ($hdd['is_ready'] ?? false) ? 'Terhubung' : 'Terputus' }}
-                </span>
+        <!-- Chart 2: Status Pemrosesan Surat (Bar) -->
+        <div style="background: var(--bg-hover); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column;">
+            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                <i class="fas fa-tasks text-success"></i> Status Pemrosesan Dokumen
             </div>
-
-            <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 8px; font-family: monospace; word-break: break-all;">
-                {{ $hdd['path'] ?? '-' }}
-            </div>
-
-            <div style="width: 100%; height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden; margin-bottom: 6px;">
-                <div style="width: {{ min(100, $hdd['percent_used'] ?? 0) }}%; height: 100%; background: #10b981; border-radius: 3px;"></div>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted);">
-                <span>Tersedia: <strong>{{ $hdd['free_formatted'] ?? '-' }}</strong></span>
-                <span>Total: <strong>{{ $hdd['total_formatted'] ?? '-' }}</strong></span>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px;">Diproses, Selesai, &amp; Diarsipkan</div>
+            <div style="height: 180px; position: relative; flex: 1;">
+                <canvas id="persuratanChartStatus"></canvas>
             </div>
         </div>
     </div>
 </div>
+
+<!-- 4. Section: Target & Capaian Aktivitas & Indikator Kinerja Persuratan -->
+@include('dashboard.tendik.partials-kinerja-chart', [
+    'bidangKey' => 'persuratan',
+    'bidangTitle' => 'Persuratan & Tata Usaha'
+])
+
+<!-- Payload JSON Data Chart Persuratan untuk JS -->
+<script type="application/json" id="sectionPersuratanChartPayload">
+    {!! json_encode($persuratanCharts ?? [], JSON_UNESCAPED_UNICODE) !!}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const payloadEl = document.getElementById('sectionPersuratanChartPayload');
+    if (!payloadEl || typeof Chart === 'undefined') return;
+
+    let payload = {};
+    try {
+        payload = JSON.parse(payloadEl.textContent);
+    } catch (e) {
+        console.error('Gagal parsing sectionPersuratanChartPayload', e);
+        return;
+    }
+
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const textColor = isLight ? '#1e293b' : '#f8fafc';
+    const textMuted = isLight ? '#64748b' : '#94a3b8';
+    const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)';
+
+    // Plugin Angka Permanen pada Bar
+    const barDataLabelsPlugin = {
+        id: 'barDataLabelsPersuratan',
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            ctx.save();
+            chart.data.datasets.forEach((dataset, dIdx) => {
+                const meta = chart.getDatasetMeta(dIdx);
+                if (meta.hidden) return;
+                meta.data.forEach((bar, index) => {
+                    const val = dataset.data[index];
+                    if (val !== undefined && val !== null && val > 0) {
+                        ctx.fillStyle = textColor;
+                        ctx.font = 'bold 10px Inter, system-ui, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.fillText(Number(val).toLocaleString('id-ID'), bar.x, bar.y - 3);
+                    }
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    // Plugin Doughnut Data Labels Permanen di Segmen Lingkaran
+    const doughnutDataLabelsPlugin = {
+        id: 'doughnutDataLabelsPersuratan',
+        afterDatasetsDraw(chart) {
+            const { ctx, data } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data || !meta.data.length) return;
+
+            const dataset = data.datasets[0];
+            const total = dataset.data.reduce((a, b) => a + Number(b || 0), 0);
+
+            ctx.save();
+            meta.data.forEach((element, index) => {
+                const val = dataset.data[index];
+                if (!val || val <= 0) return;
+
+                const pos = element.tooltipPosition();
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Inter, system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                if (pct >= 10) {
+                    ctx.fillText(Number(val).toLocaleString('id-ID'), pos.x, pos.y - 5);
+                    ctx.font = '600 9px Inter, system-ui, sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+                    ctx.fillText(pct + '%', pos.x, pos.y + 6);
+                } else {
+                    ctx.fillText(Number(val).toLocaleString('id-ID'), pos.x, pos.y);
+                }
+            });
+
+            // Total di Tengah Lingkaran Donat
+            if (total > 0 && meta.data[0]) {
+                const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+
+                ctx.fillStyle = textMuted;
+                ctx.font = '700 8px Inter, system-ui, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('SURAT', centerX, centerY - 9);
+
+                ctx.fillStyle = textColor;
+                ctx.font = '800 15px Inter, system-ui, sans-serif';
+                ctx.fillText(Number(total).toLocaleString('id-ID'), centerX, centerY + 7);
+            }
+            ctx.restore();
+        }
+    };
+
+    // 1. Chart Jenis Surat (Doughnut)
+    const ctxJenis = document.getElementById('persuratanChartJenis')?.getContext('2d');
+    if (ctxJenis && payload.jenis) {
+        const labels = Object.keys(payload.jenis).map(k => k.charAt(0).toUpperCase() + k.slice(1));
+        const data = Object.values(payload.jenis);
+        new Chart(ctxJenis, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#6366f1'],
+                    borderWidth: 2,
+                    borderColor: isLight ? '#ffffff' : '#1e293b',
+                    hoverOffset: 4
+                }]
+            },
+            plugins: [doughnutDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                cutout: '62%'
+            }
+        });
+    }
+
+    // 2. Chart Status Surat (Bar)
+    const ctxStatus = document.getElementById('persuratanChartStatus')?.getContext('2d');
+    if (ctxStatus && payload.status) {
+        const labels = Object.keys(payload.status).map(k => k.charAt(0).toUpperCase() + k.slice(1));
+        const data = Object.values(payload.status);
+        new Chart(ctxStatus, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['rgba(245,158,11,0.85)', 'rgba(16,185,129,0.85)', 'rgba(99,102,241,0.85)'],
+                    borderRadius: 6,
+                    maxBarThickness: 34
+                }]
+            },
+            plugins: [barDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: textMuted, font: { size: 10 } } },
+                    y: { grid: { color: gridColor }, ticks: { color: textMuted, font: { size: 10 } }, beginAtZero: true }
+                }
+            }
+        });
+    }
+});
+</script>
