@@ -364,6 +364,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::put('/tendik/aktivitas/{id}', [\App\Http\Controllers\TendikAktivitasController::class, 'update'])->name('tendik.aktivitas.update')->middleware('permission:menu_aktivitas_tendik,update');
     Route::delete('/tendik/aktivitas/{id}', [\App\Http\Controllers\TendikAktivitasController::class, 'destroy'])->name('tendik.aktivitas.destroy')->middleware('permission:menu_aktivitas_tendik,delete');
 
+    // Administrasi Tendik — Target & Capaian Pekerjaan (Indikator Input Harian)
+    Route::get('/tendik/target-capaian', [\App\Http\Controllers\TendikTargetCapaianController::class, 'index'])->name('tendik.target.index')->middleware('permission:menu_target_capaian,read');
+    Route::post('/tendik/target-capaian', [\App\Http\Controllers\TendikTargetCapaianController::class, 'store'])->name('tendik.target.store')->middleware('permission:menu_target_capaian,create');
+    Route::put('/tendik/target-capaian/{id}', [\App\Http\Controllers\TendikTargetCapaianController::class, 'update'])->name('tendik.target.update')->middleware('permission:menu_target_capaian,update');
+    Route::delete('/tendik/target-capaian/{id}', [\App\Http\Controllers\TendikTargetCapaianController::class, 'destroy'])->name('tendik.target.destroy')->middleware('permission:menu_target_capaian,delete');
+
     // Administrasi Tendik — Rekap & Cetak Laporan Kinerja Berbasis Aktivitas Harian (Bulan, Triwulan, Semester, Tahun Ajaran)
     Route::get('/tendik/laporan', [\App\Http\Controllers\TendikLaporanController::class, 'index'])->name('tendik.laporan.index')->middleware('permission:menu_laporan_tendik,read');
     Route::get('/tendik/laporan/cetak', [\App\Http\Controllers\TendikLaporanController::class, 'cetak'])->name('tendik.laporan.cetak')->middleware('permission:menu_laporan_tendik,read');

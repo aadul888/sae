@@ -620,6 +620,116 @@
             </div>
         </div>
 
+        <!-- 4b. Diagram Visual (Print-Safe SVG Bar Chart) -->
+        @php
+            $total = $totalAktivitas ?: 1;
+            $pctSelesai = round($totalSelesai / $total * 100);
+            $pctProses = round($totalProses / $total * 100);
+            $pctTertunda = round($totalTertunda / $total * 100);
+
+            $distribusiBidang = $aktivitasList->groupBy('bidang')->map->count()->sortDesc()->take(6);
+            $maxBidang = $distribusiBidang->max() ?: 1;
+        @endphp
+        <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; position: relative; z-index: 1;">
+            <!-- Diagram Proporsi Status (Horizontal Stacked Bar) -->
+            <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px;">
+                <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
+                    Proporsi Penyelesaian Tugas
+                </div>
+
+                <!-- Stacked bar SVG -->
+                <div style="background: #f3f4f6; border-radius: 4px; height: 16px; overflow: hidden; display: flex; margin-bottom: 6px;">
+                    @if ($totalSelesai > 0)
+                        <div style="width: {{ $pctSelesai }}%; background: #047857; height: 100%;"></div>
+                    @endif
+                    @if ($totalProses > 0)
+                        <div style="width: {{ $pctProses }}%; background: #b45309; height: 100%;"></div>
+                    @endif
+                    @if ($totalTertunda > 0)
+                        <div style="width: {{ $pctTertunda }}%; background: #b91c1c; height: 100%;"></div>
+                    @endif
+                </div>
+
+                <div style="display: flex; gap: 10px; font-size: 0.7rem; flex-wrap: wrap;">
+                    <span style="display: inline-flex; align-items: center; gap: 3px;">
+                        <span style="width: 8px; height: 8px; background: #047857; border-radius: 50%;"></span>
+                        Selesai: {{ $totalSelesai }} ({{ $pctSelesai }}%)
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 3px;">
+                        <span style="width: 8px; height: 8px; background: #b45309; border-radius: 50%;"></span>
+                        Proses: {{ $totalProses }} ({{ $pctProses }}%)
+                    </span>
+                    <span style="display: inline-flex; align-items: center; gap: 3px;">
+                        <span style="width: 8px; height: 8px; background: #b91c1c; border-radius: 50%;"></span>
+                        Tertunda: {{ $totalTertunda }} ({{ $pctTertunda }}%)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Distribusi Aktivitas per Bidang (Horizontal Bar) -->
+            <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px;">
+                <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
+                    Distribusi Aktivitas per Bidang Kerja
+                </div>
+                @php
+                    $bidangLabelsMap = \App\Models\TendikAktivitas::BIDANG_LABELS;
+                @endphp
+                @forelse ($distribusiBidang as $bKey => $bCount)
+                    @php $barW = round($bCount / $maxBidang * 100); @endphp
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 0.7rem;">
+                        <span style="width: 90px; flex-shrink: 0; color: #4b5563; font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $bidangLabelsMap[$bKey] ?? $bKey }}">
+                            {{ \Illuminate\Support\Str::limit($bidangLabelsMap[$bKey] ?? $bKey, 15) }}
+                        </span>
+                        <div style="flex: 1; background: #f3f4f6; border-radius: 3px; height: 10px; overflow: hidden;">
+                            <div style="width: {{ $barW }}%; height: 100%; background: #1e3a8a; border-radius: 3px;"></div>
+                        </div>
+                        <span style="width: 24px; text-align: right; color: #111827; font-weight: 700;">{{ $bCount }}</span>
+                    </div>
+                @empty
+                    <p style="font-size: 0.72rem; color: #9ca3af; margin: 0;">Tidak ada data distribusi bidang.</p>
+                @endforelse
+            </div>
+        </div>
+
+        <!-- 4c. Matriks Sasaran & Indikator Kinerja -->
+        <div style="margin-top: 14px; margin-bottom: 16px; position: relative; z-index: 1;">
+            <div style="text-align: center; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; color: #111827;">
+                MATRIKS SASARAN &amp; INDIKATOR CAPAIAN KINERJA PEGAWAI
+            </div>
+            <table class="table-data" style="margin-bottom: 14px;">
+                <thead>
+                    <tr>
+                        <th style="width: 38px; text-align: center;">N0.</th>
+                        <th style="width: 28%;">Sasaran</th>
+                        <th>Indikator Kinerja</th>
+                        <th style="width: 15%; text-align: center;">Target</th>
+                        <th style="width: 16%; text-align: center;">Realisasi Capaian</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($indikatorKinerjaList ?? [] as $iIdx => $ind)
+                        <tr>
+                            <td class="center font-mono">{{ $iIdx + 1 }}</td>
+                            <td><strong>{{ $ind->sasaran }}</strong></td>
+                            <td>{{ $ind->indikator_kinerja }}</td>
+                            <td class="center"><strong>{{ $ind->target_label }}</strong></td>
+                            <td class="center">
+                                <span class="badge-kbm {{ $ind->capaian_persen >= 100 ? 'badge-selesai' : 'badge-proses' }}">
+                                    {{ $ind->realisasi_label }} ({{ $ind->capaian_persen }}%)
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="center" style="padding: 12px; color: #6b7280;">
+                                <em>Tidak ada data indikator kinerja terdaftar untuk bidang ini.</em>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
         <!-- 5. Tabel Rekapitulasi Bulanan (Jika Lebih dari 1 Bulan) -->
         @if (count($rekapBulanan) > 1)
             <div class="section-subhead">

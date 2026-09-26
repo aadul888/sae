@@ -34,6 +34,7 @@ return new class extends Migration
                 ['role' => 'admin', 'permission_key' => 'menu_dapodik', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_update', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_hak_akses', 'is_allowed' => true],
+                ['role' => 'admin', 'permission_key' => 'menu_target_capaian', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_pengumuman', 'is_allowed' => true],
                 ['role' => 'admin', 'permission_key' => 'menu_pengaturan', 'is_allowed' => true],
 

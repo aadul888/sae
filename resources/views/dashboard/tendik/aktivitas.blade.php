@@ -22,16 +22,44 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="btn btn-primary" id="btnOpenModalTambah" title="Catat Aktivitas Baru"
-                style="background: #10b981; border: none; padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
-                <i class="fas fa-plus"></i>
-            </button>
+            @if ($canCreate)
+                <button type="button" class="btn btn-primary" id="btnOpenModalTambah" title="Catat Aktivitas Baru"
+                    style="background: #10b981; border: none; padding: 8px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-plus"></i>
+                    <span>Catat Aktivitas Harian</span>
+                </button>
+            @endif
             <a href="{{ route('dashboard.tendik.presensi.index') }}" class="btn btn-outline" title="Rekap Presensi"
-                style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; font-weight: 600; text-decoration: none;">
+                style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fas fa-file-invoice text-info"></i>
+                <span class="d-none d-sm-inline">Rekap Presensi</span>
             </a>
         </div>
     </div>
+
+    <!-- Flash Messages Standar SAE -->
+    @if (session('success'))
+        <div style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-check-circle"></i>
+            <div>{{ session('success') }}</div>
+        </div>
+    @endif
+    @if (session('error'))
+        <div style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-circle-exclamation"></i>
+            <div>{{ session('error') }}</div>
+        </div>
+    @endif
+    @if (isset($errors) && $errors->any())
+        <div style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 0.84rem;">
+            <div style="font-weight: 700; margin-bottom: 4px;"><i class="fas fa-triangle-exclamation me-1"></i> Periksa kembali isian formulir:</div>
+            <ul style="margin: 0; padding-left: 18px;">
+                @foreach ($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <!-- Quick Stats Grid -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
@@ -124,7 +152,17 @@
                     </select>
                 @endif
 
-                @if (!empty($q) || !empty($filterStatus) || !empty($filterBidang))
+                <!-- Filter Sasaran / Target Indikator Kinerja -->
+                <select id="filterIndikator" class="toolbar-filter-select" style="max-width: 220px;">
+                    <option value="">Semua Sasaran &amp; Target</option>
+                    @foreach ($indikatorKinerjaList ?? [] as $ind)
+                        <option value="{{ $ind->id }}" {{ (string)($filterIndikator ?? '') === (string)$ind->id ? 'selected' : '' }}>
+                            [{{ strtoupper($ind->bidang) }}] {{ \Illuminate\Support\Str::limit($ind->sasaran, 26) }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @if (!empty($q) || !empty($filterStatus) || !empty($filterBidang) || !empty($filterIndikator))
                     <a href="{{ route('dashboard.tendik.aktivitas.index') }}"
                         class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
                         title="Reset filter">
@@ -159,7 +197,7 @@
                         </th>
                     @endif
                     <th class="sortable-th {{ ($sort ?? '') === 'judul_aktivitas' ? 'sorted' : '' }}" data-sort="judul_aktivitas" style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Aktivitas &amp; Uraian Pekerjaan
+                        Aktivitas / Sasaran Pekerjaan
                         <span class="sort-icon">{!! ($sort ?? '') === 'judul_aktivitas' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                     </th>
                     <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -196,11 +234,15 @@
                         @endif
 
                         <td data-label="Aktivitas" style="padding: 12px 16px; font-size: 0.82rem;">
-                            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 3px;">
+                            @if (!empty($item->indikator))
+                                <div style="margin-bottom: 4px;">
+                                    <span class="badge" style="background: rgba(99,102,241,0.08); color: var(--primary); font-size: 0.68rem; padding: 2px 7px; border: 1px solid rgba(99,102,241,0.25); display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-bullseye"></i> {{ $item->indikator->sasaran }}
+                                    </span>
+                                </div>
+                            @endif
+                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
                                 {{ $item->judul_aktivitas }}
-                            </div>
-                            <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.45;">
-                                {{ $item->uraian_pekerjaan }}
                             </div>
                             @if ($item->lampiran_path)
                                 <div style="margin-top: 6px;">
@@ -213,7 +255,10 @@
                         </td>
 
                         <td data-label="Hasil / Output" style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-color);">
-                            {{ $item->output_hasil ?: '—' }}
+                            <div style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                                <i class="fas fa-file-circle-check text-success" style="font-size: 0.8rem;"></i>
+                                <span>{{ $item->output_hasil ?: '1 Dokumen / Layanan Terlaksana' }}</span>
+                            </div>
                         </td>
 
                         <td data-label="Status" style="padding: 12px 14px; text-align: center;">
@@ -234,28 +279,37 @@
 
                         <td data-label="Aksi" style="padding: 12px 16px; text-align: center;">
                             <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
-                                <button type="button" class="btn-icon btn-edit-aktivitas"
-                                    data-id="{{ $item->id }}"
-                                    data-tanggal="{{ $item->tanggal->format('Y-m-d') }}"
-                                    data-jam_mulai="{{ substr($item->jam_mulai, 0, 5) }}"
-                                    data-jam_selesai="{{ $item->jam_selesai ? substr($item->jam_selesai, 0, 5) : '' }}"
-                                    data-bidang="{{ $item->bidang }}"
-                                    data-judul="{{ $item->judul_aktivitas }}"
-                                    data-uraian="{{ $item->uraian_pekerjaan }}"
-                                    data-output="{{ $item->output_hasil }}"
-                                    data-status="{{ $item->status }}"
-                                    title="Edit Aktivitas"
-                                    style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #3b82f6;">
-                                    <i class="fas fa-pen-to-square"></i>
-                                </button>
-                                <form action="{{ route('dashboard.tendik.aktivitas.destroy', $item->id) }}" method="POST" data-confirm="delete" data-name="{{ $item->judul_aktivitas }}" style="display: inline;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-icon" title="Hapus Aktivitas"
-                                        style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #ef4444;">
-                                        <i class="fas fa-trash-can"></i>
+                                @if ($canUpdate)
+                                    <button type="button" class="btn-icon btn-edit-aktivitas"
+                                        data-id="{{ $item->id }}"
+                                        data-tanggal="{{ $item->tanggal ? $item->tanggal->format('Y-m-d') : '' }}"
+                                        data-jam_mulai="{{ substr($item->jam_mulai, 0, 5) }}"
+                                        data-jam_selesai="{{ $item->jam_selesai ? substr($item->jam_selesai, 0, 5) : '' }}"
+                                        data-bidang="{{ $item->bidang }}"
+                                        data-judul="{{ $item->judul_aktivitas }}"
+                                        data-uraian="{{ $item->uraian_pekerjaan }}"
+                                        data-output="{{ $item->output_hasil }}"
+                                        data-status="{{ $item->status }}"
+                                        data-ptk="{{ $item->ptk_id }}"
+                                        data-indikator="{{ $item->indikator_id }}"
+                                        title="Edit Aktivitas"
+                                        style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #3b82f6;">
+                                        <i class="fas fa-pen-to-square"></i>
                                     </button>
-                                </form>
+                                @endif
+                                @if ($canDelete)
+                                    <form action="{{ route('dashboard.tendik.aktivitas.destroy', $item->id) }}" method="POST" data-confirm="delete" data-name="{{ $item->judul_aktivitas }}" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-icon" title="Hapus Aktivitas"
+                                            style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #ef4444;">
+                                            <i class="fas fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                                @if (!$canUpdate && !$canDelete)
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-lock"></i></span>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -264,7 +318,14 @@
                         <td colspan="{{ $isKepalaTas ? 6 : 5 }}" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
                             <i class="fas fa-clipboard-list" style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                             <div style="font-weight: 600;">Belum ada catatan aktivitas harian pada periode ini.</div>
-                            <div style="font-size: 0.78rem; margin-top: 4px;">Klik tombol <strong>"Catat Aktivitas Hari Ini"</strong> di atas untuk menambahkan log pekerjaan.</div>
+                            <div style="font-size: 0.78rem; margin-top: 4px;">Klik tombol <strong>"Catat Aktivitas Harian"</strong> di atas untuk menambahkan log pekerjaan.</div>
+                            @if ($canCreate)
+                                <div style="margin-top: 12px;">
+                                    <button type="button" class="btn btn-primary btn-sm btn-open-modal-empty" style="background: #10b981; border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px; font-weight: 600;">
+                                        <i class="fas fa-plus me-1"></i> Catat Aktivitas Harian
+                                    </button>
+                                </div>
+                            @endif
                         </td>
                     </tr>
                 @endforelse
@@ -305,87 +366,157 @@
         </div>
     @endif
 
-    <!-- Modal Form Tambah / Edit Aktivitas -->
-    <div id="modalAktivitas" class="dash-modal" style="display: none; position: fixed; inset: 0; z-index: 99999 !important; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
-        <div class="dash-modal-content" style="background: var(--card-bg, #1e293b); border: 1px solid var(--border-color); border-radius: 16px; width: 100%; max-width: 580px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4); animation: modalFadeIn 0.2s ease;">
-            <div style="padding: 18px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
-                <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-color);" id="modalAktivitasTitle">
-                    <i class="fas fa-pen-to-square text-primary me-2"></i> Catat Aktivitas Harian
-                </div>
-                <button type="button" id="btnCloseModalAktivitas" style="background: transparent; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer;">
+    <!-- Modal Form Tambah / Edit Aktivitas (Standar Baku Responsive SAE) -->
+    <div id="modalAktivitas" class="modal-backdrop" style="display: none; position: fixed; inset: 0; z-index: 99999 !important; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; overflow-y: auto;">
+        <div class="card modal-card-responsive" style="max-width: 620px; width: 96%; max-height: 88vh; display: flex; flex-direction: column; margin: auto; border-radius: 14px; padding: 18px 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--bg-card); box-sizing: border-box; overflow: hidden;">
+            <div class="pm-modal-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; flex-shrink: 0;">
+                <h3 id="modalAktivitasTitle" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-pen-to-square text-primary"></i> Catat Aktivitas Harian
+                </h3>
+                <button type="button" id="btnCloseModalAktivitas" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
-            <form id="formAktivitas" action="{{ route('dashboard.tendik.aktivitas.store') }}" method="POST" enctype="multipart/form-data" style="padding: 24px;">
+            <form id="formAktivitas" action="{{ route('dashboard.tendik.aktivitas.store') }}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
                 @csrf
                 <div id="methodOverride"></div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Tanggal <span class="text-danger">*</span></label>
-                        <input type="date" name="tanggal" id="inputTanggal" value="{{ date('Y-m-d') }}" required class="form-control" style="font-size: 0.85rem; height: 38px; border-radius: 8px;">
+                <div class="modal-body-scroll" style="overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; -webkit-overflow-scrolling: touch;">
+                    <!-- Rekomendasi / Preset Tupoksi Bidang (Quick Manual Fill) -->
+                    <div style="margin-bottom: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(59, 130, 246, 0.08); border: 1px dashed rgba(59, 130, 246, 0.3);">
+                        <label style="font-size: 0.76rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            <i class="fas fa-wand-magic-sparkles"></i> Rekomendasi Tupoksi Cepat (Otomatis Mengisi Form)
+                        </label>
+                        <select id="selectTupoksiPreset" class="form-control" style="font-size: 0.82rem; height: 36px; border-radius: 8px; background: var(--bg-hover); color: var(--text-color);">
+                            <option value="">-- Pilih dari Rekomendasi Tupoksi Bidang (Opsional) --</option>
+                        </select>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; display: block;">
+                            Pilih template tugas untuk mengisi judul, uraian & output secara otomatis, atau ketik manual di bawah.
+                        </span>
                     </div>
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Bidang Tugas <span class="text-danger">*</span></label>
-                        <select name="bidang" id="inputBidang" required class="form-control" style="font-size: 0.85rem; height: 38px; border-radius: 8px;">
-                            @foreach ($bidangOptions as $bKey => $bLabel)
-                                <option value="{{ $bKey }}" {{ $activeBidang === $bKey ? 'selected' : '' }}>{{ $bLabel }}</option>
+
+                    @if ($isKepalaTas && count($pegawaiList) > 0)
+                        <!-- Pilihan Pegawai (Khusus Kepala TAS / Admin) -->
+                        <div class="pm-field" style="margin-bottom: 12px;">
+                            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                <i class="fas fa-user-gear text-primary me-1"></i> Catat Untuk Pegawai (Khusus Kepala TAS / Admin)
+                            </label>
+                            <select name="pegawai_ptk_id" id="inputPegawaiPtk" class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                                <option value="">Saya Sendiri ({{ $userName }})</option>
+                                @foreach ($pegawaiList as $p)
+                                    <option value="{{ $p->ptk_id }}">{{ $p->nama }} {{ $p->nip ? '('.$p->nip.')' : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                    <div class="form-grid-2" style="margin-bottom: 10px;">
+                        <div>
+                            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                Tanggal <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="date" name="tanggal" id="inputTanggal" value="{{ date('Y-m-d') }}" required class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                Bidang Tugas <span style="color: #ef4444;">*</span>
+                            </label>
+                            <select name="bidang" id="inputBidang" required class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                                @foreach ($bidangOptions as $bKey => $bLabel)
+                                    <option value="{{ $bKey }}" {{ $activeBidang === $bKey ? 'selected' : '' }}>{{ $bLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Pilihan Target & Indikator Kinerja (Standar Disdik Jabar) -->
+                    <div class="pm-field" style="margin-bottom: 10px;">
+                        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                            <i class="fas fa-bullseye text-primary me-1"></i> Sasaran &amp; Indikator Kinerja (Standar Disdik Jabar)
+                        </label>
+                        <select name="indikator_id" id="inputIndikatorId" class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                            <option value="">-- Hubungkan ke Indikator Kinerja (Opsional) --</option>
+                            @foreach ($indikatorKinerjaList ?? [] as $ind)
+                                <option value="{{ $ind->id }}" data-bidang="{{ $ind->bidang }}" data-sasaran="{{ $ind->sasaran }}" data-target="{{ $ind->target_label }}">
+                                    [{{ strtoupper($ind->bidang) }}] {{ $ind->sasaran }} &bull; {{ $ind->indikator_kinerja }} (Target: {{ $ind->target_label }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
-                </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Jam Mulai <span class="text-danger">*</span></label>
-                        <input type="time" name="jam_mulai" id="inputJamMulai" value="{{ date('H:i') }}" required class="form-control" style="font-size: 0.85rem; height: 38px; border-radius: 8px;">
+                    <div class="form-grid-2" style="margin-bottom: 10px;">
+                        <div>
+                            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                Jam Mulai <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="time" name="jam_mulai" id="inputJamMulai" value="{{ date('H:i') }}" required class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                Jam Selesai
+                            </label>
+                            <input type="time" name="jam_selesai" id="inputJamSelesai" class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                        </div>
                     </div>
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Jam Selesai</label>
-                        <input type="time" name="jam_selesai" id="inputJamSelesai" class="form-control" style="font-size: 0.85rem; height: 38px; border-radius: 8px;">
+
+                    <div class="pm-field" style="margin-bottom: 10px;">
+                        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                            Judul Pekerjaan / Agenda <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="text" name="judul_aktivitas" id="inputJudul" placeholder="Contoh: Pengarsipan Berkas Ijazah, Maintenance Jaringan Lab..." required class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                    </div>
+
+                    <div class="pm-field" style="margin-bottom: 10px;">
+                        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                            Uraian Pekerjaan / Kegiatan <span style="color: #ef4444;">*</span>
+                        </label>
+                        <textarea name="uraian_pekerjaan" id="inputUraian" rows="3" placeholder="Jelaskan secara ringkas aktivitas dan langkah pekerjaan yang dilaksanakan..." required class="form-control" style="font-size: 0.82rem; border-radius: 8px; resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="form-grid-2" style="margin-bottom: 10px;">
+                        <div>
+                            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                Hasil / Output Keluaran
+                            </label>
+                            <input type="text" name="output_hasil" id="inputOutput" placeholder="Contoh: 35 Berkas selesai, Server up..." class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                                Status Pelaksanaan <span style="color: #ef4444;">*</span>
+                            </label>
+                            <select name="status" id="inputStatus" required class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
+                                <option value="selesai">Selesai</option>
+                                <option value="proses">Sedang Proses</option>
+                                <option value="tertunda">Tertunda / Ada Kendala</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pm-field" style="margin-bottom: 14px;">
+                        <label style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
+                            Lampiran Bukti (Opsional - PDF/JPG/PNG/DOC)
+                        </label>
+                        <input type="file" name="lampiran" id="inputLampiran" class="form-control" style="font-size: 0.8rem; height: 38px; border-radius: 8px;">
                     </div>
                 </div>
 
-                <div style="margin-bottom: 14px;">
-                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Judul Pekerjaan / Agenda <span class="text-danger">*</span></label>
-                    <input type="text" name="judul_aktivitas" id="inputJudul" placeholder="Contoh: Pengarsipan Berkas Ijazah, Maintenance Jaringan Lab..." required class="form-control" style="font-size: 0.85rem; height: 38px; border-radius: 8px;">
-                </div>
-
-                <div style="margin-bottom: 14px;">
-                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Uraian Pekerjaan / Kegiatan <span class="text-danger">*</span></label>
-                    <textarea name="uraian_pekerjaan" id="inputUraian" rows="3" placeholder="Jelaskan secara ringkas aktivitas dan langkah pekerjaan yang dilaksanakan..." required class="form-control" style="font-size: 0.85rem; border-radius: 8px; resize: vertical;"></textarea>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Hasil / Output Keluaran</label>
-                        <input type="text" name="output_hasil" id="inputOutput" placeholder="Contoh: 35 Berkas selesai, Server up..." class="form-control" style="font-size: 0.85rem; height: 38px; border-radius: 8px;">
-                    </div>
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Status Pelaksanaan <span class="text-danger">*</span></label>
-                        <select name="status" id="inputStatus" required class="form-control" style="font-size: 0.85rem; height: 38px; border-radius: 8px;">
-                            <option value="selesai">Selesai</option>
-                            <option value="proses">Sedang Proses</option>
-                            <option value="tertunda">Tertunda / Ada Kendala</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px; display: block;">Lampiran Bukti (Opsional - PDF/JPG/PNG)</label>
-                    <input type="file" name="lampiran" id="inputLampiran" class="form-control" style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-                    <button type="button" id="btnCancelModalAktivitas" class="btn btn-outline" style="padding: 9px 18px; font-size: 0.85rem; border-radius: 8px;">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="background: #10b981; border: none; padding: 9px 20px; font-size: 0.85rem; border-radius: 8px; font-weight: 700;">
+                <div class="pm-actions" style="display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 8px; flex-shrink: 0;">
+                    <button type="button" id="btnCancelModalAktivitas" class="btn btn-outline" style="padding: 7px 16px; font-size: 0.82rem; border-radius: 8px;">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="padding: 7px 20px; font-size: 0.82rem; border-radius: 8px; font-weight: 600; background: linear-gradient(135deg, #10b981, #059669); border: none;">
                         <i class="fas fa-save me-1"></i> Simpan Aktivitas
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Data Template Tupoksi untuk JS -->
+    <script type="application/json" id="tupoksiTemplatesData">
+        {!! json_encode($tupoksiTemplates, JSON_UNESCAPED_UNICODE) !!}
+    </script>
 @endsection
 
 @push('scripts')

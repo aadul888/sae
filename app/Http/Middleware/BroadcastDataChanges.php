@@ -27,7 +27,10 @@ class BroadcastDataChanges
                 $statusCode < 400 &&
                 !str_contains($path, 'login') &&
                 !str_contains($path, 'logout') &&
-                !str_contains($path, 'realtime')
+                !str_contains($path, 'realtime') &&
+                !str_contains($path, 'aktivitas') &&
+                !str_contains($path, 'target-capaian') &&
+                !str_contains($path, 'laporan')
             ) {
                 try {
                     RealtimeService::trigger('data.changed', [

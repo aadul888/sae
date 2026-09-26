@@ -802,6 +802,74 @@ class DashboardController extends Controller
         if ($piketStats['jurnal_terisi'] === 0) $piketStats['jurnal_terisi'] = 28;
         if ($piketStats['izin_hari_ini'] === 0) $piketStats['izin_hari_ini'] = 5;
 
+        // Data Demografi & Aktivitas Multi-Periode untuk Dashboard Kepegawaian
+        $kepegawaianCharts = [];
+        if (Schema::hasTable('gtk')) {
+            $kepegawaianCharts['jenisKelamin'] = DB::table('gtk')
+                ->selectRaw('jenis_kelamin, count(*) as total')
+                ->whereIn('jenis_kelamin', ['L', 'P'])
+                ->groupBy('jenis_kelamin')
+                ->pluck('total', 'jenis_kelamin')
+                ->toArray();
+
+            $kepegawaianCharts['pendidikan'] = DB::table('gtk')
+                ->selectRaw('pendidikan_terakhir, count(*) as total')
+                ->whereNotNull('pendidikan_terakhir')
+                ->where('pendidikan_terakhir', '!=', '')
+                ->groupBy('pendidikan_terakhir')
+                ->orderByDesc('total')
+                ->pluck('total', 'pendidikan_terakhir')
+                ->toArray();
+
+            $kepegawaianCharts['jenisPtk'] = DB::table('gtk')
+                ->selectRaw('jenis_ptk_id_str, count(*) as total')
+                ->whereNotNull('jenis_ptk_id_str')
+                ->where('jenis_ptk_id_str', '!=', '')
+                ->groupBy('jenis_ptk_id_str')
+                ->orderByDesc('total')
+                ->pluck('total', 'jenis_ptk_id_str')
+                ->toArray();
+
+            $kepegawaianCharts['statusKepegawaian'] = DB::table('gtk')
+                ->selectRaw('status_kepegawaian_id_str, count(*) as total')
+                ->whereNotNull('status_kepegawaian_id_str')
+                ->where('status_kepegawaian_id_str', '!=', '')
+                ->groupBy('status_kepegawaian_id_str')
+                ->orderByDesc('total')
+                ->pluck('total', 'status_kepegawaian_id_str')
+                ->toArray();
+        }
+
+        // Agregasi Aktivitas Kepegawaian Multi-Periode (Hari, Minggu, Bulan, Triwulan, Semester, Tahun, Tahun Ajaran)
+        $kepegawaianAktivitasMultiPeriode = $this->buildKepegawaianMultiPeriodeData($totalTendik ?: 19);
+
+        // Matriks Sasaran & Indikator Kinerja Kepegawaian (Standar Dinas Pendidikan Provinsi Jawa Barat)
+        $kepegawaianIndikatorList = collect();
+        if (Schema::hasTable('tendik_indikator_kinerja')) {
+            $kepegawaianIndikatorList = \App\Models\TendikIndikatorKinerja::where('bidang', 'kepegawaian')
+                ->where('is_active', true)
+                ->orderBy('urutan')
+                ->get()
+                ->map(function ($ind) {
+                    $realisasi = 0;
+                    if (Schema::hasTable('tendik_aktivitas')) {
+                        $realisasi = DB::table('tendik_aktivitas')
+                            ->where('bidang', 'kepegawaian')
+                            ->where(function ($q) use ($ind) {
+                                $q->where('indikator_id', $ind->id)
+                                  ->orWhere('judul_aktivitas', 'like', '%' . substr($ind->sasaran, 0, 16) . '%')
+                                  ->orWhere('uraian_pekerjaan', 'like', '%' . substr($ind->sasaran, 0, 16) . '%');
+                            })
+                            ->where('status', 'selesai')
+                            ->count();
+                    }
+                    $ind->realisasi_count = $realisasi;
+                    $ind->realisasi_label = $realisasi > 0 ? "{$realisasi} {$ind->satuan}" : "0 {$ind->satuan}";
+                    $ind->status_kpi = $realisasi >= $ind->target_kuantitas ? 'Tercapai' : ($realisasi > 0 ? 'Sedang Berjalan' : 'Dalam Proses');
+                    return $ind;
+                });
+        }
+
         return view('dashboard.tendik', compact(
             'stats',
             'administrasi_tugas',
@@ -833,8 +901,214 @@ class DashboardController extends Controller
             'aktivitasHariIniTertunda',
             'aktivitasBulanIniCount',
             'aktivitasSayaList',
-            'pengumumanList'
+            'pengumumanList',
+            'kepegawaianCharts',
+            'kepegawaianAktivitasMultiPeriode',
+            'kepegawaianIndikatorList'
         ));
+    }
+
+    /**
+     * Bangun dataset aktivitas multi-periode untuk dashboard kepegawaian
+     */
+    protected function buildKepegawaianMultiPeriodeData(int $totalTendik = 19): array
+    {
+        $now = \Carbon\Carbon::now();
+        $today = $now->toDateString();
+        $factor = max(1, $totalTendik);
+
+        $hasTable = Schema::hasTable('tendik_aktivitas');
+        $allActs = $hasTable ? DB::table('tendik_aktivitas')->get() : collect();
+
+        // 1. HARI
+        $hariLabels = [];
+        $hariTarget = [];
+        $hariSelesai = [];
+        $hariProses = [];
+        $todayActs = $allActs->filter(fn($a) => $a->tanggal === $today);
+        for ($h = 7; $h <= 16; $h++) {
+            $hStr = str_pad((string)$h, 2, '0', STR_PAD_LEFT);
+            $hariLabels[] = "{$hStr}:00";
+            $hariTarget[] = (int) ceil($factor * 0.1);
+            $matched = $todayActs->filter(fn($a) => substr($a->jam_mulai, 0, 2) === $hStr);
+            $hariSelesai[] = $matched->where('status', 'selesai')->count();
+            $hariProses[] = $matched->where('status', 'proses')->count();
+        }
+
+        // 2. MINGGU
+        $mingguLabels = [];
+        $mingguTarget = [];
+        $mingguSelesai = [];
+        $mingguProses = [];
+        $startOfWeek = $now->copy()->startOfWeek();
+        for ($i = 0; $i < 7; $i++) {
+            $day = $startOfWeek->copy()->addDays($i);
+            $dStr = $day->toDateString();
+            $mingguLabels[] = $day->translatedFormat('D d/m');
+            $mingguTarget[] = $day->isSunday() ? 0 : $factor;
+            $matched = $allActs->filter(fn($a) => $a->tanggal === $dStr);
+            $mingguSelesai[] = $matched->where('status', 'selesai')->count();
+            $mingguProses[] = $matched->where('status', 'proses')->count();
+        }
+
+        // 3. BULAN
+        $bulanLabels = [];
+        $bulanTarget = [];
+        $bulanSelesai = [];
+        $bulanProses = [];
+        $startOfMonth = $now->copy()->startOfMonth();
+        $endOfMonth = $now->copy()->endOfMonth();
+        $curW = $startOfMonth->copy();
+        $wIdx = 1;
+        while ($curW <= $endOfMonth) {
+            $wEnd = $curW->copy()->endOfWeek();
+            if ($wEnd > $endOfMonth) $wEnd = $endOfMonth->copy();
+            $bulanLabels[] = "Mgg {$wIdx} (" . $curW->format('d/m') . '-' . $wEnd->format('d/m') . ')';
+            $workDays = $curW->diffInDaysFiltered(fn(\Carbon\Carbon $d) => !$d->isSunday(), $wEnd) + 1;
+            $bulanTarget[] = $workDays * $factor;
+            $matched = $allActs->filter(function ($a) use ($curW, $wEnd) {
+                $d = \Carbon\Carbon::parse($a->tanggal);
+                return $d >= $curW && $d <= $wEnd;
+            });
+            $bulanSelesai[] = $matched->where('status', 'selesai')->count();
+            $bulanProses[] = $matched->where('status', 'proses')->count();
+            $curW = $wEnd->copy()->addDay();
+            $wIdx++;
+        }
+
+        // 4. TRIWULAN
+        $triwulanLabels = [];
+        $triwulanTarget = [];
+        $triwulanSelesai = [];
+        $triwulanProses = [];
+        $twNum = (int) ceil($now->month / 3);
+        $twStartMonth = ($twNum - 1) * 3 + 1;
+        for ($m = $twStartMonth; $m < $twStartMonth + 3; $m++) {
+            $mCarbon = \Carbon\Carbon::createFromDate($now->year, $m, 1);
+            $triwulanLabels[] = $mCarbon->translatedFormat('F Y');
+            $triwulanTarget[] = 22 * $factor;
+            $ym = $mCarbon->format('Y-m');
+            $matched = $allActs->filter(fn($a) => substr($a->tanggal, 0, 7) === $ym);
+            $triwulanSelesai[] = $matched->where('status', 'selesai')->count();
+            $triwulanProses[] = $matched->where('status', 'proses')->count();
+        }
+
+        // 5. SEMESTER
+        $semesterLabels = [];
+        $semesterTarget = [];
+        $semesterSelesai = [];
+        $semesterProses = [];
+        $isGanjil = $now->month >= 7;
+        $smtStartMonth = $isGanjil ? 7 : 1;
+        $smtYear = $now->year;
+        for ($m = $smtStartMonth; $m < $smtStartMonth + 6; $m++) {
+            $mCarbon = \Carbon\Carbon::createFromDate($smtYear, $m, 1);
+            $semesterLabels[] = $mCarbon->translatedFormat('M Y');
+            $semesterTarget[] = 22 * $factor;
+            $ym = $mCarbon->format('Y-m');
+            $matched = $allActs->filter(fn($a) => substr($a->tanggal, 0, 7) === $ym);
+            $semesterSelesai[] = $matched->where('status', 'selesai')->count();
+            $semesterProses[] = $matched->where('status', 'proses')->count();
+        }
+
+        // 6. TAHUN KALENDER
+        $tahunLabels = [];
+        $tahunTarget = [];
+        $tahunSelesai = [];
+        $tahunProses = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $mCarbon = \Carbon\Carbon::createFromDate($now->year, $m, 1);
+            $tahunLabels[] = $mCarbon->translatedFormat('M');
+            $tahunTarget[] = 22 * $factor;
+            $ym = $mCarbon->format('Y-m');
+            $matched = $allActs->filter(fn($a) => substr($a->tanggal, 0, 7) === $ym);
+            $tahunSelesai[] = $matched->where('status', 'selesai')->count();
+            $tahunProses[] = $matched->where('status', 'proses')->count();
+        }
+
+        // 7. TAHUN AJARAN (Jul - Jun)
+        $taLabels = [];
+        $taTarget = [];
+        $taSelesai = [];
+        $taProses = [];
+        $taStartYear = $now->month >= 7 ? $now->year : $now->year - 1;
+        for ($i = 0; $i < 12; $i++) {
+            $m = (($i + 6) % 12) + 1;
+            $y = $i < 6 ? $taStartYear : $taStartYear + 1;
+            $mCarbon = \Carbon\Carbon::createFromDate($y, $m, 1);
+            $taLabels[] = $mCarbon->translatedFormat('M y');
+            $taTarget[] = 22 * $factor;
+            $ym = $mCarbon->format('Y-m');
+            $matched = $allActs->filter(fn($a) => substr($a->tanggal, 0, 7) === $ym);
+            $taSelesai[] = $matched->where('status', 'selesai')->count();
+            $taProses[] = $matched->where('status', 'proses')->count();
+        }
+
+        return [
+            'hari' => [
+                'label' => 'Hari Ini (' . $now->translatedFormat('d M Y') . ')',
+                'labels' => $hariLabels,
+                'target' => $hariTarget,
+                'selesai' => $hariSelesai,
+                'proses' => $hariProses,
+                'total_target' => array_sum($hariTarget),
+                'total_selesai' => array_sum($hariSelesai),
+            ],
+            'minggu' => [
+                'label' => 'Minggu Ini (' . $startOfWeek->translatedFormat('d M') . ' - ' . $startOfWeek->copy()->endOfWeek()->translatedFormat('d M Y') . ')',
+                'labels' => $mingguLabels,
+                'target' => $mingguTarget,
+                'selesai' => $mingguSelesai,
+                'proses' => $mingguProses,
+                'total_target' => array_sum($mingguTarget),
+                'total_selesai' => array_sum($mingguSelesai),
+            ],
+            'bulan' => [
+                'label' => 'Bulan Ini (' . $now->translatedFormat('F Y') . ')',
+                'labels' => $bulanLabels,
+                'target' => $bulanTarget,
+                'selesai' => $bulanSelesai,
+                'proses' => $bulanProses,
+                'total_target' => array_sum($bulanTarget),
+                'total_selesai' => array_sum($bulanSelesai),
+            ],
+            'triwulan' => [
+                'label' => 'Triwulan ' . $twNum . ' (' . $now->year . ')',
+                'labels' => $triwulanLabels,
+                'target' => $triwulanTarget,
+                'selesai' => $triwulanSelesai,
+                'proses' => $triwulanProses,
+                'total_target' => array_sum($triwulanTarget),
+                'total_selesai' => array_sum($triwulanSelesai),
+            ],
+            'semester' => [
+                'label' => ($isGanjil ? 'Semester Ganjil' : 'Semester Genap') . ' ' . $now->year,
+                'labels' => $semesterLabels,
+                'target' => $semesterTarget,
+                'selesai' => $semesterSelesai,
+                'proses' => $semesterProses,
+                'total_target' => array_sum($semesterTarget),
+                'total_selesai' => array_sum($semesterSelesai),
+            ],
+            'tahun' => [
+                'label' => 'Tahun Kalender ' . $now->year,
+                'labels' => $tahunLabels,
+                'target' => $tahunTarget,
+                'selesai' => $tahunSelesai,
+                'proses' => $tahunProses,
+                'total_target' => array_sum($tahunTarget),
+                'total_selesai' => array_sum($tahunSelesai),
+            ],
+            'tahun_ajaran' => [
+                'label' => "Tahun Ajaran {$taStartYear}/" . ($taStartYear + 1),
+                'labels' => $taLabels,
+                'target' => $taTarget,
+                'selesai' => $taSelesai,
+                'proses' => $taProses,
+                'total_target' => array_sum($taTarget),
+                'total_selesai' => array_sum($taSelesai),
+            ],
+        ];
     }
 
     public function pesertaDidik(?Request $request = null)

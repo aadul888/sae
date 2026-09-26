@@ -3,28 +3,23 @@
 @section('title', 'Administrasi Kepegawaian GTK - SAE')
 
 @section('content')
-<div class="dash-container" style="padding: 24px; max-width: 1400px; margin: 0 auto;">
-
     <!-- 1. Header Banner Baku SAE -->
-    <div class="dash-banner" style="background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(16,185,129,0.06) 100%); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        <div class="dash-banner-left" style="display: flex; align-items: center; gap: 16px;">
-            <div class="dash-banner-icon" style="width: 52px; height: 52px; border-radius: 12px; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--primary);">
-                <i class="fas fa-id-card-alt"></i>
-            </div>
-            <div class="dash-banner-info">
-                <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin: 0 0 4px 0;">Administrasi Kepegawaian GTK</h1>
-                <p style="margin: 0; font-size: 0.86rem; color: var(--text-muted);">
-                    Pengelolaan arsip berkas pegawai guru &amp; tendik, kenaikan gaji berkala (KGB), serta permohonan cuti dan izin resmi.
-                </p>
-            </div>
+    <div class="dash-banner">
+        <div>
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
+                <i class="fas fa-id-card-alt text-primary me-2"></i> Administrasi Kepegawaian GTK
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
+                Pengelolaan arsip berkas pegawai guru &amp; tendik, kenaikan gaji berkala (KGB), serta permohonan cuti dan izin resmi.
+            </p>
         </div>
 
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <div class="dash-banner-actions">
             <a href="{{ route('dashboard.tendik', ['bidang' => 'kepegawaian']) }}" class="btn btn-outline" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;" title="Dashboard Ringkasan Kepegawaian">
                 <i class="fas fa-gauge-high text-primary"></i>
             </a>
 
-            @if($tab === 'guru' || $tab === 'tendik')
+            @if($tab === 'pegawai' || $tab === 'berkas' || $tab === 'guru' || $tab === 'tendik')
                 <button type="button" class="btn btn-primary" id="btnOpenModalUploadBerkas" style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="Unggah Berkas Digital GTK">
                     <i class="fas fa-upload"></i> Unggah Berkas
                 </button>
@@ -58,21 +53,31 @@
     <div class="dash-stat-grid" style="margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
-                <i class="fas fa-chalkboard-user"></i>
+                <i class="fas fa-users"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_guru'] ?? 0) }}</div>
-                <div class="dash-stat-label">Pegawai Guru (Pendidik)</div>
+                <div class="dash-stat-value">{{ number_format(($stats['total_guru'] ?? 0) + ($stats['total_tendik'] ?? 0)) }}</div>
+                <div class="dash-stat-label">Total Pegawai GTK</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <i class="fas fa-chalkboard-user"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value">{{ number_format($stats['total_guru'] ?? 0) }}</div>
+                <div class="dash-stat-label">Pendidik (Guru)</div>
+            </div>
+        </div>
+
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: var(--accent);">
                 <i class="fas fa-id-badge"></i>
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ number_format($stats['total_tendik'] ?? 0) }}</div>
-                <div class="dash-stat-label">Tenaga Kependidikan (Tendik)</div>
+                <div class="dash-stat-label">Tenaga Kependidikan</div>
             </div>
         </div>
 
@@ -83,16 +88,6 @@
             <div class="dash-stat-info">
                 <div class="dash-stat-value">{{ number_format($stats['kgb_jatuh_tempo'] ?? 0) }}</div>
                 <div class="dash-stat-label">KGB Jatuh Tempo (&le; 90 Hari)</div>
-            </div>
-        </div>
-
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
-                <i class="fas fa-plane-departure"></i>
-            </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['cuti_aktif'] ?? 0) }}</div>
-                <div class="dash-stat-label">Cuti / Izin Aktif Saat Ini</div>
             </div>
         </div>
     </div>
@@ -115,13 +110,13 @@
     <!-- 4. Tab Navigasi Baku SAE -->
     <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
         <div class="periode-nav-desktop">
-            <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'guru']) }}"
-                class="periode-nav-tab {{ $tab === 'guru' ? 'active' : '' }}">
-                <i class="fas fa-chalkboard-user"></i> Pegawai Guru
+            <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'pegawai']) }}"
+                class="periode-nav-tab {{ $tab === 'pegawai' || $tab === 'guru' ? 'active' : '' }}">
+                <i class="fas fa-users"></i> Pegawai
             </a>
-            <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'tendik']) }}"
-                class="periode-nav-tab {{ $tab === 'tendik' ? 'active' : '' }}">
-                <i class="fas fa-id-badge"></i> Pegawai Tendik
+            <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'berkas']) }}"
+                class="periode-nav-tab {{ $tab === 'berkas' || $tab === 'tendik' ? 'active' : '' }}">
+                <i class="fas fa-folder-open"></i> Berkas Pegawai
             </a>
             <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'kgb']) }}"
                 class="periode-nav-tab {{ $tab === 'kgb' ? 'active' : '' }}">
@@ -151,10 +146,37 @@
                     <span>entri</span>
                 </div>
 
-                @if(!empty($search))
+                @if($tab === 'pegawai' || $tab === 'berkas' || $tab === 'guru' || $tab === 'tendik')
+                    <!-- Filter Jenis PTK -->
+                    <select id="filterJenis" class="toolbar-filter-select">
+                        <option value="">Semua Jenis PTK</option>
+                        @foreach ($jenisPtkList as $j)
+                            <option value="{{ $j }}" {{ ($filterJenis ?? '') === $j ? 'selected' : '' }}>{{ $j }}</option>
+                        @endforeach
+                    </select>
+
+                    <!-- Filter Status Kepegawaian -->
+                    <select id="filterStatus" class="toolbar-filter-select">
+                        <option value="">Semua Status Kepegawaian</option>
+                        @foreach ($statusKepegawaianList as $s)
+                            <option value="{{ $s }}" {{ ($filterStatus ?? '') === $s ? 'selected' : '' }}>{{ $s }}</option>
+                        @endforeach
+                    </select>
+
+                    @if($tab === 'pegawai' || $tab === 'guru')
+                        <!-- Filter Gender -->
+                        <select id="filterGender" class="toolbar-filter-select" style="min-width: 120px;">
+                            <option value="">Semua Gender</option>
+                            <option value="L" {{ ($filterGender ?? '') === 'L' ? 'selected' : '' }}>Laki-laki (L)</option>
+                            <option value="P" {{ ($filterGender ?? '') === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
+                        </select>
+                    @endif
+                @endif
+
+                @if(!empty($search) || !empty($filterJenis) || !empty($filterStatus) || !empty($filterGender))
                     <a href="{{ route('dashboard.kepegawaian.index', ['tab' => $tab]) }}"
                         class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
-                        title="Reset pencarian">
+                        title="Reset filter & pencarian">
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif
@@ -172,71 +194,93 @@
 
     <!-- 6. Konten Data Sesuai Tab Aktif -->
 
-    {{-- TAB 1: PEGAWAI GURU --}}
-    @if($tab === 'guru')
+    {{-- TAB 1: PEGAWAI (GURU & TENDIK LENGKAP) --}}
+    @if($tab === 'pegawai' || $tab === 'guru')
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">No</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Identitas Guru</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jenis PTK &amp; Status</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Berkas Digital Tersimpan</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">Aksi</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">No</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Lengkap Pegawai</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">NUPTK / NIP</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 70px;">L/P</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jenis PTK</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pendidikan Terakhir</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($guruList as $idx => $gtk)
+                    @forelse($pegawaiList as $idx => $item)
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td data-label="No" style="padding: 12px 18px; font-size: 0.88rem; color: var(--text-muted); text-align: center;">
-                                {{ $guruList->firstItem() + $idx }}
+                                {{ $pegawaiList->firstItem() + $idx }}
                             </td>
-                            <td data-label="Identitas Guru" style="padding: 12px 18px;">
-                                <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">{{ $gtk->nama }}</div>
-                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                                    NIP: {{ $gtk->nip ?: '-' }} &bull; NUPTK: {{ $gtk->nuptk ?: '-' }}
+                            <td data-label="Nama" style="padding: 12px 18px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.85rem; flex-shrink: 0;">
+                                        <i class="fas {{ str_contains(strtolower($item->jenis_ptk_id_str ?? ''), 'guru') ? 'fa-chalkboard-user' : 'fa-id-badge' }}"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">{{ $item->nama }}</div>
+                                        @if(!empty($item->nik))
+                                            <div style="font-size: 0.72rem; font-family: monospace; color: var(--text-muted);">
+                                                NIK: <span class="copyable" data-copy="{{ $item->nik }}" title="Klik salin">{{ $item->nik }}</span>
+                                            </div>
+                                        @endif
+                                        @if($item->email)
+                                            <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $item->email }}</div>
+                                        @endif
+                                    </div>
                                 </div>
                             </td>
-                            <td data-label="Jenis PTK" style="padding: 12px 18px;">
-                                <span class="badge-compact" style="background: rgba(99,102,241,0.1); color: var(--primary);">
-                                    <i class="fas fa-chalkboard-user me-1"></i> {{ $gtk->jenis_ptk_id_str ?: 'Guru' }}
+                            <td data-label="NUPTK/NIP" style="padding: 12px 18px; font-family: monospace; font-size: 0.84rem;">
+                                <div style="color: var(--primary); font-weight: 600;">
+                                    {{ $item->nuptk ? $item->nuptk : '-' }}
+                                </div>
+                                @if($item->nip)
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        NIP: {{ $item->nip }}
+                                    </div>
+                                @endif
+                            </td>
+                            <td data-label="L/P" style="padding: 12px 18px; text-align: center;">
+                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}" style="font-size: 0.72rem; padding: 2px 7px;">
+                                    {{ $item->jenis_kelamin ?: '-' }}
                                 </span>
                             </td>
-                            <td data-label="Berkas Digital" style="padding: 12px 18px;">
-                                @if($gtk->berkas->isNotEmpty())
-                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                        @foreach($gtk->berkas as $b)
-                                            <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.78rem;">
-                                                <i class="fas fa-file-pdf" style="color: #ef4444;"></i>
-                                                <a href="{{ asset('storage/' . $b->file_path) }}" target="_blank" style="color: var(--text-color); text-decoration: none; font-weight: 500;">
-                                                    {{ $b->judul_dokumen }}
-                                                </a>
-                                                <form action="{{ route('dashboard.kepegawaian.berkas.delete', $b->id) }}" method="POST" style="display: inline;" data-confirm="delete" data-name="{{ $b->judul_dokumen }}">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <input type="hidden" name="tab_redirect" value="guru">
-                                                    <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: 0.85rem;" title="Hapus berkas">&times;</button>
-                                                </form>
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                @else
-                                    <span style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Belum ada berkas digital</span>
+                            <td data-label="Jenis PTK" style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-color);">
+                                <span class="badge-compact" style="background: rgba(99,102,241,0.1); color: var(--primary);">
+                                    {{ $item->jenis_ptk_id_str ?: 'GTK' }}
+                                </span>
+                            </td>
+                            <td data-label="Status" style="padding: 12px 18px; font-size: 0.82rem;">
+                                <span class="badge {{ str_contains(strtoupper($item->status_kepegawaian_id_str ?? ''), 'PNS') ? 'badge-primary' : 'badge-outline' }}" style="font-size: 0.72rem; padding: 3px 8px;">
+                                    {{ $item->status_kepegawaian_id_str ?: '-' }}
+                                </span>
+                            </td>
+                            <td data-label="Pendidikan" style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-muted);">
+                                <div style="color: var(--text-color); font-weight: 600;">{{ $item->pendidikan_terakhir ?: '-' }}</div>
+                                @if($item->bidang_studi_terakhir)
+                                    <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $item->bidang_studi_terakhir }}</div>
                                 @endif
                             </td>
                             <td data-label="Aksi" style="padding: 12px 18px; text-align: center;">
-                                <div class="table-actions" style="justify-content: center;">
-                                    <button type="button" class="btn-icon btn-upload-gtk-berkas" data-id="{{ $gtk->ptk_id }}" data-nama="{{ $gtk->nama }}" title="Unggah Berkas Guru">
-                                        <i class="fas fa-upload"></i>
+                                <div class="table-actions" style="justify-content: center; gap: 6px;">
+                                    <button type="button" class="btn-icon btn-detail-pegawai" data-id="{{ $item->ptk_id }}" title="Rincian Lengkap Pegawai">
+                                        <i class="fas fa-id-card" style="color: var(--primary);"></i>
+                                    </button>
+                                    <button type="button" class="btn-icon btn-upload-gtk-berkas" data-id="{{ $item->ptk_id }}" data-nama="{{ $item->nama }}" title="Unggah Berkas">
+                                        <i class="fas fa-upload" style="color: #10b981;"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
-                                <i class="fas fa-chalkboard-user mb-2" style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
-                                <div>Tidak ada data pegawai guru ditemukan.</div>
+                            <td colspan="8" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
+                                <i class="fas fa-users mb-2" style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                <div>Tidak ada data pegawai GTK ditemukan.</div>
                             </td>
                         </tr>
                     @endforelse
@@ -244,67 +288,73 @@
             </table>
         </div>
 
-        @if ($guruList->hasPages())
+        @if ($pegawaiList->hasPages())
             <div class="custom-pagination">
-                @if ($guruList->onFirstPage())
+                @if ($pegawaiList->onFirstPage())
                     <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
                 @else
-                    <a href="{{ $guruList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                    <a href="{{ $pegawaiList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
                 @endif
                 @php
-                    $cur = $guruList->currentPage();
-                    $last = $guruList->lastPage();
+                    $cur = $pegawaiList->currentPage();
+                    $last = $pegawaiList->lastPage();
                     $from = max(1, $cur - 2);
                     $to = min($last, $cur + 2);
                 @endphp
                 @if ($from > 1)
-                    <a href="{{ $guruList->url(1) }}" class="page-btn">1</a>
+                    <a href="{{ $pegawaiList->url(1) }}" class="page-btn">1</a>
                     @if ($from > 2) <span class="page-info">&hellip;</span> @endif
                 @endif
                 @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $guruList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                    <a href="{{ $pegawaiList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
                 @endfor
                 @if ($to < $last)
                     @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
-                    <a href="{{ $guruList->url($last) }}" class="page-btn">{{ $last }}</a>
+                    <a href="{{ $pegawaiList->url($last) }}" class="page-btn">{{ $last }}</a>
                 @endif
-                @if ($guruList->hasMorePages())
-                    <a href="{{ $guruList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                @if ($pegawaiList->hasMorePages())
+                    <a href="{{ $pegawaiList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
                 @else
                     <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
                 @endif
             </div>
         @endif
 
-    {{-- TAB 2: PEGAWAI TENDIK --}}
-    @elseif($tab === 'tendik')
+    {{-- TAB 2: BERKAS PEGAWAI --}}
+    @elseif($tab === 'berkas' || $tab === 'tendik')
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">No</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Identitas Tendik</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jabatan / Unit Tugas</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">No</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Identitas Pegawai</th>
+                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Jenis PTK &amp; Status</th>
                         <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Berkas Digital Tersimpan</th>
                         <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($tendikList as $idx => $gtk)
+                    @forelse($berkasList as $idx => $gtk)
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td data-label="No" style="padding: 12px 18px; font-size: 0.88rem; color: var(--text-muted); text-align: center;">
-                                {{ $tendikList->firstItem() + $idx }}
+                                {{ $berkasList->firstItem() + $idx }}
                             </td>
-                            <td data-label="Identitas Tendik" style="padding: 12px 18px;">
+                            <td data-label="Identitas Pegawai" style="padding: 12px 18px;">
                                 <div style="font-weight: 700; color: var(--text-color); font-size: 0.92rem;">{{ $gtk->nama }}</div>
                                 <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
                                     NIP: {{ $gtk->nip ?: '-' }} &bull; NUPTK: {{ $gtk->nuptk ?: '-' }}
                                 </div>
                             </td>
-                            <td data-label="Jabatan" style="padding: 12px 18px;">
-                                <span class="badge-compact" style="background: rgba(16,185,129,0.1); color: #10b981;">
-                                    <i class="fas fa-id-badge me-1"></i> {{ $gtk->jenis_ptk_id_str ?: 'Tenaga Kependidikan' }}
-                                </span>
+                            <td data-label="Jenis PTK & Status" style="padding: 12px 18px;">
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    <span class="badge-compact" style="background: rgba(99,102,241,0.1); color: var(--primary);">
+                                        <i class="fas {{ str_contains(strtolower($gtk->jenis_ptk_id_str ?? ''), 'guru') ? 'fa-chalkboard-user' : 'fa-id-badge' }} me-1"></i>
+                                        {{ $gtk->jenis_ptk_id_str ?: 'GTK' }}
+                                    </span>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted);">
+                                        {{ $gtk->status_kepegawaian_id_str ?: 'Aktif' }}
+                                    </span>
+                                </div>
                             </td>
                             <td data-label="Berkas Digital" style="padding: 12px 18px;">
                                 @if($gtk->berkas->isNotEmpty())
@@ -318,7 +368,7 @@
                                                 <form action="{{ route('dashboard.kepegawaian.berkas.delete', $b->id) }}" method="POST" style="display: inline;" data-confirm="delete" data-name="{{ $b->judul_dokumen }}">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <input type="hidden" name="tab_redirect" value="tendik">
+                                                    <input type="hidden" name="tab_redirect" value="berkas">
                                                     <button type="submit" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: 0.85rem;" title="Hapus berkas">&times;</button>
                                                 </form>
                                             </span>
@@ -330,7 +380,7 @@
                             </td>
                             <td data-label="Aksi" style="padding: 12px 18px; text-align: center;">
                                 <div class="table-actions" style="justify-content: center;">
-                                    <button type="button" class="btn-icon btn-upload-gtk-berkas" data-id="{{ $gtk->ptk_id }}" data-nama="{{ $gtk->nama }}" title="Unggah Berkas Tendik">
+                                    <button type="button" class="btn-icon btn-upload-gtk-berkas" data-id="{{ $gtk->ptk_id }}" data-nama="{{ $gtk->nama }}" title="Unggah Berkas Pegawai">
                                         <i class="fas fa-upload"></i>
                                     </button>
                                 </div>
@@ -339,8 +389,8 @@
                     @empty
                         <tr>
                             <td colspan="5" style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
-                                <i class="fas fa-id-badge mb-2" style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
-                                <div>Tidak ada data tenaga kependidikan ditemukan.</div>
+                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                <div>Tidak ada data berkas pegawai ditemukan.</div>
                             </td>
                         </tr>
                     @endforelse
@@ -348,32 +398,32 @@
             </table>
         </div>
 
-        @if ($tendikList->hasPages())
+        @if ($berkasList->hasPages())
             <div class="custom-pagination">
-                @if ($tendikList->onFirstPage())
+                @if ($berkasList->onFirstPage())
                     <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
                 @else
-                    <a href="{{ $tendikList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                    <a href="{{ $berkasList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
                 @endif
                 @php
-                    $cur = $tendikList->currentPage();
-                    $last = $tendikList->lastPage();
+                    $cur = $berkasList->currentPage();
+                    $last = $berkasList->lastPage();
                     $from = max(1, $cur - 2);
                     $to = min($last, $cur + 2);
                 @endphp
                 @if ($from > 1)
-                    <a href="{{ $tendikList->url(1) }}" class="page-btn">1</a>
+                    <a href="{{ $berkasList->url(1) }}" class="page-btn">1</a>
                     @if ($from > 2) <span class="page-info">&hellip;</span> @endif
                 @endif
                 @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $tendikList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                    <a href="{{ $berkasList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
                 @endfor
                 @if ($to < $last)
                     @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
-                    <a href="{{ $tendikList->url($last) }}" class="page-btn">{{ $last }}</a>
+                    <a href="{{ $berkasList->url($last) }}" class="page-btn">{{ $last }}</a>
                 @endif
-                @if ($tendikList->hasMorePages())
-                    <a href="{{ $tendikList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                @if ($berkasList->hasMorePages())
+                    <a href="{{ $berkasList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
                 @else
                     <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
                 @endif
@@ -802,7 +852,67 @@
         </div>
     </div>
 
-</div>
+    <!-- MODAL 4: Rincian Lengkap Pegawai GTK (Biodata Lengkap) -->
+    <div id="pegawaiModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 12px; box-sizing: border-box;">
+        <div class="card modal-card-responsive" style="max-width: 650px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; margin: auto; border-radius: 14px; padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--bg-card); overflow: hidden;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <div>
+                    <h3 id="pegawaiModalTitle" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-id-card text-primary"></i> Rincian Lengkap Pegawai GTK
+                    </h3>
+                    <div id="pegawaiSubtitle" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">Data induk kependidikan bersumber dari Dapodik</div>
+                </div>
+                <button type="button" onclick="closeBiodataPegawaiModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="pegawaiLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.5rem; color: var(--primary);"></i>
+                <div style="margin-top: 8px; font-size: 0.84rem;">Memuat rincian data pegawai...</div>
+            </div>
+
+            <div id="pegawaiContent" class="modal-body-scroll" style="overflow-y: auto; flex: 1; min-height: 0; display: none; font-size: 0.84rem; padding-right: 4px;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted); width: 150px;">Nama Lengkap</td><td id="pegawaiNama" style="font-weight: 700; color: var(--text-color);">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">NUPTK / NIP</td><td id="pegawaiNuptk" style="font-family: monospace; color: var(--primary); font-weight: 600;">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">NIK</td><td id="pegawaiNik" style="font-family: monospace;">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Jenis Kelamin</td><td id="pegawaiGender">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Tempat, Tgl Lahir</td><td id="pegawaiTtl">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Agama</td><td id="pegawaiAgama">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Status Kepegawaian</td><td id="pegawaiStatus">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Pendidikan Terakhir</td><td id="pegawaiPend">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Bidang Studi / Mapel</td><td id="pegawaiMapel">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Status Induk / Tgl Tugas</td><td id="pegawaiInduk">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">No. HP / Email</td><td id="pegawaiHp">-</td></tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 8px 0; color: var(--text-muted);">Alamat Tempat Tinggal</td><td id="pegawaiAlamat">-</td></tr>
+                </table>
+
+                <div id="pegawaiBebanSection" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.85rem;"><i class="fas fa-book-bookmark text-primary me-1"></i> Beban Jam Mengajar (KBM)</span>
+                        <span id="pegawaiJmlJam" class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: 0.72rem; padding: 2px 7px;">0 JP</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.80rem; margin-bottom: 0;">
+                            <thead>
+                                <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 6px 10px; color: var(--text-muted);">Mata Pelajaran</th>
+                                    <th style="padding: 6px 10px; color: var(--text-muted);">Rombel</th>
+                                    <th style="padding: 6px 10px; color: var(--text-muted); text-align: center;">Jam/Mg</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pegawaiBebanList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color); flex-shrink: 0;">
+                <button type="button" class="btn btn-outline" onclick="closeBiodataPegawaiModal()" style="padding: 7px 18px; font-size: 0.82rem; border-radius: 8px;">Tutup</button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')

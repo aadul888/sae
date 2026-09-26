@@ -261,20 +261,21 @@
             </div>
         @endif
 
-        {{-- Tabel Rincian Aktivitas / Pekerjaan Harian --}}
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
+        {{-- Datatable Utama: Log Riwayat Penerbitan & Cetak Laporan Kinerja --}}
+        <div class="card table-responsive-stack" id="tableLogCetakContainer" style="padding: 0; margin-bottom: 24px;">
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08)); flex-wrap: wrap; gap: 8px;">
                 <div>
-                    <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--text-color, #f8fafc);">
-                        <i class="fas fa-clipboard-list text-primary me-2"></i> Rincian Buku Jurnal Pekerjaan Harian
+                    <h3 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--text-color, #f8fafc); display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-print text-primary"></i> Log Riwayat Penerbitan &amp; Cetak Laporan Kinerja
                     </h3>
                     <p style="margin: 2px 0 0 0; font-size: 0.78rem; color: var(--text-muted, #94a3b8);">
-                        Daftar catatan harian aktivitas kerja yang tercatat pada sistem
+                        Rekam jejak resmi pencetakan lembar kinerja tendik yang tersimpan dan tervalidasi kode verifikasi
                     </p>
                 </div>
-                <span class="badge" style="background: rgba(59,130,246,0.12); color: #3b82f6; font-size: 0.78rem; padding: 5px 10px; border-radius: 6px;">
-                    {{ $aktivitasList->count() }} Kegiatan
-                </span>
+                <a href="{{ route('dashboard.tendik.laporan.cetak', request()->all()) }}" target="_blank" class="btn btn-primary"
+                    style="font-size: 0.82rem; padding: 7px 14px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #2563eb; color: #fff;">
+                    <i class="fas fa-print"></i> Cetak Laporan Periode Ini
+                </a>
             </div>
 
             <div style="overflow-x: auto;">
@@ -282,80 +283,57 @@
                     <thead>
                         <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
                             <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">No</th>
-                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">Tanggal</th>
-                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px;">Jam Kerja</th>
-                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Uraian Aktivitas / Pekerjaan</th>
-                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">Output / Volume</th>
-                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">Durasi</th>
-                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">Status</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">Waktu &amp; Tanggal Cetak</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Pegawai &amp; Bidang</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Periode Laporan</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">Hasil Capaian</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">Format &amp; Kode</th>
+                            <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($aktivitasList as $idx => $akt)
+                        @forelse ($cetakLogs ?? [] as $cIdx => $log)
                             <tr>
-                                <td data-label="No" style="text-align: center; color: var(--text-muted, #94a3b8);">{{ $idx + 1 }}</td>
-                                <td data-label="Tanggal">
-                                    <div style="font-weight: 700;">{{ \Carbon\Carbon::parse($akt->tanggal)->translatedFormat('d M Y') }}</div>
-                                    <small style="color: var(--text-muted, #94a3b8);">{{ \Carbon\Carbon::parse($akt->tanggal)->translatedFormat('l') }}</small>
+                                <td data-label="No" style="text-align: center; color: var(--text-muted, #94a3b8); font-size: 0.82rem;">
+                                    {{ $cIdx + 1 }}
                                 </td>
-                                <td data-label="Jam Kerja">
-                                    <span class="badge" style="background: rgba(255,255,255,0.06); color: var(--text-color, #f8fafc); border: 1px solid var(--border-color, rgba(255,255,255,0.1)); font-family: monospace; font-size: 0.76rem; padding: 4px 8px;">
-                                        {{ $akt->jam_mulai ? substr($akt->jam_mulai, 0, 5) : '07:30' }} - {{ $akt->jam_selesai ? substr($akt->jam_selesai, 0, 5) : '15:00' }}
-                                    </span>
-                                </td>
-                                <td data-label="Uraian Aktivitas">
-                                    <div style="font-weight: 700; color: var(--text-color, #f8fafc); font-size: 0.9rem;">
-                                        {{ $akt->judul_aktivitas }}
+                                <td data-label="Waktu Cetak" style="font-size: 0.82rem;">
+                                    <div style="font-weight: 700; color: var(--text-color);">
+                                        {{ \Carbon\Carbon::parse($log->tanggal_cetak)->translatedFormat('d M Y') }}
                                     </div>
-                                    @if ($akt->uraian_pekerjaan)
-                                        <div style="color: var(--text-muted, #94a3b8); font-size: 0.8rem; margin-top: 4px; line-height: 1.4;">
-                                            {{ $akt->uraian_pekerjaan }}
-                                        </div>
-                                    @endif
-                                    <div style="margin-top: 5px;">
-                                        <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--text-muted, #94a3b8); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px;">
-                                            Bidang: {{ $akt->bidang }}
-                                        </span>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                        <i class="far fa-clock me-1"></i>{{ \Carbon\Carbon::parse($log->tanggal_cetak)->format('H:i:s') }} WIB
                                     </div>
                                 </td>
-                                <td data-label="Output">
-                                    <span style="font-weight: 700;">{{ $akt->output_hasil ?: '-' }}</span>
+                                <td data-label="Pegawai" style="font-size: 0.82rem;">
+                                    <div style="font-weight: 700; color: var(--text-color);">{{ $log->nama_pegawai }}</div>
+                                    <span class="badge badge-info" style="font-size: 0.68rem; padding: 2px 6px;">{{ ucfirst($log->bidang) }}</span>
                                 </td>
-                                <td data-label="Durasi">
-                                    <span class="badge" style="background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2); font-size: 0.76rem; padding: 4px 8px;">
-                                        <i class="far fa-clock me-1"></i> {{ $akt->durasi_menit }} mnt
+                                <td data-label="Periode" style="font-size: 0.82rem; font-weight: 600;">
+                                    {{ $log->periode_label }}
+                                </td>
+                                <td data-label="Hasil Capaian" style="text-align: center; font-size: 0.82rem;">
+                                    <span class="badge {{ $log->persentase_selesai >= 80 ? 'badge-success' : ($log->persentase_selesai >= 50 ? 'badge-warning' : 'badge-danger') }}" style="font-size: 0.72rem; padding: 3px 8px;">
+                                        {{ $log->total_selesai }}/{{ $log->total_aktivitas }} ({{ $log->persentase_selesai }}%)
                                     </span>
                                 </td>
-                                <td data-label="Status">
-                                    @if ($akt->status === 'selesai')
-                                        <span class="badge-status badge-selesai">
-                                            <i class="fas fa-check-circle"></i> Selesai
-                                        </span>
-                                    @elseif ($akt->status === 'proses')
-                                        <span class="badge-status badge-proses">
-                                            <i class="fas fa-spinner fa-spin"></i> Proses
-                                        </span>
-                                    @else
-                                        <span class="badge-status badge-tertunda">
-                                            <i class="fas fa-pause-circle"></i> Tertunda
-                                        </span>
-                                    @endif
+                                <td data-label="Format & Kode" style="font-size: 0.78rem;">
+                                    <div>A4 {{ ucfirst($log->orientasi) }}</div>
+                                    <div style="font-family: monospace; font-size: 0.7rem; color: var(--primary);">{{ $log->kode_verifikasi }}</div>
+                                </td>
+                                <td data-label="Aksi" style="text-align: center;">
+                                    <a href="{{ route('dashboard.tendik.laporan.cetak', ['periode' => $log->periode_tipe, 'orientasi' => $log->orientasi]) }}" target="_blank" class="btn btn-outline btn-sm"
+                                        style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; text-decoration: none;" title="Buka Dokumen Cetak">
+                                        <i class="fas fa-arrow-up-right-from-square"></i>
+                                    </a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 48px 16px; color: var(--text-muted, #94a3b8);">
-                                    <i class="fas fa-folder-open fa-3x" style="opacity: 0.3; margin-bottom: 12px; display: block;"></i>
-                                    <p style="font-size: 0.95rem; margin-bottom: 8px; color: var(--text-color, #f8fafc); font-weight: 600;">
-                                        Belum ada catatan aktivitas harian pada periode ini.
-                                    </p>
-                                    <p style="font-size: 0.8rem; margin-bottom: 16px;">
-                                        Log aktivitas yang dicatat akan secara otomatis direkap dan siap dicetak menjadi dokumen resmi.
-                                    </p>
-                                    <a href="{{ route('dashboard.tendik.aktivitas.index') }}" class="btn btn-primary"
-                                        style="font-size: 0.84rem; padding: 8px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                                        <i class="fas fa-plus"></i> Tambah Aktivitas Sekarang
-                                    </a>
+                                <td colspan="7" style="text-align: center; padding: 32px 16px; color: var(--text-muted, #94a3b8);">
+                                    <i class="fas fa-print fa-2x" style="opacity: 0.3; margin-bottom: 8px; display: block;"></i>
+                                    <div>Belum ada riwayat cetak dokumen kinerja.</div>
+                                    <div style="font-size: 0.78rem; margin-top: 4px;">Pencetakan laporan resmi akan otomatis tercatat pada log ini.</div>
                                 </td>
                             </tr>
                         @endforelse

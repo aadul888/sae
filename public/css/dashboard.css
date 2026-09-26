@@ -4903,6 +4903,140 @@ input:disabled + .slider-toggle-crud {
     }
 }
 
+/* Periode Switcher Pills vs Mobile Dropdown (Responsive) */
+.periode-pills-desktop {
+    display: grid !important;
+}
+.periode-select-mobile {
+    display: none !important;
+}
+@media (max-width: 768px) {
+    .periode-pills-desktop {
+        display: none !important;
+    }
+    .periode-select-mobile {
+        display: block !important;
+        width: 100% !important;
+    }
+}
+
+/* Quick Actions Grid Kepegawaian (Responsive, Balanced & Even Grid) */
+.kepegawaian-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.kepegawaian-quick-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-color);
+    text-decoration: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.kepegawaian-quick-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    border-color: var(--quick-color, var(--primary));
+    color: var(--text-color);
+}
+
+.kepegawaian-quick-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.kepegawaian-quick-btn:hover .kepegawaian-quick-icon {
+    transform: scale(1.08);
+}
+
+.kepegawaian-quick-label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+}
+
+@media (max-width: 1024px) {
+    .kepegawaian-quick-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .kepegawaian-quick-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .kepegawaian-quick-btn {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+    .kepegawaian-quick-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 0.95rem;
+        border-radius: 8px;
+    }
+    .kepegawaian-quick-label {
+        font-size: 0.76rem;
+    }
+}
+
+/* ==========================================================================
+   Target & Capaian Charts Grid (Responsive & Fluid Container)
+   ========================================================================== */
+.target-charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.target-charts-grid.grid-even {
+    grid-template-columns: 1fr 1fr;
+}
+
+.target-charts-grid > * {
+    min-width: 0; /* Prevents flex/grid canvas blowout */
+}
+
+@media (max-width: 992px) {
+    .target-charts-grid,
+    .target-charts-grid.grid-even {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+}
+
+
+
+
 
 
 

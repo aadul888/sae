@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\RolePermission;
 use App\Models\TendikAktivitas;
+use App\Models\TendikIndikatorKinerja;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -71,7 +73,7 @@ class TendikAktivitasController extends Controller
         $filterBidang = $request->input('bidang');
         $q = trim((string) $request->input('q', ''));
 
-        $query = TendikAktivitas::query();
+        $query = TendikAktivitas::query()->with('indikator');
 
         // Hak akses data: jika bukan admin/kepala_tas, hanya melihat miliknya sendiri
         if (!$isKepalaTas && !str_contains(strtolower($role), 'admin')) {
@@ -92,6 +94,11 @@ class TendikAktivitasController extends Controller
 
         if ($filterBidang) {
             $query->where('bidang', $filterBidang);
+        }
+
+        $filterIndikator = $request->input('indikator_id');
+        if ($filterIndikator) {
+            $query->where('indikator_id', $filterIndikator);
         }
 
         if ($q !== '') {
@@ -132,6 +139,31 @@ class TendikAktivitasController extends Controller
 
         $bidangOptions = TendikAktivitas::BIDANG_LABELS;
 
+        $canCreate = RolePermission::canAccess($sessionUser ?: $role, 'menu_aktivitas_tendik', 'create');
+        $canRead   = RolePermission::canAccess($sessionUser ?: $role, 'menu_aktivitas_tendik', 'read');
+        $canUpdate = RolePermission::canAccess($sessionUser ?: $role, 'menu_aktivitas_tendik', 'update');
+        $canDelete = RolePermission::canAccess($sessionUser ?: $role, 'menu_aktivitas_tendik', 'delete');
+
+        $pegawaiList = [];
+        if ($isKepalaTas) {
+            $pegawaiList = DB::table('gtk')
+                ->where(function ($sub) {
+                    $sub->where('jenis_ptk_id_str', 'LIKE', '%Tenaga Kependidikan%')
+                        ->orWhere('jenis_ptk_id_str', 'LIKE', '%Tendik%')
+                        ->orWhere('jenis_ptk_id_str', 'LIKE', '%Tata Usaha%')
+                        ->orWhere('jenis_ptk_id_str', 'LIKE', '%Laboran%')
+                        ->orWhere('jenis_ptk_id_str', 'LIKE', '%Pustakawan%')
+                        ->orWhere('jenis_ptk_id_str', 'NOT LIKE', '%Guru%');
+                })
+                ->where('jenis_ptk_id_str', 'NOT LIKE', '%Guru%')
+                ->select('ptk_id', 'nama', 'nip')
+                ->orderBy('nama')
+                ->get();
+        }
+
+        $tupoksiTemplates = TendikAktivitas::TUPOKSI_TEMPLATES;
+        $indikatorKinerjaList = TendikIndikatorKinerja::where('is_active', true)->orderBy('urutan')->get();
+
         return view('dashboard.tendik.aktivitas', compact(
             'aktivitasList',
             'totalAktivitas',
@@ -149,7 +181,15 @@ class TendikAktivitasController extends Controller
             'isKepalaTas',
             'activeBidang',
             'userName',
-            'bidangOptions'
+            'bidangOptions',
+            'canCreate',
+            'canRead',
+            'canUpdate',
+            'canDelete',
+            'pegawaiList',
+            'tupoksiTemplates',
+            'indikatorKinerjaList',
+            'filterIndikator'
         ));
     }
 
@@ -163,9 +203,26 @@ class TendikAktivitasController extends Controller
             return redirect()->route('login');
         }
 
+        $role = is_array($sessionUser) ? ($sessionUser['role'] ?? '') : ($sessionUser->role ?? '');
+        $canCreate = RolePermission::canAccess($sessionUser ?: $role, 'menu_aktivitas_tendik', 'create');
+        if (!$canCreate) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk menambah aktivitas.');
+        }
+
         $userId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
         $ptkId = is_array($sessionUser) ? ($sessionUser['ptk_id'] ?? null) : ($sessionUser->ptk_id ?? null);
         $userName = is_array($sessionUser) ? ($sessionUser['nama'] ?? ($sessionUser['name'] ?? 'Tenaga Kependidikan')) : ($sessionUser->nama ?? ($sessionUser->name ?? 'Tenaga Kependidikan'));
+
+        // Cek jika Kepala TAS / Admin menginput aktivitas atas nama staf lain
+        if ($request->filled('pegawai_ptk_id')) {
+            $targetGtk = DB::table('gtk')->where('ptk_id', $request->pegawai_ptk_id)->first();
+            if ($targetGtk) {
+                $ptkId = $targetGtk->ptk_id;
+                $userName = $targetGtk->nama;
+                $targetUser = DB::table('pengguna')->where('ptk_id', $ptkId)->first();
+                $userId = $targetUser ? $targetUser->pengguna_id : null;
+            }
+        }
 
         $validated = $request->validate([
             'tanggal' => 'required|date',
@@ -175,6 +232,7 @@ class TendikAktivitasController extends Controller
             'uraian_pekerjaan' => 'required|string',
             'output_hasil' => 'nullable|string|max:255',
             'bidang' => 'required|string',
+            'indikator_id' => 'nullable|integer',
             'status' => 'required|in:selesai,proses,tertunda',
             'lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
@@ -184,11 +242,20 @@ class TendikAktivitasController extends Controller
             $lampiranPath = $request->file('lampiran')->store('tendik/aktivitas', 'public');
         }
 
+        $indikatorId = $validated['indikator_id'] ?? null;
+        if (!$indikatorId && Schema::hasTable('tendik_indikator_kinerja')) {
+            $indikatorId = TendikIndikatorKinerja::where('bidang', $validated['bidang'])
+                ->where('is_active', true)
+                ->orderBy('urutan')
+                ->value('id');
+        }
+
         TendikAktivitas::create([
             'user_id' => $userId,
             'ptk_id' => $ptkId,
             'nama_pegawai' => $userName,
             'bidang' => $validated['bidang'],
+            'indikator_id' => $indikatorId,
             'tanggal' => $validated['tanggal'],
             'jam_mulai' => $validated['jam_mulai'],
             'jam_selesai' => $validated['jam_selesai'] ?? null,
@@ -218,9 +285,14 @@ class TendikAktivitasController extends Controller
         $userId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
         $role = is_array($sessionUser) ? ($sessionUser['role'] ?? '') : ($sessionUser->role ?? '');
 
+        $canUpdate = RolePermission::canAccess($sessionUser ?: $role, 'menu_aktivitas_tendik', 'update');
+        if (!$canUpdate) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk mengubah aktivitas.');
+        }
+
         $aktivitas = TendikAktivitas::findOrFail($id);
 
-        // Otorisasi: hanya pemilik atau admin yang bisa mengubah
+        // Otorisasi: hanya pemilik atau admin/kepala TAS yang bisa mengubah
         if ($aktivitas->user_id !== $userId && !str_contains(strtolower($role), 'admin')) {
             abort(403, 'Anda tidak memiliki hak untuk mengubah rekaman ini.');
         }
@@ -233,6 +305,7 @@ class TendikAktivitasController extends Controller
             'uraian_pekerjaan' => 'required|string',
             'output_hasil' => 'nullable|string|max:255',
             'bidang' => 'required|string',
+            'indikator_id' => 'nullable|integer',
             'status' => 'required|in:selesai,proses,tertunda',
             'lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
@@ -244,6 +317,14 @@ class TendikAktivitasController extends Controller
             $aktivitas->lampiran_path = $request->file('lampiran')->store('tendik/aktivitas', 'public');
         }
 
+        $indikatorId = $validated['indikator_id'] ?? $aktivitas->indikator_id;
+        if (!$indikatorId && Schema::hasTable('tendik_indikator_kinerja')) {
+            $indikatorId = TendikIndikatorKinerja::where('bidang', $validated['bidang'])
+                ->where('is_active', true)
+                ->orderBy('urutan')
+                ->value('id');
+        }
+
         $aktivitas->update([
             'tanggal' => $validated['tanggal'],
             'jam_mulai' => $validated['jam_mulai'],
@@ -252,6 +333,7 @@ class TendikAktivitasController extends Controller
             'uraian_pekerjaan' => $validated['uraian_pekerjaan'],
             'output_hasil' => $validated['output_hasil'] ?? null,
             'bidang' => $validated['bidang'],
+            'indikator_id' => $indikatorId,
             'status' => $validated['status'],
         ]);
 
@@ -273,7 +355,10 @@ class TendikAktivitasController extends Controller
         $sessionUser = session('user');
         $userId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
         $role = is_array($sessionUser) ? ($sessionUser['role'] ?? '') : ($sessionUser->role ?? '');
-
+        $canDelete = RolePermission::canAccess($sessionUser ?: $role, 'menu_aktivitas_tendik', 'delete');
+        if (!$canDelete) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk menghapus aktivitas.');
+        }
         $aktivitas = TendikAktivitas::findOrFail($id);
 
         if ($aktivitas->user_id !== $userId && !str_contains(strtolower($role), 'admin')) {

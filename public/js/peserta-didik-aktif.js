@@ -766,6 +766,7 @@ function escapeHtml(str) {
 let bulkStudents = [];
 let bulkFileMatches = {}; // { peserta_didik_id: { file: File, previewUrl: string, matchedBy: string } }
 let isBulkUploading = false;
+let bulkZipFile = null; // ZIP file pending upload
 
 window.openBulkUploadFotoModal = function (defaultRombel) {
     const modal = document.getElementById("bulkFotoUploadModal");
@@ -974,12 +975,16 @@ window.handleBulkFilesSelection = function (files) {
         file.name.toLowerCase().endsWith(".zip"),
     );
     if (zipFiles.length > 0) {
-        handleBulkZipUpload(zipFiles[0]);
-        if (
-            zipFiles.length > 1 &&
-            window.SAE &&
-            typeof window.SAE.toast === "function"
-        ) {
+        bulkZipFile = zipFiles[0];
+        bulkFileMatches = {};
+        updateBulkSummaryUI();
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast(
+                `ZIP "${bulkZipFile.name}" siap diunggah. Klik tombol Mulai Unggah untuk memproses.`,
+                "info",
+            );
+        }
+        if (zipFiles.length > 1 && window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast(
                 "Hanya 1 file ZIP diproses dalam sekali unggah.",
                 "warning",
@@ -1195,14 +1200,14 @@ async function handleBulkZipUpload(file) {
         }
     } catch (err) {
         if (progressTitle)
-            progressTitle.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Gagal memproses ZIP`;
+            progressTitle.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> Gagal memproses ZIP: ${escapeHtml(err.message || "")} `;
         if (window.SAE && typeof window.SAE.toast === "function") {
             window.SAE.toast(err.message || "Gagal memproses ZIP.", "danger");
         }
     } finally {
         isBulkUploading = false;
-        if (btnStart)
-            btnStart.disabled = Object.keys(bulkFileMatches).length === 0;
+        bulkZipFile = null;
+        updateBulkSummaryUI();
     }
 }
 
@@ -1238,9 +1243,11 @@ window.removeBulkStudentMatch = function (pdId) {
 
 window.resetBulkMatches = function () {
     bulkFileMatches = {};
+    bulkZipFile = null;
     const input = document.getElementById("bulkFilesInput");
     if (input) input.value = "";
     renderBulkStudentsTable();
+    updateBulkSummaryUI();
 };
 
 function updateBulkSummaryUI() {
@@ -1254,7 +1261,16 @@ function updateBulkSummaryUI() {
     const matchedCount = Object.keys(bulkFileMatches).length;
     const totalCount = bulkStudents.length;
 
-    if (matchedCount > 0) {
+    if (bulkZipFile) {
+        if (summaryBanner) summaryBanner.style.display = "flex";
+        if (summaryText) {
+            summaryText.innerHTML = `<strong>ZIP: ${escapeHtml(bulkZipFile.name)}</strong> siap diunggah. Server akan mencocokkan foto dengan NISN/NIPD peserta didik.`;
+        }
+        if (filesBadge) filesBadge.textContent = `ZIP Siap`;
+        if (btnReset) btnReset.style.display = "inline-flex";
+        if (btnStart) btnStart.disabled = false;
+        if (btnText) btnText.textContent = `Mulai Unggah & Kompresi ZIP`;
+    } else if (matchedCount > 0) {
         if (summaryBanner) summaryBanner.style.display = "flex";
         if (summaryText) {
             summaryText.innerHTML = `<strong>${matchedCount} dari ${totalCount} peserta didik</strong> berhasil dipasangkan berkas foto PNG.`;
@@ -1275,6 +1291,14 @@ function updateBulkSummaryUI() {
 
 // Queue Engine: Unggah dan kompresi secara paralel (concurrency 2)
 window.executeBulkUploadQueue = async function () {
+    // Jika ada ZIP pending, jalankan upload ZIP
+    if (bulkZipFile) {
+        const zipToUpload = bulkZipFile;
+        bulkZipFile = null;
+        await handleBulkZipUpload(zipToUpload);
+        return;
+    }
+
     const matchedEntries = Object.entries(bulkFileMatches);
     if (matchedEntries.length === 0) return;
 

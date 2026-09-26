@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\TendikAktivitas;
+use App\Models\TendikIndikatorKinerja;
 use App\Services\QrCodeService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class TendikLaporanController extends Controller
 {
@@ -253,6 +255,20 @@ class TendikLaporanController extends Controller
 
         $sekolah = DB::table('sekolah')->first();
 
+        // Matriks Sasaran & Indikator Kinerja yang terelasi dengan aktivitas periode ini
+        $bidangTarget = $filterBidang && $filterBidang !== 'all' ? $filterBidang : $this->mapProfileToBidang($profile['bidang'] ?? '');
+        $indikatorKinerjaList = $this->resolveIndikatorKinerjaWithCapaian($bidangTarget, $aktivitasList);
+
+        // Riwayat & Log Cetak Laporan Kinerja
+        $logQuery = DB::table('tendik_laporan_log');
+        if ($profile['role'] !== 'admin' && !str_contains(strtolower($profile['role']), 'admin')) {
+            $logQuery->where(function ($q) use ($userId, $ptkId) {
+                if ($userId) $q->where('user_id', $userId);
+                if ($ptkId) $q->orWhere('ptk_id', $ptkId);
+            });
+        }
+        $cetakLogs = $logQuery->orderByDesc('tanggal_cetak')->paginate(15);
+
         return view('dashboard.tendik.rekap-laporan', compact(
             'profile',
             'periodeTipe',
@@ -274,7 +290,9 @@ class TendikLaporanController extends Controller
             'persentaseSelesai',
             'distribusiBidang',
             'rekapBulanan',
-            'sekolah'
+            'sekolah',
+            'indikatorKinerjaList',
+            'cetakLogs'
         ));
     }
 
@@ -367,11 +385,43 @@ class TendikLaporanController extends Controller
             ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
             ->first();
 
+        // Matriks Sasaran & Indikator Kinerja yang terelasi dengan aktivitas periode ini
+        $bidangTarget = $request->get('bidang');
+        if (!$bidangTarget || $bidangTarget === 'all') {
+            $bidangTarget = $this->mapProfileToBidang($profile['bidang'] ?? '');
+        }
+        $indikatorKinerjaList = $this->resolveIndikatorKinerjaWithCapaian($bidangTarget, $aktivitasList);
+
         // QR Code verifikasi dokumen laporan kinerja
+        $verifCode = 'LAP-' . strtoupper(substr(md5(($profile['ptk_id'] ?: $userId) . $range['start'] . $range['end'] . now()->timestamp), 0, 10));
+
+        if (Schema::hasTable('tendik_laporan_log')) {
+            try {
+                DB::table('tendik_laporan_log')->insert([
+                    'user_id'            => $userId,
+                    'ptk_id'             => $ptkId,
+                    'nama_pegawai'       => $profile['nama'],
+                    'bidang'             => $bidangTarget ?: ($profile['bidang'] ?? 'kepegawaian'),
+                    'periode_tipe'       => $periodeTipe,
+                    'periode_label'      => $range['label'],
+                    'tanggal_cetak'      => now(),
+                    'total_aktivitas'    => $totalAktivitas,
+                    'total_selesai'      => $totalSelesai,
+                    'persentase_selesai' => $persentaseSelesai,
+                    'orientasi'          => $orientasi,
+                    'kode_verifikasi'    => $verifCode,
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ]);
+            } catch (\Throwable $e) {
+                // Jangan gagalkan cetak jika log duplikat atau gagal
+            }
+        }
+
         $qrVerifyUrl = route('dashboard.tendik.laporan.index', [
             'pegawai' => $profile['ptk_id'] ?: $profile['user_id'],
             'periode' => $periodeTipe,
-            'tgl_cetak' => date('YmdHis'),
+            'kode'    => $verifCode,
         ]);
 
         $qrCodeBase64 = null;
@@ -406,7 +456,56 @@ class TendikLaporanController extends Controller
             'rekapBulanan',
             'kepsek',
             'kepalaTas',
-            'qrCodeBase64'
+            'qrCodeBase64',
+            'indikatorKinerjaList'
         ));
+    }
+
+    /**
+     * Petakan bidang dari profil ke kode bidang indikator kinerja
+     */
+    protected function mapProfileToBidang(string $str): string
+    {
+        $low = strtolower($str);
+        if (str_contains($low, 'pegawai') || str_contains($low, 'kepegawaian')) return 'kepegawaian';
+        if (str_contains($low, 'surat') || str_contains($low, 'arsip')) return 'persuratan';
+        if (str_contains($low, 'siswa')) return 'kesiswaan';
+        if (str_contains($low, 'sarpras') || str_contains($low, 'aset')) return 'sarpras';
+        if (str_contains($low, 'lab')) return 'laboran';
+        if (str_contains($low, 'pustaka')) return 'perpustakaan';
+        if (str_contains($low, 'it') || str_contains($low, 'teknisi')) return 'teknisi';
+        if (str_contains($low, 'aman') || str_contains($low, 'satpam')) return 'keamanan';
+        if (str_contains($low, 'jaga') || str_contains($low, 'bersih')) return 'penjaga';
+        if (str_contains($low, 'tas') || str_contains($low, 'ktu') || str_contains($low, 'kepala')) return 'kepala_tas';
+        return 'kepegawaian'; // fallback ke kepegawaian default TU
+    }
+
+    /**
+     * Hitung capaian realisasi indikator kinerja dari daftar aktivitas
+     */
+    protected function resolveIndikatorKinerjaWithCapaian(?string $bidang, $aktivitasList)
+    {
+        if (!Schema::hasTable('tendik_indikator_kinerja')) {
+            return collect();
+        }
+
+        $query = TendikIndikatorKinerja::where('is_active', true);
+        if ($bidang && $bidang !== 'all') {
+            $query->where('bidang', $bidang);
+        }
+
+        return $query->orderBy('bidang')->orderBy('urutan')->get()->map(function ($ind) use ($aktivitasList) {
+            $acts = $aktivitasList->filter(function ($a) use ($ind) {
+                return (!empty($a->indikator_id) && $a->indikator_id == $ind->id) ||
+                       ($a->bidang === $ind->bidang && stripos($a->judul_aktivitas, substr($ind->sasaran, 0, 16)) !== false);
+            });
+            $selesai = $acts->where('status', 'selesai')->count();
+            $proses = $acts->where('status', 'proses')->count();
+            $ind->realisasi_count = $selesai;
+            $ind->realisasi_label = $selesai > 0 ? "{$selesai} {$ind->satuan}" : "0 {$ind->satuan}";
+            $ind->capaian_persen = $ind->target_kuantitas > 0 ? min(100, round(($selesai / $ind->target_kuantitas) * 100)) : 100;
+            $ind->status_label = $selesai >= $ind->target_kuantitas ? 'Tercapai' : ($selesai > 0 || $proses > 0 ? 'Sedang Berjalan' : 'Dalam Proses');
+            return $ind;
+        });
     }
 }

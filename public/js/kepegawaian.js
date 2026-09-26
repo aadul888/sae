@@ -4,10 +4,13 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Live Search & PerPage Handler
+    // 1. Live Search & PerPage & Filter Handler
     const searchInput = document.getElementById('liveSearch');
     const clearBtn = document.getElementById('clearSearch');
     const perPageSelect = document.getElementById('perPageSelect');
+    const filterJenis = document.getElementById('filterJenis');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterGender = document.getElementById('filterGender');
 
     function applyFilter() {
         const url = new URL(window.location.href);
@@ -16,6 +19,24 @@ document.addEventListener('DOMContentLoaded', function () {
             url.searchParams.set("q", searchInput.value.trim());
         } else {
             url.searchParams.delete("q");
+        }
+
+        if (filterJenis && filterJenis.value) {
+            url.searchParams.set("jenis_ptk", filterJenis.value);
+        } else {
+            url.searchParams.delete("jenis_ptk");
+        }
+
+        if (filterStatus && filterStatus.value) {
+            url.searchParams.set("status", filterStatus.value);
+        } else {
+            url.searchParams.delete("status");
+        }
+
+        if (filterGender && filterGender.value) {
+            url.searchParams.set("gender", filterGender.value);
+        } else {
+            url.searchParams.delete("gender");
         }
 
         if (perPageSelect && perPageSelect.value) {
@@ -30,6 +51,10 @@ document.addEventListener('DOMContentLoaded', function () {
             window.location.href = url.toString();
         }
     }
+
+    if (filterJenis) filterJenis.addEventListener('change', applyFilter);
+    if (filterStatus) filterStatus.addEventListener('change', applyFilter);
+    if (filterGender) filterGender.addEventListener('change', applyFilter);
 
     if (searchInput) {
         let timer = null;
@@ -252,4 +277,90 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
+    // 6. Modal Biodata Lengkap Pegawai GTK
+    const modalPegawai = document.getElementById('pegawaiModal');
+    const pegawaiLoading = document.getElementById('pegawaiLoading');
+    const pegawaiContent = document.getElementById('pegawaiContent');
+
+    window.closeBiodataPegawaiModal = function () {
+        if (!modalPegawai) return;
+        modalPegawai.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    window.openBiodataPegawaiModal = function (ptkId) {
+        if (!modalPegawai) return;
+        modalPegawai.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        if (pegawaiLoading) pegawaiLoading.style.display = 'block';
+        if (pegawaiContent) pegawaiContent.style.display = 'none';
+
+        fetch('/manajemen-data/guru-aktif/' + ptkId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.data) {
+                    const d = data.data;
+                    const setText = (id, val) => {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = val || '-';
+                    };
+
+                    setText('pegawaiNama', d.nama);
+                    setText('pegawaiNuptk', (d.nuptk || '-') + (d.nip ? ' / NIP: ' + d.nip : ''));
+                    setText('pegawaiNik', d.nik);
+                    setText('pegawaiGender', d.jenis_kelamin === 'L' ? 'Laki-laki (L)' : (d.jenis_kelamin === 'P' ? 'Perempuan (P)' : '-'));
+                    setText('pegawaiTtl', (d.tempat_lahir || '') + (d.tanggal_lahir ? ', ' + d.tanggal_lahir : '-'));
+                    setText('pegawaiAgama', d.agama_id_str || d.agama);
+                    setText('pegawaiStatus', d.status_kepegawaian_id_str || d.status_kepegawaian);
+                    setText('pegawaiPend', d.pendidikan_terakhir);
+                    setText('pegawaiMapel', d.bidang_studi_terakhir || d.jenis_ptk_id_str);
+                    setText('pegawaiInduk', (d.ptk_induk ? 'Induk (' + d.ptk_induk + ')' : '-') + (d.tanggal_surat_tugas ? ' • TMT: ' + d.tanggal_surat_tugas : ''));
+                    setText('pegawaiHp', (d.no_hp || '-') + (d.email ? ' / ' + d.email : ''));
+                    setText('pegawaiAlamat', d.alamat_jalan);
+
+                    const bebanSec = document.getElementById('pegawaiBebanSection');
+                    const bebanList = document.getElementById('pegawaiBebanList');
+                    const jmlJam = document.getElementById('pegawaiJmlJam');
+
+                    if (data.pembelajaran && data.pembelajaran.length > 0) {
+                        if (bebanSec) bebanSec.style.display = 'block';
+                        if (jmlJam) jmlJam.textContent = (data.total_jam || 0) + ' JP';
+                        if (bebanList) {
+                            bebanList.innerHTML = data.pembelajaran.map(p => `
+                                <tr>
+                                    <td style="padding: 6px 10px;">${p.nama_mata_pelajaran || '-'}</td>
+                                    <td style="padding: 6px 10px;">${p.nama_rombel || '-'}</td>
+                                    <td style="padding: 6px 10px; text-align: center;">${p.jam_mengajar_per_minggu || 0} JP</td>
+                                </tr>
+                            `).join('');
+                        }
+                    } else {
+                        if (bebanSec) bebanSec.style.display = 'none';
+                    }
+
+                    if (pegawaiLoading) pegawaiLoading.style.display = 'none';
+                    if (pegawaiContent) pegawaiContent.style.display = 'block';
+                } else {
+                    if (pegawaiLoading) pegawaiLoading.innerHTML = '<div style="color: #ef4444; padding: 20px;">Gagal memuat profil pegawai</div>';
+                }
+            })
+            .catch(err => {
+                if (pegawaiLoading) pegawaiLoading.innerHTML = '<div style="color: #ef4444; padding: 20px;">Terjadi kesalahan memuat data.</div>';
+            });
+    };
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-detail-pegawai');
+        if (btn) {
+            const id = btn.getAttribute('data-id');
+            if (id) window.openBiodataPegawaiModal(id);
+        }
+    });
+
+    if (modalPegawai) {
+        modalPegawai.addEventListener('click', function (e) {
+            if (e.target === modalPegawai) window.closeBiodataPegawaiModal();
+        });
+    }
 });

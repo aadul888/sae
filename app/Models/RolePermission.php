@@ -302,13 +302,13 @@ class RolePermission extends Model
                     'roles' => ['admin'],
                 ],
                 'menu_kepegawaian_guru' => [
-                    'label' => 'Kepegawaian: Pegawai Guru',
-                    'icon' => 'fa-chalkboard-user',
+                    'label' => 'Kepegawaian: Pegawai',
+                    'icon' => 'fa-users',
                     'roles' => ['admin'],
                 ],
                 'menu_kepegawaian_tendik' => [
-                    'label' => 'Kepegawaian: Pegawai Tendik',
-                    'icon' => 'fa-id-badge',
+                    'label' => 'Kepegawaian: Berkas Pegawai',
+                    'icon' => 'fa-folder-open',
                     'roles' => ['admin'],
                 ],
                 'menu_kepegawaian_kgb' => [
@@ -393,15 +393,20 @@ class RolePermission extends Model
             ],
 
             'Tendik: Kinerja & Aktivitas' => [
+                'menu_target_capaian' => [
+                    'label' => 'Target & Capaian Pekerjaan',
+                    'icon' => 'fa-bullseye',
+                    'roles' => ['admin', 'tendik'],
+                ],
                 'menu_aktivitas_tendik' => [
                     'label' => 'Aktivitas Harian Tendik',
                     'icon' => 'fa-list-check',
-                    'roles' => ['tendik'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_laporan_tendik' => [
                     'label' => 'Laporan Kinerja Tendik',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['tendik'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -1304,7 +1309,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'KEPALA_TAS') {
-                        foreach (['menu_kepala_tas', 'menu_persuratan', 'menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan', 'menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris'] as $k) {
+                        foreach (['menu_kepala_tas', 'menu_persuratan', 'menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan', 'menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_PERSURATAN') {
@@ -1334,6 +1339,7 @@ class RolePermission extends Model
                         'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
                         'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
                     ], true)) {
+                        $allowedKeys['menu_target_capaian'] = true;
                         $allowedKeys['menu_aktivitas_tendik'] = true;
                         $allowedKeys['menu_laporan_tendik'] = true;
                     }
@@ -1786,6 +1792,21 @@ class RolePermission extends Model
             }
         }
 
+        $tendikKinerjaAll = ['menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'];
+        foreach ([
+            'KEPALA_TAS', 'STAF_PERSURATAN', 'STAF_KESISWAAN', 'STAF_KEPEGAWAIAN',
+            'STAF_SARPRAS', 'LABORAN', 'PUSTAKAWAN', 'TEKNISI_IT', 'SATPAM', 'PENJAGA_SEKOLAH'
+        ] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $tendikKinerjaAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
         $waliKelasAll = [
             'menu_wali_kelas',
             'menu_wali_kelas_aktif',
@@ -1987,6 +2008,7 @@ class RolePermission extends Model
         if ($role === 'tendik') {
             $allowedForTendik = [
                 'menu_dashboard',
+                'menu_target_capaian',
                 'menu_aktivitas_tendik',
                 'menu_laporan_tendik',
             ];

@@ -11,65 +11,85 @@ use App\Models\RolePermission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class KepegawaianGtkController extends Controller
 {
     /**
-     * Tampilkan Halaman Utama Administrasi Kepegawaian GTK (Guru, Tendik, KGB, Cuti)
+     * Tampilkan Halaman Utama Administrasi Kepegawaian GTK (Pegawai, Berkas Pegawai, KGB, Cuti)
      */
     public function index(Request $request)
     {
         $user = session('user');
-        $tab = $request->query('tab', 'guru');
-        if ($tab === 'berkas') {
-            $tab = 'guru';
+        $tab = $request->query('tab', 'pegawai');
+        if ($tab === 'guru') {
+            $tab = 'pegawai';
+        }
+        if ($tab === 'tendik') {
+            $tab = 'berkas';
         }
 
         $search = trim($request->query('q', ''));
+        $filterJenis = $request->query('jenis_ptk', '');
+        $filterStatus = $request->query('status', '');
+        $filterGender = $request->query('gender', '');
+
         $perPageVal = $request->query('perPage', $request->query('per_page', '25'));
         $perPage = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
         // Master GTK untuk dropdown / referensi
         $allGtk = Gtk::orderBy('nama', 'asc')->get(['ptk_id', 'nama', 'nuptk', 'nik', 'nip', 'jenis_ptk_id_str']);
 
-        // 1. Tab Pegawai Guru
-        $guruQuery = Gtk::with(['berkas' => function ($q) {
-            $q->orderBy('created_at', 'desc');
-        }])->where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'like', '%guru%')
-              ->orWhere('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jenis_ptk_id_str', 'like', '%pendidik%');
-        });
+        // Referensi Filter Dropdown
+        $jenisPtkList = Gtk::whereNotNull('jenis_ptk_id_str')->where('jenis_ptk_id_str', '!=', '')->distinct()->pluck('jenis_ptk_id_str')->sort()->values();
+        $statusKepegawaianList = Gtk::whereNotNull('status_kepegawaian_id_str')->where('status_kepegawaian_id_str', '!=', '')->distinct()->pluck('status_kepegawaian_id_str')->sort()->values();
 
-        if ($search && $tab === 'guru') {
-            $guruQuery->where(function ($q) use ($search) {
+        // 1. Tab Pegawai (Seluruh Tenaga Pendidik & Kependidikan)
+        $pegawaiQuery = Gtk::query();
+        if ($filterJenis) {
+            $pegawaiQuery->where('jenis_ptk_id_str', $filterJenis);
+        }
+        if ($filterStatus) {
+            $pegawaiQuery->where('status_kepegawaian_id_str', $filterStatus);
+        }
+        if ($filterGender) {
+            $pegawaiQuery->where('jenis_kelamin', $filterGender);
+        }
+        if ($search && $tab === 'pegawai') {
+            $pegawaiQuery->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('nuptk', 'like', "%{$search}%")
+                  ->orWhere('nip', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+        $pegawaiList = $pegawaiQuery->orderBy('nama', 'asc')->paginate($perPage)->withQueryString();
+
+        // 2. Tab Berkas Pegawai (Pengarsipan Dokumen Fisik & Digital GTK)
+        $berkasQuery = Gtk::with(['berkas' => function ($q) {
+            $q->orderBy('created_at', 'desc');
+        }]);
+        if ($filterJenis) {
+            $berkasQuery->where('jenis_ptk_id_str', $filterJenis);
+        }
+        if ($filterStatus) {
+            $berkasQuery->where('status_kepegawaian_id_str', $filterStatus);
+        }
+        if ($search && $tab === 'berkas') {
+            $berkasQuery->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
                   ->orWhere('nuptk', 'like', "%{$search}%")
                   ->orWhere('nip', 'like', "%{$search}%")
                   ->orWhere('nik', 'like', "%{$search}%");
             });
         }
-        $guruList = $guruQuery->orderBy('nama', 'asc')->paginate($perPage)->withQueryString();
+        $berkasList = $berkasQuery->orderBy('nama', 'asc')->paginate($perPage)->withQueryString();
 
-        // 2. Tab Pegawai Tendik
-        $tendikQuery = Gtk::with(['berkas' => function ($q) {
-            $q->orderBy('created_at', 'desc');
-        }])->where(function ($q) {
-            $q->where('jenis_ptk_id_str', 'not like', '%guru%')
-              ->where('jenis_ptk_id_str', 'not like', '%kepala sekolah%')
-              ->where('jenis_ptk_id_str', 'not like', '%pendidik%');
-        });
-
-        if ($search && $tab === 'tendik') {
-            $tendikQuery->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nuptk', 'like', "%{$search}%")
-                  ->orWhere('nip', 'like', "%{$search}%")
-                  ->orWhere('nik', 'like', "%{$search}%");
-            });
-        }
-        $tendikList = $tendikQuery->orderBy('nama', 'asc')->paginate($perPage)->withQueryString();
+        // Alias untuk backward compatibility
+        $guruList = $pegawaiList;
+        $tendikList = $berkasList;
 
         // 3. Tab KGB Tracker
         $kgbQuery = GtkKgbTracker::with('gtk');
@@ -132,13 +152,20 @@ class KepegawaianGtkController extends Controller
             'search',
             'perPage',
             'allGtk',
+            'pegawaiList',
+            'berkasList',
             'guruList',
             'tendikList',
             'kgbList',
             'cutiList',
             'stats',
             'kgbJatuhTempoCount',
-            'jenisBerkasOptions'
+            'jenisBerkasOptions',
+            'jenisPtkList',
+            'statusKepegawaianList',
+            'filterJenis',
+            'filterStatus',
+            'filterGender'
         ));
     }
 
@@ -168,7 +195,7 @@ class KepegawaianGtkController extends Controller
             'created_by' => session('user')['nama'] ?? 'Tendik Kepegawaian',
         ]);
 
-        $redirectTab = $request->input('tab_redirect', 'guru');
+        $redirectTab = $request->input('tab_redirect', 'berkas');
 
         return redirect()->route('dashboard.kepegawaian.index', ['tab' => $redirectTab])
             ->with('success', 'Berkas digital GTK berhasil diunggah.');
@@ -188,7 +215,7 @@ class KepegawaianGtkController extends Controller
 
         $berkas->delete();
 
-        $redirectTab = $request->input('tab_redirect', 'guru');
+        $redirectTab = $request->input('tab_redirect', 'berkas');
 
         return redirect()->route('dashboard.kepegawaian.index', ['tab' => $redirectTab])
             ->with('success', 'Berkas digital berhasil dihapus.');

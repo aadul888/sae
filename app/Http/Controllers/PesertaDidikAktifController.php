@@ -623,35 +623,78 @@ class PesertaDidikAktifController extends Controller
         $failedCount = 0;
         $results = [];
 
+        $allowedExts = ['png', 'jpg', 'jpeg'];
+
         try {
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $entry = $zip->getNameIndex($i);
                 $basename = basename(str_replace('\\', '/', $entry));
 
-                if ($basename === '' || str_ends_with($entry, '/') || strtolower(pathinfo($basename, PATHINFO_EXTENSION)) !== 'png') {
+                if ($basename === '' || str_ends_with($entry, '/')) {
                     continue;
                 }
 
-                $nisn = pathinfo($basename, PATHINFO_FILENAME);
-                $student = DB::table('peserta_didik')->where('nisn', $nisn)->first();
+                $ext = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+                if (!in_array($ext, $allowedExts, true)) {
+                    continue;
+                }
+
+                $rawName = pathinfo($basename, PATHINFO_FILENAME);
+
+                // Cari peserta didik: cocokkan NISN, NIPD, atau peserta_didik_id dari nama file
+                // Ekstrak angka dari nama file untuk pencocokan lebih fleksibel
+                $cleanName = preg_replace('/[^0-9a-zA-Z]/', '', $rawName);
+                $numbersOnly = preg_replace('/[^0-9]/', '', $rawName);
+
+                $student = DB::table('peserta_didik')
+                    ->where(function ($q) use ($rawName, $cleanName, $numbersOnly) {
+                        $q->where('nisn', $rawName)
+                          ->orWhere('nisn', $cleanName)
+                          ->orWhere('nipd', $rawName)
+                          ->orWhere('nipd', $cleanName)
+                          ->orWhere('peserta_didik_id', $rawName)
+                          ->orWhere('peserta_didik_id', $cleanName);
+                        // Cocokkan angka murni (NISN biasanya 10 digit)
+                        if (strlen($numbersOnly) >= 5) {
+                            $q->orWhere('nisn', $numbersOnly)
+                              ->orWhere('nipd', $numbersOnly)
+                              ->orWhere('peserta_didik_id', $numbersOnly);
+                        }
+                    })
+                    ->first();
+
                 if (!$student) {
                     $failedCount++;
-                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => "NISN {$nisn} tidak ditemukan."];
+                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => "Tidak ditemukan peserta didik dengan NISN/NIPD/ID yang cocok dengan nama file \"{$rawName}\"."];
                     continue;
                 }
 
                 $stream = $zip->getStream($entry);
                 if (!$stream) {
                     $failedCount++;
-                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => 'Berkas PNG di dalam ZIP tidak dapat dibaca.'];
+                    $results[] = ['filename' => $basename, 'status' => 'error', 'message' => 'Berkas gambar di dalam ZIP tidak dapat dibaca.'];
                     continue;
                 }
 
-                $tmpPath = $tempDir . DIRECTORY_SEPARATOR . uniqid('foto_', true) . '.png';
+                $tmpExt = in_array($ext, ['jpg', 'jpeg'], true) ? 'jpg' : 'png';
+                $tmpPath = $tempDir . DIRECTORY_SEPARATOR . uniqid('foto_', true) . '.' . $tmpExt;
                 file_put_contents($tmpPath, stream_get_contents($stream));
                 fclose($stream);
 
                 try {
+                    // Konversi JPG/JPEG ke PNG jika perlu
+                    if (in_array($ext, ['jpg', 'jpeg'], true)) {
+                        $srcImg = @imagecreatefromjpeg($tmpPath);
+                        if (!$srcImg) {
+                            throw new \RuntimeException("Berkas gambar JPG tidak valid atau rusak.");
+                        }
+                        $pngPath = $tempDir . DIRECTORY_SEPARATOR . uniqid('foto_', true) . '.png';
+                        imagepng($srcImg, $pngPath);
+                        imagedestroy($srcImg);
+                        @unlink($tmpPath);
+                        $tmpPath = $pngPath;
+                        $basename = pathinfo($basename, PATHINFO_FILENAME) . '.png';
+                    }
                     $uploaded = new UploadedFile($tmpPath, $basename, 'image/png', null, true);
                     $meta = \App\Models\PesertaDidikMeta::firstOrNew(['peserta_didik_id' => $student->peserta_didik_id]);
                     if ($meta->foto_path) {
