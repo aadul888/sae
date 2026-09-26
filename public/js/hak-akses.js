@@ -290,8 +290,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let matchedRows = allRows.filter(row => {
             const name = row.dataset.name || '';
             const group = row.dataset.group || '';
+            const isUniversalTendik = row.dataset.universal === 'tendik';
             const matchQuery = !query || name.includes(query);
-            const matchGroup = !groupFilter || group === groupFilter;
+
+            let matchGroup = !groupFilter || group === groupFilter;
+            // Jika memilih kelompok Tendik spesifik (misal Tendik: Kepegawaian, Tendik: Persuratan, dll),
+            // sertakan modul kinerja universal tendik (Target & Capaian, Aktivitas, Laporan)
+            if (!matchGroup && groupFilter.startsWith('Tendik:') && isUniversalTendik) {
+                matchGroup = true;
+            }
+
             return matchQuery && matchGroup;
         });
 

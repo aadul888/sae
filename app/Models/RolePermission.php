@@ -603,8 +603,9 @@ class RolePermission extends Model
     }
 
     /**
-     * Otomatis mendaftarkan seluruh modul baru yang ditemukan di sistem ke database untuk peran Administrator.
-     * Mengembalikan jumlah modul baru yang didaftarkan.
+     * Otomatis mendaftarkan seluruh modul baru yang ditemukan di sistem ke database.
+     * Mendaftarkan untuk Administrator dan peran default terkait secara otomatis.
+     * Mengembalikan jumlah record izin baru yang didaftarkan.
      */
     public static function autoSyncNewDiscoveredModules(): int
     {
@@ -613,25 +614,37 @@ class RolePermission extends Model
         }
 
         $allAvailable = self::getAvailablePermissions();
-        $existingAdminKeys = self::where('role', 'admin')->pluck('permission_key')->flip();
+        $existingByRole = self::select('role', 'permission_key')
+            ->get()
+            ->groupBy('role')
+            ->map(function ($items) {
+                return $items->pluck('permission_key')->flip()->toArray();
+            })
+            ->toArray();
+
         $now = now();
         $newRecords = [];
 
         foreach ($allAvailable as $group => $items) {
             foreach ($items as $permKey => $config) {
-                if (!isset($existingAdminKeys[$permKey])) {
-                    $newRecords[] = [
-                        'role'           => 'admin',
-                        'permission_key' => $permKey,
-                        'is_allowed'     => true,
-                        'can_create'     => true,
-                        'can_read'       => true,
-                        'can_update'     => true,
-                        'can_delete'     => true,
-                        'created_at'     => $now,
-                        'updated_at'     => $now,
-                    ];
-                    $existingAdminKeys[$permKey] = true;
+                $targetRoles = array_unique(array_merge(['admin'], $config['roles'] ?? []));
+
+                foreach ($targetRoles as $role) {
+                    if (!isset($existingByRole[$role][$permKey])) {
+                        $crud = self::getDefaultCrudForRole($role, $permKey);
+                        $newRecords[] = [
+                            'role'           => $role,
+                            'permission_key' => $permKey,
+                            'is_allowed'     => ($role === 'admin') ? true : $crud['is_allowed'],
+                            'can_create'     => ($role === 'admin') ? true : $crud['can_create'],
+                            'can_read'       => ($role === 'admin') ? true : $crud['can_read'],
+                            'can_update'     => ($role === 'admin') ? true : $crud['can_update'],
+                            'can_delete'     => ($role === 'admin') ? true : $crud['can_delete'],
+                            'created_at'     => $now,
+                            'updated_at'     => $now,
+                        ];
+                        $existingByRole[$role][$permKey] = true;
+                    }
                 }
             }
         }
@@ -643,7 +656,66 @@ class RolePermission extends Model
             self::clearRuntimeCache();
         }
 
+        self::syncDutiesGrantedPermissions();
+
         return count($newRecords);
+    }
+
+    /**
+     * Otomatis mendaftarkan modul baru secara realtime saat pertama kali dipanggil / diakses.
+     */
+    public static function autoRegisterNewPermission(string $permissionKey): void
+    {
+        if (!Schema::hasTable('role_permissions')) {
+            return;
+        }
+
+        $now = now();
+        $conf = self::getPermissionConfig($permissionKey) ?: [
+            'roles' => ['admin'],
+        ];
+        $targetRoles = array_unique(array_merge(['admin'], $conf['roles'] ?? []));
+
+        // 1. Daftarkan untuk Admin
+        $adminPerm = self::where('role', 'admin')->where('permission_key', $permissionKey)->first();
+        if (!$adminPerm) {
+            $adminPerm = self::create([
+                'role'           => 'admin',
+                'permission_key' => $permissionKey,
+                'is_allowed'     => true,
+                'can_create'     => true,
+                'can_read'       => true,
+                'can_update'     => true,
+                'can_delete'     => true,
+                'created_at'     => $now,
+                'updated_at'     => $now,
+            ]);
+        }
+
+        // 2. Daftarkan untuk target peran default jika ada
+        foreach ($targetRoles as $r) {
+            if ($r === 'admin') continue;
+            $exist = self::where('role', $r)->where('permission_key', $permissionKey)->exists();
+            if (!$exist) {
+                $crud = self::getDefaultCrudForRole($r, $permissionKey);
+                self::create([
+                    'role'           => $r,
+                    'permission_key' => $permissionKey,
+                    'is_allowed'     => $crud['is_allowed'],
+                    'can_create'     => $crud['can_create'],
+                    'can_read'       => $crud['can_read'],
+                    'can_update'     => $crud['can_update'],
+                    'can_delete'     => $crud['can_delete'],
+                    'created_at'     => $now,
+                    'updated_at'     => $now,
+                ]);
+            }
+        }
+
+        // 3. Sinkronkan ke runtime cache
+        if (isset(self::$runtimeRolePermissionsCache['admin'])) {
+            self::$runtimeRolePermissionsCache['admin']->put($permissionKey, $adminPerm);
+        }
     }
 
     /**
@@ -1096,10 +1168,17 @@ class RolePermission extends Model
                         }
                     }
                 }
-                if ($adminRow && $adminRow->is_allowed && $adminRow->can_read) {
-                    return $actionCol === 'can_read' ? true : (bool) $adminRow->{$actionCol};
+                if ($adminRow) {
+                    if ($adminRow->is_allowed && $adminRow->can_read) {
+                        return $actionCol === 'can_read' ? true : (bool) $adminRow->{$actionCol};
+                    }
+                    return false;
                 }
-                return false;
+
+                // Modul baru belum tercatat di database untuk Admin:
+                // Auto-register realtime on-the-fly dan berikan izin penuh untuk Administrator
+                self::autoRegisterNewPermission($permissionKey);
+                return true;
             }
             return true;
         }

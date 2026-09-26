@@ -165,10 +165,14 @@
                 </thead>
                 <tbody id="tableBody">
                     @forelse ($tableModules as $index => $item)
+                        @php
+                            $isUniversalTendik = in_array($item['key'], ['menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'], true);
+                        @endphp
                         <tr class="module-row" data-modul="{{ strtolower($item['label']) }}"
                             data-kelompok="{{ strtolower($item['group']) }}"
                             data-name="{{ strtolower($item['label'] . ' ' . $item['key']) }}"
                             data-group="{{ $item['group'] }}"
+                            @if ($isUniversalTendik) data-universal="tendik" @endif
                             style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td class="row-number"
                                 style="padding: 14px 18px; font-weight: 600; color: var(--text-muted); text-align: center; font-size: 0.84rem;"
@@ -192,6 +196,11 @@
                                 <span class="badge badge-primary" style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
                                     {{ $item['group'] }}
                                 </span>
+                                @if ($isUniversalTendik)
+                                    <span class="badge" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); font-size: 0.68rem; padding: 3px 6px; border-radius: 4px; margin-left: 4px;" title="Berlaku untuk seluruh bidang tendik">
+                                        Universal
+                                    </span>
+                                @endif
                             </td>
 
                             @if ($activeRole === 'global')
