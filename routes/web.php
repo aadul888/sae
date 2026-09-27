@@ -156,8 +156,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/tendik', [DashboardController::class, 'tendik'])->name('tendik');
     Route::get('/peserta-didik', [DashboardController::class, 'pesertaDidik'])->name('peserta-didik');
     Route::get('/peserta_didik', [DashboardController::class, 'pesertaDidik'])->name('peserta_didik');
+    Route::get('/peserta-didik/identitas', [DashboardController::class, 'identitasSiswa'])->name('peserta-didik.identitas');
     Route::get('/orang-tua', [DashboardController::class, 'orangTua'])->name('orang-tua');
     Route::get('/orang_tua', [DashboardController::class, 'orangTua'])->name('orang_tua');
+    Route::get('/orang-tua/kehadiran', [DashboardController::class, 'orangTuaKehadiran'])->name('orang-tua.kehadiran');
+    Route::get('/orang-tua/izin', [DashboardController::class, 'orangTuaIzin'])->name('orang-tua.izin');
 
     // Profil Pengguna & Keamanan Akun
     Route::get('/profil', [\App\Http\Controllers\ProfileController::class, 'index'])->name('profile');

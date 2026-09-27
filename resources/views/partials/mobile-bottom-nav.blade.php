@@ -127,10 +127,10 @@
             ],
             [
                 'label' => 'Identitas',
-                'icon' => 'fa-id-card',
-                'href' => '?tab=identitas',
+                'icon' => 'fa-id-card-clip',
+                'href' => $href('dashboard.peserta-didik.identitas'),
                 'permission' => 'menu_dashboard',
-                'active' => request('tab') === 'identitas',
+                'active' => request()->routeIs('dashboard.peserta-didik.identitas*'),
             ],
             [
                 'label' => 'Berkas',
@@ -160,53 +160,53 @@
                 'label' => 'Home',
                 'icon' => 'fa-house',
                 'href' => $href('dashboard.orang-tua'),
-                'active' => request()->routeIs('dashboard.orang*'),
+                'active' => request()->routeIs('dashboard.orang-tua') && !request()->routeIs('dashboard.orang-tua.*'),
+            ],
+            [
+                'label' => 'Kehadiran',
+                'icon' => 'fa-calendar-check',
+                'href' => $href('dashboard.orang-tua.kehadiran'),
+                'active' => request()->routeIs('dashboard.orang-tua.kehadiran*'),
             ],
             [
                 'label' => 'Jadwal',
                 'icon' => 'fa-calendar-days',
                 'href' => $href('dashboard.jadwal-pelajaran.index'),
                 'active' => request()->routeIs('dashboard.jadwal-pelajaran*'),
-            ],
-            [
-                'label' => 'Kehadiran',
-                'icon' => 'fa-calendar-check',
-                'href' => $href('dashboard.orang-tua'),
-                'active' => request()->routeIs('dashboard.orang*'),
                 'prominent' => true,
             ],
             [
-                'label' => 'Info',
-                'icon' => 'fa-bullhorn',
-                'href' => $href('dashboard.informasi.index'),
-                'active' => request()->routeIs('dashboard.informasi.*'),
+                'label' => 'e-Izin',
+                'icon' => 'fa-ticket-alt',
+                'href' => $href('dashboard.orang-tua.izin'),
+                'active' => request()->routeIs('dashboard.orang-tua.izin*'),
             ],
             [
-                'label' => 'Profil',
-                'icon' => 'fa-user',
-                'href' => $href('dashboard.profile'),
-                'active' => request()->routeIs('dashboard.profile'),
+                'label' => 'Identitas',
+                'icon' => 'fa-id-card-clip',
+                'href' => $href('dashboard.peserta-didik.identitas'),
+                'active' => request()->routeIs('dashboard.peserta-didik.identitas*'),
             ],
         ],
     ];
 
     $items = $menus[$role] ?? $menus['peserta_didik'];
     $can = fn($key) => empty($key) || \App\Models\RolePermission::canAccess($user ?: $role, $key);
-    $items = array_filter($items, function($item) use ($can) {
+    $items = array_filter($items, function ($item) use ($can) {
         return empty($item['permission']) || $can($item['permission']);
     });
 @endphp
 
 @if (!empty($items) && $can('menu_dashboard'))
-<nav class="mobile-bottom-nav">
-    @foreach ($items as $item)
-        <a href="{{ $item['href'] }}"
-            class="mobile-nav-item {{ !empty($item['prominent']) ? 'item-prominent' : '' }} {{ !empty($item['active']) ? 'active' : '' }}">
-            <div class="{{ !empty($item['prominent']) ? 'prominent-btn' : 'mobile-nav-icon' }}">
-                <i class="fas {{ $item['icon'] }}"></i>
-            </div>
-            <span class="mobile-nav-label">{{ $item['label'] }}</span>
-        </a>
-    @endforeach
-</nav>
+    <nav class="mobile-bottom-nav">
+        @foreach ($items as $item)
+            <a href="{{ $item['href'] }}"
+                class="mobile-nav-item {{ !empty($item['prominent']) ? 'item-prominent' : '' }} {{ !empty($item['active']) ? 'active' : '' }}">
+                <div class="{{ !empty($item['prominent']) ? 'prominent-btn' : 'mobile-nav-icon' }}">
+                    <i class="fas {{ $item['icon'] }}"></i>
+                </div>
+                <span class="mobile-nav-label">{{ $item['label'] }}</span>
+            </a>
+        @endforeach
+    </nav>
 @endif
