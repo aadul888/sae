@@ -770,9 +770,8 @@ class PresensiController extends Controller
             $presensi->save();
         }
 
-        // Catat notifikasi transaksi personal untuk peserta didik
+        // Catat notifikasi transaksi personal untuk peserta didik, orang tua, dan wali kelas
         try {
-            $userPengguna = \App\Models\User::where('peserta_didik_id', $siswa->peserta_didik_id)->first();
             $jamStr = substr($actionType === 'pulang' ? $presensi->jam_pulang : $presensi->jam_masuk, 0, 5);
             $notifJudul = $actionType === 'pulang' ? 'Presensi Pulang Tercatat' : ($presensi->status === 'T' ? 'Presensi Masuk (Terlambat)' : 'Presensi Masuk Berhasil');
             $notifTipe = $actionType === 'pulang' ? 'info' : ($presensi->status === 'T' ? 'warning' : 'success');
@@ -783,17 +782,33 @@ class PresensiController extends Controller
                     ? "Presensi masuk Anda tercatat pada pukul {$jamStr} WIB (Terlambat {$presensi->menit_terlambat} menit)."
                     : "Presensi masuk Anda tercatat tepat waktu pada pukul {$jamStr} WIB.");
 
-            \App\Models\NotifikasiTransaksi::create([
-                'pengguna_id' => $userPengguna ? $userPengguna->pengguna_id : null,
-                'peserta_didik_id' => $siswa->peserta_didik_id,
-                'kategori' => 'presensi',
-                'judul' => $notifJudul,
-                'pesan' => $pesanNotif,
-                'tipe' => $notifTipe,
-                'icon' => $notifIcon,
-                'url' => route('dashboard.peserta-didik.presensi.index'),
-                'is_read' => false,
-            ]);
+            $judulWali = $actionType === 'pulang' ? "Presensi Pulang: {$siswa->nama}" : "Presensi Masuk: {$siswa->nama}";
+            $pesanWali = $actionType === 'pulang'
+                ? "Siswa {$siswa->nama} dicatat pulang pada pukul {$jamStr} WIB."
+                : ($presensi->status === 'T'
+                    ? "Siswa {$siswa->nama} tercatat masuk terlambat ({$presensi->menit_terlambat} menit) pada pukul {$jamStr} WIB."
+                    : "Siswa {$siswa->nama} tercatat masuk tepat waktu pada pukul {$jamStr} WIB.");
+
+            $pesanOrtu = $actionType === 'pulang'
+                ? "Putra/putri Anda ({$siswa->nama}) telah tercatat pulang sekolah pada pukul {$jamStr} WIB."
+                : ($presensi->status === 'T'
+                    ? "Putra/putri Anda ({$siswa->nama}) tercatat masuk sekolah pada pukul {$jamStr} WIB (Terlambat {$presensi->menit_terlambat} menit)."
+                    : "Putra/putri Anda ({$siswa->nama}) tercatat masuk sekolah tepat waktu pada pukul {$jamStr} WIB.");
+
+            \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
+                $siswa->peserta_didik_id,
+                $siswa->rombongan_belajar_id ?? '',
+                $notifJudul,
+                $pesanNotif,
+                $judulWali,
+                $pesanWali,
+                $notifTipe,
+                $notifIcon,
+                route('dashboard.peserta-didik.presensi.index'),
+                route('dashboard.wali-kelas.presensi.index'),
+                $notifJudul,
+                $pesanOrtu
+            );
         } catch (\Throwable $th) {
             \Illuminate\Support\Facades\Log::warning('Gagal membuat notifikasi transaksi presensi: ' . $th->getMessage());
         }

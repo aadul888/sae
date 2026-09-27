@@ -52,6 +52,9 @@ class Pengumuman extends Model
             ->where(function ($q) use ($role) {
                 $q->where('target_peran', 'semua')
                     ->orWhere('target_peran', $role);
+                if ($role === 'orang_tua') {
+                    $q->orWhere('target_peran', 'peserta_didik');
+                }
             })
             ->orderByDesc('created_at');
     }

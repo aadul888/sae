@@ -46,9 +46,9 @@ class KartuPelajarController extends Controller
             $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
             $userNisn = is_array($user) ? ($user['nisn'] ?? '') : ($user->nisn ?? '');
 
-            // Jika peserta didik, hanya boleh melihat pratinjau kartu miliknya sendiri
-            if ($role === 'peserta_didik' && $userNisn !== $nisn) {
-                return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda hanya berhak melihat kartu milik Anda sendiri.'], 403);
+            // Jika peserta didik atau orang tua, hanya boleh melihat pratinjau kartu miliknya / putra-putrinya sendiri
+            if (in_array($role, ['peserta_didik', 'orang_tua'], true) && $userNisn !== $nisn) {
+                return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda hanya berhak melihat kartu milik putra/putri Anda.'], 403);
             }
 
             // Jika guru atau tendik, harus Administrator atau Wali Kelas

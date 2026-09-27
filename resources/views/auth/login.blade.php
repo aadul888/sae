@@ -52,8 +52,24 @@
                 </div>
             @endif
 
-            <form action="{{ route('login.post') }}" method="POST">
+            <!-- Segmented Switcher Peran: GTK/Siswa vs Orang Tua -->
+            <div style="display: flex; background: var(--bg-hover); padding: 4px; border-radius: 12px; margin-bottom: 22px; border: 1px solid var(--border-color); gap: 4px;">
+                <button type="button" id="tabBtnUmum" onclick="switchLoginTab('umum')"
+                    style="flex: 1; padding: 9px 12px; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; background: var(--primary); color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fas fa-user-shield"></i>
+                    <span>GTK &amp; Siswa</span>
+                </button>
+                <button type="button" id="tabBtnOrtu" onclick="switchLoginTab('orang_tua')"
+                    style="flex: 1; padding: 9px 12px; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i class="fas fa-people-roof"></i>
+                    <span>Orang Tua / Wali</span>
+                </button>
+            </div>
+
+            <!-- Form 1: Login GTK & Siswa (Default) -->
+            <form id="formLoginUmum" action="{{ route('login.post') }}" method="POST">
                 @csrf
+                <input type="hidden" name="login_type" value="umum">
                 <div style="margin-bottom: 18px;">
                     <label
                         style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
@@ -76,7 +92,7 @@
                         style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
                         <input type="password" name="password" id="passwordInput" required placeholder="••••••••"
                             style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px 0 0 12px;">
-                        <button type="button" onclick="togglePass()"
+                        <button type="button" onclick="togglePass('passwordInput', 'eyeIcon')"
                             style="border: none; background: transparent; color: var(--text-muted); padding: 0 14px; cursor: pointer; height: 100%;">
                             <i class="fas fa-eye" id="eyeIcon"></i>
                         </button>
@@ -89,6 +105,47 @@
                 </button>
             </form>
 
+            <!-- Form 2: Login Khusus Orang Tua / Wali Murid -->
+            <form id="formLoginOrtu" action="{{ route('login.post') }}" method="POST" style="display: none;">
+                @csrf
+                <input type="hidden" name="login_type" value="orang_tua">
+                <div style="margin-bottom: 16px;">
+                    <label
+                        style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                        <i class="fas fa-id-card"></i> NISN / NIK Siswa
+                    </label>
+                    <div class="input-group"
+                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
+                        <input type="text" name="nisn_anak" id="inputNisnAnak"
+                            placeholder="Masukkan NISN atau NIK siswa..."
+                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px;">
+                    </div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">
+                        10 digit NISN atau 16 digit NIK putra/putri Anda.
+                    </span>
+                </div>
+
+                <div style="margin-bottom: 22px;">
+                    <label
+                        style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                        <i class="fas fa-calendar-check"></i> Password / PIN (Tanggal Lahir Siswa)
+                    </label>
+                    <div class="input-group"
+                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
+                        <input type="date" name="tgl_lahir_anak" id="inputTglLahirAnak"
+                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px;">
+                    </div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">
+                        Pilih tanggal lahir anak sesuai data sekolah sebagai password/PIN keamanan.
+                    </span>
+                </div>
+
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; padding: 13px; font-weight: 700; font-size: 0.95rem; justify-content: center; background: #10b981; border-color: #10b981; box-shadow: 0 4px 16px rgba(16,185,129,0.35);">
+                    <i class="fas fa-door-open"></i> Masuk Portal Orang Tua
+                </button>
+            </form>
+
             <div style="margin-top: 20px; text-align: center;">
                 <a href="{{ route('home') }}" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: none;">
                     <i class="fas fa-arrow-left"></i> Kembali ke Halaman Utama
@@ -98,9 +155,10 @@
     </div>
 
     <script>
-        function togglePass() {
-            const pass = document.getElementById('passwordInput');
-            const eye = document.getElementById('eyeIcon');
+        function togglePass(inputId, iconId) {
+            const pass = document.getElementById(inputId);
+            const eye = document.getElementById(iconId);
+            if (!pass || !eye) return;
             if (pass.type === 'password') {
                 pass.type = 'text';
                 eye.classList.remove('fa-eye');
@@ -111,5 +169,58 @@
                 eye.classList.add('fa-eye');
             }
         }
+
+        function switchLoginTab(type) {
+            const fUmum = document.getElementById('formLoginUmum');
+            const fOrtu = document.getElementById('formLoginOrtu');
+            const bUmum = document.getElementById('tabBtnUmum');
+            const bOrtu = document.getElementById('tabBtnOrtu');
+            const uInput = document.getElementById('usernameInput');
+            const pInput = document.getElementById('passwordInput');
+            const nInput = document.getElementById('inputNisnAnak');
+            const tInput = document.getElementById('inputTglLahirAnak');
+
+            if (type === 'orang_tua') {
+                fUmum.style.display = 'none';
+                fOrtu.style.display = 'block';
+
+                bOrtu.style.background = '#10b981';
+                bOrtu.style.color = '#fff';
+                bOrtu.style.fontWeight = '700';
+
+                bUmum.style.background = 'transparent';
+                bUmum.style.color = 'var(--text-muted)';
+                bUmum.style.fontWeight = '600';
+
+                uInput.removeAttribute('required');
+                pInput.removeAttribute('required');
+                nInput.setAttribute('required', 'required');
+                tInput.setAttribute('required', 'required');
+            } else {
+                fOrtu.style.display = 'none';
+                fUmum.style.display = 'block';
+
+                bUmum.style.background = 'var(--primary)';
+                bUmum.style.color = '#fff';
+                bUmum.style.fontWeight = '700';
+
+                bOrtu.style.background = 'transparent';
+                bOrtu.style.color = 'var(--text-muted)';
+                bOrtu.style.fontWeight = '600';
+
+                nInput.removeAttribute('required');
+                tInput.removeAttribute('required');
+                uInput.setAttribute('required', 'required');
+                pInput.setAttribute('required', 'required');
+            }
+        }
+
+        // Cek URL param ?tab=ortu jika diarahkan khusus
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('tab') === 'ortu' || params.get('type') === 'orang_tua') {
+                switchLoginTab('orang_tua');
+            }
+        });
     </script>
 @endsection

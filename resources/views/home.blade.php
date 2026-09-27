@@ -36,6 +36,10 @@
                         style="display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-right-to-bracket"></i> Masuk Portal
                     </a>
+                    <a href="{{ route('login', ['tab' => 'ortu']) }}" class="btn btn-outline"
+                        style="display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-people-roof text-success"></i> Portal Orang Tua
+                    </a>
                 </div>
             </div>
 

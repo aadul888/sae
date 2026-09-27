@@ -49,7 +49,7 @@ class JadwalPelajaranController extends Controller
         $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
         $isAdmin = in_array($role, ['admin', 'kepala_sekolah', 'waka_kurikulum'], true);
         $isGuru = ($role === 'guru');
-        $isSiswa = ($role === 'peserta_didik');
+        $isSiswa = in_array($role, ['peserta_didik', 'orang_tua'], true);
 
         $isJadwalDiberlakukan = JadwalPengaturan::isDiberlakukan();
         $modeAktif = JadwalPengaturan::getModeAktif();

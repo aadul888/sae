@@ -156,6 +156,17 @@ class PiketIzinController extends Controller
             'updated_at' => now(),
         ]);
 
+        if ($siswa) {
+            \App\Models\NotifikasiTransaksi::kirimNotifikasiIzin(
+                $request->peserta_didik_id,
+                $rombelId,
+                "e-Izin Keluar Diterbitkan: {$siswa->nama}",
+                "Tiket e-Izin keluar ({$nomorTiket}) untuk keperluan '{$request->alasan}' telah disetujui Guru Piket.",
+                'info',
+                'fa-solid fa-ticket'
+            );
+        }
+
         return redirect()->route('dashboard.piket.izin.index')
             ->with('success', 'e-Izin berhasil diterbitkan dengan nomor tiket: ' . $nomorTiket);
     }

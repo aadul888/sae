@@ -155,6 +155,39 @@
                 'active' => request('tab') === 'faq',
             ],
         ],
+        'orang_tua' => [
+            [
+                'label' => 'Home',
+                'icon' => 'fa-house',
+                'href' => $href('dashboard.orang-tua'),
+                'active' => request()->routeIs('dashboard.orang*'),
+            ],
+            [
+                'label' => 'Jadwal',
+                'icon' => 'fa-calendar-days',
+                'href' => $href('dashboard.jadwal-pelajaran.index'),
+                'active' => request()->routeIs('dashboard.jadwal-pelajaran*'),
+            ],
+            [
+                'label' => 'Kehadiran',
+                'icon' => 'fa-calendar-check',
+                'href' => $href('dashboard.orang-tua'),
+                'active' => request()->routeIs('dashboard.orang*'),
+                'prominent' => true,
+            ],
+            [
+                'label' => 'Info',
+                'icon' => 'fa-bullhorn',
+                'href' => $href('dashboard.informasi.index'),
+                'active' => request()->routeIs('dashboard.informasi.*'),
+            ],
+            [
+                'label' => 'Profil',
+                'icon' => 'fa-user',
+                'href' => $href('dashboard.profile'),
+                'active' => request()->routeIs('dashboard.profile'),
+            ],
+        ],
     ];
 
     $items = $menus[$role] ?? $menus['peserta_didik'];

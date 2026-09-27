@@ -1806,6 +1806,16 @@ class RolePermission extends Model
             ];
         }
 
+        if ($role === 'orang_tua') {
+            return [
+                'is_allowed' => $isAllowed,
+                'can_create' => false,
+                'can_read' => $isAllowed,
+                'can_update' => false,
+                'can_delete' => false,
+            ];
+        }
+
         return [
             'is_allowed' => false,
             'can_create' => false,
@@ -2092,6 +2102,16 @@ class RolePermission extends Model
                 'menu_laporan_tendik',
             ];
             return in_array($permissionKey, $allowedForTendik, true);
+        }
+
+        if ($role === 'orang_tua') {
+            $allowedForOrtu = [
+                'menu_dashboard',
+                'menu_jadwal_pelajaran',
+                'menu_pengumuman',
+                'menu_riwayat_rfid',
+            ];
+            return in_array($permissionKey, $allowedForOrtu, true);
         }
 
         return false;

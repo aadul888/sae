@@ -51,7 +51,7 @@ class NotifikasiTransaksi extends Model
     }
 
     /**
-     * Kirim notifikasi transaksi presensi ke murid dan wali kelas secara terpadu,
+     * Kirim notifikasi transaksi presensi ke murid, orang tua, dan wali kelas secara terpadu,
      * serta trigger event realtime untuk Web Push PWA perangkat.
      */
     public static function kirimNotifikasiPresensi(
@@ -64,7 +64,9 @@ class NotifikasiTransaksi extends Model
         string $tipe = 'info',
         string $icon = 'fa-solid fa-calendar-check',
         ?string $urlMurid = null,
-        ?string $urlWali = null
+        ?string $urlWali = null,
+        ?string $judulOrtu = null,
+        ?string $pesanOrtu = null
     ): void {
         try {
             // 1. Notifikasi ke Murid
@@ -113,7 +115,7 @@ class NotifikasiTransaksi extends Model
                 ]);
             }
 
-            // 3. Broadcast Realtime Event agar PWA & Dashboard menerima ke perangkat
+            // 3. Broadcast Realtime Event agar PWA, Mobile, & Dashboard Orang Tua menerima push
             \App\Services\RealtimeService::trigger('presensi.recorded', [
                 'peserta_didik_id' => $pesertaDidikId,
                 'murid_user_id'    => $userMurid?->pengguna_id,
@@ -122,12 +124,57 @@ class NotifikasiTransaksi extends Model
                 'pesan_murid'      => $pesanMurid,
                 'judul_wali'       => $judulWali,
                 'pesan_wali'       => $pesanWali,
+                'judul_ortu'       => $judulOrtu ?: $judulMurid,
+                'pesan_ortu'       => $pesanOrtu ?: str_replace(['Anda', 'anda'], ['Putra/putri Anda', 'putra/putri Anda'], $pesanMurid),
                 'url_murid'        => $urlMurid ?: route('dashboard.peserta-didik.presensi.index'),
                 'url_wali'         => $urlWali ?: route('dashboard.wali-kelas.presensi.index'),
+                'url_ortu'         => route('dashboard.orang-tua'),
                 'timestamp'        => time(),
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi presensi: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Kirim notifikasi realtime perizinan siswa (e-Izin keluar, checkout gerbang, checkin kembali, surat izin)
+     */
+    public static function kirimNotifikasiIzin(
+        string $pesertaDidikId,
+        ?string $rombelId,
+        string $judul,
+        string $pesan,
+        string $tipe = 'warning',
+        string $icon = 'fa-solid fa-ticket',
+        ?string $url = null
+    ): void {
+        try {
+            $userMurid = User::where('peserta_didik_id', $pesertaDidikId)->first();
+            self::create([
+                'pengguna_id'      => $userMurid?->pengguna_id,
+                'peserta_didik_id' => $pesertaDidikId,
+                'kategori'         => 'izin',
+                'judul'            => $judul,
+                'pesan'            => $pesan,
+                'tipe'             => $tipe,
+                'icon'             => $icon,
+                'url'              => $url ?: route('dashboard.peserta-didik.izin.index'),
+                'is_read'          => false,
+            ]);
+
+            \App\Services\RealtimeService::trigger('izin.recorded', [
+                'peserta_didik_id' => $pesertaDidikId,
+                'murid_user_id'    => $userMurid?->pengguna_id,
+                'judul_murid'      => $judul,
+                'pesan_murid'      => $pesan,
+                'judul_ortu'       => $judul,
+                'pesan_ortu'       => $pesan,
+                'url_murid'        => route('dashboard.peserta-didik.izin.index'),
+                'url_ortu'         => route('dashboard.orang-tua'),
+                'timestamp'        => time(),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi izin: ' . $e->getMessage());
         }
     }
 }

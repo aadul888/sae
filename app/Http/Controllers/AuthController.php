@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use App\Models\User;
@@ -19,6 +20,131 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $loginType = $request->input('login_type', 'umum');
+
+        // Otentikasi Khusus Portal Orang Tua / Wali Murid
+        if ($loginType === 'orang_tua' || $request->filled('nisn_anak')) {
+            $request->validate([
+                'nisn_anak'      => 'required',
+                'tgl_lahir_anak' => 'required',
+            ], [
+                'nisn_anak.required'      => 'NISN atau NIK peserta didik wajib diisi.',
+                'tgl_lahir_anak.required' => 'Password/PIN (Tanggal lahir peserta didik) wajib diisi.',
+            ]);
+
+            $identifier = trim((string) $request->input('nisn_anak', $request->input('username', '')));
+            $pinInput = trim((string) $request->input('tgl_lahir_anak', $request->input('password', '')));
+
+            // Cari peserta didik berdasarkan NISN, NIK, atau NIPD
+            $student = DB::table('peserta_didik')
+                ->where(function ($q) use ($identifier) {
+                    $q->where('nisn', $identifier)
+                      ->orWhere('nik', $identifier)
+                      ->orWhere('nipd', $identifier);
+                })
+                ->first();
+
+            if (!$student) {
+                return back()->withInput()->with('error', "Data peserta didik dengan NISN/NIK {$identifier} tidak ditemukan.");
+            }
+
+            // Verifikasi tanggal lahir / NIK / PIN
+            $isValidParent = false;
+
+            if (!empty($student->tanggal_lahir)) {
+                $dbDate = trim($student->tanggal_lahir);
+                $cleanInput = preg_replace('/[^0-9]/', '', $pinInput);
+                $cleanDbDate = preg_replace('/[^0-9]/', '', $dbDate);
+
+                if ($pinInput === $dbDate || $cleanInput === $cleanDbDate) {
+                    $isValidParent = true;
+                } else {
+                    try {
+                        $parsedInput = \Carbon\Carbon::parse($pinInput)->format('Y-m-d');
+                        if ($parsedInput === $dbDate) {
+                            $isValidParent = true;
+                        }
+                    } catch (\Throwable $e) {
+                    }
+                }
+            }
+
+            if (!$isValidParent && !empty($student->nik)) {
+                if ($pinInput === trim($student->nik)) {
+                    $isValidParent = true;
+                }
+            }
+
+            // Fallback: periksa jika ada user pengguna orang tua yang dibuat manual di database
+            if (!$isValidParent) {
+                $parentUser = User::where('username', 'ortu_' . $student->nisn)
+                    ->orWhere('username', $identifier)
+                    ->first();
+                if ($parentUser && !empty($parentUser->password) && (password_verify($pinInput, $parentUser->password) || $parentUser->password === $pinInput)) {
+                    $isValidParent = true;
+                }
+            }
+
+            if (!$isValidParent) {
+                return back()->withInput()->with('error', "PIN / Tanggal lahir tidak cocok dengan data siswa {$student->nama}.");
+            }
+
+            // Ambil foto siswa
+            $fotoUrl = null;
+            if (Schema::hasTable('peserta_didik_meta')) {
+                $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $student->peserta_didik_id)->first();
+                $fotoUrl = $meta?->foto_url;
+            }
+
+            // Tentukan nama sapaan orang tua / wali sesuai status pekerjaan
+            $ayahAlive = !empty($student->nama_ayah) && !str_contains(strtolower($student->pekerjaan_ayah_id_str ?? ''), 'meninggal');
+            $ibuAlive = !empty($student->nama_ibu) && !str_contains(strtolower($student->pekerjaan_ibu_id_str ?? ''), 'meninggal');
+            $waliAlive = !empty($student->nama_wali) && !str_contains(strtolower($student->pekerjaan_wali_id_str ?? ''), 'meninggal');
+
+            if ($ayahAlive && $ibuAlive) {
+                $parentName = 'Bpk. ' . $student->nama_ayah . ' & Ibu ' . $student->nama_ibu;
+            } elseif ($ayahAlive) {
+                $parentName = 'Bpk. ' . $student->nama_ayah;
+            } elseif ($ibuAlive) {
+                $parentName = 'Ibu ' . $student->nama_ibu;
+            } elseif ($waliAlive) {
+                $parentName = 'Bpk/Ibu ' . $student->nama_wali;
+            } else {
+                $parentName = 'Orang Tua / Wali';
+            }
+
+            $userData = [
+                'pengguna_id'      => 'ortu-' . $student->peserta_didik_id,
+                'name'             => $parentName,
+                'nama'             => $parentName,
+                'wali_nama'        => $parentName,
+                'role'             => 'orang_tua',
+                'peran_id_str'     => 'Orang Tua / Wali Murid',
+                'peserta_didik_id' => $student->peserta_didik_id,
+                'nisn'             => $student->nisn,
+                'siswa_nama'       => $student->nama,
+                'kelas'            => $student->nama_rombel,
+                'foto_url'         => $fotoUrl,
+            ];
+
+            session(['user' => $userData]);
+
+            try {
+                \App\Models\TendikAktivitas::recordActivity(
+                    $userData,
+                    'Autentikasi Masuk Portal Orang Tua',
+                    'umum',
+                    "Orang tua/wali dari {$student->nama} (NISN: {$student->nisn}) berhasil masuk ke portal pemantauan",
+                    'selesai',
+                    'Sesi Orang Tua Aktif'
+                );
+            } catch (\Throwable $e) {
+            }
+
+            return redirect()->route('dashboard.orang-tua')
+                ->with('success', "Selamat datang di Portal Pemantauan Orang Tua / Wali Murid.");
+        }
+
         $request->validate([
             'username' => 'required',
             'password' => 'required',

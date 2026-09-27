@@ -113,6 +113,19 @@ class KeamananIzinController extends Controller
             'updated_at' => now(),
         ]);
 
+        $siswa = DB::table('peserta_didik')->where('peserta_didik_id', $tiket->peserta_didik_id)->first();
+        $siswaNama = $siswa?->nama ?? 'Siswa';
+        $waktuStr = now()->format('H:i') . ' WIB';
+
+        \App\Models\NotifikasiTransaksi::kirimNotifikasiIzin(
+            $tiket->peserta_didik_id,
+            $tiket->rombel_id,
+            "Siswa Keluar Gerbang: {$siswaNama}",
+            "Putra/putri Anda ({$siswaNama}) telah diverifikasi KELUAR gerbang sekolah pada pukul {$waktuStr}.",
+            'warning',
+            'fa-solid fa-door-open'
+        );
+
         return redirect()->back()->with('success', 'Siswa berhasil diverifikasi KELUAR gerbang (Tiket: ' . $tiket->nomor_tiket . ').');
     }
 
@@ -134,6 +147,19 @@ class KeamananIzinController extends Controller
             'catatan_satpam' => $request->input('catatan_satpam', $tiket->catatan_satpam),
             'updated_at' => now(),
         ]);
+
+        $siswa = DB::table('peserta_didik')->where('peserta_didik_id', $tiket->peserta_didik_id)->first();
+        $siswaNama = $siswa?->nama ?? 'Siswa';
+        $waktuStr = now()->format('H:i') . ' WIB';
+
+        \App\Models\NotifikasiTransaksi::kirimNotifikasiIzin(
+            $tiket->peserta_didik_id,
+            $tiket->rombel_id,
+            "Siswa Kembali ke Sekolah: {$siswaNama}",
+            "Putra/putri Anda ({$siswaNama}) telah diverifikasi KEMBALI masuk ke sekolah pada pukul {$waktuStr}.",
+            'success',
+            'fa-solid fa-school-circle-check'
+        );
 
         return redirect()->back()->with('success', 'Siswa berhasil diverifikasi KEMBALI ke sekolah (Tiket: ' . $tiket->nomor_tiket . ').');
     }

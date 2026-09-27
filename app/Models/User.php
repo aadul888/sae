@@ -106,6 +106,9 @@ class User extends Authenticatable
         if (str_contains($peran, 'admin') || str_contains($peran, 'dinas') || str_contains($peran, 'yayasan') || str_contains($peran, 'operator')) {
             return 'admin';
         }
+        if (str_contains($peran, 'orang tua') || str_contains($peran, 'orang_tua') || str_contains($peran, 'wali murid') || str_contains($peran, 'wali_murid')) {
+            return 'orang_tua';
+        }
         if (str_contains($peran, 'tendik') || str_contains($peran, 'tenaga kependidikan') || str_contains($peran, 'tata usaha') || str_contains($peran, 'laboran') || str_contains($peran, 'pustakawan')) {
             return 'tendik';
         }

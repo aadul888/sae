@@ -1628,4 +1628,347 @@ class DashboardController extends Controller
             'hariIni'
         ));
     }
+
+    /**
+     * Portal & Dashboard Khusus Orang Tua / Wali Murid
+     */
+    public function orangTua(?Request $request = null)
+    {
+        $request = $request ?: request();
+        $user = session('user');
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $userRole = is_array($user) ? ($user['role'] ?? null) : ($user->role ?? null);
+
+        if ($userRole !== 'admin' && $userRole !== 'orang_tua') {
+            return redirect()->route('dashboard.' . ($userRole ?: 'peserta-didik'));
+        }
+
+        $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
+        $parentName = is_array($user) ? ($user['name'] ?? ($user['nama'] ?? 'Orang Tua / Wali Murid')) : ($user->name ?? ($user->nama ?? 'Orang Tua / Wali Murid'));
+
+        // Dukungan pemilihan siswa jika dibuka oleh Administrator
+        $allPdList = collect();
+        if ($userRole === 'admin' && Schema::hasTable('peserta_didik')) {
+            $allPdList = DB::table('peserta_didik')
+                ->select('peserta_didik_id', 'nama', 'nisn', 'nama_rombel')
+                ->orderBy('nama')
+                ->limit(60)
+                ->get();
+
+            $reqPdId = $request->query('peserta_didik_id');
+            if ($reqPdId) {
+                $pdId = $reqPdId;
+            } elseif (!$pdId && $allPdList->isNotEmpty()) {
+                $pdId = $allPdList->first()->peserta_didik_id;
+            }
+        }
+
+        $pd = null;
+        $waliKelas = null;
+        $parentName = 'Orang Tua / Wali';
+
+        if ($pdId && Schema::hasTable('peserta_didik')) {
+            $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+            if ($pd && Schema::hasTable('peserta_didik_meta')) {
+                $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+                $pd->foto_url = $meta?->foto_url;
+            }
+
+            // Tentukan sapaan orang tua / wali: periksa status pekerjaan apakah 'Sudah Meninggal'
+            if ($pd) {
+                $ayahAlive = !empty($pd->nama_ayah) && !str_contains(strtolower($pd->pekerjaan_ayah_id_str ?? ''), 'meninggal');
+                $ibuAlive = !empty($pd->nama_ibu) && !str_contains(strtolower($pd->pekerjaan_ibu_id_str ?? ''), 'meninggal');
+                $waliAlive = !empty($pd->nama_wali) && !str_contains(strtolower($pd->pekerjaan_wali_id_str ?? ''), 'meninggal');
+
+                if ($ayahAlive && $ibuAlive) {
+                    $parentName = 'Bpk. ' . $pd->nama_ayah . ' & Ibu ' . $pd->nama_ibu;
+                } elseif ($ayahAlive) {
+                    $parentName = 'Bpk. ' . $pd->nama_ayah;
+                } elseif ($ibuAlive) {
+                    $parentName = 'Ibu ' . $pd->nama_ibu;
+                } elseif ($waliAlive) {
+                    $parentName = 'Bpk/Ibu ' . $pd->nama_wali;
+                } else {
+                    $parentName = 'Orang Tua / Wali';
+                }
+            }
+
+            // Informasi Wali Kelas & Jurusan
+            if ($pd && !empty($pd->rombongan_belajar_id) && Schema::hasTable('rombongan_belajar')) {
+                $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id)->first();
+                if ($rombel) {
+                    $waliKelas = [
+                        'nama'    => $rombel->ptk_id_str ?: 'Wali Kelas',
+                        'rombel'  => $rombel->nama,
+                        'jurusan' => $rombel->jurusan_id_str ?: ($pd->kurikulum_id_str ?? 'Reguler'),
+                    ];
+                }
+            }
+        }
+
+        // 1. STATS & LOG PRESENSI HARIAN
+        $statsHarian = [
+            'persen'              => 100,
+            'hari_efektif'        => 0,
+            'total_sesi'          => 0,
+            'hadir'               => 0,
+            'terlambat'           => 0,
+            'izin'                => 0,
+            'sakit'               => 0,
+            'dispen'              => 0,
+            'alpha'               => 0,
+            'status_hari_ini'     => 'Belum Ada Data',
+            'jam_masuk_hari_ini'  => '--:--',
+            'jam_pulang_hari_ini' => '--:--',
+        ];
+        $riwayatHarian = [];
+
+        if ($pd && Schema::hasTable('presensi_harian')) {
+            $currentMonth = now()->format('Y-m');
+            $today = now()->toDateString();
+
+            $bulanIniLogs = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->where('tanggal', 'like', "{$currentMonth}%")
+                ->get();
+
+            $hadirCount = $bulanIniLogs->where('status', 'H')->count();
+            $terlambatCount = $bulanIniLogs->where('status', 'T')->count();
+            $izinCount = $bulanIniLogs->where('status', 'I')->count();
+            $sakitCount = $bulanIniLogs->where('status', 'S')->count();
+            $dispenCount = $bulanIniLogs->where('status', 'D')->count();
+            $alphaCount = $bulanIniLogs->where('status', 'A')->count();
+            $totalSesi = $bulanIniLogs->count();
+            $totalKehadiran = $hadirCount + $terlambatCount + $dispenCount;
+
+            $heb = \App\Models\KalenderPendidikan::hitungHariEfektifBerjalan(
+                now()->startOfMonth()->toDateString(),
+                now()->endOfMonth()->toDateString(),
+                now()->toDateString(),
+                'pd'
+            );
+            $denominator = $heb > 0 ? $heb : ($totalSesi ?: 1);
+            $persen = round(($totalKehadiran / $denominator) * 100, 1);
+
+            $statsHarian['persen'] = min(100, $persen);
+            $statsHarian['hari_efektif'] = $heb;
+            $statsHarian['total_sesi'] = $totalSesi;
+            $statsHarian['hadir'] = $hadirCount;
+            $statsHarian['terlambat'] = $terlambatCount;
+            $statsHarian['izin'] = $izinCount;
+            $statsHarian['sakit'] = $sakitCount;
+            $statsHarian['dispen'] = $dispenCount;
+            $statsHarian['alpha'] = $alphaCount;
+
+            // Log Hari Ini
+            $todayLog = $bulanIniLogs->firstWhere('tanggal', $today);
+            if ($todayLog) {
+                $statsHarian['jam_masuk_hari_ini'] = $todayLog->jam_masuk ? substr($todayLog->jam_masuk, 0, 5) . ' WIB' : '--:--';
+                $statsHarian['jam_pulang_hari_ini'] = $todayLog->jam_pulang ? substr($todayLog->jam_pulang, 0, 5) . ' WIB' : '--:--';
+                $statsHarian['status_hari_ini'] = match ($todayLog->status) {
+                    'H' => 'Hadir Tepat Waktu',
+                    'T' => 'Terlambat (' . ($todayLog->menit_terlambat ?: 0) . ' mnt)',
+                    'I' => 'Izin Resmi',
+                    'S' => 'Sakit',
+                    'D' => 'Dispensasi',
+                    'A' => 'Alpha / Tanpa Keterangan',
+                    default => 'Hadir'
+                };
+            }
+
+            // 15 Log Terbaru
+            $latestHarian = \App\Models\PresensiHarian::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->orderBy('tanggal', 'desc')
+                ->limit(15)
+                ->get();
+
+            foreach ($latestHarian as $lh) {
+                $statusLabel = 'Hadir';
+                $badgeBg = 'rgba(16,185,129,0.15)';
+                $badgeColor = '#10b981';
+
+                if ($lh->status === 'T') {
+                    $statusLabel = 'Terlambat' . ($lh->menit_terlambat ? " (+{$lh->menit_terlambat}m)" : '');
+                    $badgeBg = 'rgba(245,158,11,0.15)';
+                    $badgeColor = '#f59e0b';
+                } elseif ($lh->status === 'I') {
+                    $statusLabel = 'Izin';
+                    $badgeBg = 'rgba(59,130,246,0.15)';
+                    $badgeColor = '#3b82f6';
+                } elseif ($lh->status === 'S') {
+                    $statusLabel = 'Sakit';
+                    $badgeBg = 'rgba(139,92,246,0.15)';
+                    $badgeColor = '#8b5cf6';
+                } elseif ($lh->status === 'D') {
+                    $statusLabel = 'Dispensasi';
+                    $badgeBg = 'rgba(6,182,212,0.15)';
+                    $badgeColor = '#06b6d4';
+                } elseif ($lh->status === 'A') {
+                    $statusLabel = 'Alpha';
+                    $badgeBg = 'rgba(239,68,68,0.15)';
+                    $badgeColor = '#ef4444';
+                }
+
+                $riwayatHarian[] = [
+                    'tanggal'     => \Carbon\Carbon::parse($lh->tanggal)->translatedFormat('l, d M Y'),
+                    'jam_masuk'   => $lh->jam_masuk ? substr($lh->jam_masuk, 0, 5) . ' WIB' : '--:--',
+                    'jam_pulang'  => $lh->jam_pulang ? substr($lh->jam_pulang, 0, 5) . ' WIB' : '--:--',
+                    'status'      => $statusLabel,
+                    'badge_bg'    => $badgeBg,
+                    'badge_color' => $badgeColor,
+                    'metode'      => strtoupper($lh->metode_masuk ?: 'Manual/RFID'),
+                ];
+            }
+        }
+
+        // 2. PRESENSI PER MATA PELAJARAN (KBM)
+        $riwayatMapel = collect();
+        $statsMapel = [
+            'total' => 0,
+            'hadir' => 0,
+            'izin'  => 0,
+            'sakit' => 0,
+            'alpha' => 0,
+        ];
+
+        if ($pd && Schema::hasTable('presensi_mapel')) {
+            $mapelLogs = DB::table('presensi_mapel as pm')
+                ->leftJoin('gtk as g', 'pm.ptk_id', '=', 'g.ptk_id')
+                ->where(function ($q) use ($pd) {
+                    $q->where('pm.peserta_didik_id', $pd->peserta_didik_id);
+                    if (!empty($pd->nisn)) {
+                        $q->orWhere('pm.nisn', $pd->nisn);
+                    }
+                })
+                ->orderBy('pm.tanggal', 'desc')
+                ->orderBy('pm.jam_ke', 'asc')
+                ->select('pm.*', 'g.nama as nama_guru')
+                ->limit(30)
+                ->get();
+
+            $statsMapel['total'] = $mapelLogs->count();
+            $statsMapel['hadir'] = $mapelLogs->whereIn('status', ['H', 'T', 'D'])->count();
+            $statsMapel['izin']  = $mapelLogs->where('status', 'I')->count();
+            $statsMapel['sakit'] = $mapelLogs->where('status', 'S')->count();
+            $statsMapel['alpha'] = $mapelLogs->where('status', 'A')->count();
+            $riwayatMapel = $mapelLogs;
+        }
+
+        // 3. IZIN KELUAR & MASUK SEKOLAH + SURAT IZIN HARIAN
+        $izinKeluarList = collect();
+        $suratIzinList = collect();
+
+        if ($pd && Schema::hasTable('peserta_didik_izin_keluar')) {
+            $izinKeluarList = DB::table('peserta_didik_izin_keluar as iz')
+                ->leftJoin('gtk as p', 'iz.petugas_piket_ptk_id', '=', 'p.ptk_id')
+                ->where('iz.peserta_didik_id', $pd->peserta_didik_id)
+                ->orderBy('iz.tanggal', 'desc')
+                ->orderBy('iz.created_at', 'desc')
+                ->select('iz.*', 'p.nama as nama_piket')
+                ->limit(20)
+                ->get();
+        }
+
+        if ($pd && Schema::hasTable('presensi_izin')) {
+            $suratIzinList = DB::table('presensi_izin')
+                ->where('peserta_didik_id', $pd->peserta_didik_id)
+                ->orderBy('tanggal_mulai', 'desc')
+                ->limit(10)
+                ->get();
+        }
+
+        // 4. JADWAL PELAJARAN
+        $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
+        $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
+        $pengaturanJadwal = \App\Models\JadwalPengaturan::getSettings();
+        $hariAktifSekolah = $pengaturanJadwal->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariIni = match (now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            default => 'Minggu',
+        };
+
+        $jadwalHariIni = [];
+        $jadwalMingguan = [];
+
+        if ($pd && !empty($pd->rombongan_belajar_id) && Schema::hasTable('jadwal_kbm')) {
+            $allJadwal = DB::table('jadwal_kbm as j')
+                ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
+                ->where('j.rombongan_belajar_id', $pd->rombongan_belajar_id)
+                ->where('j.is_active', true);
+
+            if ($modeAktif) {
+                $allJadwal->where('j.sumber', $modeAktif);
+            }
+
+            $allJadwal = $allJadwal->orderBy('j.jam_ke_mulai', 'asc')
+                ->select('j.*', 'g.nama as nama_guru')
+                ->get();
+
+            $nowTime = now()->format('H:i');
+            foreach ($allJadwal as $js) {
+                $jamMulai = $js->jam_mulai ? substr($js->jam_mulai, 0, 5) : null;
+                $jamSelesai = $js->jam_selesai ? substr($js->jam_selesai, 0, 5) : null;
+                $jamStr = ($jamMulai && $jamSelesai)
+                    ? "{$jamMulai} - {$jamSelesai}"
+                    : sprintf('Jam ke-%d s/d %d', $js->jam_ke_mulai, $js->jam_ke_selesai);
+
+                $status = 'Mendatang';
+                if ($jamMulai && $jamSelesai) {
+                    if ($nowTime >= $jamMulai && $nowTime <= $jamSelesai) {
+                        $status = 'Berlangsung';
+                    } elseif ($nowTime > $jamSelesai) {
+                        $status = 'Selesai';
+                    }
+                }
+
+                $item = [
+                    'hari'   => $js->hari,
+                    'jam'    => $jamStr,
+                    'mapel'  => $js->nama_mata_pelajaran ?: 'Mata Pelajaran',
+                    'guru'   => $js->nama_guru ?: 'Guru Pengampu',
+                    'ruang'  => $js->ruangan ?: ($pd->nama_rombel ?? 'Ruang Kelas'),
+                    'status' => $status,
+                ];
+
+                if ($js->hari === $hariIni) {
+                    $jadwalHariIni[] = $item;
+                }
+                $jadwalMingguan[$js->hari][] = $item;
+            }
+        }
+
+        // 5. PENGUMUMAN & INFORMASI SEKOLAH
+        $pengumumanList = collect();
+        if (Schema::hasTable('pengumuman')) {
+            $pengumumanList = \App\Models\Pengumuman::forUserRole('orang_tua')
+                ->take(8)
+                ->get();
+        }
+
+        return view('dashboard.orang-tua', compact(
+            'pd',
+            'parentName',
+            'waliKelas',
+            'userRole',
+            'allPdList',
+            'statsHarian',
+            'riwayatHarian',
+            'statsMapel',
+            'riwayatMapel',
+            'izinKeluarList',
+            'suratIzinList',
+            'jadwalHariIni',
+            'jadwalMingguan',
+            'hariIni',
+            'isJadwalDiberlakukan',
+            'pengumumanList'
+        ));
+    }
 }

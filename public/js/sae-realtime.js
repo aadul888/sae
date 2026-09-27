@@ -279,19 +279,26 @@
             }
         }
 
-        // 4. Handler Notifikasi Transaksi Presensi untuk Murid & Wali Kelas (PWA Device Notification & In-App Toast)
-        if (eventName === "presensi.recorded") {
+        // 4. Handler Notifikasi Transaksi Presensi & Izin untuk Murid, Orang Tua & Wali Kelas (PWA Device Notification & In-App Toast)
+        if (eventName === "presensi.recorded" || eventName === "izin.recorded") {
             const curUserId = document.querySelector('meta[name="user-id"]')?.getAttribute("content");
             const curPdId = document.querySelector('meta[name="user-pd-id"]')?.getAttribute("content");
+            const curRole = document.querySelector('meta[name="user-role"]')?.getAttribute("content");
 
             let targetTitle = null;
             let targetMsg = null;
             let targetUrl = null;
 
             if (curPdId && data.peserta_didik_id === curPdId) {
-                targetTitle = data.judul_murid || "Presensi Anda Dicatat";
-                targetMsg = data.pesan_murid || "Data kehadiran Anda telah diperbarui.";
-                targetUrl = data.url_murid || "/dashboard/peserta-didik/presensi";
+                if (curRole === "orang_tua") {
+                    targetTitle = data.judul_ortu || data.judul_murid || "Informasi Siswa";
+                    targetMsg = data.pesan_ortu || data.pesan_murid || "Data kehadiran / izin putra-putri Anda telah diperbarui.";
+                    targetUrl = data.url_ortu || "/dashboard/orang-tua";
+                } else {
+                    targetTitle = data.judul_murid || "Presensi Anda Dicatat";
+                    targetMsg = data.pesan_murid || "Data kehadiran Anda telah diperbarui.";
+                    targetUrl = data.url_murid || "/dashboard/peserta-didik/presensi";
+                }
             } else if (curUserId && data.wali_user_id === curUserId) {
                 targetTitle = data.judul_wali || "Presensi Siswa Binaan";
                 targetMsg = data.pesan_wali || "Catatan presensi siswa di kelas binaan Anda telah dicatat.";
@@ -299,7 +306,8 @@
             }
 
             if (targetTitle) {
-                showToast(targetTitle, targetMsg, "calendar-check", targetUrl);
+                const iconName = eventName === "izin.recorded" ? "ticket" : "calendar-check";
+                showToast(targetTitle, targetMsg, iconName, targetUrl);
 
                 // Tampilkan notifikasi perangkat OS melalui PWA Service Worker
                 if (window.SaeNotification && typeof window.SaeNotification.showLocal === "function") {
@@ -356,6 +364,7 @@
             "pengumuman.updated",
             "presensi.scanned",
             "presensi.recorded",
+            "izin.recorded",
             "data.changed",
             "jadwal.changed",
         ].forEach((ev) => {

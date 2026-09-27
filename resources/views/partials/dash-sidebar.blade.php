@@ -270,6 +270,7 @@
                     'guru' => route('dashboard.guru'),
                     'tendik' => route('dashboard.tendik'),
                     'peserta_didik' => route('dashboard.peserta-didik'),
+                    'orang_tua' => route('dashboard.orang-tua'),
                     default => route('dashboard.admin'),
                 };
                 $dashLabel = match ($role) {
@@ -277,6 +278,7 @@
                     'guru' => 'Dashboard Guru',
                     'tendik' => 'Dashboard Tendik',
                     'peserta_didik' => 'Dashboard Peserta Didik',
+                    'orang_tua' => 'Portal Orang Tua',
                     default => 'Dashboard',
                 };
                 $dashActive =
@@ -285,7 +287,10 @@
                         : request()->routeIs('dashboard.' . $role)) ||
                     ($role === 'peserta_didik' &&
                         (request()->routeIs('dashboard.peserta-didik') ||
-                            request()->routeIs('dashboard.peserta_didik')));
+                            request()->routeIs('dashboard.peserta_didik'))) ||
+                    ($role === 'orang_tua' &&
+                        (request()->routeIs('dashboard.orang-tua') ||
+                            request()->routeIs('dashboard.orang_tua')));
             @endphp
 
             @if ($can('menu_dashboard'))
@@ -1942,6 +1947,25 @@
                     @endif
                 </div>
             </div>
+        @endif
+
+        {{-- Menu Khusus: Portal Orang Tua / Wali Murid --}}
+        @if ($role === 'orang_tua')
+            <div class="dash-nav-section-title" style="margin-top: 14px;">
+                <span>Portal Pemantauan Anak</span>
+            </div>
+
+            <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
+                <span class="nav-icon"><i class="fas fa-fw fa-calendar-days text-primary"></i></span>
+                <span class="nav-label">Jadwal Pelajaran Anak</span>
+            </a>
+
+            <a href="{{ route('dashboard.informasi.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.informasi*') ? 'active' : '' }}">
+                <span class="nav-icon"><i class="fas fa-fw fa-bullhorn text-warning"></i></span>
+                <span class="nav-label">Pengumuman Sekolah</span>
+            </a>
         @endif
 
         {{-- Modul Khusus: Wali Kelas / Koordinator (Hanya untuk Admin & Guru dengan Tugas Tambahan Wali Kelas atau Siswa Koordinator) --}}
