@@ -214,40 +214,31 @@
                     </div>
 
                     <!-- Footer Aksi -->
-                    <div class="form-card-actions">
+                    <div class="form-card-actions"
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
                         <!-- Tombol Respon / Isi -->
                         @if ($role === 'peserta_didik')
                             @if ($hasResponded)
                                 <a href="{{ $f->public_url }}" target="_blank" class="btn btn-outline"
-                                    style="font-size: 0.82rem; padding: 7px 14px; border-radius: 8px;">
+                                    style="font-size: 0.82rem; padding: 7px 14px; border-radius: 8px; white-space: nowrap;">
                                     <i class="fas fa-receipt me-1"></i> Bukti Pengisian
                                 </a>
                             @else
                                 <a href="{{ $f->public_url }}" target="_blank" class="btn btn-primary"
-                                    style="font-size: 0.82rem; padding: 7px 16px; border-radius: 8px; font-weight: 600;">
+                                    style="font-size: 0.82rem; padding: 7px 16px; border-radius: 8px; font-weight: 600; white-space: nowrap;">
                                     <i class="fas fa-pen-to-square me-1"></i> Isi Sekarang
                                 </a>
                             @endif
                         @else
                             <a href="{{ route('dashboard.formulir.responses', $f->id) }}" class="btn btn-outline"
-                                style="font-size: 0.82rem; padding: 7px 14px; border-radius: 8px; font-weight: 600;">
+                                style="font-size: 0.82rem; padding: 7px 12px; border-radius: 8px; font-weight: 600; white-space: nowrap;">
                                 <i class="fas fa-chart-pie me-1"></i> {{ $f->respon_count }} Tanggapan
                             </a>
                         @endif
 
                         <!-- Tombol Aksi Tambahan untuk Admin / Guru -->
                         @if ($canManage)
-                            <div style="display: flex; gap: 6px; align-items: center;">
-                                <button type="button"
-                                    class="btn-icon-soft btn-toggle-form {{ $f->is_active ? 'active text-success' : 'text-muted' }}"
-                                    data-id="{{ $f->id }}"
-                                    data-url="{{ route('dashboard.formulir.toggle', $f->id) }}"
-                                    data-title="{{ $f->judul }}" data-active="{{ $f->is_active ? '1' : '0' }}"
-                                    data-open="{{ $isScheduleOpen ? '1' : '0' }}"
-                                    title="{{ $f->is_active ? 'Status: Aktif (Klik untuk Nonaktifkan)' : 'Status: Nonaktif (Klik untuk Aktifkan)' }}">
-                                    <i class="fas {{ $f->is_active ? 'fa-toggle-on text-success' : 'fa-toggle-off text-muted' }}"
-                                        style="font-size: 1.25rem;"></i>
-                                </button>
+                            <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
                                 <button type="button" class="btn-icon-soft" title="Salin Tautan Formulir"
                                     onclick="copyFormLink('{{ $f->public_url }}')">
                                     <i class="fas fa-link"></i>
@@ -261,7 +252,8 @@
                                     <i class="fas fa-pen"></i>
                                 </a>
                                 <form action="{{ route('dashboard.formulir.destroy', $f->id) }}" method="POST"
-                                    data-confirm="delete" data-name="{{ $f->judul }}" style="margin: 0;">
+                                    data-confirm="delete" data-name="{{ $f->judul }}"
+                                    style="margin: 0; display: inline-flex;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn-icon-soft danger" title="Hapus Formulir">
