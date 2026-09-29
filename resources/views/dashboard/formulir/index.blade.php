@@ -11,7 +11,8 @@
                 <i class="fas fa-clipboard-list text-primary me-2"></i> Formulir &amp; Survei Digital
             </h2>
             <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
-                Buat kuesioner, angket rombel, pendaftaran ekskul, dan survei publik dengan integrasi otomatis data peserta didik
+                Buat kuesioner, angket rombel, pendaftaran ekskul, dan survei publik dengan integrasi otomatis data peserta
+                didik
                 &amp; guru SAE.
             </p>
         </div>
@@ -129,12 +130,28 @@
                     <div>
                         <!-- Badge Bar -->
                         <div class="form-badge-bar">
-                            @if ($f->is_active && $isScheduleOpen)
-                                <span class="badge-chip badge-active"><i class="fas fa-circle-dot"></i> Buka</span>
-                            @elseif (!$f->is_active)
-                                <span class="badge-chip badge-inactive"><i class="fas fa-ban"></i> Nonaktif</span>
+                            @if ($canManage)
+                                <button type="button"
+                                    class="badge-chip btn-badge-toggle {{ $f->is_active && $isScheduleOpen ? 'badge-active' : 'badge-inactive' }}"
+                                    data-id="{{ $f->id }}"
+                                    data-url="{{ route('dashboard.formulir.toggle', $f->id) }}"
+                                    data-title="{{ $f->judul }}" data-active="{{ $f->is_active ? '1' : '0' }}"
+                                    data-open="{{ $isScheduleOpen ? '1' : '0' }}"
+                                    style="cursor: pointer; border: 1px solid currentColor; background: transparent; font-family: inherit; font-size: 0.72rem;"
+                                    title="Klik cepat untuk {{ $f->is_active ? 'menonaktifkan' : 'mengaktifkan' }} formulir">
+                                    <i
+                                        class="fas {{ $f->is_active ? ($isScheduleOpen ? 'fa-circle-dot' : 'fa-clock') : 'fa-ban' }}"></i>
+                                    <span
+                                        class="badge-status-label">{{ $f->is_active ? ($isScheduleOpen ? 'Buka' : 'Tutup (Jadwal)') : 'Nonaktif' }}</span>
+                                </button>
                             @else
-                                <span class="badge-chip badge-inactive"><i class="fas fa-clock"></i> Tutup</span>
+                                @if ($f->is_active && $isScheduleOpen)
+                                    <span class="badge-chip badge-active"><i class="fas fa-circle-dot"></i> Buka</span>
+                                @elseif (!$f->is_active)
+                                    <span class="badge-chip badge-inactive"><i class="fas fa-ban"></i> Nonaktif</span>
+                                @else
+                                    <span class="badge-chip badge-inactive"><i class="fas fa-clock"></i> Tutup</span>
+                                @endif
                             @endif
 
                             @if ($f->is_public)
@@ -220,7 +237,17 @@
 
                         <!-- Tombol Aksi Tambahan untuk Admin / Guru -->
                         @if ($canManage)
-                            <div style="display: flex; gap: 6px;">
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <button type="button"
+                                    class="btn-icon-soft btn-toggle-form {{ $f->is_active ? 'active text-success' : 'text-muted' }}"
+                                    data-id="{{ $f->id }}"
+                                    data-url="{{ route('dashboard.formulir.toggle', $f->id) }}"
+                                    data-title="{{ $f->judul }}" data-active="{{ $f->is_active ? '1' : '0' }}"
+                                    data-open="{{ $isScheduleOpen ? '1' : '0' }}"
+                                    title="{{ $f->is_active ? 'Status: Aktif (Klik untuk Nonaktifkan)' : 'Status: Nonaktif (Klik untuk Aktifkan)' }}">
+                                    <i class="fas {{ $f->is_active ? 'fa-toggle-on text-success' : 'fa-toggle-off text-muted' }}"
+                                        style="font-size: 1.25rem;"></i>
+                                </button>
                                 <button type="button" class="btn-icon-soft" title="Salin Tautan Formulir"
                                     onclick="copyFormLink('{{ $f->public_url }}')">
                                     <i class="fas fa-link"></i>
@@ -260,7 +287,8 @@
             </div>
             <h4 style="font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Belum Ada Formulir</h4>
             <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 440px; margin: 0 auto 20px;">
-                Belum ada formulir atau survei yang dibuat. Buat formulir baru untuk mengumpulkan data dari peserta didik, guru,
+                Belum ada formulir atau survei yang dibuat. Buat formulir baru untuk mengumpulkan data dari peserta didik,
+                guru,
                 atau masyarakat umum.
             </p>
             @if ($canManage)
@@ -278,6 +306,8 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/formulir.js') }}?v={{ file_exists(public_path('js/formulir.js')) ? filemtime(public_path('js/formulir.js')) : time() }}"></script>
+        <script
+            src="{{ asset('js/formulir.js') }}?v={{ file_exists(public_path('js/formulir.js')) ? filemtime(public_path('js/formulir.js')) : time() }}">
+        </script>
     @endpush
 @endsection

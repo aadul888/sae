@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 5. Sort Header — klik th.sortable-th untuk sort server-side
     initSortHeaders();
+
+    // 6. Inisialisasi Aksi Cepat Toggle Status Aktif/Nonaktif Formulir
+    initFormToggles();
 });
 
 /**
@@ -373,30 +376,134 @@ function initResponsesPerPage() {
 }
 
 /**
- * Sort Header — Klik kolom th.sortable-th untuk sort server-side
+ * Sort Header — Klik kolom th.sortable-th untuk sort server-side (Delegated Event)
  */
 function initSortHeaders() {
-    document.querySelectorAll('.sortable-th').forEach(function (th) {
-        th.style.cursor = 'pointer';
-        th.addEventListener('click', function () {
-            const sortField = this.getAttribute('data-sort');
-            if (!sortField) return;
+    document.addEventListener('click', function (e) {
+        const th = e.target.closest('.sortable-th');
+        if (!th) return;
 
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get('sort') || 'created_at';
-            const currentDir  = url.searchParams.get('sort_dir') || 'desc';
+        const sortField = th.getAttribute('data-sort');
+        if (!sortField) return;
 
-            // Toggle arah: jika kolom yang sama diklik dan sedang asc → desc, selainnya → asc
-            const newDir = (currentSort === sortField && currentDir === 'asc') ? 'desc' : 'asc';
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get('sort') || 'created_at';
+        const currentDir  = url.searchParams.get('sort_dir') || 'desc';
 
-            url.searchParams.set('sort', sortField);
-            url.searchParams.set('sort_dir', newDir);
-            url.searchParams.delete('page'); // kembali ke halaman 1
-            if (typeof window.refreshLiveTable === 'function') {
-                window.refreshLiveTable(url.toString());
+        // Toggle arah: jika kolom yang sama diklik dan sedang asc → desc, selainnya → asc
+        const newDir = (currentSort === sortField && currentDir === 'asc') ? 'desc' : 'asc';
+
+        url.searchParams.set('sort', sortField);
+        url.searchParams.set('sort_dir', newDir);
+        url.searchParams.delete('page'); // kembali ke halaman 1
+        if (typeof window.refreshLiveTable === 'function') {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    });
+}
+
+/**
+ * Aksi Cepat Mengaktifkan / Menonaktifkan Formulir via AJAX
+ */
+function initFormToggles() {
+    document.addEventListener('click', async function (e) {
+        const toggleBtn = e.target.closest('.btn-toggle-form, .btn-badge-toggle');
+        if (!toggleBtn) return;
+
+        e.preventDefault();
+        const id = toggleBtn.getAttribute('data-id');
+        const url = toggleBtn.getAttribute('data-url');
+        const title = toggleBtn.getAttribute('data-title') || 'Formulir ini';
+
+        if (!url) return;
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        // Loading state visual feedback
+        toggleBtn.style.opacity = '0.5';
+        toggleBtn.style.pointerEvents = 'none';
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.status === 'success') {
+                const isActive = !!data.is_active;
+
+                // Perbarui seluruh tombol toggle dan badge untuk ID formulir ini
+                const relatedBtns = document.querySelectorAll(`[data-id="${id}"][data-url]`);
+                relatedBtns.forEach(btn => {
+                    btn.setAttribute('data-active', isActive ? '1' : '0');
+                    const isScheduleOpen = btn.getAttribute('data-open') !== '0';
+
+                    if (btn.classList.contains('btn-toggle-form')) {
+                        btn.className = `btn-icon-soft btn-toggle-form ${isActive ? 'active text-success' : 'text-muted'}`;
+                        btn.title = isActive ? 'Status: Aktif (Klik untuk Nonaktifkan)' : 'Status: Nonaktif (Klik untuk Aktifkan)';
+                        btn.innerHTML = `<i class="fas ${isActive ? 'fa-toggle-on text-success' : 'fa-toggle-off text-muted'}" style="font-size: 1.25rem;"></i>`;
+                    } else if (btn.classList.contains('btn-badge-toggle')) {
+                        btn.className = `badge-chip btn-badge-toggle ${isActive && isScheduleOpen ? 'badge-active' : 'badge-inactive'}`;
+                        btn.title = `Klik cepat untuk ${isActive ? 'menonaktifkan' : 'mengaktifkan'} formulir`;
+                        const icon = isActive ? (isScheduleOpen ? 'fa-circle-dot' : 'fa-clock') : 'fa-ban';
+                        const label = isActive ? (isScheduleOpen ? 'Buka' : 'Tutup (Jadwal)') : 'Nonaktif';
+                        btn.innerHTML = `<i class="fas ${icon}"></i> <span class="badge-status-label">${label}</span>`;
+                    }
+                });
+
+                // Update angka counter 'Sedang Aktif' di banner stat jika ada
+                const statCards = document.querySelectorAll('.form-stat-grid .dash-stat-card');
+                if (statCards.length >= 2) {
+                    const activeValEl = statCards[1].querySelector('.dash-stat-value');
+                    if (activeValEl) {
+                        let currentCount = parseInt(activeValEl.textContent.trim(), 10) || 0;
+                        currentCount = isActive ? currentCount + 1 : Math.max(0, currentCount - 1);
+                        activeValEl.textContent = currentCount;
+                    }
+                }
+
+                // Notifikasi toast SweetAlert2
+                if (typeof Swal !== 'undefined') {
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2500,
+                        timerProgressBar: true,
+                        background: document.documentElement.getAttribute('data-theme') === 'light' ? '#ffffff' : '#1e293b',
+                        color: document.documentElement.getAttribute('data-theme') === 'light' ? '#0f172a' : '#f8fafc'
+                    });
+                    Toast.fire({
+                        icon: 'success',
+                        title: data.message || (isActive ? 'Formulir telah diaktifkan.' : 'Formulir dinonaktifkan.')
+                    });
+                }
             } else {
-                window.location.href = url.toString();
+                throw new Error(data.message || 'Gagal mengubah status formulir.');
             }
-        });
+        } catch (err) {
+            console.error('Error toggling form:', err);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: err.message || 'Terjadi kesalahan sistem saat memperbarui status formulir.',
+                });
+            } else {
+                alert(err.message || 'Terjadi kesalahan sistem saat memperbarui status formulir.');
+            }
+        } finally {
+            toggleBtn.style.opacity = '';
+            toggleBtn.style.pointerEvents = '';
+        }
     });
 }

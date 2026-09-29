@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Formulir;
 use App\Models\FormulirRespon;
 use App\Models\RolePermission;
+use App\Models\Sekolah;
 use App\Models\SekolahMeta;
 use App\Models\User;
+use App\Services\SimpleXlsxExporter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -440,7 +442,11 @@ class FormulirController extends Controller
             }
         }
 
-        return view('dashboard.formulir.responses', compact('formulir', 'responses', 'fieldStats', 'perPage', 'sort', 'sortDir'));
+        $totalRespon = $formulir->respon_count;
+        $saeUsersCount = FormulirRespon::where('formulir_id', $id)->whereNotNull('pengguna_id')->count();
+        $guestCount = max(0, $totalRespon - $saeUsersCount);
+
+        return view('dashboard.formulir.responses', compact('formulir', 'responses', 'fieldStats', 'perPage', 'sort', 'sortDir', 'totalRespon', 'saeUsersCount', 'guestCount'));
     }
 
     /**
@@ -459,78 +465,133 @@ class FormulirController extends Controller
     }
 
     /**
-     * Export seluruh data respon ke format CSV (Excel Ready with UTF-8 BOM)
+     * Export seluruh data respon ke format Microsoft Excel (.xlsx) murni dengan format & layout rapi
      */
-    public function exportCsv($id)
+    public function exportExcel($id)
     {
         if (!$this->canManage()) {
             abort(403, 'Akses ditolak.');
         }
 
-        $formulir = Formulir::findOrFail($id);
+        $formulir = Formulir::with(['targetRombel'])->findOrFail($id);
         $responses = $formulir->respon()->oldest()->get();
         $skema = $formulir->skema ?? [];
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="Respon_' . Str::slug($formulir->judul) . '_' . date('Ymd_His') . '.csv"',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
+        // Informasi Satuan Pendidikan
+        $sekolah = Sekolah::first();
+        $namaSekolah = $sekolah ? $sekolah->nama : config('app.name', 'SAE Digital');
+
+        // Sasaran Responden
+        $sasaran = 'Semua Pengguna';
+        if ($formulir->target_peran === 'peserta_didik') {
+            $sasaran = 'Peserta Didik';
+            if ($formulir->target_rombel_id && $formulir->targetRombel) {
+                $sasaran .= ' (' . $formulir->targetRombel->nama . ')';
+            }
+        } elseif ($formulir->target_peran === 'guru') {
+            $sasaran = 'Guru / Pendidik';
+        } elseif ($formulir->target_peran === 'tendik') {
+            $sasaran = 'Tenaga Kependidikan';
+        }
+
+        if ($formulir->is_public) {
+            $sasaran .= ' & Publik Terbuka';
+        }
+
+        // Status Formulir
+        $statusText = $formulir->is_active
+            ? ($formulir->isScheduleOpen() ? 'Aktif (Buka)' : 'Tutup (Di Luar Jadwal)')
+            : 'Nonaktif';
+
+        $meta = [
+            'title' => 'DATA TANGGAPAN RESPONDEN FORMULIR',
+            'subtitle' => mb_strtoupper($formulir->judul) . ' | ' . mb_strtoupper($namaSekolah),
+            'fields' => [
+                'Deskripsi Formulir' => $formulir->deskripsi ?: 'Tidak ada deskripsi tambahan.',
+                'Sasaran Responden'  => $sasaran,
+                'Status Formulir'    => $statusText,
+                'Batas Waktu'        => $formulir->tanggal_selesai ? $formulir->tanggal_selesai->format('d/m/Y H:i') . ' WIB' : 'Tanpa Batas Waktu',
+                'Tanggal Ekspor'     => date('d/m/Y H:i:s') . ' WIB',
+                'Total Responden'    => $responses->count() . ' Orang',
+            ],
         ];
 
-        $callback = function () use ($responses, $skema) {
-            $handle = fopen('php://output', 'w');
+        // Headers Kolom
+        $headers = [
+            'No',
+            'Waktu Submit',
+            'Nama Responden',
+            'Identitas (NISN/NIP/Rombel)',
+            'Tipe Akun',
+            'IP Address',
+        ];
 
-            // Tambahkan UTF-8 BOM agar Microsoft Excel membuka aksen & karakter secara sempurna
-            fputs($handle, "\xEF\xBB\xBF");
+        foreach ($skema as $field) {
+            $headers[] = $field['label'] ?? ($field['id'] ?? 'Pertanyaan');
+        }
 
-            // Baris Header Kolom
-            $headerRow = [
-                'No',
-                'Waktu Submit',
-                'Nama Responden',
-                'Identitas (NISN/Rombel)',
-                'IP Address',
+        // Baris Data Responden
+        $rows = [];
+        $no = 1;
+        foreach ($responses as $row) {
+            $jawaban = is_array($row->jawaban) ? $row->jawaban : [];
+
+            $dataRow = [
+                $no++,
+                $row->created_at ? $row->created_at->format('d/m/Y H:i:s') : '-',
+                $row->nama_responden ?: 'Responden Tamu',
+                $row->identitas_responden ?: '-',
+                $row->pengguna_id ? 'Akun SAE' : 'Tamu Publik',
+                $row->ip_address ?: '-',
             ];
 
             foreach ($skema as $field) {
-                $headerRow[] = $field['label'] ?? $field['id'];
-            }
+                $fieldId = $field['id'] ?? '';
+                $val = $jawaban[$fieldId] ?? '';
 
-            fputcsv($handle, $headerRow);
-
-            // Baris Data Responden
-            $no = 1;
-            foreach ($responses as $row) {
-                $jawaban = is_array($row->jawaban) ? $row->jawaban : [];
-
-                $dataRow = [
-                    $no++,
-                    $row->created_at ? $row->created_at->format('d/m/Y H:i:s') : '-',
-                    $row->nama_responden ?? '-',
-                    $row->identitas_responden ?? '-',
-                    $row->ip_address ?? '-',
-                ];
-
-                foreach ($skema as $field) {
-                    $fieldId = $field['id'] ?? '';
-                    $val = $jawaban[$fieldId] ?? '';
-
-                    if (is_array($val)) {
-                        $dataRow[] = implode(', ', $val);
-                    } else {
-                        $dataRow[] = (string) $val;
-                    }
+                if (is_array($val)) {
+                    $dataRow[] = implode(', ', $val);
+                } elseif (is_bool($val)) {
+                    $dataRow[] = $val ? 'Ya' : 'Tidak';
+                } elseif ($val === '' || $val === null) {
+                    $dataRow[] = '-';
+                } else {
+                    $dataRow[] = (string) $val;
                 }
-
-                fputcsv($handle, $dataRow);
             }
 
-            fclose($handle);
-        };
+            $rows[] = $dataRow;
+        }
 
-        return response()->stream($callback, 200, $headers);
+        $filename = 'Tanggapan_' . Str::slug($formulir->judul) . '_' . date('Ymd_His') . '.xlsx';
+        $tempDir = storage_path('app/temp');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+        $tempPath = $tempDir . '/' . Str::random(16) . '.xlsx';
+
+        SimpleXlsxExporter::export(
+            $tempPath,
+            $meta,
+            $headers,
+            $rows,
+            [
+                'sheetName' => mb_substr($formulir->judul, 0, 30),
+                'headerBg'  => 'FF1E3A8A',
+            ]
+        );
+
+        return response()->download($tempPath, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Alias ekspor format CSV yang dialihkan ke format Excel XLSX
+     */
+    public function exportCsv($id)
+    {
+        return $this->exportExcel($id);
     }
 
     /**

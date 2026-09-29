@@ -234,7 +234,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/formulir/{id}/toggle', [\App\Http\Controllers\FormulirController::class, 'toggle'])->name('formulir.toggle')->middleware('permission:menu_formulir,update');
     Route::post('/formulir/{id}/duplikasi', [\App\Http\Controllers\FormulirController::class, 'duplicate'])->name('formulir.duplicate')->middleware('permission:menu_formulir,create');
     Route::get('/formulir/{id}/respon', [\App\Http\Controllers\FormulirController::class, 'responses'])->name('formulir.responses')->middleware('permission:menu_formulir,read');
-    Route::get('/formulir/{id}/export-csv', [\App\Http\Controllers\FormulirController::class, 'exportCsv'])->name('formulir.export-csv')->middleware('permission:menu_formulir,read');
+    Route::get('/formulir/{id}/export-excel', [\App\Http\Controllers\FormulirController::class, 'exportExcel'])->name('formulir.export-excel')->middleware('permission:menu_formulir,read');
+    Route::get('/formulir/{id}/export-csv', [\App\Http\Controllers\FormulirController::class, 'exportExcel'])->name('formulir.export-csv')->middleware('permission:menu_formulir,read');
     Route::delete('/formulir/{id}/respon/{responId}', [\App\Http\Controllers\FormulirController::class, 'deleteResponse'])->name('formulir.delete-response')->middleware('permission:menu_formulir,delete');
 
     // Layanan Digital — Presensi & RFID Realtime
