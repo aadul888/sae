@@ -37,6 +37,165 @@ function initAdminCharts() {
     Chart.defaults.font.family = 'Plus Jakarta Sans, sans-serif';
     Chart.defaults.color = textMuted;
 
+    // =============================================================
+    // PLUGIN CUSTOM DATA LABELS UNTUK SETIAP JENIS CHART
+    // =============================================================
+
+    // 1. Plugin Angka Langsung pada Chart Garis (Line)
+    const lineDataLabelsPlugin = {
+        id: 'adminLineDataLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx, data } = chart;
+            ctx.save();
+
+            data.datasets.forEach((dataset, dIdx) => {
+                const meta = chart.getDatasetMeta(dIdx);
+                if (!meta || meta.hidden) return;
+
+                meta.data.forEach((point, pIdx) => {
+                    const val = dataset.data[pIdx];
+                    if (val === undefined || val === null) return;
+
+                    const text = val + '%';
+                    ctx.font = 'bold 10px Plus Jakarta Sans, sans-serif';
+                    const textWidth = ctx.measureText(text).width;
+
+                    // Posisi label: Siswa ke atas (-13px), GTK sedikit lebih atas (-28px) agar tidak bertabrakan
+                    const yOffset = dIdx === 0 ? -13 : -28;
+                    const posX = point.x;
+                    const posY = point.y + yOffset;
+
+                    // Badge pill background
+                    const padH = 4;
+                    const padV = 2;
+                    const bgX = posX - (textWidth / 2) - padH;
+                    const bgY = posY - 8 - padV;
+                    const bgW = textWidth + (padH * 2);
+                    const bgH = 13 + (padV * 2);
+
+                    ctx.fillStyle = dIdx === 0 ? 'rgba(99, 102, 241, 0.92)' : 'rgba(16, 185, 129, 0.92)';
+                    if (typeof ctx.roundRect === 'function') {
+                        ctx.beginPath();
+                        ctx.roundRect(bgX, bgY, bgW, bgH, 4);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(bgX, bgY, bgW, bgH);
+                    }
+
+                    // Teks persentase
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(text, posX, posY - 1);
+                });
+            });
+
+            ctx.restore();
+        }
+    };
+
+    // 2. Plugin Angka Langsung pada Chart Lingkaran / Donat (Doughnut)
+    const doughnutDataLabelsPlugin = {
+        id: 'adminDoughnutDataLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx, data } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data || !meta.data.length) return;
+
+            const dataset = data.datasets[0];
+            const total = dataset.data.reduce((a, b) => a + Number(b || 0), 0);
+
+            ctx.save();
+            meta.data.forEach((element, index) => {
+                const val = dataset.data[index];
+                if (!val || val <= 0) return;
+
+                const pos = element.tooltipPosition();
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px Plus Jakarta Sans, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(Number(val).toLocaleString('id-ID') + ' Org', pos.x, pos.y - 6);
+
+                ctx.font = '600 10px Plus Jakarta Sans, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                ctx.fillText(pct + '%', pos.x, pos.y + 8);
+            });
+
+            // Angka Total di Tengah Donat
+            if (total > 0 && meta.data[0]) {
+                const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+
+                ctx.fillStyle = isLight ? '#64748b' : '#94a3b8';
+                ctx.font = '700 9px Plus Jakarta Sans, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('TOTAL GTK', centerX, centerY - 10);
+
+                ctx.fillStyle = isLight ? '#0f172a' : '#f8fafc';
+                ctx.font = '800 17px Plus Jakarta Sans, sans-serif';
+                ctx.fillText(Number(total).toLocaleString('id-ID'), centerX, centerY + 8);
+            }
+            ctx.restore();
+        }
+    };
+
+    // 3. Plugin Angka Langsung di Atas Batang (Bar)
+    const barDataLabelsPlugin = {
+        id: 'adminBarDataLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx, data } = chart;
+            ctx.save();
+            chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                const val = data.datasets[0].data[index];
+                if (val !== undefined && val !== null && val > 0) {
+                    ctx.fillStyle = isLight ? '#0f172a' : '#f8fafc';
+                    ctx.font = 'bold 11px Plus Jakarta Sans, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(Number(val).toLocaleString('id-ID'), bar.x, bar.y - 4);
+                }
+            });
+            ctx.restore();
+        }
+    };
+
+    // 4. Plugin Angka Langsung pada Chart Polar Area
+    const polarDataLabelsPlugin = {
+        id: 'adminPolarDataLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx, data } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data || !meta.data.length) return;
+
+            const dataset = data.datasets[0];
+            const total = dataset.data.reduce((a, b) => a + Number(b || 0), 0);
+
+            ctx.save();
+            meta.data.forEach((element, index) => {
+                const val = dataset.data[index];
+                if (!val || val <= 0) return;
+
+                const pos = element.tooltipPosition();
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Plus Jakarta Sans, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(Number(val).toLocaleString('id-ID'), pos.x, pos.y - 5);
+
+                ctx.font = '600 9px Plus Jakarta Sans, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillText(pct + '%', pos.x, pos.y + 7);
+            });
+            ctx.restore();
+        }
+    };
+
     // -------------------------------------------------------------
     // 1. CHART GARIS (LINE): Tren Presensi Siswa & GTK 7 Hari Terakhir
     // -------------------------------------------------------------
@@ -44,12 +203,12 @@ function initAdminCharts() {
     if (ctxTrend && payload.trend) {
         // Gradient fill untuk Siswa
         const gradientSiswa = ctxTrend.createLinearGradient(0, 0, 0, 240);
-        gradientSiswa.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+        gradientSiswa.addColorStop(0, 'rgba(99, 102, 241, 0.32)');
         gradientSiswa.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
 
         // Gradient fill untuk GTK
         const gradientGtk = ctxTrend.createLinearGradient(0, 0, 0, 240);
-        gradientGtk.addColorStop(0, 'rgba(16, 185, 129, 0.28)');
+        gradientGtk.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
         gradientGtk.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
         window.adminChartTrend = new Chart(ctxTrend, {
@@ -85,12 +244,19 @@ function initAdminCharts() {
                     }
                 ]
             },
+            plugins: [lineDataLabelsPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: {
                     mode: 'index',
                     intersect: false,
+                },
+                layout: {
+                    padding: {
+                        top: 25,
+                        bottom: 5
+                    }
                 },
                 plugins: {
                     legend: {
@@ -124,8 +290,8 @@ function initAdminCharts() {
                         ticks: { color: textMuted, font: { size: 11 } }
                     },
                     y: {
-                        min: 80,
-                        max: 100,
+                        min: 88,
+                        max: 105,
                         grid: { color: gridColor },
                         ticks: {
                             color: textMuted,
@@ -157,10 +323,11 @@ function initAdminCharts() {
                     hoverOffset: 6
                 }]
             },
+            plugins: [doughnutDataLabelsPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '68%',
+                cutout: '66%',
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -193,7 +360,6 @@ function initAdminCharts() {
     const ctxJurusan = document.getElementById('chartJurusan')?.getContext('2d');
     if (ctxJurusan && payload.jurusan) {
         const labels = payload.jurusan.map(j => {
-            // Singkatkan nama jurusan panjang jika perlu
             let name = j.jurusan;
             if (name.length > 24) {
                 return name.substring(0, 22) + '…';
@@ -210,6 +376,8 @@ function initAdminCharts() {
             'rgba(236, 72, 153, 0.85)'
         ];
 
+        const maxVal = Math.max(...values, 0);
+
         window.adminChartJurusan = new Chart(ctxJurusan, {
             type: 'bar',
             data: {
@@ -219,12 +387,18 @@ function initAdminCharts() {
                     data: values,
                     backgroundColor: palette.slice(0, values.length),
                     borderRadius: 6,
-                    maxBarThickness: 32
+                    maxBarThickness: 34
                 }]
             },
+            plugins: [barDataLabelsPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        top: 20
+                    }
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
@@ -239,6 +413,7 @@ function initAdminCharts() {
                         ticks: { color: textMuted, font: { size: 10 } }
                     },
                     y: {
+                        max: Math.ceil((maxVal * 1.15) / 50) * 50,
                         grid: { color: gridColor },
                         ticks: { color: textMuted, font: { size: 10 }, stepSize: 50 },
                         beginAtZero: true
@@ -271,6 +446,7 @@ function initAdminCharts() {
                     borderWidth: 2
                 }]
             },
+            plugins: [polarDataLabelsPlugin],
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
