@@ -473,7 +473,7 @@ class FormulirController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $formulir = Formulir::with(['targetRombel'])->findOrFail($id);
+        $formulir = Formulir::findOrFail($id);
         $responses = $formulir->respon()->oldest()->get();
         $skema = $formulir->skema ?? [];
 
@@ -485,8 +485,13 @@ class FormulirController extends Controller
         $sasaran = 'Semua Pengguna';
         if ($formulir->target_peran === 'peserta_didik') {
             $sasaran = 'Peserta Didik';
-            if ($formulir->target_rombel_id && $formulir->targetRombel) {
-                $sasaran .= ' (' . $formulir->targetRombel->nama . ')';
+            if ($formulir->target_rombel_id) {
+                $rombelNama = DB::table('rombongan_belajar')
+                    ->where('rombongan_belajar_id', $formulir->target_rombel_id)
+                    ->value('nama');
+                if ($rombelNama) {
+                    $sasaran .= ' (' . $rombelNama . ')';
+                }
             }
         } elseif ($formulir->target_peran === 'guru') {
             $sasaran = 'Guru / Pendidik';
