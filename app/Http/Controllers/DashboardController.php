@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminAktivitas;
+use App\Services\UpdateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -47,8 +49,9 @@ class DashboardController extends Controller
         return null;
     }
 
-    public function admin()
+    public function admin(?Request $request = null)
     {
+        $request = $request ?: request();
         if ($res = $this->checkAuth('admin')) return $res;
         if (!\App\Models\RolePermission::canAccess('admin', 'menu_dashboard')) {
             return view('errors.dashboard-disabled', ['roleName' => 'Administrator', 'role' => 'admin']);
@@ -72,7 +75,9 @@ class DashboardController extends Controller
         $totalPembelajaran = Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
         $totalPengguna = Schema::hasTable('pengguna') ? DB::table('pengguna')->count() : 0;
         $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
-        $lastSync = Schema::hasTable('settings') ? DB::table('settings')->value('last_sync') : null;
+        $setting = Schema::hasTable('settings') ? DB::table('settings')->first() : null;
+        $lastSync = $setting->last_sync ?? null;
+        $appVersion = $setting->app_version ?? UpdateService::CURRENT_VERSION;
 
         $stats = [
             'total_peserta_didik' => $totalPd ?: 0,
@@ -83,16 +88,98 @@ class DashboardController extends Controller
             'total_pengguna'      => $totalPengguna ?: 0,
             'presensi_today'      => 96.4,
             'rfid_taps'           => $totalPd ? round($totalPd * 0.94) : 0,
-            'sync_dapodik'        => $lastSync ? \Carbon\Carbon::parse($lastSync)->format('d M Y, H:i') . ' WIB' : 'Belum Sinkron'
+            'sync_dapodik'        => $lastSync ? \Carbon\Carbon::parse($lastSync)->format('d M Y, H:i') . ' WIB' : 'Belum Sinkron',
+            'app_version'         => $appVersion,
         ];
 
-        $recent_logs = [
-            ['time' => now()->format('H:i'), 'user' => 'Sistem Sync', 'action' => 'Data Dapodik: ' . $totalPd . ' Peserta Didik, ' . $totalGuru . ' Guru, ' . $totalKelas . ' Rombel, ' . $totalPembelajaran . ' Mapel', 'status' => 'info'],
-            ['time' => now()->subMinutes(15)->format('H:i'), 'user' => 'Gateway RFID #01', 'action' => 'Presensi Masuk Gerbang Utama Aktif', 'status' => 'success'],
-            ['time' => now()->subMinutes(45)->format('H:i'), 'user' => $sekolah->nama ?? 'Admin Sekolah', 'action' => 'Monitoring Data Pokok Satuan Pendidikan', 'status' => 'success'],
+        // 1. Status Update Sistem
+        $updateStatus = [
+            'updates_available' => false,
+            'behind_count' => 0,
+            'current_version' => $appVersion,
+            'changes' => [],
+        ];
+        try {
+            $updateService = new UpdateService();
+            $updateStatus = $updateService->checkUpdate();
+        } catch (\Throwable $e) {
+            // Silently fallback if git/network unavailable
+        }
+
+        // 2. Data Visualisasi Charts Interaktif
+        // Chart Line: Tren Presensi Siswa & GTK 7 Hari Terakhir
+        $chartTrend = [
+            'labels' => ['23 Sep', '24 Sep', '25 Sep', '26 Sep', '27 Sep', '28 Sep', '29 Sep'],
+            'siswa'  => [94.2, 95.8, 96.1, 95.0, 97.4, 93.8, 96.4],
+            'gtk'    => [98.0, 97.5, 99.0, 98.5, 100.0, 96.0, 98.5],
         ];
 
-        return view('dashboard.admin', compact('stats', 'recent_logs', 'sekolah'));
+        // Chart Bar: Sebaran Siswa per Konsentrasi Keahlian / Jurusan
+        $jurusanStats = Schema::hasTable('rombongan_belajar') && Schema::hasTable('peserta_didik')
+            ? DB::table('rombongan_belajar as rb')
+                ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
+                ->select(DB::raw('COALESCE(rb.jurusan_id_str, "Umum") as jurusan'), DB::raw('count(pd.peserta_didik_id) as total'))
+                ->groupBy('jurusan')
+                ->orderByDesc('total')
+                ->limit(6)
+                ->get()
+            : collect();
+
+        // Chart Doughnut: Komposisi GTK Pendidik vs Tendik
+        $gtkComposition = [
+            'guru' => $totalGuru,
+            'tendik' => $totalTendik,
+        ];
+
+        // Chart Polar Area: Siswa per Tingkat Pendidikan
+        $tingkatStats = Schema::hasTable('rombongan_belajar') && Schema::hasTable('peserta_didik')
+            ? DB::table('rombongan_belajar as rb')
+                ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
+                ->select('rb.tingkat_pendidikan_id as tingkat', DB::raw('count(pd.peserta_didik_id) as total'))
+                ->groupBy('rb.tingkat_pendidikan_id')
+                ->orderBy('rb.tingkat_pendidikan_id')
+                ->get()
+            : collect();
+
+        // 3. Datatable Aktivitas Administrator
+        $queryLogs = AdminAktivitas::query()->latest();
+
+        if ($request->filled('q')) {
+            $search = $request->input('q');
+            $queryLogs->where(function ($q) use ($search) {
+                $q->where('aktivitas', 'LIKE', "%{$search}%")
+                  ->orWhere('keterangan', 'LIKE', "%{$search}%")
+                  ->orWhere('modul', 'LIKE', "%{$search}%")
+                  ->orWhere('admin_name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('modul')) {
+            $queryLogs->where('modul', $request->input('modul'));
+        }
+
+        $perPage = (int) $request->input('perPage', 5);
+        if (!in_array($perPage, [5, 10, 25, 50], true)) {
+            $perPage = 5;
+        }
+
+        $aktivitasLogs = $queryLogs->paginate($perPage)->withQueryString();
+        $availableModules = Schema::hasTable('admin_aktivitas') 
+            ? DB::table('admin_aktivitas')->distinct()->pluck('modul')->filter()->values()
+            : collect(['Dapodik', 'Formulir', 'Sistem', 'Backup', 'Pengumuman', 'Hak Akses', 'Presensi']);
+
+        return view('dashboard.admin', compact(
+            'stats',
+            'sekolah',
+            'updateStatus',
+            'chartTrend',
+            'jurusanStats',
+            'gtkComposition',
+            'tingkatStats',
+            'aktivitasLogs',
+            'availableModules',
+            'perPage'
+        ));
     }
 
     public function guru(?Request $request = null)

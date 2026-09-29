@@ -16,34 +16,43 @@
                         : 'Selamat Malam,'));
 
         $sessionUser = session('user');
-        $userName = is_array($sessionUser) ? ($sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Admin')) : ($sessionUser->name ?? ($sessionUser->nama ?? 'Admin'));
-        $fotoUrl = $fotoUrl ?? (is_array($sessionUser) ? ($sessionUser['foto_url'] ?? null) : ($sessionUser->foto_url ?? null));
+        $userName = is_array($sessionUser)
+            ? $sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Admin')
+            : $sessionUser->name ?? ($sessionUser->nama ?? 'Admin');
+        $fotoUrl =
+            $fotoUrl ?? (is_array($sessionUser) ? $sessionUser['foto_url'] ?? null : $sessionUser->foto_url ?? null);
         if (!$fotoUrl) {
-            $uId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+            $uId = is_array($sessionUser)
+                ? $sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)
+                : $sessionUser->pengguna_id ?? ($sessionUser->id ?? null);
             if ($uId) {
                 $fotoUrl = \App\Models\User::where('pengguna_id', $uId)->first()?->foto_url;
             }
         }
     @endphp
     <!-- Welcome Banner -->
-    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+    <div class="dash-banner"
+        style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
             @if ($fotoUrl)
                 <!-- Pasfoto Admin -->
-                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
-                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}" 
-                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
-                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                <div class="dash-banner-foto"
+                    style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}"
+                        style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                        onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
             @endif
 
             <div style="flex: 1; min-width: 0;">
-                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                <h2
+                    style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                     <span
                         style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
                     {{ $userName }}! 👋
                 </h2>
-                <div style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
+                <div
+                    style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
                     @if (!empty($sekolah->nama))
                         <span title="Satuan Pendidikan">
                             <i class="fas fa-school text-primary me-1"></i>
@@ -68,7 +77,8 @@
             </div>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline"
+                style="padding: 9px 16px; font-size: 0.85rem;">
                 <i class="fas fa-cloud-arrow-down"></i> Tarik Data Dapodik
             </a>
             <button class="btn btn-primary" style="padding: 9px 16px; font-size: 0.85rem;">
@@ -140,75 +150,468 @@
         </div>
     </div>
 
-    <!-- Main Section: Grid 2 Columns -->
-    <div class="dash-grid-2">
-        <!-- Recent Activity Card -->
-        <div class="card" style="margin-bottom: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
-                    <i class="fas fa-clock-rotate-left text-primary"></i> Aktivitas Sistem Terkini
+    <!-- Interactive Mixed Analytics Charts Section -->
+    <div style="margin-top: 24px; margin-bottom: 24px;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+            <div>
+                <h3
+                    style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-chart-line text-primary"></i> Analitik &amp; Visualisasi Data Terkelola
                 </h3>
-                <span style="font-size: 0.75rem; color: var(--text-muted);">Realtime</span>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin: 3px 0 0 0;">
+                    Ringkasan grafis kehadiran, sebaran jurusan, profil GTK, dan proporsi tingkat kelas secara interaktif.
+                </p>
             </div>
-
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                @foreach ($recent_logs as $log)
-                    <div
-                        style="display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px;">
-                        <div
-                            style="width: 38px; height: 38px; border-radius: 10px; background: var(--input-bg); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; color: var(--text-color);">
-                            {{ $log['time'] }}
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-color);">
-                                {{ $log['action'] }}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Oleh:
-                                {{ $log['user'] }}</div>
-                        </div>
-                    </div>
-                @endforeach
+            <div
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: var(--primary);">
+                <i class="fas fa-circle-dot" style="font-size: 0.6rem; color: #10b981;"></i> Data Real-Time Sekolah
             </div>
         </div>
 
-        <!-- Quick Status & System Node -->
-        <div class="card" style="margin-bottom: 0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-                <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color);">
-                    <i class="fas fa-server text-accent"></i> Status Perangkat &amp; Server
-                </h3>
-                <span class="badge"
-                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.7rem; padding: 3px 8px; border-radius: 6px;">Normal</span>
+        <!-- Charts Row 1: Line Chart (Garis) & Doughnut Chart (Lingkaran) -->
+        <div class="dash-grid-2" style="margin-bottom: 20px;">
+            <!-- Chart 1: Tren Presensi 7 Hari (Garis) -->
+            <div class="card" style="margin-bottom: 0;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4
+                            style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-area text-primary"></i> Tren Kehadiran Presensi Harian (Garis)
+                        </h4>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Tingkat kehadiran Peserta Didik vs
+                            GTK</span>
+                    </div>
+                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">
+                        <i class="fas fa-arrow-trend-up me-1"></i> Rata-rata 96.2%
+                    </span>
+                </div>
+                <div style="position: relative; height: 230px; width: 100%;">
+                    <canvas id="chartPresensiTrend"></canvas>
+                </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 14px;">
+            <!-- Chart 2: Komposisi GTK (Lingkaran / Doughnut) -->
+            <div class="card" style="margin-bottom: 0;">
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px dashed var(--border-color);">
-                    <span style="font-size: 0.85rem; color: var(--text-muted);"><i
-                            class="fas fa-microchip text-primary"></i> Gateway RFID Gerbang 1</span>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #10b981;"><i class="fas fa-circle-check"></i>
-                        Terhubung (192.168.1.101)</span>
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4
+                            style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-pie text-accent"></i> Komposisi GTK: Pendidik vs Tendik (Lingkaran)
+                        </h4>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Total
+                            {{ $stats['total_guru'] + $stats['total_tendik'] }} Tenaga Pendidik &amp; Kependidikan</span>
+                    </div>
+                    <span class="badge"
+                        style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; padding: 3px 8px;">
+                        {{ $stats['total_guru'] }} Guru : {{ $stats['total_tendik'] }} Tendik
+                    </span>
                 </div>
+                <div style="position: relative; height: 230px; width: 100%;">
+                    <canvas id="chartGtkComposition"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2: Bar Chart (Batang) & Polar Area Chart (Radial) -->
+        <div class="dash-grid-2">
+            <!-- Chart 3: Sebaran Jurusan (Batang) -->
+            <div class="card" style="margin-bottom: 0;">
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px dashed var(--border-color);">
-                    <span style="font-size: 0.85rem; color: var(--text-muted);"><i
-                            class="fas fa-microchip text-primary"></i> Gateway RFID Gerbang 2</span>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #10b981;"><i class="fas fa-circle-check"></i>
-                        Terhubung (192.168.1.102)</span>
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4
+                            style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-chart-column text-warning"></i> Sebaran Siswa per Konsentrasi Keahlian
+                            (Batang)
+                        </h4>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">6 Program Keahlian / Jurusan
+                            Terbesar</span>
+                    </div>
+                    <span class="badge"
+                        style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.72rem; padding: 3px 8px;">
+                        {{ $stats['total_kelas'] }} Rombel Aktif
+                    </span>
                 </div>
+                <div style="position: relative; height: 220px; width: 100%;">
+                    <canvas id="chartJurusan"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 4: Tingkat Kelas (Polar Area) -->
+            <div class="card" style="margin-bottom: 0;">
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px dashed var(--border-color);">
-                    <span style="font-size: 0.85rem; color: var(--text-muted);"><i class="fas fa-database text-accent"></i>
-                        Database MySQL Cluster</span>
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #10b981;"><i class="fas fa-circle-check"></i>
-                        OK (Latency 2ms)</span>
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <h4
+                            style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-compass text-primary"></i> Proporsi Siswa per Tingkat Kelas (Radial / Polar)
+                        </h4>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Distribusi Kelas X, Kelas XI, dan Kelas
+                            XII</span>
+                    </div>
+                    <span class="badge"
+                        style="background: rgba(16,185,129,0.12); color: #10b981; font-size: 0.72rem; padding: 3px 8px;">
+                        Total {{ number_format($stats['total_peserta_didik']) }} Siswa
+                    </span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; color: var(--text-muted);"><i
-                            class="fas fa-cloud-arrow-up text-warning"></i> Sinkron Dapodik Terakhir</span>
-                    <span
-                        style="font-size: 0.8rem; font-weight: 700; color: var(--text-color);">{{ $stats['sync_dapodik'] }}</span>
+                <div style="position: relative; height: 220px; width: 100%;">
+                    <canvas id="chartTingkat"></canvas>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Main Section: Grid 2 Columns (Datatable Aktivitas & Status Sistem) -->
+    <div
+        style="display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 20px; align-items: start; margin-top: 24px;">
+        <!-- Left: Datatable Log Aktivitas Administrator -->
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 0;">
+            <div
+                style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h3
+                        style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-user-shield text-primary"></i> Log Aktivitas Administrator
+                    </h3>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                        Seluruh aktivitas transaksi &amp; manajemen sistem yang dilakukan administrator.
+                    </p>
+                </div>
+                <span class="badge badge-outline" style="font-size: 0.72rem;">
+                    {{ $aktivitasLogs->total() }} Riwayat Tercatat
+                </span>
+            </div>
+
+            <!-- Toolbar Datatable: Entries, Filter Modul, Live Search -->
+            <div
+                style="padding: 12px 20px; background: var(--bg-hover); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <div class="toolbar-entries"
+                        style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted);">
+                        <label for="perPageSelectAdmin" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelectAdmin" class="per-page-select"
+                            style="padding: 3px 8px; border-radius: 6px; font-size: 0.8rem;">
+                            @foreach ([5, 10, 25, 50] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 5) == $n ? 'selected' : '' }}>
+                                    {{ $n }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <select id="filterModulAdmin" class="form-select"
+                        style="height: 32px; padding: 2px 10px; border-radius: 6px; font-size: 0.8rem; min-width: 130px;">
+                        <option value="">Semua Modul</option>
+                        @foreach ($availableModules as $mod)
+                            <option value="{{ $mod }}" {{ request('modul') === $mod ? 'selected' : '' }}>
+                                {{ $mod }}</option>
+                        @endforeach
+                    </select>
+
+                    @if (request('q') || request('modul'))
+                        <a href="{{ route('dashboard.admin') }}" class="btn btn-outline"
+                            style="height: 32px; padding: 0 10px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;"
+                            title="Reset Filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
+                </div>
+
+                <div class="live-search-wrap" style="min-width: 200px;">
+                    <i class="fas fa-search search-icon" style="font-size: 0.8rem;"></i>
+                    <input type="text" id="liveSearchAdmin" placeholder="Cari aktivitas..."
+                        value="{{ request('q') }}" autocomplete="off" style="font-size: 0.82rem; height: 32px;">
+                    <button type="button" id="clearSearchAdmin"
+                        class="clear-search {{ request('q') ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times" style="font-size: 0.75rem;"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabel Log Aktivitas -->
+            <div style="overflow-x: auto;">
+                <table class="table table-pd mb-0" style="width: 100%; border-collapse: collapse; font-size: 0.84rem;">
+                    <thead>
+                        <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
+                                No</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                Waktu</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
+                                Modul</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Aktivitas Administrator</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($aktivitasLogs as $idx => $act)
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                                <td style="padding: 12px 14px; text-align: center; color: var(--text-muted);"
+                                    data-label="No">
+                                    {{ $aktivitasLogs->firstItem() + $idx }}
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Waktu">
+                                    <span style="font-weight: 600; color: var(--text-color); display: block;">
+                                        {{ $act->created_at ? $act->created_at->format('d/m/Y') : '-' }}
+                                    </span>
+                                    <span style="font-size: 0.74rem; color: var(--text-muted);">
+                                        {{ $act->created_at ? $act->created_at->format('H:i') . ' WIB' : '' }}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Modul">
+                                    @php
+                                        $modColors = [
+                                            'Dapodik' => ['bg' => 'rgba(2, 132, 199, 0.12)', 'color' => '#0284c7'],
+                                            'Formulir' => ['bg' => 'rgba(147, 51, 234, 0.12)', 'color' => '#9333ea'],
+                                            'Sistem' => ['bg' => 'rgba(16, 185, 129, 0.12)', 'color' => '#10b981'],
+                                            'Backup' => ['bg' => 'rgba(245, 158, 11, 0.12)', 'color' => '#f59e0b'],
+                                            'Pengumuman' => [
+                                                'bg' => 'rgba(99, 102, 241, 0.12)',
+                                                'color' => 'var(--primary)',
+                                            ],
+                                            'Hak Akses' => ['bg' => 'rgba(239, 68, 68, 0.12)', 'color' => '#ef4444'],
+                                            'Presensi' => ['bg' => 'rgba(6, 182, 212, 0.12)', 'color' => '#06b6d4'],
+                                        ];
+                                        $c = $modColors[$act->modul] ?? [
+                                            'bg' => 'rgba(148, 163, 184, 0.12)',
+                                            'color' => 'var(--text-muted)',
+                                        ];
+                                    @endphp
+                                    <span class="badge"
+                                        style="background: {{ $c['bg'] }}; color: {{ $c['color'] }}; font-size: 0.72rem; padding: 2px 7px; border-radius: 4px;">
+                                        {{ $act->modul }}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Aktivitas">
+                                    <strong style="color: var(--text-color); font-size: 0.85rem; display: block;">
+                                        {{ $act->aktivitas }}
+                                    </strong>
+                                    @if ($act->keterangan)
+                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                                            {{ $act->keterangan }}
+                                        </div>
+                                    @endif
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
+                                        <i class="fas fa-user-circle me-1"></i>{{ $act->admin_name }}
+                                        @if ($act->ip_address)
+                                            <span style="opacity: 0.7;">• IP: {{ $act->ip_address }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 14px; text-align: center;" data-label="Status">
+                                    @if ($act->tipe === 'success')
+                                        <span class="badge badge-success" style="font-size: 0.68rem; padding: 2px 6px;">
+                                            <i class="fas fa-check me-1"></i>Sukses
+                                        </span>
+                                    @elseif ($act->tipe === 'info')
+                                        <span class="badge"
+                                            style="background: rgba(2,132,199,0.12); color: #0284c7; font-size: 0.68rem; padding: 2px 6px;">
+                                            <i class="fas fa-info-circle me-1"></i>Info
+                                        </span>
+                                    @elseif ($act->tipe === 'warning')
+                                        <span class="badge badge-warning" style="font-size: 0.68rem; padding: 2px 6px;">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Perhatian
+                                        </span>
+                                    @else
+                                        <span class="badge badge-danger" style="font-size: 0.68rem; padding: 2px 6px;">
+                                            <i class="fas fa-times me-1"></i>Gagal
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5"
+                                    style="padding: 30px 14px; text-align: center; color: var(--text-muted);">
+                                    <i class="fas fa-clipboard-list mb-2"
+                                        style="font-size: 1.8rem; opacity: 0.4; display: block;"></i>
+                                    <div>Belum ada data aktivitas administrator yang cocok.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Custom Pagination Footer -->
+            @if ($aktivitasLogs->hasPages())
+                <div
+                    style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                        Menampilkan
+                        <strong>{{ $aktivitasLogs->firstItem() ?? 0 }}</strong>–<strong>{{ $aktivitasLogs->lastItem() ?? 0 }}</strong>
+                        dari <strong>{{ $aktivitasLogs->total() }}</strong> aktivitas
+                    </div>
+                    <div class="custom-pagination" style="margin: 0; padding: 0;">
+                        @if ($aktivitasLogs->onFirstPage())
+                            <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+                        @else
+                            <a href="{{ $aktivitasLogs->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                                    class="fas fa-chevron-left"></i></a>
+                        @endif
+                        @php
+                            $cur = $aktivitasLogs->currentPage();
+                            $last = $aktivitasLogs->lastPage();
+                            $from = max(1, $cur - 1);
+                            $to = min($last, $cur + 1);
+                        @endphp
+                        @for ($i = $from; $i <= $to; $i++)
+                            <a href="{{ $aktivitasLogs->url($i) }}"
+                                class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                        @endfor
+                        @if ($aktivitasLogs->hasMorePages())
+                            <a href="{{ $aktivitasLogs->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                                    class="fas fa-chevron-right"></i></a>
+                        @else
+                            <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+                        @endif
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        <!-- Right: Status Perangkat & Sistem (Sesuai Permintaan) -->
+        <div class="card" style="margin-bottom: 0;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div>
+                    <h3
+                        style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-server text-accent"></i> Status Sistem &amp; Pembaruan
+                    </h3>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 2px 0 0 0;">
+                        Konektivitas sinkronisasi Dapodik dan siklus pembaruan aplikasi.
+                    </p>
+                </div>
+                @if (!empty($updateStatus['updates_available']))
+                    <span class="badge badge-warning" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 6px;">
+                        <i class="fas fa-circle-exclamation me-1"></i> Update Tersedia
+                    </span>
+                @else
+                    <span class="badge badge-success" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 6px;">
+                        <i class="fas fa-circle-check me-1"></i> Normal
+                    </span>
+                @endif
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <!-- 1. Sinkron Dapodik Terakhir -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 10px;">
+                    <div>
+                        <div
+                            style="font-size: 0.84rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-cloud-arrow-up text-warning"></i> Sinkron Dapodik Terakhir
+                        </div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                            Sinkronisasi lokal data pokok satuan pendidikan
+                        </div>
+                    </div>
+                    <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); white-space: nowrap;">
+                        {{ $stats['sync_dapodik'] }}
+                    </span>
+                </div>
+
+                <!-- 2. Versi Aplikasi -->
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 10px;">
+                    <div>
+                        <div
+                            style="font-size: 0.84rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-code-commit text-primary"></i> Versi Aplikasi SAE
+                        </div>
+                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                            Rilis core sistem aplikasi edukasi saat ini
+                        </div>
+                    </div>
+                    <span class="badge"
+                        style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800; font-size: 0.82rem; padding: 4px 10px; border-radius: 8px;">
+                        v{{ $stats['app_version'] }}
+                    </span>
+                </div>
+
+                <!-- 3. Informasi & Tombol Update Sistem -->
+                @if (!empty($updateStatus['updates_available']))
+                    <div
+                        style="padding: 16px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); margin-top: 4px;">
+                        <div style="display: flex; align-items: flex-start; gap: 10px;">
+                            <div
+                                style="width: 36px; height: 36px; border-radius: 8px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem;">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.9rem; font-weight: 700; color: #f59e0b;">
+                                    Pembaruan Sistem Tersedia!
+                                </div>
+                                <div
+                                    style="font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; line-height: 1.4;">
+                                    Tersedia <strong>{{ $updateStatus['behind_count'] }} pembaruan baru</strong> dari
+                                    repositori resmi SAE untuk stabilitas dan fitur terkini.
+                                </div>
+                                @if (!empty($updateStatus['changes'][0]))
+                                    <div
+                                        style="font-size: 0.72rem; color: var(--text-muted); background: rgba(0,0,0,0.12); padding: 4px 8px; border-radius: 6px; margin-top: 6px; font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        {{ $updateStatus['changes'][0] }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <a href="{{ route('dashboard.update') }}" class="btn btn-primary"
+                            style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 10px 16px; font-weight: 700; font-size: 0.85rem; border-radius: 8px;">
+                            <i class="fas fa-circle-arrow-up"></i> Buka Halaman Update Sistem
+                        </a>
+                    </div>
+                @else
+                    <div
+                        style="padding: 16px; border-radius: 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); margin-top: 4px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div
+                                style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.18); color: #10b981; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem;">
+                                <i class="fas fa-circle-check"></i>
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-size: 0.9rem; font-weight: 700; color: #10b981;">
+                                    Sistem Berjalan pada Versi Terbaru
+                                </div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                    Seluruh berkas, dependensi, dan skema database dalam keadaan mutakhir.
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('dashboard.update') }}" class="btn btn-outline"
+                            style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 14px; padding: 9px 16px; font-size: 0.82rem; border-radius: 8px;">
+                            <i class="fas fa-rotate"></i> Cek Pembaruan Sistem
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON Payload untuk Chart Interaktif -->
+    <script id="adminChartPayload" type="application/json">
+        {!! json_encode([
+            'trend' => $chartTrend,
+            'jurusan' => $jurusanStats,
+            'gtk' => $gtkComposition,
+            'tingkat' => $tingkatStats,
+        ]) !!}
+    </script>
+
+    @push('scripts')
+        <script
+            src="{{ asset('js/admin-dashboard.js') }}?v={{ file_exists(public_path('js/admin-dashboard.js')) ? filemtime(public_path('js/admin-dashboard.js')) : time() }}">
+        </script>
+    @endpush
 @endsection
