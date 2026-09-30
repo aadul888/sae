@@ -197,7 +197,7 @@
                     .nisn) + ')';
                 container.innerHTML = data.html;
                 printLink.href = '{{ url('/dashboard/kartu-pelajar/cetak') }}/' + encodeURIComponent(data.card
-                .nisn);
+                    .nisn);
                 verifyLink.href = data.card.verify_url;
 
                 loading.style.display = 'none';
@@ -326,12 +326,29 @@
                 await captureCardToJpg(backEl, 'BELAKANG');
             }
 
-            if (window.SAE && typeof window.SAE.toast === 'function') {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Unduh Berhasil!',
+                    text: 'Kartu pelajar format JPG berhasil diunduh.',
+                    icon: 'success',
+                    confirmButtonColor: '#10b981',
+                    confirmButtonText: 'Selesai'
+                });
+            } else if (window.SAE && typeof window.SAE.toast === 'function') {
                 window.SAE.toast('Kartu pelajar format JPG berhasil diunduh!', 'success');
             }
         } catch (err) {
             console.error(err);
-            alert('Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'));
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Gagal Mengunduh',
+                    text: 'Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'),
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
+            } else {
+                alert('Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'));
+            }
         } finally {
             if (btn) {
                 btn.innerHTML = originalHtml;

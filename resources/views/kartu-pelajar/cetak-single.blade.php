@@ -10,8 +10,8 @@
 
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-
     <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
     <style>
         body {
@@ -147,6 +147,7 @@
         @include('kartu-pelajar.template', ['card' => $card])
     </div>
 
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/html2canvas.min.js') }}"></script>
     <script>
         function changeSideFilter(val) {
@@ -247,9 +248,22 @@
                     await new Promise(r => setTimeout(r, 400));
                     await captureCardToJpg(backEl, 'BELAKANG');
                 }
+
+                Swal.fire({
+                    title: 'Unduh Berhasil!',
+                    text: 'Berkas JPG kartu pelajar berhasil diunduh.',
+                    icon: 'success',
+                    confirmButtonColor: '#10b981',
+                    confirmButtonText: 'Selesai'
+                });
             } catch (err) {
                 console.error(err);
-                alert('Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'));
+                Swal.fire({
+                    title: 'Gagal Mengunduh',
+                    text: 'Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'),
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
             } finally {
                 if (btn) {
                     btn.innerHTML = orig;

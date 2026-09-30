@@ -10,8 +10,8 @@
 
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-
     <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
     <style>
         body {
@@ -160,9 +160,9 @@
                 <i class="fas fa-print"></i> Cetak Dokumen
             </button>
 
-            <button type="button" id="btnUnduhSemuaJpg" onclick="unduhSemuaKartuRombelJpg()" class="btn-print"
+            <button type="button" id="btnUnduhSemuaJpg" onclick="unduhSemuaKartuRombelZip()" class="btn-print"
                 style="background: #059669; border-color: #059669;">
-                <i class="fas fa-file-image"></i> Unduh JPG (Per Kartu)
+                <i class="fas fa-file-zipper"></i> Unduh Semua JPG (.zip)
             </button>
         </div>
     </div>
@@ -182,7 +182,9 @@
         @endforelse
     </div>
 
+    <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/html2canvas.min.js') }}"></script>
+    <script src="{{ asset('js/jszip.min.js') }}"></script>
     <script>
         function changeSideFilter(val) {
             document.body.classList.remove('filter-front-only', 'filter-back-only');
@@ -193,22 +195,39 @@
             }
         }
 
-        async function unduhSemuaKartuRombelJpg() {
+        async function unduhSemuaKartuRombelZip() {
             const sideFilter = document.getElementById('sideFilter')?.value || 'both';
             const pairs = document.querySelectorAll('.print-grid .kp-card-pair');
             if (pairs.length === 0) {
-                alert('Tidak ada kartu pelajar yang dapat diunduh.');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Data Kosong',
+                    text: 'Tidak ada kartu pelajar yang dapat diunduh pada rombel ini.',
+                    confirmButtonColor: '#0284c7'
+                });
+                return;
+            }
+
+            if (typeof JSZip === 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Pustaka ZIP Tidak Ditemukan',
+                    text: 'Library JSZip belum termuat sempurna. Silakan refresh halaman.',
+                    confirmButtonColor: '#ef4444'
+                });
                 return;
             }
 
             const btn = document.getElementById('btnUnduhSemuaJpg');
             const orig = btn ? btn.innerHTML : '';
-            if (btn) {
-                btn.disabled = true;
-            }
+            if (btn) btn.disabled = true;
 
-            const captureCardToJpg = async (cardEl, filename) => {
-                if (!cardEl) return false;
+            const zip = new JSZip();
+            const rombelName = '{{ preg_replace('/[^a-zA-Z0-9_-]/', '_', $rombel->nama) }}';
+            const zipFolder = zip.folder(`Kartu_Pelajar_${rombelName}`);
+
+            const captureCardToBlob = async (cardEl) => {
+                if (!cardEl) return null;
                 let staging = null;
                 try {
                     staging = document.createElement('div');
@@ -230,7 +249,7 @@
                     staging.appendChild(clone);
                     document.body.appendChild(staging);
 
-                    await new Promise(r => setTimeout(r, 100));
+                    await new Promise(r => setTimeout(r, 90));
 
                     const canvas = await html2canvas(clone, {
                         scale: 3,
@@ -242,14 +261,12 @@
                         height: clone.offsetHeight
                     });
 
-                    const link = document.createElement('a');
-                    link.download = filename;
-                    link.href = canvas.toDataURL('image/jpeg', 0.95);
-                    link.click();
-                    return true;
+                    return new Promise((resolve) => {
+                        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.95);
+                    });
                 } catch (err) {
                     console.error('Error saat capture JPG:', err);
-                    return false;
+                    return null;
                 } finally {
                     if (staging && staging.parentNode) {
                         staging.parentNode.removeChild(staging);
@@ -257,13 +274,43 @@
                 }
             };
 
+            let progressSwal = null;
+            if (typeof Swal !== 'undefined') {
+                progressSwal = Swal.fire({
+                    title: 'Membuat Berkas ZIP...',
+                    html: `
+                        <div style="font-size: 0.85rem; color: #475569; margin-bottom: 12px;">
+                            Mengonversi kartu pelajar menjadi JPG resolusi tinggi...
+                        </div>
+                        <div style="width: 100%; background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden;">
+                            <div id="swalZipProgressBar" style="width: 0%; height: 100%; background: #059669; transition: width 0.2s;"></div>
+                        </div>
+                        <div id="swalZipProgressText" style="margin-top: 8px; font-size: 0.8rem; font-weight: 700; color: #0f172a;">
+                            0 / ${pairs.length} Peserta Didik
+                        </div>
+                    `,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
+
             try {
-                let count = 0;
+                let totalFiles = 0;
                 for (let i = 0; i < pairs.length; i++) {
                     const pair = pairs[i];
                     const front = pair.querySelector('.kp-card-front');
                     const back = pair.querySelector('.kp-card-back');
                     const nisn = front?.id?.replace('card-front-', '') || ('siswa_' + (i + 1));
+
+                    const pct = Math.round(((i + 1) / pairs.length) * 100);
+                    const bar = document.getElementById('swalZipProgressBar');
+                    const txt = document.getElementById('swalZipProgressText');
+                    if (bar) bar.style.width = pct + '%';
+                    if (txt) txt.textContent = `${i + 1} / ${pairs.length} Peserta Didik (${pct}%)`;
 
                     if (btn) {
                         btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Memproses ${i + 1}/${pairs.length}...`;
@@ -271,32 +318,72 @@
 
                     if (sideFilter === 'front-only') {
                         if (front) {
-                            await captureCardToJpg(front, `Kartu_Pelajar_${nisn}_DEPAN.jpg`);
-                            count++;
-                            await new Promise(r => setTimeout(r, 350));
+                            const blob = await captureCardToBlob(front);
+                            if (blob) {
+                                zipFolder.file(`${String(i + 1).padStart(2, '0')}_Kartu_${nisn}_DEPAN.jpg`, blob);
+                                totalFiles++;
+                            }
                         }
                     } else if (sideFilter === 'back-only') {
                         if (back) {
-                            await captureCardToJpg(back, `Kartu_Pelajar_${nisn}_BELAKANG.jpg`);
-                            count++;
-                            await new Promise(r => setTimeout(r, 350));
+                            const blob = await captureCardToBlob(back);
+                            if (blob) {
+                                zipFolder.file(`${String(i + 1).padStart(2, '0')}_Kartu_${nisn}_BELAKANG.jpg`, blob);
+                                totalFiles++;
+                            }
                         }
                     } else {
                         if (front) {
-                            await captureCardToJpg(front, `Kartu_Pelajar_${nisn}_DEPAN.jpg`);
-                            await new Promise(r => setTimeout(r, 300));
+                            const blobFront = await captureCardToBlob(front);
+                            if (blobFront) {
+                                zipFolder.file(`${String(i + 1).padStart(2, '0')}_Kartu_${nisn}_DEPAN.jpg`, blobFront);
+                                totalFiles++;
+                            }
                         }
                         if (back) {
-                            await captureCardToJpg(back, `Kartu_Pelajar_${nisn}_BELAKANG.jpg`);
-                            await new Promise(r => setTimeout(r, 300));
+                            const blobBack = await captureCardToBlob(back);
+                            if (blobBack) {
+                                zipFolder.file(`${String(i + 1).padStart(2, '0')}_Kartu_${nisn}_BELAKANG.jpg`,
+                                blobBack);
+                                totalFiles++;
+                            }
                         }
-                        count += 2;
                     }
                 }
-                alert(`Selesai! Sebanyak ${count} berkas JPG kartu pelajar berhasil diunduh.`);
+
+                if (txt) txt.textContent = 'Mengompresi ke format ZIP...';
+                if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengompresi ZIP...';
+
+                const zipContent = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: {
+                        level: 6
+                    }
+                });
+
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(zipContent);
+                downloadLink.download = `Kartu_Pelajar_${rombelName}_JPG.zip`;
+                downloadLink.click();
+                URL.revokeObjectURL(downloadLink.href);
+
+                // Alert selesai standar sistem
+                Swal.fire({
+                    title: 'Unduh Selesai!',
+                    html: `Arsip ZIP berhasil dibuat.<br><strong>${totalFiles} kartu JPG</strong> dari kelas <strong>{{ $rombel->nama }}</strong> siap disimpan.`,
+                    icon: 'success',
+                    confirmButtonColor: '#10b981',
+                    confirmButtonText: 'Selesai'
+                });
             } catch (e) {
                 console.error(e);
-                alert('Terjadi kesalahan saat mengunduh berkas JPG.');
+                Swal.fire({
+                    title: 'Gagal Mengunduh',
+                    text: 'Terjadi kesalahan sistem saat membuat arsip ZIP: ' + (e.message || 'Error'),
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
             } finally {
                 if (btn) {
                     btn.innerHTML = orig;
