@@ -300,6 +300,9 @@
 
             try {
                 let totalFiles = 0;
+                const bar = document.getElementById('swalZipProgressBar');
+                const txt = document.getElementById('swalZipProgressText');
+
                 for (let i = 0; i < pairs.length; i++) {
                     const pair = pairs[i];
                     const front = pair.querySelector('.kp-card-front');
@@ -307,8 +310,6 @@
                     const nisn = front?.id?.replace('card-front-', '') || ('siswa_' + (i + 1));
 
                     const pct = Math.round(((i + 1) / pairs.length) * 100);
-                    const bar = document.getElementById('swalZipProgressBar');
-                    const txt = document.getElementById('swalZipProgressText');
                     if (bar) bar.style.width = pct + '%';
                     if (txt) txt.textContent = `${i + 1} / ${pairs.length} Peserta Didik (${pct}%)`;
 
