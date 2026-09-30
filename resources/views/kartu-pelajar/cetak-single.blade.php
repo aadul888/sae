@@ -116,6 +116,30 @@
             <button onclick="window.print()" class="btn-print">
                 <i class="fas fa-print"></i> Cetak Kartu Sekarang
             </button>
+
+            <div style="position: relative; display: inline-block;" id="dropdownUnduhJpgWrap">
+                <button type="button" id="btnUnduhJpg" onclick="toggleUnduhJpgDropdown(event)" class="btn-print"
+                    style="background: #059669; border-color: #059669;">
+                    <i class="fas fa-file-image"></i> Unduh JPG <i class="fas fa-chevron-down"
+                        style="font-size: 0.7rem; margin-left: 3px;"></i>
+                </button>
+                <div id="menuUnduhJpg"
+                    style="display: none; position: absolute; top: calc(100% + 6px); right: 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 10px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); min-width: 190px; padding: 6px 0; z-index: 1000;"
+                    onclick="event.stopPropagation()">
+                    <button type="button" onclick="unduhHalamanSingleJpg('both')"
+                        style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: 0.82rem; font-weight: 600; color: #1e293b; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-images" style="color: #059669; width: 16px;"></i> Depan &amp; Belakang (2 JPG)
+                    </button>
+                    <button type="button" onclick="unduhHalamanSingleJpg('front')"
+                        style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: 0.82rem; font-weight: 600; color: #1e293b; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-image" style="color: #0284c7; width: 16px;"></i> Sisi Depan Saja (.jpg)
+                    </button>
+                    <button type="button" onclick="unduhHalamanSingleJpg('back')"
+                        style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: 0.82rem; font-weight: 600; color: #1e293b; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-image" style="color: #64748b; width: 16px;"></i> Sisi Belakang Saja (.jpg)
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -123,6 +147,7 @@
         @include('kartu-pelajar.template', ['card' => $card])
     </div>
 
+    <script src="{{ asset('js/html2canvas.min.js') }}"></script>
     <script>
         function changeSideFilter(val) {
             document.body.classList.remove('filter-front-only', 'filter-back-only');
@@ -130,6 +155,106 @@
                 document.body.classList.add('filter-front-only');
             } else if (val === 'back-only') {
                 document.body.classList.add('filter-back-only');
+            }
+        }
+
+        function toggleUnduhJpgDropdown(e) {
+            if (e) e.stopPropagation();
+            const m = document.getElementById('menuUnduhJpg');
+            if (!m) return;
+            m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'block' : 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('dropdownUnduhJpgWrap');
+            if (wrap && !wrap.contains(e.target)) {
+                const m = document.getElementById('menuUnduhJpg');
+                if (m) m.style.display = 'none';
+            }
+        });
+
+        async function unduhHalamanSingleJpg(mode) {
+            const m = document.getElementById('menuUnduhJpg');
+            if (m) m.style.display = 'none';
+
+            const btn = document.getElementById('btnUnduhJpg');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyiapkan...';
+                btn.disabled = true;
+            }
+
+            const captureCardToJpg = async (cardEl, sideName) => {
+                if (!cardEl) return false;
+                let staging = null;
+                try {
+                    staging = document.createElement('div');
+                    staging.style.position = 'fixed';
+                    staging.style.left = '-9999px';
+                    staging.style.top = '0';
+                    staging.style.width = '204px'; // 54mm @ 96dpi
+                    staging.style.height = '324px'; // 85.6mm @ 96dpi
+                    staging.style.overflow = 'hidden';
+                    staging.style.zIndex = '-9999';
+                    staging.style.background = '#ffffff';
+
+                    const clone = cardEl.cloneNode(true);
+                    clone.classList.add('kp-card-capture-target');
+                    clone.style.display = 'flex';
+                    clone.style.transform = 'none';
+                    clone.style.margin = '0';
+                    clone.style.boxShadow = 'none';
+                    staging.appendChild(clone);
+                    document.body.appendChild(staging);
+
+                    await new Promise(r => setTimeout(r, 120));
+
+                    const canvas = await html2canvas(clone, {
+                        scale: 3, // 300 DPI high resolution
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        width: clone.offsetWidth,
+                        height: clone.offsetHeight
+                    });
+
+                    const link = document.createElement('a');
+                    link.download = `Kartu_Pelajar_{{ $card['nisn'] }}_${sideName}.jpg`;
+                    link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+                    return true;
+                } catch (err) {
+                    console.error('Error saat capture JPG:', err);
+                    return false;
+                } finally {
+                    if (staging && staging.parentNode) {
+                        staging.parentNode.removeChild(staging);
+                    }
+                }
+            };
+
+            const frontEl = document.querySelector('.print-canvas .kp-card-front');
+            const backEl = document.querySelector('.print-canvas .kp-card-back');
+
+            try {
+                if (mode === 'front') {
+                    await captureCardToJpg(frontEl, 'DEPAN');
+                } else if (mode === 'back') {
+                    await captureCardToJpg(backEl, 'BELAKANG');
+                } else if (mode === 'both') {
+                    await captureCardToJpg(frontEl, 'DEPAN');
+                    await new Promise(r => setTimeout(r, 400));
+                    await captureCardToJpg(backEl, 'BELAKANG');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Gagal mengunduh kartu dalam format JPG: ' + (err.message || 'Error'));
+            } finally {
+                if (btn) {
+                    btn.innerHTML = orig;
+                    btn.disabled = false;
+                }
             }
         }
     </script>

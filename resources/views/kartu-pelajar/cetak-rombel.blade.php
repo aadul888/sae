@@ -159,6 +159,11 @@
             <button onclick="window.print()" class="btn-print">
                 <i class="fas fa-print"></i> Cetak Dokumen
             </button>
+
+            <button type="button" id="btnUnduhSemuaJpg" onclick="unduhSemuaKartuRombelJpg()" class="btn-print"
+                style="background: #059669; border-color: #059669;">
+                <i class="fas fa-file-image"></i> Unduh JPG (Per Kartu)
+            </button>
         </div>
     </div>
 
@@ -177,6 +182,7 @@
         @endforelse
     </div>
 
+    <script src="{{ asset('js/html2canvas.min.js') }}"></script>
     <script>
         function changeSideFilter(val) {
             document.body.classList.remove('filter-front-only', 'filter-back-only');
@@ -184,6 +190,118 @@
                 document.body.classList.add('filter-front-only');
             } else if (val === 'back-only') {
                 document.body.classList.add('filter-back-only');
+            }
+        }
+
+        async function unduhSemuaKartuRombelJpg() {
+            const sideFilter = document.getElementById('sideFilter')?.value || 'both';
+            const pairs = document.querySelectorAll('.print-grid .kp-card-pair');
+            if (pairs.length === 0) {
+                alert('Tidak ada kartu pelajar yang dapat diunduh.');
+                return;
+            }
+
+            const btn = document.getElementById('btnUnduhSemuaJpg');
+            const orig = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+            }
+
+            const captureCardToJpg = async (cardEl, filename) => {
+                if (!cardEl) return false;
+                let staging = null;
+                try {
+                    staging = document.createElement('div');
+                    staging.style.position = 'fixed';
+                    staging.style.left = '-9999px';
+                    staging.style.top = '0';
+                    staging.style.width = '204px'; // 54mm @ 96dpi
+                    staging.style.height = '324px'; // 85.6mm @ 96dpi
+                    staging.style.overflow = 'hidden';
+                    staging.style.zIndex = '-9999';
+                    staging.style.background = '#ffffff';
+
+                    const clone = cardEl.cloneNode(true);
+                    clone.classList.add('kp-card-capture-target');
+                    clone.style.display = 'flex';
+                    clone.style.transform = 'none';
+                    clone.style.margin = '0';
+                    clone.style.boxShadow = 'none';
+                    staging.appendChild(clone);
+                    document.body.appendChild(staging);
+
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const canvas = await html2canvas(clone, {
+                        scale: 3,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        width: clone.offsetWidth,
+                        height: clone.offsetHeight
+                    });
+
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = canvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+                    return true;
+                } catch (err) {
+                    console.error('Error saat capture JPG:', err);
+                    return false;
+                } finally {
+                    if (staging && staging.parentNode) {
+                        staging.parentNode.removeChild(staging);
+                    }
+                }
+            };
+
+            try {
+                let count = 0;
+                for (let i = 0; i < pairs.length; i++) {
+                    const pair = pairs[i];
+                    const front = pair.querySelector('.kp-card-front');
+                    const back = pair.querySelector('.kp-card-back');
+                    const nisn = front?.id?.replace('card-front-', '') || ('siswa_' + (i + 1));
+
+                    if (btn) {
+                        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Memproses ${i + 1}/${pairs.length}...`;
+                    }
+
+                    if (sideFilter === 'front-only') {
+                        if (front) {
+                            await captureCardToJpg(front, `Kartu_Pelajar_${nisn}_DEPAN.jpg`);
+                            count++;
+                            await new Promise(r => setTimeout(r, 350));
+                        }
+                    } else if (sideFilter === 'back-only') {
+                        if (back) {
+                            await captureCardToJpg(back, `Kartu_Pelajar_${nisn}_BELAKANG.jpg`);
+                            count++;
+                            await new Promise(r => setTimeout(r, 350));
+                        }
+                    } else {
+                        if (front) {
+                            await captureCardToJpg(front, `Kartu_Pelajar_${nisn}_DEPAN.jpg`);
+                            await new Promise(r => setTimeout(r, 300));
+                        }
+                        if (back) {
+                            await captureCardToJpg(back, `Kartu_Pelajar_${nisn}_BELAKANG.jpg`);
+                            await new Promise(r => setTimeout(r, 300));
+                        }
+                        count += 2;
+                    }
+                }
+                alert(`Selesai! Sebanyak ${count} berkas JPG kartu pelajar berhasil diunduh.`);
+            } catch (e) {
+                console.error(e);
+                alert('Terjadi kesalahan saat mengunduh berkas JPG.');
+            } finally {
+                if (btn) {
+                    btn.innerHTML = orig;
+                    btn.disabled = false;
+                }
             }
         }
     </script>

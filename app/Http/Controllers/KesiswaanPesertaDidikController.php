@@ -330,6 +330,30 @@ class KesiswaanPesertaDidikController extends Controller
                 ->update([$usulan->kolom_perubahan => $usulan->nilai_baru]);
         }
 
+        // Sinkronisasi status dan nilai ke tabel aman peserta_didik_identitas
+        if (Schema::hasTable('peserta_didik_identitas')) {
+            $identitasUpdate = [];
+            if ($validated['status'] === 'disetujui' && Schema::hasColumn('peserta_didik_identitas', $usulan->kolom_perubahan)) {
+                $identitasUpdate[$usulan->kolom_perubahan] = $usulan->nilai_baru;
+            }
+
+            $remainingPending = SiswaUsulanPerubahan::where('peserta_didik_id', $usulan->peserta_didik_id)
+                ->where('status', 'menunggu')
+                ->where('id', '!=', $usulan->id)
+                ->count();
+
+            if ($remainingPending === 0 && $validated['status'] === 'disetujui') {
+                $identitasUpdate['status_konfirmasi'] = 'diverifikasi';
+                $identitasUpdate['catatan_kesiswaan'] = 'Seluruh usulan perubahan data siswa telah disetujui & diverifikasi oleh Tim Kesiswaan.';
+            }
+
+            if (!empty($identitasUpdate)) {
+                DB::table('peserta_didik_identitas')
+                    ->where('peserta_didik_id', $usulan->peserta_didik_id)
+                    ->update($identitasUpdate);
+            }
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => "Usulan perubahan data status diubah menjadi: {$validated['status']}.",

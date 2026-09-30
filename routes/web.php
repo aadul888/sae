@@ -156,7 +156,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/tendik', [DashboardController::class, 'tendik'])->name('tendik');
     Route::get('/peserta-didik', [DashboardController::class, 'pesertaDidik'])->name('peserta-didik');
     Route::get('/peserta_didik', [DashboardController::class, 'pesertaDidik'])->name('peserta_didik');
-    Route::get('/peserta-didik/identitas', [DashboardController::class, 'identitasSiswa'])->name('peserta-didik.identitas');
+    
+    // Modul Identitas Lengkap Peserta Didik (Spesifikasi Formulir Dapodik 2026/2027)
+    Route::get('/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('identitas.index')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
+    Route::post('/identitas/konfirmasi', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'konfirmasiSesuai'])->name('identitas.konfirmasi');
+    Route::post('/identitas/update', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'update'])->name('identitas.update');
+    Route::get('/peserta-didik/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('peserta-didik.identitas')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
+
     Route::get('/orang-tua', [DashboardController::class, 'orangTua'])->name('orang-tua');
     Route::get('/orang_tua', [DashboardController::class, 'orangTua'])->name('orang_tua');
     Route::get('/orang-tua/kehadiran', [DashboardController::class, 'orangTuaKehadiran'])->name('orang-tua.kehadiran');

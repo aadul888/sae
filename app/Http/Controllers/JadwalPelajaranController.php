@@ -51,6 +51,14 @@ class JadwalPelajaranController extends Controller
         $isGuru = ($role === 'guru');
         $isSiswa = in_array($role, ['peserta_didik', 'orang_tua'], true);
 
+        // View Mode: tentukan konteks tampilan (Guru vs Siswa) agar sidebar & judul tidak bentrok
+        $viewMode = $request->get('view');
+        if (!$viewMode) {
+            $viewMode = $isGuru ? 'guru' : ($isSiswa ? 'siswa' : 'guru');
+        }
+        $isViewingGuru = ($viewMode === 'guru');
+        $isViewingSiswa = ($viewMode === 'siswa');
+
         $isJadwalDiberlakukan = JadwalPengaturan::isDiberlakukan();
         $modeAktif = JadwalPengaturan::getModeAktif();
 
@@ -202,7 +210,10 @@ class JadwalPelajaranController extends Controller
             'isAdmin',
             'rombelOptions',
             'studentRombel',
-            'siswaPd'
+            'siswaPd',
+            'viewMode',
+            'isViewingGuru',
+            'isViewingSiswa'
         ));
     }
 }

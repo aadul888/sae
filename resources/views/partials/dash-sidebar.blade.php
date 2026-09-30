@@ -474,14 +474,6 @@
                                             <span class="nav-label">Tidak Aktif</span>
                                         </a>
                                     @endif
-                                    @if ($can('menu_jadwal_pelajaran_pd'))
-                                        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
-                                            class="dash-nav-nested-link {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
-                                            <span class="nav-icon nested-icon"><i
-                                                    class="fas fa-fw fa-calendar-days"></i></span>
-                                            <span class="nav-label">Jadwal Pelajaran</span>
-                                        </a>
-                                    @endif
                                 </div>
                             </div>
                         @endif
@@ -577,6 +569,11 @@
                 $can('menu_presensi_mengajar') ||
                 $can('menu_agenda_kbm') ||
                 $can('menu_presensi_peserta_didik');
+            $isJadwalGuruActive =
+                request()->routeIs('dashboard.jadwal-pelajaran*') &&
+                ($role === 'guru' ||
+                    request('view') === 'guru' ||
+                    (!request('view') && $role !== 'peserta_didik' && $role !== 'orang_tua'));
             $isAkademikActive =
                 request()->routeIs('dashboard.guru') ||
                 request()->routeIs('dashboard.presensi-mengajar.*') ||
@@ -584,7 +581,7 @@
                 request()->routeIs('dashboard.agenda-kbm.*') ||
                 request()->routeIs('dashboard.agenda-kbm') ||
                 request()->routeIs('dashboard.presensi.kelas*') ||
-                request()->routeIs('dashboard.jadwal-pelajaran*');
+                $isJadwalGuruActive;
         @endphp
         @if ($hasAkademik)
             <div class="dash-nav-group {{ $isAkademikActive ? 'open active-group' : '' }}">
@@ -622,8 +619,8 @@
                     @endif
 
                     @if ($can('menu_jadwal_pelajaran_guru') || $can('menu_jadwal_kbm') || $role === 'guru')
-                        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
+                        <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}"
+                            class="dash-nav-sublink {{ $isJadwalGuruActive ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                             <span class="nav-label">Jadwal Mengajar</span>
                         </a>
@@ -1887,9 +1884,14 @@
         {{-- Layanan Peserta Didik (Collapsible - Di Atas Layanan Digital) --}}
         @if ($hasPortalPesertaDidik)
             @php
+                $isJadwalPdActive =
+                    request()->routeIs('dashboard.jadwal-pelajaran*') &&
+                    ($role === 'peserta_didik' || request('view') === 'siswa');
                 $isPortalPesertaDidikActive =
                     request()->routeIs('dashboard.peserta-didik') ||
                     request()->routeIs('dashboard.peserta_didik') ||
+                    request()->routeIs('dashboard.identitas*') ||
+                    request()->routeIs('dashboard.peserta-didik.identitas*') ||
                     request()->routeIs('dashboard.peserta-didik.izin.*') ||
                     request()->routeIs('dashboard.peserta-didik.izin') ||
                     request()->routeIs('dashboard.peserta-didik.presensi.*') ||
@@ -1897,8 +1899,7 @@
                     request()->routeIs('dashboard.presensi.riwayat-saya*') ||
                     request()->routeIs('dashboard.riwayat-rfid.*') ||
                     request()->routeIs('dashboard.riwayat-rfid') ||
-                    request()->routeIs('dashboard.jadwal-pelajaran.*') ||
-                    request()->routeIs('dashboard.jadwal-pelajaran') ||
+                    $isJadwalPdActive ||
                     request()->routeIs('dashboard.rapor.*') ||
                     request()->routeIs('dashboard.rapor') ||
                     request()->routeIs('dashboard.validasi-berkas.*') ||
@@ -1914,8 +1915,8 @@
                 </button>
                 <div class="dash-nav-submenu">
 
-                    <a href="{{ route('dashboard.peserta-didik.identitas') }}"
-                        class="dash-nav-sublink {{ request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
+                    <a href="{{ route('dashboard.identitas.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.identitas*') || request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
                         <span class="nav-label">Identitas Lengkap</span>
                     </a>
@@ -1937,8 +1938,8 @@
                     @endif
 
                     @if ($can('menu_jadwal_pelajaran_pd') || $can('menu_jadwal_kbm') || $role === 'peserta_didik')
-                        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') ? 'active' : '' }}">
+                        <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'siswa']) }}"
+                            class="dash-nav-sublink {{ $isJadwalPdActive ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                             <span class="nav-label">Jadwal Pelajaran</span>
                         </a>
@@ -1985,8 +1986,8 @@
                 <span class="nav-label">e-Izin &amp; Surat Sakit</span>
             </a>
 
-            <a href="{{ route('dashboard.peserta-didik.identitas') }}"
-                class="dash-nav-link {{ request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
+            <a href="{{ route('dashboard.identitas.index') }}"
+                class="dash-nav-link {{ request()->routeIs('dashboard.identitas*') || request()->routeIs('dashboard.peserta-didik.identitas*') ? 'active' : '' }}">
                 <span class="nav-icon"><i class="fas fa-fw fa-id-card-clip text-info"></i></span>
                 <span class="nav-label">Identitas Lengkap Siswa</span>
             </a>

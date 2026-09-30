@@ -411,6 +411,11 @@ class RolePermission extends Model
             ],
 
             'Portal Peserta Didik' => [
+                'menu_identitas_siswa' => [
+                    'label' => 'Identitas Lengkap Siswa (Dapodik)',
+                    'icon' => 'fa-id-card',
+                    'roles' => ['admin', 'tendik', 'peserta_didik'],
+                ],
                 'menu_surat_izin_pd' => [
                     'label' => 'Surat Izin & Sakit (Peserta Didik)',
                     'icon' => 'fa-envelope-open-text',
@@ -1794,24 +1799,26 @@ class RolePermission extends Model
         }
 
         if ($role === 'peserta_didik') {
-            // Siswa hanya bisa create di surat izin mandiri dan submit formulir
-            $canCreate = in_array($permKey, ['menu_surat_izin_pd', 'menu_formulir'], true);
+            // Siswa bisa create di surat izin, submit formulir, dan usulan identitas
+            $canCreate = in_array($permKey, ['menu_surat_izin_pd', 'menu_formulir', 'menu_identitas_siswa'], true);
+            $canUpdate = in_array($permKey, ['menu_identitas_siswa'], true);
 
             return [
                 'is_allowed' => $isAllowed,
                 'can_create' => $isAllowed && $canCreate,
                 'can_read' => $isAllowed,
-                'can_update' => false,
+                'can_update' => $isAllowed && $canUpdate,
                 'can_delete' => false,
             ];
         }
 
         if ($role === 'orang_tua') {
+            $canUpdate = in_array($permKey, ['menu_identitas_siswa'], true);
             return [
                 'is_allowed' => $isAllowed,
                 'can_create' => false,
                 'can_read' => $isAllowed,
-                'can_update' => false,
+                'can_update' => $isAllowed && $canUpdate,
                 'can_delete' => false,
             ];
         }
@@ -2074,6 +2081,7 @@ class RolePermission extends Model
         if ($role === 'peserta_didik') {
             $allowedForSiswa = [
                 'menu_dashboard',
+                'menu_identitas_siswa',
                 'menu_surat_izin_pd',
                 'menu_riwayat_rfid',
                 'menu_jadwal_pelajaran',
@@ -2097,6 +2105,7 @@ class RolePermission extends Model
         if ($role === 'tendik') {
             $allowedForTendik = [
                 'menu_dashboard',
+                'menu_identitas_siswa',
                 'menu_target_capaian',
                 'menu_aktivitas_tendik',
                 'menu_laporan_tendik',
@@ -2107,6 +2116,7 @@ class RolePermission extends Model
         if ($role === 'orang_tua') {
             $allowedForOrtu = [
                 'menu_dashboard',
+                'menu_identitas_siswa',
                 'menu_jadwal_pelajaran',
                 'menu_pengumuman',
                 'menu_riwayat_rfid',

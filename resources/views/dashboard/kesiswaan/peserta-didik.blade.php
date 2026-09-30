@@ -9,17 +9,20 @@
             color: var(--primary) !important;
             text-decoration: underline;
         }
+
         .pd-foto-thumb[data-biodata-id]:hover {
             transform: scale(1.08);
             border-color: var(--primary) !important;
-            box-shadow: 0 3px 10px rgba(99,102,241,0.35) !important;
+            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35) !important;
         }
     </style>
 
     <!-- 1. Header Banner & Actions -->
-    <div class="dash-banner" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+    <div class="dash-banner"
+        style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+            <div
+                style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
                 <i class="fas fa-users-viewfinder"></i>
             </div>
             <div>
@@ -27,14 +30,17 @@
                     Peserta Didik
                 </h2>
                 <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);">
-                    Direktori lengkap siswa aktif, riwayat nonaktif, verifikasi berkas fisik, usulan revisi data, dan arsip alumni.
+                    Direktori lengkap siswa aktif, riwayat nonaktif, verifikasi berkas fisik, usulan revisi data, dan arsip
+                    alumni.
                 </p>
             </div>
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
-                <button type="button" class="btn btn-primary" id="btnOpenUsulanModal" title="Ajukan Usulan Perubahan Data Siswa" style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
+                <button type="button" class="btn btn-primary" id="btnOpenUsulanModal"
+                    title="Ajukan Usulan Perubahan Data Siswa"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;">
                     <i class="fas fa-file-pen"></i>
                 </button>
             @endif
@@ -125,7 +131,8 @@
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                     <select id="perPageSelect" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                            <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
+                                {{ $n }}</option>
                         @endforeach
                     </select>
                     <span>entri</span>
@@ -135,7 +142,8 @@
                     <select id="filterRombel" class="toolbar-filter-select">
                         <option value="">Semua Rombel</option>
                         @foreach ($filterRombel as $r)
-                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}</option>
+                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
+                                {{ $r }}</option>
                         @endforeach
                     </select>
                     <select id="filterGender" class="toolbar-filter-select">
@@ -144,14 +152,14 @@
                         <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan</option>
                     </select>
                 @elseif ($activeTab === 'alumni')
-                    <input type="text" id="filterTahunLulus" value="{{ $tahunLulus }}" placeholder="Tahun Lulus (Contoh: 2026)"
-                        class="form-control" style="width: 170px; height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                    <input type="text" id="filterTahunLulus" value="{{ $tahunLulus }}"
+                        placeholder="Tahun Lulus (Contoh: 2026)" class="form-control"
+                        style="width: 170px; height: 38px; border-radius: 8px; font-size: 0.84rem;">
                 @endif
 
                 @if (!empty($q) || !empty($rombel) || !empty($gender) || !empty($tahunLulus))
                     <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => $activeTab]) }}"
-                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
-                        title="Reset filter">
+                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif
@@ -159,8 +167,10 @@
 
             <div class="live-search-wrap">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIPD / NIK..." value="{{ $q ?? '' }}" autocomplete="off">
-                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIPD / NIK..."
+                    value="{{ $q ?? '' }}" autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                    title="Hapus pencarian">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -174,38 +184,62 @@
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Lengkap</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">NISN / NIPD</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">L/P</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Rombel</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tempat, Tanggal Lahir</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Orang Tua</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Nama Lengkap</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            NISN / NIPD</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            L/P</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Rombel</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Tempat, Tanggal Lahir</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Orang Tua</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($aktifList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama" style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;" data-label="Nama Lengkap">
+                            <td class="cell-pd-nama"
+                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                data-label="Nama Lengkap">
                                 <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
                                         </div>
                                     @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
                                             <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                         </div>
                                     @endif
                                     <div class="pd-info">
-                                        <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-title-row"
+                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                                role="button" tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                                 style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
                                         </div>
                                         @if (!empty($item->nik))
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">
+                                            <div
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
+                                                    title="Klik untuk salin NIK">
                                                     NIK: {{ $item->nik }}
                                                 </span>
                                             </div>
@@ -213,42 +247,53 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="cell-pd-nisn" style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);" data-label="NISN/NIPD">
+                            <td class="cell-pd-nisn"
+                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                data-label="NISN/NIPD">
                                 <div class="cell-col-right">
                                     <div>
                                         @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN" title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
+                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
                                         @else
                                             -
                                         @endif
                                     </div>
                                     @if (!empty($item->nipd))
                                         <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD" title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
+                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                         </div>
                                     @endif
                                 </div>
                             </td>
                             <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
-                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}" style="font-size: 0.72rem; padding: 2px 7px;">
+                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                    style="font-size: 0.72rem; padding: 2px 7px;">
                                     {{ $item->jenis_kelamin ?: '-' }}
                                 </span>
                             </td>
-                            <td class="cell-pd-rombel" style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;" data-label="Rombel">
+                            <td class="cell-pd-rombel"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                data-label="Rombel">
                                 <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
                                     {{ $item->nama_rombel ?: '-' }}
                                 </span>
                             </td>
-                            <td class="cell-pd-ttl" style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="TTL">
+                            <td class="cell-pd-ttl"
+                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="TTL">
                                 {{ $item->tempat_lahir ? $item->tempat_lahir . ', ' : '' }}{{ $item->tanggal_lahir ? date('d/m/Y', strtotime($item->tanggal_lahir)) : '-' }}
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Orang Tua">
+                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="Orang Tua">
                                 {{ $item->nama_ayah ?: ($item->nama_ibu ?: '-') }}
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                            <td colspan="6"
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Belum ada data peserta didik aktif yang cocok.</div>
                             </td>
@@ -263,7 +308,8 @@
                 @if ($aktifList->onFirstPage())
                     <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
                 @else
-                    <a href="{{ $aktifList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                    <a href="{{ $aktifList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                            class="fas fa-chevron-left"></i></a>
                 @endif
                 @php
                     $cur = $aktifList->currentPage();
@@ -273,62 +319,93 @@
                 @endphp
                 @if ($from > 1)
                     <a href="{{ $aktifList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                    @if ($from > 2)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                 @endif
                 @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $aktifList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                    <a href="{{ $aktifList->url($i) }}"
+                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
                 @endfor
                 @if ($to < $last)
-                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    @if ($to < $last - 1)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                     <a href="{{ $aktifList->url($last) }}" class="page-btn">{{ $last }}</a>
                 @endif
                 @if ($aktifList->hasMorePages())
-                    <a href="{{ $aktifList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                    <a href="{{ $aktifList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                            class="fas fa-chevron-right"></i></a>
                 @else
                     <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
                 @endif
             </div>
         @endif
-
     @elseif ($activeTab === 'tidak_aktif')
         <!-- TAB 2: SISWA TIDAK AKTIF -->
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Lengkap</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">NISN / NIPD</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">L/P</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Rombel Terakhir</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Alasan Keluar</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tanggal Keluar</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Nama Lengkap</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            NISN / NIPD</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            L/P</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Rombel Terakhir</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Alasan Keluar</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Tanggal Keluar</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($tidakAktifList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama" style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;" data-label="Nama Lengkap">
+                            <td class="cell-pd-nama"
+                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                data-label="Nama Lengkap">
                                 <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
                                         </div>
                                     @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
                                             <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                         </div>
                                     @endif
                                     <div class="pd-info">
-                                        <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-title-row"
+                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                                role="button" tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                                 style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
                                         </div>
                                         @if (!empty($item->nik))
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">
+                                            <div
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
+                                                    title="Klik untuk salin NIK">
                                                     NIK: {{ $item->nik }}
                                                 </span>
                                             </div>
@@ -336,45 +413,56 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="cell-pd-nisn" style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);" data-label="NISN/NIPD">
+                            <td class="cell-pd-nisn"
+                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                data-label="NISN/NIPD">
                                 <div class="cell-col-right">
                                     <div>
                                         @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN" title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
+                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
                                         @else
                                             -
                                         @endif
                                     </div>
                                     @if (!empty($item->nipd))
                                         <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD" title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
+                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                         </div>
                                     @endif
                                 </div>
                             </td>
                             <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
-                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}" style="font-size: 0.72rem; padding: 2px 7px;">
+                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                    style="font-size: 0.72rem; padding: 2px 7px;">
                                     {{ $item->jenis_kelamin ?: '-' }}
                                 </span>
                             </td>
-                            <td class="cell-pd-rombel" style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;" data-label="Rombel Terakhir">
+                            <td class="cell-pd-rombel"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                data-label="Rombel Terakhir">
                                 <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
                                     {{ $item->rombel_terakhir ?: '-' }}
                                 </span>
                             </td>
                             <td style="padding: 14px 18px;" data-label="Alasan Keluar">
-                                <span class="badge badge-danger" style="font-size: 0.74rem;">{{ $item->alasan_keluar ?: 'Keluar' }}</span>
+                                <span class="badge badge-danger"
+                                    style="font-size: 0.74rem;">{{ $item->alasan_keluar ?: 'Keluar' }}</span>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-muted);" data-label="Tanggal Keluar">
+                            <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-muted);"
+                                data-label="Tanggal Keluar">
                                 {{ $item->tanggal_keluar ? date('d/m/Y', strtotime($item->tanggal_keluar)) : '-' }}
                             </td>
                             <td style="padding: 14px 18px;" data-label="Status">
-                                <span class="badge badge-outline" style="font-size: 0.74rem;">{{ $item->status_keluar ?: 'Nonaktif' }}</span>
+                                <span class="badge badge-outline"
+                                    style="font-size: 0.74rem;">{{ $item->status_keluar ?: 'Nonaktif' }}</span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                            <td colspan="7"
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Belum ada data siswa tidak aktif.</div>
                             </td>
@@ -389,7 +477,8 @@
                 @if ($tidakAktifList->onFirstPage())
                     <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
                 @else
-                    <a href="{{ $tidakAktifList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                    <a href="{{ $tidakAktifList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                            class="fas fa-chevron-left"></i></a>
                 @endif
                 @php
                     $cur = $tidakAktifList->currentPage();
@@ -399,64 +488,99 @@
                 @endphp
                 @if ($from > 1)
                     <a href="{{ $tidakAktifList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                    @if ($from > 2)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                 @endif
                 @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $tidakAktifList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                    <a href="{{ $tidakAktifList->url($i) }}"
+                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
                 @endfor
                 @if ($to < $last)
-                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    @if ($to < $last - 1)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                     <a href="{{ $tidakAktifList->url($last) }}" class="page-btn">{{ $last }}</a>
                 @endif
                 @if ($tidakAktifList->hasMorePages())
-                    <a href="{{ $tidakAktifList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                    <a href="{{ $tidakAktifList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                            class="fas fa-chevron-right"></i></a>
                 @else
                     <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
                 @endif
             </div>
         @endif
-
     @elseif ($activeTab === 'berkas')
         <!-- TAB 3: VERIFIKASI BERKAS FISIK -->
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">NISN / NIPD</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Rombel</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Akta Lahir</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Kartu Keluarga</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Ijazah SMP</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">KTP Ortu</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">KIP / PIP</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Nama Siswa</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            NISN / NIPD</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Rombel</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            Akta Lahir</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            Kartu Keluarga</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            Ijazah SMP</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            KTP Ortu</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            KIP / PIP</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($berkasList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama" style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;" data-label="Nama Siswa">
+                            <td class="cell-pd-nama"
+                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                data-label="Nama Siswa">
                                 <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
                                         </div>
                                     @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
                                             <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                         </div>
                                     @endif
                                     <div class="pd-info">
-                                        <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-title-row"
+                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                                role="button" tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                                 style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
                                         </div>
                                         @if (!empty($item->nik))
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">
+                                            <div
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
+                                                    title="Klik untuk salin NIK">
                                                     NIK: {{ $item->nik }}
                                                 </span>
                                             </div>
@@ -464,47 +588,57 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="cell-pd-nisn" style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);" data-label="NISN/NIPD">
+                            <td class="cell-pd-nisn"
+                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                data-label="NISN/NIPD">
                                 <div class="cell-col-right">
                                     <div>
                                         @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN" title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
+                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
                                         @else
                                             -
                                         @endif
                                     </div>
                                     @if (!empty($item->nipd))
                                         <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD" title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
+                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                         </div>
                                     @endif
                                 </div>
                             </td>
-                            <td class="cell-pd-rombel" style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;" data-label="Rombel">
+                            <td class="cell-pd-rombel"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                data-label="Rombel">
                                 <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
                                     {{ $item->rombel_nama ?: '-' }}
                                 </span>
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Akta Lahir">
-                                <i class="fas {{ $item->akta_kelahiran ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}" style="font-size: 1.1rem;"></i>
+                                <i class="fas {{ $item->akta_kelahiran ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
+                                    style="font-size: 1.1rem;"></i>
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Kartu Keluarga">
-                                <i class="fas {{ $item->kartu_keluarga ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}" style="font-size: 1.1rem;"></i>
+                                <i class="fas {{ $item->kartu_keluarga ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
+                                    style="font-size: 1.1rem;"></i>
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Ijazah SMP">
-                                <i class="fas {{ $item->ijazah_smp ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}" style="font-size: 1.1rem;"></i>
+                                <i class="fas {{ $item->ijazah_smp ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
+                                    style="font-size: 1.1rem;"></i>
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="KTP Ortu">
-                                <i class="fas {{ $item->ktp_orang_tua ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}" style="font-size: 1.1rem;"></i>
+                                <i class="fas {{ $item->ktp_orang_tua ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
+                                    style="font-size: 1.1rem;"></i>
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="KIP / PIP">
-                                <i class="fas {{ $item->kip_pip ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}" style="font-size: 1.1rem;"></i>
+                                <i class="fas {{ $item->kip_pip ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
+                                    style="font-size: 1.1rem;"></i>
                             </td>
                             <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                 <div class="table-actions">
                                     <button type="button" class="btn-icon btn-edit-berkas"
-                                        data-id="{{ $item->peserta_didik_id }}"
-                                        data-nama="{{ $item->nama }}"
+                                        data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
                                         data-akta="{{ $item->akta_kelahiran ? '1' : '0' }}"
                                         data-kk="{{ $item->kartu_keluarga ? '1' : '0' }}"
                                         data-ijazah="{{ $item->ijazah_smp ? '1' : '0' }}"
@@ -518,7 +652,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                            <td colspan="9"
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Belum ada data berkas siswa.</div>
                             </td>
@@ -533,7 +668,8 @@
                 @if ($berkasList->onFirstPage())
                     <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
                 @else
-                    <a href="{{ $berkasList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                    <a href="{{ $berkasList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                            class="fas fa-chevron-left"></i></a>
                 @endif
                 @php
                     $cur = $berkasList->currentPage();
@@ -543,65 +679,96 @@
                 @endphp
                 @if ($from > 1)
                     <a href="{{ $berkasList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                    @if ($from > 2)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                 @endif
                 @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $berkasList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                    <a href="{{ $berkasList->url($i) }}"
+                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
                 @endfor
                 @if ($to < $last)
-                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    @if ($to < $last - 1)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                     <a href="{{ $berkasList->url($last) }}" class="page-btn">{{ $last }}</a>
                 @endif
                 @if ($berkasList->hasMorePages())
-                    <a href="{{ $berkasList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                    <a href="{{ $berkasList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                            class="fas fa-chevron-right"></i></a>
                 @else
                     <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
                 @endif
             </div>
         @endif
-
     @elseif ($activeTab === 'usulan')
         <!-- TAB 4: USULAN PERUBAHAN DATA SISWA -->
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Siswa</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Kolom Diusulkan</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nilai Baru</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Alasan Perubahan</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Berkas Bukti</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Status</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Nama Siswa</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Kolom Diusulkan</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Nilai Baru</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Alasan Perubahan</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            Berkas Bukti</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Status</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($usulanList as $item)
                         @php
-                            $usulanPdId = $item->peserta_didik_id ?: ($item->siswa?->peserta_didik_id ?? '');
+                            $usulanPdId = $item->peserta_didik_id ?: $item->siswa?->peserta_didik_id ?? '';
                         @endphp
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama" style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;" data-label="Nama Siswa">
+                            <td class="cell-pd-nama"
+                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                data-label="Nama Siswa">
                                 <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $usulanPdId }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
+                                        <div class="pd-foto-thumb" data-biodata-id="{{ $usulanPdId }}" role="button"
+                                            tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->siswa?->nama }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->siswa?->nama }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
                                         </div>
                                     @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $usulanPdId }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
+                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $usulanPdId }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
                                             <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                         </div>
                                     @endif
                                     <div class="pd-info">
-                                        <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $usulanPdId }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
+                                        <div class="pd-title-row"
+                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <span class="pd-nama" data-biodata-id="{{ $usulanPdId }}" role="button"
+                                                tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
                                                 style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}</span>
                                         </div>
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                        <div
+                                            style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                             @if ($item->siswa?->nisn)
-                                                <span class="copyable" data-copy="{{ $item->siswa->nisn }}" data-label="NISN" title="Klik untuk salin NISN">
+                                                <span class="copyable" data-copy="{{ $item->siswa->nisn }}"
+                                                    data-label="NISN" title="Klik untuk salin NISN">
                                                     NISN: {{ $item->siswa->nisn }}
                                                 </span>
                                             @endif
@@ -610,19 +777,23 @@
                                 </div>
                             </td>
                             <td style="padding: 14px 18px;" data-label="Kolom Diusulkan">
-                                <span class="badge badge-outline" style="font-family: monospace; font-size: 0.76rem; text-transform: uppercase;">
+                                <span class="badge badge-outline"
+                                    style="font-family: monospace; font-size: 0.76rem; text-transform: uppercase;">
                                     {{ str_replace('_', ' ', $item->kolom_perubahan) }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.85rem; font-weight: 700; color: var(--text-color);" data-label="Nilai Baru">
+                            <td style="padding: 14px 18px; font-size: 0.85rem; font-weight: 700; color: var(--text-color);"
+                                data-label="Nilai Baru">
                                 {{ $item->nilai_baru }}
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Alasan">
+                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="Alasan">
                                 {{ $item->alasan }}
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Berkas Bukti">
                                 @if (!empty($item->berkas_bukti_path))
-                                    <a href="{{ asset('storage/' . ltrim($item->berkas_bukti_path, '/')) }}" target="_blank" class="btn-icon" title="Lihat Bukti Berkas">
+                                    <a href="{{ asset('storage/' . ltrim($item->berkas_bukti_path, '/')) }}"
+                                        target="_blank" class="btn-icon" title="Lihat Bukti Berkas">
                                         <i class="fas fa-file-arrow-down text-primary"></i>
                                     </a>
                                 @else
@@ -637,28 +808,30 @@
                                         default => 'badge-warning',
                                     };
                                 @endphp
-                                <span class="badge {{ $bColor }}" style="font-size: 0.72rem; padding: 2px 8px;">{{ strtoupper($item->status) }}</span>
+                                <span class="badge {{ $bColor }}"
+                                    style="font-size: 0.72rem; padding: 2px 8px;">{{ strtoupper($item->status) }}</span>
                             </td>
                             <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions">
+                                <div class="table-actions" style="display: flex; gap: 6px; justify-content: flex-end;">
+                                    <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $usulanPdId]) }}"
+                                        target="_blank" class="btn-icon" title="Lihat Formulir Lengkap Siswa">
+                                        <i class="fas fa-id-card text-info"></i>
+                                    </a>
                                     @if ($item->status === 'menunggu' && $canUpdate)
                                         <button type="button" class="btn-icon btn-verif-usulan"
-                                            data-id="{{ $item->id }}"
-                                            data-nama="{{ $item->siswa?->nama }}"
+                                            data-id="{{ $item->id }}" data-nama="{{ $item->siswa?->nama }}"
                                             data-kolom="{{ $item->kolom_perubahan }}"
-                                            data-nilai="{{ $item->nilai_baru }}"
-                                            title="Verifikasi Usulan">
+                                            data-nilai="{{ $item->nilai_baru }}" title="Verifikasi Usulan">
                                             <i class="fas fa-check-to-slot text-primary"></i>
                                         </button>
-                                    @else
-                                        <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                            <td colspan="7"
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-file-circle-question mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Belum ada usulan perubahan data siswa.</div>
                             </td>
@@ -673,7 +846,8 @@
                 @if ($usulanList->onFirstPage())
                     <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
                 @else
-                    <a href="{{ $usulanList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                    <a href="{{ $usulanList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                            class="fas fa-chevron-left"></i></a>
                 @endif
                 @php
                     $cur = $usulanList->currentPage();
@@ -683,61 +857,90 @@
                 @endphp
                 @if ($from > 1)
                     <a href="{{ $usulanList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                    @if ($from > 2)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                 @endif
                 @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $usulanList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                    <a href="{{ $usulanList->url($i) }}"
+                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
                 @endfor
                 @if ($to < $last)
-                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    @if ($to < $last - 1)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                     <a href="{{ $usulanList->url($last) }}" class="page-btn">{{ $last }}</a>
                 @endif
                 @if ($usulanList->hasMorePages())
-                    <a href="{{ $usulanList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                    <a href="{{ $usulanList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                            class="fas fa-chevron-right"></i></a>
                 @else
                     <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
                 @endif
             </div>
         @endif
-
     @elseif ($activeTab === 'alumni')
         <!-- TAB 5: ALUMNI (DIALIHKAN SETELAH USULAN PERUBAHAN) -->
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nama Alumni</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">NISN / NIPD</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">L/P</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Rombel Terakhir</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">Tahun Lulus</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Keterangan</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Nama Alumni</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            NISN / NIPD</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            L/P</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Rombel Terakhir</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                            Tahun Lulus</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Keterangan</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($alumniList as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama" style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;" data-label="Nama Alumni">
+                            <td class="cell-pd-nama"
+                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                data-label="Nama Alumni">
                                 <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                style="width: 100%; height: 100%; object-fit: cover;">
                                         </div>
                                     @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                            role="button" tabindex="0"
+                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                             style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
                                             <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                         </div>
                                     @endif
                                     <div class="pd-info">
-                                        <div class="pd-title-row" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}" role="button" tabindex="0" title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                        <div class="pd-title-row"
+                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                                role="button" tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
                                                 style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
                                         </div>
                                         @if (!empty($item->nik))
-                                            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">
+                                            <div
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
+                                                    title="Klik untuk salin NIK">
                                                     NIK: {{ $item->nik }}
                                                 </span>
                                             </div>
@@ -745,44 +948,54 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="cell-pd-nisn" style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);" data-label="NISN/NIPD">
+                            <td class="cell-pd-nisn"
+                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                data-label="NISN/NIPD">
                                 <div class="cell-col-right">
                                     <div>
                                         @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN" title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
+                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
                                         @else
                                             -
                                         @endif
                                     </div>
                                     @if (!empty($item->nipd))
                                         <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD" title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
+                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
+                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                         </div>
                                     @endif
                                 </div>
                             </td>
                             <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
-                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}" style="font-size: 0.72rem; padding: 2px 7px;">
+                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                    style="font-size: 0.72rem; padding: 2px 7px;">
                                     {{ $item->jenis_kelamin ?: '-' }}
                                 </span>
                             </td>
-                            <td class="cell-pd-rombel" style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;" data-label="Rombel Terakhir">
+                            <td class="cell-pd-rombel"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                data-label="Rombel Terakhir">
                                 <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
                                     {{ $item->rombel_terakhir ?: '-' }}
                                 </span>
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Tahun Lulus">
-                                <span class="badge badge-primary" style="font-weight: 700; font-size: 0.8rem; padding: 3px 8px;">
+                                <span class="badge badge-primary"
+                                    style="font-weight: 700; font-size: 0.8rem; padding: 3px 8px;">
                                     {{ $item->tahun_lulus ?: ($item->tanggal_keluar ? date('Y', strtotime($item->tanggal_keluar)) : '-') }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-muted);" data-label="Keterangan">
+                            <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-muted);"
+                                data-label="Keterangan">
                                 {{ $item->alasan_keluar ?: 'Alumni / Tamat Belajar' }}
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                            <td colspan="6"
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-graduation-cap mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Belum ada data arsip alumni.</div>
                             </td>
@@ -797,7 +1010,8 @@
                 @if ($alumniList->onFirstPage())
                     <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
                 @else
-                    <a href="{{ $alumniList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                    <a href="{{ $alumniList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                            class="fas fa-chevron-left"></i></a>
                 @endif
                 @php
                     $cur = $alumniList->currentPage();
@@ -807,17 +1021,23 @@
                 @endphp
                 @if ($from > 1)
                     <a href="{{ $alumniList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2) <span class="page-info">&hellip;</span> @endif
+                    @if ($from > 2)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                 @endif
                 @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $alumniList->url($i) }}" class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                    <a href="{{ $alumniList->url($i) }}"
+                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
                 @endfor
                 @if ($to < $last)
-                    @if ($to < $last - 1) <span class="page-info">&hellip;</span> @endif
+                    @if ($to < $last - 1)
+                        <span class="page-info">&hellip;</span>
+                    @endif
                     <a href="{{ $alumniList->url($last) }}" class="page-btn">{{ $last }}</a>
                 @endif
                 @if ($alumniList->hasMorePages())
-                    <a href="{{ $alumniList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+                    <a href="{{ $alumniList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                            class="fas fa-chevron-right"></i></a>
                 @else
                     <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
                 @endif
@@ -864,7 +1084,8 @@
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">NISN / NIPD</td>
-                            <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">-</td>
+                            <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">-
+                            </td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">NIK</td>
@@ -992,26 +1213,38 @@
     </div>
 
     <!-- MODAL 2: AJUKAN USULAN PERUBAHAN DATA (Clean Global SAE Modal Style) -->
-    <div id="modalUsulan" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div id="modalUsulan" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card" style="width: 100%; max-width: 520px; padding: 24px; border-radius: 12px; margin: 16px;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
-                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Ajukan Usulan Perubahan Data</h3>
-                <button type="button" class="close-modal" data-target="#modalUsulan" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i class="fas fa-times"></i></button>
+                <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 0;">Ajukan Usulan
+                    Perubahan Data</h3>
+                <button type="button" class="close-modal" data-target="#modalUsulan"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
+                        class="fas fa-times"></i></button>
             </div>
-            <form id="formUsulan" method="POST" action="{{ route('dashboard.kesiswaan.peserta-didik.usulan.store') }}" enctype="multipart/form-data">
+            <form id="formUsulan" method="POST" action="{{ route('dashboard.kesiswaan.peserta-didik.usulan.store') }}"
+                enctype="multipart/form-data">
                 @csrf
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih Siswa <span class="text-danger">*</span></label>
-                    <select name="peserta_didik_id" class="form-control" required style="width: 100%; border-radius: 8px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
+                        Siswa <span class="text-danger">*</span></label>
+                    <select name="peserta_didik_id" class="form-control" required
+                        style="width: 100%; border-radius: 8px;">
                         <option value="">-- Pilih Peserta Didik --</option>
                         @foreach ($siswaList as $sw)
-                            <option value="{{ $sw->peserta_didik_id }}">{{ $sw->nama }} (NISN: {{ $sw->nisn ?: '-' }})</option>
+                            <option value="{{ $sw->peserta_didik_id }}">{{ $sw->nama }} (NISN:
+                                {{ $sw->nisn ?: '-' }})</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kolom yang Ingin Diubah <span class="text-danger">*</span></label>
-                    <select name="kolom_perubahan" class="form-control" required style="width: 100%; border-radius: 8px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Kolom
+                        yang Ingin Diubah <span class="text-danger">*</span></label>
+                    <select name="kolom_perubahan" class="form-control" required
+                        style="width: 100%; border-radius: 8px;">
                         <option value="nama">Nama Lengkap</option>
                         <option value="nisn">NISN</option>
                         <option value="nik">NIK</option>
@@ -1023,20 +1256,33 @@
                     </select>
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Nilai Baru yang Benar <span class="text-danger">*</span></label>
-                    <input type="text" name="nilai_baru" class="form-control" placeholder="Tuliskan data yang benar sesuai dokumen resmi" required style="width: 100%; border-radius: 8px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Nilai
+                        Baru yang Benar <span class="text-danger">*</span></label>
+                    <input type="text" name="nilai_baru" class="form-control"
+                        placeholder="Tuliskan data yang benar sesuai dokumen resmi" required
+                        style="width: 100%; border-radius: 8px;">
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Alasan Perubahan <span class="text-danger">*</span></label>
-                    <input type="text" name="alasan" class="form-control" placeholder="Contoh: Menyesuaikan Akta Kelahiran asli" required style="width: 100%; border-radius: 8px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Alasan
+                        Perubahan <span class="text-danger">*</span></label>
+                    <input type="text" name="alasan" class="form-control"
+                        placeholder="Contoh: Menyesuaikan Akta Kelahiran asli" required
+                        style="width: 100%; border-radius: 8px;">
                 </div>
                 <div class="form-group" style="margin-bottom: 18px;">
-                    <label style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Unggah Berkas Bukti (PDF / Foto Akta / KK)</label>
-                    <input type="file" name="berkas_bukti" class="form-control" accept=".pdf,.jpg,.jpeg,.png" style="width: 100%; border-radius: 8px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Unggah
+                        Berkas Bukti (PDF / Foto Akta / KK)</label>
+                    <input type="file" name="berkas_bukti" class="form-control" accept=".pdf,.jpg,.jpeg,.png"
+                        style="width: 100%; border-radius: 8px;">
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                    <button type="button" class="btn btn-outline close-modal" data-target="#modalUsulan" style="border-radius: 8px;">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="border-radius: 8px;"><i class="fas fa-paper-plane"></i> Kirim Usulan</button>
+                    <button type="button" class="btn btn-outline close-modal" data-target="#modalUsulan"
+                        style="border-radius: 8px;">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 8px;"><i
+                            class="fas fa-paper-plane"></i> Kirim Usulan</button>
                 </div>
             </form>
         </div>
