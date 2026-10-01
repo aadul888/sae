@@ -4,7 +4,7 @@
     - Logo sekolah (kiri) & Logo SAE berwarna (kanan)
     - Logo Jurusan transparan sebagai latar belakang badan kartu pelajar
     - Pasfoto peserta didik terpusat
-    - Nama, NISN, Rombel/Jurusan, Status Aktif & Tahun Pelajaran
+    - Nama, NISN & Status Aktif
     - QR Code scan direct verifikasi online di bagian bawah
     Halaman Belakang:
     - Ketentuan pemegang kartu, Barcode NISN, Kontak resmi sekolah
@@ -66,15 +66,12 @@
                     <i class="fas fa-circle-check" style="color: #10b981; font-size: 5.5pt;"></i>
                     <span class="kp-nisn-value">{{ $card['nisn'] }}</span>
                 </div>
-
-                <div class="kp-rombel-jurusan"><span class="kp-rombel-name">{{ $card['rombel'] }}</span><span
-                        class="kp-bullet">&bull;</span><span class="kp-tp-label">{{ $card['tahun_pelajaran'] }}</span>
-                </div>
             </div>
 
             <!-- QR Code Direct Scan (Bisa di-klik untuk Zoom Fullscreen saat Transaksi) -->
-            <div class="kp-qrcode-box" onclick="zoomKpQrCode(event, this)" ontouchstart="event.stopPropagation()" ontouchend="event.stopPropagation(); zoomKpQrCode(event, this);" data-student-name="{{ $card['nama'] }}"
-                data-student-nisn="{{ $card['nisn'] }}" data-student-rombel="{{ $card['rombel'] }}"
+            <div class="kp-qrcode-box" onclick="zoomKpQrCode(event, this)" ontouchstart="event.stopPropagation()"
+                ontouchend="event.stopPropagation(); zoomKpQrCode(event, this);"
+                data-student-name="{{ $card['nama'] }}" data-student-nisn="{{ $card['nisn'] }}"
                 title="Klik untuk memperbesar QR Code (Transaksi / Presensi)">
                 <div class="kp-qr-wrapper">
                     {!! $card['qr_code_svg'] !!}

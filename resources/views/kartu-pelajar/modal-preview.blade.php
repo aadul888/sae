@@ -437,7 +437,14 @@
 
         if (nameEl) nameEl.textContent = name;
         if (nisnEl) nisnEl.innerHTML = '<i class="fas fa-id-badge"></i> NISN: ' + escapeKpHtml(nisn);
-        if (rombelEl) rombelEl.innerHTML = '<i class="fas fa-users-rectangle"></i> ' + escapeKpHtml(rombel);
+        if (rombelEl) {
+            if (rombel && rombel !== '-') {
+                rombelEl.innerHTML = '<i class="fas fa-users-rectangle"></i> ' + escapeKpHtml(rombel);
+                rombelEl.style.display = 'inline-flex';
+            } else {
+                rombelEl.style.display = 'none';
+            }
+        }
 
         overlay.classList.add('show');
         overlay.style.setProperty('display', 'flex', 'important');

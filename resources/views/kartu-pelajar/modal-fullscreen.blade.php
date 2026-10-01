@@ -16,8 +16,8 @@
 
         <div class="kp-viewer-actions">
             <!-- Tombol Perbesar QR Transaksi / Presensi -->
-            <button type="button" class="kp-viewer-btn kp-btn-zoom-qr" id="kpBtnZoomQr"
-                onclick="zoomKpQrCode(event)" title="Perbesar QR Code untuk Presensi / Transaksi">
+            <button type="button" class="kp-viewer-btn kp-btn-zoom-qr" id="kpBtnZoomQr" onclick="zoomKpQrCode(event)"
+                title="Perbesar QR Code untuk Presensi / Transaksi">
                 <i class="fas fa-qrcode"></i>
                 <span>Perbesar QR</span>
             </button>
@@ -646,7 +646,14 @@
 
             if (nameEl) nameEl.textContent = name;
             if (nisnEl) nisnEl.innerHTML = '<i class="fas fa-id-badge"></i> NISN: ' + escapeKpText(nisn);
-            if (rombelEl) rombelEl.innerHTML = '<i class="fas fa-users-rectangle"></i> ' + escapeKpText(rombel);
+            if (rombelEl) {
+                if (rombel && rombel !== '-') {
+                    rombelEl.innerHTML = '<i class="fas fa-users-rectangle"></i> ' + escapeKpText(rombel);
+                    rombelEl.style.display = 'inline-flex';
+                } else {
+                    rombelEl.style.display = 'none';
+                }
+            }
 
             overlay.classList.add('show');
             overlay.style.setProperty('display', 'flex', 'important');
