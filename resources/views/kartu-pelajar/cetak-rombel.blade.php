@@ -345,7 +345,7 @@
                             const blobBack = await captureCardToBlob(back);
                             if (blobBack) {
                                 zipFolder.file(`${String(i + 1).padStart(2, '0')}_Kartu_${nisn}_BELAKANG.jpg`,
-                                blobBack);
+                                    blobBack);
                                 totalFiles++;
                             }
                         }

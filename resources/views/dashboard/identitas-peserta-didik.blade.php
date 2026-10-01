@@ -72,7 +72,7 @@
 
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 2px;">
-                        Formulir Identitas Resmi Siswa &bull; Dapodik 2026/2027
+                        Formulir Identitas Resmi Siswa &bull; Dapodik 2027 Rev. 1
                     </div>
                     <h2
                         style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin: 0 0 6px 0; line-height: 1.25;">

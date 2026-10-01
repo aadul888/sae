@@ -15,6 +15,44 @@ use Illuminate\Support\Facades\Schema;
 
 class IdentitasPesertaDidikController extends Controller
 {
+    private function normalizeComparableValue($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_array($value)) {
+            $value = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        }
+
+        if (is_int($value) || is_float($value)) {
+            $value = (string) $value;
+        }
+
+        $normalized = trim((string) $value);
+        $normalized = preg_replace('/\s+/u', ' ', $normalized);
+        $normalized = preg_replace('/[\x{00A0}\x{200B}\x{FEFF}]/u', '', $normalized);
+        $normalized = mb_strtolower($normalized, 'UTF-8');
+
+        return $normalized === '' ? null : $normalized;
+    }
+
+    private function hasMeaningfulDifference($oldValue, $newValue): bool
+    {
+        $oldNormalized = $this->normalizeComparableValue($oldValue);
+        $newNormalized = $this->normalizeComparableValue($newValue);
+
+        if ($oldNormalized === null && $newNormalized === null) {
+            return false;
+        }
+
+        return $oldNormalized !== $newNormalized;
+    }
+
     private function checkAuth()
     {
         $user = session('user');
@@ -398,54 +436,85 @@ class IdentitasPesertaDidikController extends Controller
         $identitas->dikonfirmasi_oleh = $userName . ' (' . ucfirst($userRole) . ')';
         $identitas->catatan_siswa = $request->input('catatan_siswa', 'Siswa/Orang Tua mengajukan perubahan formulir identitas.');
         $identitas->terakhir_diubah_oleh = $userRole;
-        $identitas->save();
 
-        // -----------------------------------------------------------------
-        // OTOMATIS CATAT PERUBAHAN KE TABEL `siswa_usulan_perubahan`
-        // agar muncul di dashboard kesiswaan (kesiswaan/peserta-didik?tab=usulan)
-        // -----------------------------------------------------------------
         $trackedColumns = [
             'nama' => 'Nama Lengkap',
+            'jenis_kelamin' => 'Jenis Kelamin',
             'nik' => 'NIK Siswa',
             'no_kk' => 'Nomor Kartu Keluarga',
             'no_registrasi_akta_lahir' => 'No. Akta Kelahiran',
             'tempat_lahir' => 'Tempat Lahir',
             'tanggal_lahir' => 'Tanggal Lahir',
+            'agama_id' => 'Agama',
             'alamat_jalan' => 'Alamat Jalan',
             'rt' => 'RT',
             'rw' => 'RW',
             'desa_kelurahan' => 'Desa / Kelurahan',
             'kecamatan' => 'Kecamatan',
             'kabupaten_kota' => 'Kabupaten / Kota',
+            'provinsi' => 'Provinsi',
             'kode_pos' => 'Kode Pos',
+            'tempat_tinggal_id' => 'Tempat Tinggal',
+            'transportasi_id' => 'Transportasi',
+            'nomor_telepon_rumah' => 'Nomor Telepon Rumah',
             'nomor_telepon_seluler' => 'No. HP / WhatsApp',
             'email' => 'Email Siswa',
             'nama_ayah' => 'Nama Ayah Kandung',
             'nik_ayah' => 'NIK Ayah',
-            'pekerjaan_ayah_str' => 'Pekerjaan Ayah',
-            'penghasilan_ayah_str' => 'Penghasilan Ayah',
+            'pendidikan_ayah_id' => 'Pendidikan Ayah',
+            'pekerjaan_ayah_id' => 'Pekerjaan Ayah',
+            'penghasilan_ayah_id' => 'Penghasilan Ayah',
             'nama_ibu' => 'Nama Ibu Kandung',
             'nik_ibu' => 'NIK Ibu',
-            'pekerjaan_ibu_str' => 'Pekerjaan Ibu',
-            'penghasilan_ibu_str' => 'Penghasilan Ibu',
+            'pendidikan_ibu_id' => 'Pendidikan Ibu',
+            'pekerjaan_ibu_id' => 'Pekerjaan Ibu',
+            'penghasilan_ibu_id' => 'Penghasilan Ibu',
             'nama_wali' => 'Nama Wali',
             'nik_wali' => 'NIK Wali',
             'nama_bank' => 'Nama Bank SimPel',
             'no_rekening' => 'Nomor Rekening Bank',
+            'sekolah_asal' => 'Sekolah Asal',
+            'jenis_pendaftaran_id' => 'Jenis Pendaftaran',
+            'hobi_id' => 'Hobi',
+            'cita_cita_id' => 'Cita-cita',
         ];
 
+        $hasMeaningfulChanges = false;
+        foreach ($trackedColumns as $col => $colLabel) {
+            $oldVal = $oldSnapshot[$col] ?? null;
+            $newVal = $identitas->{$col} ?? null;
+
+            if ($this->hasMeaningfulDifference($oldVal, $newVal)) {
+                $hasMeaningfulChanges = true;
+                break;
+            }
+        }
+
+        if (!$hasMeaningfulChanges) {
+            return back()->with('error', 'Tidak ada perubahan yang bermakna. Perubahan yang hanya berbeda huruf besar/kecil, spasi, atau format serupa tidak akan diterima.');
+        }
+
+        $identitas->save();
+
+        // -----------------------------------------------------------------
+        // OTOMATIS CATAT PERUBAHAN KE TABEL `siswa_usulan_perubahan`
+        // agar muncul di dashboard kesiswaan (kesiswaan/peserta-didik?tab=usulan)
+        // -----------------------------------------------------------------
         $totalUsulanCreated = 0;
         foreach ($trackedColumns as $col => $colLabel) {
-            $oldVal = trim((string)($oldSnapshot[$col] ?? ''));
-            $newVal = trim((string)($identitas->{$col} ?? ''));
+            $oldVal = $oldSnapshot[$col] ?? null;
+            $newVal = $identitas->{$col} ?? null;
 
-            if ($oldVal !== $newVal && !empty($newVal)) {
+            if ($this->hasMeaningfulDifference($oldVal, $newVal)) {
+                $oldValForRecord = $this->normalizeComparableValue($oldVal) ?? '(Kosong)';
+                $newValForRecord = $this->normalizeComparableValue($newVal) ?? '(Kosong)';
+
                 // Update atau buat usulan baru
                 SiswaUsulanPerubahan::create([
                     'peserta_didik_id' => $pd->peserta_didik_id,
                     'kolom_perubahan' => $col,
-                    'nilai_lama' => $oldVal ?: '(Kosong)',
-                    'nilai_baru' => $newVal,
+                    'nilai_lama' => $oldValForRecord,
+                    'nilai_baru' => $newValForRecord,
                     'alasan' => $request->input('catatan_siswa', "Pembaruan isian formulir {$colLabel} oleh {$userName}"),
                     'status' => 'menunggu',
                     'created_by' => $userName,
