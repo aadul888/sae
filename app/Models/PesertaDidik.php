@@ -29,6 +29,11 @@ class PesertaDidik extends Model
         return $this->hasOne(KesiswaanBerkasVerifikasi::class, 'peserta_didik_id', 'peserta_didik_id');
     }
 
+    public function berkas()
+    {
+        return $this->hasMany(PesertaDidikBerkas::class, 'peserta_didik_id', 'peserta_didik_id');
+    }
+
     public function mutasi()
     {
         return $this->hasMany(KesiswaanMutasi::class, 'peserta_didik_id', 'peserta_didik_id');

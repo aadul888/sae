@@ -2956,9 +2956,58 @@ input[type="month"] {
     animation: pulseBadge 2.2s infinite ease-in-out;
 }
 
-/* SweetAlert2 Highest Priority Z-Index Overlay */
+/* SweetAlert2 Highest Priority Z-Index Overlay & Theme Synchronization */
 .swal2-container {
     z-index: 1000000 !important;
+}
+
+.swal2-popup {
+    background: var(--card-bg, #131b2e) !important;
+    color: var(--text-color, #f1f5f9) !important;
+    border: 1.5px solid var(--border-color, rgba(255, 255, 255, 0.14)) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.55) !important;
+    padding: 24px !important;
+}
+
+.swal2-title {
+    color: var(--text-color, #f1f5f9) !important;
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+}
+
+.swal2-html-container,
+.swal2-html-container p,
+.swal2-html-container div,
+.swal2-html-container span,
+.swal2-html-container label {
+    color: var(--text-color, #f1f5f9) !important;
+}
+
+.swal2-html-container .text-muted {
+    color: var(--text-muted, #94a3b8) !important;
+}
+
+.swal2-input,
+.swal2-textarea,
+.swal2-select {
+    background: var(--input-bg, rgba(255, 255, 255, 0.05)) !important;
+    color: var(--text-color, #f1f5f9) !important;
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.18)) !important;
+    border-radius: 8px !important;
+}
+
+.swal2-input:focus,
+.swal2-textarea:focus {
+    border-color: var(--primary, #6366f1) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+}
+
+.swal2-actions button {
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    padding: 8px 18px !important;
 }
 
 /* Foto Peserta Didik & Logo Jurusan Thumbnail Micro-Interactions */

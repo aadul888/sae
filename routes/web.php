@@ -163,6 +163,13 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/identitas/update', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'update'])->name('identitas.update');
     Route::get('/peserta-didik/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('peserta-didik.identitas')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
 
+    // Modul Validasi Berkas Peserta Didik (Format Tunggal PDF & Status 2 Pilihan)
+    Route::get('/berkas', [\App\Http\Controllers\BerkasPesertaDidikController::class, 'index'])->name('berkas.index')->middleware('permission:menu_validasi_berkas|menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
+    Route::post('/berkas/upload', [\App\Http\Controllers\BerkasPesertaDidikController::class, 'upload'])->name('berkas.upload');
+    Route::get('/berkas/preview/{id}', [\App\Http\Controllers\BerkasPesertaDidikController::class, 'preview'])->name('berkas.preview');
+    Route::delete('/berkas/{id}', [\App\Http\Controllers\BerkasPesertaDidikController::class, 'destroy'])->name('berkas.destroy');
+    Route::get('/peserta-didik/berkas', [\App\Http\Controllers\BerkasPesertaDidikController::class, 'index'])->name('peserta-didik.berkas')->middleware('permission:menu_validasi_berkas|menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
+
     Route::get('/orang-tua', [DashboardController::class, 'orangTua'])->name('orang-tua');
     Route::get('/orang_tua', [DashboardController::class, 'orangTua'])->name('orang_tua');
     Route::get('/orang-tua/kehadiran', [DashboardController::class, 'orangTuaKehadiran'])->name('orang-tua.kehadiran');
@@ -312,8 +319,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::prefix('peserta-didik')->name('peserta-didik.')->group(function () {
             Route::get('/', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'index'])->name('index')->middleware('permission:menu_kesiswaan_peserta_didik,read');
             Route::post('/usulan', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'storeUsulan'])->name('usulan.store')->middleware('permission:menu_kesiswaan_peserta_didik,create');
+            Route::get('/usulan-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getUsulanDetail'])->name('usulan.detail')->middleware('permission:menu_kesiswaan_peserta_didik,read');
             Route::post('/usulan/{id}/verifikasi', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiUsulan'])->name('usulan.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik,update');
+            Route::post('/usulan/{id}/dapodik', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'markDapodikUpdated'])->name('usulan.dapodik')->middleware('permission:menu_kesiswaan_peserta_didik,update');
             Route::post('/berkas/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateBerkas'])->name('berkas.update')->middleware('permission:menu_kesiswaan_peserta_didik,update');
+            Route::get('/berkas-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getBerkasDetail'])->name('berkas.detail')->middleware('permission:menu_kesiswaan_peserta_didik,read');
+            Route::post('/berkas-verifikasi/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiBerkasItem'])->name('berkas.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik,update');
             Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan_peserta_didik,read');
         });
 

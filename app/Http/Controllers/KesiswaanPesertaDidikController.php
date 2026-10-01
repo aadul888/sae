@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminAktivitas;
 use App\Models\KesiswaanBerkasVerifikasi;
 use App\Models\PesertaDidik;
+use App\Models\PesertaDidikBerkas;
+use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
 use App\Models\SiswaUsulanPerubahan;
 use Illuminate\Http\Request;
@@ -108,7 +111,7 @@ class KesiswaanPesertaDidikController extends Controller
 
         // 3. Tab: Peserta Didik Tidak Aktif (Mutasi / DO / Berhenti)
         $tidakAktifQuery = DB::table('peserta_didik_tidak_aktif')
-            ->select('id', 'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin', 'nama_rombel_terakhir as rombel_terakhir', 'alasan_keluar', 'tanggal_keluar', 'foto_path');
+            ->select('id', 'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin', 'nama_rombel_terakhir as rombel_terakhir', 'alasan_keluar', 'tanggal_keluar', 'status_keluar', 'foto_path');
 
         if ($q !== '' && $activeTab === 'tidak_aktif') {
             $tidakAktifQuery->where(function ($b) use ($q) {
@@ -163,18 +166,16 @@ class KesiswaanPesertaDidikController extends Controller
             $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : ($metaMapAlumni[$item->peserta_didik_id]?->foto_url ?? null);
         }
 
-        // 5. Tab: Verifikasi Berkas Fisik
+        // 5. Tab: Verifikasi Berkas Fisik & Digital
         $berkasQuery = DB::table('peserta_didik as pd')
             ->leftJoin('kesiswaan_berkas_verifikasi as kbv', 'pd.peserta_didik_id', '=', 'kbv.peserta_didik_id')
-            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
             ->select(
                 'pd.peserta_didik_id',
                 'pd.nama',
                 'pd.nisn',
                 'pd.nipd',
                 'pd.nik',
-                'rb.nama as rombel_nama',
+                'pd.nama_rombel as rombel_nama',
                 'kbv.id as berkas_id',
                 'kbv.akta_kelahiran',
                 'kbv.kartu_keluarga',
@@ -194,14 +195,29 @@ class KesiswaanPesertaDidikController extends Controller
                   ->orWhere('pd.nik', 'like', "%{$q}%");
             });
         }
+        if ($rombel !== '' && $activeTab === 'berkas') {
+            $berkasQuery->where('pd.nama_rombel', $rombel);
+        }
         $berkasList = $berkasQuery->orderBy('pd.nama', 'asc')->paginate($perPage, ['*'], 'berkas_page')->withQueryString();
         $berkasPdIds = $berkasList->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMapBerkas = collect();
         if (!empty($berkasPdIds) && Schema::hasTable('peserta_didik_meta')) {
             $metaMapBerkas = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $berkasPdIds)->get()->keyBy('peserta_didik_id');
         }
+        $uploadedBerkasMap = collect();
+        if (!empty($berkasPdIds) && Schema::hasTable('peserta_didik_berkas')) {
+            $uploadedBerkasMap = PesertaDidikBerkas::whereIn('peserta_didik_id', $berkasPdIds)
+                ->get()
+                ->groupBy('peserta_didik_id');
+        }
         foreach ($berkasList as $item) {
             $item->foto_url = $metaMapBerkas[$item->peserta_didik_id]?->foto_url ?? null;
+            $studentFiles = $uploadedBerkasMap[$item->peserta_didik_id] ?? collect();
+            $item->files = $studentFiles->keyBy('jenis_berkas');
+            $item->total_uploaded = $studentFiles->count();
+            $item->valid_count = $studentFiles->where('status', 'valid')->count();
+            $item->tidak_valid_count = $studentFiles->where('status', 'tidak_valid')->count();
+            $item->menunggu_count = $studentFiles->where('status', 'menunggu')->count();
         }
 
         // 6. Tab: Usulan Perubahan Data Siswa
@@ -221,8 +237,18 @@ class KesiswaanPesertaDidikController extends Controller
         if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_meta')) {
             $metaMapUsulan = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $usulanPdIds)->get()->keyBy('peserta_didik_id');
         }
+        $prereqMapUsulan = collect();
+        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_berkas')) {
+            $prereqMapUsulan = PesertaDidikBerkas::whereIn('peserta_didik_id', $usulanPdIds)
+                ->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp'])
+                ->get()
+                ->groupBy('peserta_didik_id');
+        }
         foreach ($usulanList as $item) {
             $item->foto_url = $metaMapUsulan[$item->peserta_didik_id]?->foto_url ?? null;
+            $bList = $prereqMapUsulan[$item->peserta_didik_id] ?? collect();
+            $item->kk_status = $bList->firstWhere('jenis_berkas', 'kartu_keluarga')?->status ?? 'belum_unggah';
+            $item->ijazah_status = $bList->firstWhere('jenis_berkas', 'ijazah_smp')?->status ?? 'belum_unggah';
         }
 
         // Daftar siswa aktif untuk modal usulan
@@ -298,14 +324,165 @@ class KesiswaanPesertaDidikController extends Controller
     }
 
     /**
+     * Ambil data detail lengkap satu usulan perubahan (JSON) untuk Modal Pengelolaan Usulan
+     */
+    public function getUsulanDetail($id)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        $canAccess = in_array($role, ['admin', 'tendik', 'guru'], true)
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'read');
+
+        if (!$canAccess) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $usulan = SiswaUsulanPerubahan::with('siswa')->findOrFail($id);
+        $pd = $usulan->siswa;
+
+        // Foto siswa
+        $meta = null;
+        if (Schema::hasTable('peserta_didik_meta') && $pd) {
+            $meta = PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+        }
+
+        // Berkas wajib KK & Ijazah siswa
+        $berkas = collect();
+        if (Schema::hasTable('peserta_didik_berkas') && $pd) {
+            $berkas = PesertaDidikBerkas::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp', 'akta_kelahiran'])
+                ->get()
+                ->keyBy('jenis_berkas');
+        }
+
+        $kk = $berkas->get('kartu_keluarga');
+        $ijazah = $berkas->get('ijazah_smp');
+        $akta = $berkas->get('akta_kelahiran');
+
+        // Peta label nama kolom yang ramah pengguna
+        $kolomLabels = [
+            'nama' => 'Nama Lengkap Siswa',
+            'jenis_kelamin' => 'Jenis Kelamin',
+            'nik' => 'Nomor Induk Kependudukan (NIK)',
+            'no_kk' => 'Nomor Kartu Keluarga (KK)',
+            'no_registrasi_akta_lahir' => 'No. Registrasi Akta Lahir',
+            'kewarganegaraan' => 'Kewarganegaraan',
+            'tempat_lahir' => 'Tempat Lahir',
+            'tanggal_lahir' => 'Tanggal Lahir',
+            'agama_id' => 'Agama & Kepercayaan',
+            'alamat_jalan' => 'Alamat Jalan / Tempat Tinggal',
+            'rt' => 'RT',
+            'rw' => 'RW',
+            'desa_kelurahan' => 'Desa / Kelurahan',
+            'kecamatan' => 'Kecamatan',
+            'kabupaten_kota' => 'Kabupaten / Kota',
+            'provinsi' => 'Provinsi',
+            'kode_pos' => 'Kode Pos',
+            'tempat_tinggal_id' => 'Status Tempat Tinggal',
+            'transportasi_id' => 'Moda Transportasi',
+            'anak_keberapa' => 'Anak Ke-berapa (di KK)',
+            'nama_ayah' => 'Nama Ayah Kandung',
+            'nik_ayah' => 'NIK Ayah',
+            'tahun_lahir_ayah' => 'Tahun Lahir Ayah',
+            'pendidikan_ayah_id' => 'Pendidikan Ayah',
+            'pekerjaan_ayah_id' => 'Pekerjaan Ayah',
+            'penghasilan_ayah_id' => 'Penghasilan Ayah',
+            'nama_ibu' => 'Nama Ibu Kandung',
+            'nik_ibu' => 'NIK Ibu',
+            'tahun_lahir_ibu' => 'Tahun Lahir Ibu',
+            'pendidikan_ibu_id' => 'Pendidikan Ibu',
+            'pekerjaan_ibu_id' => 'Pekerjaan Ibu',
+            'penghasilan_ibu_id' => 'Penghasilan Ibu',
+            'nama_wali' => 'Nama Wali',
+            'nik_wali' => 'NIK Wali',
+            'nomor_telepon_rumah' => 'Nomor Telepon Rumah',
+            'nomor_telepon_seluler' => 'No. HP / WhatsApp Siswa',
+            'email' => 'Email Siswa',
+            'sekolah_asal' => 'Sekolah Asal',
+            'tinggi_badan' => 'Tinggi Badan (cm)',
+            'berat_badan' => 'Berat Badan (kg)',
+            'lingkar_kepala' => 'Lingkar Kepala (cm)',
+            'jarak_rumah_sekolah' => 'Jarak Rumah ke Sekolah',
+            'jarak_rumah_sekolah_km' => 'Jarak Rumah (km)',
+            'waktu_tempuh_jam' => 'Waktu Tempuh (Jam)',
+            'waktu_tempuh_menit' => 'Waktu Tempuh (Menit)',
+            'jumlah_saudara_kandung' => 'Jumlah Saudara Kandung',
+        ];
+
+        // Rekomendasi alasan penolakan usulan data (chip buttons)
+        $rekomendasiPenolakan = [
+            'Data yang diusulkan tidak sesuai dengan dokumen resmi Kartu Keluarga (KK).',
+            'Data nama / tempat / tanggal lahir tidak cocok dengan Ijazah SMP atau Akta Kelahiran.',
+            'Lampiran berkas bukti buram, terpotong, atau tidak terbaca dengan jelas.',
+            'Perubahan nama atau identitas pokok wajib menyertakan Akta Kelahiran / Penetapan Pengadilan.',
+            'Format penulisan NIK atau No. KK tidak valid (harus 16 digit terdaftar di Dukcapil).',
+            'Pengajuan usulan dibatalkan atas permintaan siswa atau orang tua.',
+        ];
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'id' => $usulan->id,
+                'peserta_didik_id' => $usulan->peserta_didik_id,
+                'nama_siswa' => $pd?->nama ?: 'Siswa #' . $usulan->peserta_didik_id,
+                'nisn' => $pd?->nisn ?: '-',
+                'nipd' => $pd?->nipd ?: '-',
+                'rombel' => $pd?->nama_rombel ?: '-',
+                'foto_url' => $meta?->foto_url ?? null,
+                'kolom_perubahan' => $usulan->kolom_perubahan,
+                'kolom_label' => $kolomLabels[$usulan->kolom_perubahan] ?? ucwords(str_replace('_', ' ', $usulan->kolom_perubahan)),
+                'nilai_lama' => $usulan->nilai_lama ?: '(Belum Terisi / Kosong)',
+                'nilai_baru' => $usulan->nilai_baru,
+                'alasan' => $usulan->alasan ?: 'Penyesuaian formulir identitas mandiri.',
+                'status' => $usulan->status,
+                'catatan_verifikasi' => $usulan->catatan_verifikasi,
+                'verified_by' => $usulan->verified_by,
+                'verified_at' => $usulan->verified_at ? $usulan->verified_at->translatedFormat('d F Y, H:i') : null,
+                'created_at' => $usulan->created_at ? $usulan->created_at->translatedFormat('d F Y, H:i') : null,
+                'berkas_bukti_url' => !empty($usulan->berkas_bukti) ? asset('storage/' . ltrim($usulan->berkas_bukti, '/')) : null,
+                'kk' => [
+                    'exists' => !empty($kk),
+                    'status' => $kk?->status ?? 'belum_unggah',
+                    'file_url' => $kk ? route('dashboard.berkas.preview', $kk->id) : null,
+                    'file_name' => $kk?->file_name,
+                ],
+                'ijazah' => [
+                    'exists' => !empty($ijazah),
+                    'status' => $ijazah?->status ?? 'belum_unggah',
+                    'file_url' => $ijazah ? route('dashboard.berkas.preview', $ijazah->id) : null,
+                    'file_name' => $ijazah?->file_name,
+                ],
+                'akta' => [
+                    'exists' => !empty($akta),
+                    'status' => $akta?->status ?? 'belum_unggah',
+                    'file_url' => $akta ? route('dashboard.berkas.preview', $akta->id) : null,
+                    'file_name' => $akta?->file_name,
+                ],
+            ],
+            'rekomendasi_penolakan' => $rekomendasiPenolakan,
+        ]);
+    }
+
+    /**
      * Verifikasi Usulan Perubahan Data (Setujui / Tolak).
+     * Jika ditolak, wajib menyertakan alasan penolakan.
      */
     public function verifikasiUsulan(Request $request, $id)
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        if (!RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update') && !RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update')) {
+        $canUpdate = in_array($role, ['admin', 'tendik'], true)
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update');
+
+        if (!$canUpdate) {
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
         }
 
@@ -314,17 +491,27 @@ class KesiswaanPesertaDidikController extends Controller
             'catatan_verifikasi' => 'nullable|string',
         ]);
 
+        $status = $validated['status'];
+        $catatan = trim((string)($validated['catatan_verifikasi'] ?? ''));
+
+        if ($status === 'ditolak' && empty($catatan)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Alasan atau catatan penolakan wajib diisi jika usulan perubahan data ditolak.'
+            ], 422);
+        }
+
         $usulan = SiswaUsulanPerubahan::findOrFail($id);
         $userName = is_array($user) ? ($user['nama'] ?? 'Verifikator') : ($user->nama ?? 'Verifikator');
 
-        $usulan->status = $validated['status'];
-        $usulan->catatan_verifikasi = $validated['catatan_verifikasi'] ?? null;
+        $usulan->status = $status;
+        $usulan->catatan_verifikasi = $catatan ?: null;
         $usulan->verified_by = $userName;
         $usulan->verified_at = now();
         $usulan->save();
 
         // Jika disetujui, update data peserta didik secara otomatis
-        if ($validated['status'] === 'disetujui' && Schema::hasColumn('peserta_didik', $usulan->kolom_perubahan)) {
+        if ($status === 'disetujui' && Schema::hasColumn('peserta_didik', $usulan->kolom_perubahan)) {
             DB::table('peserta_didik')
                 ->where('peserta_didik_id', $usulan->peserta_didik_id)
                 ->update([$usulan->kolom_perubahan => $usulan->nilai_baru]);
@@ -333,7 +520,7 @@ class KesiswaanPesertaDidikController extends Controller
         // Sinkronisasi status dan nilai ke tabel aman peserta_didik_identitas
         if (Schema::hasTable('peserta_didik_identitas')) {
             $identitasUpdate = [];
-            if ($validated['status'] === 'disetujui' && Schema::hasColumn('peserta_didik_identitas', $usulan->kolom_perubahan)) {
+            if ($status === 'disetujui' && Schema::hasColumn('peserta_didik_identitas', $usulan->kolom_perubahan)) {
                 $identitasUpdate[$usulan->kolom_perubahan] = $usulan->nilai_baru;
             }
 
@@ -342,9 +529,11 @@ class KesiswaanPesertaDidikController extends Controller
                 ->where('id', '!=', $usulan->id)
                 ->count();
 
-            if ($remainingPending === 0 && $validated['status'] === 'disetujui') {
+            if ($remainingPending === 0 && $status === 'disetujui') {
                 $identitasUpdate['status_konfirmasi'] = 'diverifikasi';
                 $identitasUpdate['catatan_kesiswaan'] = 'Seluruh usulan perubahan data siswa telah disetujui & diverifikasi oleh Tim Kesiswaan.';
+            } elseif ($status === 'ditolak') {
+                $identitasUpdate['catatan_kesiswaan'] = "Usulan perubahan kolom {$usulan->kolom_perubahan} ditolak: " . ($catatan ?: 'Dokumen pendukung tidak sesuai.');
             }
 
             if (!empty($identitasUpdate)) {
@@ -354,9 +543,78 @@ class KesiswaanPesertaDidikController extends Controller
             }
         }
 
+        if (class_exists(AdminAktivitas::class)) {
+            $pd = PesertaDidik::where('peserta_didik_id', $usulan->peserta_didik_id)->first();
+            $labelStatus = $status === 'disetujui' ? 'Disetujui' : 'Ditolak';
+            AdminAktivitas::record(
+                "Verifikasi Usulan Data Siswa: {$pd?->nama} ({$usulan->kolom_perubahan}) [{$labelStatus}]",
+                'Kesiswaan',
+                $status === 'ditolak' ? "Alasan Penolakan: {$catatan}" : "Usulan disetujui dan data siswa diperbarui.",
+                $status === 'disetujui' ? 'success' : 'warning'
+            );
+        }
+
         return response()->json([
             'status' => 'success',
-            'message' => "Usulan perubahan data status diubah menjadi: {$validated['status']}.",
+            'message' => "Usulan perubahan data berhasil " . ($status === 'disetujui' ? 'disetujui' : 'ditolak') . ".",
+            'data' => $usulan,
+        ]);
+    }
+
+    /**
+     * Tandai Usulan Perubahan Data telah Di-update / Disinkronkan ke Aplikasi Dapodik
+     */
+    public function markDapodikUpdated(Request $request, $id)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        $canUpdate = in_array($role, ['admin', 'tendik'], true)
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update');
+
+        if (!$canUpdate) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $usulan = SiswaUsulanPerubahan::findOrFail($id);
+        $userName = is_array($user) ? ($user['nama'] ?? 'Operator Dapodik') : ($user->nama ?? 'Operator Dapodik');
+
+        $usulan->status = 'sudah_ke_dapodik';
+        $usulan->catatan_verifikasi = ($usulan->catatan_verifikasi ? $usulan->catatan_verifikasi . ' | ' : '') . "Telah di-update ke Aplikasi Dapodik oleh {$userName} pada " . now()->translatedFormat('d M Y, H:i');
+        $usulan->save();
+
+        if (Schema::hasTable('peserta_didik_identitas')) {
+            $remaining = SiswaUsulanPerubahan::where('peserta_didik_id', $usulan->peserta_didik_id)
+                ->whereIn('status', ['menunggu', 'disetujui'])
+                ->count();
+
+            if ($remaining === 0) {
+                DB::table('peserta_didik_identitas')
+                    ->where('peserta_didik_id', $usulan->peserta_didik_id)
+                    ->update([
+                        'status_konfirmasi' => 'disinkronkan_dapodik',
+                        'catatan_kesiswaan' => 'Seluruh usulan perubahan data siswa telah selesai di-input ke aplikasi Dapodik.',
+                    ]);
+            }
+        }
+
+        if (class_exists(AdminAktivitas::class)) {
+            $pd = PesertaDidik::where('peserta_didik_id', $usulan->peserta_didik_id)->first();
+            AdminAktivitas::record(
+                "Update Dapodik Selesai: {$pd?->nama} (Kolom {$usulan->kolom_perubahan})",
+                'Kesiswaan',
+                "Perubahan data {$usulan->kolom_perubahan} berhasil ditandai selesai di-input ke Dapodik.",
+                'success'
+            );
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Berhasil! Data perubahan ditandai telah selesai di-update ke aplikasi Dapodik.',
             'data' => $usulan,
         ]);
     }
@@ -389,6 +647,163 @@ class KesiswaanPesertaDidikController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Verifikasi kelengkapan berkas berhasil diperbarui.',
+            'data' => $berkas,
+        ]);
+    }
+
+    /**
+     * Ambil data berkas digital lengkap per siswa (JSON) untuk Modal Verifikasi Berkas Kesiswaan.
+     */
+    public function getBerkasDetail($id)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        $canAccess = in_array($role, ['admin', 'tendik', 'guru'], true)
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'read');
+
+        if (!$canAccess) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
+        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+            $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
+        }
+
+        if (!$pd) {
+            return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan.'], 404);
+        }
+
+        $slots = PesertaDidikBerkas::getJenisBerkasOptions();
+        $berkas = PesertaDidikBerkas::where('peserta_didik_id', $id)->get()->keyBy('jenis_berkas');
+        $rekomendasi = PesertaDidikBerkas::getRekomendasiPenolakanOptions();
+
+        $items = [];
+        foreach ($slots as $k => $slot) {
+            $b = $berkas->get($k);
+            $items[] = [
+                'jenis_berkas' => $k,
+                'label' => $slot['label'],
+                'deskripsi' => $slot['deskripsi'],
+                'icon' => $slot['icon'],
+                'wajib' => $slot['wajib'],
+                'is_uploaded' => !empty($b) && !empty($b->file_path),
+                'berkas_id' => $b?->id,
+                'file_name' => $b?->file_name,
+                'file_size' => $b?->formatted_file_size,
+                'file_url' => (!empty($b) && !empty($b->file_path)) ? route('dashboard.berkas.preview', $b->id) : null,
+                'status' => $b?->status ?? 'belum_unggah',
+                'catatan_penolakan' => $b?->catatan_penolakan,
+                'rekomendasi_penolakan' => $b?->rekomendasi_penolakan,
+                'verified_by' => $b?->verified_by,
+                'verified_at' => $b?->verified_at ? $b->verified_at->translatedFormat('d M Y, H:i') : null,
+                'uploaded_at' => $b?->created_at ? $b->created_at->translatedFormat('d M Y, H:i') : null,
+            ];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'siswa' => [
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'nama' => $pd->nama,
+                'nisn' => $pd->nisn ?? '-',
+                'nipd' => $pd->nipd ?? '-',
+                'rombel' => $pd->nama_rombel ?? '-',
+            ],
+            'items' => $items,
+            'rekomendasi_penolakan' => $rekomendasi,
+        ]);
+    }
+
+    /**
+     * Verifikasi Kebenaran Berkas Siswa (Hanya 2 Status: valid atau tidak_valid).
+     * Jika tidak_valid, wajib menyertakan catatan/alasan penolakan.
+     */
+    public function verifikasiBerkasItem(Request $request, $id)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        $canUpdate = in_array($role, ['admin', 'tendik'], true)
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update');
+
+        if (!$canUpdate) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'jenis_berkas' => 'required|string',
+            'status' => 'required|in:valid,tidak_valid', // HANYA 2 STATUS
+            'catatan_penolakan' => 'nullable|string',
+            'rekomendasi_penolakan' => 'nullable|string',
+        ]);
+
+        $status = $request->input('status');
+        $catatan = trim((string)$request->input('catatan_penolakan', ''));
+        $rekomendasi = trim((string)$request->input('rekomendasi_penolakan', ''));
+
+        if ($status === 'tidak_valid' && empty($catatan) && empty($rekomendasi)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Untuk status tidak valid / tidak sesuai, wajib memberikan catatan atau memilih rekomendasi alasan penolakan.'
+            ], 422);
+        }
+
+        $berkas = PesertaDidikBerkas::firstOrNew([
+            'peserta_didik_id' => $id,
+            'jenis_berkas' => $request->input('jenis_berkas'),
+        ]);
+
+        if (!$berkas->exists) {
+            $slots = PesertaDidikBerkas::getJenisBerkasOptions();
+            $berkas->nama_berkas = $slots[$request->input('jenis_berkas')]['label'] ?? 'Dokumen Siswa';
+            $berkas->file_path = '';
+            $berkas->file_name = '(Verifikasi Fisik / Manual)';
+            $berkas->mime_type = 'application/pdf';
+        }
+
+        $userName = is_array($user) ? ($user['nama'] ?? 'Staf Kesiswaan') : ($user->nama ?? 'Staf Kesiswaan');
+
+        $berkas->status = $status;
+        $berkas->verified_by = $userName;
+        $berkas->verified_at = now();
+        $berkas->catatan_penolakan = $status === 'tidak_valid' ? ($catatan ?: $rekomendasi) : null;
+        $berkas->rekomendasi_penolakan = $status === 'tidak_valid' ? $rekomendasi : null;
+        $berkas->save();
+
+        // Sinkronisasi status checklist ke tabel kesiswaan_berkas_verifikasi jika sesuai kolom
+        $coreColumns = ['akta_kelahiran', 'kartu_keluarga', 'ijazah_smp', 'ktp_orang_tua', 'kip_pip'];
+        if (in_array($berkas->jenis_berkas, $coreColumns, true)) {
+            $kbv = KesiswaanBerkasVerifikasi::firstOrNew(['peserta_didik_id' => $id]);
+            $kbv->{$berkas->jenis_berkas} = ($status === 'valid');
+            $kbv->verified_by = $userName;
+            $kbv->verified_at = now();
+            $kbv->save();
+        }
+
+        if (class_exists(AdminAktivitas::class)) {
+            $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
+            $statusLabel = $status === 'valid' ? 'Valid (Sesuai)' : 'Tidak Valid (Tidak Sesuai)';
+            AdminAktivitas::record(
+                "Verifikasi Berkas Siswa: {$pd?->nama} - {$berkas->nama_berkas} ({$statusLabel})",
+                'Kesiswaan',
+                $status === 'tidak_valid' ? "Penolakan: " . ($berkas->catatan_penolakan ?: '-') : "Dokumen diverifikasi valid dan sesuai persyaratan.",
+                $status === 'valid' ? 'success' : 'warning'
+            );
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Berkas \"{$berkas->nama_berkas}\" berhasil divalidasi sebagai: " . ($status === 'valid' ? 'Valid / Sesuai' : 'Tidak Valid / Tidak Sesuai') . '.',
             'data' => $berkas,
         ]);
     }

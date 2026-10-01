@@ -135,9 +135,9 @@
             [
                 'label' => 'Berkas',
                 'icon' => 'fa-folder-open',
-                'href' => '?tab=berkas',
+                'href' => $href('dashboard.berkas.index'),
                 'permission' => 'menu_validasi_berkas',
-                'active' => request('tab') === 'berkas',
+                'active' => request()->routeIs('dashboard.berkas*') || request('tab') === 'berkas',
                 'prominent' => true,
             ],
             [

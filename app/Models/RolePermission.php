@@ -437,9 +437,9 @@ class RolePermission extends Model
                     'roles' => ['peserta_didik'],
                 ],
                 'menu_validasi_berkas' => [
-                    'label' => 'Validasi Berkas & Ijazah',
+                    'label' => 'Validasi Berkas',
                     'icon' => 'fa-folder-open',
-                    'roles' => ['peserta_didik'],
+                    'roles' => ['admin', 'tendik', 'peserta_didik'],
                 ],
             ],
 

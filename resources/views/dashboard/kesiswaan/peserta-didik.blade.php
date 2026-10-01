@@ -15,6 +15,46 @@
             border-color: var(--primary) !important;
             box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35) !important;
         }
+
+        @media (max-width: 768px) {
+            .table-pd tbody td.cell-pd-berkas-item {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 8px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.07) !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                text-align: right !important;
+            }
+
+            .table-pd tbody td.cell-pd-berkas-item::before {
+                content: attr(data-label) !important;
+                font-weight: 600 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+            }
+
+            .table-pd tbody td.cell-pd-aksi {
+                order: 10 !important;
+                width: 100% !important;
+                border-top: 1px solid var(--border-color) !important;
+                padding-top: 12px !important;
+                margin-top: 4px !important;
+            }
+
+            .table-pd tbody td.cell-pd-aksi .table-actions {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+
+            .table-pd tbody td.cell-pd-aksi .btn-validasi-berkas-detail {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+        }
     </style>
 
     <!-- 1. Header Banner & Actions -->
@@ -109,7 +149,7 @@
             </a>
             <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'berkas']) }}"
                 class="periode-nav-tab {{ $activeTab === 'berkas' ? 'active' : '' }}">
-                <i class="fas fa-folder-open"></i> Berkas Fisik
+                <i class="fas fa-folder-open"></i> Validasi
             </a>
             <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
                 class="periode-nav-tab {{ $activeTab === 'usulan' ? 'active' : '' }}">
@@ -119,6 +159,37 @@
                 class="periode-nav-tab {{ $activeTab === 'alumni' ? 'active' : '' }}">
                 <i class="fas fa-graduation-cap"></i> Alumni
             </a>
+        </div>
+
+        {{-- Mobile Responsive Dropdown Switcher --}}
+        <div class="periode-nav-mobile">
+            <div class="periode-mobile-select-box" style="margin-bottom: 0;">
+                <label><i class="fas fa-layer-group text-primary me-1"></i> Pilih Kategori Data Siswa:</label>
+                <select class="periode-mobile-select form-select" onchange="if(this.value) window.location.href=this.value;"
+                    style="font-size: 0.85rem; height: 40px; border-radius: 8px;">
+                    <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'aktif']) }}"
+                        {{ $activeTab === 'aktif' ? 'selected' : '' }}>
+                        👤 Siswa Aktif ({{ number_format($stats['total_aktif'] ?? 0) }})
+                    </option>
+                    <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'tidak_aktif']) }}"
+                        {{ $activeTab === 'tidak_aktif' ? 'selected' : '' }}>
+                        🚫 Siswa Tidak Aktif ({{ number_format($stats['total_tidak_aktif'] ?? 0) }})
+                    </option>
+                    <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'berkas']) }}"
+                        {{ $activeTab === 'berkas' ? 'selected' : '' }}>
+                        📁 Validasi
+                    </option>
+                    <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
+                        {{ $activeTab === 'usulan' ? 'selected' : '' }}>
+                        📝 Usulan Perubahan Data
+                        {{ ($stats['usulan_menunggu'] ?? 0) > 0 ? '(' . $stats['usulan_menunggu'] . ' Menunggu)' : '' }}
+                    </option>
+                    <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'alumni']) }}"
+                        {{ $activeTab === 'alumni' ? 'selected' : '' }}>
+                        🎓 Data Alumni ({{ number_format($stats['total_alumni'] ?? 0) }})
+                    </option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -456,7 +527,7 @@
                             </td>
                             <td style="padding: 14px 18px;" data-label="Status">
                                 <span class="badge badge-outline"
-                                    style="font-size: 0.74rem;">{{ $item->status_keluar ?: 'Nonaktif' }}</span>
+                                    style="font-size: 0.74rem;">{{ $item->status_keluar ?? null ?: 'Nonaktif' }}</span>
                             </td>
                         </tr>
                     @empty
@@ -609,43 +680,127 @@
                                 </div>
                             </td>
                             <td class="cell-pd-rombel"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem; order: 3;"
                                 data-label="Rombel">
                                 <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
                                     {{ $item->rombel_nama ?: '-' }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Akta Lahir">
-                                <i class="fas {{ $item->akta_kelahiran ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
-                                    style="font-size: 1.1rem;"></i>
+                            @php
+                                $aktaF = $item->files['akta_kelahiran'] ?? null;
+                                $kkF = $item->files['kartu_keluarga'] ?? null;
+                                $ijzF = $item->files['ijazah_smp'] ?? null;
+                                $ktpF = $item->files['ktp_orang_tua'] ?? null;
+                                $kipF = $item->files['kip_pip'] ?? null;
+                            @endphp
+                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 5;"
+                                data-label="Akta Lahir">
+                                @if ($aktaF)
+                                    @if ($aktaF->status === 'valid')
+                                        <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                class="fas fa-circle-check"></i> Valid</span>
+                                    @elseif ($aktaF->status === 'tidak_valid')
+                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                class="fas fa-circle-xmark"></i> Ditolak</span>
+                                    @else
+                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                class="fas fa-clock"></i> PDF</span>
+                                    @endif
+                                @elseif ($item->akta_kelahiran)
+                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                            class="fas fa-check"></i></span>
+                                @else
+                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                @endif
                             </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Kartu Keluarga">
-                                <i class="fas {{ $item->kartu_keluarga ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
-                                    style="font-size: 1.1rem;"></i>
+                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 6;"
+                                data-label="Kartu Keluarga">
+                                @if ($kkF)
+                                    @if ($kkF->status === 'valid')
+                                        <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                class="fas fa-circle-check"></i> Valid</span>
+                                    @elseif ($kkF->status === 'tidak_valid')
+                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                class="fas fa-circle-xmark"></i> Ditolak</span>
+                                    @else
+                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                class="fas fa-clock"></i> PDF</span>
+                                    @endif
+                                @elseif ($item->kartu_keluarga)
+                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                            class="fas fa-check"></i></span>
+                                @else
+                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                @endif
                             </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Ijazah SMP">
-                                <i class="fas {{ $item->ijazah_smp ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
-                                    style="font-size: 1.1rem;"></i>
+                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 7;"
+                                data-label="Ijazah SMP">
+                                @if ($ijzF)
+                                    @if ($ijzF->status === 'valid')
+                                        <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                class="fas fa-circle-check"></i> Valid</span>
+                                    @elseif ($ijzF->status === 'tidak_valid')
+                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                class="fas fa-circle-xmark"></i> Ditolak</span>
+                                    @else
+                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                class="fas fa-clock"></i> PDF</span>
+                                    @endif
+                                @elseif ($item->ijazah_smp)
+                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                            class="fas fa-check"></i></span>
+                                @else
+                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                @endif
                             </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="KTP Ortu">
-                                <i class="fas {{ $item->ktp_orang_tua ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
-                                    style="font-size: 1.1rem;"></i>
+                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 8;"
+                                data-label="KTP Ortu">
+                                @if ($ktpF)
+                                    @if ($ktpF->status === 'valid')
+                                        <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                class="fas fa-circle-check"></i> Valid</span>
+                                    @elseif ($ktpF->status === 'tidak_valid')
+                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                class="fas fa-circle-xmark"></i> Ditolak</span>
+                                    @else
+                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                class="fas fa-clock"></i> PDF</span>
+                                    @endif
+                                @elseif ($item->ktp_orang_tua)
+                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                            class="fas fa-check"></i></span>
+                                @else
+                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                @endif
                             </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="KIP / PIP">
-                                <i class="fas {{ $item->kip_pip ? 'fa-circle-check text-success' : 'fa-circle-xmark text-muted' }}"
-                                    style="font-size: 1.1rem;"></i>
+                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 9;"
+                                data-label="KIP / PIP">
+                                @if ($kipF)
+                                    @if ($kipF->status === 'valid')
+                                        <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                class="fas fa-circle-check"></i> Valid</span>
+                                    @elseif ($kipF->status === 'tidak_valid')
+                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                class="fas fa-circle-xmark"></i> Ditolak</span>
+                                    @else
+                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                class="fas fa-clock"></i> PDF</span>
+                                    @endif
+                                @elseif ($item->kip_pip)
+                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                            class="fas fa-check"></i></span>
+                                @else
+                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                @endif
                             </td>
-                            <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions">
-                                    <button type="button" class="btn-icon btn-edit-berkas"
+                            <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right; order: 10 !important;"
+                                data-label="Aksi">
+                                <div class="table-actions" style="justify-content: flex-end;">
+                                    <button type="button" class="btn btn-outline btn-sm btn-validasi-berkas-detail"
                                         data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
-                                        data-akta="{{ $item->akta_kelahiran ? '1' : '0' }}"
-                                        data-kk="{{ $item->kartu_keluarga ? '1' : '0' }}"
-                                        data-ijazah="{{ $item->ijazah_smp ? '1' : '0' }}"
-                                        data-ktp="{{ $item->ktp_orang_tua ? '1' : '0' }}"
-                                        data-kip="{{ $item->kip_pip ? '1' : '0' }}"
-                                        title="Verifikasi &amp; Perbarui Berkas">
-                                        <i class="fas fa-pen-to-square"></i>
+                                        title="Validasi Dokumen Siswa"
+                                        style="padding: 6px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-check-double text-primary"></i> Validasi
                                     </button>
                                 </div>
                             </td>
@@ -712,22 +867,22 @@
                             Nama Siswa</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Kolom Diusulkan</th>
+                            Kolom Data</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Nilai Baru</th>
+                            Perbandingan (Lama vs Baru)</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Alasan Perubahan</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Berkas Bukti</th>
+                            Berkas Pendukung</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Status</th>
+                            Status Verifikasi &amp; Dapodik</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                            Aksi</th>
+                            Aksi Pengelolaan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -772,59 +927,96 @@
                                                     NISN: {{ $item->siswa->nisn }}
                                                 </span>
                                             @endif
+                                            @if ($item->siswa?->nama_rombel)
+                                                <span class="badge badge-outline"
+                                                    style="font-size: 0.68rem; margin-left: 4px;">{{ $item->siswa->nama_rombel }}</span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                             </td>
-                            <td style="padding: 14px 18px;" data-label="Kolom Diusulkan">
+                            <td style="padding: 14px 18px;" data-label="Kolom Data">
                                 <span class="badge badge-outline"
                                     style="font-family: monospace; font-size: 0.76rem; text-transform: uppercase;">
                                     {{ str_replace('_', ' ', $item->kolom_perubahan) }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.85rem; font-weight: 700; color: var(--text-color);"
-                                data-label="Nilai Baru">
-                                {{ $item->nilai_baru }}
+                            <td style="padding: 14px 18px;" data-label="Perbandingan Nilai">
+                                <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 3px;">
+                                    Lama: <span
+                                        style="text-decoration: line-through; opacity: 0.85;">{{ $item->nilai_lama ?: '(Kosong)' }}</span>
+                                </div>
+                                <div style="font-size: 0.84rem; font-weight: 700; color: #10b981;">
+                                    Baru: {{ $item->nilai_baru }}
+                                </div>
                             </td>
                             <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
                                 data-label="Alasan">
                                 {{ $item->alasan }}
                             </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Berkas Bukti">
-                                @if (!empty($item->berkas_bukti_path))
-                                    <a href="{{ asset('storage/' . ltrim($item->berkas_bukti_path, '/')) }}"
-                                        target="_blank" class="btn-icon" title="Lihat Bukti Berkas">
-                                        <i class="fas fa-file-arrow-down text-primary"></i>
-                                    </a>
-                                @else
-                                    <span style="color: var(--text-muted); font-size: 0.8rem;">-</span>
-                                @endif
+                            <td style="padding: 14px 18px; text-align: center;" data-label="Berkas Pendukung">
+                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                    <span
+                                        class="badge {{ ($item->kk_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
+                                        style="font-size: 0.65rem; padding: 2px 6px;">
+                                        KK: {{ ($item->kk_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}
+                                    </span>
+                                    <span
+                                        class="badge {{ ($item->ijazah_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
+                                        style="font-size: 0.65rem; padding: 2px 6px;">
+                                        Ijazah: {{ ($item->ijazah_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}
+                                    </span>
+                                    @if (!empty($item->berkas_bukti_path))
+                                        <button type="button" class="btn btn-outline btn-sm btn-preview-pdf-inline"
+                                            data-url="{{ asset('storage/' . ltrim($item->berkas_bukti_path, '/')) }}"
+                                            data-title="Bukti Usulan: {{ $item->kolom_perubahan }} - {{ $item->siswa?->nama }}"
+                                            style="padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; margin-top: 2px;">
+                                            <i class="fas fa-file-pdf text-danger me-1"></i> Bukti PDF
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                             <td style="padding: 14px 18px;" data-label="Status">
                                 @php
                                     $bColor = match ($item->status) {
                                         'disetujui' => 'badge-success',
+                                        'sudah_ke_dapodik' => 'badge-primary',
                                         'ditolak' => 'badge-danger',
                                         default => 'badge-warning',
                                     };
+                                    $bLabel = match ($item->status) {
+                                        'disetujui' => 'Disetujui (Siap Dapodik)',
+                                        'sudah_ke_dapodik' => 'Selesai di Dapodik',
+                                        'ditolak' => 'Ditolak Kesiswaan',
+                                        default => 'Menunggu Review',
+                                    };
                                 @endphp
                                 <span class="badge {{ $bColor }}"
-                                    style="font-size: 0.72rem; padding: 2px 8px;">{{ strtoupper($item->status) }}</span>
+                                    style="font-size: 0.72rem; padding: 3px 8px;">{{ $bLabel }}</span>
                             </td>
                             <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions" style="display: flex; gap: 6px; justify-content: flex-end;">
-                                    <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $usulanPdId]) }}"
-                                        target="_blank" class="btn-icon" title="Lihat Formulir Lengkap Siswa">
-                                        <i class="fas fa-id-card text-info"></i>
-                                    </a>
-                                    @if ($item->status === 'menunggu' && $canUpdate)
-                                        <button type="button" class="btn-icon btn-verif-usulan"
+                                <div class="table-actions"
+                                    style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                    <button type="button" class="btn-icon btn-kelola-usulan-modal"
+                                        data-id="{{ $item->id }}" data-nama="{{ $item->siswa?->nama }}"
+                                        title="Kelola &amp; Verifikasi Usulan Data"
+                                        style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); cursor: pointer;">
+                                        <i class="fas fa-file-pen"></i>
+                                    </button>
+                                    @if ($item->status === 'disetujui' && $canUpdate)
+                                        <button type="button" class="btn-icon btn-mark-dapodik"
                                             data-id="{{ $item->id }}" data-nama="{{ $item->siswa?->nama }}"
                                             data-kolom="{{ $item->kolom_perubahan }}"
-                                            data-nilai="{{ $item->nilai_baru }}" title="Verifikasi Usulan">
-                                            <i class="fas fa-check-to-slot text-primary"></i>
+                                            title="Tandai Selesai Di-update ke Dapodik"
+                                            style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); cursor: pointer;">
+                                            <i class="fas fa-cloud-arrow-up"></i>
                                         </button>
                                     @endif
+                                    <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $usulanPdId]) }}"
+                                        target="_blank" class="btn-icon" title="Lihat Formulir Lengkap Siswa"
+                                        style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(6,182,212,0.12); color: var(--accent); border: 1px solid rgba(6,182,212,0.25);">
+                                        <i class="fas fa-id-card"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -1285,6 +1477,151 @@
                             class="fas fa-paper-plane"></i> Kirim Usulan</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: VERIFIKASI BERKAS DIGITAL SISWA (PDF ONLY, 2 STATUS) -->
+    <div id="modalVerifikasiBerkasDigital" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card"
+            style="max-width: 860px; width: 94%; max-height: 88vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalVbNama"
+                            style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                            Validasi Berkas Persyaratan Siswa</h3>
+                        <div id="modalVbInfo" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                            Memuat data siswa...
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="close-modal" data-target="#modalVerifikasiBerkasDigital"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="modalVbLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <div>Memuat daftar berkas digital siswa...</div>
+            </div>
+
+            <div id="modalVbContent" style="overflow-y: auto; flex: 1; display: none; padding-right: 4px;">
+                <!-- Diisi secara dinamis via JavaScript -->
+            </div>
+
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.76rem; color: var(--text-muted);">
+                    <i class="fas fa-circle-info text-primary me-1"></i>
+                    Status berkas hanya 2 pilihan: <strong>Valid / Sesuai</strong> atau <strong>Tidak Valid / Tidak
+                        Sesuai</strong>.
+                </div>
+                <button type="button" class="btn btn-outline close-modal" data-target="#modalVerifikasiBerkasDigital"
+                    style="border-radius: 8px; padding: 7px 16px; font-size: 0.84rem;">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: DETAIL LENGKAP & PENGELOLAAN USULAN PERUBAHAN DATA (FIELD ASAL VS PENYESUAIAN) -->
+    <div id="modalPengelolaanUsulan" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card"
+            style="max-width: 860px; width: 95%; max-height: 88vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+                        <i class="fas fa-file-pen"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalUsulanNama"
+                            style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                            Pengelolaan Usulan Perubahan Data</h3>
+                        <div id="modalUsulanSubtitle"
+                            style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                            Memuat data usulan siswa...
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="close-modal" data-target="#modalPengelolaanUsulan"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div id="modalUsulanLoading" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fas fa-spinner fa-spin me-2" style="font-size: 1.4rem;"></i>
+                <div>Memuat rincian usulan perubahan data...</div>
+            </div>
+
+            <div id="modalUsulanContent" style="overflow-y: auto; flex: 1; display: none; padding-right: 4px;">
+                <!-- Diisi secara dinamis via JavaScript -->
+            </div>
+
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <div style="font-size: 0.76rem; color: var(--text-muted);">
+                    <i class="fas fa-shield-halved text-success me-1"></i>
+                    Verifikasi keputusan perubahan data resmi untuk sinkronisasi Dapodik.
+                </div>
+                <button type="button" class="btn btn-outline close-modal" data-target="#modalPengelolaanUsulan"
+                    style="border-radius: 8px; padding: 7px 16px; font-size: 0.84rem;">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: VIEWER DOKUMEN PDF TERPADU (TANPA MEMBUKA TAB BARU) -->
+    <div id="modalPdfViewer" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 100005 !important; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div class="card"
+            style="max-width: 960px; width: 96%; height: 90vh; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 18px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div
+                        style="width: 38px; height: 38px; border-radius: 8px; background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 id="pdfViewerTitle"
+                            style="font-size: 1rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                            Pratinjau Dokumen PDF</h3>
+                        <div id="pdfViewerSubtitle"
+                            style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                            Review berkas langsung di dalam sistem tanpa membuka tab baru
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="close-pdf-viewer"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div
+                style="flex: 1; min-height: 0; border-radius: 10px; overflow: hidden; background: #0f172a; border: 1px solid var(--border-color); position: relative;">
+                <iframe id="pdfViewerFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+
+            <div
+                style="display: flex; justify-content: flex-end; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-outline close-pdf-viewer"
+                    style="border-radius: 8px; padding: 7px 18px; font-size: 0.82rem;">
+                    Tutup Pratinjau
+                </button>
+            </div>
         </div>
     </div>
 @endsection

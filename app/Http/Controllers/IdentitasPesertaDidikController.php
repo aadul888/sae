@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AdminAktivitas;
 use App\Models\PesertaDidik;
+use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikIdentitas;
 use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
@@ -185,6 +186,13 @@ class IdentitasPesertaDidikController extends Controller
             ->limit(15)
             ->get();
 
+        $statusKonfirmasi = $identitas->status_konfirmasi ?? 'belum_konfirmasi';
+        $berkasPrereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
+
+        // Formulir secara default terkunci. Terbuka HANYA jika siswa memilih 'perlu_perbaikan' DAN berkas KK & Ijazah sudah valid
+        $isFormEditable = ($statusKonfirmasi === 'perlu_perbaikan') && $berkasPrereq['is_valid'];
+        $isFormLocked = !$isFormEditable;
+
         return view('dashboard.identitas-peserta-didik', compact(
             'pd',
             'identitas',
@@ -194,12 +202,16 @@ class IdentitasPesertaDidikController extends Controller
             'userName',
             'allPdList',
             'ref',
-            'usulanList'
+            'usulanList',
+            'statusKonfirmasi',
+            'berkasPrereq',
+            'isFormLocked',
+            'isFormEditable'
         ));
     }
 
     /**
-     * Siswa/Orang Tua mengonfirmasi bahwa data identitas saat ini sudah sesuai dan valid
+     * Siswa/Orang Tua mengonfirmasi bahwa data identitas saat ini sudah sesuai atau perlu perbaikan
      */
     public function konfirmasiSesuai(Request $request)
     {
@@ -214,24 +226,44 @@ class IdentitasPesertaDidikController extends Controller
             return back()->with('error', 'Peserta didik tidak ditemukan.');
         }
 
+        $pilihan = $request->input('status', 'sesuai'); // 'sesuai' atau 'perlu_perbaikan'
+        $catatan = trim((string)$request->input('catatan_siswa', ''));
+
         $identitas = PesertaDidikIdentitas::getOrCreateFromPd($pd);
-        $identitas->status_konfirmasi = 'sesuai';
+        $identitas->status_konfirmasi = $pilihan;
         $identitas->dikonfirmasi_pada = now();
         $identitas->dikonfirmasi_oleh = $userName . ' (' . ucfirst($userRole) . ')';
-        $identitas->catatan_siswa = $request->input('catatan_siswa', 'Data identitas telah diperiksa dan dikonfirmasi valid oleh siswa/orang tua.');
         $identitas->terakhir_diubah_oleh = $userRole;
-        $identitas->save();
 
-        if (class_exists(AdminAktivitas::class) && in_array($userRole, ['admin', 'tendik'], true)) {
-            AdminAktivitas::record(
-                "Konfirmasi Validitas Identitas Siswa: {$pd->nama} (NISN: {$pd->nisn})",
-                'Kesiswaan',
-                'Data identitas dikonfirmasi telah sesuai dan valid.',
-                'success'
-            );
+        if ($pilihan === 'sesuai') {
+            $identitas->catatan_siswa = $catatan ?: 'Data identitas telah diperiksa dan dikonfirmasi telah sesuai dan valid.';
+            $identitas->save();
+
+            if (class_exists(AdminAktivitas::class) && in_array($userRole, ['admin', 'tendik'], true)) {
+                AdminAktivitas::record(
+                    "Konfirmasi Validitas Identitas Siswa: {$pd->nama} (NISN: {$pd->nisn})",
+                    'Kesiswaan',
+                    'Data identitas dikonfirmasi telah sesuai dan valid.',
+                    'success'
+                );
+            }
+
+            return back()->with('success', 'Terima kasih! Konfirmasi data identitas "Sudah Sesuai" berhasil disimpan. Formulir tetap terkunci rapi & aman.');
+        } else {
+            $identitas->catatan_siswa = $catatan ?: 'Siswa/Orang Tua menyatakan terdapat ketidaksesuaian data identitas.';
+            $identitas->save();
+
+            $prereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
+            if ($prereq['is_valid']) {
+                return back()->with('success', 'Konfirmasi tercatat: Data belum sesuai. Berkas KK dan Ijazah Anda telah terverifikasi Valid, sehingga formulir sekarang terbuka untuk perbaikan data.');
+            } else {
+                $missing = [];
+                if (!$prereq['kk_valid']) $missing[] = 'Kartu Keluarga (KK)';
+                if (!$prereq['ijazah_valid']) $missing[] = 'Ijazah SMP';
+
+                return back()->with('warning', 'Konfirmasi tercatat: Data belum sesuai. Perhatian: Untuk membuka pengisian usulan perubahan, Anda wajib melengkapi dokumen (' . implode(' & ', $missing) . ') dengan status Valid dari Kesiswaan.');
+            }
         }
-
-        return back()->with('success', 'Terima kasih! Konfirmasi data identitas Anda berhasil disimpan.');
     }
 
     /**
@@ -249,6 +281,18 @@ class IdentitasPesertaDidikController extends Controller
 
         if (!$pd) {
             return back()->with('error', 'Peserta didik tidak ditemukan.');
+        }
+
+        // Cek persyaratan berkas KK dan Ijazah SMP harus VALID untuk peserta didik / orang tua
+        if ($userRole === 'peserta_didik' || $userRole === 'orang_tua') {
+            $prereq = PesertaDidikBerkas::checkPrerequisites($pd->peserta_didik_id);
+            if (!$prereq['is_valid']) {
+                $missing = [];
+                if (!$prereq['kk_valid']) $missing[] = 'Kartu Keluarga (KK)';
+                if (!$prereq['ijazah_valid']) $missing[] = 'Ijazah / SKL SMP';
+
+                return back()->with('error', 'Gagal mengajukan usulan perubahan data: Dokumen ' . implode(' dan ', $missing) . ' wajib berstatus Valid / Sesuai dari Tim Kesiswaan terlebih dahulu.');
+            }
         }
 
         $identitas = PesertaDidikIdentitas::getOrCreateFromPd($pd);

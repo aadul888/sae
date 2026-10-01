@@ -1902,6 +1902,8 @@
                     $isJadwalPdActive ||
                     request()->routeIs('dashboard.rapor.*') ||
                     request()->routeIs('dashboard.rapor') ||
+                    request()->routeIs('dashboard.berkas.*') ||
+                    request()->routeIs('dashboard.berkas') ||
                     request()->routeIs('dashboard.validasi-berkas.*') ||
                     request()->routeIs('dashboard.validasi-berkas');
             @endphp
@@ -1920,6 +1922,14 @@
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card-clip"></i></span>
                         <span class="nav-label">Identitas Lengkap</span>
                     </a>
+
+                    @if ($can('menu_validasi_berkas') || $role === 'peserta_didik' || $role === 'admin' || $role === 'tendik')
+                        <a href="{{ route('dashboard.berkas.index') }}"
+                            class="dash-nav-sublink {{ request()->routeIs('dashboard.berkas*') || request()->routeIs('dashboard.validasi-berkas*') ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
+                            <span class="nav-label">Validasi Berkas</span>
+                        </a>
+                    @endif
 
                     @if ($can('menu_surat_izin_pd'))
                         <a href="{{ route('dashboard.peserta-didik.izin.index') }}"
@@ -1949,13 +1959,6 @@
                         <a href="#" class="dash-nav-sublink">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-lines"></i></span>
                             <span class="nav-label">Transkrip &amp; Rapor</span>
-                        </a>
-                    @endif
-
-                    @if ($can('menu_validasi_berkas'))
-                        <a href="#" class="dash-nav-sublink">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
-                            <span class="nav-label">Validasi Berkas &amp; Ijazah</span>
                         </a>
                     @endif
                 </div>

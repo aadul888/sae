@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 4. Inisialisasi Navigasi Tab Seksi Formulir
     initSectionTabs();
+
+    // 5. Inisialisasi Dialog Konfirmasi Data Siswa (Sesuai / Belum Sesuai)
+    initKonfirmasiDialog();
 });
 
 /**
@@ -198,5 +201,50 @@ function initSectionTabs() {
                 }
             });
         });
+    });
+}
+
+/**
+ * Dialog Konfirmasi Validitas Data Identitas Siswa (Modal Native SAE Theme)
+ * Tile 1: Data Sudah Sesuai (Terkunci)
+ * Tile 2: Data Belum Sesuai (Perlu Perbaikan / Buka Usulan)
+ */
+function initKonfirmasiDialog() {
+    // Buka Modal Konfirmasi saat tombol diklik
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-konfirmasi-dialog, .btn-konfirmasi-trigger');
+        if (btn) {
+            e.preventDefault();
+            const modal = document.getElementById('modalKonfirmasiData');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+    });
+
+    // Handle klik pada Opsi Tile Konfirmasi (Sesuai atau Perlu Perbaikan)
+    document.addEventListener('click', function (e) {
+        const tile = e.target.closest('.btn-tile-konfirmasi');
+        if (tile) {
+            e.preventDefault();
+            const status = tile.getAttribute('data-status');
+            const catatanInput = document.getElementById('inputCatatanKonfirmasiModal');
+            const catatanVal = catatanInput ? catatanInput.value.trim() : '';
+
+            const hiddenForm = document.getElementById('formActionKonfirmasi');
+            const statusHidden = document.getElementById('inputStatusKonfirmasi');
+            const catatanHidden = document.getElementById('inputCatatanKonfirmasi');
+
+            if (hiddenForm && statusHidden) {
+                statusHidden.value = status;
+                if (catatanHidden) catatanHidden.value = catatanVal;
+
+                tile.disabled = true;
+                tile.style.opacity = '0.7';
+                tile.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 1.5rem;"></i><div style="font-size: 0.85rem; font-weight: 700; margin-top: 4px;">Menyimpan...</div>';
+                hiddenForm.submit();
+            }
+        }
     });
 }
