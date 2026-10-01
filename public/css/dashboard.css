@@ -5083,6 +5083,127 @@ input:disabled + .slider-toggle-crud {
     }
 }
 
+/* ==========================================================================
+   Global Utilities & Mobile Datatable Stacking Extensions (SAE Standards)
+   ========================================================================== */
+.d-none-desktop {
+    display: none !important;
+}
+
+.pd-nama[data-biodata-id]:hover {
+    color: var(--primary) !important;
+    text-decoration: underline;
+}
+
+.pd-foto-thumb[data-biodata-id]:hover {
+    transform: scale(1.08);
+    border-color: var(--primary) !important;
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35) !important;
+}
+
+@media (max-width: 768px) {
+    .d-none-desktop {
+        display: inline-flex !important;
+    }
+
+    /* Modul Kesiswaan: Berkas Item di Mobile */
+    .table-pd tbody td.cell-pd-berkas-item {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 8px 0 !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.07) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: right !important;
+    }
+
+    .table-pd tbody td.cell-pd-berkas-item::before {
+        content: attr(data-label) !important;
+        font-weight: 600 !important;
+        font-size: 0.74rem !important;
+        color: var(--text-muted) !important;
+        text-transform: uppercase !important;
+        text-align: left !important;
+    }
+
+    .table-pd tbody td.cell-pd-aksi {
+        order: 10 !important;
+        width: 100% !important;
+        border-top: 1px solid var(--border-color) !important;
+        padding-top: 12px !important;
+        margin-top: 4px !important;
+    }
+
+    .table-pd tbody td.cell-pd-aksi .table-actions {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    .table-pd tbody td.cell-pd-aksi .btn-validasi-berkas-detail {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Modul Wali Kelas: Log Datatables Compact Stack */
+    .table-wali-log tbody tr {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 10px 12px !important;
+        margin-bottom: 8px !important;
+        border-radius: 12px !important;
+        background: var(--card-bg, #131b2e) !important;
+        border: 1px solid var(--border-color) !important;
+        gap: 5px !important;
+    }
+
+    .table-wali-log tbody td {
+        padding: 0 !important;
+        border: none !important;
+        width: 100% !important;
+        text-align: left !important;
+        display: block !important;
+    }
+
+    .table-wali-log tbody td::before {
+        display: none !important;
+    }
+
+    .table-wali-log .cell-no {
+        display: none !important;
+    }
+
+    .table-wali-log .row-meta-top {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+        padding-bottom: 5px !important;
+        margin-bottom: 2px !important;
+    }
+
+    .table-wali-log .row-siswa {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    .table-wali-log .row-content {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    .table-wali-log .row-desc {
+        font-size: 0.74rem !important;
+        color: var(--text-muted) !important;
+        line-height: 1.35 !important;
+    }
+}
+
+
 
 
 

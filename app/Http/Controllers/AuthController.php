@@ -358,14 +358,26 @@ class AuthController extends Controller
 
         // Auto-record aktivitas login ke log aktivitas sistem
         try {
-            \App\Models\TendikAktivitas::recordActivity(
-                $userData,
-                'Autentikasi Masuk Sistem (Login)',
-                'umum',
-                'Berhasil masuk ke portal SAE melalui sesi web autentikasi (IP: ' . $request->ip() . ')',
-                'selesai',
-                'Sesi Login Aktif'
-            );
+            if (($user->role === 'peserta_didik' || !empty($user->peserta_didik_id)) && \Illuminate\Support\Facades\Schema::hasTable('admin_aktivitas')) {
+                \App\Models\AdminAktivitas::create([
+                    'admin_name'     => $userData['name'],
+                    'admin_username' => $userData['username'] ?? ($userData['nisn'] ?? null),
+                    'modul'          => 'Siswa',
+                    'aktivitas'      => 'Login Portal Siswa',
+                    'keterangan'     => 'Autentikasi akun siswa berhasil via Portal SAE (IP: ' . $request->ip() . ')',
+                    'ip_address'     => $request->ip(),
+                    'tipe'           => 'info',
+                ]);
+            } else {
+                \App\Models\TendikAktivitas::recordActivity(
+                    $userData,
+                    'Autentikasi Masuk Sistem (Login)',
+                    'umum',
+                    'Berhasil masuk ke portal SAE melalui sesi web autentikasi (IP: ' . $request->ip() . ')',
+                    'selesai',
+                    'Sesi Login Aktif'
+                );
+            }
         } catch (\Throwable) {
         }
 
