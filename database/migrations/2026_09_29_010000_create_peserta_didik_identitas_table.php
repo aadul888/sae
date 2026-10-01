@@ -52,13 +52,7 @@ return new class extends Migration
                 $table->string('transportasi_id', 10)->nullable();
                 $table->string('transportasi_str', 80)->nullable();
 
-                // Bagian 3: Rekening Bank PIP
-                $table->string('nama_bank', 50)->nullable();
-                $table->string('no_rekening', 40)->nullable();
-                $table->string('kcp_bank', 100)->nullable();
-                $table->string('rekening_atas_nama', 150)->nullable();
-
-                // Bagian 4: Data Ayah Kandung
+                // Bagian 2: Data Ayah Kandung
                 $table->string('status_hidup_ayah', 10)->default('1'); // 1: Masih Hidup, 0: Meninggal
                 $table->string('nama_ayah', 150)->nullable();
                 $table->string('nik_ayah', 16)->nullable();

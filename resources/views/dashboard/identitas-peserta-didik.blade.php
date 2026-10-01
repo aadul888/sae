@@ -205,13 +205,17 @@
                     style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; border-radius: 8px;">
                     <i class="fas fa-people-roof me-1"></i> Orang Tua &amp; Wali
                 </button>
-                <button type="button" class="btn btn-outline identitas-tab-btn" data-target="akademik_pip"
+                <button type="button" class="btn btn-outline identitas-tab-btn" data-target="registrasi_kesejahteraan"
                     style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; border-radius: 8px;">
-                    <i class="fas fa-graduation-cap me-1"></i> Akademik, PIP &amp; Bantuan
+                    <i class="fas fa-address-book me-1"></i> Kontak, Pendaftaran &amp; Kesejahteraan
                 </button>
-                <button type="button" class="btn btn-outline identitas-tab-btn" data-target="minat_prestasi"
+                <button type="button" class="btn btn-outline identitas-tab-btn" data-target="prestasi_minat"
                     style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; border-radius: 8px;">
-                    <i class="fas fa-trophy me-1"></i> Minat &amp; Riwayat Prestasi
+                    <i class="fas fa-trophy me-1"></i> Prestasi &amp; Minat
+                </button>
+                <button type="button" class="btn btn-outline identitas-tab-btn" data-target="periodik"
+                    style="padding: 8px 14px; font-size: 0.82rem; font-weight: 700; border-radius: 8px;">
+                    <i class="fas fa-ruler-combined me-1"></i> Data Periodik
                 </button>
             </div>
         </div>
@@ -359,7 +363,7 @@
                     <div>
                         <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Agama &amp;
                             Kepercayaan</label>
-                        <select name="agama_id" class="form-select" style="font-size: 0.85rem;">
+                        <select name="agama_id" class="form-select" required style="font-size: 0.85rem;">
                             @foreach ($ref['agama'] as $aId => $aName)
                                 <option value="{{ $aId }}"
                                     {{ old('agama_id', $identitas->agama_id ?: $pd->agama_id) == $aId ? 'selected' : '' }}>
@@ -386,25 +390,11 @@
                         <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Anak Ke-berapa (di
                             KK)</label>
                         <input type="number" name="anak_keberapa" class="form-control" min="1" max="25"
+                            required
                             value="{{ old('anak_keberapa', $identitas->anak_keberapa ?: ($pd->anak_keberapa ?: 1)) }}"
                             style="font-size: 0.85rem;">
                     </div>
 
-                    <!-- Tinggi Badan -->
-                    <div>
-                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Tinggi Badan (cm)</label>
-                        <input type="number" name="tinggi_badan" class="form-control" placeholder="Contoh: 165"
-                            value="{{ old('tinggi_badan', $identitas->tinggi_badan ?: $pd->tinggi_badan) }}"
-                            style="font-size: 0.85rem;">
-                    </div>
-
-                    <!-- Berat Badan -->
-                    <div>
-                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Berat Badan (kg)</label>
-                        <input type="number" name="berat_badan" class="form-control" placeholder="Contoh: 55"
-                            value="{{ old('berat_badan', $identitas->berat_badan ?: $pd->berat_badan) }}"
-                            style="font-size: 0.85rem;">
-                    </div>
                 </div>
             </div>
 
@@ -416,7 +406,7 @@
                 <div
                     style="font-weight: 800; font-size: 1.05rem; color: #0284c7; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-location-dot"></i> Bagian 2: Alamat Tempat Tinggal &amp; Domisili
+                        <i class="fas fa-location-dot"></i> Bagian 1: Data Pribadi &amp; Domisili
                     </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Sesuai Kartu Keluarga
                         / Domisili Aktual</span>
@@ -494,7 +484,7 @@
                     <div>
                         <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Status Tempat
                             Tinggal</label>
-                        <select name="tempat_tinggal_id" class="form-select" style="font-size: 0.85rem;">
+                        <select name="tempat_tinggal_id" class="form-select" required style="font-size: 0.85rem;">
                             @foreach ($ref['tempat_tinggal'] as $tId => $tName)
                                 <option value="{{ $tId }}"
                                     {{ old('tempat_tinggal_id', $identitas->tempat_tinggal_id) == $tId ? 'selected' : '' }}>
@@ -507,7 +497,7 @@
                     <div>
                         <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Moda Transportasi ke
                             Sekolah</label>
-                        <select name="transportasi_id" class="form-select" style="font-size: 0.85rem;">
+                        <select name="transportasi_id" class="form-select" required style="font-size: 0.85rem;">
                             @foreach ($ref['transportasi'] as $trId => $trName)
                                 <option value="{{ $trId }}"
                                     {{ old('transportasi_id', $identitas->transportasi_id) == $trId ? 'selected' : '' }}>
@@ -543,7 +533,7 @@
                 <div
                     style="font-weight: 800; font-size: 1.05rem; color: #16a34a; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-people-roof"></i> Bagian 4 &amp; 5: Data Orang Tua Kandung
+                        <i class="fas fa-people-roof"></i> Bagian 2 &amp; 3: Data Ayah dan Ibu Kandung
                     </div>
                     <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Ayah Kandung &amp; Ibu
                         Kandung</span>
@@ -612,7 +602,7 @@
                         <div>
                             <label class="form-label" style="font-size: 0.8rem; font-weight: 700;">Pekerjaan Utama
                                 Ayah</label>
-                            <select name="pekerjaan_ayah_id" class="form-select form-select-sm"
+                            <select name="pekerjaan_ayah_id" class="form-select form-select-sm" required
                                 style="font-size: 0.85rem;">
                                 <option value="">Pilih Pekerjaan</option>
                                 @foreach ($ref['pekerjaan'] as $pkId => $pkName)
@@ -626,7 +616,7 @@
                         <div>
                             <label class="form-label" style="font-size: 0.8rem; font-weight: 700;">Penghasilan Bulanan
                                 Ayah</label>
-                            <select name="penghasilan_ayah_id" class="form-select form-select-sm"
+                            <select name="penghasilan_ayah_id" class="form-select form-select-sm" required
                                 style="font-size: 0.85rem;">
                                 <option value="">Pilih Rentang</option>
                                 @foreach ($ref['penghasilan'] as $phId => $phName)
@@ -676,7 +666,7 @@
                         <div>
                             <label class="form-label" style="font-size: 0.8rem; font-weight: 700;">Nama Ibu
                                 Kandung</label>
-                            <input type="text" name="nama_ibu" class="form-control form-control-sm"
+                            <input type="text" name="nama_ibu" class="form-control form-control-sm" required
                                 value="{{ old('nama_ibu', $identitas->nama_ibu ?: $pd->nama_ibu) }}"
                                 style="font-size: 0.85rem;">
                         </div>
@@ -700,7 +690,7 @@
                         <div>
                             <label class="form-label" style="font-size: 0.8rem; font-weight: 700;">Pendidikan Terakhir
                                 Ibu</label>
-                            <select name="pendidikan_ibu_id" class="form-select form-select-sm"
+                            <select name="pendidikan_ibu_id" class="form-select form-select-sm" required
                                 style="font-size: 0.85rem;">
                                 <option value="">Pilih Jenjang</option>
                                 @foreach ($ref['jenjang_pendidikan'] as $jpId => $jpName)
@@ -714,7 +704,7 @@
                         <div>
                             <label class="form-label" style="font-size: 0.8rem; font-weight: 700;">Pekerjaan Utama
                                 Ibu</label>
-                            <select name="pekerjaan_ibu_id" class="form-select form-select-sm"
+                            <select name="pekerjaan_ibu_id" class="form-select form-select-sm" required
                                 style="font-size: 0.85rem;">
                                 <option value="">Pilih Pekerjaan</option>
                                 @foreach ($ref['pekerjaan'] as $pkId => $pkName)
@@ -728,7 +718,7 @@
                         <div>
                             <label class="form-label" style="font-size: 0.8rem; font-weight: 700;">Penghasilan Bulanan
                                 Ibu</label>
-                            <select name="penghasilan_ibu_id" class="form-select form-select-sm"
+                            <select name="penghasilan_ibu_id" class="form-select form-select-sm" required
                                 style="font-size: 0.85rem;">
                                 <option value="">Pilih Rentang</option>
                                 @foreach ($ref['penghasilan'] as $phId => $phName)
@@ -763,7 +753,7 @@
                 <div
                     style="font-weight: 800; font-size: 1.05rem; color: #d97706; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-handshake-angle"></i> Bagian 6: Data Wali Murid
+                        <i class="fas fa-handshake-angle"></i> Bagian 4: Data Wali
                     </div>
                     <label
                         style="font-size: 0.85rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -860,14 +850,14 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- SEKSI 5: KONTAK, REKENING PIP & REGISTRASI -->
+            <!-- SEKSI 5: KONTAK DAN PENDAFTARAN MASUK -->
             <!-- ========================================== -->
-            <div class="card identitas-form-section" data-section="akademik_pip"
+            <div class="card identitas-form-section" data-section="registrasi_kesejahteraan"
                 style="margin-bottom: 24px; padding: 22px 24px; border-radius: 14px;">
                 <div
                     style="font-weight: 800; font-size: 1.05rem; color: #9333ea; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-credit-card"></i> Bagian 3, 7 &amp; 10: Kontak, Rekening Bank PIP &amp; Registrasi
+                        <i class="fas fa-address-book"></i> Bagian 5 &amp; 8: Kontak dan Pendaftaran Masuk
                         Masuk
                     </div>
                 </div>
@@ -898,49 +888,32 @@
                             value="{{ old('email', $identitas->email ?: $pd->email) }}" style="font-size: 0.85rem;">
                     </div>
 
-                    <!-- Rekening Bank PIP -->
-                    <div>
-                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Nama Bank Penyalur
-                            PIP</label>
-                        <input type="text" name="nama_bank" class="form-control"
-                            placeholder="BRI / BNI / BSI / Mandiri"
-                            value="{{ old('nama_bank', $identitas->nama_bank) }}" style="font-size: 0.85rem;">
-                    </div>
-
-                    <div>
-                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Nomor Rekening Bank
-                            SimPel</label>
-                        <input type="text" name="no_rekening" class="form-control"
-                            placeholder="Nomor rekening buku tabungan"
-                            value="{{ old('no_rekening', $identitas->no_rekening) }}"
-                            style="font-size: 0.85rem; font-family: monospace;">
-                    </div>
-
-                    <div>
-                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Kantor Cabang Bank
-                            (KCP)</label>
-                        <input type="text" name="kcp_bank" class="form-control" placeholder="Contoh: KCP Pagelaran"
-                            value="{{ old('kcp_bank', $identitas->kcp_bank) }}" style="font-size: 0.85rem;">
-                    </div>
-
-                    <div>
-                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Rekening Atas Nama</label>
-                        <input type="text" name="rekening_atas_nama" class="form-control"
-                            placeholder="Nama tercetak di buku rekening"
-                            value="{{ old('rekening_atas_nama', $identitas->rekening_atas_nama) }}"
-                            style="font-size: 0.85rem;">
-                    </div>
-
                     <!-- Registrasi Masuk -->
                     <div>
                         <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Jenis Pendaftaran</label>
-                        <select name="jenis_pendaftaran_id" class="form-select" style="font-size: 0.85rem;">
+                        <select name="jenis_pendaftaran_id" class="form-select" required style="font-size: 0.85rem;">
                             @foreach ($ref['jenis_pendaftaran'] as $jpId => $jpLabel)
                                 <option value="{{ $jpId }}"
                                     {{ old('jenis_pendaftaran_id', $identitas->jenis_pendaftaran_id ?: $pd->jenis_pendaftaran_id) == $jpId ? 'selected' : '' }}>
                                     {{ $jpLabel }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Tanggal Masuk
+                            Sekolah</label>
+                        <input type="date" name="tanggal_masuk_sekolah" class="form-control"
+                            value="{{ old('tanggal_masuk_sekolah', $identitas->tanggal_masuk_sekolah ? $identitas->tanggal_masuk_sekolah->format('Y-m-d') : '') }}"
+                            style="font-size: 0.85rem;">
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Program / Kompetensi
+                            Keahlian</label>
+                        <input type="text" name="program_keahlian" class="form-control"
+                            value="{{ old('program_keahlian', $identitas->program_keahlian) }}"
+                            placeholder="Contoh: Teknik Komputer dan Jaringan" style="font-size: 0.85rem;">
                     </div>
 
                     <div>
@@ -954,29 +927,41 @@
 
                 <div
                     style="display: flex; gap: 24px; flex-wrap: wrap; padding-top: 10px; border-top: 1px dashed var(--border-color);">
-                    <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" name="pernah_paud_formal" value="1"
-                            {{ old('pernah_paud_formal', $identitas->pernah_paud_formal) ? 'checked' : '' }}>
-                        Pernah Mengikuti PAUD Formal (TK / RA)
-                    </label>
+                    <div style="font-size: 0.85rem;">
+                        <strong>PAUD Formal (TK / RA)</strong>
+                        <label style="margin-left: 12px; cursor: pointer;"><input type="radio"
+                                name="pernah_paud_formal" value="1" required
+                                {{ old('pernah_paud_formal', $identitas->pernah_paud_formal) ? 'checked' : '' }}>
+                            Ya</label>
+                        <label style="margin-left: 8px; cursor: pointer;"><input type="radio" name="pernah_paud_formal"
+                                value="0" required
+                                {{ old('pernah_paud_formal', $identitas->pernah_paud_formal) == 0 ? 'checked' : '' }}>
+                            Tidak</label>
+                    </div>
 
-                    <label style="font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <input type="checkbox" name="pernah_paud_non_formal" value="1"
-                            {{ old('pernah_paud_non_formal', $identitas->pernah_paud_non_formal) ? 'checked' : '' }}>
-                        Pernah Mengikuti PAUD Non-Formal (KB / TPA / SPS)
-                    </label>
+                    <div style="font-size: 0.85rem;">
+                        <strong>PAUD Non Formal (KB / TPA / SPS)</strong>
+                        <label style="margin-left: 12px; cursor: pointer;"><input type="radio"
+                                name="pernah_paud_non_formal" value="1" required
+                                {{ old('pernah_paud_non_formal', $identitas->pernah_paud_non_formal) ? 'checked' : '' }}>
+                            Ya</label>
+                        <label style="margin-left: 8px; cursor: pointer;"><input type="radio"
+                                name="pernah_paud_non_formal" value="0" required
+                                {{ old('pernah_paud_non_formal', $identitas->pernah_paud_non_formal) == 0 ? 'checked' : '' }}>
+                            Tidak</label>
+                    </div>
                 </div>
             </div>
 
             <!-- ========================================== -->
             <!-- SEKSI 6: PERLINDUNGAN SOSIAL & KESEJAHTERAAN -->
             <!-- ========================================== -->
-            <div class="card identitas-form-section" data-section="akademik_pip"
+            <div class="card identitas-form-section" data-section="registrasi_kesejahteraan"
                 style="margin-bottom: 24px; padding: 22px 24px; border-radius: 14px;">
                 <div
                     style="font-weight: 800; font-size: 1.05rem; color: #2563eb; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-hand-holding-heart"></i> Bagian 9: Kartu Bantuan Perlindungan Sosial (KKS / KIP /
+                        <i class="fas fa-hand-holding-heart"></i> Bagian 7: Kesejahteraan (KKS / KIP / KIS /
                         KIS / PIP)
                     </div>
                     <button type="button" class="btn btn-outline" id="btnAddSosial"
@@ -1075,12 +1060,12 @@
             <!-- ========================================== -->
             <!-- SEKSI 7: MINAT, BAKAT & RIWAYAT PRESTASI -->
             <!-- ========================================== -->
-            <div class="card identitas-form-section" data-section="minat_prestasi"
+            <div class="card identitas-form-section" data-section="prestasi_minat"
                 style="margin-bottom: 24px; padding: 22px 24px; border-radius: 14px;">
                 <div
                     style="font-weight: 800; font-size: 1.05rem; color: #ea580c; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-trophy"></i> Bagian 8 &amp; 11: Minat, Bakat &amp; Riwayat Prestasi
+                        <i class="fas fa-trophy"></i> Bagian 6 &amp; 9: Prestasi serta Minat &amp; Bakat
                     </div>
                     <button type="button" class="btn btn-outline" id="btnAddPrestasi"
                         style="font-size: 0.78rem; padding: 5px 12px; border-radius: 6px;">
@@ -1210,6 +1195,78 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SEKSI 10: DATA PERIODIK PESERTA DIDIK -->
+            <!-- ========================================== -->
+            <div class="card identitas-form-section" data-section="periodik"
+                style="margin-bottom: 24px; padding: 22px 24px; border-radius: 14px;">
+                <div
+                    style="font-weight: 800; font-size: 1.05rem; color: #0f766e; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-ruler-combined"></i> Bagian 10: Data Periodik Peserta Didik
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: normal;">Kondisi fisik dan
+                        jarak ke sekolah</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Tinggi Badan (cm) <span
+                                class="text-danger">*</span></label>
+                        <input type="number" name="tinggi_badan" class="form-control" min="1" max="250"
+                            required value="{{ old('tinggi_badan', $identitas->tinggi_badan ?: $pd->tinggi_badan) }}">
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Berat Badan (kg) <span
+                                class="text-danger">*</span></label>
+                        <input type="number" name="berat_badan" class="form-control" min="1" max="300"
+                            required value="{{ old('berat_badan', $identitas->berat_badan ?: $pd->berat_badan) }}">
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Lingkar Kepala
+                            (cm)</label>
+                        <input type="number" name="lingkar_kepala" class="form-control" min="1" max="150"
+                            value="{{ old('lingkar_kepala', $identitas->lingkar_kepala) }}">
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Jarak Rumah ke Sekolah
+                            <span class="text-danger">*</span></label>
+                        <select name="jarak_rumah_sekolah" class="form-select" required>
+                            <option value="kurang_dari_1_km"
+                                {{ old('jarak_rumah_sekolah', $identitas->jarak_rumah_sekolah) === 'kurang_dari_1_km' ? 'selected' : '' }}>
+                                Kurang dari 1 km</option>
+                            <option value="lebih_dari_1_km"
+                                {{ old('jarak_rumah_sekolah', $identitas->jarak_rumah_sekolah) === 'lebih_dari_1_km' ? 'selected' : '' }}>
+                                Lebih dari 1 km</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Jarak Rumah (km)</label>
+                        <input type="number" name="jarak_rumah_sekolah_km" class="form-control" min="0"
+                            max="999.99" step="0.01"
+                            value="{{ old('jarak_rumah_sekolah_km', $identitas->jarak_rumah_sekolah_km) }}">
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Waktu Tempuh (Jam)</label>
+                        <input type="number" name="waktu_tempuh_jam" class="form-control" min="0"
+                            max="99" value="{{ old('waktu_tempuh_jam', $identitas->waktu_tempuh_jam) }}">
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Waktu Tempuh
+                            (Menit)</label>
+                        <input type="number" name="waktu_tempuh_menit" class="form-control" min="0"
+                            max="59" value="{{ old('waktu_tempuh_menit', $identitas->waktu_tempuh_menit) }}">
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Jumlah Saudara Kandung
+                            <span class="text-danger">*</span></label>
+                        <input type="number" name="jumlah_saudara_kandung" class="form-control" min="0"
+                            max="99" required
+                            value="{{ old('jumlah_saudara_kandung', $identitas->jumlah_saudara_kandung) }}">
+                    </div>
                 </div>
             </div>
 

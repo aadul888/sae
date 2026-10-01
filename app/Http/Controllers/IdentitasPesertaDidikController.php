@@ -301,13 +301,7 @@ class IdentitasPesertaDidikController extends Controller
         $identitas->transportasi_id = $request->input('transportasi_id', $identitas->transportasi_id);
         $identitas->transportasi_str = $transportList[$identitas->transportasi_id] ?? $identitas->transportasi_str;
 
-        // 3. Rekening Bank PIP
-        $identitas->nama_bank = $request->input('nama_bank', $identitas->nama_bank);
-        $identitas->no_rekening = $request->input('no_rekening', $identitas->no_rekening);
-        $identitas->kcp_bank = $request->input('kcp_bank', $identitas->kcp_bank);
-        $identitas->rekening_atas_nama = $request->input('rekening_atas_nama', $identitas->rekening_atas_nama);
-
-        // 4. Data Ayah Kandung
+        // 3. Data Ayah Kandung
         $pendidikanList = RefDapodikHelper::getJenjangPendidikan();
         $pekerjaanList = RefDapodikHelper::getPekerjaan();
         $penghasilanList = RefDapodikHelper::getPenghasilan();
@@ -325,7 +319,7 @@ class IdentitasPesertaDidikController extends Controller
         $identitas->kebutuhan_khusus_ayah_id = $request->input('kebutuhan_khusus_ayah_id', $identitas->kebutuhan_khusus_ayah_id ?? '0');
         $identitas->kebutuhan_khusus_ayah_str = $kebutuhanList[$identitas->kebutuhan_khusus_ayah_id] ?? 'Tidak ada';
 
-        // 5. Data Ibu Kandung
+        // 4. Data Ibu Kandung
         $identitas->status_hidup_ibu = $request->input('status_hidup_ibu', $identitas->status_hidup_ibu ?? '1');
         $identitas->nama_ibu = $request->input('nama_ibu', $identitas->nama_ibu);
         $identitas->nik_ibu = $request->input('nik_ibu', $identitas->nik_ibu);
@@ -339,7 +333,7 @@ class IdentitasPesertaDidikController extends Controller
         $identitas->kebutuhan_khusus_ibu_id = $request->input('kebutuhan_khusus_ibu_id', $identitas->kebutuhan_khusus_ibu_id ?? '0');
         $identitas->kebutuhan_khusus_ibu_str = $kebutuhanList[$identitas->kebutuhan_khusus_ibu_id] ?? 'Tidak ada';
 
-        // 6. Data Wali
+        // 5. Data Wali
         $identitas->mempunyai_wali = $request->boolean('mempunyai_wali');
         if ($identitas->mempunyai_wali) {
             $identitas->nama_wali = $request->input('nama_wali', $identitas->nama_wali);
@@ -367,12 +361,12 @@ class IdentitasPesertaDidikController extends Controller
             $identitas->kebutuhan_khusus_wali_str = null;
         }
 
-        // 7. Kontak & Komunikasi
+        // 6. Kontak & Komunikasi
         $identitas->nomor_telepon_rumah = $request->input('nomor_telepon_rumah', $identitas->nomor_telepon_rumah);
         $identitas->nomor_telepon_seluler = $request->input('nomor_telepon_seluler', $identitas->nomor_telepon_seluler);
         $identitas->email = $request->input('email', $identitas->email);
 
-        // 8. Riwayat Prestasi (Array)
+        // 7. Riwayat Prestasi (Array)
         if ($request->has('riwayat_prestasi')) {
             $prestasiInput = $request->input('riwayat_prestasi');
             $cleanPrestasi = [];
@@ -393,7 +387,7 @@ class IdentitasPesertaDidikController extends Controller
             $identitas->riwayat_prestasi = $cleanPrestasi;
         }
 
-        // 9. Perlindungan Sosial (Array)
+        // 8. Perlindungan Sosial (Array)
         if ($request->has('perlindungan_sosial')) {
             $sosialInput = $request->input('perlindungan_sosial');
             $cleanSosial = [];
@@ -413,15 +407,17 @@ class IdentitasPesertaDidikController extends Controller
             $identitas->perlindungan_sosial = $cleanSosial;
         }
 
-        // 10. Registrasi Masuk
+        // 9. Registrasi Masuk
         $pendaftaranList = RefDapodikHelper::getJenisPendaftaran();
         $identitas->jenis_pendaftaran_id = $request->input('jenis_pendaftaran_id', $identitas->jenis_pendaftaran_id);
         $identitas->jenis_pendaftaran_str = $pendaftaranList[$identitas->jenis_pendaftaran_id] ?? $identitas->jenis_pendaftaran_str;
+        $identitas->tanggal_masuk_sekolah = $request->input('tanggal_masuk_sekolah', $identitas->tanggal_masuk_sekolah);
+        $identitas->program_keahlian = $request->input('program_keahlian', $identitas->program_keahlian);
         $identitas->sekolah_asal = $request->input('sekolah_asal', $identitas->sekolah_asal);
         $identitas->pernah_paud_formal = $request->boolean('pernah_paud_formal');
         $identitas->pernah_paud_non_formal = $request->boolean('pernah_paud_non_formal');
 
-        // 11. Minat & Bakat
+        // 10. Minat & Bakat
         $hobiList = RefDapodikHelper::getHobi();
         $identitas->hobi_id = $request->input('hobi_id', $identitas->hobi_id);
         $identitas->hobi_str = $hobiList[$identitas->hobi_id] ?? $identitas->hobi_str;
@@ -429,6 +425,16 @@ class IdentitasPesertaDidikController extends Controller
         $citaList = RefDapodikHelper::getCitaCita();
         $identitas->cita_cita_id = $request->input('cita_cita_id', $identitas->cita_cita_id);
         $identitas->cita_cita_str = $citaList[$identitas->cita_cita_id] ?? $identitas->cita_cita_str;
+
+        // 11. Data Periodik Peserta Didik
+        $identitas->tinggi_badan = $request->input('tinggi_badan', $identitas->tinggi_badan);
+        $identitas->berat_badan = $request->input('berat_badan', $identitas->berat_badan);
+        $identitas->lingkar_kepala = $request->input('lingkar_kepala', $identitas->lingkar_kepala);
+        $identitas->jarak_rumah_sekolah = $request->input('jarak_rumah_sekolah', $identitas->jarak_rumah_sekolah);
+        $identitas->jarak_rumah_sekolah_km = $request->input('jarak_rumah_sekolah_km', $identitas->jarak_rumah_sekolah_km);
+        $identitas->waktu_tempuh_jam = $request->input('waktu_tempuh_jam', $identitas->waktu_tempuh_jam);
+        $identitas->waktu_tempuh_menit = $request->input('waktu_tempuh_menit', $identitas->waktu_tempuh_menit);
+        $identitas->jumlah_saudara_kandung = $request->input('jumlah_saudara_kandung', $identitas->jumlah_saudara_kandung);
 
         // Status konfirmasi menjadi 'perlu_perbaikan' (menunggu verifikasi kesiswaan jika siswa yang ubah)
         $identitas->status_konfirmasi = 'perlu_perbaikan';
@@ -475,8 +481,19 @@ class IdentitasPesertaDidikController extends Controller
             'no_rekening' => 'Nomor Rekening Bank',
             'sekolah_asal' => 'Sekolah Asal',
             'jenis_pendaftaran_id' => 'Jenis Pendaftaran',
+            'tanggal_masuk_sekolah' => 'Tanggal Masuk Sekolah',
+            'program_keahlian' => 'Program/Kompetensi Keahlian',
+            'sekolah_asal' => 'Sekolah Asal',
             'hobi_id' => 'Hobi',
             'cita_cita_id' => 'Cita-cita',
+            'tinggi_badan' => 'Tinggi Badan',
+            'berat_badan' => 'Berat Badan',
+            'lingkar_kepala' => 'Lingkar Kepala',
+            'jarak_rumah_sekolah' => 'Jarak Rumah ke Sekolah',
+            'jarak_rumah_sekolah_km' => 'Jarak Rumah dalam Kilometer',
+            'waktu_tempuh_jam' => 'Waktu Tempuh (Jam)',
+            'waktu_tempuh_menit' => 'Waktu Tempuh (Menit)',
+            'jumlah_saudara_kandung' => 'Jumlah Saudara Kandung',
         ];
 
         $hasMeaningfulChanges = false;
