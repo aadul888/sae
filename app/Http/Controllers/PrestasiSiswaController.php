@@ -106,10 +106,6 @@ class PrestasiSiswaController extends Controller
             ->limit(10)
             ->get();
 
-        // Master Siswa & Pembimbing untuk modal
-        $siswaList = PesertaDidik::orderBy('nama')->limit(300)->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
-        $pembimbingList = DB::table('gtk')->orderBy('nama')->get(['ptk_id', 'nama']);
-
         return view('dashboard.kesiswaan.prestasi', compact(
             'stats',
             'activeTab',
@@ -121,8 +117,6 @@ class PrestasiSiswaController extends Controller
             'rekapPerTingkat',
             'rekapPerJuara',
             'topSiswa',
-            'siswaList',
-            'pembimbingList',
             'canCreate',
             'canRead',
             'canUpdate',

@@ -1422,14 +1422,12 @@
                     <label
                         style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Pilih
                         Siswa <span class="text-danger">*</span></label>
-                    <select name="peserta_didik_id" class="form-control" required
+                    <input type="search" id="usulanSiswaLookup" class="form-control"
+                        placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off"
+                        data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="siswa"
+                        data-people-target="#usulanSiswaId" data-people-require-selection="true" required
                         style="width: 100%; border-radius: 8px;">
-                        <option value="">-- Pilih Peserta Didik --</option>
-                        @foreach ($siswaList as $sw)
-                            <option value="{{ $sw->peserta_didik_id }}">{{ $sw->nama }} (NISN:
-                                {{ $sw->nisn ?: '-' }})</option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" id="usulanSiswaId" name="peserta_didik_id">
                 </div>
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label

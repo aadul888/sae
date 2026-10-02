@@ -51,56 +51,42 @@ document.addEventListener('DOMContentLoaded', function () {
     const suggestRuangSelect = document.getElementById('suggestRuangSelect');
     const pinjamKeperluan = document.getElementById('pinjamKeperluan');
 
-    function syncPeminjam() {
+    function syncPeminjam(clearSelection = false) {
         if (!pinjamTipeSelect) return;
         const tipe = pinjamTipeSelect.value;
+        if (clearSelection) {
+            if (selectPeminjamGtk) selectPeminjamGtk.value = '';
+            if (inputPeminjamSiswa) inputPeminjamSiswa.value = '';
+            if (selectPeminjamGtk) selectPeminjamGtk.setCustomValidity('');
+            if (inputPeminjamSiswa) inputPeminjamSiswa.setCustomValidity('');
+            if (pinjamIdVal) pinjamIdVal.value = '';
+            if (realPeminjamNama) realPeminjamNama.value = '';
+        }
         if (tipe === 'gtk') {
             if (wrapSelectGtk) wrapSelectGtk.style.display = 'block';
             if (wrapSelectSiswa) wrapSelectSiswa.style.display = 'none';
             if (wrapInputUmum) wrapInputUmum.style.display = 'none';
-            if (selectPeminjamGtk) {
-                const opt = selectPeminjamGtk.options[selectPeminjamGtk.selectedIndex];
-                if (pinjamIdVal) pinjamIdVal.value = selectPeminjamGtk.value || '';
-                if (realPeminjamNama) realPeminjamNama.value = opt && opt.dataset.nama ? opt.dataset.nama : '';
-            }
+            if (selectPeminjamGtk) selectPeminjamGtk.required = true;
+            if (inputPeminjamSiswa) inputPeminjamSiswa.required = false;
         } else if (tipe === 'siswa') {
             if (wrapSelectGtk) wrapSelectGtk.style.display = 'none';
             if (wrapSelectSiswa) wrapSelectSiswa.style.display = 'block';
             if (wrapInputUmum) wrapInputUmum.style.display = 'none';
-            if (realPeminjamNama && inputPeminjamSiswa) realPeminjamNama.value = inputPeminjamSiswa.value.trim();
-            const dl = document.getElementById('listPeminjamSiswa');
-            if (dl && inputPeminjamSiswa && pinjamIdVal) {
-                const matched = Array.from(dl.options).find(o => o.value === inputPeminjamSiswa.value);
-                pinjamIdVal.value = matched && matched.dataset.id ? matched.dataset.id : '';
-            }
+            if (selectPeminjamGtk) selectPeminjamGtk.required = false;
+            if (inputPeminjamSiswa) inputPeminjamSiswa.required = true;
         } else {
             if (wrapSelectGtk) wrapSelectGtk.style.display = 'none';
             if (wrapSelectSiswa) wrapSelectSiswa.style.display = 'none';
             if (wrapInputUmum) wrapInputUmum.style.display = 'block';
+            if (selectPeminjamGtk) selectPeminjamGtk.required = false;
+            if (inputPeminjamSiswa) inputPeminjamSiswa.required = false;
             if (pinjamIdVal) pinjamIdVal.value = '';
             if (realPeminjamNama && inputPeminjamUmum) realPeminjamNama.value = inputPeminjamUmum.value.trim();
         }
     }
 
     if (pinjamTipeSelect) {
-        pinjamTipeSelect.addEventListener('change', syncPeminjam);
-    }
-    if (selectPeminjamGtk) {
-        selectPeminjamGtk.addEventListener('change', function () {
-            const opt = selectPeminjamGtk.options[selectPeminjamGtk.selectedIndex];
-            if (pinjamIdVal) pinjamIdVal.value = selectPeminjamGtk.value || '';
-            if (realPeminjamNama) realPeminjamNama.value = opt && opt.dataset.nama ? opt.dataset.nama : '';
-        });
-    }
-    if (inputPeminjamSiswa) {
-        inputPeminjamSiswa.addEventListener('input', function () {
-            if (realPeminjamNama) realPeminjamNama.value = this.value.trim();
-            const dl = document.getElementById('listPeminjamSiswa');
-            if (dl && pinjamIdVal) {
-                const matched = Array.from(dl.options).find(o => o.value === inputPeminjamSiswa.value);
-                pinjamIdVal.value = matched && matched.dataset.id ? matched.dataset.id : '';
-            }
-        });
+        pinjamTipeSelect.addEventListener('change', () => syncPeminjam(true));
     }
     if (inputPeminjamUmum) {
         inputPeminjamUmum.addEventListener('input', function () {

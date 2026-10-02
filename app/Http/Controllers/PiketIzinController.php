@@ -65,13 +65,8 @@ class PiketIzinController extends Controller
 
         $list = $query->orderBy('iz.' . $sort, $sortDir)->paginate($perPage)->withQueryString();
 
-        // Daftar Rombel & Siswa untuk Modal Tambah Izin Piket
+        // Daftar rombel untuk filter autocomplete siswa.
         $rombelList = DB::table('rombongan_belajar')->orderBy('nama')->get();
-        $siswaList = DB::table('peserta_didik')
-            ->select('peserta_didik_id', 'nama', 'nisn', 'rombongan_belajar_id')
-            ->orderBy('nama')
-            ->limit(200)
-            ->get();
 
         $stats = [
             'total' => DB::table('peserta_didik_izin_keluar')->where('tanggal', $tanggal)->count(),
@@ -83,7 +78,7 @@ class PiketIzinController extends Controller
 
         return view('dashboard.piket.izin', compact(
             'list', 'search', 'status', 'jenis', 'tanggal', 'perPage', 'sort', 'sortDir',
-            'rombelList', 'siswaList', 'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
+            'rombelList', 'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }
 
@@ -92,9 +87,21 @@ class PiketIzinController extends Controller
         $q = trim($request->get('q', ''));
         $rombelId = $request->get('rombel_id', '');
 
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? 'guru') : ($user->role ?? 'guru');
+        $canRead = RolePermission::canAccess($user, 'menu_piket', 'read')
+            || RolePermission::canAccess($user, 'menu_e_izin', 'read');
+        if (!$canRead && !in_array($role, ['admin', 'guru', 'tendik'], true)) {
+            abort(403);
+        }
+
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+
         $query = DB::table('peserta_didik as pd')
             ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'pd.rombongan_belajar_id', 'rb.nama as nama_rombel');
+            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'pd.nipd', 'pd.rombongan_belajar_id', 'rb.nama as nama_rombel');
 
         if ($rombelId) {
             $query->where('pd.rombongan_belajar_id', $rombelId);
@@ -103,11 +110,18 @@ class PiketIzinController extends Controller
         if (!empty($q)) {
             $query->where(function ($sub) use ($q) {
                 $sub->where('pd.nama', 'like', "%{$q}%")
-                    ->orWhere('pd.nisn', 'like', "%{$q}%");
+                    ->orWhere('pd.nisn', 'like', "%{$q}%")
+                    ->orWhere('pd.nipd', 'like', "%{$q}%");
             });
         }
 
-        $results = $query->limit(30)->get();
+        $results = $query->orderBy('pd.nama')->limit(30)->get()->map(fn ($student) => [
+            'id' => $student->peserta_didik_id,
+            'nama' => $student->nama,
+            'identifier' => 'NISN: ' . ($student->nisn ?: '-') . ' | NIPD: ' . ($student->nipd ?: '-'),
+            'context' => $student->nama_rombel ?: 'Peserta Didik',
+            'type' => 'siswa',
+        ]);
         return response()->json($results);
     }
 

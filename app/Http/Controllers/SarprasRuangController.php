@@ -67,9 +67,6 @@ class SarprasRuangController extends Controller
             ->distinct()
             ->pluck('gedung');
 
-        // Master GTK untuk penanggung jawab
-        $allGtk = DB::table('gtk')->orderBy('nama', 'asc')->get(['ptk_id', 'nama', 'nip']);
-
         $perPage = (int) $request->query('per_page', 15);
         $perPage = in_array($perPage, [10, 15, 25, 50]) ? $perPage : 15;
 
@@ -87,7 +84,6 @@ class SarprasRuangController extends Controller
             'gedungFilter',
             'kondisiFilter',
             'gedungList',
-            'allGtk',
             'statTotal',
             'statBaik',
             'statRusakRingan',

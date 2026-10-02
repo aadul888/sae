@@ -129,11 +129,6 @@ class KesiswaanController extends Controller
         }
         $kelulusanList = $kelulusanQuery->paginate($perPage, ['*'], 'kelulusan_page')->withQueryString();
 
-        // Siswa aktif untuk modal pilihan
-        $siswaList = PesertaDidik::orderBy('nama')
-            ->limit(300)
-            ->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
-
         return view('dashboard.kesiswaan.administrasi', compact(
             'stats',
             'activeTab',
@@ -145,7 +140,6 @@ class KesiswaanController extends Controller
             'klaperList',
             'mutasiList',
             'kelulusanList',
-            'siswaList',
             'canCreate',
             'canRead',
             'canUpdate',

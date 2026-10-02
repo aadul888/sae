@@ -63,15 +63,6 @@ class PerpusSirkulasiController extends Controller
             ->orderBy('judul')
             ->get();
 
-        // Siswa & GTK untuk peminjam
-        $siswaList = DB::table('peserta_didik as pd')
-            ->leftJoin('anggota_rombel as ar', 'pd.peserta_didik_id', '=', 'ar.peserta_didik_id')
-            ->leftJoin('rombongan_belajar as rb', 'ar.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
-            ->select('pd.peserta_didik_id', 'pd.nama', 'pd.nisn', 'rb.nama as nama_rombel')
-            ->orderBy('pd.nama')
-            ->limit(500)
-            ->get();
-        $gtkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip')->orderBy('nama')->get();
         $bukuList = $bukuTersedia;
 
         // Statistik Sirkulasi
@@ -84,7 +75,7 @@ class PerpusSirkulasiController extends Controller
 
         return view('dashboard.perpus.sirkulasi', compact(
             'sirkulasi', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
-            'bukuTersedia', 'bukuList', 'siswaList', 'gtkList',
+            'bukuTersedia', 'bukuList',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

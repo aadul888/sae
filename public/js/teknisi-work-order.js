@@ -127,7 +127,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const tglSelesaiVal = document.getElementById('updateTglSelesaiVal');
 
                 if (statusVal) statusVal.value = item.status || 'antrean';
-                if (teknisiVal) teknisiVal.value = item.teknisi_ptk_id || '';
+                if (teknisiVal) {
+                    teknisiVal.value = '';
+                    if (item.teknisi_ptk_id && window.SAEPeopleAutocomplete) {
+                        window.SAEPeopleAutocomplete.setSelection(teknisiVal, item.teknisi_ptk_id);
+                    }
+                }
                 if (tindakanVal) tindakanVal.value = item.tindakan_perbaikan || '';
                 if (biayaVal) biayaVal.value = Math.round(item.estimasi_biaya_part || 0);
                 if (tglSelesaiVal) tglSelesaiVal.value = item.tgl_selesai ? item.tgl_selesai.substring(0, 10) : '';

@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('formIzin');
     const modalTitle = document.getElementById('modalIzinTitle');
     const selectSiswa = document.getElementById('izin_siswa_id');
+    const searchSiswa = document.getElementById('izin_siswa_search');
+    const siswaStatus = document.getElementById('izin_siswa_status');
     const filterRombel = document.getElementById('filter_rombel_modal');
 
     window.openModalIzin = function () {
@@ -20,10 +22,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('izin_jenis').value = 'keluar_sebentar';
 
         document.getElementById('rowSiswaSelect').style.display = 'grid';
+        if (searchSiswa) searchSiswa.required = true;
 
         // Reset filter rombel
         if (filterRombel) filterRombel.value = '';
-        filterSiswaByRombel();
+        clearSiswaSelection();
 
         modal.style.display = 'flex';
     };
@@ -34,24 +37,33 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.filterSiswaByRombel = function () {
-        if (!selectSiswa || !filterRombel) return;
-        const selectedRombel = filterRombel.value;
-        const options = selectSiswa.querySelectorAll('option');
+        if (selectSiswa) selectSiswa.value = '';
+        if (searchSiswa) searchSiswa.dispatchEvent(new Event('input'));
+    };
 
-        options.forEach(opt => {
-            if (!opt.value) {
-                opt.style.display = 'block';
-                return;
-            }
-            const rombel = opt.dataset.rombel;
-            if (!selectedRombel || rombel === selectedRombel) {
-                opt.style.display = 'block';
-            } else {
-                opt.style.display = 'none';
+    function clearSiswaSelection() {
+        if (selectSiswa) selectSiswa.value = '';
+        if (searchSiswa) searchSiswa.value = '';
+        if (searchSiswa) searchSiswa.dispatchEvent(new Event('input'));
+        if (siswaStatus) siswaStatus.textContent = '';
+        if (searchSiswa) searchSiswa.setCustomValidity('');
+    }
+
+    if (searchSiswa) {
+        searchSiswa.addEventListener('people:selected', function (event) {
+            if (siswaStatus) siswaStatus.textContent = `${event.detail.nama} dipilih${event.detail.context ? `, ${event.detail.context}` : ''}.`;
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (event) {
+            if (document.getElementById('rowSiswaSelect').style.display !== 'none' && !selectSiswa.value) {
+                event.preventDefault();
+                if (siswaStatus) siswaStatus.textContent = 'Pilih peserta didik dari hasil pencarian.';
+                if (searchSiswa) searchSiswa.focus();
             }
         });
-        selectSiswa.value = '';
-    };
+    }
 
     window.editIzin = function (data) {
         if (!modal) return;
@@ -68,6 +80,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Saat edit, sembunyikan pemilihan siswa baru agar relasi ID konsisten
         document.getElementById('rowSiswaSelect').style.display = 'none';
+        if (searchSiswa) {
+            searchSiswa.required = false;
+            searchSiswa.setCustomValidity('');
+        }
 
         modal.style.display = 'flex';
     };

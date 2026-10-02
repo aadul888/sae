@@ -7,10 +7,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @php
         $authUser = session('user');
-        $authUserId = is_array($authUser) ? ($authUser['id'] ?? ($authUser['pengguna_id'] ?? '')) : ($authUser->id ?? ($authUser->pengguna_id ?? ''));
-        $authPdId = is_array($authUser) ? ($authUser['peserta_didik_id'] ?? '') : ($authUser->peserta_didik_id ?? '');
-        $authPtkId = is_array($authUser) ? ($authUser['ptk_id'] ?? '') : ($authUser->ptk_id ?? '');
-        $authRole = is_array($authUser) ? ($authUser['role'] ?? '') : ($authUser->role ?? '');
+        $authUserId = is_array($authUser)
+            ? $authUser['id'] ?? ($authUser['pengguna_id'] ?? '')
+            : $authUser->id ?? ($authUser->pengguna_id ?? '');
+        $authPdId = is_array($authUser) ? $authUser['peserta_didik_id'] ?? '' : $authUser->peserta_didik_id ?? '';
+        $authPtkId = is_array($authUser) ? $authUser['ptk_id'] ?? '' : $authUser->ptk_id ?? '';
+        $authRole = is_array($authUser) ? $authUser['role'] ?? '' : $authUser->role ?? '';
     @endphp
     <meta name="user-id" content="{{ $authUserId }}">
     <meta name="user-pd-id" content="{{ $authPdId }}">
@@ -103,6 +105,9 @@
         <!-- Global & Dashboard JS Scripts with Cache Busting -->
         <script
             src="{{ asset('js/sae.js') }}?v={{ file_exists(public_path('js/sae.js')) ? filemtime(public_path('js/sae.js')) : time() }}">
+        </script>
+        <script
+            src="{{ asset('js/people-autocomplete.js') }}?v={{ file_exists(public_path('js/people-autocomplete.js')) ? filemtime(public_path('js/people-autocomplete.js')) : time() }}">
         </script>
         <script
             src="{{ asset('js/dashboard.js') }}?v={{ file_exists(public_path('js/dashboard.js')) ? filemtime(public_path('js/dashboard.js')) : time() }}">

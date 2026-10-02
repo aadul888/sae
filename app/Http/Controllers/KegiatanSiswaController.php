@@ -94,10 +94,6 @@ class KegiatanSiswaController extends Controller
         }
         $agendaList = $agendaQuery->paginate($perPage, ['*'], 'agenda_page')->withQueryString();
 
-        // Master Siswa & GTK untuk modal
-        $siswaList = PesertaDidik::orderBy('nama')->limit(300)->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
-        $pembinaList = DB::table('gtk')->orderBy('nama')->get(['ptk_id', 'nama']);
-
         return view('dashboard.kesiswaan.kegiatan', compact(
             'stats',
             'activeTab',
@@ -108,8 +104,6 @@ class KegiatanSiswaController extends Controller
             'organisasiList',
             'ekskulList',
             'agendaList',
-            'siswaList',
-            'pembinaList',
             'canCreate',
             'canRead',
             'canUpdate',

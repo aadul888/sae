@@ -178,7 +178,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalKetTitle = document.getElementById('modalKetTitle');
     const btnAutoNumberKet = document.getElementById('btnAutoNumberKet');
     const searchSiswaInput = document.getElementById('searchSiswaInput');
-    const siswaSearchResults = document.getElementById('siswaSearchResults');
     const selectedSiswaCard = document.getElementById('selectedSiswaCard');
     const selectedSiswaNama = document.getElementById('selectedSiswaNama');
     const selectedSiswaNisn = document.getElementById('selectedSiswaNisn');
@@ -247,9 +246,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         formSuratKeterangan.action = suratKetStoreUrl;
         if (inputPesertaDidikId) inputPesertaDidikId.value = '';
-        if (searchSiswaInput) searchSiswaInput.value = '';
+        if (searchSiswaInput) {
+            searchSiswaInput.value = '';
+            searchSiswaInput.setCustomValidity('');
+            searchSiswaInput.dispatchEvent(new Event('input'));
+        }
         if (selectedSiswaCard) selectedSiswaCard.style.display = 'none';
-        if (siswaSearchResults) siswaSearchResults.style.display = 'none';
         if (selectJenisSuratKet) selectJenisSuratKet.value = 'siswa_aktif';
         if (sectionPanggilanOrtu) sectionPanggilanOrtu.style.display = 'none';
         if (modalKetTitle) modalKetTitle.innerText = 'Terbitkan Surat Keterangan / Panggilan Siswa';
@@ -285,64 +287,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Live Search Autocomplete Siswa Dapodik
-    let searchDebounceTimer = null;
     if (searchSiswaInput) {
-        searchSiswaInput.addEventListener('input', function () {
-            clearTimeout(searchDebounceTimer);
-            const q = searchSiswaInput.value.trim();
-
-            if (q.length < 2) {
-                if (siswaSearchResults) siswaSearchResults.style.display = 'none';
-                return;
-            }
-
-            searchDebounceTimer = setTimeout(() => {
-                fetch(window.SURAT_KELUAR_SEARCH_SISWA_URL + '?q=' + encodeURIComponent(q))
-                    .then(res => res.json())
-                    .then(data => {
-                        if (!siswaSearchResults) return;
-                        siswaSearchResults.innerHTML = '';
-
-                        if (data.results && data.results.length > 0) {
-                            data.results.forEach(s => {
-                                const item = document.createElement('div');
-                                item.className = 'search-result-item';
-                                item.style.cssText = 'padding: 10px 14px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.15s ease;';
-                                item.innerHTML = `
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">${s.nama}</div>
-                                        <div style="font-size: 0.74rem; color: var(--text-muted);">
-                                            NISN: <span style="font-family: monospace;">${s.nisn || '-'}</span> | Kelas: <strong>${s.rombel_nama || '-'}</strong> (${s.jurusan_id_str || '-'})
-                                        </div>
-                                    </div>
-                                    <span class="badge-compact badge-primary" style="font-size: 0.72rem;">Pilih</span>
-                                `;
-
-                                item.addEventListener('mouseenter', () => item.style.background = 'var(--bg-hover)');
-                                item.addEventListener('mouseleave', () => item.style.background = 'transparent');
-
-                                item.addEventListener('click', () => {
-                                    inputPesertaDidikId.value = s.peserta_didik_id;
-                                    selectedSiswaNama.innerText = s.nama;
-                                    selectedSiswaNisn.innerText = s.nisn || '-';
-                                    selectedSiswaKelas.innerText = (s.rombel_nama || '-') + ' (' + (s.jurusan_id_str || '-') + ')';
-
-                                    searchSiswaInput.value = s.nama;
-                                    siswaSearchResults.style.display = 'none';
-                                    selectedSiswaCard.style.display = 'block';
-                                });
-
-                                siswaSearchResults.appendChild(item);
-                            });
-                            siswaSearchResults.style.display = 'block';
-                        } else {
-                            siswaSearchResults.innerHTML = '<div style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted); text-align: center;">Tidak ada siswa ditemukan dengan kata kunci tersebut.</div>';
-                            siswaSearchResults.style.display = 'block';
-                        }
-                    })
-                    .catch(() => {});
-            }, 300);
+        searchSiswaInput.addEventListener('people:selected', function (event) {
+            const siswa = event.detail;
+            if (selectedSiswaNama) selectedSiswaNama.textContent = siswa.nama;
+            if (selectedSiswaNisn) selectedSiswaNisn.textContent = siswa.identifier || '-';
+            if (selectedSiswaKelas) selectedSiswaKelas.textContent = siswa.context || '-';
+            if (selectedSiswaCard) selectedSiswaCard.style.display = 'block';
         });
     }
 
@@ -351,6 +302,8 @@ document.addEventListener('DOMContentLoaded', function () {
             inputPesertaDidikId.value = '';
             selectedSiswaCard.style.display = 'none';
             searchSiswaInput.value = '';
+            searchSiswaInput.setCustomValidity('');
+            searchSiswaInput.dispatchEvent(new Event('input'));
             searchSiswaInput.focus();
         });
     }

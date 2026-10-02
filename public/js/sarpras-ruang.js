@@ -23,7 +23,13 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('ruangNama').value = data.nama || '';
             document.getElementById('ruangGedung').value = data.gedung || '';
             document.getElementById('ruangLantai').value = data.lantai || '';
-            document.getElementById('ruangPj').value = data.pj || '';
+            const ruangPj = document.getElementById('ruangPj');
+            const ruangPjId = document.getElementById('ruangPjId');
+            if (ruangPj) ruangPj.value = '';
+            if (ruangPjId) ruangPjId.value = data.pj || '';
+            if (data.pj && ruangPj && window.SAEPeopleAutocomplete) {
+                window.SAEPeopleAutocomplete.setSelection(ruangPj, data.pj);
+            }
             document.getElementById('ruangKondisi').value = data.kondisi || 'baik';
             document.getElementById('ruangKeterangan').value = data.keterangan || '';
         } else {

@@ -10,6 +10,75 @@
     position: relative;
 }
 
+.people-autocomplete {
+    position: relative;
+}
+
+.people-autocomplete-results {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100001;
+    max-height: 240px;
+    overflow-y: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.people-autocomplete-results.is-open {
+    display: block;
+}
+
+.people-autocomplete-option {
+    display: block;
+    width: 100%;
+    padding: 9px 12px;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+    cursor: pointer;
+}
+
+.people-autocomplete-option:hover,
+.people-autocomplete-option:focus-visible {
+    background: var(--bg-hover);
+}
+
+.people-autocomplete-name {
+    display: block;
+}
+
+.people-autocomplete-meta,
+.people-autocomplete-empty {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.people-autocomplete-selected-list {
+    display: grid;
+    gap: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+    margin-top: 8px;
+}
+
+.people-autocomplete-selected {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-color);
+    font-size: 0.84rem;
+}
+
 /* Sidebar */
 .dash-sidebar {
     width: 270px;

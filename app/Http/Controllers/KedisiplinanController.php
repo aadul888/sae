@@ -122,10 +122,6 @@ class KedisiplinanController extends Controller
             ->limit(100)
             ->get();
 
-        // Data master untuk modal
-        $siswaList = PesertaDidik::orderBy('nama')->limit(300)->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
-        $guruList = DB::table('gtk')->orderBy('nama')->get(['ptk_id', 'nama']);
-
         return view('dashboard.kesiswaan.kedisiplinan', compact(
             'stats',
             'activeTab',
@@ -138,8 +134,6 @@ class KedisiplinanController extends Controller
             'pembinaanList',
             'pemanggilanList',
             'rekapSiswa',
-            'siswaList',
-            'guruList',
             'canCreate',
             'canRead',
             'canUpdate',

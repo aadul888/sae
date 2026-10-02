@@ -65,9 +65,6 @@ class SuratKeluarController extends Controller
         $perPageVal = $request->get('perPage', $request->get('per_page', '25'));
         $perPage    = in_array($perPageVal, ['10', '15', '25', '50', '100']) ? (int)$perPageVal : 25;
 
-        // Master GTK untuk dropdown / referensi SPT
-        $allGtk = Gtk::orderBy('nama', 'asc')->get(['ptk_id', 'nama', 'nuptk', 'nik', 'nip', 'jenis_ptk_id_str']);
-
         // Query berdasarkan Tab
         if ($tab === 'spt') {
             $sptQuery = DB::table('gtk_spt');
@@ -114,6 +111,18 @@ class SuratKeluarController extends Controller
             }
 
             $items = $query->paginate($perPage)->withQueryString();
+        }
+
+        $allGtk = collect();
+        if ($tab === 'spt') {
+            $assignedPtkIds = $items->getCollection()->flatMap(function ($item) {
+                $ids = json_decode($item->daftar_ptk_id ?? '[]', true);
+                return is_array($ids) ? $ids : [];
+            })->unique()->values();
+
+            if ($assignedPtkIds->isNotEmpty()) {
+                $allGtk = Gtk::whereIn('ptk_id', $assignedPtkIds)->get(['ptk_id', 'nama', 'nip']);
+            }
         }
 
         // Master Sarpras Aset untuk integrasi BAST / permohonan sarpras

@@ -78,10 +78,6 @@ class PersuratanController extends Controller
 
         $items = $query->paginate($perPage)->withQueryString();
 
-        $siswaList = \App\Models\PesertaDidik::orderBy('nama')
-            ->limit(300)
-            ->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
-
         return view('dashboard.persuratan', compact(
             'stats',
             'items',
@@ -94,8 +90,7 @@ class PersuratanController extends Controller
             'canCreate',
             'canRead',
             'canUpdate',
-            'canDelete',
-            'siswaList'
+            'canDelete'
         ));
     }
 

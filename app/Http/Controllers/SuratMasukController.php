@@ -88,9 +88,9 @@ class SuratMasukController extends Controller
 
         $items = $query->paginate($perPage)->withQueryString();
 
-        // Data PTK untuk tujuan disposisi
+        // Master GTK untuk filter tujuan disposisi.
         $ptkList = DB::table('gtk')
-            ->select('ptk_id', 'nama', 'jenis_ptk_id_str', 'jabatan_ptk_id_str', 'nip', 'nuptk')
+            ->select('ptk_id', 'nama')
             ->orderBy('nama')
             ->get();
 

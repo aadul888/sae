@@ -74,12 +74,9 @@ class KeamananPatroliController extends Controller
             ->orderBy('gedung', 'asc')
             ->orderBy('nama_ruang', 'asc')
             ->get();
-        $daftarSiswa = DB::table('peserta_didik')->select('peserta_didik_id', 'nama', 'nisn')->orderBy('nama')->limit(300)->get();
-        $daftarGtk = DB::table('gtk')->select('ptk_id', 'nama', 'nip')->orderBy('nama')->get();
-
         return view('dashboard.keamanan.patroli', compact(
             'patroliList', 'insidenList', 'tab', 'search', 'tanggal', 'perPage',
-            'daftarRuang', 'daftarSiswa', 'daftarGtk',
+            'daftarRuang',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

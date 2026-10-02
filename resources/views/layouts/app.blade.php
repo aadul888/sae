@@ -9,7 +9,8 @@
 
     <!-- Standard SEO & Description -->
     <meta name="description" content="@yield('meta_description', 'SAE (Sistem Aplikasi Edukasi) — Platform digital terpadu untuk absensi pintar, administrasi sekolah, validasi berkas peserta didik, dan layanan akademik modern realtime.')">
-    <meta name="keywords" content="SAE, Sistem Aplikasi Edukasi, aplikasi sekolah, administrasi sekolah, dapodik, absensi rfid, kartu pelajar digital">
+    <meta name="keywords"
+        content="SAE, Sistem Aplikasi Edukasi, aplikasi sekolah, administrasi sekolah, dapodik, absensi rfid, kartu pelajar digital">
     <meta name="author" content="SAE (Sistem Aplikasi Edukasi)">
 
     <!-- Open Graph / WhatsApp / Telegram / Facebook Meta Tags -->

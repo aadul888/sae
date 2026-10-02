@@ -251,11 +251,6 @@ class KesiswaanPesertaDidikController extends Controller
             $item->ijazah_status = $bList->firstWhere('jenis_berkas', 'ijazah_smp')?->status ?? 'belum_unggah';
         }
 
-        // Daftar siswa aktif untuk modal usulan
-        $siswaList = PesertaDidik::orderBy('nama')
-            ->limit(300)
-            ->get(['peserta_didik_id', 'nama', 'nisn', 'nipd']);
-
         return view('dashboard.kesiswaan.peserta-didik', compact(
             'stats',
             'activeTab',
@@ -270,7 +265,6 @@ class KesiswaanPesertaDidikController extends Controller
             'alumniList',
             'berkasList',
             'usulanList',
-            'siswaList',
             'canCreate',
             'canRead',
             'canUpdate',
