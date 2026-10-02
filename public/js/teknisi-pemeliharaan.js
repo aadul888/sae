@@ -143,6 +143,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    window.openModalCreatePM = function () {
+        if (modalCreatePM) modalCreatePM.style.display = 'flex';
+    };
+
     window.closeModalCreatePM = function () {
         if (modalCreatePM) modalCreatePM.style.display = 'none';
     };

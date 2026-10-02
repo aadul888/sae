@@ -53,17 +53,139 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function getCustomTupoksi(bidangKey) {
+        try {
+            return JSON.parse(localStorage.getItem('sae_custom_tupoksi_' + bidangKey) || '[]');
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveCustomTupoksi(bidangKey, item) {
+        try {
+            const list = getCustomTupoksi(bidangKey);
+            list.push(item);
+            localStorage.setItem('sae_custom_tupoksi_' + bidangKey, JSON.stringify(list));
+        } catch (e) {}
+    }
+
     function populateTupoksiOptions(bidangKey) {
         if (!selectTupoksi) return;
         selectTupoksi.innerHTML = '<option value="">-- Pilih dari Rekomendasi Tupoksi Bidang (Opsional) --</option>';
         const list = tupoksiTemplates[bidangKey] || tupoksiTemplates['umum'] || [];
-        list.forEach((item, index) => {
-            const opt = document.createElement('option');
-            opt.value = index;
-            opt.textContent = item.judul;
-            selectTupoksi.appendChild(opt);
-        });
+        const customList = getCustomTupoksi(bidangKey);
+
+        if (list.length > 0) {
+            const grpStd = document.createElement('optgroup');
+            grpStd.label = 'Rekomendasi Standar Bidang';
+            list.forEach((item, index) => {
+                const opt = document.createElement('option');
+                opt.value = 'std_' + index;
+                opt.textContent = item.judul;
+                grpStd.appendChild(opt);
+            });
+            selectTupoksi.appendChild(grpStd);
+        }
+
+        if (customList.length > 0) {
+            const grpCust = document.createElement('optgroup');
+            grpCust.label = 'Tupoksi Manual / Kustom Anda';
+            customList.forEach((item, index) => {
+                const opt = document.createElement('option');
+                opt.value = 'cust_' + index;
+                opt.textContent = '★ ' + item.judul;
+                grpCust.appendChild(opt);
+            });
+            selectTupoksi.appendChild(grpCust);
+        }
+
+        const optManual = document.createElement('option');
+        optManual.value = '__add_manual__';
+        optManual.textContent = '+ Tambah Tupoksi Manual Baru...';
+        selectTupoksi.appendChild(optManual);
+
         filterIndikatorByBidang(bidangKey);
+    }
+
+    function tambahTupoksiManualModal() {
+        const bidangKey = inputBidang ? inputBidang.value : 'umum';
+        const bidangLabel = (inputBidang && inputBidang.options[inputBidang.selectedIndex])
+            ? inputBidang.options[inputBidang.selectedIndex].textContent
+            : 'Bidang Tugas';
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Tambah Tupoksi Manual',
+                html: `
+                    <div style="text-align: left; font-size: 0.84rem;">
+                        <div style="margin-bottom: 10px; color: var(--text-muted);">
+                            Bidang Tugas: <strong style="color: var(--text-color);">${bidangLabel}</strong>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">Judul Tupoksi / Agenda <span style="color: #ef4444;">*</span></label>
+                            <input id="swalJudulTupoksi" class="swal2-input" style="width: 100%; margin: 0; font-size: 0.84rem; height: 38px; box-sizing: border-box;" placeholder="Contoh: Pemeliharaan Server & Jaringan">
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">Uraian Pekerjaan / Tugas <span style="color: #ef4444;">*</span></label>
+                            <textarea id="swalUraianTupoksi" class="swal2-textarea" style="width: 100%; margin: 0; font-size: 0.84rem; height: 75px; box-sizing: border-box;" placeholder="Langkah atau deskripsi rincian tugas yang dilaksanakan..."></textarea>
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                            <label style="font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">Hasil / Output Keluaran</label>
+                            <input id="swalOutputTupoksi" class="swal2-input" style="width: 100%; margin: 0; font-size: 0.84rem; height: 38px; box-sizing: border-box;" placeholder="Contoh: Log pemeliharaan terarsip & konektivitas stabil">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Simpan & Terapkan',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#64748b',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const judul = document.getElementById('swalJudulTupoksi')?.value?.trim();
+                    const uraian = document.getElementById('swalUraianTupoksi')?.value?.trim();
+                    const output = document.getElementById('swalOutputTupoksi')?.value?.trim() || '';
+
+                    if (!judul || !uraian) {
+                        Swal.showValidationMessage('Judul dan uraian tugas wajib diisi.');
+                        return false;
+                    }
+                    return { judul, uraian, output };
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    saveCustomTupoksi(bidangKey, result.value);
+                    populateTupoksiOptions(bidangKey);
+                    const customList = getCustomTupoksi(bidangKey);
+                    if (selectTupoksi) {
+                        selectTupoksi.value = 'cust_' + (customList.length - 1);
+                    }
+                    if (inputJudul) inputJudul.value = result.value.judul;
+                    if (inputUraian) inputUraian.value = result.value.uraian;
+                    if (inputOutput) inputOutput.value = result.value.output;
+                } else {
+                    if (selectTupoksi && selectTupoksi.value === '__add_manual__') {
+                        selectTupoksi.value = '';
+                    }
+                }
+            });
+        } else {
+            const judul = prompt('Judul Tupoksi:');
+            if (judul) {
+                const uraian = prompt('Uraian Tugas:') || judul;
+                const output = prompt('Output Keluaran (opsional):') || '';
+                saveCustomTupoksi(bidangKey, { judul, uraian, output });
+                populateTupoksiOptions(bidangKey);
+                if (inputJudul) inputJudul.value = judul;
+                if (inputUraian) inputUraian.value = uraian;
+                if (inputOutput) inputOutput.value = output;
+            }
+        }
+    }
+
+    const btnTambahTupoksiManual = document.getElementById('btnTambahTupoksiManual');
+    if (btnTambahTupoksiManual) {
+        btnTambahTupoksiManual.addEventListener('click', tambahTupoksiManualModal);
     }
 
     if (inputBidang) {
@@ -86,11 +208,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (selectTupoksi) {
         selectTupoksi.addEventListener('change', function () {
+            if (this.value === '__add_manual__') {
+                tambahTupoksiManualModal();
+                return;
+            }
             const bidangKey = inputBidang ? inputBidang.value : 'umum';
             const list = tupoksiTemplates[bidangKey] || tupoksiTemplates['umum'] || [];
-            const idx = parseInt(this.value, 10);
-            if (!isNaN(idx) && list[idx]) {
-                const item = list[idx];
+            const customList = getCustomTupoksi(bidangKey);
+            let item = null;
+
+            if (this.value.startsWith('std_')) {
+                const idx = parseInt(this.value.replace('std_', ''), 10);
+                item = list[idx];
+            } else if (this.value.startsWith('cust_')) {
+                const idx = parseInt(this.value.replace('cust_', ''), 10);
+                item = customList[idx];
+            } else {
+                const idx = parseInt(this.value, 10);
+                if (!isNaN(idx)) item = list[idx];
+            }
+
+            if (item) {
                 if (inputJudul) inputJudul.value = item.judul || '';
                 if (inputUraian) inputUraian.value = item.uraian || '';
                 if (inputOutput) inputOutput.value = item.output || '';

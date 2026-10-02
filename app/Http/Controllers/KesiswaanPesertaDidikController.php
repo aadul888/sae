@@ -51,10 +51,18 @@ class KesiswaanPesertaDidikController extends Controller
 
         // 1. Statistik Ringkas
         $totalAktif = PesertaDidik::count();
-        $totalTidakAktif = DB::table('peserta_didik_tidak_aktif')->count();
+        $totalTidakAktif = DB::table('peserta_didik_tidak_aktif')
+            ->where(function ($b) {
+                $b->where('status_keluar', '<>', 'Alumni')
+                  ->orWhereNull('status_keluar');
+            })
+            ->where('alasan_keluar', 'not like', '%Lulus%')
+            ->where('alasan_keluar', 'not like', '%Tamat%')
+            ->count();
         $totalAlumni = DB::table('peserta_didik_tidak_aktif')
             ->where(function ($b) {
-                $b->where('alasan_keluar', 'like', '%Lulus%')
+                $b->where('status_keluar', 'Alumni')
+                  ->orWhere('alasan_keluar', 'like', '%Lulus%')
                   ->orWhere('alasan_keluar', 'like', '%Tamat%');
             })->count();
         $totalBerkasLengkap = KesiswaanBerkasVerifikasi::where('akta_kelahiran', true)
@@ -109,8 +117,14 @@ class KesiswaanPesertaDidikController extends Controller
             $item->foto_url = $metaMapAktif[$item->peserta_didik_id]?->foto_url ?? null;
         }
 
-        // 3. Tab: Peserta Didik Tidak Aktif (Mutasi / DO / Berhenti)
+        // 3. Tab: Peserta Didik Tidak Aktif (Mutasi / DO / Berhenti - Eksklusif Non-Alumni)
         $tidakAktifQuery = DB::table('peserta_didik_tidak_aktif')
+            ->where(function ($b) {
+                $b->where('status_keluar', '<>', 'Alumni')
+                  ->orWhereNull('status_keluar');
+            })
+            ->where('alasan_keluar', 'not like', '%Lulus%')
+            ->where('alasan_keluar', 'not like', '%Tamat%')
             ->select('id', 'peserta_didik_id', 'nama', 'nisn', 'nipd', 'nik', 'jenis_kelamin', 'nama_rombel_terakhir as rombel_terakhir', 'alasan_keluar', 'tanggal_keluar', 'status_keluar', 'foto_path');
 
         if ($q !== '' && $activeTab === 'tidak_aktif') {

@@ -105,6 +105,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    window.openModalPinjam = function () {
+        if (modalPinjam) modalPinjam.style.display = 'flex';
+    };
+
     window.closeModalPinjam = function () {
         if (modalPinjam) modalPinjam.style.display = 'none';
     };

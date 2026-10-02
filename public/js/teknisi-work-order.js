@@ -165,6 +165,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    window.openModalCreateWO = function () {
+        if (modalCreateWO) modalCreateWO.style.display = 'flex';
+    };
+
     window.closeModalCreateWO = function () {
         if (modalCreateWO) modalCreateWO.style.display = 'none';
     };

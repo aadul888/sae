@@ -104,6 +104,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Relasi Otomatis Nama Pengunjung -> Tipe & Unit/Kelas
     const namaPengunjungInput = document.getElementById('namaPengunjungInput');
 
+    window.openModalKunjungan = function () {
+        if (modalKunjungan) modalKunjungan.style.display = 'flex';
+    };
+
     window.closeModalKunjungan = function () {
         if (modalKunjungan) modalKunjungan.style.display = 'none';
     };

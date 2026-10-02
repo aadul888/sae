@@ -124,6 +124,12 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.style.display = 'flex';
     }
 
+    // Window Exposure untuk Kompatibilitas Inline Handlers & Event Listeners
+    window.openModalBuku = openModalCreate;
+    window.openModalCreate = openModalCreate;
+    window.editBuku = openModalEdit;
+    window.openModalEdit = openModalEdit;
+
     // Modal Close
     window.closeModalBuku = function () {
         if (modal) {
