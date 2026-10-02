@@ -594,7 +594,8 @@
                                 required>
                                 @foreach ($indeksList as $idx)
                                     <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }}
-                                        ({{ $idx->kategori }})</option>
+                                        ({{ $idx->kategori }})
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -1117,5 +1118,7 @@
             @endsection
 
             @push('scripts')
-                <script src="{{ asset('js/persuratan-keluar.js') }}"></script>
+                <script
+                    src="{{ asset('js/persuratan-keluar.js') }}?v={{ file_exists(public_path('js/persuratan-keluar.js')) ? filemtime(public_path('js/persuratan-keluar.js')) : time() }}">
+                </script>
             @endpush

@@ -717,7 +717,8 @@
                         <option value="">-- Pilih Jenis Pelanggaran --</option>
                         @foreach ($tataTertibList as $tt)
                             <option value="{{ $tt->id }}">[{{ $tt->kode }}] {{ $tt->nama_aturan }}
-                                (+{{ $tt->bobot_poin }} Poin)</option>
+                                (+{{ $tt->bobot_poin }} Poin)
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -930,5 +931,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/kesiswaan-kedisiplinan.js') }}"></script>
+    <script
+        src="{{ asset('js/kesiswaan-kedisiplinan.js') }}?v={{ file_exists(public_path('js/kesiswaan-kedisiplinan.js')) ? filemtime(public_path('js/kesiswaan-kedisiplinan.js')) : time() }}">
+    </script>
 @endpush

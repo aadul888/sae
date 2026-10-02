@@ -380,5 +380,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/berkas-peserta-didik.js') }}"></script>
+    <script
+        src="{{ asset('js/berkas-peserta-didik.js') }}?v={{ file_exists(public_path('js/berkas-peserta-didik.js')) ? filemtime(public_path('js/berkas-peserta-didik.js')) : time() }}">
+    </script>
 @endpush

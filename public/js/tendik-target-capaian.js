@@ -24,15 +24,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 2. Load Chart Data Payload
     const chartDataEl = document.getElementById('targetCapaianChartData');
-    if (!chartDataEl || typeof Chart === 'undefined') return;
-
-    let payload = {};
-    try {
-        payload = JSON.parse(chartDataEl.textContent);
-    } catch (e) {
-        console.error('Gagal parsing targetCapaianChartData', e);
-        return;
-    }
+    if (chartDataEl && typeof Chart !== 'undefined') {
+        let payload = {};
+        try {
+            payload = JSON.parse(chartDataEl.textContent);
+        } catch (e) {
+            console.error('Gagal parsing targetCapaianChartData', e);
+        }
 
     const isDarkMode = document.documentElement.classList.contains('dark') ||
         window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -175,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+    } // End Chart Data Block
 
     // 3. Modal Form Tambah / Edit Target Kinerja
     const modalTarget = document.getElementById('modalTargetKinerja');
@@ -184,6 +183,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnOpenTarget = document.getElementById('btnOpenModalTarget');
     const btnCloseTarget = document.getElementById('btnCloseModalTarget');
     const btnCancelTarget = document.getElementById('btnCancelModalTarget');
+
+    window.openModalTarget = openModalTarget;
+    window.closeModalTarget = closeModalTarget;
 
     const inputBidang = document.getElementById('inputTargetBidang');
     const inputSasaran = document.getElementById('inputTargetSasaran');

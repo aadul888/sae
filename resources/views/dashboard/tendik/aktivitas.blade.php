@@ -449,6 +449,7 @@
                                 Form)
                             </label>
                             <button type="button" id="btnTambahTupoksiManual" class="btn btn-outline"
+                                onclick="openSubModalTupoksi()"
                                 style="padding: 2px 8px; font-size: 0.72rem; height: 24px; border-radius: 6px; border-color: rgba(99,102,241,0.4); color: var(--primary); display: inline-flex; align-items: center; gap: 4px;"
                                 title="Tambah template tupoksi baru secara manual">
                                 <i class="fas fa-plus-circle"></i> + Tambah Tupoksi Manual
@@ -615,6 +616,61 @@
         </div>
     </div>
 
+    <!-- Sub-Modal Tambah Tupoksi Manual (Standalone & Bulletproof) -->
+    <div id="modalSubTupoksiManual" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; z-index: 100005 !important; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 12px; box-sizing: border-box;">
+        <div class="card modal-card-responsive"
+            style="max-width: 480px; width: 94%; border-radius: 14px; padding: 18px 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid var(--border-color); background: var(--bg-card); box-sizing: border-box;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h4
+                    style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-plus-circle text-primary"></i> Tambah Tupoksi Manual
+                </h4>
+                <button type="button" onclick="closeSubModalTupoksi()"
+                    style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label
+                    style="font-size: 0.78rem; font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">
+                    Judul Tupoksi / Agenda <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" id="manualTupoksiJudul" class="form-control"
+                    placeholder="Contoh: Pemeliharaan Server &amp; Jaringan"
+                    style="width: 100%; font-size: 0.84rem; height: 38px; border-radius: 8px; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color);">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label
+                    style="font-size: 0.78rem; font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">
+                    Uraian Pekerjaan / Tugas <span style="color: #ef4444;">*</span>
+                </label>
+                <textarea id="manualTupoksiUraian" class="form-control" rows="3"
+                    placeholder="Langkah atau deskripsi rincian tugas yang dilaksanakan..."
+                    style="width: 100%; font-size: 0.84rem; border-radius: 8px; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color);"></textarea>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label
+                    style="font-size: 0.78rem; font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">
+                    Hasil / Output Keluaran
+                </label>
+                <input type="text" id="manualTupoksiOutput" class="form-control"
+                    placeholder="Contoh: Log pemeliharaan terarsip &amp; konektivitas stabil"
+                    style="width: 100%; font-size: 0.84rem; height: 38px; border-radius: 8px; background: var(--bg-hover); color: var(--text-color); border: 1px solid var(--border-color);">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-outline" onclick="closeSubModalTupoksi()"
+                    style="padding: 6px 14px; font-size: 0.82rem; border-radius: 8px;">Batal</button>
+                <button type="button" class="btn btn-primary" id="btnSimpanTupoksiManual"
+                    onclick="simpanTupoksiManual()"
+                    style="padding: 6px 16px; font-size: 0.82rem; border-radius: 8px; background: #10b981; border: none; font-weight: 600;">
+                    <i class="fas fa-check me-1"></i> Simpan &amp; Terapkan
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Data Template Tupoksi untuk JS -->
     <script type="application/json" id="tupoksiTemplatesData">
         {!! json_encode($tupoksiTemplates, JSON_UNESCAPED_UNICODE) !!}
@@ -622,5 +678,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/tendik-aktivitas.js') }}"></script>
+    <script
+        src="{{ asset('js/tendik-aktivitas.js') }}?v={{ file_exists(public_path('js/tendik-aktivitas.js')) ? filemtime(public_path('js/tendik-aktivitas.js')) : time() }}">
+    </script>
 @endpush

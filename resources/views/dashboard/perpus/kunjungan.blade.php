@@ -23,7 +23,7 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button type="button" class="btn btn-primary" id="btnTambahKunjungan"
+                <button type="button" class="btn btn-primary" id="btnTambahKunjungan" onclick="openModalKunjungan()"
                     style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
                     title="Catat Pengunjung">
                     <i class="fas fa-pen-fancy"></i>
@@ -322,5 +322,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/perpus-kunjungan.js') }}"></script>
+    <script
+        src="{{ asset('js/perpus-kunjungan.js') }}?v={{ file_exists(public_path('js/perpus-kunjungan.js')) ? filemtime(public_path('js/perpus-kunjungan.js')) : time() }}">
+    </script>
 @endpush

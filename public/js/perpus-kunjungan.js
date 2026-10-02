@@ -3,6 +3,28 @@
  * Sistem Aplikasi Edukasi (SAE)
  */
 
+window.openModalKunjungan = function () {
+    const modal = document.getElementById('modalKunjungan');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeModalKunjungan = function () {
+    const modal = document.getElementById('modalKunjungan');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+};
+
+document.addEventListener('click', function (e) {
+    if (e.target.closest('#btnTambahKunjungan')) {
+        window.openModalKunjungan();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const modalKunjungan = document.getElementById('modalKunjungan');
 

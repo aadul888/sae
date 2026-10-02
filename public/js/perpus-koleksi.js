@@ -1,14 +1,99 @@
 /**
  * JavaScript Modul Perpustakaan - Koleksi & Katalog Buku
  * Sistem Aplikasi Edukasi (SAE)
+ * Standar Baku SAE: Vanilla JS, Zero Framework, Modal Handling, High Resilience
  */
 
-document.addEventListener('DOMContentLoaded', function () {
+// 1. Global Modal Functions (Exposed immediately for inline handlers & event delegation)
+window.openModalCreate = function () {
     const modal = document.getElementById('modalBuku');
     const form = document.getElementById('formBuku');
-    const modalTitle = document.getElementById('modalTitle');
-    const btnSimpan = document.getElementById('btnSimpan');
-    const formMethod = document.getElementById('formMethod');
+    const modalTitle = document.getElementById('modalBukuTitle') || document.getElementById('modalTitle');
+    const formMethod = document.getElementById('bukuMethod') || document.getElementById('formMethod');
+
+    if (!modal || !form) return;
+
+    if (modalTitle) modalTitle.textContent = 'Tambah Koleksi Buku';
+    if (formMethod) formMethod.value = 'POST';
+
+    form.action = form.getAttribute('data-store-url') || window.location.pathname;
+    form.reset();
+
+    const idInput = document.getElementById('buku_id');
+    if (idInput) idInput.value = '';
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+window.openModalBuku = window.openModalCreate;
+
+window.closeModalBuku = function () {
+    const modal = document.getElementById('modalBuku');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+};
+
+window.openModalEdit = function (item) {
+    if (typeof item === 'string') {
+        try {
+            item = JSON.parse(item);
+        } catch (e) {
+            console.error('Gagal parsing data item buku', e);
+            return;
+        }
+    }
+    const modal = document.getElementById('modalBuku');
+    const form = document.getElementById('formBuku');
+    const modalTitle = document.getElementById('modalBukuTitle') || document.getElementById('modalTitle');
+    const formMethod = document.getElementById('bukuMethod') || document.getElementById('formMethod');
+
+    if (!modal || !form || !item) return;
+
+    if (modalTitle) modalTitle.textContent = 'Edit Data Buku';
+    if (formMethod) formMethod.value = 'PUT';
+
+    const updateBase = form.getAttribute('data-update-base') || '/dashboard/perpustakaan/koleksi';
+    form.action = `${updateBase}/${item.id}`;
+
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val !== undefined && val !== null ? val : '';
+    };
+
+    setVal('buku_id', item.id);
+    setVal('buku_kode', item.kode_buku);
+    setVal('kode_buku', item.kode_buku);
+    setVal('buku_isbn', item.isbn);
+    setVal('isbn', item.isbn);
+    setVal('buku_judul', item.judul);
+    setVal('judul', item.judul);
+    setVal('buku_penulis', item.penulis);
+    setVal('penulis', item.penulis);
+    setVal('buku_penerbit', item.penerbit);
+    setVal('penerbit', item.penerbit);
+    setVal('buku_tahun', item.tahun_terbit);
+    setVal('tahun_terbit', item.tahun_terbit);
+    setVal('buku_ddc', item.klasifikasi_ddc);
+    setVal('klasifikasi_ddc', item.klasifikasi_ddc);
+    setVal('buku_kategori', item.kategori || 'Umum');
+    setVal('kategori', item.kategori || 'Umum');
+    setVal('buku_eksemplar', item.jumlah_eksemplar || 1);
+    setVal('jumlah_eksemplar', item.jumlah_eksemplar || 1);
+    setVal('buku_rak', item.lokasi_rak);
+    setVal('lokasi_rak', item.lokasi_rak);
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+window.editBuku = window.openModalEdit;
+
+// 2. Event Delegation & Search Filters
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modalBuku');
 
     // Live search & debounce
     const searchInput = document.getElementById('searchKoleksi');
@@ -53,27 +138,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Event Delegation: Open Modal Add / Edit / Delete
-    document.addEventListener('click', function (e) {
-        // Tombol Tambah Buku
-        if (e.target.closest('#btnTambahBuku')) {
-            openModalCreate();
+    // Close on click outside
+    if (modal) {
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) {
+                window.closeModalBuku();
+            }
+        });
+    }
+});
+
+// Event Delegation for Button Clicks (Works even if DOM dynamically updates)
+document.addEventListener('click', function (e) {
+    // Tombol Tambah Buku
+    if (e.target.closest('#btnTambahBuku')) {
+        window.openModalCreate();
+        return;
+    }
+
+    // Tombol Edit Buku
+    const btnEdit = e.target.closest('.btn-edit-buku');
+    if (btnEdit) {
+        const itemAttr = btnEdit.getAttribute('data-item');
+        if (itemAttr) {
+            window.openModalEdit(itemAttr);
         }
+        return;
+    }
 
-        // Tombol Edit Buku
-        const btnEdit = e.target.closest('.btn-edit-buku');
-        if (btnEdit) {
-            const item = JSON.parse(btnEdit.getAttribute('data-item') || '{}');
-            openModalEdit(item);
-        }
+    // Tombol Hapus Buku (SweetAlert2)
+    const btnDelete = e.target.closest('.btn-delete-buku');
+    if (btnDelete) {
+        e.preventDefault();
+        const formDel = btnDelete.closest('form');
+        const judul = btnDelete.getAttribute('data-judul') || 'buku ini';
 
-        // Tombol Hapus Buku (SweetAlert2)
-        const btnDelete = e.target.closest('.btn-delete-buku');
-        if (btnDelete) {
-            e.preventDefault();
-            const formDel = btnDelete.closest('form');
-            const judul = btnDelete.getAttribute('data-judul') || 'buku ini';
-
+        if (typeof Swal !== 'undefined') {
             Swal.fire({
                 title: 'Konfirmasi Hapus',
                 text: `Apakah Anda yakin ingin menghapus buku "${judul}"?`,
@@ -88,61 +188,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     formDel.submit();
                 }
             });
-        }
-    });
-
-    function openModalCreate() {
-        if (!modal || !form) return;
-        modalTitle.textContent = 'Tambah Koleksi Buku';
-        form.action = form.getAttribute('data-store-url') || window.location.pathname;
-        formMethod.value = 'POST';
-        form.reset();
-        document.getElementById('buku_id').value = '';
-        modal.style.display = 'flex';
-    }
-
-    function openModalEdit(item) {
-        if (!modal || !form) return;
-        modalTitle.textContent = 'Edit Data Buku';
-        const updateBase = form.getAttribute('data-update-base') || window.location.pathname;
-        form.action = `${updateBase}/${item.id}`;
-        formMethod.value = 'PUT';
-
-        document.getElementById('buku_id').value = item.id || '';
-        document.getElementById('kode_buku').value = item.kode_buku || '';
-        document.getElementById('isbn').value = item.isbn || '';
-        document.getElementById('judul').value = item.judul || '';
-        document.getElementById('penulis').value = item.penulis || '';
-        document.getElementById('penerbit').value = item.penerbit || '';
-        document.getElementById('tahun_terbit').value = item.tahun_terbit || '';
-        document.getElementById('klasifikasi_ddc').value = item.klasifikasi_ddc || '';
-        document.getElementById('kategori').value = item.kategori || 'Umum';
-        document.getElementById('jumlah_eksemplar').value = item.jumlah_eksemplar || 1;
-        document.getElementById('eksemplar_tersedia').value = item.eksemplar_tersedia ?? item.jumlah_eksemplar ?? 1;
-        document.getElementById('lokasi_rak').value = item.lokasi_rak || '';
-
-        modal.style.display = 'flex';
-    }
-
-    // Window Exposure untuk Kompatibilitas Inline Handlers & Event Listeners
-    window.openModalBuku = openModalCreate;
-    window.openModalCreate = openModalCreate;
-    window.editBuku = openModalEdit;
-    window.openModalEdit = openModalEdit;
-
-    // Modal Close
-    window.closeModalBuku = function () {
-        if (modal) {
-            modal.style.display = 'none';
-        }
-    };
-
-    // Close on click outside
-    if (modal) {
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                closeModalBuku();
+        } else {
+            if (confirm(`Apakah Anda yakin ingin menghapus buku "${judul}"?`)) {
+                formDel.submit();
             }
-        });
+        }
     }
 });

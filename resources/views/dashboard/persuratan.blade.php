@@ -650,5 +650,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/persuratan.js') }}"></script>
+    <script
+        src="{{ asset('js/persuratan.js') }}?v={{ file_exists(public_path('js/persuratan.js')) ? filemtime(public_path('js/persuratan.js')) : time() }}">
+    </script>
 @endpush

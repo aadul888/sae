@@ -378,5 +378,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/keamanan-buku-tamu.js') }}"></script>
+    <script
+        src="{{ asset('js/keamanan-buku-tamu.js') }}?v={{ file_exists(public_path('js/keamanan-buku-tamu.js')) ? filemtime(public_path('js/keamanan-buku-tamu.js')) : time() }}">
+    </script>
 @endpush

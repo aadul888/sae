@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const formKembali = document.getElementById('formKembali');
     const kembaliDesc = document.getElementById('kembaliDesc');
 
+    window.openModalPinjamSarpras = () => { if (modalPinjam) modalPinjam.style.display = 'flex'; };
+    window.closeModalPinjamSarpras = () => { if (modalPinjam) modalPinjam.style.display = 'none'; };
+    window.closeModalKembaliSarpras = () => { if (modalKembali) modalKembali.style.display = 'none'; };
+
     if (btnOpenPinjam && modalPinjam) {
         btnOpenPinjam.addEventListener('click', () => modalPinjam.style.display = 'flex');
     }

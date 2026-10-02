@@ -401,5 +401,7 @@
             searchSiswa: "{{ route('dashboard.piket.izin.search-siswa') }}"
         };
     </script>
-    <script src="{{ asset('js/piket-izin.js') }}"></script>
+    <script
+        src="{{ asset('js/piket-izin.js') }}?v={{ file_exists(public_path('js/piket-izin.js')) ? filemtime(public_path('js/piket-izin.js')) : time() }}">
+    </script>
 @endpush

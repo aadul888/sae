@@ -334,6 +334,8 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/sarpras-ruang.js') }}"></script>
+        <script
+            src="{{ asset('js/sarpras-ruang.js') }}?v={{ file_exists(public_path('js/sarpras-ruang.js')) ? filemtime(public_path('js/sarpras-ruang.js')) : time() }}">
+        </script>
     @endpush
 @endsection

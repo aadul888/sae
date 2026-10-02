@@ -505,5 +505,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/teknisi-pemeliharaan.js') }}"></script>
+    <script
+        src="{{ asset('js/teknisi-pemeliharaan.js') }}?v={{ file_exists(public_path('js/teknisi-pemeliharaan.js')) ? filemtime(public_path('js/teknisi-pemeliharaan.js')) : time() }}">
+    </script>
 @endpush

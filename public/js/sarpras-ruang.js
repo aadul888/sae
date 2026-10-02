@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (modal) modal.style.display = 'none';
     }
 
+    window.openModalRuang = (isEdit, data) => openModal(isEdit, data);
+    window.closeModalRuang = closeModal;
+
     if (btnOpen) btnOpen.addEventListener('click', () => openModal(false));
     if (btnClose) btnClose.addEventListener('click', closeModal);
     if (btnCancel) btnCancel.addEventListener('click', closeModal);

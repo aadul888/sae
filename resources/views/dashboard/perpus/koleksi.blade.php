@@ -263,9 +263,11 @@
 
             <form id="formBuku" method="POST" action="{{ route('dashboard.perpustakaan.koleksi.store') }}"
                 data-store-url="{{ route('dashboard.perpustakaan.koleksi.store') }}"
+                data-update-base="{{ url('/dashboard/perpustakaan/koleksi') }}"
                 data-update-url="{{ url('/dashboard/perpustakaan/koleksi') }}/:id">
                 @csrf
                 <input type="hidden" name="_method" id="bukuMethod" value="POST">
+                <input type="hidden" name="id" id="buku_id">
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                     <div>
@@ -347,5 +349,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/perpus-koleksi.js') }}"></script>
+    <script
+        src="{{ asset('js/perpus-koleksi.js') }}?v={{ file_exists(public_path('js/perpus-koleksi.js')) ? filemtime(public_path('js/perpus-koleksi.js')) : time() }}">
+    </script>
 @endpush

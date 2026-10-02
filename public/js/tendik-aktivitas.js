@@ -3,6 +3,94 @@
  * JS Modular (Kepatuhan Rule #2: Zero inline script di Blade)
  */
 
+// Global Sub-Modal Tupoksi Manual Helpers
+window.openSubModalTupoksi = function () {
+    const subModal = document.getElementById('modalSubTupoksiManual');
+    if (subModal) {
+        subModal.style.display = 'flex';
+        const inputJ = document.getElementById('manualTupoksiJudul');
+        if (inputJ) {
+            inputJ.value = '';
+            setTimeout(() => inputJ.focus(), 60);
+        }
+        const inputU = document.getElementById('manualTupoksiUraian');
+        if (inputU) inputU.value = '';
+        const inputO = document.getElementById('manualTupoksiOutput');
+        if (inputO) inputO.value = '';
+    }
+};
+
+window.closeSubModalTupoksi = function () {
+    const subModal = document.getElementById('modalSubTupoksiManual');
+    if (subModal) {
+        subModal.style.display = 'none';
+    }
+};
+
+window.simpanTupoksiManual = function () {
+    const inputJ = document.getElementById('manualTupoksiJudul');
+    const inputU = document.getElementById('manualTupoksiUraian');
+    const inputO = document.getElementById('manualTupoksiOutput');
+    const judul = inputJ ? inputJ.value.trim() : '';
+    const uraian = inputU ? inputU.value.trim() : '';
+    const output = inputO ? inputO.value.trim() : '';
+
+    if (!judul) {
+        if (inputJ) inputJ.focus();
+        alert('Judul Tupoksi wajib diisi.');
+        return;
+    }
+    if (!uraian) {
+        if (inputU) inputU.focus();
+        alert('Uraian tugas wajib diisi.');
+        return;
+    }
+
+    const inputBidang = document.getElementById('inputBidang');
+    const bidangKey = inputBidang ? inputBidang.value : 'umum';
+
+    try {
+        const key = 'sae_custom_tupoksi_' + bidangKey;
+        const list = JSON.parse(localStorage.getItem(key) || '[]');
+        list.push({ judul, uraian, output });
+        localStorage.setItem(key, JSON.stringify(list));
+    } catch (e) {}
+
+    if (typeof window.populateTupoksiOptionsGlobal === 'function') {
+        window.populateTupoksiOptionsGlobal(bidangKey);
+    }
+
+    const selectTupoksi = document.getElementById('selectTupoksiPreset');
+    if (selectTupoksi) {
+        try {
+            const list = JSON.parse(localStorage.getItem('sae_custom_tupoksi_' + bidangKey) || '[]');
+            selectTupoksi.value = 'cust_' + (list.length - 1);
+        } catch (e) {}
+    }
+
+    const formJudul = document.getElementById('inputJudul');
+    const formUraian = document.getElementById('inputUraian');
+    const formOutput = document.getElementById('inputOutput');
+    if (formJudul) formJudul.value = judul;
+    if (formUraian) formUraian.value = uraian;
+    if (formOutput) formOutput.value = output;
+
+    window.closeSubModalTupoksi();
+};
+
+window.tambahTupoksiManualModal = window.openSubModalTupoksi;
+
+// Event Delegation for Sub-Modal Backdrop & Trigger
+document.addEventListener('click', function (e) {
+    const subModal = document.getElementById('modalSubTupoksiManual');
+    if (subModal && e.target === subModal) {
+        window.closeSubModalTupoksi();
+    }
+    if (e.target.closest('#btnTambahTupoksiManual')) {
+        window.openSubModalTupoksi();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modalAktivitas');
     const modalTitle = document.getElementById('modalAktivitasTitle');
@@ -108,6 +196,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function tambahTupoksiManualModal() {
+        if (typeof window.openSubModalTupoksi === 'function') {
+            window.openSubModalTupoksi();
+            return;
+        }
+
         const bidangKey = inputBidang ? inputBidang.value : 'umum';
         const bidangLabel = (inputBidang && inputBidang.options[inputBidang.selectedIndex])
             ? inputBidang.options[inputBidang.selectedIndex].textContent
@@ -141,6 +234,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 confirmButtonColor: '#10b981',
                 cancelButtonColor: '#64748b',
                 focusConfirm: false,
+                didOpen: () => {
+                    const c = Swal.getContainer();
+                    if (c) c.style.setProperty('z-index', '9999999', 'important');
+                },
                 preConfirm: () => {
                     const judul = document.getElementById('swalJudulTupoksi')?.value?.trim();
                     const uraian = document.getElementById('swalUraianTupoksi')?.value?.trim();
@@ -182,6 +279,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+
+    // Expose populate function for sub-modal
+    window.populateTupoksiOptionsGlobal = populateTupoksiOptions;
 
     const btnTambahTupoksiManual = document.getElementById('btnTambahTupoksiManual');
     if (btnTambahTupoksiManual) {

@@ -427,6 +427,8 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/sarpras-peminjaman.js') }}"></script>
+        <script
+            src="{{ asset('js/sarpras-peminjaman.js') }}?v={{ file_exists(public_path('js/sarpras-peminjaman.js')) ? filemtime(public_path('js/sarpras-peminjaman.js')) : time() }}">
+        </script>
     @endpush
 @endsection

@@ -23,7 +23,7 @@
             </div>
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button type="button" class="btn btn-primary" id="btnTambahPeminjaman"
+                <button type="button" class="btn btn-primary" id="btnTambahPeminjaman" onclick="openModalPinjam()"
                     style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
                     title="Transaksi Pinjam">
                     <i class="fas fa-plus"></i>
@@ -436,5 +436,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/perpus-sirkulasi.js') }}"></script>
+    <script
+        src="{{ asset('js/perpus-sirkulasi.js') }}?v={{ file_exists(public_path('js/perpus-sirkulasi.js')) ? filemtime(public_path('js/perpus-sirkulasi.js')) : time() }}">
+    </script>
 @endpush

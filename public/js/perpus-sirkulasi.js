@@ -3,6 +3,36 @@
  * Sistem Aplikasi Edukasi (SAE)
  */
 
+window.openModalPinjam = function () {
+    const m = document.getElementById('modalPinjam');
+    if (m) {
+        m.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeModalPinjam = function () {
+    const m = document.getElementById('modalPinjam');
+    if (m) {
+        m.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+};
+
+window.closeModalKembalikan = function () {
+    const m = document.getElementById('modalKembalikan');
+    if (m) {
+        m.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+};
+
+document.addEventListener('click', function (e) {
+    if (e.target.closest('#btnTambahPeminjaman')) {
+        window.openModalPinjam();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function () {
     const modalPinjam = document.getElementById('modalPinjam');
     const modalKembalikan = document.getElementById('modalKembalikan');

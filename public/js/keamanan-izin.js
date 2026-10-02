@@ -1,20 +1,23 @@
+window.openModalScan = function () {
+    const modal = document.getElementById('modalScanTiket');
+    const inputScan = document.getElementById('inputScanTiket');
+    const resContainer = document.getElementById('scanResultContainer');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    if (inputScan) inputScan.value = '';
+    if (resContainer) resContainer.style.display = 'none';
+    if (inputScan) setTimeout(() => inputScan.focus(), 150);
+};
+
+window.closeModalScan = function () {
+    const modal = document.getElementById('modalScanTiket');
+    if (modal) modal.style.display = 'none';
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modalScanTiket');
     const inputScan = document.getElementById('inputScanTiket');
     const resContainer = document.getElementById('scanResultContainer');
-
-    window.openModalScan = function () {
-        if (!modal) return;
-        modal.style.display = 'flex';
-        inputScan.value = '';
-        resContainer.style.display = 'none';
-        setTimeout(() => inputScan.focus(), 150);
-    };
-
-    window.closeModalScan = function () {
-        if (!modal) return;
-        modal.style.display = 'none';
-    };
 
     if (modal) {
         modal.addEventListener('click', function (e) {

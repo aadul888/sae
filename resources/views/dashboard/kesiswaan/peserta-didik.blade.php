@@ -1625,5 +1625,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/kesiswaan-peserta-didik.js') }}"></script>
+    <script
+        src="{{ asset('js/kesiswaan-peserta-didik.js') }}?v={{ file_exists(public_path('js/kesiswaan-peserta-didik.js')) ? filemtime(public_path('js/kesiswaan-peserta-didik.js')) : time() }}">
+    </script>
 @endpush

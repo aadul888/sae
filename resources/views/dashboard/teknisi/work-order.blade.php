@@ -535,5 +535,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/teknisi-work-order.js') }}"></script>
+    <script
+        src="{{ asset('js/teknisi-work-order.js') }}?v={{ file_exists(public_path('js/teknisi-work-order.js')) ? filemtime(public_path('js/teknisi-work-order.js')) : time() }}">
+    </script>
 @endpush
