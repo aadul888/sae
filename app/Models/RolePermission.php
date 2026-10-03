@@ -62,7 +62,7 @@ class RolePermission extends Model
                 'menu_dashboard' => [
                     'label' => 'Dashboard Utama',
                     'icon' => 'fa-gauge-high',
-                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'],
                 ],
                 'menu_dapodik' => [
                     'label' => 'Tarik Data Dapodik',
@@ -414,27 +414,27 @@ class RolePermission extends Model
                 'menu_identitas_siswa' => [
                     'label' => 'Identitas Lengkap Siswa (Dapodik)',
                     'icon' => 'fa-id-card',
-                    'roles' => ['admin', 'tendik', 'peserta_didik'],
+                    'roles' => ['admin', 'tendik', 'peserta_didik', 'orang_tua'],
                 ],
                 'menu_surat_izin_pd' => [
                     'label' => 'Surat Izin & Sakit (Peserta Didik)',
                     'icon' => 'fa-envelope-open-text',
-                    'roles' => ['peserta_didik'],
+                    'roles' => ['peserta_didik', 'orang_tua'],
                 ],
                 'menu_riwayat_rfid' => [
                     'label' => 'Riwayat Presensi RFID',
                     'icon' => 'fa-id-card-clip',
-                    'roles' => ['peserta_didik'],
+                    'roles' => ['peserta_didik', 'orang_tua'],
                 ],
                 'menu_jadwal_pelajaran' => [
                     'label' => 'Jadwal Pelajaran & Mengajar',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['admin', 'guru', 'peserta_didik'],
+                    'roles' => ['admin', 'guru', 'peserta_didik', 'orang_tua'],
                 ],
                 'menu_rapor' => [
                     'label' => 'Transkrip & Rapor',
                     'icon' => 'fa-file-lines',
-                    'roles' => ['peserta_didik'],
+                    'roles' => ['peserta_didik', 'orang_tua'],
                 ],
                 'menu_validasi_berkas' => [
                     'label' => 'Validasi Berkas',
@@ -848,10 +848,6 @@ class RolePermission extends Model
             return false;
         }
 
-        if ($role !== 'guru') {
-            return false;
-        }
-
         $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
 
@@ -1102,6 +1098,49 @@ class RolePermission extends Model
     }
 
     /**
+     * Dapatkan status izin (termasuk CRUD) untuk Wali Kelas pada suatu permission key.
+     * Digunakan oleh Koordinator Kelas untuk mewarisi hak akses Wali Kelas secara otomatis.
+     */
+    public static function getWaliKelasPermission(string $permissionKey, string $action = 'read'): bool
+    {
+        $actionCol = 'can_' . strtolower(trim($action));
+        if (!in_array($actionCol, ['can_create', 'can_read', 'can_update', 'can_delete'])) {
+            $actionCol = 'can_read';
+        }
+
+        // 1. Cek di role_permissions untuk peran 'guru' (peran standar pengampu wali kelas)
+        if (!isset(self::$runtimeRolePermissionsCache['guru'])) {
+            self::$runtimeRolePermissionsCache['guru'] = self::where('role', 'guru')->get()->keyBy('permission_key');
+        }
+        $guruRow = self::$runtimeRolePermissionsCache['guru']->get($permissionKey);
+        if (!$guruRow && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal'], true)) {
+            $guruRow = self::$runtimeRolePermissionsCache['guru']->get('menu_wali_kelas');
+        }
+
+        if ($guruRow) {
+            if ($guruRow->is_allowed && $guruRow->can_read) {
+                return $actionCol === 'can_read' ? true : (bool) $guruRow->{$actionCol};
+            }
+            return false;
+        }
+
+        // 2. Cek di role_permissions untuk peran 'admin' jika belum ada row guru
+        if (isset(self::$runtimeRolePermissionsCache['admin'])) {
+            $adminRow = self::$runtimeRolePermissionsCache['admin']->get($permissionKey);
+            if ($adminRow && $adminRow->is_allowed && $adminRow->can_read) {
+                return $actionCol === 'can_read' ? true : (bool) $adminRow->{$actionCol};
+            }
+        }
+
+        // 3. Fallback default untuk modul wali kelas: read, create, update diizinkan
+        if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_presensi_peserta_didik'])) {
+            return in_array($actionCol, ['can_read', 'can_create', 'can_update']);
+        }
+
+        return false;
+    }
+
+    /**
      * Cek apakah user atau role memiliki izin terhadap suatu permission_key
      */
     public static function canAccess($userOrRole, string $permissionKey, string $action = 'read'): bool
@@ -1194,14 +1233,11 @@ class RolePermission extends Model
         }
         $hasDutyTables = self::$runtimeHasTableDuties;
 
-        // Khusus Peserta Didik yang ditunjuk sebagai Koordinator Kelas (Membantu tugas Wali Kelas)
+        // Khusus Peserta Didik yang ditunjuk sebagai Koordinator Kelas:
+        // Menu + CRUD otomatis mewarisi hak akses Wali Kelas
         if ($role === 'peserta_didik' && self::isKoordinator($user)) {
-            if (in_array($permissionKey, [
-                'menu_wali_kelas_aktif',
-                'menu_wali_kelas_presensi',
-                'menu_wali_kelas_jadwal',
-            ], true)) {
-                return in_array($actionCol, ['can_read', 'can_create', 'can_update', 'can_delete']);
+            if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'], true)) {
+                return self::getWaliKelasPermission($permissionKey, $action);
             }
         }
 
@@ -1256,11 +1292,16 @@ class RolePermission extends Model
 
             // Jika modul spesifik tugas tambahan (misal laboran, persuratan, wali kelas, dsb.),
             // hanya personel yang memegang tugas tambahan tersebut yang boleh mengakses (Secondary Gate)
-            if (in_array($role, ['guru', 'tendik', 'peserta_didik']) && $hasDutyTables && self::isDutySpecificPermission($permissionKey)) {
-                $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
-                $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
-                if (!self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
-                    return false;
+            if (in_array($role, ['guru', 'tendik', 'peserta_didik', 'orang_tua']) && $hasDutyTables && self::isDutySpecificPermission($permissionKey)) {
+                // Kecuali Koordinator Kelas untuk modul wali kelas (sudah diizinkan mewarisi Wali Kelas di atas)
+                if ($role === 'peserta_didik' && self::isKoordinator($user) && (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_presensi_peserta_didik']))) {
+                    // Koordinator lolos gate
+                } else {
+                    $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
+                    $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+                    if (!self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
+                        return false;
+                    }
                 }
             }
 
@@ -1273,7 +1314,7 @@ class RolePermission extends Model
 
         // 2. Jika modul TIDAK ADA di role_permissions untuk peran dasar user:
         // Periksa apakah user memiliki tugas tambahan aktif yang membuka akses ke modul ini (Duty Gate)
-        if (in_array($role, ['guru', 'tendik', 'peserta_didik']) && $hasDutyTables) {
+        if (in_array($role, ['guru', 'tendik', 'peserta_didik', 'orang_tua']) && $hasDutyTables) {
             $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
             $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
             if (self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
@@ -1936,7 +1977,7 @@ class RolePermission extends Model
             return;
         }
 
-        $validRoles = ['admin', 'guru', 'tendik', 'peserta_didik'];
+        $validRoles = ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'];
         $isSpecific = $targetRole && in_array($targetRole, $validRoles, true);
 
         if ($isSpecific) {
@@ -2000,6 +2041,7 @@ class RolePermission extends Model
             'guru' => [],
             'tendik' => [],
             'peserta_didik' => [],
+            'orang_tua' => [],
         ];
 
         foreach ($allPermissions as $groupName => $items) {
@@ -2014,7 +2056,7 @@ class RolePermission extends Model
         }
 
         // 1. Bersihkan modul yang tidak sah untuk role tertentu di tabel role_permissions
-        foreach (['guru', 'tendik', 'peserta_didik'] as $role) {
+        foreach (['guru', 'tendik', 'peserta_didik', 'orang_tua'] as $role) {
             self::where('role', $role)
                 ->whereNotIn('permission_key', $allowedKeysPerRole[$role])
                 ->delete();

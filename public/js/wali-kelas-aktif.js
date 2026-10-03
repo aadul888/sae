@@ -321,4 +321,259 @@ document.addEventListener("DOMContentLoaded", function () {
 
         applyFilter({ sort: sortField, sort_dir: newDir });
     });
+
+    // Wire up Drag & Drop and File Input for Photo Upload Modal
+    const fileInput = document.getElementById("fotoFileInput");
+    const dropZone = document.getElementById("fotoDropZone");
+
+    if (fileInput) {
+        fileInput.addEventListener("change", function () {
+            if (this.files && this.files[0]) {
+                handleFilePreview(this.files[0]);
+            }
+        });
+    }
+
+    if (dropZone) {
+        ["dragenter", "dragover"].forEach((eventName) => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.style.borderColor = "var(--primary)";
+                dropZone.style.background = "rgba(99, 102, 241, 0.08)";
+            });
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.style.borderColor = "rgba(99, 102, 241, 0.4)";
+                dropZone.style.background = "rgba(255, 255, 255, 0.01)";
+            });
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            const dt = e.dataTransfer;
+            if (dt && dt.files && dt.files[0]) {
+                if (fileInput) {
+                    fileInput.files = dt.files;
+                }
+                handleFilePreview(dt.files[0]);
+            }
+        });
+    }
 });
+
+// ==========================================
+// 2. MODAL UNGGAH & KELOLA PASFOTO PESERTA DIDIK
+// ==========================================
+let currentSelectedPdId = null;
+let currentFotoUrl = null;
+
+function formatBytes(bytes, decimals = 1) {
+    if (!bytes || bytes === 0) return '0 B';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+window.openUploadFotoModal = function (id, nama, nisn, fotoUrl, fotoSize) {
+    currentSelectedPdId = id;
+    currentFotoUrl = fotoUrl || "";
+
+    const modal = document.getElementById("fotoUploadModal");
+    const title = document.getElementById("fotoModalTitle");
+    const subtitle = document.getElementById("fotoModalSubtitle");
+    const hiddenId = document.getElementById("fotoUploadPdId");
+    const previewImg = document.getElementById("fotoPreviewImg");
+    const placeholder = document.getElementById("fotoPreviewPlaceholder");
+    const specs = document.getElementById("fotoFileSpecs");
+    const btnDelete = document.getElementById("btnDeleteFoto");
+    const fileInput = document.getElementById("fotoFileInput");
+
+    if (!modal) return;
+
+    if (fileInput) fileInput.value = "";
+    if (hiddenId) hiddenId.value = id;
+    if (title) title.textContent = "Pasfoto: " + (nama || "Peserta Didik");
+    if (subtitle) subtitle.textContent = "NISN: " + (nisn || "-") + " • ID: " + id;
+
+    if (fotoUrl) {
+        if (previewImg) {
+            previewImg.src = fotoUrl + "?v=" + Date.now();
+            previewImg.style.display = "block";
+        }
+        if (placeholder) placeholder.style.display = "none";
+        if (specs) {
+            specs.style.display = "block";
+            specs.innerHTML = `<i class="fas fa-circle-check me-1"></i> Format: PNG • Ukuran: ${fotoSize || "Tersimpan"}`;
+        }
+        if (btnDelete) btnDelete.style.display = "inline-flex";
+    } else {
+        if (previewImg) {
+            previewImg.src = "";
+            previewImg.style.display = "none";
+        }
+        if (placeholder) placeholder.style.display = "block";
+        if (specs) {
+            specs.style.display = "none";
+            specs.textContent = "";
+        }
+        if (btnDelete) btnDelete.style.display = "none";
+    }
+
+    modal.style.display = "flex";
+};
+
+window.closeUploadFotoModal = function () {
+    const modal = document.getElementById("fotoUploadModal");
+    if (modal) modal.style.display = "none";
+    const fileInput = document.getElementById("fotoFileInput");
+    if (fileInput) fileInput.value = "";
+};
+
+function handleFilePreview(file) {
+    if (!file) return;
+
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (ext !== "png" || (file.type && file.type !== "image/png" && file.type !== "image/x-png")) {
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast("Pasfoto peserta didik wajib berformat PNG (.png).", "warning");
+        } else {
+            alert("File harus berformat PNG (.png).");
+        }
+        const fileInput = document.getElementById("fotoFileInput");
+        if (fileInput) fileInput.value = "";
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast("Ukuran file pasfoto maksimal 5 MB.", "danger");
+        } else {
+            alert("Ukuran file maksimal 5 MB.");
+        }
+        const fileInput = document.getElementById("fotoFileInput");
+        if (fileInput) fileInput.value = "";
+        return;
+    }
+
+    const previewImg = document.getElementById("fotoPreviewImg");
+    const placeholder = document.getElementById("fotoPreviewPlaceholder");
+    const specsEl = document.getElementById("fotoFileSpecs");
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const dataUrl = e.target.result;
+        const tempImg = new Image();
+        tempImg.onload = function () {
+            if (previewImg) {
+                previewImg.src = dataUrl;
+                previewImg.style.display = "block";
+            }
+            if (placeholder) placeholder.style.display = "none";
+
+            if (specsEl) {
+                specsEl.style.display = "block";
+                specsEl.innerHTML = `<span style="color: #10b981;"><i class="fas fa-file-circle-check me-1"></i> PNG Siap: ${formatBytes(file.size)} (${tempImg.width} &times; ${tempImg.height} px)</span>`;
+            }
+        };
+        tempImg.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+}
+
+window.handleSubmitFoto = async function () {
+    const fileInput = document.getElementById("fotoFileInput");
+    const pdId = currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
+    const btnSubmit = document.getElementById("btnSubmitFoto");
+
+    if (!pdId) {
+        alert("ID peserta didik tidak valid.");
+        return;
+    }
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert("Silakan pilih file foto terlebih dahulu.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append("peserta_didik_id", pdId);
+    formData.append("foto", file);
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengompresi & Menyimpan...';
+    }
+
+    try {
+        const res = await fetch("/dashboard/manajemen-data/peserta-didik-aktif/upload-foto", {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": csrfToken,
+                Accept: "application/json",
+            },
+            body: formData,
+        });
+
+        const json = await res.json();
+
+        if (json.status === "success") {
+            if (window.SAE && typeof window.SAE.toast === "function") {
+                window.SAE.toast(`Foto ${json.data.nama || "peserta didik"} berhasil disimpan!`, "success");
+            } else {
+                alert("Foto berhasil disimpan!");
+            }
+            window.closeUploadFotoModal();
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            throw new Error(json.message || "Gagal mengunggah foto.");
+        }
+    } catch (err) {
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast(err.message || "Gagal mengunggah foto.", "danger");
+        } else {
+            alert(err.message || "Gagal mengunggah foto.");
+        }
+    } finally {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fas fa-cloud-arrow-up me-1"></i> Simpan Pasfoto';
+        }
+    }
+};
+
+window.handleDeleteFoto = async function () {
+    const pdId = currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
+    if (!pdId) return;
+
+    if (!confirm("Apakah Anda yakin ingin menghapus pasfoto peserta didik ini?")) return;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+
+    try {
+        const res = await fetch(`/dashboard/manajemen-data/peserta-didik-aktif/${encodeURIComponent(pdId)}/delete-foto`, {
+            method: "DELETE",
+            headers: {
+                "X-CSRF-TOKEN": csrfToken,
+                Accept: "application/json",
+            },
+        });
+        const json = await res.json();
+        if (json.status === "success") {
+            window.closeUploadFotoModal();
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            throw new Error(json.message || "Gagal menghapus foto.");
+        }
+    } catch (err) {
+        alert(err.message || "Terjadi kesalahan.");
+    }
+};

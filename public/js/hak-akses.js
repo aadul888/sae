@@ -173,7 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     { key: 'admin', label: 'Administrator', icon: 'fa-user-shield', color: '#6366f1' },
                     { key: 'guru', label: 'Guru', icon: 'fa-chalkboard-user', color: '#10b981' },
                     { key: 'tendik', label: 'Tenaga Kependidikan', icon: 'fa-id-badge', color: '#0ea5e9' },
-                    { key: 'peserta_didik', label: 'Peserta Didik', icon: 'fa-user-graduate', color: '#f59e0b' }
+                    { key: 'peserta_didik', label: 'Peserta Didik', icon: 'fa-user-graduate', color: '#f59e0b' },
+                    { key: 'orang_tua', label: 'Orang Tua / Wali', icon: 'fa-users', color: '#ec4899' }
                 ];
 
                 let html = '';

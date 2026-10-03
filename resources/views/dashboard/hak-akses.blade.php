@@ -66,6 +66,10 @@
                     class="periode-nav-tab {{ $activeRole === 'peserta_didik' ? 'active' : '' }}">
                     <i class="fas fa-user-graduate"></i> Peserta Didik ({{ $counts['peserta_didik'] }})
                 </a>
+                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'orang_tua']) }}"
+                    class="periode-nav-tab {{ $activeRole === 'orang_tua' ? 'active' : '' }}">
+                    <i class="fas fa-users"></i> Orang Tua / Wali ({{ $counts['orang_tua'] ?? 0 }})
+                </a>
             </div>
 
             {{-- Mobile Responsive Dropdown Switcher --}}
@@ -94,6 +98,10 @@
                         <option value="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}"
                             {{ $activeRole === 'peserta_didik' ? 'selected' : '' }}>
                             🎓 Peserta Didik ({{ $counts['peserta_didik'] }})
+                        </option>
+                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'orang_tua']) }}"
+                            {{ $activeRole === 'orang_tua' ? 'selected' : '' }}>
+                            👪 Orang Tua / Wali ({{ $counts['orang_tua'] ?? 0 }})
                         </option>
                     </select>
                 </div>
@@ -166,20 +174,24 @@
 
                         @if ($activeRole === 'global')
                             <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #6366f1; text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #6366f1; text-transform: uppercase; text-align: center; width: 95px;">
                                 <i class="fas fa-user-shield me-1"></i> Admin
                             </th>
                             <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #10b981; text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #10b981; text-transform: uppercase; text-align: center; width: 95px;">
                                 <i class="fas fa-chalkboard-user me-1"></i> Guru
                             </th>
                             <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #0ea5e9; text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #0ea5e9; text-transform: uppercase; text-align: center; width: 95px;">
                                 <i class="fas fa-id-badge me-1"></i> Tendik
                             </th>
                             <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; text-align: center; width: 110px;">
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; text-align: center; width: 95px;">
                                 <i class="fas fa-user-graduate me-1"></i> Siswa
+                            </th>
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #ec4899; text-transform: uppercase; text-align: center; width: 95px;">
+                                <i class="fas fa-users me-1"></i> Ortu
                             </th>
                             <th
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 90px;">
@@ -262,6 +274,7 @@
                                         'guru' => ['label' => 'Guru', 'color' => '#10b981'],
                                         'tendik' => ['label' => 'Tendik', 'color' => '#0ea5e9'],
                                         'peserta_didik' => ['label' => 'Siswa', 'color' => '#f59e0b'],
+                                        'orang_tua' => ['label' => 'Ortu', 'color' => '#ec4899'],
                                     ];
                                 @endphp
                                 @foreach ($rolesMap as $rKey => $rMeta)
@@ -269,11 +282,13 @@
                                         $rData = $item['roles'][$rKey] ?? ['is_allowed' => false, 'is_locked' => false];
                                         $isAllowed = (bool) ($rData['is_allowed'] ?? false);
                                         $isLocked = (bool) ($rData['is_locked'] ?? false);
+                                        $isWaliModule = str_starts_with($item['key'], 'menu_wali_kelas');
                                     @endphp
                                     <td style="padding: 14px 14px; text-align: center;"
                                         data-label="{{ $rMeta['label'] }}">
                                         <label class="switch-container"
-                                            style="position: relative; display: inline-block; width: 38px; height: 21px; margin: 0; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; vertical-align: middle;">
+                                            style="position: relative; display: inline-block; width: 38px; height: 21px; margin: 0; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; vertical-align: middle;"
+                                            @if ($rKey === 'peserta_didik' && $isWaliModule) title="Khusus Peserta Didik yang ditunjuk sebagai Koordinator Kelas otomatis mewarisi hak akses Wali Kelas" @endif>
                                             <input type="checkbox" class="role-quick-toggle"
                                                 data-role="{{ $rKey }}" data-key="{{ $item['key'] }}"
                                                 data-action="read" data-color="{{ $rMeta['color'] }}"
@@ -282,6 +297,12 @@
                                             <span class="slider-toggle-crud"
                                                 style="position: absolute; inset: 0; background-color: {{ $isAllowed ? $rMeta['color'] : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
                                         </label>
+                                        @if ($rKey === 'peserta_didik' && $isWaliModule)
+                                            <div style="font-size: 0.62rem; color: #f59e0b; margin-top: 2px; white-space: nowrap;"
+                                                title="Peserta Didik Koordinator Kelas otomatis mengikuti izin Wali Kelas">
+                                                (Koordinator)
+                                            </div>
+                                        @endif
                                     </td>
                                 @endforeach
 
@@ -383,7 +404,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $activeRole === 'global' ? 8 : 5 }}"
+                            <td colspan="{{ $activeRole === 'global' ? 9 : 5 }}"
                                 style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Tidak ada modul yang tersedia untuk peran ini.</div>
@@ -391,7 +412,7 @@
                         </tr>
                     @endforelse
                     <tr id="noSearchResultRow" style="display: none;">
-                        <td colspan="{{ $activeRole === 'global' ? 8 : 5 }}"
+                        <td colspan="{{ $activeRole === 'global' ? 9 : 5 }}"
                             style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                             <i class="fas fa-magnifying-glass mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                             <div>Tidak ada modul yang cocok dengan filter pencarian.</div>

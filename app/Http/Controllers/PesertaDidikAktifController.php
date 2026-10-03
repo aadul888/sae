@@ -19,21 +19,24 @@ class PesertaDidikAktifController extends Controller
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        // Proteksi ketat: peran peserta_didik tidak boleh mengakses modul Peserta Didik Aktif
-        if ($role === 'peserta_didik' || !\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif')) {
+        // Proteksi: peserta didik reguler tidak boleh mengakses, kecuali jika ditunjuk sebagai Koordinator Kelas
+        $isKoordinator = ($role === 'peserta_didik') && \App\Models\RolePermission::isKoordinator($user);
+        $hasMenuAccess = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif');
+
+        if (($role === 'peserta_didik' && !$isKoordinator) || !$hasMenuAccess) {
             return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))->with('error', 'Akses ke menu Peserta Didik Aktif dinonaktifkan.');
         }
 
         // Hak akses granular CRUD modul Peserta Didik Aktif
-        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
-        $canRead   = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'read');
-        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
-        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete');
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'create');
+        $canRead   = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'read') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'read');
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update');
+        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'delete');
 
-        // Cek wewenang unggah foto & kelola (Khusus Admin pada menu Manajemen Data)
+        // Cek wewenang unggah foto & kelola: Admin, Wali Kelas, Koordinator Kelas, atau peran dengan hak update/create
         $isAdmin = ($role === 'admin');
         $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
-        $canManageStudentPhotos = ($canUpdate || $canCreate) && $isAdmin;
+        $canManageStudentPhotos = $canUpdate || $canCreate || $isAdmin || $isWaliOrAdmin;
         $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
 
         $q       = trim($request->get('q', ''));
@@ -257,13 +260,15 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
-        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update');
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'create');
         $isAdmin = ($role === 'admin');
-        if ((!$canUpdate && !$canCreate) || !$isAdmin) {
+        $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+
+        if ((!$canUpdate && !$canCreate) && !$isAdmin && !$isWaliOrAdmin) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akses ditolak: Hanya Administrator yang berwenang mengunggah pasfoto peserta didik di menu Manajemen Data.'
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk mengunggah pasfoto peserta didik.'
             ], 403);
         }
 
@@ -281,6 +286,17 @@ class PesertaDidikAktifController extends Controller
         $pesertaDidik = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
         if (!$pesertaDidik) {
             return response()->json(['status' => 'error', 'message' => 'Data peserta didik tidak ditemukan di database.'], 404);
+        }
+
+        // Jika bukan Administrator murni, pastikan Wali Kelas / Koordinator hanya mengedit siswa di kelas perwaliannya
+        if (!$isAdmin && $isWaliOrAdmin) {
+            $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
+            if ($waliRombel && !empty($pesertaDidik->nama_rombel) && strcasecmp(trim($pesertaDidik->nama_rombel), trim($waliRombel)) !== 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Akses ditolak: Anda hanya berwenang mengubah pasfoto peserta didik di kelas perwalian Anda (' . $waliRombel . ').'
+                ], 403);
+            }
         }
 
         try {
@@ -348,13 +364,26 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete');
+        $canDelete = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'delete') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'delete');
         $isAdmin = ($role === 'admin');
-        if (!$canDelete || !$isAdmin) {
+        $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+
+        if (!$canDelete && !$isAdmin && !$isWaliOrAdmin) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akses ditolak: Hanya Administrator yang berwenang menghapus pasfoto peserta didik di menu Manajemen Data.'
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk menghapus pasfoto peserta didik.'
             ], 403);
+        }
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
+        if (!$isAdmin && $isWaliOrAdmin && $pd) {
+            $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
+            if ($waliRombel && !empty($pd->nama_rombel) && strcasecmp(trim($pd->nama_rombel), trim($waliRombel)) !== 0) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Akses ditolak: Anda hanya berwenang menghapus pasfoto peserta didik di kelas perwalian Anda (' . $waliRombel . ').'
+                ], 403);
+            }
         }
 
         $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $id)->first();
@@ -474,13 +503,15 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update');
-        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create');
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update');
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create') || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'create');
         $isAdmin = ($role === 'admin');
-        if ((!$canUpdate && !$canCreate) || !$isAdmin) {
+        $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+
+        if ((!$canUpdate && !$canCreate) && !$isAdmin && !$isWaliOrAdmin) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Akses ditolak: Hanya Administrator yang berwenang mengunggah pasfoto masal di menu Manajemen Data.'
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk mengunggah pasfoto masal.'
             ], 403);
         }
 
