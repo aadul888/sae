@@ -141,9 +141,23 @@ class PermissionController extends Controller
             'peserta_didik' => ['name' => 'Peserta Didik', 'icon' => 'fa-user-graduate', 'color' => '#f59e0b'],
         ];
 
+        // Hitung modul per kelompok untuk filter realtime yang akurat
+        $groupCounts = [];
+        foreach ($tableModules as $m) {
+            $g = $m['group'] ?? 'Lainnya';
+            $groupCounts[$g] = ($groupCounts[$g] ?? 0) + 1;
+        }
+
+        if ($activeRole === 'global') {
+            sort($groups);
+        } else {
+            $groups = array_keys($groupCounts);
+            sort($groups);
+        }
+
         return view('dashboard.hak-akses', compact(
             'activeRole', 'roles', 'permissionsConfig', 'tableModules',
-            'groups', 'counts', 'availableModulesToAdd'
+            'groups', 'groupCounts', 'counts', 'availableModulesToAdd'
         ));
     }
 

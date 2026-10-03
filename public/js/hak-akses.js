@@ -279,24 +279,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const hideRow = (r) => {
+        if (!r) return;
+        r.style.setProperty('display', 'none', 'important');
+        r.classList.add('d-none');
+        r.setAttribute('hidden', '');
+    };
+
+    const showRow = (r) => {
+        if (!r) return;
+        r.style.removeProperty('display');
+        r.classList.remove('d-none');
+        r.removeAttribute('hidden');
+    };
+
     const renderTable = () => {
-        if (!document.getElementById('tableBody')) return;
+        const tbody = document.getElementById('tableBody');
+        if (!tbody) return;
 
         const query = (liveSearchInput?.value || '').trim().toLowerCase();
-        const groupFilter = (filterGroupSelect?.value || '').trim();
+        const groupFilter = (filterGroupSelect?.value || '').trim().toLowerCase();
         const perPageVal = perPageSelect?.value || '25';
         const perPage = perPageVal === 'all' ? Infinity : parseInt(perPageVal, 10);
 
         let matchedRows = allRows.filter(row => {
-            const name = row.dataset.name || '';
-            const group = row.dataset.group || '';
+            const name = (row.dataset.name || '').toLowerCase();
+            const group = (row.dataset.group || '').toLowerCase();
             const isUniversalTendik = row.dataset.universal === 'tendik';
             const matchQuery = !query || name.includes(query);
 
             let matchGroup = !groupFilter || group === groupFilter;
             // Jika memilih kelompok Tendik spesifik (misal Tendik: Kepegawaian, Tendik: Persuratan, dll),
             // sertakan modul kinerja universal tendik (Target & Capaian, Aktivitas, Laporan)
-            if (!matchGroup && groupFilter.startsWith('Tendik:') && isUniversalTendik) {
+            if (!matchGroup && groupFilter.startsWith('tendik:') && isUniversalTendik) {
                 matchGroup = true;
             }
 
@@ -311,13 +326,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (totalMatched === 0) {
-            allRows.forEach(r => r.style.display = 'none');
-            if (noResultRow) noResultRow.style.display = '';
+            allRows.forEach(hideRow);
+            if (noResultRow) {
+                showRow(noResultRow);
+                tbody.appendChild(noResultRow);
+            }
             if (paginationWrap) paginationWrap.innerHTML = '';
             return;
         }
 
-        if (noResultRow) noResultRow.style.display = 'none';
+        if (noResultRow) hideRow(noResultRow);
 
         const totalPages = Math.ceil(totalMatched / perPage);
         if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
@@ -325,17 +343,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const startIdx = (currentPage - 1) * perPage;
         const endIdx = startIdx + perPage;
 
-        allRows.forEach(r => r.style.display = 'none');
+        allRows.forEach(hideRow);
 
-        const tbody = document.getElementById('tableBody');
         matchedRows.forEach((row, i) => {
             if (i >= startIdx && i < endIdx) {
-                row.style.display = '';
+                showRow(row);
                 const noCell = row.querySelector('.row-number');
                 if (noCell) noCell.textContent = i + 1;
-                if (tbody) tbody.appendChild(row);
+                tbody.appendChild(row);
             }
         });
+
+        if (noResultRow) {
+            tbody.appendChild(noResultRow);
+        }
 
         if (totalPages <= 1) {
             if (paginationWrap) paginationWrap.innerHTML = '';
@@ -396,12 +417,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (liveSearchInput) {
-        liveSearchInput.addEventListener('input', () => {
-            if (clearSearchBtn) {
-                clearSearchBtn.classList.toggle('visible', !!liveSearchInput.value);
-            }
-            currentPage = 1;
-            renderTable();
+        ['input', 'keyup', 'change', 'search'].forEach(evt => {
+            liveSearchInput.addEventListener(evt, () => {
+                if (clearSearchBtn) {
+                    clearSearchBtn.classList.toggle('visible', !!liveSearchInput.value);
+                }
+                currentPage = 1;
+                renderTable();
+            });
         });
     }
 
@@ -415,16 +438,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (filterGroupSelect) {
-        filterGroupSelect.addEventListener('change', () => {
-            currentPage = 1;
-            renderTable();
+        ['change', 'input'].forEach(evt => {
+            filterGroupSelect.addEventListener(evt, () => {
+                currentPage = 1;
+                renderTable();
+            });
         });
     }
 
     if (perPageSelect) {
-        perPageSelect.addEventListener('change', () => {
-            currentPage = 1;
-            renderTable();
+        ['change', 'input'].forEach(evt => {
+            perPageSelect.addEventListener(evt, () => {
+                currentPage = 1;
+                renderTable();
+            });
         });
     }
 

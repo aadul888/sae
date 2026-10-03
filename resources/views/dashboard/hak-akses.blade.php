@@ -4,11 +4,9 @@
 @section('dash_title', 'Hak Akses & Peran')
 
 @section('content')
-    <div id="hakAksesContainer"
-        data-active-role="{{ $activeRole }}"
+    <div id="hakAksesContainer" data-active-role="{{ $activeRole }}"
         data-role-name="{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
-        data-toggle-url="{{ route('dashboard.hak-akses.toggle') }}"
-        data-sync-url="{{ route('dashboard.hak-akses.sync') }}"
+        data-toggle-url="{{ route('dashboard.hak-akses.toggle') }}" data-sync-url="{{ route('dashboard.hak-akses.sync') }}"
         data-reset-url="{{ route('dashboard.hak-akses.reset') }}"
         data-add-module-url="{{ route('dashboard.hak-akses.add-module') }}"
         data-remove-module-url="{{ route('dashboard.hak-akses.remove-module') }}">
@@ -23,12 +21,14 @@
                     @if ($activeRole === 'global')
                         Kelola matriks izin modul dan aksi operasional CRUD pengguna dalam satu datatable global terpadu.
                     @else
-                        Kelola matriks hak akses modul dan aksi operasional CRUD untuk peran <strong>{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}</strong>.
+                        Kelola matriks hak akses modul dan aksi operasional CRUD untuk peran
+                        <strong>{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}</strong>.
                     @endif
                 </p>
             </div>
             <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" id="btnSyncModules" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.82rem;">
+                <button type="button" id="btnSyncModules" class="btn btn-primary"
+                    style="padding: 8px 16px; font-size: 0.82rem;">
                     <i class="fas fa-arrows-rotate me-1"></i> Sinkronkan Modul
                 </button>
                 <button type="button" id="btnResetDefault" class="btn btn-outline"
@@ -67,6 +67,37 @@
                     <i class="fas fa-user-graduate"></i> Peserta Didik ({{ $counts['peserta_didik'] }})
                 </a>
             </div>
+
+            {{-- Mobile Responsive Dropdown Switcher --}}
+            <div class="periode-nav-mobile">
+                <div class="periode-mobile-select-box" style="margin-bottom: 0;">
+                    <label><i class="fas fa-shield-halved text-primary me-1"></i> Pilih Peran Pengguna:</label>
+                    <select class="periode-mobile-select form-select"
+                        onchange="if(this.value) window.location.href=this.value;"
+                        style="font-size: 0.85rem; height: 42px; border-radius: 10px; width: 100%; background: var(--bg-card, #131b2e); color: var(--text-color); border: 1px solid var(--border-color);">
+                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'global']) }}"
+                            {{ $activeRole === 'global' ? 'selected' : '' }}>
+                            🌐 Semua Peran (Global)
+                        </option>
+                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
+                            {{ $activeRole === 'admin' ? 'selected' : '' }}>
+                            🛡️ Administrator ({{ $counts['admin'] }})
+                        </option>
+                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}"
+                            {{ $activeRole === 'guru' ? 'selected' : '' }}>
+                            👨‍🏫 Guru ({{ $counts['guru'] }})
+                        </option>
+                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'tendik']) }}"
+                            {{ $activeRole === 'tendik' ? 'selected' : '' }}>
+                            💼 Tendik ({{ $counts['tendik'] }})
+                        </option>
+                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}"
+                            {{ $activeRole === 'peserta_didik' ? 'selected' : '' }}>
+                            🎓 Peserta Didik ({{ $counts['peserta_didik'] }})
+                        </option>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <!-- Toolbar Header Datatable Baku -->
@@ -84,10 +115,11 @@
                         <span>entri</span>
                     </div>
 
-                    <select id="filterGroup" class="toolbar-filter-select" style="min-width: 150px;">
-                        <option value="">Semua Kelompok</option>
+                    <select id="filterGroup" class="toolbar-filter-select" style="min-width: 170px;">
+                        <option value="">Semua Kelompok ({{ count($tableModules) }})</option>
                         @foreach ($groups as $g)
-                            <option value="{{ $g }}">{{ $g }}</option>
+                            <option value="{{ $g }}">{{ $g }} ({{ $groupCounts[$g] ?? 0 }})
+                            </option>
                         @endforeach
                     </select>
 
@@ -115,7 +147,8 @@
 
         <!-- Container Datatable -->
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" id="hakAksesTable" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <table class="table table-hover table-hak-akses" id="hakAksesTable"
+                style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                         <th class="module-th sortable-th" data-col="no"
@@ -132,32 +165,43 @@
                         </th>
 
                         @if ($activeRole === 'global')
-                            <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #6366f1; text-transform: uppercase; text-align: center; width: 110px;">
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #6366f1; text-transform: uppercase; text-align: center; width: 110px;">
                                 <i class="fas fa-user-shield me-1"></i> Admin
                             </th>
-                            <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #10b981; text-transform: uppercase; text-align: center; width: 110px;">
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #10b981; text-transform: uppercase; text-align: center; width: 110px;">
                                 <i class="fas fa-chalkboard-user me-1"></i> Guru
                             </th>
-                            <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #0ea5e9; text-transform: uppercase; text-align: center; width: 110px;">
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #0ea5e9; text-transform: uppercase; text-align: center; width: 110px;">
                                 <i class="fas fa-id-badge me-1"></i> Tendik
                             </th>
-                            <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; text-align: center; width: 110px;">
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; text-align: center; width: 110px;">
                                 <i class="fas fa-user-graduate me-1"></i> Siswa
                             </th>
-                            <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 90px;">
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 90px;">
                                 Izin CRUD
                             </th>
                         @else
-                            <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 270px;">
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 270px;">
                                 <div style="display: inline-flex; align-items: center; gap: 14px;">
                                     <span>Aksi:</span>
-                                    <span style="color: #3b82f6; font-size: 0.73rem;" title="Tambah (Create)"><i class="fas fa-plus-circle me-1"></i>Tambah</span>
-                                    <span style="color: #10b981; font-size: 0.73rem;" title="Lihat (Read)"><i class="fas fa-eye me-1"></i>Lihat</span>
-                                    <span style="color: #f59e0b; font-size: 0.73rem;" title="Ubah (Update)"><i class="fas fa-pen-to-square me-1"></i>Ubah</span>
-                                    <span style="color: #ef4444; font-size: 0.73rem;" title="Hapus (Delete)"><i class="fas fa-trash me-1"></i>Hapus</span>
+                                    <span style="color: #3b82f6; font-size: 0.73rem;" title="Tambah (Create)"><i
+                                            class="fas fa-plus-circle me-1"></i>Tambah</span>
+                                    <span style="color: #10b981; font-size: 0.73rem;" title="Lihat (Read)"><i
+                                            class="fas fa-eye me-1"></i>Lihat</span>
+                                    <span style="color: #f59e0b; font-size: 0.73rem;" title="Ubah (Update)"><i
+                                            class="fas fa-pen-to-square me-1"></i>Ubah</span>
+                                    <span style="color: #ef4444; font-size: 0.73rem;" title="Hapus (Delete)"><i
+                                            class="fas fa-trash me-1"></i>Hapus</span>
                                 </div>
                             </th>
-                            <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 75px;">
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 75px;">
                                 Kelola
                             </th>
                         @endif
@@ -166,7 +210,11 @@
                 <tbody id="tableBody">
                     @forelse ($tableModules as $index => $item)
                         @php
-                            $isUniversalTendik = in_array($item['key'], ['menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'], true);
+                            $isUniversalTendik = in_array(
+                                $item['key'],
+                                ['menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'],
+                                true,
+                            );
                         @endphp
                         <tr class="module-row" data-modul="{{ strtolower($item['label']) }}"
                             data-kelompok="{{ strtolower($item['group']) }}"
@@ -188,16 +236,20 @@
                                     </div>
                                     <div style="display: flex; flex-direction: column; gap: 2px;">
                                         <span style="font-weight: 700;">{{ $item['label'] }}</span>
-                                        <span style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">{{ $item['key'] }}</span>
+                                        <span
+                                            style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">{{ $item['key'] }}</span>
                                     </div>
                                 </div>
                             </td>
                             <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Kelompok">
-                                <span class="badge badge-primary" style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
+                                <span class="badge badge-primary"
+                                    style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
                                     {{ $item['group'] }}
                                 </span>
                                 @if ($isUniversalTendik)
-                                    <span class="badge" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); font-size: 0.68rem; padding: 3px 6px; border-radius: 4px; margin-left: 4px;" title="Berlaku untuk seluruh bidang tendik">
+                                    <span class="badge"
+                                        style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); font-size: 0.68rem; padding: 3px 6px; border-radius: 4px; margin-left: 4px;"
+                                        title="Berlaku untuk seluruh bidang tendik">
                                         Universal
                                     </span>
                                 @endif
@@ -218,16 +270,14 @@
                                         $isAllowed = (bool) ($rData['is_allowed'] ?? false);
                                         $isLocked = (bool) ($rData['is_locked'] ?? false);
                                     @endphp
-                                    <td style="padding: 14px 14px; text-align: center;" data-label="{{ $rMeta['label'] }}">
+                                    <td style="padding: 14px 14px; text-align: center;"
+                                        data-label="{{ $rMeta['label'] }}">
                                         <label class="switch-container"
                                             style="position: relative; display: inline-block; width: 38px; height: 21px; margin: 0; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; vertical-align: middle;">
                                             <input type="checkbox" class="role-quick-toggle"
-                                                data-role="{{ $rKey }}"
-                                                data-key="{{ $item['key'] }}"
-                                                data-action="read"
-                                                data-color="{{ $rMeta['color'] }}"
-                                                {{ $isAllowed ? 'checked' : '' }}
-                                                {{ $isLocked ? 'disabled' : '' }}
+                                                data-role="{{ $rKey }}" data-key="{{ $item['key'] }}"
+                                                data-action="read" data-color="{{ $rMeta['color'] }}"
+                                                {{ $isAllowed ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }}
                                                 style="opacity: 0; width: 0; height: 0;">
                                             <span class="slider-toggle-crud"
                                                 style="position: absolute; inset: 0; background-color: {{ $isAllowed ? $rMeta['color'] : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
@@ -248,12 +298,14 @@
                                     <div class="table-actions"
                                         style="display: inline-flex; align-items: center; gap: 16px; justify-content: flex-end;">
                                         <!-- Tambah (Create) -->
-                                        <div style="display: flex; align-items: center; gap: 6px;" title="Tambah (Create)">
+                                        <div style="display: flex; align-items: center; gap: 6px;"
+                                            title="Tambah (Create)">
                                             <i class="fas fa-plus-circle" style="color: #3b82f6; font-size: 1rem;"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                    data-key="{{ $item['key'] }}" data-action="create" data-color="#3b82f6"
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="create" data-color="#3b82f6"
                                                     {{ $item['can_create'] ? 'checked' : '' }}
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
@@ -267,8 +319,9 @@
                                             <i class="fas fa-eye" style="color: #10b981; font-size: 1rem;"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                    data-key="{{ $item['key'] }}" data-action="read" data-color="#10b981"
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="read" data-color="#10b981"
                                                     {{ $item['can_read'] ? 'checked' : '' }}
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
@@ -282,8 +335,9 @@
                                             <i class="fas fa-pen-to-square" style="color: #f59e0b; font-size: 1rem;"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                    data-key="{{ $item['key'] }}" data-action="update" data-color="#f59e0b"
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="update" data-color="#f59e0b"
                                                     {{ $item['can_update'] ? 'checked' : '' }}
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
@@ -297,9 +351,10 @@
                                             <i class="fas fa-trash" style="color: #ef4444; font-size: 1rem;"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                    data-key="{{ $item['key'] }}" data-action="delete"
-                                                    data-color="#ef4444" {{ $item['can_delete'] ? 'checked' : '' }}
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="delete" data-color="#ef4444"
+                                                    {{ $item['can_delete'] ? 'checked' : '' }}
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
                                                 <span class="slider-toggle-crud"
@@ -317,7 +372,8 @@
                                             <i class="fas fa-trash-can" style="font-size: 0.82rem;"></i>
                                         </button>
                                     @else
-                                        <span style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.4;"
+                                        <span
+                                            style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.4;"
                                             title="Modul ini dikunci sistem">
                                             <i class="fas fa-lock" style="font-size: 0.8rem;"></i>
                                         </span>
@@ -353,12 +409,15 @@
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
                 style="max-width: 620px; width: 94%; margin: 0; border-radius: 14px; padding: 24px; box-shadow: 0 10px 35px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--card-bg, #1e293b);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                     <div>
-                        <h3 id="modalCrudTitle" style="font-size: 1.1rem; font-weight: 800; color: var(--text-color); margin: 0;">
+                        <h3 id="modalCrudTitle"
+                            style="font-size: 1.1rem; font-weight: 800; color: var(--text-color); margin: 0;">
                             Detail Izin CRUD
                         </h3>
-                        <span id="modalCrudSubtitle" style="font-size: 0.74rem; font-family: monospace; color: var(--primary);"></span>
+                        <span id="modalCrudSubtitle"
+                            style="font-size: 0.74rem; font-family: monospace; color: var(--primary);"></span>
                     </div>
                     <button type="button" id="btnCloseCrudModal"
                         style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">
@@ -366,12 +425,15 @@
                     </button>
                 </div>
 
-                <div id="modalCrudContent" style="display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; padding-right: 4px;">
+                <div id="modalCrudContent"
+                    style="display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; padding-right: 4px;">
                     <!-- Rendered dynamically by JS -->
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                    <button type="button" id="btnDoneCrudModal" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.84rem;">
+                <div
+                    style="display: flex; justify-content: flex-end; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <button type="button" id="btnDoneCrudModal" class="btn btn-primary"
+                        style="padding: 8px 20px; font-size: 0.84rem;">
                         Selesai
                     </button>
                 </div>
@@ -388,7 +450,8 @@
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                         <h3
                             style="font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-plus-circle text-primary"></i> Tambah Modul ke Peran {{ ucfirst(str_replace('_', ' ', $activeRole)) }}
+                            <i class="fas fa-plus-circle text-primary"></i> Tambah Modul ke Peran
+                            {{ ucfirst(str_replace('_', ' ', $activeRole)) }}
                         </h3>
                         <button type="button" id="btnCloseAddModule"
                             style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">
@@ -403,40 +466,55 @@
                                 Pilih Modul Sistem <span style="color: #ef4444;">*</span>
                             </label>
                             <div style="position: relative; margin-bottom: 8px;">
-                                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none;"></i>
+                                <i class="fas fa-search"
+                                    style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none;"></i>
                                 <input type="text" id="filterModuleOptions" placeholder="Ketik untuk mencari modul..."
-                                    style="width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid rgba(255,255,255,0.15); background-color: #0f172a; color: #f8fafc; border-radius: 6px; font-size: 0.82rem; box-sizing: border-box;" autocomplete="off">
+                                    style="width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid rgba(255,255,255,0.15); background-color: #0f172a; color: #f8fafc; border-radius: 6px; font-size: 0.82rem; box-sizing: border-box;"
+                                    autocomplete="off">
                             </div>
                             <select name="permission_key" id="selectAddModule" required
                                 style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: #1e293b !important; color: #f8fafc !important; border-radius: 8px; font-size: 0.88rem; box-sizing: border-box;">
-                                <option value="" style="background-color: #1e293b; color: #94a3b8;">-- Pilih Modul untuk Ditambahkan --</option>
+                                <option value="" style="background-color: #1e293b; color: #94a3b8;">-- Pilih Modul
+                                    untuk Ditambahkan --</option>
                                 @forelse ($availableModulesToAdd as $groupName => $groupModules)
-                                    <optgroup label="📂 {{ $groupName }}" style="color: #94a3b8; background-color: #0f172a; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
+                                    <optgroup label="📂 {{ $groupName }}"
+                                        style="color: #94a3b8; background-color: #0f172a; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
                                         @foreach ($groupModules as $mVal)
-                                            <option value="{{ $mVal['key'] }}" style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">{{ $mVal['label'] }} ({{ $mVal['key'] }})</option>
+                                            <option value="{{ $mVal['key'] }}"
+                                                style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">
+                                                {{ $mVal['label'] }} ({{ $mVal['key'] }})</option>
                                         @endforeach
                                     </optgroup>
                                 @empty
-                                    <option disabled style="background-color: #1e293b; color: #94a3b8;">Semua modul sistem sudah aktif untuk peran ini</option>
+                                    <option disabled style="background-color: #1e293b; color: #94a3b8;">Semua modul sistem
+                                        sudah aktif untuk peran ini</option>
                                 @endforelse
-                                <optgroup label="─────────────────────" style="color: #334155; background-color: #0f172a;"></optgroup>
-                                <option value="__NEW_CUSTOM_MODULE__" style="background-color: #0f172a; color: #38bdf8; font-weight: 600; padding: 8px 12px;">+ Daftarkan Modul Baru / Mendatang...</option>
+                                <optgroup label="─────────────────────"
+                                    style="color: #334155; background-color: #0f172a;"></optgroup>
+                                <option value="__NEW_CUSTOM_MODULE__"
+                                    style="background-color: #0f172a; color: #38bdf8; font-weight: 600; padding: 8px 12px;">
+                                    + Daftarkan Modul Baru / Mendatang...</option>
                             </select>
 
                             <!-- Input Dinamis jika Mendaftarkan Modul Baru / Mendatang -->
-                            <div id="customModuleFields" style="display: none; flex-direction: column; gap: 8px; margin-top: 14px; padding: 14px; background: rgba(56, 189, 248, 0.06); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 10px;">
+                            <div id="customModuleFields"
+                                style="display: none; flex-direction: column; gap: 8px; margin-top: 14px; padding: 14px; background: rgba(56, 189, 248, 0.06); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 10px;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8; display: block;">
-                                    <i class="fas fa-sparkles me-1"></i> Nama Modul Baru / Mendatang <span style="color: #ef4444;">*</span>
+                                    <i class="fas fa-sparkles me-1"></i> Nama Modul Baru / Mendatang <span
+                                        style="color: #ef4444;">*</span>
                                 </label>
-                                <input type="text" id="inputCustomModuleName" name="custom_name" placeholder="Contoh: Perpustakaan Digital, Bimbingan Konseling"
+                                <input type="text" id="inputCustomModuleName" name="custom_name"
+                                    placeholder="Contoh: Perpustakaan Digital, Bimbingan Konseling"
                                     style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.18); background-color: #1e293b; color: #f8fafc; border-radius: 8px; font-size: 0.85rem; box-sizing: border-box;">
                                 <p style="font-size: 0.72rem; color: var(--text-muted); margin: 2px 0 0 0;">
-                                    Sistem akan otomatis membuat izin RBAC dan merefleksikannya di matriks hak akses serta sidebar.
+                                    Sistem akan otomatis membuat izin RBAC dan merefleksikannya di matriks hak akses serta
+                                    sidebar.
                                 </p>
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                        <div
+                            style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                             <button type="button" id="btnCancelAddModule" class="btn btn-outline"
                                 style="padding: 9px 18px; font-size: 0.85rem; border-radius: 8px;">Batal</button>
                             <button type="submit" id="btnSubmitAddModule" class="btn btn-primary"
@@ -452,5 +530,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/hak-akses.js') }}"></script>
+    <script
+        src="{{ asset('js/hak-akses.js') }}?v={{ file_exists(public_path('js/hak-akses.js')) ? filemtime(public_path('js/hak-akses.js')) : time() }}">
+    </script>
 @endpush

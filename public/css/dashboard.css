@@ -2591,7 +2591,7 @@ input[type="month"] {
     }
 
     /* Khusus Card Peserta Didik Aktif di Mobile: Tampilan Rapih & Proporsional */
-    .table-pd tbody tr {
+    .table-pd tbody tr:not(.d-none):not([hidden]):not([style*="display: none"]) {
         display: flex !important;
         flex-direction: column !important;
         border: 1px solid var(--border-color) !important;
@@ -2600,6 +2600,29 @@ input[type="month"] {
         margin-bottom: 14px !important;
         background: var(--bg-card, #131b2e) !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .table-pd tbody tr.d-none,
+    .table-pd tbody tr[hidden],
+    .table-pd tbody tr[style*="display: none"],
+    .table-responsive-stack tbody tr.d-none,
+    .table-responsive-stack tbody tr[hidden],
+    .table-responsive-stack tbody tr[style*="display: none"],
+    .table-hak-akses tbody tr.d-none,
+    .table-hak-akses tbody tr[hidden],
+    .table-hak-akses tbody tr[style*="display: none"] {
+        display: none !important;
+    }
+
+    .table-responsive-stack tbody td[colspan] {
+        display: block !important;
+        text-align: center !important;
+        width: 100% !important;
+        border: none !important;
+    }
+
+    .table-responsive-stack tbody td[colspan]::before {
+        display: none !important;
     }
 
     /* 1. HERO HEADER: Peserta Didik Cell (Foto + Nama + NIK + Badge Status) */
