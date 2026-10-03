@@ -213,7 +213,12 @@ class WaliKelasController extends Controller
             $query->where('pd.jenis_kelamin', $gender);
         }
 
-        $query->orderBy($sort, $sortDir);
+        // Urutkan nama secara case-insensitive & trimmed
+        if ($sort === 'nama') {
+            $query->orderByRaw("LOWER(TRIM(pd.nama)) {$sortDir}")->orderBy('pd.nisn', 'asc');
+        } else {
+            $query->orderBy($sort, $sortDir)->orderByRaw("LOWER(TRIM(pd.nama)) asc");
+        }
         $list = $query->paginate($perPage)->appends($request->query());
 
         // Hubungkan metadata foto persisten
@@ -369,7 +374,11 @@ class WaliKelasController extends Controller
             $query->where('tahun_lulus', $tahun);
         }
 
-        $query->orderBy($sort, $sortDir);
+        if ($sort === 'nama') {
+            $query->orderByRaw("LOWER(TRIM(pd.nama)) {$sortDir}")->orderBy('pd.nisn', 'asc');
+        } else {
+            $query->orderBy($sort, $sortDir)->orderByRaw("LOWER(TRIM(pd.nama)) asc");
+        }
         $list = $query->paginate($perPage)->appends($request->query());
 
         foreach ($list as $item) {

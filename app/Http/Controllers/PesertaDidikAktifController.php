@@ -118,6 +118,13 @@ class PesertaDidikAktifController extends Controller
             $baseQuery->where('jenis_kelamin', $gender);
         }
 
+        // Urutkan di tingkat database (case-insensitive & trimmed)
+        if ($sort === 'nama') {
+            $baseQuery->orderByRaw("LOWER(TRIM(nama)) {$sortDir}")->orderBy('nisn', 'asc');
+        } else {
+            $baseQuery->orderBy($sort, $sortDir)->orderByRaw("LOWER(TRIM(nama)) asc");
+        }
+
         $allResults = $baseQuery->get();
         $total = $allResults->count();
 
@@ -128,9 +135,14 @@ class PesertaDidikAktifController extends Controller
             'rombel' => $allResults->pluck('nama_rombel')->filter()->unique()->count(),
         ];
 
+        // Penyusunan abjad presisi tingkat koleksi (kebal perbedaan huruf kapital / non-kapital Dapodik)
         $sorted = $allResults->sortBy(function ($item) use ($sort) {
-            return $item->{$sort} ?? '';
-        }, SORT_REGULAR, $sortDir === 'desc');
+            $val = $item->{$sort} ?? '';
+            if (is_string($val)) {
+                return mb_strtolower(trim(preg_replace('/\s+/', ' ', $val)), 'UTF-8');
+            }
+            return $val;
+        }, SORT_NATURAL | SORT_FLAG_CASE, $sortDir === 'desc');
 
         $currentPage = (int) $request->get('page', 1);
         $offset = ($currentPage - 1) * $perPage;

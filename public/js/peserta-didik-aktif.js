@@ -657,7 +657,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const filterRombel = document.getElementById("filterRombel");
     const filterGender = document.getElementById("filterGender");
 
-    function applyFilter() {
+    function applyFilter(overrideParams = {}) {
         const url = new URL(window.location.href);
         if (searchInput && searchInput.value.trim()) {
             url.searchParams.set("q", searchInput.value.trim());
@@ -681,7 +681,19 @@ document.addEventListener("DOMContentLoaded", function () {
             url.searchParams.set("perPage", perPageSelect.value);
         }
 
-        url.searchParams.set("page", "1");
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") {
+                url.searchParams.set(k, v);
+            } else {
+                url.searchParams.delete(k);
+            }
+        });
+
+        if (!("page" in overrideParams)) {
+            url.searchParams.set("page", "1");
+        }
+
         if (typeof window.refreshLiveTable === "function") {
             window.refreshLiveTable(url.toString());
         } else {
@@ -698,7 +710,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.value.trim().length > 0,
                 );
             clearTimeout(timer);
-            timer = setTimeout(applyFilter, 300);
+            timer = setTimeout(() => applyFilter(), 300);
         });
 
         searchInput.addEventListener("keydown", function (e) {
@@ -715,38 +727,33 @@ document.addEventListener("DOMContentLoaded", function () {
             if (searchInput) {
                 searchInput.value = "";
                 clearBtn.classList.remove("visible");
-                applyFilter();
+                applyFilter({ q: "" });
             }
         });
     }
 
-    if (filterRombel) filterRombel.addEventListener("change", applyFilter);
-    if (filterGender) filterGender.addEventListener("change", applyFilter);
-    if (perPageSelect) perPageSelect.addEventListener("change", applyFilter);
+    if (filterRombel) filterRombel.addEventListener("change", () => applyFilter());
+    if (filterGender) filterGender.addEventListener("change", () => applyFilter());
+    if (perPageSelect) perPageSelect.addEventListener("change", () => applyFilter());
 
-    document.querySelectorAll(".sortable-th").forEach(function (th) {
-        th.style.cursor = "pointer";
-        th.addEventListener("click", function () {
-            const sortField = this.getAttribute("data-sort");
-            if (!sortField) return;
+    // Event Delegation: Klik Sort Header Server-Side (Tetap berfungsi berkali-kali tanpa reload)
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th) return;
 
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get("sort") || "nama";
-            const currentDir = url.searchParams.get("sort_dir") || "asc";
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
 
-            let newDir = "asc";
-            if (currentSort === sortField && currentDir === "asc") {
-                newDir = "desc";
-            }
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "nama";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
 
-            url.searchParams.set("sort", sortField);
-            url.searchParams.set("sort_dir", newDir);
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        });
+        let newDir = "asc";
+        if (currentSort === sortField && currentDir === "asc") {
+            newDir = "desc";
+        }
+
+        applyFilter({ sort: sortField, sort_dir: newDir });
     });
 });
 

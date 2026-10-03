@@ -106,7 +106,7 @@ class KesiswaanPesertaDidikController extends Controller
         if ($gender !== '') {
             $aktifQuery->where('jenis_kelamin', $gender);
         }
-        $aktifList = $aktifQuery->orderBy('nama', 'asc')->paginate($perPage, ['*'], 'aktif_page')->withQueryString();
+        $aktifList = $aktifQuery->orderByRaw('LOWER(TRIM(nama)) asc')->orderBy('nisn', 'asc')->paginate($perPage, ['*'], 'aktif_page')->withQueryString();
 
         $aktifPdIds = $aktifList->pluck('peserta_didik_id')->filter()->values()->all();
         $metaMapAktif = collect();
