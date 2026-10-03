@@ -948,4 +948,151 @@ class PesertaDidikAktifController extends Controller
             'nama'           => $pd->nama,
         ]);
     }
+
+    /**
+     * Cetak Data Peserta Didik per Rombongan Belajar (Kelas)
+     */
+    public function printRombel(Request $request, string $rombelId)
+    {
+        $user = session('user');
+        if (!$user) return redirect()->route('login');
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role === 'peserta_didik' || !\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif')) {
+            abort(403, 'Akses ke menu Peserta Didik Aktif dinonaktifkan.');
+        }
+
+        $rombelName = trim(urldecode($rombelId));
+
+        // Cari rombel di rombongan_belajar
+        $rombel = null;
+        if (Schema::hasTable('rombongan_belajar')) {
+            $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelName)->first();
+            if (!$rombel) {
+                $rombel = DB::table('rombongan_belajar')->where('nama', $rombelName)->first();
+            }
+        }
+
+        // Query peserta didik
+        $studentsQuery = DB::table('peserta_didik')
+            ->select(
+                'peserta_didik_id',
+                'nama',
+                'nisn',
+                'nipd',
+                'nik',
+                'jenis_kelamin',
+                'tempat_lahir',
+                'tanggal_lahir',
+                'agama_id_str as agama',
+                'nama_rombel',
+                'rombongan_belajar_id',
+                'tingkat_pendidikan_id',
+                'kurikulum_id_str as kurikulum',
+                'nama_ayah',
+                'nama_ibu',
+                'nama_wali',
+                'alamat_jalan',
+                'nomor_telepon_seluler as no_hp'
+            );
+
+        if ($rombel) {
+            $studentsQuery->where(function ($w) use ($rombel) {
+                if (!empty($rombel->rombongan_belajar_id)) {
+                    $w->where('rombongan_belajar_id', $rombel->rombongan_belajar_id);
+                }
+                $w->orWhere('nama_rombel', $rombel->nama);
+            });
+        } else {
+            $studentsQuery->where('nama_rombel', $rombelName);
+            $rombel = (object)[
+                'nama' => $rombelName,
+                'rombongan_belajar_id' => null,
+                'tingkat_pendidikan_id_str' => null,
+                'jurusan_id_str' => null,
+                'ptk_id_str' => null,
+                'jurusan_id' => null,
+            ];
+        }
+
+        $students = $studentsQuery->orderBy('nama', 'asc')->get();
+
+        if ($students->isEmpty() && empty($rombel->nama)) {
+            abort(404, 'Data rombongan belajar atau peserta didik tidak ditemukan.');
+        }
+
+        // Ambil info sekolah & kop
+        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolahMeta = Schema::hasTable('sekolah_meta') ? \App\Models\SekolahMeta::first() : null;
+
+        // Ambil info jurusan
+        $jurusanMeta = null;
+        if (!empty($rombel->jurusan_id) && Schema::hasTable('jurusan_meta')) {
+            $jurusanMeta = \App\Models\JurusanMeta::where('jurusan_id', $rombel->jurusan_id)->first();
+            if (!$jurusanMeta) {
+                $jurusanMeta = \App\Models\JurusanMeta::where('jurusan_id', 'LIKE', substr($rombel->jurusan_id, 0, 5) . '%')->first();
+            }
+        }
+        $jurusanNama = $jurusanMeta?->nama_jurusan ?: ($rombel->jurusan_id_str ?? 'Reguler');
+
+        // Ambil info wali kelas
+        $waliNama = $rombel->ptk_id_str ?? null;
+        $waliNip = null;
+        if (empty($waliNama) && Schema::hasTable('pengguna_tugas_tambahan')) {
+            $waliRecord = DB::table('pengguna_tugas_tambahan')
+                ->where('jabatan', 'wali_kelas')
+                ->where(function ($w) use ($rombel) {
+                    if (!empty($rombel->rombongan_belajar_id)) {
+                        $w->where('rombel_id', $rombel->rombongan_belajar_id);
+                    }
+                    $w->orWhere('rombel_nama', $rombel->nama);
+                })
+                ->first();
+            if ($waliRecord) {
+                $waliNama = $waliRecord->nama_pegawai ?? ($waliRecord->ptk_id_str ?? null);
+            }
+        }
+        if (!empty($waliNama) && Schema::hasTable('gtk')) {
+            $waliGtk = DB::table('gtk')->where('nama', $waliNama)->first();
+            $waliNip = $waliGtk?->nip ?: null;
+        }
+
+        // Ambil kepala sekolah
+        $kepalaSekolah = Schema::hasTable('gtk')
+            ? DB::table('gtk')->where(function ($w) {
+                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
+            })->first()
+            : null;
+
+        $semesterLabel = \App\Support\SemesterHelper::getActiveSemesterLabel();
+        $orientasi = $request->get('orientasi', 'landscape');
+        if (!in_array($orientasi, ['portrait', 'landscape'], true)) {
+            $orientasi = 'landscape';
+        }
+
+        $totalSiswa = $students->count();
+        $totalL = $students->where('jenis_kelamin', 'L')->count();
+        $totalP = $students->where('jenis_kelamin', 'P')->count();
+        $generatedAt = now()->translatedFormat('d F Y, H:i') . ' WIB';
+        $titimangsa = ($sekolah?->kabupaten_kota ? str_replace(['Kabupaten ', 'Kota '], '', $sekolah->kabupaten_kota) : 'Cianjur') . ', ' . now()->translatedFormat('d F Y');
+
+        return view('dashboard.peserta-didik-aktif-cetak', compact(
+            'rombel',
+            'students',
+            'sekolah',
+            'sekolahMeta',
+            'jurusanNama',
+            'waliNama',
+            'waliNip',
+            'kepalaSekolah',
+            'semesterLabel',
+            'orientasi',
+            'totalSiswa',
+            'totalL',
+            'totalP',
+            'generatedAt',
+            'titimangsa'
+        ));
+    }
 }

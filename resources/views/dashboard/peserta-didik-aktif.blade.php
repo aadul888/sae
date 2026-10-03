@@ -108,26 +108,32 @@
                 </select>
 
                 @if ($q || $rombel || $gender)
-                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
-                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
-                        title="Reset filter">
+                    <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline"
+                        style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif
 
                 @if ($isAdmin)
-                    <button type="button" class="btn btn-primary"
-                        onclick="openBulkUploadFotoModal('{{ $rombel }}')"
+                    <button type="button" class="btn btn-primary" onclick="openBulkUploadFotoModal('{{ $rombel }}')"
                         style="padding: 7px 12px; font-size: 0.84rem; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
                         title="Unggah Foto Masal Kelas">
                         <i class="fas fa-images"></i>
                     </button>
 
-                    <button type="button" class="btn btn-outline"
-                        onclick="openCetakRombelModal('{{ $rombel }}')"
+                    <button type="button" class="btn btn-outline" onclick="openCetakRombelModal('{{ $rombel }}')"
                         style="padding: 7px 12px; font-size: 0.84rem; border-color: #0284c7; color: #0284c7;"
                         title="Cetak Kartu Pelajar Masal">
                         <i class="fas fa-id-card"></i>
+                    </button>
+                @endif
+
+                @if ($isAdmin || $isWaliOrAdmin || $canRead)
+                    <button type="button" class="btn btn-outline"
+                        onclick="openCetakDataRombelModal('{{ $rombel }}')"
+                        style="padding: 7px 12px; font-size: 0.84rem; border-color: #10b981; color: #10b981;"
+                        title="Cetak Data Peserta Didik per Kelas">
+                        <i class="fas fa-print"></i>
                     </button>
                 @endif
             </div>
@@ -871,6 +877,7 @@
     {{-- Modal Pratinjau Kartu Pelajar Digital & Modal Cetak Masal --}}
     @include('kartu-pelajar.modal-preview')
     @include('kartu-pelajar.modal-cetak-rombel')
+    @include('dashboard.peserta-didik-aktif-modal-cetak')
 
     @push('styles')
         <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}">
