@@ -166,6 +166,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/identitas/update', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'update'])->name('identitas.update');
     Route::get('/peserta-didik/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('peserta-didik.identitas')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
 
+    // API Wilayah Administrasi Indonesia (Hirarki: Provinsi -> Kab/Kota -> Kecamatan -> Desa/Kelurahan)
+    Route::prefix('wilayah')->name('wilayah.')->group(function () {
+        Route::get('/provinces', [\App\Http\Controllers\WilayahController::class, 'provinces'])->name('provinces');
+        Route::get('/regencies/{province_id}', [\App\Http\Controllers\WilayahController::class, 'regencies'])->name('regencies');
+        Route::get('/districts/{regency_id}', [\App\Http\Controllers\WilayahController::class, 'districts'])->name('districts');
+        Route::get('/villages/{district_id}', [\App\Http\Controllers\WilayahController::class, 'villages'])->name('villages');
+    });
+
     // Modul Validasi Berkas Peserta Didik (Format Tunggal PDF & Status 2 Pilihan)
     Route::get('/berkas', [\App\Http\Controllers\BerkasPesertaDidikController::class, 'index'])->name('berkas.index')->middleware('permission:menu_validasi_berkas|menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
     Route::post('/berkas/upload', [\App\Http\Controllers\BerkasPesertaDidikController::class, 'upload'])->name('berkas.upload');

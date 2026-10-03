@@ -614,14 +614,93 @@
                     </div>
 
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
-                        <!-- Alamat Jalan -->
+                        <!-- 1. Provinsi (Dropdown Bertingkat) -->
+                        <div>
+                            <label class="form-label"
+                                style="font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
+                                <span>Provinsi <span class="text-danger">*</span></span>
+                                <span id="badgeProvLoading" class="badge"
+                                    style="display: none; font-size: 0.68rem; background: rgba(59,130,246,0.15); color: #3b82f6;">Memuat...</span>
+                            </label>
+                            <select name="provinsi" id="selectProvinsi" class="form-select"
+                                data-initial="{{ old('provinsi', $identitas->provinsi) }}" required
+                                style="font-size: 0.85rem;">
+                                @if (old('provinsi', $identitas->provinsi))
+                                    <option value="{{ old('provinsi', $identitas->provinsi) }}" selected>
+                                        {{ old('provinsi', $identitas->provinsi) }}</option>
+                                @else
+                                    <option value="">-- Pilih Provinsi --</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- 2. Kabupaten / Kota (Dropdown Bertingkat) -->
+                        <div>
+                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Kabupaten / Kota <span
+                                    class="text-danger">*</span></label>
+                            <select name="kabupaten_kota" id="selectKabupaten" class="form-select"
+                                data-initial="{{ old('kabupaten_kota', $identitas->kabupaten_kota) }}" required
+                                style="font-size: 0.85rem;">
+                                @if (old('kabupaten_kota', $identitas->kabupaten_kota))
+                                    <option value="{{ old('kabupaten_kota', $identitas->kabupaten_kota) }}" selected>
+                                        {{ old('kabupaten_kota', $identitas->kabupaten_kota) }}</option>
+                                @else
+                                    <option value="">-- Pilih Kabupaten / Kota --</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- 3. Kecamatan (Dropdown Bertingkat) -->
+                        <div>
+                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Kecamatan <span
+                                    class="text-danger">*</span></label>
+                            <select name="kecamatan" id="selectKecamatan" class="form-select"
+                                data-initial="{{ old('kecamatan', $identitas->kecamatan) }}" required
+                                style="font-size: 0.85rem;">
+                                @if (old('kecamatan', $identitas->kecamatan))
+                                    <option value="{{ old('kecamatan', $identitas->kecamatan) }}" selected>
+                                        {{ old('kecamatan', $identitas->kecamatan) }}</option>
+                                @else
+                                    <option value="">-- Pilih Kecamatan --</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- 4. Desa / Kelurahan (Dropdown Bertingkat) -->
+                        <div>
+                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Desa / Kelurahan <span
+                                    class="text-danger">*</span></label>
+                            <select name="desa_kelurahan" id="selectDesa" class="form-select"
+                                data-initial="{{ old('desa_kelurahan', $identitas->desa_kelurahan) }}" required
+                                style="font-size: 0.85rem;">
+                                @if (old('desa_kelurahan', $identitas->desa_kelurahan))
+                                    <option value="{{ old('desa_kelurahan', $identitas->desa_kelurahan) }}" selected>
+                                        {{ old('desa_kelurahan', $identitas->desa_kelurahan) }}</option>
+                                @else
+                                    <option value="">-- Pilih Desa / Kelurahan --</option>
+                                @endif
+                            </select>
+                        </div>
+
+                        <!-- Kode Pos -->
+                        <div>
+                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Kode Pos</label>
+                            <input type="text" name="kode_pos" id="inputKodePos" maxlength="5" class="form-control"
+                                placeholder="43266" value="{{ old('kode_pos', $identitas->kode_pos) }}"
+                                style="font-size: 0.85rem; font-family: monospace;">
+                        </div>
+
+                        <!-- Alamat Jalan / Kampung / Dusun -->
                         <div style="grid-column: 1 / -1;">
                             <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Alamat Jalan / Kampung
-                                /
-                                Dusun <span class="text-danger">*</span></label>
+                                / Dusun <span class="text-danger">*</span></label>
                             <input type="text" name="alamat_jalan" class="form-control"
                                 value="{{ old('alamat_jalan', $identitas->alamat_jalan ?: $pd->alamat_jalan) }}"
-                                placeholder="Nama jalan, nomor rumah, blok/gang" required style="font-size: 0.85rem;">
+                                placeholder="Nama jalan, nomor rumah, blok/gang (Sesuai Kartu Keluarga)" required
+                                style="font-size: 0.85rem;">
+                            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; display: block;">
+                                Sesuai KK: Alamat mikro tingkat lingkungan/blok (misal: Kp. Saluyu / Jl. Pasirpari No. 12).
+                            </span>
                         </div>
 
                         <!-- RT -->
@@ -643,47 +722,8 @@
                             <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Nama Dusun /
                                 Wilayah</label>
                             <input type="text" name="nama_dusun" class="form-control"
+                                placeholder="Contoh: Dusun Saluyu"
                                 value="{{ old('nama_dusun', $identitas->nama_dusun) }}" style="font-size: 0.85rem;">
-                        </div>
-
-                        <!-- Desa / Kelurahan -->
-                        <div>
-                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Desa /
-                                Kelurahan</label>
-                            <input type="text" name="desa_kelurahan" class="form-control"
-                                value="{{ old('desa_kelurahan', $identitas->desa_kelurahan) }}"
-                                style="font-size: 0.85rem;">
-                        </div>
-
-                        <!-- Kecamatan -->
-                        <div>
-                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Kecamatan</label>
-                            <input type="text" name="kecamatan" class="form-control"
-                                value="{{ old('kecamatan', $identitas->kecamatan) }}" style="font-size: 0.85rem;">
-                        </div>
-
-                        <!-- Kabupaten / Kota -->
-                        <div>
-                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Kabupaten /
-                                Kota</label>
-                            <input type="text" name="kabupaten_kota" class="form-control"
-                                value="{{ old('kabupaten_kota', $identitas->kabupaten_kota) }}"
-                                style="font-size: 0.85rem;">
-                        </div>
-
-                        <!-- Provinsi -->
-                        <div>
-                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Provinsi</label>
-                            <input type="text" name="provinsi" class="form-control"
-                                value="{{ old('provinsi', $identitas->provinsi) }}" style="font-size: 0.85rem;">
-                        </div>
-
-                        <!-- Kode Pos -->
-                        <div>
-                            <label class="form-label" style="font-size: 0.82rem; font-weight: 700;">Kode Pos</label>
-                            <input type="text" name="kode_pos" maxlength="5" class="form-control"
-                                placeholder="43266" value="{{ old('kode_pos', $identitas->kode_pos) }}"
-                                style="font-size: 0.85rem; font-family: monospace;">
                         </div>
 
                         <!-- Tempat Tinggal -->
