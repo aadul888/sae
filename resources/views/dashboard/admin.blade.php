@@ -4,6 +4,55 @@
 @section('dash_title', 'Dashboard Administrator')
 
 @section('content')
+    <style>
+        .dash-admin-main-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+            gap: 20px;
+            align-items: start;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 991px) {
+            .dash-admin-main-grid {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .table-responsive-stack tbody td[data-label="Waktu"] {
+                white-space: nowrap !important;
+            }
+
+            .table-responsive-stack tbody td[data-label="Waktu"]>* {
+                white-space: nowrap !important;
+                text-align: right !important;
+            }
+
+            .table-responsive-stack tbody td[data-label="Aktivitas"] {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 4px !important;
+                padding-top: 8px !important;
+                padding-bottom: 8px !important;
+            }
+
+            .table-responsive-stack tbody td[data-label="Aktivitas"]>* {
+                max-width: 100% !important;
+                text-align: left !important;
+                white-space: normal !important;
+            }
+
+            .table-responsive-stack tbody td[data-label="Aktivitas"] .aktivitas-outline {
+                white-space: normal !important;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+        }
+    </style>
     @php
         $hour = date('H');
         $greeting =
@@ -81,9 +130,6 @@
                 style="padding: 9px 16px; font-size: 0.85rem;">
                 <i class="fas fa-cloud-arrow-down"></i> Tarik Data Dapodik
             </a>
-            <button class="btn btn-primary" style="padding: 9px 16px; font-size: 0.85rem;">
-                <i class="fas fa-file-export"></i> Rekap Presensi
-            </button>
         </div>
     </div>
 
@@ -181,10 +227,10 @@
                             <i class="fas fa-chart-area text-primary"></i> Tren Kehadiran Presensi Harian (Garis)
                         </h4>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Tingkat kehadiran Peserta Didik vs
-                            GTK</span>
+                            Guru</span>
                     </div>
                     <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">
-                        <i class="fas fa-arrow-trend-up me-1"></i> Rata-rata 96.2%
+                        <i class="fas fa-arrow-trend-up me-1"></i> Rata-rata {{ $chartTrend['average'] ?? '0' }}%
                     </span>
                 </div>
                 <div style="position: relative; height: 230px; width: 100%;">
@@ -265,8 +311,7 @@
     </div>
 
     <!-- Main Section: Grid 2 Columns (Datatable Aktivitas & Status Sistem) -->
-    <div
-        style="display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 20px; align-items: start; margin-top: 24px;">
+    <div class="dash-admin-main-grid">
         <!-- Left: Datatable Log Aktivitas Administrator -->
         <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 0;">
             <div
@@ -280,7 +325,7 @@
                         Seluruh aktivitas transaksi &amp; manajemen sistem yang dilakukan administrator.
                     </p>
                 </div>
-                <span class="badge badge-outline" style="font-size: 0.72rem;">
+                <span class="badge badge-outline badge-total" id="totalRiwayatBadge" style="font-size: 0.72rem;">
                     {{ $aktivitasLogs->total() }} Riwayat Tercatat
                 </span>
             </div>
@@ -311,9 +356,9 @@
                     </select>
 
                     @if (request('q') || request('modul'))
-                        <a href="{{ route('dashboard.admin') }}" class="btn btn-outline"
+                        <a href="{{ route('dashboard.admin') }}" class="btn btn-outline btn-reset-filter"
                             style="height: 32px; padding: 0 10px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 4px;"
-                            title="Reset Filter">
+                            title="Reset Filter" data-live-reset="true">
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -339,7 +384,7 @@
                                 style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
                                 No</th>
                             <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px; white-space: nowrap;">
                                 Waktu</th>
                             <th
                                 style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
@@ -359,12 +404,10 @@
                                     data-label="No">
                                     {{ $aktivitasLogs->firstItem() + $idx }}
                                 </td>
-                                <td style="padding: 12px 14px;" data-label="Waktu">
-                                    <span style="font-weight: 600; color: var(--text-color); display: block;">
-                                        {{ $act->created_at ? $act->created_at->format('d/m/Y') : '-' }}
-                                    </span>
-                                    <span style="font-size: 0.74rem; color: var(--text-muted);">
-                                        {{ $act->created_at ? $act->created_at->format('H:i') . ' WIB' : '' }}
+                                <td style="padding: 12px 14px; white-space: nowrap;" data-label="Waktu">
+                                    <span
+                                        style="font-weight: 600; font-size: 0.82rem; color: var(--text-color); white-space: nowrap; display: inline-block;">
+                                        {{ $act->created_at ? $act->created_at->format('d/m/Y H:i') . ' WIB' : '-' }}
                                     </span>
                                 </td>
                                 <td style="padding: 12px 14px;" data-label="Modul">
@@ -392,18 +435,22 @@
                                     </span>
                                 </td>
                                 <td style="padding: 12px 14px;" data-label="Aktivitas">
-                                    <strong style="color: var(--text-color); font-size: 0.85rem; display: block;">
+                                    <strong
+                                        style="color: var(--text-color); font-size: 0.84rem; display: block; line-height: 1.35; margin-bottom: 2px;">
                                         {{ $act->aktivitas }}
                                     </strong>
                                     @if ($act->keterangan)
-                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
-                                            {{ $act->keterangan }}
+                                        <div class="aktivitas-outline"
+                                            style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.35; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 440px;"
+                                            title="{{ $act->keterangan }}">
+                                            {{ \Illuminate\Support\Str::limit($act->keterangan, 65) }}
                                         </div>
                                     @endif
-                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">
-                                        <i class="fas fa-user-circle me-1"></i>{{ $act->admin_name }}
+                                    <div
+                                        style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span><i class="fas fa-user-circle me-1"></i>{{ $act->admin_name }}</span>
                                         @if ($act->ip_address)
-                                            <span style="opacity: 0.7;">• IP: {{ $act->ip_address }}</span>
+                                            <span style="opacity: 0.65;">• IP: {{ $act->ip_address }}</span>
                                         @endif
                                     </div>
                                 </td>
@@ -506,8 +553,8 @@
             <div style="display: flex; flex-direction: column; gap: 14px;">
                 <!-- 1. Sinkron Dapodik Terakhir -->
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 10px;">
-                    <div>
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 10px; flex-wrap: wrap; gap: 8px;">
+                    <div style="flex: 1; min-width: 150px;">
                         <div
                             style="font-size: 0.84rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-cloud-arrow-up text-warning"></i> Sinkron Dapodik Terakhir
@@ -523,8 +570,8 @@
 
                 <!-- 2. Versi Aplikasi -->
                 <div
-                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 10px;">
-                    <div>
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 10px; flex-wrap: wrap; gap: 8px;">
+                    <div style="flex: 1; min-width: 150px;">
                         <div
                             style="font-size: 0.84rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-code-commit text-primary"></i> Versi Aplikasi SAE
@@ -534,7 +581,7 @@
                         </div>
                     </div>
                     <span class="badge"
-                        style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800; font-size: 0.82rem; padding: 4px 10px; border-radius: 8px;">
+                        style="background: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 800; font-size: 0.82rem; padding: 4px 10px; border-radius: 8px; white-space: nowrap;">
                         v{{ $stats['app_version'] }}
                     </span>
                 </div>

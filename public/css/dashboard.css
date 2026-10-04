@@ -1112,6 +1112,21 @@
     gap: 24px;
 }
 
+.dash-admin-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: 20px;
+    align-items: start;
+    margin-top: 24px;
+}
+
+@media (max-width: 991px) {
+    .dash-admin-main-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+}
+
 .dash-banner {
     background: linear-gradient(
         135deg,

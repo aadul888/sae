@@ -19,24 +19,39 @@
             @if ($canUpdate)
                 <div class="pemberlakuan-badge-wrap" style="display: inline-flex; align-items: center; gap: 8px;">
                     @if ($isOtomatisAktif)
-                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="badge"
+                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-check-circle"></i> Jadwal Otomatis Diberlakukan (Aktif)
                         </span>
-                        <button type="button" class="btn btn-outline btn-toggle-pemberlakuan" data-mode="otomatis" data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}" onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}" title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)" style="padding: 6px 12px; font-size: 0.78rem; border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
+                        <button type="button" class="btn btn-outline btn-toggle-pemberlakuan" data-mode="otomatis"
+                            data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
+                            onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
+                            title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
+                            style="padding: 6px 12px; font-size: 0.78rem; border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
                             <i class="fas fa-pause me-1"></i> Jadikan Draft
                         </button>
                     @elseif ($isManualAktif)
-                        <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="badge"
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Jadwal Manual Aktif)
                         </span>
-                        <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}" onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}" title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Manual)" style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                        <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif"
+                            data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
+                            onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
+                            title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Manual)"
+                            style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play me-1"></i> Berlakukan Jadwal Otomatis
                         </button>
                     @else
-                        <span class="badge" style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span class="badge"
+                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: 0.78rem; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Dalam Penyusunan)
                         </span>
-                        <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}" onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}" title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa" style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                        <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif"
+                            data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
+                            onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
+                            title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa"
+                            style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play me-1"></i> Berlakukan Jadwal Otomatis
                         </button>
                     @endif
@@ -106,7 +121,8 @@
 
             @if ($canCreate)
                 <button type="button" class="btn" id="btnBukaAutoGenerate"
-                    style="padding: 8px 14px; font-size: 0.9rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);" title="Auto-Generate Jadwal Otomatis">
+                    style="padding: 8px 14px; font-size: 0.9rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);"
+                    title="Auto-Generate Jadwal Otomatis">
                     <i class="fas fa-wand-magic-sparkles"></i>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnTambahJadwal"
@@ -120,58 +136,79 @@
     <!-- Sub-Menu Navigasi Jadwal KBM (Generate vs Manual) -->
     <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
         <div class="periode-nav-desktop">
-            <a href="{{ route('dashboard.jadwal-kbm.index') }}"
-                class="periode-nav-tab active">
+            <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab active">
                 <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
             </a>
-            <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
-                class="periode-nav-tab">
+            <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}" class="periode-nav-tab">
                 <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
             </a>
         </div>
     </div>
 
     <!-- Banner Integrasi Kalender Pendidikan -->
-    <div class="card" style="padding: 12px 18px; margin-bottom: 18px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+    <div class="card"
+        style="padding: 12px 18px; margin-bottom: 18px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 12px;">
             @php
-                $isLibur = ($statusHariIni['is_libur'] ?? false) || ($statusHariIni['libur_gtk'] ?? false) || ($statusHariIni['libur_pd'] ?? false);
-                $bgIcon = $isLibur ? 'rgba(239,68,68,0.12)' : (!empty($agendaHariIni) ? 'rgba(99,102,241,0.12)' : 'rgba(16,185,129,0.12)');
+                $isLibur =
+                    ($statusHariIni['is_libur'] ?? false) ||
+                    ($statusHariIni['libur_gtk'] ?? false) ||
+                    ($statusHariIni['libur_pd'] ?? false);
+                $bgIcon = $isLibur
+                    ? 'rgba(239,68,68,0.12)'
+                    : (!empty($agendaHariIni)
+                        ? 'rgba(99,102,241,0.12)'
+                        : 'rgba(16,185,129,0.12)');
                 $colIcon = $isLibur ? '#ef4444' : (!empty($agendaHariIni) ? 'var(--primary)' : '#10b981');
-                $iconClass = $isLibur ? 'fa-umbrella-beach' : (!empty($agendaHariIni) ? 'fa-calendar-star' : 'fa-calendar-check');
+                $iconClass = $isLibur
+                    ? 'fa-umbrella-beach'
+                    : (!empty($agendaHariIni)
+                        ? 'fa-calendar-star'
+                        : 'fa-calendar-check');
             @endphp
-            <div style="width: 40px; height: 40px; border-radius: 10px; background: {{ $bgIcon }}; color: {{ $colIcon }}; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
+            <div
+                style="width: 40px; height: 40px; border-radius: 10px; background: {{ $bgIcon }}; color: {{ $colIcon }}; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
                 <i class="fas {{ $iconClass }}"></i>
             </div>
             <div>
-                <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                    <span>Kalender Akademik: TA {{ $tahunAjaranAktif }} (Semester {{ $semesterAktif == '1' ? '1 Ganjil' : '2 Genap' }})</span>
+                <div
+                    style="font-size: 0.88rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <span>Kalender Akademik: TA {{ $tahunAjaranAktif }} (Semester
+                        {{ $semesterAktif == '1' ? '1 Ganjil' : '2 Genap' }})</span>
                     @if ($isLibur)
-                        <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                        <span class="badge"
+                            style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
                             <i class="fas fa-ban me-1"></i> Libur Sekolah / KBM Off
                         </span>
                     @elseif (!empty($agendaHariIni))
-                        <span class="badge" style="background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                        <span class="badge"
+                            style="background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
                             <i class="fas fa-flag me-1"></i> Agenda Khusus
                         </span>
                     @else
-                        <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
+                        <span class="badge"
+                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">
                             <i class="fas fa-check me-1"></i> Hari Efektif Belajar (HEB)
                         </span>
                     @endif
                 </div>
                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
                     @if (!empty($agendaHariIni))
-                        <strong>Hari Ini ({{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}):</strong> {{ $agendaHariIni->nama_agenda }}
-                        @if ($agendaHariIni->keterangan) &bull; {{ $agendaHariIni->keterangan }} @endif
+                        <strong>Hari Ini ({{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}):</strong>
+                        {{ $agendaHariIni->nama_agenda }}
+                        @if ($agendaHariIni->keterangan)
+                            &bull; {{ $agendaHariIni->keterangan }}
+                        @endif
                     @else
-                        <strong>Hari Ini:</strong> {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }} &bull; KBM reguler berlangsung sesuai jam pelajaran aktif.
+                        <strong>Hari Ini:</strong> {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }} &bull; KBM
+                        reguler berlangsung sesuai jam pelajaran aktif.
                     @endif
                 </div>
             </div>
         </div>
         <div>
-            <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.8rem;" title="Lihat Detail Kalender Pendidikan">
+            <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline"
+                style="padding: 6px 14px; font-size: 0.8rem;" title="Lihat Detail Kalender Pendidikan">
                 <i class="fas fa-calendar-alt me-1"></i> Buka Kalender Pendidikan
             </a>
         </div>
@@ -185,7 +222,8 @@
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
-                    {{ number_format($summary['hari_efektif_semester'] ?? 0, 0, ',', '.') }} <span style="font-size: 0.72rem; font-weight: 500;">Hari</span>
+                    {{ number_format($summary['hari_efektif_semester'] ?? 0, 0, ',', '.') }} <span
+                        style="font-size: 0.72rem; font-weight: 500;">Hari</span>
                 </div>
                 <div class="dash-stat-label">HEB Semester (Jalan: {{ $summary['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
@@ -254,7 +292,12 @@
                     @foreach (\App\Models\JadwalKbm::HARI_LIST as $h)
                         @php
                             $hJp = $dailySlotCounts[$h] ?? ($h === 'Jumat' ? 5 : $pengaturan->total_slot_jp ?? 10);
-                            $isHariAktif = in_array($h, $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'], true) && ($hJp > 0);
+                            $isHariAktif =
+                                in_array(
+                                    $h,
+                                    $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'],
+                                    true,
+                                ) && $hJp > 0;
                         @endphp
                         @if ($isHariAktif || $hJp > 0)
                             @php
@@ -264,8 +307,9 @@
                             <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['hari' => $h, 'view_mode' => 'grid'])) }}"
                                 class="btn {{ $isDayActive ? 'btn-primary' : 'btn-outline' }} btn-day-tab"
                                 data-hari="{{ $h }}"
-                                style="padding: 6px 14px; font-size: 0.82rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                                <span>{{ $h }}</span>
+                                style="padding: 6px 14px; font-size: 0.82rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; {{ $isDayActive ? 'color: #ffffff !important;' : '' }}">
+                                <span
+                                    style="{{ $isDayActive ? 'color: #ffffff !important; font-weight: 700;' : '' }}">{{ $h }}</span>
                                 <span class="badge"
                                     style="{{ $isDayActive ? 'background: rgba(255,255,255,0.25); color: #fff;' : 'background: var(--bg-hover); color: var(--text-muted);' }} font-size: 0.72rem; padding: 2px 6px; border-radius: 10px;"
                                     title="{{ $hJp }} JP ({{ $count }} jadwal)">
@@ -304,7 +348,8 @@
                             {{ $timeSlots[1]['mulai'] ?? '07:15' }} s/d {{ end($timeSlots)['selesai'] ?? '' }} WIB
                         </span>
                     @else
-                        <span class="badge" style="background: var(--bg-hover); color: var(--text-muted); font-size: 0.76rem; padding: 4px 8px; border: 1px solid var(--border-color);">
+                        <span class="badge"
+                            style="background: var(--bg-hover); color: var(--text-muted); font-size: 0.76rem; padding: 4px 8px; border: 1px solid var(--border-color);">
                             <i class="fas fa-calendar-xmark me-1"></i> KBM {{ $selectedHari }}: 0 JP
                         </span>
                         <span style="font-weight: 600; color: var(--text-muted);">
@@ -575,10 +620,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ max(1, count($gridRombels) + 1) }}" style="padding: 48px 24px; text-align: center; color: var(--text-muted); background: var(--bg-card);">
+                            <td colspan="{{ max(1, count($gridRombels) + 1) }}"
+                                style="padding: 48px 24px; text-align: center; color: var(--text-muted); background: var(--bg-card);">
                                 <i class="fas fa-calendar-xmark mb-3" style="font-size: 2.2rem; opacity: 0.4;"></i>
-                                <div style="font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 4px;">Tidak Ada KBM pada Hari {{ $selectedHari }}</div>
-                                <div style="font-size: 0.82rem; color: var(--text-muted);">Total JP untuk hari {{ $selectedHari }} diatur 0 JP (Libur). Klik tombol <strong>Atur Jam Pelajaran</strong> untuk menyesuaikan jam pelajaran.</div>
+                                <div
+                                    style="font-weight: 700; font-size: 1rem; color: var(--text-color); margin-bottom: 4px;">
+                                    Tidak Ada KBM pada Hari {{ $selectedHari }}</div>
+                                <div style="font-size: 0.82rem; color: var(--text-muted);">Total JP untuk hari
+                                    {{ $selectedHari }} diatur 0 JP (Libur). Klik tombol <strong>Atur Jam
+                                        Pelajaran</strong> untuk menyesuaikan jam pelajaran.</div>
                             </td>
                         </tr>
                     @endforelse
@@ -1047,7 +1097,8 @@
     @php
         $currentSkema = $pengaturan->skema_hari ?? '5_hari';
         $dailySlotsMap = \App\Models\JadwalPengaturan::getDailySlotCounts();
-        $tingkatDailySlots = $tingkatDailySlots ?? \App\Models\JadwalPengaturan::getTingkatDailySlotCounts($currentSkema);
+        $tingkatDailySlots =
+            $tingkatDailySlots ?? \App\Models\JadwalPengaturan::getTingkatDailySlotCounts($currentSkema);
         $jpTingkatSettings = \App\Models\JadwalPengaturan::getJpTingkat();
         $breaks = $pengaturan->istirahat ?? [
             ['aktif' => true, 'jam_ke' => 8, 'durasi_menit' => 30, 'nama' => 'Istirahat'],
@@ -1079,8 +1130,10 @@
             <!-- Modal Header -->
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                    <span style="background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                <h3
+                    style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                    <span
+                        style="background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                         <i class="fas fa-wand-magic-sparkles"></i> Atur Waktu &amp; Generate Jadwal KBM
                     </span>
                 </h3>
@@ -1093,28 +1146,37 @@
             <!-- Banner Sinkronisasi -->
             <div
                 style="padding: 10px 14px; background: rgba(99,102,241,0.08); border-left: 4px solid var(--primary); border-radius: 6px; margin-bottom: 16px; font-size: 0.8rem; color: var(--text-color); line-height: 1.45;">
-                <strong>Formulir Terpadu AI Scheduler:</strong> Pengaturan jam belajar dan eksekusi AI scheduler otomatis tersinkronisasi. Anda dapat <strong>Menyimpan Pengaturan Saja</strong> atau langsung <strong>Generate Jadwal Otomatis</strong> dengan algoritma multi-pass, swap anti-bentrok, dan pemadatan jam tanpa celah kosong.
+                <strong>Formulir Terpadu AI Scheduler:</strong> Pengaturan jam belajar dan eksekusi AI scheduler otomatis
+                tersinkronisasi. Anda dapat <strong>Menyimpan Pengaturan Saja</strong> atau langsung <strong>Generate Jadwal
+                    Otomatis</strong> dengan algoritma multi-pass, swap anti-bentrok, dan pemadatan jam tanpa celah kosong.
             </div>
 
             <form id="formAturDanGenerate">
                 @csrf
 
-                <div class="modal-atur-grid" style="display: grid; grid-template-columns: 1.18fr 1fr; gap: 24px; align-items: start;">
+                <div class="modal-atur-grid"
+                    style="display: grid; grid-template-columns: 1.18fr 1fr; gap: 24px; align-items: start;">
                     <!-- KOLOM KIRI: WAKTU & ALOKASI HARIAN -->
                     <div>
                         <!-- SEKSI 1: PILIHAN SKEMA HARI SEKOLAH -->
                         <div style="margin-bottom: 16px;">
-                            <label style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-color);">
-                                <i class="fas fa-calendar-check text-primary me-1"></i> Skema Hari Sekolah <span style="color: #ef4444;">*</span>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 8px; color: var(--text-color);">
+                                <i class="fas fa-calendar-check text-primary me-1"></i> Skema Hari Sekolah <span
+                                    style="color: #ef4444;">*</span>
                             </label>
-                            <div class="skema-options-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="skema-options-grid"
+                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                 <!-- Opsi 5 Hari -->
                                 <label class="skema-option-card {{ $currentSkema === '5_hari' ? 'active' : '' }}"
                                     style="display: block; position: relative; border: 2px solid {{ $currentSkema === '5_hari' ? 'var(--primary)' : 'var(--border-color)' }}; border-radius: 10px; padding: 14px; background: {{ $currentSkema === '5_hari' ? 'rgba(99, 102, 241, 0.06)' : 'var(--bg-card)' }}; cursor: pointer; transition: all 0.2s ease;">
-                                    <input type="radio" name="skema_hari" value="5_hari" {{ $currentSkema === '5_hari' ? 'checked' : '' }} style="position: absolute; top: 14px; right: 14px;">
+                                    <input type="radio" name="skema_hari" value="5_hari"
+                                        {{ $currentSkema === '5_hari' ? 'checked' : '' }}
+                                        style="position: absolute; top: 14px; right: 14px;">
                                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                         <i class="fas fa-calendar-week text-primary" style="font-size: 1.15rem;"></i>
-                                        <strong style="font-size: 0.92rem; color: var(--text-color);">5 Hari Sekolah</strong>
+                                        <strong style="font-size: 0.92rem; color: var(--text-color);">5 Hari
+                                            Sekolah</strong>
                                     </div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);">
                                         Senin – Jumat (SMK Negeri / Full Day)
@@ -1124,10 +1186,13 @@
                                 <!-- Opsi 6 Hari -->
                                 <label class="skema-option-card {{ $currentSkema === '6_hari' ? 'active' : '' }}"
                                     style="display: block; position: relative; border: 2px solid {{ $currentSkema === '6_hari' ? 'var(--primary)' : 'var(--border-color)' }}; border-radius: 10px; padding: 14px; background: {{ $currentSkema === '6_hari' ? 'rgba(99, 102, 241, 0.06)' : 'var(--bg-card)' }}; cursor: pointer; transition: all 0.2s ease;">
-                                    <input type="radio" name="skema_hari" value="6_hari" {{ $currentSkema === '6_hari' ? 'checked' : '' }} style="position: absolute; top: 14px; right: 14px;">
+                                    <input type="radio" name="skema_hari" value="6_hari"
+                                        {{ $currentSkema === '6_hari' ? 'checked' : '' }}
+                                        style="position: absolute; top: 14px; right: 14px;">
                                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                         <i class="fas fa-calendar-days text-warning" style="font-size: 1.15rem;"></i>
-                                        <strong style="font-size: 0.92rem; color: var(--text-color);">6 Hari Sekolah</strong>
+                                        <strong style="font-size: 0.92rem; color: var(--text-color);">6 Hari
+                                            Sekolah</strong>
                                     </div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);">
                                         Senin – Sabtu (Umum SMK Swasta)
@@ -1144,7 +1209,8 @@
                                     Jam Mulai KBM (JP 1) <span style="color: #ef4444;">*</span>
                                 </label>
                                 <input type="time" id="setJamMulai" name="jam_mulai_kbm"
-                                    value="{{ substr($pengaturan->jam_mulai_kbm ?? '07:15:00', 0, 5) }}" class="form-control"
+                                    value="{{ substr($pengaturan->jam_mulai_kbm ?? '07:15:00', 0, 5) }}"
+                                    class="form-control"
                                     style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);"
                                     required>
                             </div>
@@ -1154,32 +1220,41 @@
                                     style="display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
                                     Durasi per JP (Menit) <span style="color: #ef4444;">*</span>
                                 </label>
-                                <input type="number" id="setDurasiJp" name="durasi_per_jp" min="20" max="90"
-                                    value="{{ $pengaturan->durasi_per_jp ?? 45 }}" class="form-control"
+                                <input type="number" id="setDurasiJp" name="durasi_per_jp" min="20"
+                                    max="90" value="{{ $pengaturan->durasi_per_jp ?? 45 }}" class="form-control"
                                     style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);"
                                     required>
-                                <small style="color: var(--text-muted); font-size: 0.72rem;">Standar SMK/SMA: 40–45 menit</small>
+                                <small style="color: var(--text-muted); font-size: 0.72rem;">Standar SMK/SMA: 40–45
+                                    menit</small>
                             </div>
                         </div>
 
                         <!-- SEKSI 3: PREVIEW & OVERRIDE SLOT HARIAN -->
-                        <div style="margin-bottom: 16px; padding: 12px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-color);">
-                            <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                                <span><i class="fas fa-clock text-primary me-1"></i> Alokasi Slot Jam &amp; Waktu Pulang Harian</span>
+                        <div
+                            style="margin-bottom: 16px; padding: 12px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-color);">
+                            <div
+                                style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                                <span><i class="fas fa-clock text-primary me-1"></i> Alokasi Slot Jam &amp; Waktu Pulang
+                                    Harian</span>
                                 <small style="color: var(--text-muted); font-size: 0.72rem;">Otomatis live update</small>
                             </div>
-                            <div class="slot-days-grid" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;">
+                            <div class="slot-days-grid"
+                                style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;">
                                 @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh)
                                     @php
-                                        $curJp = $dailySlotsMap[$dh] ?? ($dh === 'Jumat' ? 6 : ($dh === 'Sabtu' ? 0 : 13));
+                                        $curJp =
+                                            $dailySlotsMap[$dh] ?? ($dh === 'Jumat' ? 6 : ($dh === 'Sabtu' ? 0 : 13));
                                         $curSelesai = \App\Models\JadwalPengaturan::calculateJamSelesai($curJp);
                                     @endphp
                                     <div class="slot-day-card" data-hari="{{ $dh }}"
                                         style="background: var(--bg-card); padding: 8px 4px; border-radius: 6px; border: 1px solid var(--border-color); text-align: center;">
-                                        <strong style="font-size: 0.78rem; color: var(--text-color); display: block; margin-bottom: 4px;">{{ $dh }}</strong>
-                                        <div style="display: flex; align-items: center; justify-content: center; gap: 2px; margin-bottom: 4px;">
+                                        <strong
+                                            style="font-size: 0.78rem; color: var(--text-color); display: block; margin-bottom: 4px;">{{ $dh }}</strong>
+                                        <div
+                                            style="display: flex; align-items: center; justify-content: center; gap: 2px; margin-bottom: 4px;">
                                             <input type="number" name="slot_harian[{{ $dh }}][total_jp]"
-                                                value="{{ $curJp }}" min="0" max="16" placeholder="0" class="form-control input-slot-harian"
+                                                value="{{ $curJp }}" min="0" max="16"
+                                                placeholder="0" class="form-control input-slot-harian"
                                                 data-hari="{{ $dh }}"
                                                 style="width: 44px; padding: 4px 2px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.78rem; text-align: center; font-weight: 700;">
                                             <span style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
@@ -1198,55 +1273,80 @@
                         <!-- SEKSI 4: WAKTU ISTIRAHAT & RUTIN PAGI (DIATUR WAKTUNYA SEPERTI ISTIRAHAT) -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                             <!-- Istirahat KBM -->
-                            <div style="padding: 12px; background: rgba(245, 158, 11, 0.04); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.25);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin: 0;">
-                                        <input type="checkbox" id="setIstirahatAktif" name="istirahat[0][aktif]" value="1" {{ $isB1Active ? 'checked' : '' }}>
+                            <div
+                                style="padding: 12px; background: rgba(245, 158, 11, 0.04); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.25);">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <label
+                                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin: 0;">
+                                        <input type="checkbox" id="setIstirahatAktif" name="istirahat[0][aktif]"
+                                            value="1" {{ $isB1Active ? 'checked' : '' }}>
                                         <span><i class="fas fa-mug-hot text-warning me-1"></i> Istirahat KBM</span>
                                     </label>
-                                    <span class="badge" style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.65rem; font-weight: 700;">Kunci Slot</span>
+                                    <span class="badge"
+                                        style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: 0.65rem; font-weight: 700;">Kunci
+                                        Slot</span>
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                                     <div>
-                                        <span style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di Jam Ke-:</span>
+                                        <span
+                                            style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di
+                                            Jam Ke-:</span>
                                         <input type="number" id="setIstirahatJamKe" name="istirahat[0][jam_ke]"
                                             value="{{ $b1['jam_ke'] ?? 8 }}" min="1" max="16"
-                                            style="width: 100%; padding: 5px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;" required>
+                                            style="width: 100%; padding: 5px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;"
+                                            required>
                                     </div>
                                     <div>
-                                        <span style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi (Mnt):</span>
+                                        <span
+                                            style="font-size: 0.7rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi
+                                            (Mnt):</span>
                                         <input type="number" id="setIstirahatDurasi" name="istirahat[0][durasi_menit]"
                                             value="{{ $b1['durasi_menit'] ?? 30 }}" min="5" max="90"
-                                            style="width: 100%; padding: 5px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;" required>
+                                            style="width: 100%; padding: 5px; font-size: 0.78rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;"
+                                            required>
                                     </div>
                                 </div>
                                 <input type="hidden" name="istirahat[0][nama]" value="Istirahat">
                             </div>
 
                             <!-- Rutin Pagi: Upacara & Pembiasaan dengan Atur Waktu -->
-                            <div style="padding: 12px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-color);">
-                                <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                            <div
+                                style="padding: 12px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-color);">
+                                <div
+                                    style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
                                     <span><i class="fas fa-flag text-danger me-1"></i> Rutin Pagi</span>
-                                    <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.65rem; font-weight: 700;">Atur Waktu</span>
+                                    <span class="badge"
+                                        style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.65rem; font-weight: 700;">Atur
+                                        Waktu</span>
                                 </div>
 
                                 <!-- Upacara Senin -->
-                                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border-color);">
-                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin-bottom: 4px;">
-                                        <input type="checkbox" id="setUpacaraAktif" name="upacara[aktif]" value="1" {{ !empty($upacaraConfig['aktif']) ? 'checked' : '' }}>
+                                <div
+                                    style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border-color);">
+                                    <label
+                                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin-bottom: 4px;">
+                                        <input type="checkbox" id="setUpacaraAktif" name="upacara[aktif]" value="1"
+                                            {{ !empty($upacaraConfig['aktif']) ? 'checked' : '' }}>
                                         <span>Upacara Bendera (Senin)</span>
                                     </label>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
                                         <div>
-                                            <span style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di Jam Ke-:</span>
+                                            <span
+                                                style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di
+                                                Jam Ke-:</span>
                                             <input type="number" id="setUpacaraJamKe" name="upacara[jam_ke]"
-                                                value="{{ $upacaraConfig['jam_ke'] ?? 1 }}" min="1" max="16"
+                                                value="{{ $upacaraConfig['jam_ke'] ?? 1 }}" min="1"
+                                                max="16"
                                                 style="width: 100%; padding: 4px; font-size: 0.76rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
                                         </div>
                                         <div>
-                                            <span style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi (Mnt):</span>
+                                            <span
+                                                style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi
+                                                (Mnt):</span>
                                             <input type="number" id="setUpacaraDurasi" name="upacara[durasi_menit]"
-                                                value="{{ $upacaraConfig['durasi_menit'] ?? 45 }}" min="10" max="90"
+                                                value="{{ $upacaraConfig['durasi_menit'] ?? 45 }}" min="10"
+                                                max="90"
                                                 style="width: 100%; padding: 4px; font-size: 0.76rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
                                         </div>
                                     </div>
@@ -1256,21 +1356,30 @@
 
                                 <!-- Pembiasaan Jumat -->
                                 <div>
-                                    <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin-bottom: 4px;">
-                                        <input type="checkbox" id="setPembiasaanAktif" name="pembiasaan[aktif]" value="1" {{ !empty($pembiasaanConfig['aktif']) ? 'checked' : '' }}>
+                                    <label
+                                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 700; color: var(--text-color); cursor: pointer; margin-bottom: 4px;">
+                                        <input type="checkbox" id="setPembiasaanAktif" name="pembiasaan[aktif]"
+                                            value="1" {{ !empty($pembiasaanConfig['aktif']) ? 'checked' : '' }}>
                                         <span>Pembiasaan Pagi (Jumat)</span>
                                     </label>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
                                         <div>
-                                            <span style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di Jam Ke-:</span>
+                                            <span
+                                                style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Di
+                                                Jam Ke-:</span>
                                             <input type="number" id="setPembiasaanJamKe" name="pembiasaan[jam_ke]"
-                                                value="{{ $pembiasaanConfig['jam_ke'] ?? 1 }}" min="1" max="16"
+                                                value="{{ $pembiasaanConfig['jam_ke'] ?? 1 }}" min="1"
+                                                max="16"
                                                 style="width: 100%; padding: 4px; font-size: 0.76rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
                                         </div>
                                         <div>
-                                            <span style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi (Mnt):</span>
-                                            <input type="number" id="setPembiasaanDurasi" name="pembiasaan[durasi_menit]"
-                                                value="{{ $pembiasaanConfig['durasi_menit'] ?? 40 }}" min="10" max="90"
+                                            <span
+                                                style="font-size: 0.66rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 2px;">Durasi
+                                                (Mnt):</span>
+                                            <input type="number" id="setPembiasaanDurasi"
+                                                name="pembiasaan[durasi_menit]"
+                                                value="{{ $pembiasaanConfig['durasi_menit'] ?? 40 }}" min="10"
+                                                max="90"
                                                 style="width: 100%; padding: 4px; font-size: 0.76rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-color); text-align: center;">
                                         </div>
                                     </div>
@@ -1284,120 +1393,208 @@
                     <!-- KOLOM KANAN: TARGET TINGKAT, OPSI AI & VALIDASI KETAT -->
                     <div>
                         <!-- SEKSI 5: DISTRIBUSI SLOT HARIAN PER TINGKAT (KELAS X, XI, XII) -->
-                        <div style="margin-bottom: 16px; padding: 14px; background: rgba(99, 102, 241, 0.04); border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.25);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div
+                            style="margin-bottom: 16px; padding: 14px; background: rgba(99, 102, 241, 0.04); border-radius: 10px; border: 1px solid rgba(99, 102, 241, 0.25);">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <span style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
-                                    <i class="fas fa-layer-group text-primary me-1"></i> Alokasi Slot Jam Harian per Tingkat
+                                    <i class="fas fa-layer-group text-primary me-1"></i> Alokasi Slot Jam Harian per
+                                    Tingkat
                                 </span>
-                                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.68rem; font-weight: 700;">
+                                <span class="badge"
+                                    style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.68rem; font-weight: 700;">
                                     Presisi Bebas Celah Kosong
                                 </span>
                             </div>
 
                             <div style="overflow-x: auto;">
-                                <table class="table-tingkat-slots" style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: center;">
+                                <table class="table-tingkat-slots"
+                                    style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: center;">
                                     <thead>
-                                        <tr style="background: var(--bg-hover); border-bottom: 2px solid var(--border-color);">
-                                            <th style="padding: 8px 6px; text-align: left; font-weight: 700; color: var(--text-muted); font-size: 0.74rem;">HARI</th>
-                                            <th class="th-col-tingkat" data-col-tingkat="10" style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: 0.76rem; transition: opacity 0.2s;">
-                                                <span class="badge badge-tingkat-header" data-tingkat="10" style="background: #3b82f6; color: #fff; padding: 2px 7px; border-radius: 4px;">Kelas X</span>
+                                        <tr
+                                            style="background: var(--bg-hover); border-bottom: 2px solid var(--border-color);">
+                                            <th
+                                                style="padding: 8px 6px; text-align: left; font-weight: 700; color: var(--text-muted); font-size: 0.74rem;">
+                                                HARI</th>
+                                            <th class="th-col-tingkat" data-col-tingkat="10"
+                                                style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: 0.76rem; transition: opacity 0.2s;">
+                                                <span class="badge badge-tingkat-header" data-tingkat="10"
+                                                    style="background: #3b82f6; color: #fff; padding: 2px 7px; border-radius: 4px;">Kelas
+                                                    X</span>
                                             </th>
-                                            <th class="th-col-tingkat" data-col-tingkat="11" style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: 0.76rem; transition: opacity 0.2s;">
-                                                <span class="badge badge-tingkat-header" data-tingkat="11" style="background: #8b5cf6; color: #fff; padding: 2px 7px; border-radius: 4px;">Kelas XI</span>
+                                            <th class="th-col-tingkat" data-col-tingkat="11"
+                                                style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: 0.76rem; transition: opacity 0.2s;">
+                                                <span class="badge badge-tingkat-header" data-tingkat="11"
+                                                    style="background: #8b5cf6; color: #fff; padding: 2px 7px; border-radius: 4px;">Kelas
+                                                    XI</span>
                                             </th>
-                                            <th class="th-col-tingkat" data-col-tingkat="12" style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: 0.76rem; transition: opacity 0.2s;">
-                                                <span class="badge badge-tingkat-header" data-tingkat="12" style="background: #ec4899; color: #fff; padding: 2px 7px; border-radius: 4px;">Kelas XII</span>
+                                            <th class="th-col-tingkat" data-col-tingkat="12"
+                                                style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: 0.76rem; transition: opacity 0.2s;">
+                                                <span class="badge badge-tingkat-header" data-tingkat="12"
+                                                    style="background: #ec4899; color: #fff; padding: 2px 7px; border-radius: 4px;">Kelas
+                                                    XII</span>
                                             </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh)
                                             @php
-                                                $valX = $tingkatDailySlots['10'][$dh] ?? ($dh === 'Sabtu' ? 0 : ($dh === 'Jumat' ? 7 : ($dh === 'Senin' ? 13 : 12)));
-                                                $valXI = $tingkatDailySlots['11'][$dh] ?? ($dh === 'Sabtu' ? 0 : ($dh === 'Jumat' ? 7 : ($dh === 'Senin' ? 13 : ($dh === 'Selasa' ? 12 : 11))));
-                                                $valXII = $tingkatDailySlots['12'][$dh] ?? ($dh === 'Sabtu' ? 0 : ($dh === 'Jumat' ? 7 : ($dh === 'Senin' ? 12 : 11)));
+                                                $valX =
+                                                    $tingkatDailySlots['10'][$dh] ??
+                                                    ($dh === 'Sabtu'
+                                                        ? 0
+                                                        : ($dh === 'Jumat'
+                                                            ? 7
+                                                            : ($dh === 'Senin'
+                                                                ? 13
+                                                                : 12)));
+                                                $valXI =
+                                                    $tingkatDailySlots['11'][$dh] ??
+                                                    ($dh === 'Sabtu'
+                                                        ? 0
+                                                        : ($dh === 'Jumat'
+                                                            ? 7
+                                                            : ($dh === 'Senin'
+                                                                ? 13
+                                                                : ($dh === 'Selasa'
+                                                                    ? 12
+                                                                    : 11))));
+                                                $valXII =
+                                                    $tingkatDailySlots['12'][$dh] ??
+                                                    ($dh === 'Sabtu'
+                                                        ? 0
+                                                        : ($dh === 'Jumat'
+                                                            ? 7
+                                                            : ($dh === 'Senin'
+                                                                ? 12
+                                                                : 11)));
                                             @endphp
-                                            <tr class="row-hari-slot" data-hari="{{ $dh }}" style="border-bottom: 1px solid var(--border-color); {{ $dh === 'Sabtu' && $currentSkema === '5_hari' ? 'display: none;' : '' }}">
-                                                <td style="padding: 6px; text-align: left; font-weight: 700; color: var(--text-color); font-size: 0.78rem;">
+                                            <tr class="row-hari-slot" data-hari="{{ $dh }}"
+                                                style="border-bottom: 1px solid var(--border-color); {{ $dh === 'Sabtu' && $currentSkema === '5_hari' ? 'display: none;' : '' }}">
+                                                <td
+                                                    style="padding: 6px; text-align: left; font-weight: 700; color: var(--text-color); font-size: 0.78rem;">
                                                     {{ $dh }}
                                                 </td>
-                                                <td class="td-col-tingkat" data-col-tingkat="10" style="padding: 6px; transition: opacity 0.2s;">
-                                                    <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                                        <input type="number" name="slot_tingkat_harian[10][{{ $dh }}]"
+                                                <td class="td-col-tingkat" data-col-tingkat="10"
+                                                    style="padding: 6px; transition: opacity 0.2s;">
+                                                    <div
+                                                        style="display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                                        <input type="number"
+                                                            name="slot_tingkat_harian[10][{{ $dh }}]"
                                                             value="{{ $valX }}" min="0" max="16"
-                                                            class="form-control input-tingkat-slot" data-tingkat="10" data-hari="{{ $dh }}"
+                                                            class="form-control input-tingkat-slot" data-tingkat="10"
+                                                            data-hari="{{ $dh }}"
                                                             style="width: 46px; padding: 3px; text-align: center; font-weight: 700; font-size: 0.8rem; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);">
-                                                        <span style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
+                                                        <span
+                                                            style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
                                                     </div>
-                                                    <span class="pulang-tingkat-info" data-tingkat="10" data-hari="{{ $dh }}" style="display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;"></span>
+                                                    <span class="pulang-tingkat-info" data-tingkat="10"
+                                                        data-hari="{{ $dh }}"
+                                                        style="display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;"></span>
                                                 </td>
-                                                <td class="td-col-tingkat" data-col-tingkat="11" style="padding: 6px; transition: opacity 0.2s;">
-                                                    <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                                        <input type="number" name="slot_tingkat_harian[11][{{ $dh }}]"
+                                                <td class="td-col-tingkat" data-col-tingkat="11"
+                                                    style="padding: 6px; transition: opacity 0.2s;">
+                                                    <div
+                                                        style="display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                                        <input type="number"
+                                                            name="slot_tingkat_harian[11][{{ $dh }}]"
                                                             value="{{ $valXI }}" min="0" max="16"
-                                                            class="form-control input-tingkat-slot" data-tingkat="11" data-hari="{{ $dh }}"
+                                                            class="form-control input-tingkat-slot" data-tingkat="11"
+                                                            data-hari="{{ $dh }}"
                                                             style="width: 46px; padding: 3px; text-align: center; font-weight: 700; font-size: 0.8rem; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);">
-                                                        <span style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
+                                                        <span
+                                                            style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
                                                     </div>
-                                                    <span class="pulang-tingkat-info" data-tingkat="11" data-hari="{{ $dh }}" style="display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;"></span>
+                                                    <span class="pulang-tingkat-info" data-tingkat="11"
+                                                        data-hari="{{ $dh }}"
+                                                        style="display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;"></span>
                                                 </td>
-                                                <td class="td-col-tingkat" data-col-tingkat="12" style="padding: 6px; transition: opacity 0.2s;">
-                                                    <div style="display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                                        <input type="number" name="slot_tingkat_harian[12][{{ $dh }}]"
+                                                <td class="td-col-tingkat" data-col-tingkat="12"
+                                                    style="padding: 6px; transition: opacity 0.2s;">
+                                                    <div
+                                                        style="display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                                        <input type="number"
+                                                            name="slot_tingkat_harian[12][{{ $dh }}]"
                                                             value="{{ $valXII }}" min="0" max="16"
-                                                            class="form-control input-tingkat-slot" data-tingkat="12" data-hari="{{ $dh }}"
+                                                            class="form-control input-tingkat-slot" data-tingkat="12"
+                                                            data-hari="{{ $dh }}"
                                                             style="width: 46px; padding: 3px; text-align: center; font-weight: 700; font-size: 0.8rem; border-radius: 5px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color);">
-                                                        <span style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
+                                                        <span
+                                                            style="font-size: 0.68rem; color: var(--text-muted);">JP</span>
                                                     </div>
-                                                    <span class="pulang-tingkat-info" data-tingkat="12" data-hari="{{ $dh }}" style="display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;"></span>
+                                                    <span class="pulang-tingkat-info" data-tingkat="12"
+                                                        data-hari="{{ $dh }}"
+                                                        style="display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;"></span>
                                                 </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot>
                                         <tr style="background: rgba(99, 102, 241, 0.08); font-weight: 800;">
-                                            <td style="padding: 7px 6px; text-align: left; font-size: 0.74rem; color: var(--text-color);">
+                                            <td
+                                                style="padding: 7px 6px; text-align: left; font-size: 0.74rem; color: var(--text-color);">
                                                 Total KBM
                                             </td>
-                                            <td class="td-col-tingkat" data-col-tingkat="10" style="padding: 7px 6px; transition: opacity 0.2s;">
-                                                <span id="totalKbmX" style="color: #3b82f6; font-size: 0.86rem; font-weight: 800;">50 JP</span>
-                                                <input type="hidden" name="jp_tingkat[10]" id="inputJpTingkat10" value="{{ $jpTingkatSettings['10'] ?? 50 }}">
+                                            <td class="td-col-tingkat" data-col-tingkat="10"
+                                                style="padding: 7px 6px; transition: opacity 0.2s;">
+                                                <span id="totalKbmX"
+                                                    style="color: #3b82f6; font-size: 0.86rem; font-weight: 800;">50
+                                                    JP</span>
+                                                <input type="hidden" name="jp_tingkat[10]" id="inputJpTingkat10"
+                                                    value="{{ $jpTingkatSettings['10'] ?? 50 }}">
                                             </td>
-                                            <td class="td-col-tingkat" data-col-tingkat="11" style="padding: 7px 6px; transition: opacity 0.2s;">
-                                                <span id="totalKbmXI" style="color: #8b5cf6; font-size: 0.86rem; font-weight: 800;">48 JP</span>
-                                                <input type="hidden" name="jp_tingkat[11]" id="inputJpTingkat11" value="{{ $jpTingkatSettings['11'] ?? 48 }}">
+                                            <td class="td-col-tingkat" data-col-tingkat="11"
+                                                style="padding: 7px 6px; transition: opacity 0.2s;">
+                                                <span id="totalKbmXI"
+                                                    style="color: #8b5cf6; font-size: 0.86rem; font-weight: 800;">48
+                                                    JP</span>
+                                                <input type="hidden" name="jp_tingkat[11]" id="inputJpTingkat11"
+                                                    value="{{ $jpTingkatSettings['11'] ?? 48 }}">
                                             </td>
-                                            <td class="td-col-tingkat" data-col-tingkat="12" style="padding: 7px 6px; transition: opacity 0.2s;">
-                                                <span id="totalKbmXII" style="color: #ec4899; font-size: 0.86rem; font-weight: 800;">46 JP</span>
-                                                <input type="hidden" name="jp_tingkat[12]" id="inputJpTingkat12" value="{{ $jpTingkatSettings['12'] ?? 46 }}">
+                                            <td class="td-col-tingkat" data-col-tingkat="12"
+                                                style="padding: 7px 6px; transition: opacity 0.2s;">
+                                                <span id="totalKbmXII"
+                                                    style="color: #ec4899; font-size: 0.86rem; font-weight: 800;">46
+                                                    JP</span>
+                                                <input type="hidden" name="jp_tingkat[12]" id="inputJpTingkat12"
+                                                    value="{{ $jpTingkatSettings['12'] ?? 46 }}">
                                             </td>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
-                            <small style="display: block; font-size: 0.71rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35;">
-                                * Total JP KBM murni dihitung otomatis setelah dipotong jam Upacara (Senin), Pembiasaan (Jumat), dan Istirahat harian.
+                            <small
+                                style="display: block; font-size: 0.71rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35;">
+                                * Total JP KBM murni dihitung otomatis setelah dipotong jam Upacara (Senin), Pembiasaan
+                                (Jumat), dan Istirahat harian.
                             </small>
                         </div>
 
                         <!-- SEKSI 6: OPSI GENERATE OTOMATIS & VALIDASI KETAT -->
-                        <div style="padding: 14px; background: rgba(16, 185, 129, 0.04); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
-                            <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <div
+                            style="padding: 14px; background: rgba(16, 185, 129, 0.04); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.25);">
+                            <div
+                                style="font-weight: 700; font-size: 0.84rem; color: var(--text-color); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
                                 <i class="fas fa-sliders text-success"></i> Opsi Eksekusi Auto-Scheduler
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
                                 <div>
-                                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mode Pembuatan:</label>
-                                    <select name="clear_existing" class="form-control" style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
+                                    <label
+                                        style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Mode
+                                        Pembuatan:</label>
+                                    <select name="clear_existing" class="form-control"
+                                        style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
                                         <option value="1" selected>Fresh Start (Bersihkan &amp; Buat Ulang)</option>
                                         <option value="0">Hanya Isi Jadwal Kosong (Fill Gaps)</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                                    <label
+                                        style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">
                                         Cakupan Tingkat (PKL / Pengecualian):
                                     </label>
-                                    <select name="tingkat" id="selectCakupanTingkat" class="form-control" style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
+                                    <select name="tingkat" id="selectCakupanTingkat" class="form-control"
+                                        style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
                                         <option value="" selected>Semua Tingkat (Kelas X, XI, XII)</option>
                                         <option value="no_12">Kecualikan Kelas XII (Sedang PKL)</option>
                                         <option value="no_11">Kecualikan Kelas XI (Sedang PKL)</option>
@@ -1407,50 +1604,77 @@
                                         <option value="12">Hanya Kelas XII</option>
                                         <option value="custom">Pilih Tingkat Kustom</option>
                                     </select>
-                                    <div id="tingkatCheckboxWrap" style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
-                                        <label class="tingkat-pill-label" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border-color);">
-                                            <input type="checkbox" name="tingkat_aktif[]" value="10" checked class="chk-tingkat-scope" data-tingkat="10">
+                                    <div id="tingkatCheckboxWrap"
+                                        style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+                                        <label class="tingkat-pill-label"
+                                            style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border-color);">
+                                            <input type="checkbox" name="tingkat_aktif[]" value="10" checked
+                                                class="chk-tingkat-scope" data-tingkat="10">
                                             <span style="font-weight: 700; color: #3b82f6;">Kelas X</span>
                                         </label>
-                                        <label class="tingkat-pill-label" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border-color);">
-                                            <input type="checkbox" name="tingkat_aktif[]" value="11" checked class="chk-tingkat-scope" data-tingkat="11">
+                                        <label class="tingkat-pill-label"
+                                            style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border-color);">
+                                            <input type="checkbox" name="tingkat_aktif[]" value="11" checked
+                                                class="chk-tingkat-scope" data-tingkat="11">
                                             <span style="font-weight: 700; color: #8b5cf6;">Kelas XI</span>
                                         </label>
-                                        <label class="tingkat-pill-label" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border-color);">
-                                            <input type="checkbox" name="tingkat_aktif[]" value="12" checked class="chk-tingkat-scope" data-tingkat="12">
+                                        <label class="tingkat-pill-label"
+                                            style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border-color);">
+                                            <input type="checkbox" name="tingkat_aktif[]" value="12" checked
+                                                class="chk-tingkat-scope" data-tingkat="12">
                                             <span style="font-weight: 700; color: #ec4899;">Kelas XII</span>
-                                            <span class="badge-pkl-status" style="display: none; background: rgba(239,68,68,0.15); color: #ef4444; font-size: 0.62rem; padding: 1px 4px; border-radius: 4px; font-weight: 700;">PKL</span>
+                                            <span class="badge-pkl-status"
+                                                style="display: none; background: rgba(239,68,68,0.15); color: #ef4444; font-size: 0.62rem; padding: 1px 4px; border-radius: 4px; font-weight: 700;">PKL</span>
                                         </label>
                                     </div>
                                 </div>
                             </div>
                             <div style="margin-bottom: 12px;">
-                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Maksimal JP per Sesi Pertemuan:</label>
+                                <label
+                                    style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Maksimal
+                                    JP per Sesi Pertemuan:</label>
                                 @php
                                     $selectedMaxJp = (int) ($pengaturan->max_jp_per_sesi ?? 3);
                                 @endphp
-                                <select name="max_jp_per_sesi" class="form-control" style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
-                                    <option value="2" {{ $selectedMaxJp === 2 ? 'selected' : '' }}>Maks 2 JP (Mapel teori dipecah fleksibel)</option>
-                                    <option value="3" {{ $selectedMaxJp === 3 ? 'selected' : '' }}>Maks 3 JP (Standar seimbang - Direkomendasikan)</option>
-                                    <option value="4" {{ $selectedMaxJp === 4 ? 'selected' : '' }}>Maks 4 JP (Sesi blok 4 JP)</option>
-                                    <option value="5" {{ $selectedMaxJp === 5 ? 'selected' : '' }}>Maks 5 JP (Sesi blok 5 JP)</option>
-                                    <option value="6" {{ $selectedMaxJp === 6 ? 'selected' : '' }}>Maks 6 JP (Sesi blok 6 JP / Praktik Kejuruan)</option>
-                                    <option value="7" {{ $selectedMaxJp === 7 ? 'selected' : '' }}>Maks 7 JP (Sesi blok 7 JP / Praktik Kejuruan)</option>
-                                    <option value="8" {{ $selectedMaxJp === 8 ? 'selected' : '' }}>Maks 8 JP (Sesi blok 8 JP / Praktik Kejuruan)</option>
-                                    <option value="9" {{ $selectedMaxJp === 9 ? 'selected' : '' }}>Maks 9 JP (Sesi blok 9 JP / Full Day Kejuruan)</option>
+                                <select name="max_jp_per_sesi" class="form-control"
+                                    style="width: 100%; padding: 7px 10px; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-card); color: var(--text-color);">
+                                    <option value="2" {{ $selectedMaxJp === 2 ? 'selected' : '' }}>Maks 2 JP (Mapel
+                                        teori dipecah fleksibel)</option>
+                                    <option value="3" {{ $selectedMaxJp === 3 ? 'selected' : '' }}>Maks 3 JP
+                                        (Standar seimbang - Direkomendasikan)</option>
+                                    <option value="4" {{ $selectedMaxJp === 4 ? 'selected' : '' }}>Maks 4 JP (Sesi
+                                        blok 4 JP)</option>
+                                    <option value="5" {{ $selectedMaxJp === 5 ? 'selected' : '' }}>Maks 5 JP (Sesi
+                                        blok 5 JP)</option>
+                                    <option value="6" {{ $selectedMaxJp === 6 ? 'selected' : '' }}>Maks 6 JP (Sesi
+                                        blok 6 JP / Praktik Kejuruan)</option>
+                                    <option value="7" {{ $selectedMaxJp === 7 ? 'selected' : '' }}>Maks 7 JP (Sesi
+                                        blok 7 JP / Praktik Kejuruan)</option>
+                                    <option value="8" {{ $selectedMaxJp === 8 ? 'selected' : '' }}>Maks 8 JP (Sesi
+                                        blok 8 JP / Praktik Kejuruan)</option>
+                                    <option value="9" {{ $selectedMaxJp === 9 ? 'selected' : '' }}>Maks 9 JP (Sesi
+                                        blok 9 JP / Full Day Kejuruan)</option>
                                 </select>
                             </div>
 
                             <!-- VALIDASI KETAT CHECKBOX -->
-                            <div style="padding: 10px 12px; background: rgba(99, 102, 241, 0.08); border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.25);">
-                                <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0;">
-                                    <input type="checkbox" name="strict_validation" id="chkStrictValidation" value="1" checked style="margin-top: 2px; transform: scale(1.15); accent-color: var(--primary);">
+                            <div
+                                style="padding: 10px 12px; background: rgba(99, 102, 241, 0.08); border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.25);">
+                                <label
+                                    style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0;">
+                                    <input type="checkbox" name="strict_validation" id="chkStrictValidation"
+                                        value="1" checked
+                                        style="margin-top: 2px; transform: scale(1.15); accent-color: var(--primary);">
                                     <div>
                                         <strong style="font-size: 0.82rem; color: var(--text-color); display: block;">
-                                            <i class="fas fa-shield-halved text-primary me-1"></i> Validasi Ketat (Direkomendasikan)
+                                            <i class="fas fa-shield-halved text-primary me-1"></i> Validasi Ketat
+                                            (Direkomendasikan)
                                         </strong>
-                                        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; line-height: 1.35;">
-                                            Batalkan seluruh proses dan tampilkan rincian jika ada rombel yang belum terisi penuh atau mapel yang belum terpetakan. Menjamin database tidak menyimpan jadwal setengah jadi.
+                                        <span
+                                            style="font-size: 0.72rem; color: var(--text-muted); display: block; line-height: 1.35;">
+                                            Batalkan seluruh proses dan tampilkan rincian jika ada rombel yang belum terisi
+                                            penuh atau mapel yang belum terpetakan. Menjamin database tidak menyimpan jadwal
+                                            setengah jadi.
                                         </span>
                                     </div>
                                 </label>
@@ -1460,8 +1684,10 @@
                 </div>
 
                 <!-- MODAL FOOTER DENGAN DUA TOMBOL AKSI -->
-                <div class="modal-atur-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 18px; flex-wrap: wrap;">
-                    <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                <div class="modal-atur-footer"
+                    style="display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 18px; flex-wrap: wrap;">
+                    <div
+                        style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
                         <i class="fas fa-check-double text-success"></i> Zero-Gap &amp; Kempe-Swap Scheduler aktif
                     </div>
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -1585,5 +1811,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/jadwal-kbm.js') }}?v={{ file_exists(public_path('js/jadwal-kbm.js')) ? filemtime(public_path('js/jadwal-kbm.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/jadwal-kbm.js') }}?v={{ file_exists(public_path('js/jadwal-kbm.js')) ? filemtime(public_path('js/jadwal-kbm.js')) : time() }}">
+    </script>
 @endpush

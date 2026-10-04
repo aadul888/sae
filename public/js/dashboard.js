@@ -507,6 +507,24 @@ window.refreshLiveTable = async function (url, options = {}) {
     container.style.opacity = "0.45";
     container.style.pointerEvents = "none";
 
+    // Remember focused input to restore cursor & focus after HTML swap
+    let focusedElId = null;
+    let cursorStart = null;
+    let cursorEnd = null;
+    if (
+        document.activeElement &&
+        (document.activeElement.tagName === "INPUT" ||
+            document.activeElement.tagName === "SELECT")
+    ) {
+        focusedElId = document.activeElement.id || null;
+        if (document.activeElement.tagName === "INPUT") {
+            try {
+                cursorStart = document.activeElement.selectionStart;
+                cursorEnd = document.activeElement.selectionEnd;
+            } catch (e) {}
+        }
+    }
+
     try {
         const response = await fetch(targetUrl, {
             credentials: "same-origin",
@@ -584,24 +602,48 @@ window.refreshLiveTable = async function (url, options = {}) {
             "#totalBadge",
             ".total-badge",
             ".total-count-text",
+            "#totalRiwayatBadge",
+            ".badge-outline",
         ];
         countSelectors.forEach((sel) => {
-            const curEl = document.querySelector(sel);
-            const newEl = doc.querySelector(sel);
-            if (curEl && newEl && curEl.innerHTML !== newEl.innerHTML) {
-                curEl.innerHTML = newEl.innerHTML;
-            }
+            const curEls = document.querySelectorAll(sel);
+            const newEls = doc.querySelectorAll(sel);
+            curEls.forEach((curEl, idx) => {
+                if (newEls[idx] && curEl.innerHTML !== newEls[idx].innerHTML) {
+                    curEl.innerHTML = newEls[idx].innerHTML;
+                }
+            });
         });
 
         // 4b. Update Card Rekap / Stat Grid jika ada pada modul
-        const curStatGrid = document.querySelector(
-            ".dash-stat-grid, .form-stat-grid",
-        );
-        const newStatGrid = doc.querySelector(
-            ".dash-stat-grid, .form-stat-grid",
-        );
-        if (curStatGrid && newStatGrid) {
-            curStatGrid.innerHTML = newStatGrid.innerHTML;
+        const statGridSelectors = [
+            ".dash-stat-grid",
+            ".form-stat-grid",
+            ".rekap-stat-grid",
+            ".stats-grid",
+        ];
+        statGridSelectors.forEach((sel) => {
+            const curStatGrid = document.querySelector(sel);
+            const newStatGrid = doc.querySelector(sel);
+            if (curStatGrid && newStatGrid) {
+                curStatGrid.innerHTML = newStatGrid.innerHTML;
+            }
+        });
+
+        // Restore typing focus & cursor if element still exists
+        if (focusedElId) {
+            const reFocusEl = document.getElementById(focusedElId);
+            if (reFocusEl) {
+                reFocusEl.focus();
+                if (
+                    cursorStart !== null &&
+                    typeof reFocusEl.setSelectionRange === "function"
+                ) {
+                    try {
+                        reFocusEl.setSelectionRange(cursorStart, cursorEnd);
+                    } catch (e) {}
+                }
+            }
         }
 
         // 5. Update browser URL silently without page reload
@@ -730,6 +772,75 @@ document.addEventListener("submit", function (e) {
         }
         url.searchParams.set("page", "1");
         window.refreshLiveTable(url.toString());
+    }
+});
+
+// Universal Delegated Change Handler for Dropdown Filters across ALL modules
+document.addEventListener("change", function (e) {
+    const select = e.target;
+    if (!select || select.tagName !== "SELECT") return;
+
+    if (
+        select.hasAttribute("data-no-ajax") ||
+        select.closest(".modal, .swal2-container, #actionModal, .modal-backdrop")
+    ) {
+        return;
+    }
+
+    const isFilterDropdown =
+        select.classList.contains("per-page-select") ||
+        select.hasAttribute("data-live-filter") ||
+        select.id === "perPageSelectAdmin" ||
+        select.id === "filterModulAdmin" ||
+        select.name === "perPage" ||
+        select.name === "per_page" ||
+        select.name === "modul" ||
+        select.name === "status" ||
+        select.name === "kategori" ||
+        select.name === "filter_status" ||
+        select.name === "filter_kategori" ||
+        select.name === "rombel_id" ||
+        select.name === "tingkat" ||
+        select.closest(".toolbar-entries") ||
+        select.closest(".dash-table-toolbar");
+
+    if (!isFilterDropdown) return;
+
+    // If inside a GET form, submit via AJAX
+    const form = select.closest("form");
+    if (form && (form.method || "get").toLowerCase() === "get" && !form.hasAttribute("data-manual-filter")) {
+        const formData = new FormData(form);
+        const url = new URL(form.action || window.location.href, window.location.origin);
+        for (const [k, v] of formData.entries()) {
+            if (v !== "") url.searchParams.set(k, v);
+            else url.searchParams.delete(k);
+        }
+        url.searchParams.set("page", "1");
+        window.refreshLiveTable(url.toString());
+        return;
+    }
+
+    // If not in a GET form, check if inside or near a table/toolbar container
+    const container = select.closest("#tableDataContainer, .table-responsive-stack, .dash-table-card, .card, .toolbar-entries");
+    if (container) {
+        const url = new URL(window.location.href);
+        const paramName = select.name || (select.id === "perPageSelectAdmin" ? "perPage" : (select.id === "filterModulAdmin" ? "modul" : select.id));
+        if (select.value) {
+            url.searchParams.set(paramName, select.value);
+        } else {
+            url.searchParams.delete(paramName);
+        }
+        url.searchParams.set("page", "1");
+        window.refreshLiveTable(url.toString());
+    }
+});
+
+// Universal Delegated Handler for Reset Filter Buttons
+document.addEventListener("click", function (e) {
+    const resetBtn = e.target.closest("[data-live-reset], .btn-reset-filter, #resetFilterAdmin");
+    if (resetBtn && resetBtn.href) {
+        e.preventDefault();
+        window.refreshLiveTable(resetBtn.href);
     }
 });
 

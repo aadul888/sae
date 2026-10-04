@@ -79,6 +79,32 @@ class DashboardController extends Controller
         $lastSync = $setting->last_sync ?? null;
         $appVersion = $setting->app_version ?? UpdateService::CURRENT_VERSION;
 
+        // Presensi Masuk Hari Ini (Data Real)
+        $today = date('Y-m-d');
+        $todayPresensi = Schema::hasTable('presensi_harian')
+            ? DB::table('presensi_harian')->whereDate('tanggal', $today)->get()
+            : collect();
+
+        if ($todayPresensi->isNotEmpty()) {
+            $hadirHariIni = $todayPresensi->whereIn('status', ['H', 'T'])->count();
+            $presensiTodayPct = round(($hadirHariIni / $todayPresensi->count()) * 100, 1);
+            $rfidTapsToday = $todayPresensi->where('metode_masuk', 'rfid')->count() ?: $hadirHariIni;
+        } else {
+            // Ambil data hari terakhir yang tercatat jika hari ini belum ada aktivitas
+            $latestTgl = Schema::hasTable('presensi_harian') ? DB::table('presensi_harian')->max('tanggal') : null;
+            if ($latestTgl) {
+                $latestRecords = DB::table('presensi_harian')->whereDate('tanggal', $latestTgl)->get();
+                $hadirHariIni = $latestRecords->whereIn('status', ['H', 'T'])->count();
+                $presensiTodayPct = $latestRecords->isNotEmpty()
+                    ? round(($hadirHariIni / $latestRecords->count()) * 100, 1)
+                    : 0;
+                $rfidTapsToday = $latestRecords->where('metode_masuk', 'rfid')->count() ?: $hadirHariIni;
+            } else {
+                $presensiTodayPct = 0;
+                $rfidTapsToday = 0;
+            }
+        }
+
         $stats = [
             'total_peserta_didik' => $totalPd ?: 0,
             'total_guru'          => $totalGuru ?: 0,
@@ -86,8 +112,8 @@ class DashboardController extends Controller
             'total_kelas'         => $totalKelas ?: 0,
             'total_pembelajaran'  => $totalPembelajaran ?: 0,
             'total_pengguna'      => $totalPengguna ?: 0,
-            'presensi_today'      => 96.4,
-            'rfid_taps'           => $totalPd ? round($totalPd * 0.94) : 0,
+            'presensi_today'      => $presensiTodayPct,
+            'rfid_taps'           => $rfidTapsToday,
             'sync_dapodik'        => $lastSync ? \Carbon\Carbon::parse($lastSync)->format('d M Y, H:i') . ' WIB' : 'Belum Sinkron',
             'app_version'         => $appVersion,
         ];
@@ -107,11 +133,67 @@ class DashboardController extends Controller
         }
 
         // 2. Data Visualisasi Charts Interaktif
-        // Chart Line: Tren Presensi Siswa & GTK 7 Hari Terakhir
+        // Chart Line: Tren Presensi Siswa & Guru 7 Hari Terakhir (Data Real Database)
+        $datesPd = Schema::hasTable('presensi_harian')
+            ? DB::table('presensi_harian')->select('tanggal')->distinct()->orderByDesc('tanggal')->limit(7)->pluck('tanggal')
+            : collect();
+        $datesPm = Schema::hasTable('presensi_mengajar')
+            ? DB::table('presensi_mengajar')->select('tanggal')->distinct()->orderByDesc('tanggal')->limit(7)->pluck('tanggal')
+            : collect();
+
+        $trendDates = $datesPd->merge($datesPm)->unique()->sort()->take(-7)->values();
+
+        if ($trendDates->isEmpty()) {
+            for ($i = 6; $i >= 0; $i--) {
+                $trendDates->push(now()->subDays($i)->format('Y-m-d'));
+            }
+        }
+
+        $trendLabels = [];
+        $trendSiswa = [];
+        $trendGuru = [];
+
+        foreach ($trendDates as $tgl) {
+            $trendLabels[] = \Carbon\Carbon::parse($tgl)->translatedFormat('d M');
+
+            // 1. Kehadiran Peserta Didik Riil (presensi_harian)
+            $recordsPd = Schema::hasTable('presensi_harian')
+                ? DB::table('presensi_harian')->whereDate('tanggal', $tgl)->get()
+                : collect();
+
+            if ($recordsPd->isNotEmpty()) {
+                $hadirPd = $recordsPd->whereIn('status', ['H', 'T'])->count();
+                $pctPd = round(($hadirPd / $recordsPd->count()) * 100, 1);
+            } else {
+                $pctPd = 0.0;
+            }
+            $trendSiswa[] = $pctPd;
+
+            // 2. Kehadiran Guru Riil (presensi_mengajar)
+            $recordsGuru = Schema::hasTable('presensi_mengajar')
+                ? DB::table('presensi_mengajar')->whereDate('tanggal', $tgl)->get()
+                : collect();
+
+            if ($recordsGuru->isNotEmpty()) {
+                $hadirGuru = $recordsGuru->whereIn('status', ['H', 'T'])->count();
+                $pctGuru = round(($hadirGuru / $recordsGuru->count()) * 100, 1);
+            } else {
+                $pctGuru = 0.0;
+            }
+            $trendGuru[] = $pctGuru;
+        }
+
+        $allValidRates = array_filter(array_merge($trendSiswa, $trendGuru), fn($v) => $v > 0);
+        $avgKehadiran = !empty($allValidRates)
+            ? round(array_sum($allValidRates) / count($allValidRates), 1)
+            : $presensiTodayPct;
+
         $chartTrend = [
-            'labels' => ['23 Sep', '24 Sep', '25 Sep', '26 Sep', '27 Sep', '28 Sep', '29 Sep'],
-            'siswa'  => [94.2, 95.8, 96.1, 95.0, 97.4, 93.8, 96.4],
-            'gtk'    => [98.0, 97.5, 99.0, 98.5, 100.0, 96.0, 98.5],
+            'labels'  => $trendLabels,
+            'siswa'   => $trendSiswa,
+            'guru'    => $trendGuru,
+            'gtk'     => $trendGuru, // Alias untuk kompatibilitas frontend
+            'average' => $avgKehadiran,
         ];
 
         // Chart Bar: Sebaran Siswa per Konsentrasi Keahlian / Jurusan

@@ -197,7 +197,7 @@ function initAdminCharts() {
     };
 
     // -------------------------------------------------------------
-    // 1. CHART GARIS (LINE): Tren Presensi Siswa & GTK 7 Hari Terakhir
+    // 1. CHART GARIS (LINE): Tren Presensi Siswa & Guru 7 Hari Terakhir
     // -------------------------------------------------------------
     const ctxTrend = document.getElementById('chartPresensiTrend')?.getContext('2d');
     if (ctxTrend && payload.trend) {
@@ -206,7 +206,7 @@ function initAdminCharts() {
         gradientSiswa.addColorStop(0, 'rgba(99, 102, 241, 0.32)');
         gradientSiswa.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
 
-        // Gradient fill untuk GTK
+        // Gradient fill untuk Guru
         const gradientGtk = ctxTrend.createLinearGradient(0, 0, 0, 240);
         gradientGtk.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
         gradientGtk.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
@@ -230,8 +230,8 @@ function initAdminCharts() {
                         pointHoverRadius: 6,
                     },
                     {
-                        label: 'GTK (Guru & Tendik) (%)',
-                        data: payload.trend.gtk || [],
+                        label: 'Guru (%)',
+                        data: payload.trend.guru || payload.trend.gtk || [],
                         borderColor: '#10b981',
                         backgroundColor: gradientGtk,
                         fill: true,
@@ -290,8 +290,8 @@ function initAdminCharts() {
                         ticks: { color: textMuted, font: { size: 11 } }
                     },
                     y: {
-                        min: 88,
-                        max: 105,
+                        suggestedMin: 70,
+                        suggestedMax: 100,
                         grid: { color: gridColor },
                         ticks: {
                             color: textMuted,
@@ -480,18 +480,16 @@ function initAdminCharts() {
 }
 
 /**
- * Filter, Pencarian Live Search, dan Pagination AJAX untuk Datatable Log Administrator
+ * Filter, Pencarian Live Search, dan Pagination AJAX untuk Datatable Log Administrator (Realtime & Delegated)
  */
 function initAdminActivityDatatable() {
-    const liveSearch = document.getElementById('liveSearchAdmin');
-    const clearSearch = document.getElementById('clearSearchAdmin');
-    const filterModul = document.getElementById('filterModulAdmin');
-    const perPageSelect = document.getElementById('perPageSelectAdmin');
-
     let debounceTimer = null;
 
     const applyFilter = () => {
         const url = new URL(window.location.href);
+        const liveSearch = document.getElementById('liveSearchAdmin');
+        const filterModul = document.getElementById('filterModulAdmin');
+        const perPageSelect = document.getElementById('perPageSelectAdmin');
 
         // Search
         if (liveSearch) {
@@ -527,41 +525,53 @@ function initAdminActivityDatatable() {
         }
     };
 
-    if (liveSearch) {
-        liveSearch.addEventListener('input', function () {
-            if (clearSearch) {
-                clearSearch.classList.toggle('visible', this.value.trim().length > 0);
+    // 1. Delegated Live Search Input
+    document.addEventListener('input', function (e) {
+        if (e.target && e.target.id === 'liveSearchAdmin') {
+            const clearBtn = document.getElementById('clearSearchAdmin');
+            if (clearBtn) {
+                clearBtn.classList.toggle('visible', e.target.value.trim().length > 0);
             }
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(applyFilter, 300);
-        });
+            debounceTimer = setTimeout(applyFilter, 250);
+        }
+    });
 
-        liveSearch.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                clearTimeout(debounceTimer);
-                applyFilter();
-            }
-        });
-    }
+    document.addEventListener('keydown', function (e) {
+        if (e.target && e.target.id === 'liveSearchAdmin' && e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            applyFilter();
+        }
+    });
 
-    if (clearSearch) {
-        clearSearch.addEventListener('click', function () {
+    // 2. Delegated Clear Search & Reset Filter
+    document.addEventListener('click', function (e) {
+        const clearBtn = e.target.closest('#clearSearchAdmin');
+        if (clearBtn) {
+            e.preventDefault();
+            const liveSearch = document.getElementById('liveSearchAdmin');
             if (liveSearch) liveSearch.value = '';
-            clearSearch.classList.remove('visible');
+            clearBtn.classList.remove('visible');
             applyFilter();
-        });
-    }
+            return;
+        }
 
-    if (filterModul) {
-        filterModul.addEventListener('change', function () {
-            applyFilter();
-        });
-    }
+        const resetBtn = e.target.closest('#resetFilterAdmin, [data-live-reset="true"], .btn-reset-filter');
+        if (resetBtn && resetBtn.href) {
+            e.preventDefault();
+            if (typeof window.refreshLiveTable === 'function') {
+                window.refreshLiveTable(resetBtn.href);
+            } else {
+                window.location.href = resetBtn.href;
+            }
+        }
+    });
 
-    if (perPageSelect) {
-        perPageSelect.addEventListener('change', function () {
+    // 3. Delegated Dropdown Changes (Filter Modul & Entries Per Page)
+    document.addEventListener('change', function (e) {
+        if (e.target && (e.target.id === 'filterModulAdmin' || e.target.id === 'perPageSelectAdmin')) {
             applyFilter();
-        });
-    }
+        }
+    });
 }

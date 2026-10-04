@@ -1093,4 +1093,90 @@ input[type="month"] {
     border-color: rgba(0, 0, 0, 0.06) !important;
 }
 
+/* ==========================================================================
+   Presensi Summary 4x2 Grid Layout & Card Rekapitulasi Presensi Bulanan
+   ========================================================================== */
+.presensi-stat-grid-4x2 {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 14px !important;
+    margin-bottom: 22px !important;
+}
+
+@media (max-width: 991px) {
+    .presensi-stat-grid-4x2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+}
+
+@media (max-width: 520px) {
+    .presensi-stat-grid-4x2 {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Card Rekapitulasi Presensi Bulanan Tab */
+.presensi-rekap-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.presensi-rekap-filter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 18px;
+    align-items: flex-end;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 860px) {
+    .presensi-rekap-filter-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .presensi-rekap-filter-grid .rekap-btn-col {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 540px) {
+    .presensi-rekap-filter-grid {
+        grid-template-columns: 1fr;
+    }
+    .presensi-rekap-filter-grid .rekap-btn-col {
+        grid-column: span 1;
+    }
+}
+
+.presensi-rekap-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+
+@media (max-width: 860px) {
+    .presensi-rekap-feature-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.rekap-feature-box {
+    background: rgba(99, 102, 241, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+
 

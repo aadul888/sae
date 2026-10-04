@@ -1654,58 +1654,148 @@ class PresensiController extends Controller
     }
 
     /**
-     * Ekspor Rekapitulasi Presensi (CSV Format)
+     * Ekspor / Cetak Rekapitulasi Presensi (Format PDF Cetak Standar / CSV)
      */
     public function export(Request $request)
     {
         $rombelId = $request->input('rombel_id');
         $bulan = $request->input('bulan', now()->format('Y-m'));
+        $format = $request->input('format', 'pdf');
 
-        $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first();
-        $namaRombel = $rombel ? str_replace([' ', '/'], '_', $rombel->nama) : 'Semua_Rombel';
+        $rombel = $rombelId ? DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first() : null;
+        $namaRombel = $rombel ? $rombel->nama : 'Semua Kelas / Seluruh Sekolah';
 
-        $siswaList = DB::table('peserta_didik')
-            ->when($rombelId, fn($q) => $q->where('rombongan_belajar_id', $rombelId))
-            ->orderBy('nama', 'asc')
+        $siswaList = DB::table('peserta_didik as pd')
+            ->when($rombelId, fn($q) => $q->where('pd.rombongan_belajar_id', $rombelId))
+            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->select('pd.*', 'rb.nama as nama_rombel')
+            ->orderBy('rb.nama', 'asc')
+            ->orderBy('pd.nama', 'asc')
             ->get();
 
-        $csvFileName = "Rekap_Presensi_{$namaRombel}_{$bulan}.csv";
+        $carbonBulan = Carbon::parse($bulan . '-01');
+        $bulanLabel = $carbonBulan->translatedFormat('F Y');
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"{$csvFileName}\"",
-        ];
+        $logsBulan = PresensiHarian::where('tanggal', 'like', "{$bulan}%")
+            ->when($rombelId, fn($q) => $q->where('rombongan_belajar_id', $rombelId))
+            ->get()
+            ->groupBy('peserta_didik_id');
 
-        $callback = function () use ($siswaList, $bulan) {
-            $file = fopen('php://output', 'w');
-            // Add UTF-8 BOM for Excel
-            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        $startDate = $carbonBulan->copy()->startOfMonth()->toDateString();
+        $endDate = $carbonBulan->copy()->endOfMonth()->toDateString();
+        $hariEfektif = KalenderPendidikan::hitungHariEfektif($startDate, $endDate, 'pd');
+        $hariEfektifBerjalan = KalenderPendidikan::hitungHariEfektifBerjalan($startDate, $endDate, now()->toDateString(), 'pd');
 
-            fputcsv($file, ['No', 'NISN', 'Nama Peserta Didik', 'Hadir (H)', 'Terlambat (T)', 'Izin (I)', 'Sakit (S)', 'Dispen (D)', 'Alpha (A)', 'Total Kehadiran (%)']);
+        $items = [];
+        $sumH = $sumT = $sumI = $sumS = $sumD = $sumA = 0;
 
-            $no = 1;
-            foreach ($siswaList as $s) {
-                $logs = PresensiHarian::where('peserta_didik_id', $s->peserta_didik_id)
-                    ->where('tanggal', 'like', "{$bulan}%")
-                    ->get();
+        foreach ($siswaList as $s) {
+            $logs = $logsBulan->get($s->peserta_didik_id, collect());
+            $h = $logs->where('status', 'H')->count();
+            $t = $logs->where('status', 'T')->count();
+            $i = $logs->where('status', 'I')->count();
+            $sakit = $logs->where('status', 'S')->count();
+            $d = $logs->where('status', 'D')->count();
+            $a = $logs->where('status', 'A')->count();
+            $totalHadir = $h + $t;
+            $totalRecord = $logs->count();
 
-                $h = $logs->where('status', 'H')->count();
-                $t = $logs->where('status', 'T')->count();
-                $i = $logs->where('status', 'I')->count();
-                $sakit = $logs->where('status', 'S')->count();
-                $d = $logs->where('status', 'D')->count();
-                $a = $logs->where('status', 'A')->count();
-                $totalHadir = $h + $t;
-                $totalSesi = $logs->count();
-                $persen = $totalSesi > 0 ? round(($totalHadir / $totalSesi) * 100, 1) . '%' : '0%';
+            $deno = $hariEfektifBerjalan > 0 ? $hariEfektifBerjalan : ($totalRecord > 0 ? $totalRecord : 1);
+            $persen = min(100.0, round((($totalHadir + $d) / $deno) * 100, 1));
 
-                fputcsv($file, [$no++, $s->nisn, $s->nama, $h, $t, $i, $sakit, $d, $a, $persen]);
-            }
+            $sumH += $h;
+            $sumT += $t;
+            $sumI += $i;
+            $sumS += $sakit;
+            $sumD += $d;
+            $sumA += $a;
 
-            fclose($file);
-        };
+            $items[] = [
+                'siswa'        => $s,
+                'h'            => $h,
+                't'            => $t,
+                'i'            => $i,
+                's'            => $sakit,
+                'd'            => $d,
+                'a'            => $a,
+                'total_hadir'  => $totalHadir,
+                'total_record' => $totalRecord,
+                'persen'       => $persen,
+            ];
+        }
 
-        return response()->stream($callback, 200, $headers);
+        // Jika user secara spesifik meminta unduh CSV
+        if ($format === 'csv') {
+            $csvFileName = 'Rekap_Presensi_' . str_replace([' ', '/'], '_', $namaRombel) . "_{$bulan}.csv";
+            $headers = [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"{$csvFileName}\"",
+            ];
+            $callback = function () use ($items) {
+                $file = fopen('php://output', 'w');
+                fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+                fputcsv($file, ['No', 'NISN', 'Nama Peserta Didik', 'Kelas', 'Hadir (H)', 'Terlambat (T)', 'Izin (I)', 'Sakit (S)', 'Dispen (D)', 'Alpha (A)', 'Total Hadir', 'Total Kehadiran (%)']);
+                $no = 1;
+                foreach ($items as $it) {
+                    fputcsv($file, [
+                        $no++,
+                        $it['siswa']->nisn ?? '-',
+                        $it['siswa']->nama,
+                        $it['siswa']->nama_rombel ?? '-',
+                        $it['h'],
+                        $it['t'],
+                        $it['i'],
+                        $it['s'],
+                        $it['d'],
+                        $it['a'],
+                        $it['total_hadir'],
+                        $it['persen'] . '%',
+                    ]);
+                }
+                fclose($file);
+            };
+            return response()->stream($callback, 200, $headers);
+        }
+
+        // Standar Utama: Render Laporan Cetak Resmi PDF (Print-Ready A4 Landscape)
+        $sekolah = PresensiPengaturan::getSekolah();
+        $sekolahMeta = Schema::hasTable('sekolah_meta') ? \App\Models\SekolahMeta::first() : null;
+        $kepsek = Schema::hasTable('gtk')
+            ? DB::table('gtk')->where(function ($q) {
+                $q->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
+            })->first()
+            : null;
+
+        $waliKelas = null;
+        if ($rombel && !empty($rombel->ptk_id)) {
+            $waliKelas = DB::table('gtk')->where('ptk_id', $rombel->ptk_id)->first();
+        }
+
+        $avgPersen = count($items) > 0 ? round(array_sum(array_column($items, 'persen')) / count($items), 1) : 0;
+        $tanggalCetak = now()->translatedFormat('d F Y');
+
+        return view('dashboard.presensi.cetak-bulanan', compact(
+            'rombel',
+            'namaRombel',
+            'bulan',
+            'bulanLabel',
+            'items',
+            'hariEfektif',
+            'hariEfektifBerjalan',
+            'sumH',
+            'sumT',
+            'sumI',
+            'sumS',
+            'sumD',
+            'sumA',
+            'avgPersen',
+            'sekolah',
+            'sekolahMeta',
+            'kepsek',
+            'waliKelas',
+            'tanggalCetak'
+        ));
     }
 
     /**

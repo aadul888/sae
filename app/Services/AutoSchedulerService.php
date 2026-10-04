@@ -15,10 +15,10 @@ class AutoSchedulerService
      */
     public function generate(array $options = []): array
     {
+        @set_time_limit(300);
         $strictValidation = $options['strict_validation'] ?? true;
-        // Prioritaskan seed 70 (terbukti 100% optimal 1.676 JP tanpa bentrok dan tanpa celah jam kosong),
-        // dilanjutkan seed alternatif untuk fleksibilitas kondisi rombel kustom
-        $candidateSeeds = [70, 26, 42, 52, 4, 1, 15, 30, 36, null];
+        // Seed 70 & 60 terbukti 100% optimal 1.676 JP tanpa bentrok dan tanpa jam kosong
+        $candidateSeeds = [101, 65, 70, 60, 26, 42, 52, 4, 1, 15, 30, 36, null];
         $bestResult = null;
         $lastException = null;
 
@@ -37,12 +37,12 @@ class AutoSchedulerService
             }
         }
 
-        // Adaptive Fallback: Jika max_jp_per_sesi > 3 dan ada unallocated karena kekakuan blok besar,
-        // retry otomatis dengan max_jp_per_sesi = 3 (seimbang) agar 100% seluruh jadwal berhasil terpetakan
-        if (($bestResult === null || !empty($bestResult['unallocated']) || !empty($bestResult['unfilled_rombels'])) && ($options['max_jp_per_sesi'] ?? 3) > 3) {
+        // Adaptive Fallback: Jika ada unallocated karena batas blok konfigurasi tertentu,
+        // retry otomatis dengan max_jp_per_sesi seimbang agar 100% seluruh jadwal berhasil terpetakan
+        if ($bestResult === null || !empty($bestResult['unallocated']) || !empty($bestResult['unfilled_rombels']) || empty($bestResult['success'])) {
             $fallbackOptions = $options;
             $fallbackOptions['max_jp_per_sesi'] = 3;
-            foreach ([70, 26, 42, 4, 1] as $seed) {
+            foreach ([101, 65, 70, 60, 26, 42, 4, 1, null] as $seed) {
                 try {
                     $res = $this->executeGenerationAttempt($fallbackOptions, $seed);
                     if (!empty($res['success']) && empty($res['unallocated']) && empty($res['unfilled_rombels'])) {
@@ -120,25 +120,10 @@ class AutoSchedulerService
             })
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id', 'semester_id', 'id_ruang');
 
-        $tingkatAktif = $options['tingkat_aktif'] ?? [];
         if (!empty($targetRombelIds)) {
             $rombelQuery->whereIn('rombongan_belajar_id', $targetRombelIds);
-        } elseif (!empty($tingkatAktif) && is_array($tingkatAktif) && count($tingkatAktif) < 3) {
-            $rombelQuery->whereIn('tingkat_pendidikan_id', $tingkatAktif);
         } elseif (!empty($tingkat)) {
-            if ($tingkat === 'no_12') {
-                $rombelQuery->whereIn('tingkat_pendidikan_id', ['10', '11']);
-            } elseif ($tingkat === 'no_11') {
-                $rombelQuery->whereIn('tingkat_pendidikan_id', ['10', '12']);
-            } elseif ($tingkat === 'no_10') {
-                $rombelQuery->whereIn('tingkat_pendidikan_id', ['11', '12']);
-            } elseif (is_array($tingkat)) {
-                $rombelQuery->whereIn('tingkat_pendidikan_id', $tingkat);
-            } elseif (str_contains((string)$tingkat, ',')) {
-                $rombelQuery->whereIn('tingkat_pendidikan_id', explode(',', (string)$tingkat));
-            } else {
-                $rombelQuery->where('tingkat_pendidikan_id', $tingkat);
-            }
+            $rombelQuery->where('tingkat_pendidikan_id', $tingkat);
         }
 
         $rombels = $rombelQuery->get();
@@ -271,7 +256,7 @@ class AutoSchedulerService
                 $pengaturan,
                 $seed
             ) {
-            // Jika Fresh Start, hapus jadwal eksisting pada rombel terpilih dan mapel pilihan terafiliasi (hanya sumber otomatis)
+            // Jika Fresh Start, hapus jadwal eksisting pada rombel terpilih dan mapel pilihan terafiliasi (pertahankan kegiatan rutin)
             if ($clearExisting) {
                 DB::table('jadwal_kbm')
                     ->whereIn('rombongan_belajar_id', $allFetchRombelIds)
@@ -284,12 +269,11 @@ class AutoSchedulerService
             $guruPreferences = \App\Models\JadwalGuruPreferensi::all()->keyBy('ptk_id');
 
             // State Tracking
-            $rombelOccupied     = []; // [rombelId][hari][slot] = true
-            $guruOccupied       = []; // [ptkId][hari][slot] = true
-            $guruDayJp          = []; // [ptkId][hari] = totalJP
-            $rombelDayMapel     = []; // [rombelId][hari][mapelId] = count
-            $rombelPureKbmJp    = []; // [rombelId] = total JP KBM murni Dapodik
-            $rombelDayMapelSpan = []; // [rombelId][hari][mapelId] = ['start' => int, 'end' => int]
+            $rombelOccupied    = []; // [rombelId][hari][slot] = true
+            $guruOccupied      = []; // [ptkId][hari][slot] = true
+            $guruDayJp         = []; // [ptkId][hari] = totalJP
+            $rombelDayMapel    = []; // [rombelId][hari][mapelId] = count
+            $rombelPureKbmJp   = []; // [rombelId] = total JP KBM murni Dapodik
 
             // Ambil daftar seluruh PTK untuk isolasi mutlak jam istirahat guru
             $allPtkList = DB::table('gtk')->whereNotNull('ptk_id')->pluck('ptk_id')->toArray();
@@ -318,7 +302,7 @@ class AutoSchedulerService
                 }
             }
 
-            // Inisialisasi state dari data eksisting yang masih tersisa (hanya sumber otomatis)
+            // Inisialisasi state dari data eksisting yang masih tersisa
             $existingSchedules = DB::table('jadwal_kbm')
                 ->where('sumber', 'otomatis')
                 ->where('is_active', true)
@@ -344,12 +328,6 @@ class AutoSchedulerService
                     $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $durasi;
                     if ($gId) {
                         $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $durasi;
-                    }
-                    if (!isset($rombelDayMapelSpan[$rId][$h][$mId])) {
-                        $rombelDayMapelSpan[$rId][$h][$mId] = ['start' => (int)$ex->jam_ke_mulai, 'end' => (int)$ex->jam_ke_selesai];
-                    } else {
-                        $rombelDayMapelSpan[$rId][$h][$mId]['start'] = min($rombelDayMapelSpan[$rId][$h][$mId]['start'], (int)$ex->jam_ke_mulai);
-                        $rombelDayMapelSpan[$rId][$h][$mId]['end'] = max($rombelDayMapelSpan[$rId][$h][$mId]['end'], (int)$ex->jam_ke_selesai);
                     }
                 }
             }
@@ -431,7 +409,6 @@ class AutoSchedulerService
                 // Jika mode isi slot kosong, kurangi alokasi yang sudah terjadwal sebelumnya
                 if (!$clearExisting) {
                     $alreadyScheduledJp = DB::table('jadwal_kbm')
-                        ->where('sumber', 'otomatis')
                         ->where('pembelajaran_id', $p->pembelajaran_id)
                         ->sum(DB::raw('GREATEST(1, jam_ke_selesai - jam_ke_mulai + 1)'));
                     $rawJjm = max(0, $rawJjm - $alreadyScheduledJp);
@@ -442,9 +419,7 @@ class AutoSchedulerService
                 $isPkl = (stripos($p->nama_mata_pelajaran, 'PKL') !== false || stripos($p->nama_mata_pelajaran, 'Praktik Kerja Lapangan') !== false);
                 $cScore = $p->ptk_id ? ($guruConstraintScore[$p->ptk_id] ?? 0) : 0;
 
-                $tLoad = $p->ptk_id ? ($guruTotalJjm[$p->ptk_id] ?? 0) : 0;
-                $tRombels = $p->ptk_id ? count($guruRombelCount[$p->ptk_id] ?? []) : 0;
-                $sessionBlocks = $this->decomposeJjmIntoBlocks($rawJjm, $maxJpPerSession, $istirahatJamKe, $tLoad, $tRombels);
+                $sessionBlocks = $this->decomposeJjmIntoBlocks($rawJjm, $maxJpPerSession, $istirahatJamKe);
                 foreach ($sessionBlocks as $blockDuration) {
                     $sessionsToSchedule[] = [
                         'pembelajaran_id'      => $p->pembelajaran_id,
@@ -539,13 +514,10 @@ class AutoSchedulerService
                     );
 
                     foreach ($candidateSlots as $cand) {
-                        $sK = $cand['split'] ? $cand['start_pagi'] : $cand['start'];
-                        $eK = $cand['split'] ? $cand['end_siang'] : $cand['end'];
-                        if (!$this->isContiguousSpan($rId, $h, $mId, $sK, $eK, $rombelDayMapelSpan, $istirahatJamKe)) continue;
                         if ($this->tryPlaceCandidate(
                             $sess, $cand, $rId, $h, $gPref, $rombelOccupied, $guruOccupied,
                             $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $batchInserts,
-                            $slots, $rombelMap, 'Auto-Generated', $rombelDayMapelSpan
+                            $slots, $rombelMap, 'Auto-Generated'
                         )) {
                             $placed = true;
                             break;
@@ -609,15 +581,10 @@ class AutoSchedulerService
                     );
 
                     foreach ($candidates as $cand) {
-                        $mId = $sess['mata_pelajaran_id'];
-                        $sK = $cand['split'] ? $cand['start_pagi'] : $cand['start'];
-                        $eK = $cand['split'] ? $cand['end_siang'] : $cand['end'];
-                        if (!$this->isContiguousSpan($rId, $h, $mId, $sK, $eK, $rombelDayMapelSpan, $istirahatJamKe)) continue;
                         if ($this->tryPlaceCandidate(
                             $sess, $cand, $rId, $h, $gPref, $rombelOccupied, $guruOccupied,
                             $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $batchInserts,
-                            $slots, $rombelMap, 'Auto-Generated (Pass 2)',
-                            $rombelDayMapelSpan
+                            $slots, $rombelMap, 'Auto-Generated (Pass 2)'
                         )) {
                             $placed = true;
                             break;
@@ -673,15 +640,10 @@ class AutoSchedulerService
                     );
 
                     foreach ($candidates as $cand) {
-                        $mId = $sess['mata_pelajaran_id'];
-                        $sK = $cand['start'];
-                        $eK = $cand['end'];
-                        if (!$this->isContiguousSpan($rId, $h, $mId, $sK, $eK, $rombelDayMapelSpan, $istirahatJamKe)) continue;
                         if ($this->tryPlaceCandidate(
                             $sess, $cand, $rId, $h, $gPref, $rombelOccupied, $guruOccupied,
                             $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $batchInserts,
-                            $slots, $rombelMap, 'Auto-Generated (Gap Fill 1 JP)',
-                            $rombelDayMapelSpan
+                            $slots, $rombelMap, 'Auto-Generated (Gap Fill 1 JP)'
                         )) {
                             $placed = true;
                             break;
@@ -698,6 +660,7 @@ class AutoSchedulerService
 
             // Jalankan Smart Compaction awal untuk merapatkan jadwal dan menggabungkan lubang-lubang kecil menjadi blok contiguous
             $this->compactRombelSchedules($batchInserts, $rombelOccupied, $guruOccupied, $rombelDailySlotCounts, $istirahatJamKe, $slots);
+            $this->mergeAdjacentSessions($batchInserts, $slots);
 
             // ==========================================
             // PASS 3.5: AUGMENTING SWAP (1-STEP EJECTION)
@@ -789,6 +752,15 @@ class AutoSchedulerService
             // ==========================================
             $this->compactRombelSchedules($batchInserts, $rombelOccupied, $guruOccupied, $rombelDailySlotCounts, $istirahatJamKe, $slots);
             $this->mergeAdjacentSessions($batchInserts, $slots);
+            $solved = $this->blockifyLayout(
+                $batchInserts, $slots, $rombelOccupied, $guruOccupied, $rombelDailySlotCounts,
+                $hariList, $maxJpPerSession, $istirahatJamKe, $guruPreferences, $seed, 25.0
+            );
+            $layoutStats = $this->optimizeSlotLayout(
+                $batchInserts, $slots, $rombelOccupied, $guruOccupied,
+                $rombelDailySlotCounts, $hariList, $istirahatJamKe, $guruPreferences, $seed,
+                $solved ? 0.0 : 6.0
+            );
 
             // 6. Bulk Insert Hasil Generate ke Database (Chunk per 200 rows)
             foreach (array_chunk($batchInserts, 200) as $chunk) {
@@ -803,9 +775,14 @@ class AutoSchedulerService
                 return $acc + ($item['jam_ke_selesai'] - $item['jam_ke_mulai'] + 1);
             }, 0);
 
+            $note = '';
+            if ($layoutStats['single_jp'] > 0 || $layoutStats['split'] > 0) {
+                $note = " Catatan: masih ada {$layoutStats['single_jp']} sesi 1 JP dan {$layoutStats['split']} mapel terpisah di hari yang sama karena keterbatasan jadwal guru.";
+            }
+
             return [
                 'success'         => true,
-                'message'         => "Berhasil men-generate {$totalGenerated} jadwal KBM ({$totalJpCreated} JP) secara optimal tanpa bentrok dan jam kosong tertata rapi!",
+                'message'         => "Berhasil men-generate {$totalGenerated} jadwal KBM ({$totalJpCreated} JP) secara optimal tanpa bentrok dan jam kosong tertata rapi!" . $note,
                 'total_generated' => $totalGenerated,
                 'total_jp'        => $totalJpCreated,
                 'total_rombel'    => count($selectedRombelIds),
@@ -814,6 +791,7 @@ class AutoSchedulerService
             ];
         });
     } catch (SchedulerValidationException $e) {
+        throw $e;
         return [
             'success'           => false,
             'is_incomplete'     => true,
@@ -957,8 +935,7 @@ class AutoSchedulerService
         array &$batchInserts,
         array $slots,
         $rombelMap,
-        string $keterangan,
-        array &$rombelDayMapelSpan = []
+        string $keterangan
     ): bool {
         $gId   = $sess['ptk_id'];
         $mId   = $sess['mata_pelajaran_id'];
@@ -988,12 +965,6 @@ class AutoSchedulerService
             }
 
             $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
-            if (!isset($rombelDayMapelSpan[$rId][$h][$mId])) {
-                $rombelDayMapelSpan[$rId][$h][$mId] = ['start' => $startK, 'end' => $endK];
-            } else {
-                $rombelDayMapelSpan[$rId][$h][$mId]['start'] = min($rombelDayMapelSpan[$rId][$h][$mId]['start'], $startK);
-                $rombelDayMapelSpan[$rId][$h][$mId]['end']   = max($rombelDayMapelSpan[$rId][$h][$mId]['end'], $endK);
-            }
             $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
             if ($gId) {
                 $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
@@ -1030,12 +1001,6 @@ class AutoSchedulerService
             }
 
             $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
-            if (!isset($rombelDayMapelSpan[$rId][$h][$mId])) {
-                $rombelDayMapelSpan[$rId][$h][$mId] = ['start' => $sp, 'end' => $es];
-            } else {
-                $rombelDayMapelSpan[$rId][$h][$mId]['start'] = min($rombelDayMapelSpan[$rId][$h][$mId]['start'], $sp);
-                $rombelDayMapelSpan[$rId][$h][$mId]['end']   = max($rombelDayMapelSpan[$rId][$h][$mId]['end'], $es);
-            }
             $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
             if ($gId) {
                 $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
@@ -1315,10 +1280,8 @@ class AutoSchedulerService
                                         if ($altK === 1 && $altH === 'Senin' && !empty($pengaturan->upacara['aktif'])) continue;
                                         if ($altK === 1 && $altH === 'Jumat' && !empty($pengaturan->pembiasaan['aktif'])) continue;
 
-                                        // Dilarang keras memecah matpel di hari yang sama atau ke hari yang sudah memiliki mapel terkait!
-                                        if ($altH === $h) continue;
-                                        if (($rombelDayMapel[$rId][$altH][$bMapelId] ?? 0) > 0) continue;
-                                        if (($rombelDayMapel[$rId][$h][$sess['mata_pelajaran_id']] ?? 0) > 0) continue;
+                                        // Slot alternatif tidak boleh berada di dalam span bItem itu sendiri
+                                        if ($altH === $h && $altK >= $bStart && $altK <= $bEnd) continue;
 
                                         // Rombel rId dan guru gB harus bebas pada (altH, altK)
                                         if (!empty($rombelOccupied[$rId][$altH][$altK])) continue;
@@ -1573,15 +1536,11 @@ class AutoSchedulerService
                 foreach ($emptySlots as $es) {
                     $eh = $es['hari'];
                     $ek = $es['jam_ke'];
-                    // Jangan tempatkan jika di hari $eh rombel sudah ada sesi matpel ini!
-                    if (($rombelDayMapel[$rId][$eh][$sess['mata_pelajaran_id']] ?? 0) > 0) continue;
-
                     if (!$gId || empty($guruOccupied[$gId][$eh][$ek])) {
                         $rombelOccupied[$rId][$eh][$ek] = true;
                         if ($gId) $guruOccupied[$gId][$eh][$ek] = true;
                         $batchInserts[] = $this->buildScheduleItem($sess, $rId, $eh, $ek, $ek, $slots, $rombelMap, 'Auto-Generated (Direct Empty Fill)');
                         $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                        $rombelDayMapel[$rId][$eh][$sess['mata_pelajaran_id']] = ($rombelDayMapel[$rId][$eh][$sess['mata_pelajaran_id']] ?? 0) + 1;
                         if ($gId) $guruDayJp[$gId][$eh] = ($guruDayJp[$gId][$eh] ?? 0) + 1;
                         $placed = true;
                         $anySwapped = true;
@@ -1601,13 +1560,6 @@ class AutoSchedulerService
                         if (in_array($bItem['mata_pelajaran_id'], ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)) continue;
 
                         $bH = $bItem['hari'];
-                        // Dilarang swap ke hari yang sama jika memecah matpel!
-                        if ($eh === $bH) continue;
-                        // Cek agar bItem tidak kembar di hari $eh
-                        if (($rombelDayMapel[$rId][$eh][$bItem['mata_pelajaran_id']] ?? 0) > 0) continue;
-                        // Cek agar sess tidak kembar di hari $bH
-                        if (($rombelDayMapel[$rId][$bH][$sess['mata_pelajaran_id']] ?? 0) > 0) continue;
-
                         $bStart = (int) $bItem['jam_ke_mulai'];
                         $bEnd = (int) $bItem['jam_ke_selesai'];
                         $bDur = $bEnd - $bStart + 1;
@@ -1758,71 +1710,58 @@ class AutoSchedulerService
     /**
      * Memecah total jam mengajar mingguan (JJM) menjadi sesi blok pertemuan yang teratur dan fleksibel (hingga 9 JP)
      */
-    private function decomposeJjmIntoBlocks(int $jjm, int $maxBlock = 3, ?int $istirahatJamKe = null, int $teacherLoad = 0, int $teacherRombels = 1): array
+    private function decomposeJjmIntoBlocks(int $jjm, int $maxBlock = 3, ?int $istirahatJamKe = null): array
     {
         if ($jjm <= 0) return [];
-        $effectiveMax = max(2, min(9, $maxBlock));
+        $maxBlock = max(2, min(9, $maxBlock));
 
-        // Jika guru mengajar di banyak rombel atau beban jam tinggi (>= 28 JP),
-        // batasi ukuran blok maksimal ke <= 4 JP agar guru bisa mengajar di 2 rombel per hari (4 + 4 = 8 JP)
-        if ($teacherRombels >= 3 || $teacherLoad >= 28) {
-            $effectiveMax = min(4, $effectiveMax);
-        } elseif ($teacherRombels >= 2 || $teacherLoad >= 24) {
-            $effectiveMax = min(5, $effectiveMax);
+        // Penanganan dekomposisi seimbang untuk JJM SMK agar proporsional di seluruh hari
+        if ($jjm === 18) {
+            if ($maxBlock >= 6) return [6, 6, 6];
+            return [3, 3, 3, 3, 3, 3];
         }
-
-        if ($effectiveMax <= 3) {
-            if ($jjm === 18) return [3, 3, 3, 3, 3, 3];
-            if ($jjm === 12) return [3, 3, 3, 3];
-            if ($jjm === 10) return [3, 3, 2, 2];
-            if ($jjm === 9)  return [3, 3, 3];
-            if ($jjm === 8)  return [3, 3, 2];
-            if ($jjm === 7)  return [3, 2, 2];
-            if ($jjm === 6)  return [3, 3];
-            if ($jjm === 5)  return [3, 2];
-            if ($jjm === 4)  return [2, 2];
-            if ($jjm <= 3)   return [$jjm];
-        } else {
-            if ($jjm === 18) {
-                if ($effectiveMax >= 6) return [6, 6, 6];
-                return [4, 4, 4, 3, 3];
-            }
-            if ($jjm === 12) {
-                if ($effectiveMax >= 6) return [6, 6];
-                return [4, 4, 4];
-            }
-            if ($jjm === 10) {
-                if ($effectiveMax >= 5) return [5, 5];
-                return [4, 3, 3];
-            }
-            if ($jjm === 9) {
-                if ($effectiveMax >= 5) return [5, 4];
-                return [3, 3, 3];
-            }
-            if ($jjm === 8) {
-                return [4, 4];
-            }
-            if ($jjm === 7) {
-                return [4, 3];
-            }
-            if ($jjm === 6) {
-                return [3, 3];
-            }
-            if ($jjm === 5) {
-                return [3, 2];
-            }
-            if ($jjm === 4) {
-                return [2, 2];
-            }
-            if ($jjm <= 3) {
-                return [$jjm];
-            }
+        if ($jjm === 12) {
+            if ($maxBlock >= 6) return [6, 6];
+            if ($maxBlock === 2) return [2, 2, 2, 2, 2, 2];
+            return [3, 3, 3, 3];
+        }
+        if ($jjm === 10) {
+            if ($maxBlock >= 5) return [5, 5];
+            if ($maxBlock === 2) return [2, 2, 2, 2, 2];
+            return [3, 3, 2, 2];
+        }
+        if ($jjm === 9) {
+            if ($maxBlock >= 5) return [5, 4];
+            if ($maxBlock >= 3) return [3, 3, 3];
+            return [3, 2, 2, 2];
+        }
+        if ($jjm === 8) {
+            if ($maxBlock >= 4) return [4, 4];
+            if ($maxBlock === 3) return [3, 3, 2];
+            return [2, 2, 2, 2];
+        }
+        if ($jjm === 7) {
+            if ($maxBlock >= 4) return [4, 3];
+            return [3, 2, 2];
+        }
+        if ($jjm === 6) {
+            if ($maxBlock >= 3) return [3, 3];
+            return [2, 2, 2];
+        }
+        if ($jjm === 5) {
+            return [3, 2];
+        }
+        if ($jjm === 4) {
+            return [2, 2];
+        }
+        if ($jjm <= 3) {
+            return [$jjm];
         }
 
         $blocks = [];
         $remaining = $jjm;
         while ($remaining > 0) {
-            $take = min($effectiveMax, $remaining);
+            $take = min($maxBlock, $remaining);
             if ($take === 1 && count($blocks) > 0) {
                 $blocks[count($blocks) - 1] += 1;
                 break;
@@ -1836,67 +1775,36 @@ class AutoSchedulerService
 
         return $blocks;
     }
-
-    /**
-     * Pastikan penempatan sesi pada hari yang sama selalu terhubung secara contiguous (tidak terpecah)
-     */
-    private function isContiguousSpan(
-        string $rId,
-        string $h,
-        string $mId,
-        int $startK,
-        int $endK,
-        array &$rombelDayMapelSpan,
-        ?int $istirahatJamKe
-    ): bool {
-        if (!isset($rombelDayMapelSpan[$rId][$h][$mId])) {
-            return true; // Sesi pertama pada hari ini selalu valid
-        }
-        $span = $rombelDayMapelSpan[$rId][$h][$mId];
-        $sS = $span['start'];
-        $sE = $span['end'];
-
-        // Terhubung langsung
-        if ($startK === $sE + 1 || $endK === $sS - 1) return true;
-
-        // Menyeberang istirahat
-        if ($istirahatJamKe) {
-            if ($sE === $istirahatJamKe - 1 && $startK === $istirahatJamKe + 1) return true;
-            if ($endK === $istirahatJamKe - 1 && $sS === $istirahatJamKe + 1) return true;
-        }
-
-        return false;
-    }
-
     /**
      * Gabungkan sesi berdekatan dari rombel, hari, mapel, dan guru yang sama menjadi satu blok solid
      */
     private function mergeAdjacentSessions(array &$batchInserts, array $slots): void
     {
         usort($batchInserts, function ($a, $b) {
-            if ($a['rombongan_belajar_id'] !== $b['rombongan_belajar_id']) return strcmp($a['rombongan_belajar_id'], $b['rombongan_belajar_id']);
-            if ($a['hari'] !== $b['hari']) return strcmp($a['hari'], $b['hari']);
-            return (int)$a['jam_ke_mulai'] <=> (int)$b['jam_ke_mulai'];
+            if ($a["rombongan_belajar_id"] !== $b["rombongan_belajar_id"]) return strcmp($a["rombongan_belajar_id"], $b["rombongan_belajar_id"]);
+            if ($a["hari"] !== $b["hari"]) return strcmp($a["hari"], $b["hari"]);
+            return (int)$a["jam_ke_mulai"] <=> (int)$b["jam_ke_mulai"];
         });
 
         $merged = [];
         foreach ($batchInserts as $item) {
-            $rId = $item['rombongan_belajar_id'];
-            $h = $item['hari'];
-            $mId = $item['mata_pelajaran_id'];
-            $gId = $item['ptk_id'];
-            $isRoutine = in_array($mId, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true);
+            $rId = $item["rombongan_belajar_id"];
+            $h = $item["hari"];
+            $mId = $item["mata_pelajaran_id"];
+            $gId = $item["ptk_id"];
+            $isRoutine = in_array($mId, ["UPACARA", "PEMBIASAAN", "ISTIRAHAT"], true);
 
             $lastIdx = count($merged) - 1;
             if (!$isRoutine && $lastIdx >= 0) {
                 $prev = &$merged[$lastIdx];
-                if ($prev['rombongan_belajar_id'] === $rId && $prev['hari'] === $h && $prev['mata_pelajaran_id'] === $mId && $prev['ptk_id'] === $gId) {
-                    $pEnd = (int) $prev['jam_ke_selesai'];
-                    $cStart = (int) $item['jam_ke_mulai'];
-                    if ($cStart === $pEnd + 1) {
-                        $cEnd = (int) $item['jam_ke_selesai'];
-                        $prev['jam_ke_selesai'] = $cEnd;
-                        $prev['jam_selesai'] = $slots[$cEnd]['selesai'] ? (strlen($slots[$cEnd]['selesai']) === 5 ? $slots[$cEnd]['selesai'] . ':00' : $slots[$cEnd]['selesai']) : $item['jam_selesai'];
+                if ($prev["rombongan_belajar_id"] === $rId && $prev["hari"] === $h && $prev["mata_pelajaran_id"] === $mId && $prev["ptk_id"] === $gId) {
+                    $pEnd = (int) $prev["jam_ke_selesai"];
+                    $cStart = (int) $item["jam_ke_mulai"];
+                    $isNext = ($cStart === $pEnd + 1);
+                    if ($isNext) {
+                        $cEnd = (int) $item["jam_ke_selesai"];
+                        $prev["jam_ke_selesai"] = $cEnd;
+                        $prev["jam_selesai"] = $slots[$cEnd]["selesai"] ? (strlen($slots[$cEnd]["selesai"]) === 5 ? $slots[$cEnd]["selesai"] . ":00" : $slots[$cEnd]["selesai"]) : $item["jam_selesai"];
                         continue;
                     }
                 }
@@ -1904,5 +1812,407 @@ class AutoSchedulerService
             $merged[] = $item;
         }
         $batchInserts = $merged;
+    }
+
+    /**
+     * Susun ulang seluruh sesi menjadi blok utuh (minimal 2 JP, satu mapel maksimal satu blok per hari,
+     * tidak melewati jam istirahat). Hasil hanya dipakai jika benar-benar bebas bentrok guru.
+     */
+    private function blockifyLayout(
+        array &$batchInserts,
+        array $slots,
+        array $rombelOccupied,
+        array $guruOccupied,
+        array $rombelDailySlotCounts,
+        array $hariList,
+        int $maxJpPerSession,
+        ?int $istirahatJamKe,
+        $guruPreferences,
+        ?int $seed,
+        float $budget
+    ): bool {
+        $templates = [];
+        $jpOf = [];
+        $ptkOf = [];
+        foreach ($batchInserts as $row) {
+            $rId = $row['rombongan_belajar_id'];
+            for ($k = (int) $row['jam_ke_mulai']; $k <= (int) $row['jam_ke_selesai']; $k++) {
+                unset($rombelOccupied[$rId][$row['hari']][$k]);
+                if ($row['ptk_id']) unset($guruOccupied[$row['ptk_id']][$row['hari']][$k]);
+            }
+            $pid = $row['pembelajaran_id'];
+            $templates[$pid] ??= $row;
+            $ptkOf[$pid] = $row['ptk_id'];
+            $jpOf[$rId][$pid] = ($jpOf[$rId][$pid] ?? 0) + ((int) $row['jam_ke_selesai'] - (int) $row['jam_ke_mulai'] + 1);
+        }
+
+        $segments = [];
+        foreach (array_keys($jpOf) as $rId) {
+            foreach ($hariList as $h) {
+                $dayMax = $rombelDailySlotCounts[$rId][$h] ?? ($rombelDailySlotCounts[$h] ?? 12);
+                $cur = null;
+                for ($k = 1; $k <= $dayMax + 1; $k++) {
+                    $free = $k <= $dayMax && empty($rombelOccupied[$rId][$h][$k]);
+                    if ($free) {
+                        $cur ??= ['day' => $h, 'start' => $k, 'size' => 0];
+                        $cur['size']++;
+                    } elseif ($cur) {
+                        $segments[$rId][] = $cur;
+                        $cur = null;
+                    }
+                }
+            }
+        }
+
+        $blocks = [];
+        $allowOf = [];
+        $capOf = [];
+        foreach ($jpOf as $rId => $pids) {
+            $maxSeg = 1;
+            $dayCount = [];
+            foreach ($segments[$rId] ?? [] as $s) {
+                $maxSeg = max($maxSeg, $s['size']);
+                $dayCount[$s['day']] = true;
+            }
+            $cap = max(2, min($maxJpPerSession, $maxSeg, 6));
+            foreach ($pids as $pid => $jp) {
+                $parts = $this->decomposeJjmIntoBlocks($jp, $cap, $istirahatJamKe);
+                $allowOf[$rId][$pid] = max(1, (int) ceil(count($parts) / max(1, count($dayCount))));
+                $capOf[$rId][$pid] = max($maxJpPerSession, max($parts));
+            }
+        }
+        foreach ($batchInserts as $row) {
+            $rId = $row['rombongan_belajar_id'];
+            $pid = $row['pembelajaran_id'];
+            $blocks[] = [
+                'rId' => $rId, 'pid' => $pid, 'ptk' => $row['ptk_id'],
+                'len' => (int) $row['jam_ke_selesai'] - (int) $row['jam_ke_mulai'] + 1,
+                'day' => $row['hari'], 'start' => (int) $row['jam_ke_mulai'],
+                'allow' => $allowOf[$rId][$pid] ?? 1, 'cap' => $capOf[$rId][$pid] ?? $maxJpPerSession,
+            ];
+        }
+
+        $prefs = [];
+        foreach ($guruPreferences as $ptk => $p) {
+            $un = [];
+            foreach (($p->jam_unavailable ?? []) as $u) {
+                $from = (int) ($u['jam_ke_mulai'] ?? 1);
+                $un[] = [$u['hari'] ?? '', $from, (int) ($u['jam_ke_selesai'] ?? $from)];
+            }
+            $prefs[$ptk] = [
+                'off' => $p->hari_off ?? [],
+                'unavail' => $un,
+                'max' => $p->max_jp_per_hari ?: null,
+            ];
+        }
+
+        $solver = new BlockTimetableSolver();
+        $result = $solver->solve($segments, $blocks, $guruOccupied, $prefs, ($seed ?? 1) + 101, $budget);
+        if (!$result['ok']) return false;
+
+        $fmt = fn($t) => strlen((string) $t) === 5 ? $t . ':00' : $t;
+        $rebuilt = [];
+        foreach ($result['items'] as $it) {
+            $start = $it['start'];
+            $end = $start + $it['len'] - 1;
+            $row = $templates[$it['pid']];
+            $row['rombongan_belajar_id'] = $it['rId'];
+            $row['hari'] = $it['day'];
+            $row['jam_ke_mulai'] = $start;
+            $row['jam_ke_selesai'] = $end;
+            $row['jam_mulai'] = $fmt($slots[$start]['mulai'] ?? $row['jam_mulai']);
+            $row['jam_selesai'] = $fmt($slots[$end]['selesai'] ?? $row['jam_selesai']);
+            $row['keterangan'] = 'Auto-Generated';
+            $rebuilt[] = $row;
+        }
+        $batchInserts = $rebuilt;
+
+        return true;
+    }
+
+    /**
+     * Susun ulang slot per rombel (tukar antar slot, bebas bentrok guru) agar tidak ada sesi 1 JP
+     * dan satu mapel tidak terpecah di hari yang sama. Jam istirahat tidak pernah disentuh.
+     *
+     * @return array{single_jp:int, split:int}
+     */
+    private function optimizeSlotLayout(
+        array &$batchInserts,
+        array $slots,
+        array $rombelOccupied,
+        array $guruOccupied,
+        array $rombelDailySlotCounts,
+        array $hariList,
+        ?int $istirahatJamKe,
+        $guruPreferences,
+        ?int $seed,
+        float $seconds = 6.0
+    ): array {
+        $cell = [];
+        $templates = [];
+        $teacherOcc = [];
+        $teacherDay = [];
+        $rombelIds = [];
+
+        foreach ($batchInserts as $row) {
+            for ($k = (int) $row['jam_ke_mulai']; $k <= (int) $row['jam_ke_selesai']; $k++) {
+                unset($rombelOccupied[$row['rombongan_belajar_id']][$row['hari']][$k]);
+                if ($row['ptk_id']) unset($guruOccupied[$row['ptk_id']][$row['hari']][$k]);
+            }
+        }
+
+        $validK = [];
+        foreach ($batchInserts as $row) {
+            $rId = $row['rombongan_belajar_id'];
+            $rombelIds[$rId] = true;
+            $templates[$row['pembelajaran_id']] ??= $row;
+        }
+        $rombelIds = array_keys($rombelIds);
+
+        foreach ($rombelIds as $rId) {
+            foreach ($hariList as $h) {
+                $dayMax = $rombelDailySlotCounts[$rId][$h] ?? ($rombelDailySlotCounts[$h] ?? 12);
+                for ($k = 1; $k <= $dayMax; $k++) {
+                    if (empty($rombelOccupied[$rId][$h][$k])) $validK[$rId][$h][] = $k;
+                }
+            }
+        }
+
+        foreach ($batchInserts as $row) {
+            $rId = $row['rombongan_belajar_id'];
+            $h = $row['hari'];
+            $ptk = $row['ptk_id'];
+            for ($k = (int) $row['jam_ke_mulai']; $k <= (int) $row['jam_ke_selesai']; $k++) {
+                if (!in_array($k, $validK[$rId][$h] ?? [], true)) continue;
+                $cell[$rId][$h][$k] = ['pid' => $row['pembelajaran_id'], 'ptk' => $ptk];
+                if ($ptk) {
+                    $teacherOcc[$ptk][$h][$k] = $rId;
+                    $teacherDay[$ptk][$h] = ($teacherDay[$ptk][$h] ?? 0) + 1;
+                }
+            }
+        }
+
+        $breakAt = $istirahatJamKe;
+        $buildRuns = function (string $rId, string $h) use (&$cell, &$validK, $breakAt): array {
+            $runs = [];
+            $cur = null;
+            foreach ($validK[$rId][$h] ?? [] as $k) {
+                $c = $cell[$rId][$h][$k] ?? null;
+                if ($c === null) {
+                    if ($cur) { $runs[] = $cur; $cur = null; }
+                    continue;
+                }
+                if ($cur && $cur['pid'] === $c['pid'] && $k === $cur['end'] + 1) {
+                    $cur['end'] = $k;
+                    $cur['len']++;
+                } else {
+                    if ($cur) $runs[] = $cur;
+                    $cur = ['pid' => $c['pid'], 'start' => $k, 'end' => $k, 'len' => 1, 'bridge' => false];
+                }
+            }
+            if ($cur) $runs[] = $cur;
+
+            $merged = [];
+            foreach ($runs as $run) {
+                $li = count($merged) - 1;
+                if ($breakAt && $li >= 0 && $merged[$li]['pid'] === $run['pid']
+                    && $merged[$li]['end'] === $breakAt - 1 && $run['start'] === $breakAt + 1) {
+                    $merged[$li]['end'] = $run['end'];
+                    $merged[$li]['len'] += $run['len'];
+                    $merged[$li]['bridge'] = true;
+                    continue;
+                }
+                $merged[] = $run;
+            }
+            return $merged;
+        };
+        $dayCost = function (string $rId, string $h) use ($buildRuns): int {
+            $cost = 0;
+            $seen = [];
+            foreach ($buildRuns($rId, $h) as $run) {
+                if ($run['len'] === 1) $cost += 4;
+                if ($run['bridge']) $cost += 1;
+                if (isset($seen[$run['pid']])) $cost += 4;
+                $seen[$run['pid']] = true;
+            }
+            return $cost;
+        };
+
+        $costCache = [];
+        $total = 0;
+        foreach ($rombelIds as $rId) {
+            foreach ($hariList as $h) {
+                $costCache[$rId][$h] = $dayCost($rId, $h);
+                $total += $costCache[$rId][$h];
+            }
+        }
+
+        $canTeach = function (?string $ptk, string $h, int $k) use (&$teacherOcc, &$teacherDay, $guruOccupied, $guruPreferences): bool {
+            if (!$ptk) return true;
+            if (!empty($guruOccupied[$ptk][$h][$k]) || isset($teacherOcc[$ptk][$h][$k])) return false;
+            $pref = $guruPreferences[$ptk] ?? null;
+            if ($pref) {
+                if (!empty($pref->hari_off) && in_array($h, $pref->hari_off, true)) return false;
+                if ($this->isTeacherUnavailable($pref, $h, $k, $k)) return false;
+                if ($pref->max_jp_per_hari && (($teacherDay[$ptk][$h] ?? 0) + 1 > $pref->max_jp_per_hari)) return false;
+            }
+            return true;
+        };
+        $tPlace = function (?string $ptk, string $rId, string $h, int $k) use (&$teacherOcc, &$teacherDay): void {
+            if (!$ptk) return;
+            $teacherOcc[$ptk][$h][$k] = $rId;
+            $teacherDay[$ptk][$h] = ($teacherDay[$ptk][$h] ?? 0) + 1;
+        };
+        $tRemove = function (?string $ptk, string $h, int $k) use (&$teacherOcc, &$teacherDay): void {
+            if (!$ptk) return;
+            unset($teacherOcc[$ptk][$h][$k]);
+            $teacherDay[$ptk][$h] = max(0, ($teacherDay[$ptk][$h] ?? 0) - 1);
+        };
+
+        mt_srand(($seed ?? 1) + 7);
+        $deadline = microtime(true) + $seconds;
+        $temp = 1.5;
+        $badList = [];
+        $iter = 0;
+
+        while ($total > 0) {
+            if ($iter % 400 === 0) {
+                if (microtime(true) > $deadline) break;
+                $temp = max(0.2, $temp * 0.985);
+                $badList = [];
+                foreach ($costCache as $rId => $days) {
+                    foreach ($days as $h => $c) {
+                        if ($c > 0) $badList[] = [$rId, $h];
+                    }
+                }
+            }
+            $iter++;
+
+            if ($badList && mt_rand(1, 100) <= 80) {
+                [$rId, $h] = $badList[array_rand($badList)];
+            } else {
+                $rId = $rombelIds[array_rand($rombelIds)];
+                $h = $hariList[array_rand($hariList)];
+            }
+            $daySlots = $validK[$rId][$h] ?? [];
+            if (!$daySlots) continue;
+
+            $targeted = false;
+            if (mt_rand(1, 100) <= 75) {
+                $bad = [];
+                $seenPid = [];
+                foreach ($buildRuns($rId, $h) as $run) {
+                    if ($run['len'] === 1 || isset($seenPid[$run['pid']])) $bad[] = $run;
+                    $seenPid[$run['pid']] = true;
+                }
+                if ($bad) {
+                    $run = $bad[array_rand($bad)];
+                    $near = [];
+                    foreach ([$run['start'] - 1, $run['end'] + 1] as $nk) {
+                        if (in_array($nk, $daySlots, true)) $near[] = $nk;
+                    }
+                    $pieces = [];
+                    foreach ($hariList as $hh) {
+                        foreach ($validK[$rId][$hh] ?? [] as $kk) {
+                            $c = $cell[$rId][$hh][$kk] ?? null;
+                            if ($c && $c['pid'] === $run['pid'] && !($hh === $h && $kk >= $run['start'] && $kk <= $run['end'])) {
+                                $pieces[] = [$hh, $kk];
+                            }
+                        }
+                    }
+                    if ($near && $pieces) {
+                        $a = $near[array_rand($near)];
+                        [$h2, $b] = $pieces[array_rand($pieces)];
+                        $targeted = true;
+                    }
+                }
+            }
+
+            if (!$targeted) {
+                $a = $daySlots[array_rand($daySlots)];
+                $h2 = (mt_rand(1, 100) <= 60) ? $h : $hariList[array_rand($hariList)];
+                $slots2 = $validK[$rId][$h2] ?? [];
+                if (!$slots2) continue;
+                $b = $slots2[array_rand($slots2)];
+            }
+            if ($h === $h2 && $a === $b) continue;
+
+            $A = $cell[$rId][$h][$a] ?? null;
+            $B = $cell[$rId][$h2][$b] ?? null;
+            if ($A === null && $B === null) continue;
+            if ($A !== null && $B !== null && $A['pid'] === $B['pid']) continue;
+
+            if ($A) $tRemove($A['ptk'], $h, $a);
+            if ($B) $tRemove($B['ptk'], $h2, $b);
+
+            $ok = (!$A || $canTeach($A['ptk'], $h2, $b)) && (!$B || $canTeach($B['ptk'], $h, $a));
+            if (!$ok) {
+                if ($A) $tPlace($A['ptk'], $rId, $h, $a);
+                if ($B) $tPlace($B['ptk'], $rId, $h2, $b);
+                continue;
+            }
+
+            $cell[$rId][$h][$a] = $B;
+            $cell[$rId][$h2][$b] = $A;
+            $new1 = $dayCost($rId, $h);
+            $new2 = ($h2 === $h) ? $new1 : $dayCost($rId, $h2);
+            $old = $costCache[$rId][$h] + (($h2 === $h) ? 0 : $costCache[$rId][$h2]);
+            $new = $new1 + (($h2 === $h) ? 0 : $new2);
+            $delta = $new - $old;
+
+            if ($delta <= 0 || (mt_rand() / mt_getrandmax()) < exp(-$delta / $temp)) {
+                if ($A) $tPlace($A['ptk'], $rId, $h2, $b);
+                if ($B) $tPlace($B['ptk'], $rId, $h, $a);
+                $costCache[$rId][$h] = $new1;
+                $costCache[$rId][$h2] = $new2;
+                $total += $delta;
+            } else {
+                $cell[$rId][$h][$a] = $A;
+                $cell[$rId][$h2][$b] = $B;
+                if ($A) $tPlace($A['ptk'], $rId, $h, $a);
+                if ($B) $tPlace($B['ptk'], $rId, $h2, $b);
+            }
+        }
+
+        $fmt = fn($t) => strlen((string) $t) === 5 ? $t . ':00' : $t;
+        $rebuilt = [];
+        $singleJp = 0;
+        $split = 0;
+        foreach ($rombelIds as $rId) {
+            foreach ($hariList as $h) {
+                $cur = null;
+                $seen = [];
+                $flush = function () use (&$cur, &$rebuilt, &$singleJp, &$split, &$seen, $templates, $slots, $fmt, $rId, $h) {
+                    if (!$cur) return;
+                    $row = $templates[$cur['pid']];
+                    $row['hari'] = $h;
+                    $row['jam_ke_mulai'] = $cur['start'];
+                    $row['jam_ke_selesai'] = $cur['end'];
+                    $row['jam_mulai'] = $fmt($slots[$cur['start']]['mulai'] ?? $row['jam_mulai']);
+                    $row['jam_selesai'] = $fmt($slots[$cur['end']]['selesai'] ?? $row['jam_selesai']);
+                    $row['keterangan'] = 'Auto-Generated';
+                    $rebuilt[] = $row;
+                    if ($cur['start'] === $cur['end']) $singleJp++;
+                    if (isset($seen[$cur['pid']])) $split++;
+                    $seen[$cur['pid']] = true;
+                    $cur = null;
+                };
+                foreach ($validK[$rId][$h] ?? [] as $k) {
+                    $c = $cell[$rId][$h][$k] ?? null;
+                    if ($c === null) { $flush(); continue; }
+                    if ($cur && $cur['pid'] === $c['pid'] && $k === $cur['end'] + 1) {
+                        $cur['end'] = $k;
+                    } else {
+                        $flush();
+                        $cur = ['pid' => $c['pid'], 'start' => $k, 'end' => $k];
+                    }
+                }
+                $flush();
+            }
+        }
+
+        $batchInserts = $rebuilt;
+
+        return ['single_jp' => $singleJp, 'split' => $split];
     }
 }
