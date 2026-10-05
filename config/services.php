@@ -31,4 +31,9 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'sae_core' => [
+        'url' => env('SAE_CORE_URL', 'http://localhost/sae-core'),
+        'api_key' => env('SAE_CORE_API_KEY', env('SAE_API_KEY', 'SAE_20260422090959_d6be672e5e92c802adeca5d8a4eccf0c')),
+    ],
+
 ];

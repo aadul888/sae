@@ -168,6 +168,9 @@ class FeederReceiverController extends Controller
                 DB::table('settings')->where('id', 1)->update([
                     'sync_allowed' => false,
                 ]);
+
+                // Kirim laporan statistik monitoring (hanya angka) ke sae-core
+                \App\Services\MonitoringReporterService::reportAsync();
             }
 
             return response()->json([
