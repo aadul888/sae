@@ -92,86 +92,188 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- AJAX Live Search & Filter for RFID Management (Table-only Refresh) ---
+    const rfidTableContainer = document.getElementById('rfidTableContainer');
+    const rfidSearchInput = document.getElementById('rfidSearchInput');
+    const clearRfidSearch = document.getElementById('clearRfidSearch');
+    const formFilterRfid = document.getElementById('formFilterRfid');
     const perPageRfidSelect = document.getElementById('perPageRfidSelect');
+    const rfidStatusSelect = document.getElementById('rfidStatusSelect');
+    const rfidRombelSelect = document.getElementById('rfidRombelSelect');
+    let rfidSearchTimer = null;
+    let rfidAbortController = null;
+
+    function buildRfidUrl(customPage = null) {
+        const url = new URL(formFilterRfid && formFilterRfid.action ? formFilterRfid.action : window.location.href);
+        url.searchParams.set('tab', 'rfid');
+
+        const kategori = formFilterRfid?.querySelector('[name="rfid_kategori"]')?.value || 'siswa';
+        url.searchParams.set('rfid_kategori', kategori);
+
+        const tanggal = formFilterRfid?.querySelector('[name="tanggal"]')?.value;
+        if (tanggal) url.searchParams.set('tanggal', tanggal);
+
+        const perPage = perPageRfidSelect ? perPageRfidSelect.value : (formFilterRfid?.querySelector('[name="perPageRfid"]')?.value || '15');
+        url.searchParams.set('perPageRfid', perPage);
+
+        const search = rfidSearchInput ? rfidSearchInput.value.trim() : '';
+        if (search) {
+            url.searchParams.set('rfid_search', search);
+        } else {
+            url.searchParams.delete('rfid_search');
+        }
+
+        const status = rfidStatusSelect ? rfidStatusSelect.value : (formFilterRfid?.querySelector('[name="rfid_status"]')?.value || '');
+        if (status) {
+            url.searchParams.set('rfid_status', status);
+        } else {
+            url.searchParams.delete('rfid_status');
+        }
+
+        const rombel = rfidRombelSelect ? rfidRombelSelect.value : (formFilterRfid?.querySelector('[name="rfid_rombel"]')?.value || '');
+        if (rombel) {
+            url.searchParams.set('rfid_rombel', rombel);
+        } else {
+            url.searchParams.delete('rfid_rombel');
+        }
+
+        if (customPage) {
+            url.searchParams.set('rfid_page', customPage);
+        } else {
+            url.searchParams.delete('rfid_page');
+        }
+
+        return url.toString();
+    }
+
+    async function fetchRfidTable(targetUrl) {
+        const container = document.getElementById('rfidTableContainer');
+        if (!container) return;
+
+        if (rfidAbortController) {
+            rfidAbortController.abort();
+        }
+        rfidAbortController = new AbortController();
+
+        container.classList.add('is-loading');
+
+        try {
+            const res = await fetch(targetUrl, {
+                signal: rfidAbortController.signal,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html, application/xhtml+xml'
+                }
+            });
+
+            if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+
+            const html = await res.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+
+            const newTable = doc.getElementById('rfidTableContainer');
+            if (newTable && container) {
+                container.innerHTML = newTable.innerHTML;
+            }
+
+            // Sync Reset Button
+            const newReset = doc.getElementById('rfidFilterResetWrap');
+            const curReset = document.getElementById('rfidFilterResetWrap');
+            if (newReset && curReset) {
+                curReset.innerHTML = newReset.innerHTML;
+            }
+
+            // Update URL without page reload
+            window.history.replaceState(null, '', targetUrl);
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('RFID table fetch error:', err);
+            }
+        } finally {
+            container.classList.remove('is-loading');
+        }
+    }
+
+    function triggerRfidSearch() {
+        const url = buildRfidUrl(1);
+        fetchRfidTable(url);
+    }
+
+    if (formFilterRfid) {
+        formFilterRfid.addEventListener('submit', function (e) {
+            e.preventDefault();
+            clearTimeout(rfidSearchTimer);
+            triggerRfidSearch();
+        });
+    }
+
     if (perPageRfidSelect) {
         perPageRfidSelect.addEventListener('change', function () {
             const hiddenPerPage = document.getElementById('inputHiddenPerPageRfid');
             if (hiddenPerPage) hiddenPerPage.value = this.value;
-            const url = new URL(window.location.href);
-            url.searchParams.set('perPageRfid', this.value);
-            url.searchParams.set('tab', 'rfid');
-            url.searchParams.set('rfid_page', '1');
-            window.location.href = url.toString();
+            triggerRfidSearch();
         });
     }
 
-    // --- Live Search Debounce (850ms) for Log Presensi ---
-    const logSearchInput = document.getElementById('logSearchInput');
-    const clearLogSearch = document.getElementById('clearLogSearch');
-    const formFilterLog = document.getElementById('formFilterLog');
-    let logSearchTimer = null;
-
-    if (logSearchInput && formFilterLog) {
-        logSearchInput.addEventListener('input', function () {
-            if (clearLogSearch) {
-                clearLogSearch.classList.toggle('visible', this.value.trim().length > 0);
-            }
-            clearTimeout(logSearchTimer);
-            logSearchTimer = setTimeout(() => {
-                formFilterLog.submit();
-            }, 850);
-        });
-
-        logSearchInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                clearTimeout(logSearchTimer);
-                formFilterLog.submit();
-            }
+    if (rfidStatusSelect) {
+        rfidStatusSelect.addEventListener('change', function () {
+            triggerRfidSearch();
         });
     }
 
-    if (clearLogSearch && logSearchInput && formFilterLog) {
-        clearLogSearch.addEventListener('click', function () {
-            logSearchInput.value = '';
-            clearLogSearch.classList.remove('visible');
-            formFilterLog.submit();
+    if (rfidRombelSelect) {
+        rfidRombelSelect.addEventListener('change', function () {
+            triggerRfidSearch();
         });
     }
 
-    // --- Live Search Debounce (850ms) for RFID Peserta Didik ---
-    const rfidSearchInput = document.getElementById('rfidSearchInput');
-    const clearRfidSearch = document.getElementById('clearRfidSearch');
-    const formFilterRfid = document.getElementById('formFilterRfid');
-    let rfidSearchTimer = null;
-
-    if (rfidSearchInput && formFilterRfid) {
+    if (rfidSearchInput) {
         rfidSearchInput.addEventListener('input', function () {
             if (clearRfidSearch) {
                 clearRfidSearch.classList.toggle('visible', this.value.trim().length > 0);
             }
             clearTimeout(rfidSearchTimer);
             rfidSearchTimer = setTimeout(() => {
-                formFilterRfid.submit();
-            }, 850);
+                triggerRfidSearch();
+            }, 350);
         });
 
         rfidSearchInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 clearTimeout(rfidSearchTimer);
-                formFilterRfid.submit();
+                triggerRfidSearch();
             }
         });
     }
 
-    if (clearRfidSearch && rfidSearchInput && formFilterRfid) {
+    if (clearRfidSearch && rfidSearchInput) {
         clearRfidSearch.addEventListener('click', function () {
             rfidSearchInput.value = '';
             clearRfidSearch.classList.remove('visible');
-            formFilterRfid.submit();
+            triggerRfidSearch();
         });
     }
+
+    // Intercept pagination clicks & reset button on RFID tab
+    document.addEventListener('click', function (e) {
+        const pageLink = e.target.closest('#rfidTableContainer .custom-pagination a.page-btn');
+        if (pageLink && pageLink.href) {
+            e.preventDefault();
+            fetchRfidTable(pageLink.href);
+            return;
+        }
+
+        const resetBtn = e.target.closest('#rfidFilterResetWrap a.btn-reset-rfid');
+        if (resetBtn) {
+            e.preventDefault();
+            if (rfidSearchInput) rfidSearchInput.value = '';
+            if (clearRfidSearch) clearRfidSearch.classList.remove('visible');
+            if (rfidStatusSelect) rfidStatusSelect.value = '';
+            if (rfidRombelSelect) rfidRombelSelect.value = '';
+            triggerRfidSearch();
+        }
+    });
 
     const modalRfid = document.getElementById('modalAssignRfid');
     const formRfid = document.getElementById('formAssignRfid');

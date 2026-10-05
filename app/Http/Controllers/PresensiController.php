@@ -128,6 +128,7 @@ class PresensiController extends Controller
         $rfidKategori = $request->input('rfid_kategori', 'siswa'); // 'siswa' atau 'gtk'
         $rfidSearch = trim($request->input('rfid_search', ''));
         $rfidFilter = $request->input('rfid_status', '');
+        $rfidRombel = $request->input('rfid_rombel', '');
 
         $perPageRfid = (int) $request->input('perPageRfid', $request->input('perPage', 15));
         if (!in_array($perPageRfid, [10, 15, 25, 50, 100])) {
@@ -217,6 +218,10 @@ class PresensiController extends Controller
                 });
             }
 
+            if (!empty($rfidRombel)) {
+                $siswaRfidQuery->where('pd.rombongan_belajar_id', $rfidRombel);
+            }
+
             $siswaRfidList = $siswaRfidQuery->orderBy('pd.nama', 'asc')
                 ->paginate($perPageRfid, ['*'], 'rfid_page')
                 ->appends(['tab' => 'rfid', 'rfid_kategori' => 'siswa'])
@@ -226,7 +231,7 @@ class PresensiController extends Controller
         }
 
         $activeTab = $request->input('tab', 'log');
-        if ($request->filled('rfid_search') || $request->filled('rfid_status') || $request->has('rfid_page') || $request->filled('rfid_kategori')) {
+        if ($request->filled('rfid_search') || $request->filled('rfid_status') || $request->filled('rfid_rombel') || $request->has('rfid_page') || $request->filled('rfid_kategori')) {
             $activeTab = 'rfid';
         }
 
@@ -269,6 +274,7 @@ class PresensiController extends Controller
             'sortLog',
             'sortLogDir',
             'rfidKategori',
+            'rfidRombel',
             'siswaRfidList',
             'gtkRfidList',
             'izinPending',

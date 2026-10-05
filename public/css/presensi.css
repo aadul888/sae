@@ -1178,5 +1178,17 @@ input[type="month"] {
     align-items: flex-start;
 }
 
+/* RFID Datatable Live Refresh Container */
+#rfidTableContainer {
+    position: relative;
+    transition: opacity 0.2s ease;
+}
+
+#rfidTableContainer.is-loading {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+
 
 
