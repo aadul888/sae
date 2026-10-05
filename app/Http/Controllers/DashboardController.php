@@ -79,6 +79,15 @@ class DashboardController extends Controller
         $lastSync = $setting->last_sync ?? null;
         $appVersion = $setting->app_version ?? UpdateService::CURRENT_VERSION;
 
+        // Otomatis lapor monitoring ke sae-core (throttled 3 jam agar realtime tanpa membebani)
+        try {
+            $lastPing = \Illuminate\Support\Facades\Cache::get('sae_last_monitoring_ping');
+            if (!$lastPing || \Carbon\Carbon::parse($lastPing)->isBefore(now()->subHours(3))) {
+                \Illuminate\Support\Facades\Cache::put('sae_last_monitoring_ping', now()->toIso8601String(), 86400);
+                \App\Services\MonitoringReporterService::reportAsync();
+            }
+        } catch (\Throwable $e) {}
+
         // Presensi Masuk Hari Ini (Data Real)
         $today = date('Y-m-d');
         $todayPresensi = Schema::hasTable('presensi_harian')

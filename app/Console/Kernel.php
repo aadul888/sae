@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Otomatis lapor statistik data ke sae-core dua kali sehari
+        $schedule->command('sae:report-monitoring')->twiceDaily(7, 13)->withoutOverlapping();
     }
 
     /**

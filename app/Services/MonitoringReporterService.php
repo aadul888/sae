@@ -97,8 +97,8 @@ class MonitoringReporterService
     public static function send(): array
     {
         $payload = self::collectCounts();
-        $coreUrl = rtrim(config('services.sae_core.url', env('SAE_CORE_URL', 'http://localhost/sae-core')), '/');
-        $apiKey = config('services.sae_core.api_key', env('SAE_CORE_API_KEY', env('SAE_API_KEY', '')));
+        $coreUrl = rtrim(config('services.sae_core.url') ?: env('SAE_CORE_URL', 'https://appsae.com'), '/');
+        $apiKey = config('services.sae_core.api_key') ?: env('SAE_CORE_API_KEY', env('SAE_API_KEY', 'SAE_20260422090959_d6be672e5e92c802adeca5d8a4eccf0c'));
 
         if (empty($coreUrl)) {
             return [
@@ -109,7 +109,7 @@ class MonitoringReporterService
 
         try {
             $endpoint = $coreUrl . '/api/sync/telemetry';
-            $response = Http::timeout(5)
+            $response = Http::timeout(8)
                 ->withHeaders([
                     'X-API-Key' => $apiKey,
                     'Accept' => 'application/json',

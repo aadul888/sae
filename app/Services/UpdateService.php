@@ -372,6 +372,12 @@ class UpdateService
         // 5. Normalisasi Permission storage & cache setelah update
         $this->ensurePermissions();
 
+        // 6. Otomatis laporkan pembaruan versi ke sae-core
+        try {
+            \App\Services\MonitoringReporterService::reportAsync();
+            $logs[] = "[MONITORING] Laporan status pasca-update terkirim ke sae-core.";
+        } catch (\Throwable $e) {}
+
         return [
             'success' => $success,
             'logs' => $logs,
