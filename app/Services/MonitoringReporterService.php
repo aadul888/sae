@@ -21,22 +21,35 @@ class MonitoringReporterService
         $namaSekolah = $sekolah->nama ?? ($setting->app_name ?? 'SAE Instance');
         $bentukPendidikan = $sekolah->bentuk_pendidikan_id_str ?? null;
 
-        // Ambil data angka saja dari tabel-tabel sync
+        // Ambil data angka saja dari tabel-tabel sync (selaras 100% dengan DashboardController)
         $totalPesertaDidik = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 0;
-        $totalGtk = Schema::hasTable('gtk') ? DB::table('gtk')->count() : 0;
-        $totalGuru = 0;
-        $totalTendik = 0;
 
-        if ($totalGtk > 0 && Schema::hasColumn('gtk', 'jenis_ptk_id_str')) {
-            $totalGuru = DB::table('gtk')->where('jenis_ptk_id_str', 'like', '%guru%')->count();
-            $totalTendik = max(0, $totalGtk - $totalGuru);
-        }
+        $totalGtk = Schema::hasTable('gtk') ? DB::table('gtk')->count() : 0;
+        $totalGuru = Schema::hasTable('gtk') ? DB::table('gtk')->where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'LIKE', '%Guru%')
+                ->orWhere('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
+                ->orWhereNull('jenis_ptk_id_str');
+        })->count() : 0;
+
+        $totalTendik = Schema::hasTable('gtk') ? DB::table('gtk')->where(function ($q) {
+            $q->where('jenis_ptk_id_str', 'LIKE', '%Tenaga Kependidikan%')
+                ->orWhere('jenis_ptk_id_str', 'LIKE', '%Tata Usaha%')
+                ->orWhere('jenis_ptk_id_str', 'LIKE', '%Laboran%')
+                ->orWhere('jenis_ptk_id_str', 'LIKE', '%Pustakawan%');
+        })->count() : 0;
 
         $totalRombel = Schema::hasTable('rombongan_belajar') ? DB::table('rombongan_belajar')->count() : 0;
-        $totalPengguna = Schema::hasTable('users') ? DB::table('users')->count() : 0;
-        $totalAdmin = 0;
+        $totalPembelajaran = Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->count() : 0;
 
-        if ($totalPengguna > 0 && Schema::hasColumn('users', 'role')) {
+        // Akun Pengguna: Di SAE menggunakan tabel 'pengguna'
+        $totalPengguna = Schema::hasTable('pengguna')
+            ? DB::table('pengguna')->count()
+            : (Schema::hasTable('users') ? DB::table('users')->count() : 0);
+
+        $totalAdmin = 0;
+        if (Schema::hasTable('pengguna') && Schema::hasColumn('pengguna', 'peran_id_str')) {
+            $totalAdmin = DB::table('pengguna')->where('peran_id_str', 'LIKE', '%admin%')->count();
+        } elseif (Schema::hasTable('users') && Schema::hasColumn('users', 'role')) {
             $totalAdmin = DB::table('users')->where('role', 'admin')->count();
         }
 
@@ -49,7 +62,8 @@ class MonitoringReporterService
             'peserta_didik' => $totalPesertaDidik,
             'gtk' => $totalGtk,
             'rombongan_belajar' => $totalRombel,
-            'users' => $totalPengguna,
+            'pembelajaran' => $totalPembelajaran,
+            'pengguna' => $totalPengguna,
         ];
 
         if ($totalSarpras > 0) $tableCounts['sarpras'] = $totalSarpras;
