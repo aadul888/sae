@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function applyFilter() {
         const params = new URLSearchParams(window.location.search);
+        params.delete('perPageSelect');
 
         if (liveSearch && liveSearch.value.trim()) {
             params.set('q', liveSearch.value.trim());
@@ -33,8 +34,9 @@ document.addEventListener('DOMContentLoaded', function () {
             params.delete('tahun');
         }
 
-        if (perPageSelect && perPageSelect.value) {
-            params.set('perPage', perPageSelect.value);
+        const curPerPage = perPageSelect ? perPageSelect.value : (params.get('perPage') || '15');
+        if (curPerPage) {
+            params.set('perPage', curPerPage);
         }
 
         params.set('page', '1');
@@ -46,9 +48,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    if (perPageSelect) perPageSelect.addEventListener('change', applyFilter);
-    if (filterStatus) filterStatus.addEventListener('change', applyFilter);
-    if (filterTahun) filterTahun.addEventListener('change', applyFilter);
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        });
+    }
+    if (filterStatus) {
+        filterStatus.addEventListener('change', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        });
+    }
+    if (filterTahun) {
+        filterTahun.addEventListener('change', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        });
+    }
 
     if (liveSearch) {
         liveSearch.addEventListener('input', function () {

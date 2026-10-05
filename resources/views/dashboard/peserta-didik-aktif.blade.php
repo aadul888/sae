@@ -84,7 +84,7 @@
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                 <div class="toolbar-entries">
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
+                    <select id="perPageSelect" name="perPage" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
                             </option>
@@ -93,7 +93,7 @@
                     <span>entri</span>
                 </div>
 
-                <select id="filterRombel" class="toolbar-filter-select">
+                <select id="filterRombel" name="rombel" class="toolbar-filter-select">
                     <option value="">Semua Rombel</option>
                     @foreach ($filterRombel as $r)
                         <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}
@@ -101,7 +101,7 @@
                     @endforeach
                 </select>
 
-                <select id="filterGender" class="toolbar-filter-select" style="min-width: 120px;">
+                <select id="filterGender" name="gender" class="toolbar-filter-select" style="min-width: 120px;">
                     <option value="">Semua Gender</option>
                     <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
                     <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>

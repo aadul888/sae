@@ -31,7 +31,10 @@ class PesertaDidikTidakAktifController extends Controller
         $q       = trim($request->get('q', ''));
         $status  = trim($request->get('status', ''));
         $tahun   = trim($request->get('tahun', ''));
-        $perPage = (int) $request->get('perPage', 15);
+        $perPage = (int) ($request->get('perPage') ?? $request->get('per_page') ?? $request->get('perPageSelect') ?? 15);
+        if (!in_array($perPage, [10, 15, 25, 50, 100], true)) {
+            $perPage = 15;
+        }
         $sort    = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
         $sortDir = $request->get('sort_dir', 'asc') === 'desc' ? 'desc' : 'asc';
 

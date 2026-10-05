@@ -630,6 +630,17 @@ window.refreshLiveTable = async function (url, options = {}) {
             }
         });
 
+        // 4c. Sync filter select values in toolbar if present
+        const curSelects = document.querySelectorAll(".per-page-select, #filterRombel, #filterGender, #filterStatus, #filterTahun");
+        if (curSelects.length > 0) {
+            curSelects.forEach((curSel) => {
+                const newSel = doc.getElementById(curSel.id);
+                if (newSel && curSel.value !== newSel.value) {
+                    curSel.value = newSel.value;
+                }
+            });
+        }
+
         // Restore typing focus & cursor if element still exists
         if (focusedElId) {
             const reFocusEl = document.getElementById(focusedElId);
@@ -781,7 +792,10 @@ document.addEventListener("change", function (e) {
     if (!select || select.tagName !== "SELECT") return;
 
     if (
+        e.defaultPrevented ||
         select.hasAttribute("data-no-ajax") ||
+        select.hasAttribute("data-manual-filter") ||
+        select.closest("[data-manual-filter]") ||
         select.closest(".modal, .swal2-container, #actionModal, .modal-backdrop")
     ) {
         return;
@@ -791,6 +805,7 @@ document.addEventListener("change", function (e) {
         select.classList.contains("per-page-select") ||
         select.hasAttribute("data-live-filter") ||
         select.id === "perPageSelectAdmin" ||
+        select.id === "perPageSelect" ||
         select.id === "filterModulAdmin" ||
         select.name === "perPage" ||
         select.name === "per_page" ||
@@ -824,7 +839,27 @@ document.addEventListener("change", function (e) {
     const container = select.closest("#tableDataContainer, .table-responsive-stack, .dash-table-card, .card, .toolbar-entries");
     if (container) {
         const url = new URL(window.location.href);
-        const paramName = select.name || (select.id === "perPageSelectAdmin" ? "perPage" : (select.id === "filterModulAdmin" ? "modul" : select.id));
+        let paramName = select.name;
+        if (!paramName) {
+            if (select.classList.contains("per-page-select") || select.id === "perPageSelect" || select.id === "perPageSelectAdmin") {
+                paramName = "perPage";
+            } else if (select.id === "filterModulAdmin" || select.id === "filterModul") {
+                paramName = "modul";
+            } else if (select.id === "filterRombel") {
+                paramName = "rombel";
+            } else if (select.id === "filterGender") {
+                paramName = "gender";
+            } else if (select.id === "filterStatus") {
+                paramName = "status";
+            } else if (select.id === "filterTahun") {
+                paramName = "tahun";
+            } else {
+                paramName = select.id;
+            }
+        }
+        if (paramName === "perPage") {
+            url.searchParams.delete("perPageSelect");
+        }
         if (select.value) {
             url.searchParams.set(paramName, select.value);
         } else {

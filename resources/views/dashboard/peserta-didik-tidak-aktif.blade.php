@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $isAdmin = $isAdmin ?? (((session('user')['role'] ?? (session('user')->role ?? '')) === 'admin'));
+        $isAdmin = $isAdmin ?? (session('user')['role'] ?? (session('user')->role ?? '')) === 'admin';
     @endphp
     <div class="dash-banner">
         <div>
@@ -22,13 +22,13 @@
             @if (($canCreate || $canUpdate) && $grade12ActiveCount > 0)
                 <button type="button" id="btnArchiveGrade12" class="btn btn-primary" data-count="{{ $grade12ActiveCount }}"
                     data-url="{{ route('dashboard.peserta-didik-tidak-aktif.archive-grade12') }}"
-                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 2px 8px rgba(99,102,241,0.3);" title="Arsipkan Peserta Didik Kelas XII ({{ $grade12ActiveCount }})">
+                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
+                    title="Arsipkan Peserta Didik Kelas XII ({{ $grade12ActiveCount }})">
                     <i class="fas fa-box-archive"></i>
                 </button>
             @endif
             <a href="{{ route('dashboard.peserta-didik-tidak-aktif.export', ['status' => $status, 'tahun' => $tahun]) }}"
-                class="btn btn-outline"
-                style="padding: 8px 14px; font-size: 0.9rem;" title="Ekspor Excel (.CSV)">
+                class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;" title="Ekspor Excel (.CSV)">
                 <i class="fas fa-file-excel text-success"></i>
             </a>
         </div>
@@ -91,7 +91,7 @@
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                 <div class="toolbar-entries">
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
+                    <select id="perPageSelect" name="perPage" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
                             <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
                             </option>
@@ -100,13 +100,13 @@
                     <span>entri</span>
                 </div>
 
-                <select id="filterStatus" class="toolbar-filter-select" style="min-width: 140px;">
+                <select id="filterStatus" name="status" class="toolbar-filter-select" style="min-width: 140px;">
                     <option value="">Semua Status</option>
                     <option value="Alumni" {{ $status === 'Alumni' ? 'selected' : '' }}>Alumni (Lulus)</option>
                     <option value="Mutasi" {{ $status === 'Mutasi' ? 'selected' : '' }}>Mutasi / Keluar</option>
                 </select>
 
-                <select id="filterTahun" class="toolbar-filter-select" style="min-width: 150px;">
+                <select id="filterTahun" name="tahun" class="toolbar-filter-select" style="min-width: 150px;">
                     <option value="">Semua Tahun Lulus</option>
                     @foreach ($filterTahun as $t)
                         <option value="{{ $t }}" {{ $tahun === $t ? 'selected' : '' }}>Tahun
@@ -115,8 +115,9 @@
                 </select>
 
                 @if ($q || $status || $tahun)
-                    <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}" class="btn btn-outline btn-responsive-icon"
-                        style="padding: 7px 12px; font-size: 0.8rem;" title="Reset filter">
+                    <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}"
+                        class="btn btn-outline btn-responsive-icon" style="padding: 7px 12px; font-size: 0.8rem;"
+                        title="Reset filter">
                         <i class="fas fa-undo"></i> <span class="btn-responsive-text">Reset</span>
                     </a>
                 @endif
@@ -135,7 +136,7 @@
     </div>
 
     <!-- Datatable Peserta Didik Tidak Aktif -->
-    <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
         <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
                 <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
@@ -208,7 +209,8 @@
                                     @if ($item->nik)
                                         <div
                                             style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK" title="Klik untuk salin NIK">
+                                            <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
+                                                title="Klik untuk salin NIK">
                                                 NIK: {{ $item->nik }}
                                             </span>
                                         </div>
@@ -222,14 +224,16 @@
                             <div class="cell-col-right">
                                 <div>
                                     @if ($item->nisn)
-                                        <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN" title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                        <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
+                                            title="Klik untuk salin NISN">{{ $item->nisn }}</span>
                                     @else
                                         -
                                     @endif
                                 </div>
                                 @if ($item->nipd)
                                     <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                        <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD" title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
+                                        <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
+                                            title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                     </div>
                                 @endif
                             </div>
@@ -268,7 +272,9 @@
                             <div class="cell-col-right">
                                 @if ($item->nomor_telepon_seluler)
                                     <div><i class="fas fa-phone-alt me-1 text-primary" style="font-size: 0.72rem;"></i>
-                                        <span class="copyable" data-copy="{{ $item->nomor_telepon_seluler }}" data-label="No HP" title="Klik untuk salin No HP">{{ $item->nomor_telepon_seluler }}</span>
+                                        <span class="copyable" data-copy="{{ $item->nomor_telepon_seluler }}"
+                                            data-label="No HP"
+                                            title="Klik untuk salin No HP">{{ $item->nomor_telepon_seluler }}</span>
                                     </div>
                                 @else
                                     <div>-</div>
@@ -284,12 +290,12 @@
                         <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                             <div class="table-actions">
                                 @if ($isAdmin)
-                                <button type="button" class="btn-icon" title="Lihat Biodata Arsip Lengkap"
-                                    onclick="openBiodataModal('{{ $item->id }}')">
-                                    <i class="fas fa-id-card"></i>
-                                </button>
+                                    <button type="button" class="btn-icon" title="Lihat Biodata Arsip Lengkap"
+                                        onclick="openBiodataModal('{{ $item->id }}')">
+                                        <i class="fas fa-id-card"></i>
+                                    </button>
                                 @else
-                                <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
+                                    <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
                                 @endif
                             </div>
                         </td>
@@ -485,5 +491,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/peserta-didik-tidak-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-tidak-aktif.js')) }}"></script>
+    <script
+        src="{{ asset('js/peserta-didik-tidak-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-tidak-aktif.js')) }}">
+    </script>
 @endpush

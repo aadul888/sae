@@ -659,6 +659,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function applyFilter(overrideParams = {}) {
         const url = new URL(window.location.href);
+        url.searchParams.delete("perPageSelect");
+
         if (searchInput && searchInput.value.trim()) {
             url.searchParams.set("q", searchInput.value.trim());
         } else {
@@ -677,8 +679,9 @@ document.addEventListener("DOMContentLoaded", function () {
             url.searchParams.delete("gender");
         }
 
-        if (perPageSelect && perPageSelect.value) {
-            url.searchParams.set("perPage", perPageSelect.value);
+        const curPerPage = perPageSelect ? perPageSelect.value : (url.searchParams.get("perPage") || "15");
+        if (curPerPage) {
+            url.searchParams.set("perPage", curPerPage);
         }
 
         Object.keys(overrideParams).forEach((k) => {
@@ -732,9 +735,27 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    if (filterRombel) filterRombel.addEventListener("change", () => applyFilter());
-    if (filterGender) filterGender.addEventListener("change", () => applyFilter());
-    if (perPageSelect) perPageSelect.addEventListener("change", () => applyFilter());
+    if (filterRombel) {
+        filterRombel.addEventListener("change", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        });
+    }
+    if (filterGender) {
+        filterGender.addEventListener("change", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        });
+    }
+    if (perPageSelect) {
+        perPageSelect.addEventListener("change", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        });
+    }
 
     // Event Delegation: Klik Sort Header Server-Side (Tetap berfungsi berkali-kali tanpa reload)
     document.addEventListener("click", function (e) {
