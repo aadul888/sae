@@ -122,6 +122,7 @@ class KompetensiKeahlianController extends Controller
             $item->tingkat_list = $detailMap[$item->kode]['tingkat'] ?? [];
 
             $meta = $metaMap[$item->kode] ?? null;
+            $item->singkatan = $meta?->singkatan;
             $item->logo_url = $meta?->logo_url;
             $item->logo_path = $meta?->logo_path;
             $item->logo_size = $meta?->formatted_logo_size;
@@ -313,6 +314,54 @@ class KompetensiKeahlianController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal menghapus logo: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Perbarui singkatan nama kompetensi keahlian
+     */
+    public function updateSingkatan(Request $request, string|int $kode)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+
+        $canUpdate = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'update');
+        $canCreate = \App\Models\RolePermission::canAccess($user, 'menu_kompetensi_keahlian', 'create');
+        if (!$canUpdate && !$canCreate) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk mengubah data ini.'], 403);
+        }
+
+        $request->validate([
+            'singkatan' => 'nullable|string|max:30',
+        ], [
+            'singkatan.max' => 'Singkatan nama kompetensi keahlian maksimal 30 karakter.',
+        ]);
+
+        $singkatan = trim($request->input('singkatan', ''));
+
+        try {
+            $namaJurusan = DB::table('rombongan_belajar')
+                ->where('jurusan_id', $kode)
+                ->value('jurusan_id_str') ?: (string) $kode;
+
+            $meta = \App\Models\JurusanMeta::firstOrNew(['jurusan_id' => (string) $kode]);
+            $meta->nama_jurusan = $namaJurusan;
+            $meta->singkatan = $singkatan !== '' ? $singkatan : null;
+            $meta->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Singkatan kompetensi keahlian berhasil diperbarui.',
+                'kode' => $kode,
+                'singkatan' => $meta->singkatan,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menyimpan singkatan: ' . $e->getMessage(),
             ], 500);
         }
     }

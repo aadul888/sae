@@ -215,37 +215,48 @@
             </div>
         </div>
 
-        <!-- Charts Row 1: Line Chart (Garis) & Doughnut Chart (Lingkaran) -->
+        <!-- Charts Row 1: Line Chart & Doughnut Chart -->
         <div class="dash-grid-2" style="margin-bottom: 20px;">
-            <!-- Chart 1: Tren Presensi 7 Hari (Garis) -->
+            <!-- Chart 1: Tren Presensi 7 Hari -->
             <div class="card" style="margin-bottom: 0;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
                     <div>
                         <h4
                             style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-chart-area text-primary"></i> Tren Kehadiran Presensi Harian (Garis)
+                            <i class="fas fa-chart-area text-primary"></i> Tren Kehadiran Presensi Harian
                         </h4>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Tingkat kehadiran Peserta Didik vs
                             Guru</span>
                     </div>
-                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">
-                        <i class="fas fa-arrow-trend-up me-1"></i> Rata-rata {{ $chartTrend['average'] ?? '0' }}%
-                    </span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <div class="trend-filter-group"
+                            style="display: inline-flex; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px; gap: 2px;">
+                            <button type="button" class="btn-trend-filter active" data-filter="all"
+                                style="padding: 3px 8px; font-size: 0.72rem; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; background: var(--primary); color: #fff; transition: all 0.2s ease;">Semua</button>
+                            <button type="button" class="btn-trend-filter" data-filter="siswa"
+                                style="padding: 3px 8px; font-size: 0.72rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">Siswa</button>
+                            <button type="button" class="btn-trend-filter" data-filter="guru"
+                                style="padding: 3px 8px; font-size: 0.72rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">Guru</button>
+                        </div>
+                        <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">
+                            <i class="fas fa-arrow-trend-up me-1"></i> Rata-rata {{ $chartTrend['average'] ?? '0' }}%
+                        </span>
+                    </div>
                 </div>
                 <div style="position: relative; height: 230px; width: 100%;">
                     <canvas id="chartPresensiTrend"></canvas>
                 </div>
             </div>
 
-            <!-- Chart 2: Komposisi GTK (Lingkaran / Doughnut) -->
+            <!-- Chart 2: Komposisi GTK -->
             <div class="card" style="margin-bottom: 0;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
                     <div>
                         <h4
                             style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-chart-pie text-accent"></i> Komposisi GTK: Pendidik vs Tendik (Lingkaran)
+                            <i class="fas fa-chart-pie text-accent"></i> Komposisi GTK: Pendidik vs Tendik
                         </h4>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Total
                             {{ $stats['total_guru'] + $stats['total_tendik'] }} Tenaga Pendidik &amp; Kependidikan</span>
@@ -261,9 +272,9 @@
             </div>
         </div>
 
-        <!-- Charts Row 2: Bar Chart (Batang) & Polar Area Chart (Radial) -->
+        <!-- Charts Row 2: Bar Chart & Polar Area Chart -->
         <div class="dash-grid-2">
-            <!-- Chart 3: Sebaran Jurusan (Batang) -->
+            <!-- Chart 3: Sebaran Jurusan -->
             <div class="card" style="margin-bottom: 0;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
@@ -271,7 +282,6 @@
                         <h4
                             style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-chart-column text-warning"></i> Sebaran Siswa per Konsentrasi Keahlian
-                            (Batang)
                         </h4>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">6 Program Keahlian / Jurusan
                             Terbesar</span>
@@ -286,14 +296,14 @@
                 </div>
             </div>
 
-            <!-- Chart 4: Tingkat Kelas (Polar Area) -->
+            <!-- Chart 4: Tingkat Kelas -->
             <div class="card" style="margin-bottom: 0;">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
                     <div>
                         <h4
                             style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-compass text-primary"></i> Proporsi Siswa per Tingkat Kelas (Radial / Polar)
+                            <i class="fas fa-compass text-primary"></i> Proporsi Siswa per Tingkat Kelas
                         </h4>
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Distribusi Kelas X, Kelas XI, dan Kelas
                             XII</span>
@@ -306,6 +316,37 @@
                 <div style="position: relative; height: 220px; width: 100%;">
                     <canvas id="chartTingkat"></canvas>
                 </div>
+            </div>
+        </div>
+
+        <!-- Chart Full Width: Tren Jumlah Peserta Didik per Bulan dalam 1 Tahun Pelajaran -->
+        <div class="card" style="margin-top: 20px; margin-bottom: 0; width: 100%;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <h4
+                        style="font-size: 0.98rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-chart-line text-primary"></i> Tren Jumlah Peserta Didik per Bulan
+                    </h4>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">
+                        Distribusi populasi peserta didik aktif per bulan dalam 1 Tahun Pelajaran
+                        ({{ $chartSiswaBulanan['tahun_ajaran'] ?? '' }})
+                    </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span class="badge"
+                        style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.72rem; padding: 3px 8px;">
+                        <i class="fas fa-calendar-days me-1"></i> Tahun Pelajaran
+                        {{ $chartSiswaBulanan['tahun_ajaran'] ?? '' }}
+                    </span>
+                    <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">
+                        <i class="fas fa-user-graduate me-1"></i> {{ number_format($stats['total_peserta_didik']) }} Siswa
+                        Aktif
+                    </span>
+                </div>
+            </div>
+            <div style="position: relative; height: 230px; width: 100%;">
+                <canvas id="chartSiswaBulanan"></canvas>
             </div>
         </div>
     </div>
@@ -653,6 +694,7 @@
             'jurusan' => $jurusanStats,
             'gtk' => $gtkComposition,
             'tingkat' => $tingkatStats,
+            'siswaBulanan' => $chartSiswaBulanan,
         ]) !!}
     </script>
 

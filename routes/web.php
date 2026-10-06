@@ -424,6 +424,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Master Data — Kompetensi Keahlian (Sumber: Rombongan Belajar)
     Route::get('/master-data/kompetensi-keahlian', [KompetensiKeahlianController::class, 'index'])->name('kompetensi-keahlian.index')->middleware('permission:menu_kompetensi_keahlian,read');
     Route::get('/master-data/kompetensi-keahlian/{kode}/rombel', [KompetensiKeahlianController::class, 'showRombel'])->name('kompetensi-keahlian.rombel')->middleware('permission:menu_kompetensi_keahlian,read');
+    Route::post('/master-data/kompetensi-keahlian/{kode}/singkatan', [KompetensiKeahlianController::class, 'updateSingkatan'])->name('kompetensi-keahlian.update-singkatan')->middleware('permission:menu_kompetensi_keahlian,update');
     Route::post('/master-data/kompetensi-keahlian/{kode}/logo', [KompetensiKeahlianController::class, 'uploadLogo'])->name('kompetensi-keahlian.upload-logo')->middleware('permission:menu_kompetensi_keahlian,update');
     Route::delete('/master-data/kompetensi-keahlian/{kode}/logo', [KompetensiKeahlianController::class, 'deleteLogo'])->name('kompetensi-keahlian.delete-logo')->middleware('permission:menu_kompetensi_keahlian,delete');
 

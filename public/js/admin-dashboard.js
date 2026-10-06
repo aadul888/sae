@@ -56,12 +56,13 @@ function initAdminCharts() {
                     const val = dataset.data[pIdx];
                     if (val === undefined || val === null) return;
 
-                    const text = val + '%';
+                    const isPercentage = chart.canvas.id === 'chartPresensiTrend';
+                    const text = isPercentage ? (val + '%') : Number(val).toLocaleString('id-ID');
                     ctx.font = 'bold 10px Plus Jakarta Sans, sans-serif';
                     const textWidth = ctx.measureText(text).width;
 
-                    // Posisi label: Siswa ke atas (-13px), GTK sedikit lebih atas (-28px) agar tidak bertabrakan
-                    const yOffset = dIdx === 0 ? -13 : -28;
+                    // Posisi label: Siswa ke atas (-13px), Guru sedikit lebih atas (-28px) agar tidak bertabrakan jika dua garis
+                    const yOffset = dIdx === 1 ? -28 : -13;
                     const posX = point.x;
                     const posY = point.y + yOffset;
 
@@ -290,8 +291,11 @@ function initAdminCharts() {
                         ticks: { color: textMuted, font: { size: 11 } }
                     },
                     y: {
-                        suggestedMin: 70,
+                        beginAtZero: true,
+                        suggestedMin: 0,
                         suggestedMax: 100,
+                        min: 0,
+                        max: 100,
                         grid: { color: gridColor },
                         ticks: {
                             color: textMuted,
@@ -301,6 +305,38 @@ function initAdminCharts() {
                     }
                 }
             }
+        });
+
+        // Filter Toggle Handler: Semua, Siswa, Guru
+        const filterButtons = document.querySelectorAll('.btn-trend-filter');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', function () {
+                filterButtons.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = 'transparent';
+                    b.style.color = 'var(--text-muted)';
+                    b.style.fontWeight = '600';
+                });
+                this.classList.add('active');
+                this.style.background = 'var(--primary)';
+                this.style.color = '#ffffff';
+                this.style.fontWeight = '700';
+
+                const filterType = this.getAttribute('data-filter');
+                if (window.adminChartTrend) {
+                    if (filterType === 'all') {
+                        window.adminChartTrend.setDatasetVisibility(0, true);
+                        window.adminChartTrend.setDatasetVisibility(1, true);
+                    } else if (filterType === 'siswa') {
+                        window.adminChartTrend.setDatasetVisibility(0, true);
+                        window.adminChartTrend.setDatasetVisibility(1, false);
+                    } else if (filterType === 'guru') {
+                        window.adminChartTrend.setDatasetVisibility(0, false);
+                        window.adminChartTrend.setDatasetVisibility(1, true);
+                    }
+                    window.adminChartTrend.update();
+                }
+            });
         });
     }
 
@@ -403,7 +439,18 @@ function initAdminCharts() {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: ctx => ` Jumlah: ${ctx.parsed.y} Peserta Didik`
+                            title: function (items) {
+                                if (!items || !items.length) return '';
+                                const idx = items[0].dataIndex;
+                                const item = payload.jurusan[idx];
+                                return item && item.nama_lengkap ? item.nama_lengkap : items[0].label;
+                            },
+                            label: function (ctx) {
+                                const idx = ctx.dataIndex;
+                                const item = payload.jurusan[idx];
+                                const shortStr = item && item.jurusan && item.jurusan !== item.nama_lengkap ? ` (${item.jurusan})` : '';
+                                return ` Jumlah: ${ctx.parsed.y} Peserta Didik${shortStr}`;
+                            }
                         }
                     }
                 },
@@ -471,6 +518,90 @@ function initAdminCharts() {
                     tooltip: {
                         callbacks: {
                             label: ctx => ` ${ctx.label}: ${ctx.parsed.r} Peserta Didik`
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 5. CHART GARIS (LINE FULL WIDTH): Siswa per Bulan (1 Tahun Pelajaran)
+    // -------------------------------------------------------------
+    const ctxSiswaBulanan = document.getElementById('chartSiswaBulanan')?.getContext('2d');
+    if (ctxSiswaBulanan && payload.siswaBulanan) {
+        const gradientBulanan = ctxSiswaBulanan.createLinearGradient(0, 0, 0, 240);
+        gradientBulanan.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
+        gradientBulanan.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
+
+        const valuesBulanan = payload.siswaBulanan.data || [];
+        const nonZeroValues = valuesBulanan.filter(v => v > 0);
+        const minVal = nonZeroValues.length ? Math.min(...nonZeroValues) : 0;
+        const maxVal = valuesBulanan.length ? Math.max(...valuesBulanan) : 1000;
+
+        window.adminChartSiswaBulanan = new Chart(ctxSiswaBulanan, {
+            type: 'line',
+            data: {
+                labels: payload.siswaBulanan.labels || [],
+                datasets: [{
+                    label: 'Jumlah Peserta Didik',
+                    data: valuesBulanan,
+                    borderColor: '#6366f1',
+                    backgroundColor: gradientBulanan,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#6366f1',
+                    pointBorderColor: cardBg,
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }]
+            },
+            plugins: [lineDataLabelsPlugin],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                layout: {
+                    padding: {
+                        top: 25,
+                        bottom: 5
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: isLight ? '#0f172a' : '#1e293b',
+                        titleColor: '#ffffff',
+                        bodyColor: '#e2e8f0',
+                        borderColor: isLight ? '#334155' : '#475569',
+                        borderWidth: 1,
+                        padding: 10,
+                        callbacks: {
+                            label: function (ctx) {
+                                return ` Siswa Aktif: ${Number(ctx.parsed.y).toLocaleString('id-ID')} Peserta Didik`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: textMuted, font: { size: 11 } }
+                    },
+                    y: {
+                        suggestedMin: Math.max(0, Math.floor((minVal * 0.95) / 50) * 50),
+                        suggestedMax: Math.ceil((maxVal * 1.05) / 50) * 50,
+                        grid: { color: gridColor },
+                        ticks: {
+                            color: textMuted,
+                            font: { size: 11 },
+                            callback: v => Number(v).toLocaleString('id-ID')
                         }
                     }
                 }

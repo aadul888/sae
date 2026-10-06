@@ -222,15 +222,33 @@ class DashboardController extends Controller
         ];
 
         // Chart Bar: Sebaran Siswa per Konsentrasi Keahlian / Jurusan
-        $jurusanStats = Schema::hasTable('rombongan_belajar') && Schema::hasTable('peserta_didik')
-            ? DB::table('rombongan_belajar as rb')
+        $jurusanStats = collect();
+        if (Schema::hasTable('rombongan_belajar') && Schema::hasTable('peserta_didik')) {
+            $rawJurusan = DB::table('rombongan_belajar as rb')
                 ->join('peserta_didik as pd', 'rb.rombongan_belajar_id', '=', 'pd.rombongan_belajar_id')
-                ->select(DB::raw('COALESCE(rb.jurusan_id_str, "Umum") as jurusan'), DB::raw('count(pd.peserta_didik_id) as total'))
-                ->groupBy('jurusan')
+                ->select(
+                    'rb.jurusan_id',
+                    DB::raw('COALESCE(rb.jurusan_id_str, "Umum") as jurusan'),
+                    DB::raw('count(pd.peserta_didik_id) as total')
+                )
+                ->groupBy('rb.jurusan_id', 'rb.jurusan_id_str')
                 ->orderByDesc('total')
                 ->limit(6)
-                ->get()
-            : collect();
+                ->get();
+
+            $singkatanMap = Schema::hasTable('jurusan_meta')
+                ? DB::table('jurusan_meta')->whereNotNull('singkatan')->where('singkatan', '<>', '')->pluck('singkatan', 'jurusan_id')
+                : collect();
+
+            $jurusanStats = $rawJurusan->map(function ($item) use ($singkatanMap) {
+                $singkatan = $singkatanMap->get($item->jurusan_id);
+                return [
+                    'jurusan'      => !empty($singkatan) ? $singkatan : $item->jurusan,
+                    'nama_lengkap' => $item->jurusan,
+                    'total'        => (int) $item->total,
+                ];
+            });
+        }
 
         // Chart Doughnut: Komposisi GTK Pendidik vs Tendik
         $gtkComposition = [
@@ -247,6 +265,61 @@ class DashboardController extends Controller
                 ->orderBy('rb.tingkat_pendidikan_id')
                 ->get()
             : collect();
+
+        // Chart Garis Full Width: Jumlah Peserta Didik per Bulan dalam 1 Tahun Pelajaran (Juli - Juni)
+        $now = now();
+        $startYear = $now->month >= 7 ? (int) $now->year : (int) $now->year - 1;
+        $endYear = $startYear + 1;
+        $taLabel = "{$startYear}/{$endYear}";
+
+        $bulanList = [
+            ['m' => 7,  'y' => $startYear, 'label' => 'Jul ' . $startYear],
+            ['m' => 8,  'y' => $startYear, 'label' => 'Ags ' . $startYear],
+            ['m' => 9,  'y' => $startYear, 'label' => 'Sep ' . $startYear],
+            ['m' => 10, 'y' => $startYear, 'label' => 'Okt ' . $startYear],
+            ['m' => 11, 'y' => $startYear, 'label' => 'Nov ' . $startYear],
+            ['m' => 12, 'y' => $startYear, 'label' => 'Des ' . $startYear],
+            ['m' => 1,  'y' => $endYear,   'label' => 'Jan ' . $endYear],
+            ['m' => 2,  'y' => $endYear,   'label' => 'Feb ' . $endYear],
+            ['m' => 3,  'y' => $endYear,   'label' => 'Mar ' . $endYear],
+            ['m' => 4,  'y' => $endYear,   'label' => 'Apr ' . $endYear],
+            ['m' => 5,  'y' => $endYear,   'label' => 'Mei ' . $endYear],
+            ['m' => 6,  'y' => $endYear,   'label' => 'Jun ' . $endYear],
+        ];
+
+        $chartSiswaBulanan = [
+            'tahun_ajaran' => $taLabel,
+            'labels'       => [],
+            'data'         => [],
+        ];
+
+        if (Schema::hasTable('peserta_didik')) {
+            foreach ($bulanList as $b) {
+                $chartSiswaBulanan['labels'][] = $b['label'];
+                $endOfMonth = \Carbon\Carbon::create($b['y'], $b['m'], 1)->endOfMonth()->toDateString();
+
+                $count = DB::table('peserta_didik')
+                    ->where(function ($q) use ($endOfMonth) {
+                        $q->whereNull('tanggal_masuk_sekolah')
+                          ->orWhere('tanggal_masuk_sekolah', '<=', $endOfMonth);
+                    })
+                    ->count();
+
+                if (Schema::hasTable('peserta_didik_tidak_aktif')) {
+                    $countMutasiSetelah = DB::table('peserta_didik_tidak_aktif')
+                        ->whereNotNull('tanggal_keluar')
+                        ->where('tanggal_keluar', '>', $endOfMonth)
+                        ->count();
+                    $count += $countMutasiSetelah;
+                }
+
+                if (\Carbon\Carbon::create($b['y'], $b['m'], 1)->startOfMonth()->isAfter($now)) {
+                    $count = $totalPd;
+                }
+
+                $chartSiswaBulanan['data'][] = $count;
+            }
+        }
 
         // 3. Datatable Aktivitas Administrator
         $queryLogs = AdminAktivitas::query()->latest();
@@ -283,6 +356,7 @@ class DashboardController extends Controller
             'jurusanStats',
             'gtkComposition',
             'tingkatStats',
+            'chartSiswaBulanan',
             'aktivitasLogs',
             'availableModules',
             'perPage'

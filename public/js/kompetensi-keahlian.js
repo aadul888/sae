@@ -392,7 +392,107 @@ function updateRowLogoUI(kode, logoUrl, logoSize) {
 }
 
 // ==========================================
-// 3. EVENT LISTENERS & SEARCH / PAGINATION
+// 3. MODAL EDIT SINGKATAN NAMA JURUSAN
+// ==========================================
+window.openSingkatanModal = function (kode, nama, singkatan) {
+    const modal = document.getElementById("singkatanModal");
+    if (!modal) return;
+
+    document.getElementById("singkatanModalKode").value = kode;
+    document.getElementById("singkatanModalSubtitle").textContent = `Kode Jurusan: ${kode}`;
+    document.getElementById("singkatanModalNama").value = nama;
+    const inputSingkatan = document.getElementById("inputSingkatanJurusan");
+    inputSingkatan.value = singkatan || "";
+
+    modal.style.display = "flex";
+    setTimeout(() => inputSingkatan.focus(), 100);
+};
+
+window.closeSingkatanModal = function () {
+    const modal = document.getElementById("singkatanModal");
+    if (modal) modal.style.display = "none";
+};
+
+window.handleSaveSingkatan = async function () {
+    const kode = document.getElementById("singkatanModalKode")?.value;
+    const inputSingkatan = document.getElementById("inputSingkatanJurusan");
+    const btnSave = document.getElementById("btnSaveSingkatan");
+
+    if (!kode || !inputSingkatan) return;
+
+    const singkatan = inputSingkatan.value.trim();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+        || document.querySelector('input[name="_token"]')?.value;
+
+    const originalText = btnSave.innerHTML;
+    btnSave.disabled = true;
+    btnSave.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+
+    try {
+        const response = await fetch(
+            "/dashboard/master-data/kompetensi-keahlian/" +
+                encodeURIComponent(kode) +
+                "/singkatan",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken || "",
+                },
+                body: JSON.stringify({ singkatan: singkatan }),
+            }
+        );
+
+        const result = await response.json();
+
+        if (response.ok && result.status === "success") {
+            updateRowSingkatanUI(kode, result.singkatan);
+            window.closeSingkatanModal();
+            window.SAE.toast(result.message || "Singkatan berhasil diperbarui.", "success");
+        } else {
+            window.SAE.toast(result.message || "Gagal menyimpan singkatan.", "danger");
+        }
+    } catch (err) {
+        window.SAE.toast("Terjadi kesalahan jaringan atau server.", "danger");
+    } finally {
+        btnSave.disabled = false;
+        btnSave.innerHTML = originalText;
+    }
+};
+
+function updateRowSingkatanUI(kode, singkatan) {
+    const badgeWrap = document.getElementById("singkatanBadge_" + kode);
+    const iconBtn = document.getElementById("singkatanIcon_" + kode);
+    const btn = document.getElementById("btnSingkatan_" + kode);
+
+    if (badgeWrap) {
+        if (singkatan) {
+            badgeWrap.innerHTML = `
+                <span class="badge badge-primary" style="font-size: 0.72rem; padding: 2px 7px; font-weight: 800; letter-spacing: 0.5px;">
+                    ${escapeHtml(singkatan)}
+                </span>`;
+        } else {
+            badgeWrap.innerHTML = "";
+        }
+    }
+
+    if (iconBtn) {
+        iconBtn.style.color = singkatan ? "var(--primary)" : "";
+    }
+
+    if (btn) {
+        // Update handler attribute data
+        const currentNama = document.getElementById("singkatanModalNama")?.value || "";
+        btn.setAttribute(
+            "onclick",
+            `openSingkatanModal('${kode}', '${escapeHtml(currentNama)}', '${escapeHtml(singkatan || "")}')`
+        );
+    }
+}
+
+// ==========================================
+// 4. EVENT LISTENERS & SEARCH / PAGINATION
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
     // Backdrop modal close handlers
@@ -414,10 +514,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    const singkatanModal = document.getElementById("singkatanModal");
+    if (singkatanModal) {
+        singkatanModal.addEventListener("click", function (e) {
+            if (e.target === singkatanModal) {
+                window.closeSingkatanModal();
+            }
+        });
+    }
+
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
             window.closeRombelModal();
             window.closeLogoUploadModal();
+            window.closeSingkatanModal();
         }
     });
 
