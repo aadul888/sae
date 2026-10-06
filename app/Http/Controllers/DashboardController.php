@@ -96,7 +96,7 @@ class DashboardController extends Controller
 
         if ($todayPresensi->isNotEmpty()) {
             $hadirHariIni = $todayPresensi->whereIn('status', ['H', 'T'])->count();
-            $presensiTodayPct = round(($hadirHariIni / $todayPresensi->count()) * 100, 1);
+            $presensiTodayPct = $totalPd > 0 ? min(100.0, round(($hadirHariIni / $totalPd) * 100, 1)) : 0;
             $rfidTapsToday = $todayPresensi->where('metode_masuk', 'rfid')->count() ?: $hadirHariIni;
         } else {
             // Ambil data hari terakhir yang tercatat jika hari ini belum ada aktivitas
@@ -104,8 +104,8 @@ class DashboardController extends Controller
             if ($latestTgl) {
                 $latestRecords = DB::table('presensi_harian')->whereDate('tanggal', $latestTgl)->get();
                 $hadirHariIni = $latestRecords->whereIn('status', ['H', 'T'])->count();
-                $presensiTodayPct = $latestRecords->isNotEmpty()
-                    ? round(($hadirHariIni / $latestRecords->count()) * 100, 1)
+                $presensiTodayPct = $totalPd > 0
+                    ? min(100.0, round(($hadirHariIni / $totalPd) * 100, 1))
                     : 0;
                 $rfidTapsToday = $latestRecords->where('metode_masuk', 'rfid')->count() ?: $hadirHariIni;
             } else {
@@ -165,27 +165,43 @@ class DashboardController extends Controller
         foreach ($trendDates as $tgl) {
             $trendLabels[] = \Carbon\Carbon::parse($tgl)->translatedFormat('d M');
 
-            // 1. Kehadiran Peserta Didik Riil (presensi_harian)
+            // 1. Kehadiran Peserta Didik Riil (presensi_harian terhadap total seluruh peserta didik sekolah)
             $recordsPd = Schema::hasTable('presensi_harian')
                 ? DB::table('presensi_harian')->whereDate('tanggal', $tgl)->get()
                 : collect();
 
-            if ($recordsPd->isNotEmpty()) {
+            if ($recordsPd->isNotEmpty() && $totalPd > 0) {
                 $hadirPd = $recordsPd->whereIn('status', ['H', 'T'])->count();
-                $pctPd = round(($hadirPd / $recordsPd->count()) * 100, 1);
+                $pctPd = min(100.0, round(($hadirPd / $totalPd) * 100, 1));
             } else {
                 $pctPd = 0.0;
             }
             $trendSiswa[] = $pctPd;
 
-            // 2. Kehadiran Guru Riil (presensi_mengajar)
+            // 2. Kehadiran Guru Riil (guru unik yang hadir mengajar di presensi_mengajar)
             $recordsGuru = Schema::hasTable('presensi_mengajar')
                 ? DB::table('presensi_mengajar')->whereDate('tanggal', $tgl)->get()
                 : collect();
 
             if ($recordsGuru->isNotEmpty()) {
-                $hadirGuru = $recordsGuru->whereIn('status', ['H', 'T'])->count();
-                $pctGuru = round(($hadirGuru / $recordsGuru->count()) * 100, 1);
+                $guruHadirUnik = $recordsGuru->filter(function ($item) {
+                    $st = strtoupper($item->status ?? '');
+                    return in_array($st, ['H', 'T', 'HADIR'], true);
+                })->pluck('ptk_id')->filter()->unique()->count();
+
+                $hariNama = \Carbon\Carbon::parse($tgl)->translatedFormat('l');
+                $scheduledGuruCount = Schema::hasTable('jadwal_kbm')
+                    ? DB::table('jadwal_kbm')
+                        ->where('hari', $hariNama)
+                        ->where('is_active', true)
+                        ->whereNotNull('ptk_id')
+                        ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
+                        ->distinct('ptk_id')
+                        ->count('ptk_id')
+                    : 0;
+
+                $targetGuru = $scheduledGuruCount > 0 ? $scheduledGuruCount : $totalGuru;
+                $pctGuru = $targetGuru > 0 ? min(100.0, round(($guruHadirUnik / $targetGuru) * 100, 1)) : 0.0;
             } else {
                 $pctGuru = 0.0;
             }

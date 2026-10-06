@@ -117,7 +117,7 @@ function initAdminCharts() {
                 ctx.font = 'bold 12px Plus Jakarta Sans, sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(Number(val).toLocaleString('id-ID') + ' Org', pos.x, pos.y - 6);
+                ctx.fillText(Number(val).toLocaleString('id-ID'), pos.x, pos.y - 6);
 
                 ctx.font = '600 10px Plus Jakarta Sans, sans-serif';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
