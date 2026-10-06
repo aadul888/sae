@@ -139,14 +139,19 @@ class JadwalPelajaranController extends Controller
             $query->where('hari', $selectedHari);
         }
 
+        $perPage = $request->input('per_page', 15);
+        $perPageVal = ($perPage === 'all' || (int) $perPage === -1) ? 500 : (int) $perPage;
+        if ($perPageVal <= 0) $perPageVal = 15;
+
         $schedules = $query
             ->orderBy('hari', 'asc')
             ->orderBy('jam_ke_mulai', 'asc')
             ->orderBy('jam_mulai', 'asc')
-            ->get();
+            ->paginate($perPageVal)
+            ->appends($request->query());
 
         // Enrich setiap jadwal item dengan nama rombel, guru, dan status live KBM
-        $schedules = $schedules->map(function ($j) use ($hariIni, $nowHi) {
+        $schedules->getCollection()->transform(function ($j) use ($hariIni, $nowHi) {
             $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
             $guruNama = DB::table('gtk')->where('ptk_id', $j->ptk_id)->value('nama') ?? ($j->ptk_id ?: 'Guru Pengampu');
 

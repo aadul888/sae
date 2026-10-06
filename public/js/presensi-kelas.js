@@ -345,4 +345,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Auto-submit filter on Jam Ke change / Enter
+    const jamKeInput = document.getElementById('kelasJamKeInput');
+    if (jamKeInput) {
+        jamKeInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('formFilterPresensiKelas')?.submit();
+            }
+        });
+    }
 });

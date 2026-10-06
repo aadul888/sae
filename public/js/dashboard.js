@@ -447,6 +447,34 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     });
+
+    // Global Datatable Column Header Sorting Handler (Acuan: peserta-didik-aktif)
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th) return;
+
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+
+        // Jika halaman sudah memiliki AJAX filter / custom sort handler tersendiri, abaikan reload otomatis
+        if (typeof window.applyDatatableFilter === "function" || th.getAttribute("data-custom-sort") === "true") {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
+
+        let newDir = "asc";
+        if (currentSort === sortField && currentDir === "asc") {
+            newDir = "desc";
+        }
+
+        url.searchParams.set("sort", sortField);
+        url.searchParams.set("sort_dir", newDir);
+        url.searchParams.delete("page");
+        window.location.href = url.toString();
+    });
 });
 
 /**

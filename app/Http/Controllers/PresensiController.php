@@ -1078,11 +1078,26 @@ class PresensiController extends Controller
         // Ambil Siswa di Rombel Terpilih
         $siswaList = collect();
         $selectedRombel = null;
+        $totalSiswa = 0;
+        $sort = $request->input('sort', 'nama');
+        $sortDir = strtolower($request->input('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+        $perPage = $request->input('per_page', 25);
+
+        $rekap = [
+            'total'     => 0,
+            'hadir'     => 0,
+            'terlambat' => 0,
+            'izin'      => 0,
+            'sakit'     => 0,
+            'alpha'     => 0,
+            'belum'     => 0,
+            'persen'    => 0,
+        ];
 
         if ($selectedRombelId) {
             $selectedRombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $selectedRombelId)->first();
 
-            $siswaList = DB::table('peserta_didik as pd')
+            $baseQuery = DB::table('peserta_didik as pd')
                 ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
                 // Konteks Presensi Gerbang / Harian Sekolah (READ-ONLY)
                 ->leftJoin('presensi_harian as ph', function ($join) use ($tanggal) {
@@ -1099,7 +1114,46 @@ class PresensiController extends Controller
                         $join->where('pm.rombongan_belajar_id', '=', $selectedRombelId);
                     }
                 })
-                ->where('pd.rombongan_belajar_id', $selectedRombelId)
+                ->where('pd.rombongan_belajar_id', $selectedRombelId);
+
+            // Filter search kata kunci
+            if ($request->filled('q')) {
+                $q = trim($request->input('q'));
+                $baseQuery->where(function ($w) use ($q) {
+                    $w->where('pd.nama', 'like', "%{$q}%")
+                      ->orWhere('pd.nisn', 'like', "%{$q}%");
+                });
+            }
+
+            // Rekap presensi mapel seluruh kelas hari ini (sebelum limit paginasi)
+            $allStatuses = (clone $baseQuery)->pluck('pm.status');
+            $countHadir = $allStatuses->filter(fn($s) => $s === 'H')->count();
+            $countTerlambat = $allStatuses->filter(fn($s) => $s === 'T')->count();
+            $totalSiswa = $allStatuses->count();
+            $totalKehadiran = $countHadir + $countTerlambat;
+
+            $rekap = [
+                'total'     => $totalSiswa,
+                'hadir'     => $countHadir,
+                'terlambat' => $countTerlambat,
+                'izin'      => $allStatuses->filter(fn($s) => $s === 'I')->count(),
+                'sakit'     => $allStatuses->filter(fn($s) => $s === 'S')->count(),
+                'alpha'     => $allStatuses->filter(fn($s) => $s === 'A')->count(),
+                'belum'     => $allStatuses->filter(fn($s) => empty($s))->count(),
+                'persen'    => $totalSiswa > 0 ? round(($totalKehadiran / $totalSiswa) * 100, 1) : 0,
+            ];
+
+            $sortCol = match ($sort) {
+                'nisn' => 'pd.nisn',
+                'gerbang' => 'ph.status',
+                'status' => 'pm.status',
+                default => 'pd.nama',
+            };
+
+            $perPageVal = ($perPage === 'all' || (int) $perPage === -1) ? 500 : (int) $perPage;
+            if ($perPageVal <= 0) $perPageVal = 25;
+
+            $siswaList = $baseQuery
                 ->select(
                     'pd.peserta_didik_id',
                     'pd.nama',
@@ -1122,30 +1176,15 @@ class PresensiController extends Controller
                     'pm.keterangan as mapel_keterangan',
                     'pm.agenda_kelas_id'
                 )
-                ->orderBy('pd.nama', 'asc')
-                ->get()
-                ->map(function ($item) {
-                    $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
-                    return $item;
-                });
+                ->orderBy($sortCol, $sortDir)
+                ->paginate($perPageVal)
+                ->appends($request->query());
+
+            $siswaList->getCollection()->transform(function ($item) {
+                $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
+                return $item;
+            });
         }
-
-        // Rekap presensi mapel kelas hari ini
-        $countHadir = $siswaList->where('mapel_status', 'H')->count();
-        $countTerlambat = $siswaList->where('mapel_status', 'T')->count();
-        $totalSiswa = $siswaList->count();
-        $totalKehadiran = $countHadir + $countTerlambat;
-
-        $rekap = [
-            'total'     => $totalSiswa,
-            'hadir'     => $countHadir,
-            'terlambat' => $countTerlambat,
-            'izin'      => $siswaList->where('mapel_status', 'I')->count(),
-            'sakit'     => $siswaList->where('mapel_status', 'S')->count(),
-            'alpha'     => $siswaList->where('mapel_status', 'A')->count(),
-            'belum'     => $siswaList->whereNull('mapel_status')->count(),
-            'persen'    => $totalSiswa > 0 ? round(($totalKehadiran / $totalSiswa) * 100, 1) : 0,
-        ];
 
         return view('dashboard.presensi.kelas', compact(
             'rombelList',
@@ -1158,7 +1197,10 @@ class PresensiController extends Controller
             'jamKe',
             'siswaList',
             'rekap',
-            'waliRombel'
+            'waliRombel',
+            'sort',
+            'sortDir',
+            'perPage'
         ));
     }
 
