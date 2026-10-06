@@ -53,17 +53,107 @@ class RolePermission extends Model
     }
 
     /**
+     * Cek apakah nama kelompok modul merupakan kelompok tugas tambahan / bidang
+     */
+    public static function isDutyGroup(string $groupName): bool
+    {
+        return $groupName === 'Wali Kelas' || str_starts_with($groupName, 'Tendik:');
+    }
+
+    /**
+     * Cek apakah modul merupakan bagian dari bidang / tugas tambahan
+     */
+    public static function isDutyModule(string $key, ?string $groupName = null): bool
+    {
+        if ($groupName && self::isDutyGroup($groupName)) {
+            return true;
+        }
+        return self::isDutySpecificPermission($key) || in_array($key, [
+            'menu_target_capaian',
+            'menu_aktivitas_tendik',
+            'menu_laporan_tendik',
+        ], true);
+    }
+
+    /**
+     * Dapatkan semua key modul tugas tambahan
+     */
+    public static function getDutyModuleKeys(): array
+    {
+        $all = self::getAvailablePermissions();
+        $keys = [];
+        foreach ($all as $group => $items) {
+            foreach ($items as $k => $conf) {
+                if (self::isDutyModule($k, $group)) {
+                    $keys[] = $k;
+                }
+            }
+        }
+        return array_unique($keys);
+    }
+
+    /**
      * Modul yang tidak relevan untuk suatu peran (beda pengelolaan); disembunyikan dan dibersihkan saat sinkronisasi.
      */
     public const FORBIDDEN_MODULES = [
-        'guru' => ['menu_identitas_siswa', 'menu_surat_izin_pd', 'menu_riwayat_rfid', 'menu_rapor', 'menu_validasi_berkas'],
-        'tendik' => ['menu_identitas_siswa', 'menu_surat_izin_pd', 'menu_riwayat_rfid', 'menu_rapor', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik'],
+        'admin' => [
+            'menu_presensi_mengajar',
+            'menu_agenda_kbm',
+            'menu_presensi_peserta_didik',
+            'menu_jadwal_pelajaran',
+            'menu_jadwal_pelajaran_guru',
+            'menu_jadwal_pelajaran_pd',
+            'menu_identitas_siswa',
+            'menu_surat_izin_pd',
+            'menu_riwayat_rfid',
+            'menu_validasi_berkas',
+        ],
+        'guru' => ['menu_identitas_siswa', 'menu_surat_izin_pd', 'menu_riwayat_rfid', 'menu_validasi_berkas'],
+        'tendik' => [
+            'menu_identitas_siswa',
+            'menu_surat_izin_pd',
+            'menu_riwayat_rfid',
+            'menu_jadwal_pelajaran',
+            'menu_validasi_berkas',
+            'menu_presensi_mengajar',
+            'menu_agenda_kbm',
+            'menu_presensi_peserta_didik',
+        ],
         'peserta_didik' => ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'],
         'orang_tua' => ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_validasi_berkas'],
     ];
 
     public static function isForbiddenForRole(string $role, string $permissionKey): bool
     {
+        if ($permissionKey === 'menu_rapor') {
+            return true;
+        }
+
+        if ($role === 'tugas_tambahan') {
+            return !self::isDutyModule($permissionKey);
+        }
+
+        // Modul tugas tambahan tidak muncul di tab peran dasar (admin, guru, tendik, peserta_didik, orang_tua)
+        if (self::isDutyModule($permissionKey)) {
+            return true;
+        }
+
+        if ($role === 'admin') {
+            return in_array($permissionKey, self::FORBIDDEN_MODULES['admin'] ?? [], true);
+        }
+
+        if ($role === 'tendik') {
+            if (in_array($permissionKey, [
+                'menu_identitas_siswa',
+                'menu_surat_izin_pd',
+                'menu_riwayat_rfid',
+                'menu_jadwal_pelajaran',
+                'menu_validasi_berkas',
+            ], true)) {
+                return true;
+            }
+        }
+
         return in_array($permissionKey, self::FORBIDDEN_MODULES[$role] ?? [], true);
     }
 
@@ -95,22 +185,22 @@ class RolePermission extends Model
                 'menu_rombel' => [
                     'label' => 'Rombongan Belajar',
                     'icon' => 'fa-chalkboard-user',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_pembelajaran' => [
                     'label' => 'Pembelajaran',
                     'icon' => 'fa-book-bookmark',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru'],
                 ],
                 'menu_jadwal_kbm' => [
                     'label' => 'Jadwal KBM',
                     'icon' => 'fa-calendar-alt',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_kalender_pendidikan' => [
                     'label' => 'Kalender Pendidikan',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
             ],
 
@@ -118,42 +208,42 @@ class RolePermission extends Model
                 'menu_peserta_didik_aktif' => [
                     'label' => 'Peserta Didik Aktif',
                     'icon' => 'fa-user-graduate',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_guru_aktif' => [
                     'label' => 'Guru Aktif',
                     'icon' => 'fa-chalkboard-user',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_tendik_aktif' => [
                     'label' => 'Tendik Aktif',
                     'icon' => 'fa-id-badge',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_berkas_peserta_didik' => [
                     'label' => 'Berkas Peserta Didik',
                     'icon' => 'fa-folder-open',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_perubahan_data' => [
                     'label' => 'Perubahan Data',
                     'icon' => 'fa-user-pen',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_peserta_didik_tidak_aktif' => [
                     'label' => 'Peserta Didik Tidak Aktif',
                     'icon' => 'fa-user-xmark',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_guru_tidak_aktif' => [
                     'label' => 'Guru Tidak Aktif',
                     'icon' => 'fa-user-slash',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_tendik_tidak_aktif' => [
                     'label' => 'Tendik Tidak Aktif',
                     'icon' => 'fa-id-badge',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
             ],
 
@@ -161,42 +251,42 @@ class RolePermission extends Model
                 'menu_formulir' => [
                     'label' => 'Formulir & Survei',
                     'icon' => 'fa-clipboard-list',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
                 'menu_pengumuman' => [
                     'label' => 'Pengumuman & Broadcast',
                     'icon' => 'fa-bullhorn',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'],
                 ],
                 'menu_rfid' => [
                     'label' => 'RFID & Presensi Realtime',
                     'icon' => 'fa-id-card',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_e_izin' => [
                     'label' => 'E-Izin',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'],
                 ],
                 'menu_poin' => [
                     'label' => 'Poin & Kedisiplinan',
                     'icon' => 'fa-award',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
                 'menu_kelulusan' => [
                     'label' => 'Kelulusan & Legalisir SKL',
                     'icon' => 'fa-graduation-cap',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik', 'peserta_didik'],
                 ],
                 'menu_buku_tamu' => [
                     'label' => 'Buku Tamu Digital',
                     'icon' => 'fa-book-open-reader',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'tendik'],
                 ],
                 'menu_agenda' => [
                     'label' => 'Agenda Sekolah',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['admin'],
+                    'roles' => ['admin', 'guru', 'tendik'],
                 ],
             ],
 
@@ -222,27 +312,27 @@ class RolePermission extends Model
                 'menu_wali_kelas' => [
                     'label' => 'Dashboard Wali Kelas',
                     'icon' => 'fa-gauge-high',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_wali_kelas_aktif' => [
                     'label' => 'Peserta Didik Aktif (Wali Kelas)',
                     'icon' => 'fa-user-graduate',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_wali_kelas_tidak_aktif' => [
                     'label' => 'Peserta Didik Tidak Aktif (Wali Kelas)',
                     'icon' => 'fa-user-xmark',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_wali_kelas_presensi' => [
                     'label' => 'Presensi Kelas (Wali Kelas)',
                     'icon' => 'fa-clipboard-user',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_wali_kelas_jadwal' => [
                     'label' => 'Input Jadwal Kelas (Wali Kelas / Koordinator)',
                     'icon' => 'fa-calendar-plus',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -250,7 +340,7 @@ class RolePermission extends Model
                 'menu_kepala_tas' => [
                     'label' => 'Dashboard & Manajemen Kepala TAS',
                     'icon' => 'fa-user-tie',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -258,22 +348,22 @@ class RolePermission extends Model
                 'menu_persuratan' => [
                     'label' => 'Dashboard & Modul Persuratan',
                     'icon' => 'fa-envelope-open-text',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_surat_masuk' => [
                     'label' => 'Buku Agenda Surat Masuk',
                     'icon' => 'fa-inbox',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_surat_keluar' => [
                     'label' => 'Buku Agenda Surat Keluar',
                     'icon' => 'fa-paper-plane',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_pengaturan_persuratan' => [
                     'label' => 'Pengaturan & Arsip HDD Persuratan',
                     'icon' => 'fa-sliders',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -281,32 +371,32 @@ class RolePermission extends Model
                 'menu_kesiswaan' => [
                     'label' => 'Administrasi Kesiswaan Terpadu',
                     'icon' => 'fa-user-graduate',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kesiswaan_peserta_didik' => [
                     'label' => 'Kesiswaan: Data Peserta Didik',
                     'icon' => 'fa-users',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kesiswaan_administrasi' => [
                     'label' => 'Kesiswaan: Administrasi (Klaper, Mutasi, Kelulusan)',
                     'icon' => 'fa-book-bookmark',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kesiswaan_kedisiplinan' => [
                     'label' => 'Kesiswaan: Kedisiplinan & Tata Tertib',
                     'icon' => 'fa-shield-halved',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kesiswaan_kegiatan' => [
                     'label' => 'Kesiswaan: Kegiatan Siswa & OSIS/Ekskul',
                     'icon' => 'fa-people-group',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kesiswaan_prestasi' => [
                     'label' => 'Kesiswaan: Prestasi Peserta Didik',
                     'icon' => 'fa-trophy',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -314,27 +404,27 @@ class RolePermission extends Model
                 'menu_kepegawaian' => [
                     'label' => 'Dashboard Kepegawaian GTK',
                     'icon' => 'fa-gauge-high',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kepegawaian_guru' => [
                     'label' => 'Kepegawaian: Pegawai',
                     'icon' => 'fa-users',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kepegawaian_tendik' => [
                     'label' => 'Kepegawaian: Berkas Pegawai',
                     'icon' => 'fa-folder-open',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kepegawaian_kgb' => [
                     'label' => 'Kepegawaian: KGB Tracker',
                     'icon' => 'fa-business-time',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_kepegawaian_cuti' => [
                     'label' => 'Kepegawaian: Cuti & Izin',
                     'icon' => 'fa-plane-departure',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -342,7 +432,7 @@ class RolePermission extends Model
                 'menu_keuangan' => [
                     'label' => 'Administrasi Keuangan & Komite',
                     'icon' => 'fa-wallet',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -350,12 +440,12 @@ class RolePermission extends Model
                 'menu_sarpras' => [
                     'label' => 'Sarana & Prasarana Sekolah',
                     'icon' => 'fa-building',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_inventaris' => [
                     'label' => 'Inventaris Sarpras',
                     'icon' => 'fa-boxes-stacked',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -363,7 +453,7 @@ class RolePermission extends Model
                 'menu_laboran' => [
                     'label' => 'Laboratorium & Praktik',
                     'icon' => 'fa-flask',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -371,7 +461,7 @@ class RolePermission extends Model
                 'menu_perpustakaan' => [
                     'label' => 'Perpustakaan & Buku Digital',
                     'icon' => 'fa-book-open',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -379,7 +469,7 @@ class RolePermission extends Model
                 'menu_teknisi' => [
                     'label' => 'Teknisi IT & Infrastruktur',
                     'icon' => 'fa-network-wired',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -387,7 +477,7 @@ class RolePermission extends Model
                 'menu_keamanan' => [
                     'label' => 'Keamanan & Pos Satpam',
                     'icon' => 'fa-shield-halved',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -395,7 +485,7 @@ class RolePermission extends Model
                 'menu_penjaga' => [
                     'label' => 'Fasilitas & Penjaga Sekolah',
                     'icon' => 'fa-broom',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -403,7 +493,7 @@ class RolePermission extends Model
                 'menu_piket' => [
                     'label' => 'Petugas / Guru Piket',
                     'icon' => 'fa-clipboard-user',
-                    'roles' => ['admin'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -411,17 +501,17 @@ class RolePermission extends Model
                 'menu_target_capaian' => [
                     'label' => 'Target & Capaian Pekerjaan',
                     'icon' => 'fa-bullseye',
-                    'roles' => ['admin', 'tendik'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_aktivitas_tendik' => [
                     'label' => 'Aktivitas Harian Tendik',
                     'icon' => 'fa-list-check',
-                    'roles' => ['admin', 'tendik'],
+                    'roles' => ['tugas_tambahan'],
                 ],
                 'menu_laporan_tendik' => [
                     'label' => 'Laporan Kinerja Tendik',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['admin', 'tendik'],
+                    'roles' => ['tugas_tambahan'],
                 ],
             ],
 
@@ -429,7 +519,7 @@ class RolePermission extends Model
                 'menu_identitas_siswa' => [
                     'label' => 'Identitas Lengkap Siswa (Dapodik)',
                     'icon' => 'fa-id-card',
-                    'roles' => ['admin', 'peserta_didik', 'orang_tua'],
+                    'roles' => ['peserta_didik', 'orang_tua'],
                 ],
                 'menu_surat_izin_pd' => [
                     'label' => 'Surat Izin & Sakit (Peserta Didik)',
@@ -444,17 +534,12 @@ class RolePermission extends Model
                 'menu_jadwal_pelajaran' => [
                     'label' => 'Jadwal Pelajaran & Mengajar',
                     'icon' => 'fa-calendar-days',
-                    'roles' => ['admin', 'guru', 'peserta_didik', 'orang_tua'],
-                ],
-                'menu_rapor' => [
-                    'label' => 'Transkrip & Rapor',
-                    'icon' => 'fa-file-lines',
-                    'roles' => ['peserta_didik', 'orang_tua'],
+                    'roles' => ['guru', 'peserta_didik', 'orang_tua'],
                 ],
                 'menu_validasi_berkas' => [
                     'label' => 'Validasi Berkas',
                     'icon' => 'fa-folder-open',
-                    'roles' => ['admin', 'tendik', 'peserta_didik'],
+                    'roles' => ['peserta_didik'],
                 ],
             ],
 
@@ -617,59 +702,59 @@ class RolePermission extends Model
         } elseif (str_contains($key, 'wali_kelas') || str_contains($key, 'wali')) {
             $group = 'Wali Kelas';
             $icon = 'fa-chalkboard-user';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'guru') || str_contains($key, 'mengajar') || str_contains($key, 'kbm') || str_contains($key, 'agenda')) {
             $group = 'Administrasi Guru';
             $icon = 'fa-chalkboard-user';
-            $targetRoles = ['admin', 'guru'];
+            $targetRoles = ['guru'];
         } elseif (str_contains($key, 'surat') || str_contains($key, 'persuratan')) {
             $group = 'Tendik: Persuratan';
             $icon = 'fa-envelope-open-text';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'kesiswaan') || str_contains($key, 'klaper') || str_contains($key, 'mutasi')) {
             $group = 'Tendik: Kesiswaan';
             $icon = 'fa-user-graduate';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'kepegawaian') || str_contains($key, 'kgb') || str_contains($key, 'cuti')) {
             $group = 'Tendik: Kepegawaian';
             $icon = 'fa-id-card-alt';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'sarpras') || str_contains($key, 'inventaris') || str_contains($key, 'aset') || str_contains($key, 'ruang')) {
             $group = 'Tendik: Sarpras & Aset';
             $icon = 'fa-building';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'laboran') || str_contains($key, 'lab')) {
             $group = 'Tendik: Laboratorium';
             $icon = 'fa-flask';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'perpustakaan') || str_contains($key, 'buku') || str_contains($key, 'koleksi')) {
             $group = 'Tendik: Perpustakaan';
             $icon = 'fa-book-open';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'teknisi') || str_contains($key, 'hardware') || str_contains($key, 'jaringan')) {
             $group = 'Tendik: Teknisi IT';
             $icon = 'fa-network-wired';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'keamanan') || str_contains($key, 'satpam') || str_contains($key, 'patroli')) {
             $group = 'Tendik: Keamanan & Tamu';
             $icon = 'fa-shield-halved';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'penjaga') || str_contains($key, 'kebersihan') || str_contains($key, 'ronda')) {
             $group = 'Tendik: Fasilitas & Penjaga';
             $icon = 'fa-broom';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'piket')) {
             $group = 'Tendik: Piket Sekolah';
             $icon = 'fa-clipboard-user';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'target') || str_contains($key, 'aktivitas') || str_contains($key, 'laporan_tendik') || str_contains($key, 'capaian')) {
             $group = 'Tendik: Kinerja & Aktivitas';
             $icon = 'fa-bullseye';
-            $targetRoles = ['admin', 'tendik'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'peserta_didik') || str_contains($key, 'siswa') || str_contains($key, 'santri') || str_contains($key, 'rapor') || str_contains($key, 'identitas')) {
             $group = 'Portal Peserta Didik';
             $icon = 'fa-user-graduate';
-            $targetRoles = ['admin', 'peserta_didik', 'orang_tua'];
+            $targetRoles = ['peserta_didik', 'orang_tua'];
         } elseif (str_contains($key, 'dapodik')) {
             $group = 'Menu Utama';
             $icon = 'fa-cloud-arrow-down';
@@ -677,7 +762,7 @@ class RolePermission extends Model
         } elseif (str_contains($key, 'keuangan') || str_contains($key, 'spp') || str_contains($key, 'bayar')) {
             $group = 'Tendik: Keuangan';
             $icon = 'fa-wallet';
-            $targetRoles = ['admin'];
+            $targetRoles = ['tugas_tambahan'];
         } elseif (str_contains($key, 'pengguna') || str_contains($key, 'hak_akses') || str_contains($key, 'maintenance') || str_contains($key, 'update') || str_contains($key, 'pengaturan')) {
             $group = 'Sistem & Pengaturan';
             $icon = 'fa-sliders';
@@ -712,19 +797,23 @@ class RolePermission extends Model
 
         foreach ($allAvailable as $group => $items) {
             foreach ($items as $permKey => $config) {
-                $targetRoles = array_unique(array_merge(['admin'], $config['roles'] ?? []));
+                $targetRoles = $config['roles'] ?? ['admin'];
 
                 foreach ($targetRoles as $role) {
+                    if (self::isForbiddenForRole($role, $permKey)) {
+                        continue;
+                    }
+
                     if (!isset($existingByRole[$role][$permKey])) {
                         $crud = self::getDefaultCrudForRole($role, $permKey);
                         $newRecords[] = [
                             'role'           => $role,
                             'permission_key' => $permKey,
-                            'is_allowed'     => ($role === 'admin') ? true : $crud['is_allowed'],
-                            'can_create'     => ($role === 'admin') ? true : $crud['can_create'],
-                            'can_read'       => ($role === 'admin') ? true : $crud['can_read'],
-                            'can_update'     => ($role === 'admin') ? true : $crud['can_update'],
-                            'can_delete'     => ($role === 'admin') ? true : $crud['can_delete'],
+                            'is_allowed'     => true,
+                            'can_create'     => ($role === 'admin') ? true : false,
+                            'can_read'       => true,
+                            'can_update'     => ($role === 'admin') ? true : false,
+                            'can_delete'     => ($role === 'admin') ? true : false,
                             'created_at'     => $now,
                             'updated_at'     => $now,
                         ];
@@ -1398,6 +1487,19 @@ class RolePermission extends Model
             $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
             $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
             if (self::hasDutyPermission($userId, $ptkId, $permissionKey, $action)) {
+                if (!isset(self::$runtimeRolePermissionsCache['tugas_tambahan'])) {
+                    self::$runtimeRolePermissionsCache['tugas_tambahan'] = self::where('role', 'tugas_tambahan')->get()->keyBy('permission_key');
+                }
+                $dutyRow = self::$runtimeRolePermissionsCache['tugas_tambahan']->get($permissionKey);
+                if ($dutyRow) {
+                    if (!$dutyRow->is_allowed || !$dutyRow->can_read) {
+                        return false;
+                    }
+                    if ($actionCol === 'can_read') {
+                        return true;
+                    }
+                    return (bool) ($dutyRow->can_read && ($dutyRow->{$actionCol} ?? true));
+                }
                 return true;
             }
         }
@@ -1861,93 +1963,27 @@ class RolePermission extends Model
             return [
                 'is_allowed' => true,
                 'can_create' => true,
-                'can_read' => true,
+                'can_read'   => true,
                 'can_update' => true,
                 'can_delete' => true,
             ];
         }
 
-        $isAllowed = self::isDefaultAllowed($role, $permKey);
-        if (!$isAllowed) {
+        if (self::isForbiddenForRole($role, $permKey)) {
             return [
                 'is_allowed' => false,
                 'can_create' => false,
-                'can_read' => false,
+                'can_read'   => false,
                 'can_update' => false,
                 'can_delete' => false,
             ];
         }
 
-        if ($role === 'guru') {
-            // Guru dapat create & update pada modul operasional mengajarnya, poin, formulir, dan modul wali kelas (jika aktif)
-            $canWrite = in_array($permKey, [
-                'menu_presensi_mengajar',
-                'menu_agenda_kbm',
-                'menu_presensi_peserta_didik',
-                'menu_poin',
-                'menu_formulir',
-                'menu_wali_kelas',
-                'menu_wali_kelas_aktif',
-                'menu_wali_kelas_presensi',
-                'menu_wali_kelas_jadwal',
-            ], true);
-
-            return [
-                'is_allowed' => $isAllowed,
-                'can_create' => $isAllowed && $canWrite,
-                'can_read' => $isAllowed,
-                'can_update' => $isAllowed && $canWrite,
-                'can_delete' => false,
-            ];
-        }
-
-        if ($role === 'tendik') {
-            // Modul read-only bagi tendik umum
-            $isReadOnly = in_array($permKey, [
-                'menu_rombel',
-                'menu_jadwal_kbm',
-                'menu_kalender_pendidikan',
-                'menu_pengumuman',
-            ], true);
-
-            return [
-                'is_allowed' => $isAllowed,
-                'can_create' => $isAllowed && !$isReadOnly,
-                'can_read' => $isAllowed,
-                'can_update' => $isAllowed && !$isReadOnly,
-                'can_delete' => false,
-            ];
-        }
-
-        if ($role === 'peserta_didik') {
-            // Siswa bisa create di surat izin, submit formulir, dan usulan identitas
-            $canCreate = in_array($permKey, ['menu_surat_izin_pd', 'menu_formulir', 'menu_identitas_siswa'], true);
-            $canUpdate = in_array($permKey, ['menu_identitas_siswa'], true);
-
-            return [
-                'is_allowed' => $isAllowed,
-                'can_create' => $isAllowed && $canCreate,
-                'can_read' => $isAllowed,
-                'can_update' => $isAllowed && $canUpdate,
-                'can_delete' => false,
-            ];
-        }
-
-        if ($role === 'orang_tua') {
-            $canUpdate = in_array($permKey, ['menu_identitas_siswa'], true);
-            return [
-                'is_allowed' => $isAllowed,
-                'can_create' => false,
-                'can_read' => $isAllowed,
-                'can_update' => $isAllowed && $canUpdate,
-                'can_delete' => false,
-            ];
-        }
-
+        // Standar baku setiap peran non-admin: memunculkan semua menu dengan batas Read saja
         return [
-            'is_allowed' => false,
+            'is_allowed' => true,
             'can_create' => false,
-            'can_read' => false,
+            'can_read'   => true,
             'can_update' => false,
             'can_delete' => false,
         ];
@@ -2048,7 +2084,7 @@ class RolePermission extends Model
 
     /**
      * Reset hak akses peran ke standar baku default yang bersih dan terisolasi sesuai kelompoknya.
-     * Jika $targetRole diberikan (misal 'guru', 'tendik', 'peserta_didik', 'admin'), hanya peran tersebut yang direset.
+     * Jika $targetRole diberikan (misal 'guru', 'tendik', 'peserta_didik', 'admin', 'tugas_tambahan'), hanya peran tersebut yang direset.
      * Jika null, seluruh peran direset secara serentak.
      */
     public static function resetDefaultPermissions(?string $targetRole = null): void
@@ -2057,7 +2093,7 @@ class RolePermission extends Model
             return;
         }
 
-        $validRoles = ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'];
+        $validRoles = ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua', 'tugas_tambahan'];
         $isSpecific = $targetRole && in_array($targetRole, $validRoles, true);
 
         if ($isSpecific) {
@@ -2075,19 +2111,26 @@ class RolePermission extends Model
         foreach ($allPermissions as $groupName => $items) {
             foreach ($items as $permKey => $config) {
                 foreach ($rolesToReset as $role) {
-                    $isRoleSupported = ($role === 'admin') || in_array($role, $config['roles'] ?? [], true);
-                    if ($isRoleSupported) {
+                    $isRoleSupported = in_array($role, $config['roles'] ?? [], true);
+                    if ($role === 'admin' && !self::isDutyModule($permKey, $groupName) && !in_array($permKey, self::FORBIDDEN_MODULES['admin'] ?? [], true)) {
+                        $isRoleSupported = true;
+                    }
+                    if ($role === 'tugas_tambahan' && self::isDutyModule($permKey, $groupName)) {
+                        $isRoleSupported = true;
+                    }
+
+                    if ($isRoleSupported && !self::isForbiddenForRole($role, $permKey)) {
                         $crud = self::getDefaultCrudForRole($role, $permKey);
                         $records[] = [
-                            'role' => $role,
+                            'role'           => $role,
                             'permission_key' => $permKey,
-                            'is_allowed' => ($role === 'admin') ? true : $crud['is_allowed'],
-                            'can_create' => ($role === 'admin') ? true : $crud['can_create'],
-                            'can_read' => ($role === 'admin') ? true : $crud['can_read'],
-                            'can_update' => ($role === 'admin') ? true : $crud['can_update'],
-                            'can_delete' => ($role === 'admin') ? true : $crud['can_delete'],
-                            'created_at' => $now,
-                            'updated_at' => $now,
+                            'is_allowed'     => true,
+                            'can_create'     => ($role === 'admin') ? (bool) $crud['can_create'] : false,
+                            'can_read'       => true,
+                            'can_update'     => ($role === 'admin') ? (bool) $crud['can_update'] : false,
+                            'can_delete'     => ($role === 'admin') ? (bool) $crud['can_delete'] : false,
+                            'created_at'     => $now,
+                            'updated_at'     => $now,
                         ];
                     }
                 }
@@ -2117,16 +2160,17 @@ class RolePermission extends Model
 
         $allPermissions = self::getAvailablePermissions();
         $allowedKeysPerRole = [
-            'admin' => [],
-            'guru' => [],
-            'tendik' => [],
-            'peserta_didik' => [],
-            'orang_tua' => [],
+            'admin'          => [],
+            'guru'           => [],
+            'tendik'         => [],
+            'peserta_didik'  => [],
+            'orang_tua'      => [],
+            'tugas_tambahan' => [],
         ];
 
         foreach ($allPermissions as $groupName => $items) {
             foreach ($items as $permKey => $config) {
-                $targetRoles = array_unique(array_merge(['admin'], $config['roles'] ?? []));
+                $targetRoles = $config['roles'] ?? ['admin'];
                 foreach ($targetRoles as $r) {
                     if (isset($allowedKeysPerRole[$r])) {
                         $allowedKeysPerRole[$r][] = $permKey;
@@ -2136,8 +2180,14 @@ class RolePermission extends Model
         }
 
         // 1. Bersihkan modul terlarang dan baris nonaktif di luar default peran (kustomisasi aktif admin dijaga)
-        foreach (['guru', 'tendik', 'peserta_didik', 'orang_tua'] as $role) {
-            self::where('role', $role)->whereIn('permission_key', self::FORBIDDEN_MODULES[$role] ?? [])->delete();
+        foreach (['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua', 'tugas_tambahan'] as $role) {
+            $forbidden = self::FORBIDDEN_MODULES[$role] ?? [];
+            if ($role !== 'tugas_tambahan') {
+                $forbidden = array_unique(array_merge($forbidden, self::getDutyModuleKeys()));
+            }
+            if (!empty($forbidden)) {
+                self::where('role', $role)->whereIn('permission_key', $forbidden)->delete();
+            }
             self::where('role', $role)
                 ->whereNotIn('permission_key', $allowedKeysPerRole[$role])
                 ->where(function ($q) {
@@ -2161,21 +2211,26 @@ class RolePermission extends Model
         // 3. Daftarkan modul baru yang belum tercatat di database role_permissions
         foreach ($allPermissions as $groupName => $items) {
             foreach ($items as $permKey => $config) {
-                $targetRoles = array_unique(array_merge(['admin'], $config['roles'] ?? []));
+                if ($permKey === 'menu_rapor') continue;
+                $targetRoles = $config['roles'] ?? ['admin'];
 
                 foreach ($targetRoles as $role) {
+                    if (self::isForbiddenForRole($role, $permKey)) {
+                        continue;
+                    }
+
                     if (!isset($existingByRole[$role][$permKey])) {
                         $crud = self::getDefaultCrudForRole($role, $permKey);
                         self::create([
-                            'role' => $role,
+                            'role'           => $role,
                             'permission_key' => $permKey,
-                            'is_allowed' => ($role === 'admin') ? true : $crud['is_allowed'],
-                            'can_create' => ($role === 'admin') ? true : $crud['can_create'],
-                            'can_read' => ($role === 'admin') ? true : $crud['can_read'],
-                            'can_update' => ($role === 'admin') ? true : $crud['can_update'],
-                            'can_delete' => ($role === 'admin') ? true : $crud['can_delete'],
-                            'created_at' => $now,
-                            'updated_at' => $now,
+                            'is_allowed'     => true,
+                            'can_create'     => ($role === 'admin') ? true : false,
+                            'can_read'       => true,
+                            'can_update'     => ($role === 'admin') ? true : false,
+                            'can_delete'     => ($role === 'admin') ? true : false,
+                            'created_at'     => $now,
+                            'updated_at'     => $now,
                         ]);
                         $existingByRole[$role][$permKey] = true;
                         $addedCount++;
@@ -2192,62 +2247,24 @@ class RolePermission extends Model
 
     /**
      * Daftar izin default bawaan sistem untuk tiap role jika belum dikonfigurasi.
-     * Mengikuti prinsip pemisahan ketat antar kelompok:
-     * - Guru: HANYA modul kelompok Administrasi Guru & Dashboard Utama.
-     * - Tendik: HANYA modul kelompok Tendik: Kinerja & Aktivitas & Dashboard Utama.
-     * - Peserta Didik: HANYA modul kelompok Portal Peserta Didik & Dashboard Utama.
-     * - Modul tugas tambahan diatur secara modular di Pengaturan Global (Tugas Tambahan).
      */
     public static function isDefaultAllowed(string $role, string $permissionKey): bool
     {
+        if (self::isForbiddenForRole($role, $permissionKey)) {
+            return false;
+        }
+
         if ($role === 'admin') {
+            return !self::isDutyModule($permissionKey) && !in_array($permissionKey, self::FORBIDDEN_MODULES['admin'] ?? [], true);
+        }
+
+        if ($role === 'tugas_tambahan') {
+            return self::isDutyModule($permissionKey);
+        }
+
+        $conf = self::getPermissionConfig($permissionKey);
+        if ($conf && in_array($role, $conf['roles'] ?? [], true)) {
             return true;
-        }
-
-        if ($role === 'peserta_didik') {
-            $allowedForSiswa = [
-                'menu_dashboard',
-                'menu_identitas_siswa',
-                'menu_surat_izin_pd',
-                'menu_riwayat_rfid',
-                'menu_jadwal_pelajaran',
-                'menu_rapor',
-                'menu_validasi_berkas',
-            ];
-            return in_array($permissionKey, $allowedForSiswa, true);
-        }
-
-        if ($role === 'guru') {
-            $allowedForGuru = [
-                'menu_dashboard',
-                'menu_presensi_mengajar',
-                'menu_agenda_kbm',
-                'menu_presensi_peserta_didik',
-                'menu_jadwal_pelajaran',
-            ];
-            return in_array($permissionKey, $allowedForGuru, true);
-        }
-
-        if ($role === 'tendik') {
-            $allowedForTendik = [
-                'menu_dashboard',
-                'menu_identitas_siswa',
-                'menu_target_capaian',
-                'menu_aktivitas_tendik',
-                'menu_laporan_tendik',
-            ];
-            return in_array($permissionKey, $allowedForTendik, true);
-        }
-
-        if ($role === 'orang_tua') {
-            $allowedForOrtu = [
-                'menu_dashboard',
-                'menu_identitas_siswa',
-                'menu_jadwal_pelajaran',
-                'menu_pengumuman',
-                'menu_riwayat_rfid',
-            ];
-            return in_array($permissionKey, $allowedForOrtu, true);
         }
 
         return false;

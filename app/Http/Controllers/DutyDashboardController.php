@@ -184,25 +184,30 @@ class DutyDashboardController extends Controller
      */
     private function prepareWaliKelasData(Request $request, ?string $ptkId, $userAssignment): array
     {
-        $rombelId = $request->get('rombel_id') ?: ($userAssignment?->rombel_id ?? null);
+        $sessionUser = session('user');
+        $role = is_array($sessionUser) ? ($sessionUser['role'] ?? '') : ($sessionUser->role ?? '');
+        $isAdmin = ($role === 'admin');
 
-        if (!$rombelId && $ptkId) {
-            $rombelId = DB::table('rombongan_belajar')
+        // Cari rombel binaan resmi pengguna
+        $rombelInfo = RolePermission::getWaliKelasRombelInfo($sessionUser);
+        $assignedRombelId = $rombelInfo?->rombongan_belajar_id ?? ($userAssignment?->rombel_id ?? null);
+
+        if (!$assignedRombelId && $ptkId) {
+            $assignedRombelId = DB::table('rombongan_belajar')
                 ->where('ptk_id', $ptkId)
                 ->where('jenis_rombel', '1')
                 ->value('rombongan_belajar_id');
         }
 
-        if (!$rombelId) {
-            // Cek penugasan wali kelas lain di ptk_tugas_tambahan
-            $rombelId = DB::table('ptk_tugas_tambahan')
-                ->where('is_active', true)
-                ->whereNotNull('rombel_id')
-                ->value('rombel_id');
+        // Kunci akses ke kelas binaan sendiri untuk non-admin (hapus akses ke kelas lain)
+        if (!$isAdmin) {
+            $rombelId = $assignedRombelId;
+        } else {
+            $rombelId = $request->get('rombel_id') ?: $assignedRombelId;
         }
 
         if (!$rombelId) {
-            // Fallback ke rombel reguler aktif pertama yang memiliki siswa (misal XII TKJ 2)
+            // Fallback jika belum terikat rombel spesifik
             $rombelId = DB::table('rombongan_belajar')
                 ->where('jenis_rombel', '1')
                 ->whereExists(function ($q) {
@@ -214,10 +219,7 @@ class DutyDashboardController extends Controller
                 ->value('rombongan_belajar_id');
         }
 
-        $allRombels = DB::table('rombongan_belajar')
-            ->where('jenis_rombel', '1')
-            ->orderBy('nama')
-            ->get(['rombongan_belajar_id', 'nama']);
+        $allRombels = collect();
 
         $rombel = null;
         $totalSiswa = 0;

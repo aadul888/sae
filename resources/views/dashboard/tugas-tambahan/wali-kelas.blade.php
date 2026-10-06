@@ -6,55 +6,36 @@
 @section('content')
     <!-- 1. Banner Header Wali Kelas -->
     <div class="dash-banner"
-        style="margin-bottom: 22px; padding: 20px 24px; border-radius: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.3);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
-            <div style="display: flex; align-items: flex-start; gap: 14px; flex: 1; min-width: 260px;">
+        style="margin-bottom: 20px; padding: 16px 20px; border-radius: 14px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 240px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.2);">
+                    style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.2); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.2);">
                     <i class="fas fa-chalkboard-user"></i>
                 </div>
                 <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
-                        <span class="badge badge-primary" style="font-size: 0.72rem; padding: 3px 8px; font-weight: 700;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 3px;">
+                        <span class="badge badge-primary" style="font-size: 0.72rem; padding: 2px 8px; font-weight: 700;">
                             WALI KELAS AKTIF
                         </span>
-                        <span class="badge badge-outline" style="font-size: 0.72rem; padding: 3px 8px;">
+                        <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 8px;">
                             TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                         </span>
-
-                        @if (isset($allRombels) && $allRombels->count() > 1)
-                            <div style="display: inline-flex; align-items: center; gap: 4px;">
-                                <select onchange="if(this.value) window.location.href='?rombel_id='+this.value;"
-                                    class="form-select form-select-sm"
-                                    style="font-size: 0.74rem; height: 26px; padding: 2px 24px 2px 8px; border-radius: 6px; font-weight: 700; background-color: var(--card-bg);">
-                                    @foreach ($allRombels as $rb)
-                                        <option value="{{ $rb->rombongan_belajar_id }}"
-                                            {{ $rombel && $rombel->rombongan_belajar_id === $rb->rombongan_belajar_id ? 'selected' : '' }}>
-                                            Kelas {{ $rb->nama }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
                     </div>
-                    <h2 style="font-size: 1.45rem; font-weight: 800; color: var(--text-color); margin: 0 0 4px 0;">
+                    <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-color); margin: 0 0 2px 0;">
                         {{ $rombel->nama ?? 'Kelas Perwalian' }}
                     </h2>
-                    <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0; line-height: 1.45;">
+                    <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0; line-height: 1.4;">
                         Kelola administrasi, rekap presensi, biodata peserta didik, serta pantau kedisiplinan siswa di kelas
                         Anda secara langsung.
                     </p>
                 </div>
             </div>
 
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <a href="{{ route('dashboard.guru') }}" class="btn btn-outline"
-                    style="padding: 7px 14px; font-size: 0.8rem; border-radius: 8px;">
-                    <i class="fas fa-arrow-left me-1"></i> Dashboard Guru
-                </a>
+            <div style="display: flex; align-items: center; flex-shrink: 0;">
                 <a href="{{ route('dashboard.wali-kelas.presensi.index') }}" class="btn btn-primary"
-                    style="padding: 7px 16px; font-size: 0.8rem; font-weight: 700; border-radius: 8px;">
-                    <i class="fas fa-calendar-check me-1"></i> Input Presensi Kelas
+                    style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">
+                    <i class="fas fa-calendar-check"></i> Input Presensi Kelas
                 </a>
             </div>
         </div>

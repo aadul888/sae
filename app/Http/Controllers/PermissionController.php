@@ -21,11 +21,11 @@ class PermissionController extends Controller
         }
 
         $activeRole = $request->query('role', 'admin');
-        if (!in_array($activeRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'], true)) {
+        if (!in_array($activeRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua', 'tugas_tambahan'], true)) {
             $activeRole = 'admin';
         }
 
-        // Auto-sinkronisasi modul baru jika ada modul yang terdeteksi di sistem tetapi belum tercatat untuk Admin
+        // Auto-sinkronisasi modul baru jika ada modul yang terdeteksi di sistem tetapi belum tercatat
         if (\Illuminate\Support\Facades\Schema::hasTable('role_permissions')) {
             RolePermission::autoSyncNewDiscoveredModules();
         }
@@ -34,15 +34,18 @@ class PermissionController extends Controller
         $allPermissions = RolePermission::all()->groupBy('role');
         $isSystemConfigured = RolePermission::where('role', 'admin')->exists();
 
-        // Hitungan izin aktif per peran
-        $counts = [
-            'admin' => 0,
-            'guru' => 0,
-            'tendik' => 0,
-            'peserta_didik' => 0,
-            'orang_tua' => 0,
+        $roles = [
+            'admin'          => ['name' => 'Administrator', 'icon' => 'fa-user-shield', 'color' => '#6366f1'],
+            'guru'           => ['name' => 'Guru', 'icon' => 'fa-chalkboard-user', 'color' => '#10b981'],
+            'tendik'         => ['name' => 'Tendik', 'icon' => 'fa-id-badge', 'color' => '#0ea5e9'],
+            'peserta_didik'  => ['name' => 'Peserta Didik', 'icon' => 'fa-user-graduate', 'color' => '#f59e0b'],
+            'orang_tua'      => ['name' => 'Orang Tua / Wali', 'icon' => 'fa-users', 'color' => '#ec4899'],
+            'tugas_tambahan' => ['name' => 'Bidang & Tugas Tambahan', 'icon' => 'fa-briefcase', 'color' => '#8b5cf6'],
         ];
-        foreach (['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'] as $r) {
+
+        // Hitungan izin aktif per peran / tab
+        $counts = [];
+        foreach (array_keys($roles) as $r) {
             $counts[$r] = RolePermission::where('role', $r)
                 ->where('is_allowed', true)
                 ->where('can_read', true)
@@ -52,7 +55,7 @@ class PermissionController extends Controller
         $tableModules = [];
         $groups = [];
 
-        // Datatable per peran: hanya modul yang sudah tercatat/default untuk peran tersebut dan tidak terlarang
+        // Datatable per peran: hanya modul yang relevan untuk peran tersebut dan tidak terlarang
         $savedPermissions = $allPermissions->get($activeRole)?->keyBy('permission_key') ?? collect();
         foreach ($permissionsConfig as $groupName => $items) {
             foreach ($items as $permKey => $perm) {
@@ -61,7 +64,7 @@ class PermissionController extends Controller
                 }
                 $saved = $savedPermissions->get($permKey);
                 $isDefault = in_array($activeRole, $perm['roles'] ?? [], true);
-                if (!$saved && !($activeRole === 'admin' || (!$isSystemConfigured && $isDefault))) {
+                if (!$saved && !in_array($activeRole, ['admin', 'tugas_tambahan'], true) && !$isDefault) {
                     continue;
                 }
 
@@ -69,15 +72,20 @@ class PermissionController extends Controller
                     $groups[] = $groupName;
                 }
 
+                $canCreate = $saved ? (bool) $saved->can_create : in_array($activeRole, ['admin', 'tugas_tambahan'], true);
+                $canRead   = $saved ? (bool) $saved->can_read   : (in_array($activeRole, ['admin', 'tugas_tambahan'], true) || $isDefault);
+                $canUpdate = $saved ? (bool) $saved->can_update : in_array($activeRole, ['admin', 'tugas_tambahan'], true);
+                $canDelete = $saved ? (bool) $saved->can_delete : ($activeRole === 'admin');
+
                 $tableModules[] = [
                     'key'        => $permKey,
                     'label'      => $perm['label'],
                     'icon'       => $perm['icon'] ?? 'fa-cube',
                     'group'      => $groupName,
-                    'can_create' => $saved ? (bool) $saved->can_create : ($activeRole === 'admin'),
-                    'can_read'   => $saved ? (bool) $saved->can_read : ($activeRole === 'admin' || $isDefault),
-                    'can_update' => $saved ? (bool) $saved->can_update : ($activeRole === 'admin'),
-                    'can_delete' => $saved ? (bool) $saved->can_delete : ($activeRole === 'admin'),
+                    'can_create' => $canCreate,
+                    'can_read'   => $canRead,
+                    'can_update' => $canUpdate,
+                    'can_delete' => $canDelete,
                     'is_locked'  => ($activeRole === 'admin' && in_array($permKey, ['menu_hak_akses', 'menu_dashboard'], true)),
                     'is_custom'  => (bool) $saved && !$isDefault,
                 ];
@@ -98,14 +106,6 @@ class PermissionController extends Controller
             usort($mods, fn($a, $b) => strcasecmp($a['label'] ?? '', $b['label'] ?? ''));
         }
         unset($mods);
-
-        $roles = [
-            'admin' => ['name' => 'Administrator', 'icon' => 'fa-user-shield', 'color' => '#6366f1'],
-            'guru' => ['name' => 'Guru', 'icon' => 'fa-chalkboard-user', 'color' => '#10b981'],
-            'tendik' => ['name' => 'Tenaga Kependidikan', 'icon' => 'fa-id-badge', 'color' => '#0ea5e9'],
-            'peserta_didik' => ['name' => 'Peserta Didik', 'icon' => 'fa-user-graduate', 'color' => '#f59e0b'],
-            'orang_tua' => ['name' => 'Orang Tua / Wali', 'icon' => 'fa-users', 'color' => '#ec4899'],
-        ];
 
         // Hitung modul per kelompok untuk filter realtime yang akurat
         $groupCounts = [];
@@ -138,7 +138,7 @@ class PermissionController extends Controller
         $isAllowed = filter_var($request->input('is_allowed'), FILTER_VALIDATE_BOOLEAN);
         $action = $request->input('action', 'read'); // 'create', 'read', 'update', 'delete'
 
-        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua']) || empty($permissionKey)) {
+        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua', 'tugas_tambahan']) || empty($permissionKey)) {
             return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
         }
 
@@ -519,7 +519,7 @@ class PermissionController extends Controller
         }
 
         $targetRole = $request->input('role');
-        $validRoles = ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'];
+        $validRoles = ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua', 'tugas_tambahan'];
 
         if ($targetRole === 'global' || empty($targetRole)) {
             foreach ($validRoles as $r) {
@@ -529,7 +529,7 @@ class PermissionController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Hak akses seluruh peran berhasil direset ke standar baku default kelompoknya masing-masing.',
+                'message' => 'Hak akses seluruh peran dan tugas tambahan berhasil direset ke standar default (seluruh menu dimunculkan dengan batas izin Read).',
             ]);
         }
 
@@ -537,17 +537,18 @@ class PermissionController extends Controller
             RolePermission::resetDefaultPermissions($targetRole);
 
             $roleNames = [
-                'admin' => 'Administrator',
-                'guru' => 'Guru',
-                'tendik' => 'Tenaga Kependidikan',
-                'peserta_didik' => 'Peserta Didik',
-                'orang_tua' => 'Orang Tua / Wali',
+                'admin'          => 'Administrator',
+                'guru'           => 'Guru',
+                'tendik'         => 'Tendik',
+                'peserta_didik'  => 'Peserta Didik',
+                'orang_tua'      => 'Orang Tua / Wali',
+                'tugas_tambahan' => 'Bidang & Tugas Tambahan',
             ];
             $roleName = $roleNames[$targetRole] ?? ucfirst($targetRole);
 
             return response()->json([
                 'status' => 'success',
-                'message' => "Hak akses peran {$roleName} berhasil direset ke standar default kelompoknya.",
+                'message' => "Hak akses {$roleName} berhasil direset ke standar default (seluruh menu dimunculkan dengan batas izin Read).",
             ]);
         }
 
@@ -556,7 +557,7 @@ class PermissionController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Hak akses seluruh peran dan tugas tambahan berhasil direset ke standar baku kelompoknya masing-masing.',
+            'message' => 'Hak akses seluruh peran dan tugas tambahan berhasil direset ke standar default (seluruh menu dimunculkan dengan batas izin Read).',
         ]);
     }
 
@@ -584,16 +585,20 @@ class PermissionController extends Controller
             $permissionKey = 'menu_' . $cleanSlug;
         }
 
-        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua']) || empty($permissionKey)) {
+        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua', 'tugas_tambahan']) || empty($permissionKey)) {
             return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
+        }
+
+        if (RolePermission::isForbiddenForRole($targetRole, $permissionKey)) {
+            return response()->json(['status' => 'error', 'message' => 'Modul ini tidak dapat ditambahkan ke peran tersebut.'], 422);
         }
 
         $config = RolePermission::getPermissionConfig($permissionKey);
         $moduleLabel = !empty($customName) ? $customName : ($config['label'] ?? ucwords(str_replace(['menu_', '_'], ['', ' '], $permissionKey)));
 
-        $canCreate = in_array($targetRole, ['admin', 'guru', 'tendik']);
-        $canUpdate = in_array($targetRole, ['admin', 'guru', 'tendik', 'orang_tua']);
-        $canDelete = $targetRole === 'admin';
+        $canCreate = in_array($targetRole, ['admin', 'guru', 'tendik', 'tugas_tambahan']);
+        $canUpdate = in_array($targetRole, ['admin', 'guru', 'tendik', 'orang_tua', 'tugas_tambahan']);
+        $canDelete = in_array($targetRole, ['admin']);
 
         // 1. Daftarkan/aktifkan modul untuk peran target
         RolePermission::updateOrCreate(
@@ -625,9 +630,18 @@ class PermissionController extends Controller
 
         RolePermission::clearRuntimeCache();
 
+        $roleNameDisplay = [
+            'admin'          => 'Administrator',
+            'guru'           => 'Guru',
+            'tendik'         => 'Tendik',
+            'peserta_didik'  => 'Peserta Didik',
+            'orang_tua'      => 'Orang Tua / Wali',
+            'tugas_tambahan' => 'Bidang & Tugas Tambahan',
+        ][$targetRole] ?? ucfirst(str_replace('_', ' ', $targetRole));
+
         return response()->json([
             'status' => 'success',
-            'message' => "Modul '{$moduleLabel}' berhasil didaftarkan ke peran " . ucfirst(str_replace('_', ' ', $targetRole)) . " dan kini aktif di sidebar.",
+            'message' => "Modul '{$moduleLabel}' berhasil didaftarkan ke {$roleNameDisplay} dan kini aktif di sidebar.",
         ]);
     }
 
@@ -644,6 +658,10 @@ class PermissionController extends Controller
 
         $targetRole = $request->input('role');
         $permissionKey = $request->input('permission_key');
+
+        if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua', 'tugas_tambahan']) || empty($permissionKey)) {
+            return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
+        }
 
         if ($targetRole === 'admin' && in_array($permissionKey, ['menu_dashboard', 'menu_hak_akses'])) {
             return response()->json(['status' => 'error', 'message' => 'Modul inti Administrator tidak dapat dihapus demi keamanan sistem.'], 422);

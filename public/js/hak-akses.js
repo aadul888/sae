@@ -499,8 +499,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const isGlobal = !activeRole || activeRole === 'global';
             const titleMsg = isGlobal ? 'Reset Hak Akses Semua Peran?' : `Reset Default ${roleName}?`;
             const confirmMsg = isGlobal
-                ? 'Tindakan ini akan mengembalikan matriks hak akses SELURUH PERAN (Administrator, Guru, Tendik, Peserta Didik) ke standar baku default kelompoknya masing-masing. Lanjutkan?'
-                : `Tindakan ini akan mengembalikan hak akses peran ${roleName} ke standar default kelompoknya saja. Modul peran lain tidak akan terpengaruh. Lanjutkan?`;
+                ? 'Tindakan ini akan mengembalikan seluruh menu setiap peran ke standar default dengan batas izin Read (Lihat) saja. Lanjutkan?'
+                : `Tindakan ini akan mengembalikan seluruh menu ${roleName} ke standar default dengan batas izin Read (Lihat) saja. Lanjutkan?`;
 
             if (typeof Swal !== 'undefined') {
                 const result = await Swal.fire({

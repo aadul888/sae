@@ -18,7 +18,8 @@
                     <i class="fas fa-shield-halved text-primary me-2"></i> Pengaturan Hak Akses &amp; Peran
                 </h2>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
-                    Kelola matriks hak akses modul, kemunculan menu pada sidebar, dan kontrol operasional CRUD untuk peran
+                    Kelola matriks hak akses modul, kemunculan menu pada sidebar, dan kontrol operasional CRUD untuk
+                    {{ $activeRole === 'tugas_tambahan' ? '' : 'peran' }}
                     <strong>{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}</strong>.
                 </p>
             </div>
@@ -38,55 +39,27 @@
         <!-- Tab Navigasi Baku SAE (.periode-nav-wrapper) -->
         <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
             <div class="periode-nav-desktop">
-                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
-                    class="periode-nav-tab {{ $activeRole === 'admin' ? 'active' : '' }}">
-                    <i class="fas fa-user-shield"></i> Administrator ({{ $counts['admin'] }})
-                </a>
-                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}"
-                    class="periode-nav-tab {{ $activeRole === 'guru' ? 'active' : '' }}">
-                    <i class="fas fa-chalkboard-user"></i> Guru ({{ $counts['guru'] }})
-                </a>
-                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'tendik']) }}"
-                    class="periode-nav-tab {{ $activeRole === 'tendik' ? 'active' : '' }}">
-                    <i class="fas fa-id-badge"></i> Tendik ({{ $counts['tendik'] }})
-                </a>
-                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}"
-                    class="periode-nav-tab {{ $activeRole === 'peserta_didik' ? 'active' : '' }}">
-                    <i class="fas fa-user-graduate"></i> Peserta Didik ({{ $counts['peserta_didik'] }})
-                </a>
-                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'orang_tua']) }}"
-                    class="periode-nav-tab {{ $activeRole === 'orang_tua' ? 'active' : '' }}">
-                    <i class="fas fa-users"></i> Orang Tua / Wali ({{ $counts['orang_tua'] ?? 0 }})
-                </a>
+                @foreach ($roles as $rKey => $rMeta)
+                    <a href="{{ route('dashboard.hak-akses.index', ['role' => $rKey]) }}"
+                        class="periode-nav-tab {{ $activeRole === $rKey ? 'active' : '' }}">
+                        <i class="fas {{ $rMeta['icon'] }}"></i> {{ $rMeta['name'] }} ({{ $counts[$rKey] ?? 0 }})
+                    </a>
+                @endforeach
             </div>
 
             {{-- Mobile Responsive Dropdown Switcher --}}
             <div class="periode-nav-mobile">
                 <div class="periode-mobile-select-box" style="margin-bottom: 0;">
-                    <label><i class="fas fa-shield-halved text-primary me-1"></i> Pilih Peran Pengguna:</label>
+                    <label><i class="fas fa-shield-halved text-primary me-1"></i> Pilih Peran / Bidang:</label>
                     <select class="periode-mobile-select form-select"
                         onchange="if(this.value) window.location.href=this.value;"
                         style="font-size: 0.85rem; height: 42px; border-radius: 10px; width: 100%; background: var(--bg-card, #131b2e); color: var(--text-color); border: 1px solid var(--border-color);">
-                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
-                            {{ $activeRole === 'admin' ? 'selected' : '' }}>
-                            🛡️ Administrator ({{ $counts['admin'] }})
-                        </option>
-                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'guru']) }}"
-                            {{ $activeRole === 'guru' ? 'selected' : '' }}>
-                            👨‍🏫 Guru ({{ $counts['guru'] }})
-                        </option>
-                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'tendik']) }}"
-                            {{ $activeRole === 'tendik' ? 'selected' : '' }}>
-                            💼 Tendik ({{ $counts['tendik'] }})
-                        </option>
-                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'peserta_didik']) }}"
-                            {{ $activeRole === 'peserta_didik' ? 'selected' : '' }}>
-                            🎓 Peserta Didik ({{ $counts['peserta_didik'] }})
-                        </option>
-                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'orang_tua']) }}"
-                            {{ $activeRole === 'orang_tua' ? 'selected' : '' }}>
-                            👪 Orang Tua / Wali ({{ $counts['orang_tua'] ?? 0 }})
-                        </option>
+                        @foreach ($roles as $rKey => $rMeta)
+                            <option value="{{ route('dashboard.hak-akses.index', ['role' => $rKey]) }}"
+                                {{ $activeRole === $rKey ? 'selected' : '' }}>
+                                {{ $rMeta['name'] }} ({{ $counts[$rKey] ?? 0 }})
+                            </option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -176,18 +149,10 @@
                 </thead>
                 <tbody id="tableBody">
                     @forelse ($tableModules as $index => $item)
-                        @php
-                            $isUniversalTendik = in_array(
-                                $item['key'],
-                                ['menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'],
-                                true,
-                            );
-                        @endphp
                         <tr class="module-row" data-modul="{{ strtolower($item['label']) }}"
                             data-kelompok="{{ strtolower($item['group']) }}"
                             data-name="{{ strtolower($item['label'] . ' ' . $item['key']) }}"
                             data-group="{{ $item['group'] }}"
-                            @if ($isUniversalTendik) data-universal="tendik" @endif
                             style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td class="row-number"
                                 style="padding: 14px 18px; font-weight: 600; color: var(--text-muted); text-align: center; font-size: 0.84rem;"
@@ -213,13 +178,6 @@
                                     style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
                                     {{ $item['group'] }}
                                 </span>
-                                @if ($isUniversalTendik)
-                                    <span class="badge"
-                                        style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); font-size: 0.68rem; padding: 3px 6px; border-radius: 4px; margin-left: 4px;"
-                                        title="Berlaku untuk seluruh bidang tendik">
-                                        Universal
-                                    </span>
-                                @endif
                             </td>
 
                             <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
@@ -336,8 +294,8 @@
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                         <h3
                             style="font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-plus-circle text-primary"></i> Tambah Modul ke Peran
-                            {{ ucfirst(str_replace('_', ' ', $activeRole)) }}
+                            <i class="fas fa-plus-circle text-primary"></i> Tambah Modul ke
+                            {{ $roles[$activeRole]['name'] ?? ucfirst(str_replace('_', ' ', $activeRole)) }}
                         </h3>
                         <button type="button" id="btnCloseAddModule"
                             style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">

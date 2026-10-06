@@ -92,19 +92,18 @@
     // Section: Akademik Guru
     $hasAkademikGuru = $can('menu_presensi_mengajar') || $can('menu_agenda_kbm') || $can('menu_presensi_peserta_didik');
 
-    // Section: Portal Peserta Didik (Khusus Peserta Didik & Admin)
+    // Section: Portal Peserta Didik (Khusus Peserta Didik)
     $hasPortalPesertaDidik =
-        in_array($role, ['peserta_didik', 'admin'], true) &&
+        $role === 'peserta_didik' &&
         ($can('menu_surat_izin_pd') ||
             $can('menu_riwayat_rfid') ||
             $can('menu_jadwal_pelajaran') ||
-            $can('menu_rapor') ||
             $can('menu_validasi_berkas'));
 
-    // Section: Wali Kelas (Khusus Admin sebagai pengelola & Guru dengan tugas tambahan Wali Kelas atau Siswa Koordinator)
-    $isWaliOrAdmin = \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+    // Section: Wali Kelas (Khusus Guru dengan Tugas Tambahan Wali Kelas atau Siswa Koordinator)
+    $hasWaliKelasDuty = collect($userDuties)->contains('kode', 'WALI_KELAS');
     $hasWaliKelas =
-        $isWaliOrAdmin &&
+        ($hasWaliKelasDuty || ($role === 'peserta_didik' && \App\Models\RolePermission::isKoordinator($user))) &&
         ($can('menu_wali_kelas') ||
             $can('menu_wali_kelas_aktif') ||
             $can('menu_wali_kelas_tidak_aktif') ||
@@ -148,7 +147,6 @@
         'menu_surat_izin_pd',
         'menu_riwayat_rfid',
         'menu_jadwal_pelajaran',
-        'menu_rapor',
         'menu_validasi_berkas',
         'menu_formulir',
         'menu_pengumuman',
@@ -564,11 +562,12 @@
         {{-- Layanan Guru (Tugas Pokok Guru) --}}
         @php
             $hasAkademik =
-                in_array($role, ['guru', 'admin'], true) &&
-                ($role === 'guru' ||
-                    $can('menu_presensi_mengajar') ||
+                $role === 'guru' &&
+                ($can('menu_presensi_mengajar') ||
                     $can('menu_agenda_kbm') ||
-                    $can('menu_presensi_peserta_didik'));
+                    $can('menu_presensi_peserta_didik') ||
+                    $can('menu_jadwal_pelajaran_guru') ||
+                    $can('menu_jadwal_kbm'));
             $isJadwalGuruActive =
                 request()->routeIs('dashboard.jadwal-pelajaran*') &&
                 ($role === 'guru' ||
@@ -632,7 +631,7 @@
 
         {{-- Tugas Tambahan / Modul: Tendik (Superadmin) atau Kepala TAS (Guru/Tendik yang bertugas Koordinator) --}}
         @php
-            $hasKepalaTasDuty = collect($userDuties)->contains('kode', 'KEPALA_TAS') || $role === 'admin';
+            $hasKepalaTasDuty = collect($userDuties)->contains('kode', 'KEPALA_TAS');
             $hasKepalaTas =
                 $hasKepalaTasDuty &&
                 ($can('menu_kepala_tas') ||
@@ -1370,29 +1369,6 @@
                             </div>
                         </div>
                     @endif
-
-                    {{-- Rekap Aktivitas Harian & Laporan Kinerja Universal (Paling Bawah) --}}
-                    @if ($can('menu_target_capaian'))
-                        <a href="{{ route('dashboard.tendik.target.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik.target.*') && !request()->has('bidang') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-bullseye"></i></span>
-                            <span class="nav-label">Target &amp; Capaian</span>
-                        </a>
-                    @endif
-                    @if ($can('menu_aktivitas_tendik'))
-                        <a href="{{ route('dashboard.tendik.aktivitas.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik.aktivitas.*') && !request()->has('bidang') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
-                            <span class="nav-label">Aktivitas Harian</span>
-                        </a>
-                    @endif
-                    @if ($can('menu_laporan_tendik'))
-                        <a href="{{ route('dashboard.tendik.laporan.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik.laporan.*') && !request()->has('bidang') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-lines"></i></span>
-                            <span class="nav-label">Laporan Kinerja</span>
-                        </a>
-                    @endif
                 </div>
             </div>
         @endif
@@ -1442,10 +1418,7 @@
                     (($tendikDutyList->contains('kode', 'SATPAM') ||
                         $tendikDutyList->contains('kode', 'PENJAGA_SEKOLAH')) &&
                         ($can('menu_keamanan') || $can('menu_penjaga'))) ||
-                    ($tendikDutyList->isEmpty() && $can('menu_tendik_aktif')) ||
-                    $can('menu_target_capaian') ||
-                    $can('menu_aktivitas_tendik') ||
-                    $can('menu_laporan_tendik'));
+                    ($tendikDutyList->isEmpty() && $can('menu_tendik_aktif')));
 
             $isTendikActive =
                 (request()->routeIs('dashboard.tendik') && request()->has('bidang')) ||
@@ -1733,30 +1706,6 @@
                             </a>
                         @endif
                     @endif
-
-
-                    {{-- Aktivitas Harian & Laporan Kinerja Universal (Paling Bawah) --}}
-                    @if ($can('menu_target_capaian'))
-                        <a href="{{ route('dashboard.tendik.target.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik.target.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-bullseye"></i></span>
-                            <span class="nav-label">Target &amp; Capaian</span>
-                        </a>
-                    @endif
-                    @if ($can('menu_aktivitas_tendik'))
-                        <a href="{{ route('dashboard.tendik.aktivitas.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik.aktivitas.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
-                            <span class="nav-label">Input Aktivitas</span>
-                        </a>
-                    @endif
-                    @if ($can('menu_laporan_tendik'))
-                        <a href="{{ route('dashboard.tendik.laporan.index') }}"
-                            class="dash-nav-sublink {{ request()->routeIs('dashboard.tendik.laporan.*') ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-lines"></i></span>
-                            <span class="nav-label">Laporan Kinerja</span>
-                        </a>
-                    @endif
                 </div>
             </div>
         @endif
@@ -1904,7 +1853,7 @@
                         </a>
                     @endif
 
-                    @if ($can('menu_validasi_berkas') || $role === 'peserta_didik' || $role === 'admin' || $role === 'tendik')
+                    @if ($can('menu_validasi_berkas'))
                         <a href="{{ route('dashboard.berkas.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.berkas*') || request()->routeIs('dashboard.validasi-berkas*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
@@ -1933,13 +1882,6 @@
                             class="dash-nav-sublink {{ $isJadwalPdActive ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
                             <span class="nav-label">Jadwal Pelajaran</span>
-                        </a>
-                    @endif
-
-                    @if ($can('menu_rapor'))
-                        <a href="#" class="dash-nav-sublink">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-lines"></i></span>
-                            <span class="nav-label">Transkrip &amp; Rapor</span>
                         </a>
                     @endif
                 </div>
@@ -2000,8 +1942,7 @@
                     <div class="dash-nav-toggle-main">
                         <span class="nav-icon"><i
                                 class="fas fa-fw {{ $role === 'peserta_didik' ? 'fa-crown text-warning' : 'fa-chalkboard-user' }}"></i></span>
-                        <span
-                            class="nav-label">{{ $role === 'peserta_didik' ? 'Koordinator' : 'Wali Kelas' }}</span>
+                        <span class="nav-label">{{ $role === 'peserta_didik' ? 'Koordinator' : 'Wali Kelas' }}</span>
                         @if ($waliKelasRombelName)
                             <span class="badge badge-primary"
                                 style="font-size: 0.68rem; padding: 2px 6px; margin-left: 6px; border-radius: 4px; font-weight: 700;">
