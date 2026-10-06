@@ -53,6 +53,21 @@ class RolePermission extends Model
     }
 
     /**
+     * Modul yang tidak relevan untuk suatu peran (beda pengelolaan); disembunyikan dan dibersihkan saat sinkronisasi.
+     */
+    public const FORBIDDEN_MODULES = [
+        'guru' => ['menu_identitas_siswa', 'menu_surat_izin_pd', 'menu_riwayat_rfid', 'menu_rapor', 'menu_validasi_berkas'],
+        'tendik' => ['menu_identitas_siswa', 'menu_surat_izin_pd', 'menu_riwayat_rfid', 'menu_rapor', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik'],
+        'peserta_didik' => ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'],
+        'orang_tua' => ['menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_validasi_berkas'],
+    ];
+
+    public static function isForbiddenForRole(string $role, string $permissionKey): bool
+    {
+        return in_array($permissionKey, self::FORBIDDEN_MODULES[$role] ?? [], true);
+    }
+
+    /**
      * Definisi dasar modul & fitur bawaan sistem yang dikelompokkan berdasarkan cluster modul.
      */
     public static function getBasePermissions(): array
@@ -414,7 +429,7 @@ class RolePermission extends Model
                 'menu_identitas_siswa' => [
                     'label' => 'Identitas Lengkap Siswa (Dapodik)',
                     'icon' => 'fa-id-card',
-                    'roles' => ['admin', 'tendik', 'peserta_didik', 'orang_tua'],
+                    'roles' => ['admin', 'peserta_didik', 'orang_tua'],
                 ],
                 'menu_surat_izin_pd' => [
                     'label' => 'Surat Izin & Sakit (Peserta Didik)',
@@ -553,35 +568,13 @@ class RolePermission extends Model
                 if (!isset($knownKeys[$key]) && !isset($discovered[$key])) {
                     $cleanName = str_replace(['menu_', 'fitur_', '_'], ['', '', ' '], $key);
                     $label = ucwords($cleanName);
-
-                    $group = str_starts_with($key, 'fitur_') ? 'Fitur Operasional' : 'Layanan Digital';
-                    $icon = str_starts_with($key, 'fitur_') ? 'fa-screwdriver-wrench' : 'fa-cube';
-
-                    if (str_contains($key, 'guru')) {
-                        $group = 'Administrasi Guru';
-                        $icon = 'fa-chalkboard-user';
-                    } elseif (str_contains($key, 'tendik')) {
-                        $group = 'Administrasi Tendik';
-                        $icon = 'fa-id-badge';
-                    } elseif (str_contains($key, 'peserta_didik') || str_contains($key, 'siswa') || str_contains($key, 'santri')) {
-                        $group = 'Portal Peserta Didik';
-                        $icon = 'fa-user-graduate';
-                    } elseif (str_contains($key, 'perpustakaan') || str_contains($key, 'buku')) {
-                        $group = 'Layanan Digital';
-                        $icon = 'fa-book';
-                    } elseif (str_contains($key, 'keuangan') || str_contains($key, 'spp') || str_contains($key, 'bayar')) {
-                        $group = 'Layanan Digital';
-                        $icon = 'fa-wallet';
-                    } elseif (str_contains($key, 'bk') || str_contains($key, 'konseling')) {
-                        $group = 'Layanan Digital';
-                        $icon = 'fa-user-nurse';
-                    }
+                    $meta = self::resolveModuleGroupAndRoles($key);
 
                     $discovered[$key] = [
                         'label' => $label,
-                        'icon' => $icon,
-                        'group' => $group,
-                        'roles' => ['admin'],
+                        'icon' => $meta['icon'],
+                        'group' => $meta['group'],
+                        'roles' => $meta['roles'],
                     ];
                 }
             }
@@ -593,18 +586,105 @@ class RolePermission extends Model
             foreach ($dbKeys as $key) {
                 if (!isset($knownKeys[$key]) && !isset($discovered[$key])) {
                     $cleanName = str_replace(['menu_', 'fitur_', '_'], ['', '', ' '], $key);
-                    $isFitur = str_starts_with($key, 'fitur_');
+                    $meta = self::resolveModuleGroupAndRoles($key);
+
                     $discovered[$key] = [
                         'label' => ucwords($cleanName),
-                        'icon' => $isFitur ? 'fa-screwdriver-wrench' : 'fa-cube',
-                        'group' => $isFitur ? 'Fitur Operasional' : 'Layanan Digital',
-                        'roles' => ['admin'],
+                        'icon' => $meta['icon'],
+                        'group' => $meta['group'],
+                        'roles' => $meta['roles'],
                     ];
                 }
             }
         }
 
         return $discovered;
+    }
+
+    /**
+     * Resolusi cerdas untuk kelompok dan peran default modul baru berdasarkan nama key
+     */
+    public static function resolveModuleGroupAndRoles(string $key): array
+    {
+        $group = 'Layanan Digital';
+        $icon = 'fa-cube';
+        $targetRoles = ['admin'];
+
+        if (str_starts_with($key, 'fitur_')) {
+            $group = 'Fitur Operasional';
+            $icon = 'fa-screwdriver-wrench';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'wali_kelas') || str_contains($key, 'wali')) {
+            $group = 'Wali Kelas';
+            $icon = 'fa-chalkboard-user';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'guru') || str_contains($key, 'mengajar') || str_contains($key, 'kbm') || str_contains($key, 'agenda')) {
+            $group = 'Administrasi Guru';
+            $icon = 'fa-chalkboard-user';
+            $targetRoles = ['admin', 'guru'];
+        } elseif (str_contains($key, 'surat') || str_contains($key, 'persuratan')) {
+            $group = 'Tendik: Persuratan';
+            $icon = 'fa-envelope-open-text';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'kesiswaan') || str_contains($key, 'klaper') || str_contains($key, 'mutasi')) {
+            $group = 'Tendik: Kesiswaan';
+            $icon = 'fa-user-graduate';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'kepegawaian') || str_contains($key, 'kgb') || str_contains($key, 'cuti')) {
+            $group = 'Tendik: Kepegawaian';
+            $icon = 'fa-id-card-alt';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'sarpras') || str_contains($key, 'inventaris') || str_contains($key, 'aset') || str_contains($key, 'ruang')) {
+            $group = 'Tendik: Sarpras & Aset';
+            $icon = 'fa-building';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'laboran') || str_contains($key, 'lab')) {
+            $group = 'Tendik: Laboratorium';
+            $icon = 'fa-flask';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'perpustakaan') || str_contains($key, 'buku') || str_contains($key, 'koleksi')) {
+            $group = 'Tendik: Perpustakaan';
+            $icon = 'fa-book-open';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'teknisi') || str_contains($key, 'hardware') || str_contains($key, 'jaringan')) {
+            $group = 'Tendik: Teknisi IT';
+            $icon = 'fa-network-wired';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'keamanan') || str_contains($key, 'satpam') || str_contains($key, 'patroli')) {
+            $group = 'Tendik: Keamanan & Tamu';
+            $icon = 'fa-shield-halved';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'penjaga') || str_contains($key, 'kebersihan') || str_contains($key, 'ronda')) {
+            $group = 'Tendik: Fasilitas & Penjaga';
+            $icon = 'fa-broom';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'piket')) {
+            $group = 'Tendik: Piket Sekolah';
+            $icon = 'fa-clipboard-user';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'target') || str_contains($key, 'aktivitas') || str_contains($key, 'laporan_tendik') || str_contains($key, 'capaian')) {
+            $group = 'Tendik: Kinerja & Aktivitas';
+            $icon = 'fa-bullseye';
+            $targetRoles = ['admin', 'tendik'];
+        } elseif (str_contains($key, 'peserta_didik') || str_contains($key, 'siswa') || str_contains($key, 'santri') || str_contains($key, 'rapor') || str_contains($key, 'identitas')) {
+            $group = 'Portal Peserta Didik';
+            $icon = 'fa-user-graduate';
+            $targetRoles = ['admin', 'peserta_didik', 'orang_tua'];
+        } elseif (str_contains($key, 'dapodik')) {
+            $group = 'Menu Utama';
+            $icon = 'fa-cloud-arrow-down';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'keuangan') || str_contains($key, 'spp') || str_contains($key, 'bayar')) {
+            $group = 'Tendik: Keuangan';
+            $icon = 'fa-wallet';
+            $targetRoles = ['admin'];
+        } elseif (str_contains($key, 'pengguna') || str_contains($key, 'hak_akses') || str_contains($key, 'maintenance') || str_contains($key, 'update') || str_contains($key, 'pengaturan')) {
+            $group = 'Sistem & Pengaturan';
+            $icon = 'fa-sliders';
+            $targetRoles = ['admin'];
+        }
+
+        return ['group' => $group, 'icon' => $icon, 'roles' => $targetRoles];
     }
 
     /**
@@ -1426,7 +1506,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'GURU_PIKET') {
-                        foreach (['menu_piket', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_e_izin', 'menu_riwayat_rfid'] as $k) {
+                        foreach (['menu_piket', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_e_izin', 'menu_riwayat_rfid'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'OPERATOR_DAPODIK') {
@@ -2055,10 +2135,14 @@ class RolePermission extends Model
             }
         }
 
-        // 1. Bersihkan modul yang tidak sah untuk role tertentu di tabel role_permissions
+        // 1. Bersihkan modul terlarang dan baris nonaktif di luar default peran (kustomisasi aktif admin dijaga)
         foreach (['guru', 'tendik', 'peserta_didik', 'orang_tua'] as $role) {
+            self::where('role', $role)->whereIn('permission_key', self::FORBIDDEN_MODULES[$role] ?? [])->delete();
             self::where('role', $role)
                 ->whereNotIn('permission_key', $allowedKeysPerRole[$role])
+                ->where(function ($q) {
+                    $q->where('is_allowed', false)->orWhere('can_read', false);
+                })
                 ->delete();
         }
 

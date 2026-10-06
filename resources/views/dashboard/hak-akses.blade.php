@@ -18,12 +18,8 @@
                     <i class="fas fa-shield-halved text-primary me-2"></i> Pengaturan Hak Akses &amp; Peran
                 </h2>
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">
-                    @if ($activeRole === 'global')
-                        Kelola matriks izin modul dan aksi operasional CRUD pengguna dalam satu datatable global terpadu.
-                    @else
-                        Kelola matriks hak akses modul dan aksi operasional CRUD untuk peran
-                        <strong>{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}</strong>.
-                    @endif
+                    Kelola matriks hak akses modul, kemunculan menu pada sidebar, dan kontrol operasional CRUD untuk peran
+                    <strong>{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}</strong>.
                 </p>
             </div>
             <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -34,11 +30,7 @@
                 <button type="button" id="btnResetDefault" class="btn btn-outline"
                     style="padding: 8px 16px; font-size: 0.82rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
                     <i class="fas fa-rotate-left me-1"></i>
-                    @if ($activeRole === 'global')
-                        Reset Default (Semua Peran)
-                    @else
-                        Reset Default ({{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }})
-                    @endif
+                    Reset Default ({{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }})
                 </button>
             </div>
         </div>
@@ -46,10 +38,6 @@
         <!-- Tab Navigasi Baku SAE (.periode-nav-wrapper) -->
         <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
             <div class="periode-nav-desktop">
-                <a href="{{ route('dashboard.hak-akses.index', ['role' => 'global']) }}"
-                    class="periode-nav-tab {{ $activeRole === 'global' ? 'active' : '' }}">
-                    <i class="fas fa-globe"></i> Semua Peran (Global)
-                </a>
                 <a href="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
                     class="periode-nav-tab {{ $activeRole === 'admin' ? 'active' : '' }}">
                     <i class="fas fa-user-shield"></i> Administrator ({{ $counts['admin'] }})
@@ -79,10 +67,6 @@
                     <select class="periode-mobile-select form-select"
                         onchange="if(this.value) window.location.href=this.value;"
                         style="font-size: 0.85rem; height: 42px; border-radius: 10px; width: 100%; background: var(--bg-card, #131b2e); color: var(--text-color); border: 1px solid var(--border-color);">
-                        <option value="{{ route('dashboard.hak-akses.index', ['role' => 'global']) }}"
-                            {{ $activeRole === 'global' ? 'selected' : '' }}>
-                            🌐 Semua Peran (Global)
-                        </option>
                         <option value="{{ route('dashboard.hak-akses.index', ['role' => 'admin']) }}"
                             {{ $activeRole === 'admin' ? 'selected' : '' }}>
                             🛡️ Administrator ({{ $counts['admin'] }})
@@ -131,12 +115,10 @@
                         @endforeach
                     </select>
 
-                    @if ($activeRole !== 'global')
-                        <button type="button" id="btnOpenAddModule" class="btn btn-primary"
-                            style="padding: 7px 14px; font-size: 0.82rem;">
-                            <i class="fas fa-plus me-1"></i> Tambah Modul ke Peran
-                        </button>
-                    @endif
+                    <button type="button" id="btnOpenAddModule" class="btn btn-primary"
+                        style="padding: 7px 14px; font-size: 0.82rem;">
+                        <i class="fas fa-plus me-1"></i> Tambah Modul ke Peran
+                    </button>
 
                     <span class="badge badge-outline" id="totalBadge" style="font-size: 0.74rem;">
                         Total: {{ count($tableModules) }} Modul
@@ -172,51 +154,24 @@
                             Kelompok <span class="sort-icon">&#9650;&#9660;</span>
                         </th>
 
-                        @if ($activeRole === 'global')
-                            <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #6366f1; text-transform: uppercase; text-align: center; width: 95px;">
-                                <i class="fas fa-user-shield me-1"></i> Admin
-                            </th>
-                            <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #10b981; text-transform: uppercase; text-align: center; width: 95px;">
-                                <i class="fas fa-chalkboard-user me-1"></i> Guru
-                            </th>
-                            <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #0ea5e9; text-transform: uppercase; text-align: center; width: 95px;">
-                                <i class="fas fa-id-badge me-1"></i> Tendik
-                            </th>
-                            <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; text-align: center; width: 95px;">
-                                <i class="fas fa-user-graduate me-1"></i> Siswa
-                            </th>
-                            <th
-                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: #ec4899; text-transform: uppercase; text-align: center; width: 95px;">
-                                <i class="fas fa-users me-1"></i> Ortu
-                            </th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 90px;">
-                                Izin CRUD
-                            </th>
-                        @else
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 270px;">
-                                <div style="display: inline-flex; align-items: center; gap: 14px;">
-                                    <span>Aksi:</span>
-                                    <span style="color: #3b82f6; font-size: 0.73rem;" title="Tambah (Create)"><i
-                                            class="fas fa-plus-circle me-1"></i>Tambah</span>
-                                    <span style="color: #10b981; font-size: 0.73rem;" title="Lihat (Read)"><i
-                                            class="fas fa-eye me-1"></i>Lihat</span>
-                                    <span style="color: #f59e0b; font-size: 0.73rem;" title="Ubah (Update)"><i
-                                            class="fas fa-pen-to-square me-1"></i>Ubah</span>
-                                    <span style="color: #ef4444; font-size: 0.73rem;" title="Hapus (Delete)"><i
-                                            class="fas fa-trash me-1"></i>Hapus</span>
-                                </div>
-                            </th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 75px;">
-                                Kelola
-                            </th>
-                        @endif
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 270px;">
+                            <div style="display: inline-flex; align-items: center; gap: 14px;">
+                                <span>Aksi:</span>
+                                <span style="color: #3b82f6; font-size: 0.73rem;" title="Tambah (Create)"><i
+                                        class="fas fa-plus-circle me-1"></i>Tambah</span>
+                                <span style="color: #10b981; font-size: 0.73rem;" title="Lihat (Read)"><i
+                                        class="fas fa-eye me-1"></i>Lihat</span>
+                                <span style="color: #f59e0b; font-size: 0.73rem;" title="Ubah (Update)"><i
+                                        class="fas fa-pen-to-square me-1"></i>Ubah</span>
+                                <span style="color: #ef4444; font-size: 0.73rem;" title="Hapus (Delete)"><i
+                                        class="fas fa-trash me-1"></i>Hapus</span>
+                            </div>
+                        </th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 75px;">
+                            Kelola
+                        </th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -267,144 +222,90 @@
                                 @endif
                             </td>
 
-                            @if ($activeRole === 'global')
-                                @php
-                                    $rolesMap = [
-                                        'admin' => ['label' => 'Admin', 'color' => '#6366f1'],
-                                        'guru' => ['label' => 'Guru', 'color' => '#10b981'],
-                                        'tendik' => ['label' => 'Tendik', 'color' => '#0ea5e9'],
-                                        'peserta_didik' => ['label' => 'Siswa', 'color' => '#f59e0b'],
-                                        'orang_tua' => ['label' => 'Ortu', 'color' => '#ec4899'],
-                                    ];
-                                @endphp
-                                @foreach ($rolesMap as $rKey => $rMeta)
-                                    @php
-                                        $rData = $item['roles'][$rKey] ?? ['is_allowed' => false, 'is_locked' => false];
-                                        $isAllowed = (bool) ($rData['is_allowed'] ?? false);
-                                        $isLocked = (bool) ($rData['is_locked'] ?? false);
-                                        $isWaliModule = str_starts_with($item['key'], 'menu_wali_kelas');
-                                    @endphp
-                                    <td style="padding: 14px 14px; text-align: center;"
-                                        data-label="{{ $rMeta['label'] }}">
+                            <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
+                                <div class="table-actions"
+                                    style="display: inline-flex; align-items: center; gap: 16px; justify-content: flex-end;">
+                                    <!-- Tambah (Create) -->
+                                    <div style="display: flex; align-items: center; gap: 6px;" title="Tambah (Create)">
+                                        <i class="fas fa-plus-circle" style="color: #3b82f6; font-size: 1rem;"></i>
                                         <label class="switch-container"
-                                            style="position: relative; display: inline-block; width: 38px; height: 21px; margin: 0; cursor: {{ $isLocked ? 'not-allowed' : 'pointer' }}; vertical-align: middle;"
-                                            @if ($rKey === 'peserta_didik' && $isWaliModule) title="Khusus Peserta Didik yang ditunjuk sebagai Koordinator Kelas otomatis mewarisi hak akses Wali Kelas" @endif>
-                                            <input type="checkbox" class="role-quick-toggle"
-                                                data-role="{{ $rKey }}" data-key="{{ $item['key'] }}"
-                                                data-action="read" data-color="{{ $rMeta['color'] }}"
-                                                {{ $isAllowed ? 'checked' : '' }} {{ $isLocked ? 'disabled' : '' }}
+                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
+                                                data-key="{{ $item['key'] }}" data-action="create" data-color="#3b82f6"
+                                                {{ $item['can_create'] ? 'checked' : '' }}
+                                                {{ $item['is_locked'] ? 'disabled' : '' }}
                                                 style="opacity: 0; width: 0; height: 0;">
                                             <span class="slider-toggle-crud"
-                                                style="position: absolute; inset: 0; background-color: {{ $isAllowed ? $rMeta['color'] : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_create'] ? '#3b82f6' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
                                         </label>
-                                        @if ($rKey === 'peserta_didik' && $isWaliModule)
-                                            <div style="font-size: 0.62rem; color: #f59e0b; margin-top: 2px; white-space: nowrap;"
-                                                title="Peserta Didik Koordinator Kelas otomatis mengikuti izin Wali Kelas">
-                                                (Koordinator)
-                                            </div>
-                                        @endif
-                                    </td>
-                                @endforeach
-
-                                <td style="padding: 14px 18px; text-align: center;" data-label="Izin CRUD">
-                                    <button type="button" class="btn-icon btn-open-crud-modal"
-                                        title="Konfigurasi Izin Granular CRUD (Tambah, Baca, Ubah, Hapus)"
-                                        data-module="{{ json_encode($item, JSON_UNESCAPED_UNICODE) }}"
-                                        style="background: rgba(99, 102, 241, 0.12); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.25); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
-                                        <i class="fas fa-sliders" style="font-size: 0.85rem;"></i>
-                                    </button>
-                                </td>
-                            @else
-                                <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                    <div class="table-actions"
-                                        style="display: inline-flex; align-items: center; gap: 16px; justify-content: flex-end;">
-                                        <!-- Tambah (Create) -->
-                                        <div style="display: flex; align-items: center; gap: 6px;"
-                                            title="Tambah (Create)">
-                                            <i class="fas fa-plus-circle" style="color: #3b82f6; font-size: 1rem;"></i>
-                                            <label class="switch-container"
-                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle"
-                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
-                                                    data-action="create" data-color="#3b82f6"
-                                                    {{ $item['can_create'] ? 'checked' : '' }}
-                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                    style="opacity: 0; width: 0; height: 0;">
-                                                <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_create'] ? '#3b82f6' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                            </label>
-                                        </div>
-
-                                        <!-- Lihat (Read) -->
-                                        <div style="display: flex; align-items: center; gap: 6px;" title="Lihat (Read)">
-                                            <i class="fas fa-eye" style="color: #10b981; font-size: 1rem;"></i>
-                                            <label class="switch-container"
-                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle"
-                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
-                                                    data-action="read" data-color="#10b981"
-                                                    {{ $item['can_read'] ? 'checked' : '' }}
-                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                    style="opacity: 0; width: 0; height: 0;">
-                                                <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_read'] ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                            </label>
-                                        </div>
-
-                                        <!-- Ubah (Update) -->
-                                        <div style="display: flex; align-items: center; gap: 6px;" title="Ubah (Update)">
-                                            <i class="fas fa-pen-to-square" style="color: #f59e0b; font-size: 1rem;"></i>
-                                            <label class="switch-container"
-                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle"
-                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
-                                                    data-action="update" data-color="#f59e0b"
-                                                    {{ $item['can_update'] ? 'checked' : '' }}
-                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                    style="opacity: 0; width: 0; height: 0;">
-                                                <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_update'] ? '#f59e0b' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                            </label>
-                                        </div>
-
-                                        <!-- Hapus (Delete) -->
-                                        <div style="display: flex; align-items: center; gap: 6px;" title="Hapus (Delete)">
-                                            <i class="fas fa-trash" style="color: #ef4444; font-size: 1rem;"></i>
-                                            <label class="switch-container"
-                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                                <input type="checkbox" class="crud-toggle"
-                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
-                                                    data-action="delete" data-color="#ef4444"
-                                                    {{ $item['can_delete'] ? 'checked' : '' }}
-                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                    style="opacity: 0; width: 0; height: 0;">
-                                                <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_delete'] ? '#ef4444' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                            </label>
-                                        </div>
                                     </div>
-                                </td>
-                                <td style="padding: 14px 18px; text-align: center;" data-label="Kelola">
-                                    @if (!$item['is_locked'])
-                                        <button type="button" class="btn-icon btn-remove-module"
-                                            data-key="{{ $item['key'] }}" data-name="{{ $item['label'] }}"
-                                            title="Hapus Modul {{ $item['label'] }} dari Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
-                                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
-                                            <i class="fas fa-trash-can" style="font-size: 0.82rem;"></i>
-                                        </button>
-                                    @else
-                                        <span
-                                            style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.4;"
-                                            title="Modul ini dikunci sistem">
-                                            <i class="fas fa-lock" style="font-size: 0.8rem;"></i>
-                                        </span>
-                                    @endif
-                                </td>
-                            @endif
+
+                                    <!-- Lihat (Read) -->
+                                    <div style="display: flex; align-items: center; gap: 6px;" title="Lihat (Read)">
+                                        <i class="fas fa-eye" style="color: #10b981; font-size: 1rem;"></i>
+                                        <label class="switch-container"
+                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
+                                                data-key="{{ $item['key'] }}" data-action="read" data-color="#10b981"
+                                                {{ $item['can_read'] ? 'checked' : '' }}
+                                                {{ $item['is_locked'] ? 'disabled' : '' }}
+                                                style="opacity: 0; width: 0; height: 0;">
+                                            <span class="slider-toggle-crud"
+                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_read'] ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Ubah (Update) -->
+                                    <div style="display: flex; align-items: center; gap: 6px;" title="Ubah (Update)">
+                                        <i class="fas fa-pen-to-square" style="color: #f59e0b; font-size: 1rem;"></i>
+                                        <label class="switch-container"
+                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
+                                                data-key="{{ $item['key'] }}" data-action="update" data-color="#f59e0b"
+                                                {{ $item['can_update'] ? 'checked' : '' }}
+                                                {{ $item['is_locked'] ? 'disabled' : '' }}
+                                                style="opacity: 0; width: 0; height: 0;">
+                                            <span class="slider-toggle-crud"
+                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_update'] ? '#f59e0b' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                        </label>
+                                    </div>
+
+                                    <!-- Hapus (Delete) -->
+                                    <div style="display: flex; align-items: center; gap: 6px;" title="Hapus (Delete)">
+                                        <i class="fas fa-trash" style="color: #ef4444; font-size: 1rem;"></i>
+                                        <label class="switch-container"
+                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
+                                                data-key="{{ $item['key'] }}" data-action="delete" data-color="#ef4444"
+                                                {{ $item['can_delete'] ? 'checked' : '' }}
+                                                {{ $item['is_locked'] ? 'disabled' : '' }}
+                                                style="opacity: 0; width: 0; height: 0;">
+                                            <span class="slider-toggle-crud"
+                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_delete'] ? '#ef4444' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 14px 18px; text-align: center;" data-label="Kelola">
+                                @if (!$item['is_locked'])
+                                    <button type="button" class="btn-icon btn-remove-module"
+                                        data-key="{{ $item['key'] }}" data-name="{{ $item['label'] }}"
+                                        title="Hapus Modul {{ $item['label'] }} dari Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
+                                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                                        <i class="fas fa-trash-can" style="font-size: 0.82rem;"></i>
+                                    </button>
+                                @else
+                                    <span
+                                        style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.4;"
+                                        title="Modul ini dikunci sistem">
+                                        <i class="fas fa-lock" style="font-size: 0.8rem;"></i>
+                                    </span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $activeRole === 'global' ? 9 : 5 }}"
+                            <td colspan="5"
                                 style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Tidak ada modul yang tersedia untuk peran ini.</div>
@@ -412,7 +313,7 @@
                         </tr>
                     @endforelse
                     <tr id="noSearchResultRow" style="display: none;">
-                        <td colspan="{{ $activeRole === 'global' ? 9 : 5 }}"
+                        <td colspan="5"
                             style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                             <i class="fas fa-magnifying-glass mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                             <div>Tidak ada modul yang cocok dengan filter pencarian.</div>
@@ -425,44 +326,8 @@
         <!-- Table Pagination Footer -->
         <div id="tablePaginationWrap" class="custom-pagination"></div>
 
-        <!-- Modal Granular CRUD (Untuk Tampilan Global) -->
-        <div id="modalGranularCrud" class="modal-backdrop"
-            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-            <div class="card"
-                style="max-width: 620px; width: 94%; margin: 0; border-radius: 14px; padding: 24px; box-shadow: 0 10px 35px rgba(0,0,0,0.5); border: 1px solid var(--border-color); background: var(--card-bg, #1e293b);">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                    <div>
-                        <h3 id="modalCrudTitle"
-                            style="font-size: 1.1rem; font-weight: 800; color: var(--text-color); margin: 0;">
-                            Detail Izin CRUD
-                        </h3>
-                        <span id="modalCrudSubtitle"
-                            style="font-size: 0.74rem; font-family: monospace; color: var(--primary);"></span>
-                    </div>
-                    <button type="button" id="btnCloseCrudModal"
-                        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <div id="modalCrudContent"
-                    style="display: flex; flex-direction: column; gap: 12px; max-height: 60vh; overflow-y: auto; padding-right: 4px;">
-                    <!-- Rendered dynamically by JS -->
-                </div>
-
-                <div
-                    style="display: flex; justify-content: flex-end; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                    <button type="button" id="btnDoneCrudModal" class="btn btn-primary"
-                        style="padding: 8px 20px; font-size: 0.84rem;">
-                        Selesai
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        @if ($activeRole !== 'global')
-            <!-- Modal Tambah Modul ke Peran -->
+        <!-- Modal Tambah Modul ke Peran -->
+        <div>
             <div id="modalAddModule" class="modal-backdrop"
                 style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
                 <div class="card"
@@ -546,7 +411,7 @@
                     </form>
                 </div>
             </div>
-        @endif
+        </div>
     </div>
 @endsection
 

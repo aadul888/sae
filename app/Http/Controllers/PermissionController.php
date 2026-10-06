@@ -20,9 +20,9 @@ class PermissionController extends Controller
             return redirect()->route($role ? ('dashboard.' . ($role === 'peserta_didik' ? 'peserta-didik' : $role)) : 'login')->with('error', 'Akses dibatasi hanya untuk Administrator.');
         }
 
-        $activeRole = $request->query('role', 'global');
-        if (!in_array($activeRole, ['global', 'admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'])) {
-            $activeRole = 'global';
+        $activeRole = $request->query('role', 'admin');
+        if (!in_array($activeRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'], true)) {
+            $activeRole = 'admin';
         }
 
         // Auto-sinkronisasi modul baru jika ada modul yang terdeteksi di sistem tetapi belum tercatat untuk Admin
@@ -41,7 +41,6 @@ class PermissionController extends Controller
             'tendik' => 0,
             'peserta_didik' => 0,
             'orang_tua' => 0,
-            'global' => 0,
         ];
         foreach (['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'] as $r) {
             $counts[$r] = RolePermission::where('role', $r)
@@ -53,89 +52,54 @@ class PermissionController extends Controller
         $tableModules = [];
         $groups = [];
 
-        if ($activeRole === 'global') {
-            // Tampilan Datatable Global: seluruh modul dengan toggle status 5 peran utama
-            foreach ($permissionsConfig as $groupName => $items) {
-                if (!in_array($groupName, $groups)) {
+        // Datatable per peran: hanya modul yang sudah tercatat/default untuk peran tersebut dan tidak terlarang
+        $savedPermissions = $allPermissions->get($activeRole)?->keyBy('permission_key') ?? collect();
+        foreach ($permissionsConfig as $groupName => $items) {
+            foreach ($items as $permKey => $perm) {
+                if (RolePermission::isForbiddenForRole($activeRole, $permKey)) {
+                    continue;
+                }
+                $saved = $savedPermissions->get($permKey);
+                $isDefault = in_array($activeRole, $perm['roles'] ?? [], true);
+                if (!$saved && !($activeRole === 'admin' || (!$isSystemConfigured && $isDefault))) {
+                    continue;
+                }
+
+                if (!in_array($groupName, $groups, true)) {
                     $groups[] = $groupName;
                 }
-                foreach ($items as $permKey => $perm) {
-                    $rolesData = [];
-                    foreach (['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua'] as $r) {
-                        $saved = $allPermissions->get($r)?->keyBy('permission_key')->get($permKey);
-                        $isDefault = in_array($r, $perm['roles'] ?? []);
-                        $isAllowed = $saved ? (bool) ($saved->is_allowed && $saved->can_read) : (!$isSystemConfigured && $isDefault);
-                        $rolesData[$r] = [
-                            'is_allowed' => $isAllowed,
-                            'can_create' => $saved ? (bool) $saved->can_create : ($r === 'admin'),
-                            'can_read'   => $saved ? (bool) $saved->can_read : $isDefault,
-                            'can_update' => $saved ? (bool) $saved->can_update : ($r === 'admin'),
-                            'can_delete' => $saved ? (bool) $saved->can_delete : ($r === 'admin'),
-                            'is_locked'  => ($r === 'admin' && in_array($permKey, ['menu_hak_akses', 'menu_dashboard'])),
-                        ];
-                    }
 
-                    $tableModules[] = [
-                        'key' => $permKey,
-                        'label' => $perm['label'],
-                        'icon' => $perm['icon'] ?? 'fa-cube',
-                        'group' => $groupName,
-                        'roles' => $rolesData,
-                    ];
-                }
-            }
-            $counts['global'] = count($tableModules);
-        } else {
-            // Tampilan Datatable Per-Peran Spesifik: granular CRUD
-            $savedPermissions = $allPermissions->get($activeRole)?->keyBy('permission_key') ?? collect();
-            foreach ($permissionsConfig as $groupName => $items) {
-                if (!in_array($groupName, $groups)) {
-                    $groups[] = $groupName;
-                }
-                foreach ($items as $permKey => $perm) {
-                    $saved = $savedPermissions->get($permKey);
-                    $isDefault = in_array($activeRole, $perm['roles'] ?? []);
-                    $isIncluded = $saved ? true : (!$isSystemConfigured && $isDefault);
-
-                    if ($isIncluded) {
-                        $tableModules[] = [
-                            'key' => $permKey,
-                            'label' => $perm['label'],
-                            'icon' => $perm['icon'] ?? 'fa-cube',
-                            'group' => $groupName,
-                            'can_create' => $saved ? (bool) $saved->can_create : ($activeRole === 'admin'),
-                            'can_read' => $saved ? (bool) $saved->can_read : $isDefault,
-                            'can_update' => $saved ? (bool) $saved->can_update : ($activeRole === 'admin'),
-                            'can_delete' => $saved ? (bool) $saved->can_delete : ($activeRole === 'admin'),
-                            'is_locked' => ($activeRole === 'admin' && in_array($permKey, ['menu_hak_akses', 'menu_dashboard'])),
-                            'is_custom' => (bool) $saved && !$isDefault,
-                        ];
-                    }
-                }
+                $tableModules[] = [
+                    'key'        => $permKey,
+                    'label'      => $perm['label'],
+                    'icon'       => $perm['icon'] ?? 'fa-cube',
+                    'group'      => $groupName,
+                    'can_create' => $saved ? (bool) $saved->can_create : ($activeRole === 'admin'),
+                    'can_read'   => $saved ? (bool) $saved->can_read : ($activeRole === 'admin' || $isDefault),
+                    'can_update' => $saved ? (bool) $saved->can_update : ($activeRole === 'admin'),
+                    'can_delete' => $saved ? (bool) $saved->can_delete : ($activeRole === 'admin'),
+                    'is_locked'  => ($activeRole === 'admin' && in_array($permKey, ['menu_hak_akses', 'menu_dashboard'], true)),
+                    'is_custom'  => (bool) $saved && !$isDefault,
+                ];
             }
         }
 
-        // Modul yang tersedia untuk ditambahkan ke peran spesifik
+        // Modul sistem yang belum aktif untuk peran ini (bisa ditambahkan manual)
         $availableModulesToAdd = [];
-        if ($activeRole !== 'global') {
-            $allSystemModules = RolePermission::getAllSystemModules();
-            $savedPermissions = $allPermissions->get($activeRole)?->keyBy('permission_key') ?? collect();
-            foreach ($allSystemModules as $k => $mod) {
-                $saved = $savedPermissions->get($k);
-                if (!$saved || !$saved->can_read) {
-                    $group = $mod['group'] ?? 'Lainnya';
-                    $availableModulesToAdd[$group][] = $mod;
-                }
+        $activeKeys = array_column($tableModules, 'key');
+        foreach (RolePermission::getAllSystemModules() as $k => $mod) {
+            if (in_array($k, $activeKeys, true) || RolePermission::isForbiddenForRole($activeRole, $k)) {
+                continue;
             }
-            ksort($availableModulesToAdd);
-            foreach ($availableModulesToAdd as $grp => &$items) {
-                usort($items, fn($a, $b) => strcasecmp($a['label'] ?? '', $b['label'] ?? ''));
-            }
-            unset($items);
+            $availableModulesToAdd[$mod['group'] ?? 'Lainnya'][] = $mod;
         }
+        ksort($availableModulesToAdd);
+        foreach ($availableModulesToAdd as &$mods) {
+            usort($mods, fn($a, $b) => strcasecmp($a['label'] ?? '', $b['label'] ?? ''));
+        }
+        unset($mods);
 
         $roles = [
-            'global' => ['name' => 'Semua Peran (Global)', 'icon' => 'fa-globe', 'color' => 'var(--primary)'],
             'admin' => ['name' => 'Administrator', 'icon' => 'fa-user-shield', 'color' => '#6366f1'],
             'guru' => ['name' => 'Guru', 'icon' => 'fa-chalkboard-user', 'color' => '#10b981'],
             'tendik' => ['name' => 'Tenaga Kependidikan', 'icon' => 'fa-id-badge', 'color' => '#0ea5e9'],
@@ -150,12 +114,7 @@ class PermissionController extends Controller
             $groupCounts[$g] = ($groupCounts[$g] ?? 0) + 1;
         }
 
-        if ($activeRole === 'global') {
-            sort($groups);
-        } else {
-            $groups = array_keys($groupCounts);
-            sort($groups);
-        }
+        sort($groups);
 
         return view('dashboard.hak-akses', compact(
             'activeRole', 'roles', 'permissionsConfig', 'tableModules',
@@ -181,6 +140,11 @@ class PermissionController extends Controller
 
         if (!in_array($targetRole, ['admin', 'guru', 'tendik', 'peserta_didik', 'orang_tua']) || empty($permissionKey)) {
             return response()->json(['status' => 'error', 'message' => 'Parameter tidak valid'], 422);
+        }
+
+        // Modul terlarang untuk peran ini (beda pengelolaan) tidak boleh diaktifkan
+        if (RolePermission::isForbiddenForRole($targetRole, $permissionKey)) {
+            return response()->json(['status' => 'error', 'message' => 'Modul ini tidak berlaku untuk peran tersebut.'], 422);
         }
 
         // Proteksi agar admin tidak mematikan hak akses menu_hak_akses untuk diri sendiri
