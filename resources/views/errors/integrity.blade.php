@@ -7,142 +7,19 @@
     <title>Integritas Sistem — SAE</title>
     <link rel="icon" type="image/png"
         href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0f172a;
-            color: #f8fafc;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            padding: 24px;
-        }
-
-        .fault-card {
-            max-width: 520px;
-            width: 100%;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
-            padding: 40px 32px;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-        }
-
-        .fault-icon {
-            width: 72px;
-            height: 72px;
-            background: rgba(239, 68, 68, 0.15);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 32px;
-            color: #ef4444;
-        }
-
-        h1 {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #ef4444;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: #94a3b8;
-            font-size: 0.88rem;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-
-        .info-box {
-            background: rgba(99, 102, 241, 0.08);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .info-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 0;
-            font-size: 0.84rem;
-        }
-
-        .info-row i {
-            width: 18px;
-            text-align: center;
-            color: #6366f1;
-            flex-shrink: 0;
-        }
-
-        .info-row strong {
-            color: #e2e8f0;
-        }
-
-        .info-row span {
-            color: #cbd5e1;
-        }
-
-        .wa-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #22c55e;
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.92rem;
-            padding: 12px 28px;
-            border-radius: 10px;
-            text-decoration: none;
-            transition: background 0.2s, transform 0.1s;
-        }
-
-        .wa-btn:hover {
-            background: #16a34a;
-            transform: translateY(-1px);
-        }
-
-        .footer-note {
-            margin-top: 20px;
-            font-size: 0.72rem;
-            color: #64748b;
-            line-height: 1.5;
-        }
-
-        .error-code {
-            display: inline-block;
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            font-family: monospace;
-            font-size: 0.72rem;
-            padding: 3px 8px;
-            border-radius: 4px;
-            margin-top: 8px;
-        }
-    </style>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/error-page.css') }}?v={{ file_exists(public_path('css/error-page.css')) ? filemtime(public_path('css/error-page.css')) : time() }}">
 </head>
 
-<body>
+<body class="error-page">
     <div class="fault-card">
         <div class="fault-icon">
             <i class="fas fa-shield-halved"></i>
         </div>
 
-        <h1>Pemeriksaan Integritas Gagal</h1>
-        <p class="subtitle">
+        <h1 class="fault-title">Pemeriksaan Integritas Gagal</h1>
+        <p class="fault-subtitle">
             Sistem mendeteksi modifikasi atau penghapusan komponen penting aplikasi.
             Layanan dihentikan demi menjaga integritas data dan hak kepemilikan pengembang.
         </p>
@@ -172,7 +49,7 @@
                     $waClean = preg_replace('/^0/', '62', $dev['w']);
                 @endphp
                 <a href="https://wa.me/{{ $waClean }}" target="_blank" rel="noopener" class="wa-btn">
-                    <i class="fab fa-whatsapp" style="font-size: 1.1rem;"></i>
+                    <i class="fab fa-whatsapp wa-btn-icon"></i>
                     Hubungi Pengembang Resmi
                 </a>
             @endif
@@ -181,7 +58,7 @@
         <p class="footer-note">
             Silakan hubungi pengembang resmi untuk memulihkan lisensi dan sistem.
             <br>
-            <span class="error-code">SEC_INTEGRITY_MISMATCH_503</span>
+            <span class="error-code-badge">SEC_INTEGRITY_MISMATCH_503</span>
         </p>
     </div>
 </body>

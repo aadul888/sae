@@ -3,63 +3,6 @@
 @section('title', ($isViewingGuru ? 'Jadwal Mengajar' : 'Jadwal Pelajaran') . ' — SAE')
 @section('dash_title', $isViewingGuru ? 'Jadwal Mengajar' : 'Jadwal Pelajaran')
 
-@push('styles')
-    <style>
-        .jadwal-card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .jadwal-item-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 16px 18px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .jadwal-item-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        .jadwal-item-card.is-berlangsung {
-            border-color: #10b981;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, var(--bg-card) 100%);
-            box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
-        }
-
-        .jadwal-item-card.is-berlangsung::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: #10b981;
-        }
-
-        @media (max-width: 640px) {
-            .jadwal-card-grid {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-
-            .jadwal-item-card {
-                padding: 14px 16px;
-            }
-        }
-    </style>
-@endpush
-
 @section('content')
     <!-- 1. Header Banner -->
     <div class="dash-banner" style="margin-bottom: 20px;">

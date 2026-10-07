@@ -1,0 +1,205 @@
+/* ==========================================================================
+   KIOSK AUTH STYLES — SISTEM APLIKASI EDUKASI (SAE)
+   ========================================================================== */
+
+body.kiosk-auth-body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #f8fafc;
+    padding: 20px;
+    margin: 0;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.auth-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(99, 102, 241, 0.15);
+    backdrop-filter: blur(20px);
+    text-align: center;
+    position: relative;
+    z-index: 10;
+    animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.kiosk-auth-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.kiosk-brand-logo {
+    display: block;
+    height: 48px;
+    width: auto;
+    max-width: 220px;
+    object-fit: contain;
+    margin: 0 auto 16px auto;
+    filter: drop-shadow(0 4px 12px rgba(99, 102, 241, 0.3));
+}
+
+.kiosk-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(99, 102, 241, 0.18);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 auto 18px auto;
+}
+
+.kiosk-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.02em;
+}
+
+.kiosk-subtitle {
+    font-size: 0.84rem;
+    color: #94a3b8;
+    margin: 0 0 20px 0;
+    line-height: 1.5;
+}
+
+.pin-input-wrap {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.pin-input {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.25em;
+    text-align: center;
+    background: rgba(2, 6, 23, 0.6);
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    border-radius: 14px;
+    color: #ffffff;
+    outline: none;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+    text-transform: uppercase;
+}
+
+.pin-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+    background: rgba(2, 6, 23, 0.85);
+}
+
+.btn-unlock {
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
+}
+
+.btn-unlock:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(79, 70, 229, 0.45);
+}
+
+.btn-unlock:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.info-footer {
+    margin-top: 20px;
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+.kiosk-nav-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.btn-kiosk-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-kiosk-nav:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #f8fafc;
+    transform: translateY(-1px);
+}
+
+.live-clock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+}

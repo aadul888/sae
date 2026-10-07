@@ -1,11 +1,4 @@
 <!-- Progressive Web App (PWA) Standard Manifest & Meta Tags -->
-<script>
-    window.__SAE_PWA__ = {
-        swUrl: "/sw.js",
-        scope: "/",
-        isSecure: window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-    };
-</script>
 <link rel="manifest" id="pwaManifestLink" href="/manifest.json?v=8">
 <link rel="alternate" type="application/manifest+json" href="/manifest.webmanifest?v=8">
 

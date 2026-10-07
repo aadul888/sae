@@ -795,3 +795,22 @@ body {
     }
 }
 
+/* Formulir Receipt Card (Success view) */
+.receipt-card {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    text-align: left;
+    font-size: 0.82rem;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+}
+

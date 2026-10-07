@@ -10,15 +10,11 @@
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('css/formulir-public.css') }}">
-    <style>
-        :root {
-            --primary: {{ $formulir->pengaturan['theme_color'] ?? '#0284c7' }};
-        }
-    </style>
+    <link rel="stylesheet"
+        href="{{ asset('css/formulir-public.css') }}?v={{ file_exists(public_path('css/formulir-public.css')) ? filemtime(public_path('css/formulir-public.css')) : time() }}">
 </head>
 
-<body>
+<body data-theme-color="{{ $formulir->pengaturan['theme_color'] ?? '#0284c7' }}">
 
     <div class="form-container">
         @php
@@ -42,15 +38,18 @@
                 </div>
             </div>
             <a href="{{ url('/') }}" class="sae-brand-badge" title="SAE - Sistem Aplikasi Edukasi">
-                <img src="{{ $dashLogoDark }}" alt="SAE Logo" class="sae-header-logo" onerror="this.onerror=null; this.src='{{ $dashLogoIcon }}';">
+                <img src="{{ $dashLogoDark }}" alt="SAE Logo" class="sae-header-logo"
+                    onerror="this.onerror=null; this.src='{{ $dashLogoIcon }}';">
             </a>
         </div>
 
         <!-- Banner Identitas Pengguna Terautentikasi -->
         @if ($user)
             @php
-                $userName = $studentInfo->nama ?? (is_array($user) ? ($user['nama'] ?? 'Pengguna SAE') : ($user->nama ?? 'Pengguna SAE'));
-                $userRoleStr = is_array($user) ? ($user['role'] ?? 'Pengguna') : ($user->role ?? 'Pengguna');
+                $userName =
+                    $studentInfo->nama ??
+                    (is_array($user) ? $user['nama'] ?? 'Pengguna SAE' : $user->nama ?? 'Pengguna SAE');
+                $userRoleStr = is_array($user) ? $user['role'] ?? 'Pengguna' : $user->role ?? 'Pengguna';
             @endphp
             <div class="auth-banner">
                 <div class="auth-banner-user">
@@ -74,8 +73,10 @@
                 <div class="guest-banner-info">
                     <i class="fas fa-user-clock text-primary" style="font-size: 1.25rem;"></i>
                     <div>
-                        <div style="font-weight: 700; color: #1e293b; font-size: 0.86rem;">Mengisi sebagai Responden Publik</div>
-                        <div style="font-size: 0.76rem; color: #64748b;">Punya akun SAE (Peserta Didik/Guru)? Masuk agar identitas terisi otomatis.</div>
+                        <div style="font-weight: 700; color: #1e293b; font-size: 0.86rem;">Mengisi sebagai Responden
+                            Publik</div>
+                        <div style="font-size: 0.76rem; color: #64748b;">Punya akun SAE (Peserta Didik/Guru)? Masuk agar
+                            identitas terisi otomatis.</div>
                     </div>
                 </div>
                 <a href="{{ route('login') }}" class="btn-login-option">
@@ -134,43 +135,56 @@
                             @if ($type === 'sae_nama')
                                 @if ($user)
                                     <div class="field-locked-group">
-                                        <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}" class="form-control field-locked"
-                                            value="{{ $studentInfo->nama ?? (is_array($user) ? ($user['nama'] ?? '') : ($user->nama ?? '')) }}" readonly>
-                                        <span class="field-badge-verified"><i class="fas fa-check-circle"></i> Terverifikasi Akun</span>
+                                        <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}"
+                                            class="form-control field-locked"
+                                            value="{{ $studentInfo->nama ?? (is_array($user) ? $user['nama'] ?? '' : $user->nama ?? '') }}"
+                                            readonly>
+                                        <span class="field-badge-verified"><i class="fas fa-check-circle"></i>
+                                            Terverifikasi Akun</span>
                                     </div>
                                 @else
-                                    <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}" class="form-control"
+                                    <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}"
+                                        class="form-control"
                                         placeholder="{{ $placeholder ?: 'Ketik nama lengkap Anda...' }}"
                                         {{ $required ? 'required' : '' }} value="{{ old($fieldId) }}">
-                                    <div class="form-text-hint"><i class="fas fa-pen-nib me-1"></i> Responden Publik: Masukkan nama lengkap Anda.</div>
+                                    <div class="form-text-hint"><i class="fas fa-pen-nib me-1"></i> Responden Publik:
+                                        Masukkan nama lengkap Anda.</div>
                                 @endif
-
                             @elseif ($type === 'sae_nisn')
                                 @if ($user)
                                     <div class="field-locked-group">
-                                        <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}" class="form-control field-locked"
-                                            value="{{ $studentInfo->nisn ?? (is_array($user) ? ($user['username'] ?? '') : ($user->username ?? '')) }}" readonly>
-                                        <span class="field-badge-verified"><i class="fas fa-check-circle"></i> Terverifikasi Akun</span>
+                                        <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}"
+                                            class="form-control field-locked"
+                                            value="{{ $studentInfo->nisn ?? (is_array($user) ? $user['username'] ?? '' : $user->username ?? '') }}"
+                                            readonly>
+                                        <span class="field-badge-verified"><i class="fas fa-check-circle"></i>
+                                            Terverifikasi Akun</span>
                                     </div>
                                 @else
-                                    <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}" class="form-control"
+                                    <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}"
+                                        class="form-control"
                                         placeholder="{{ $placeholder ?: 'Ketik NISN / NIK / No. Identitas...' }}"
                                         {{ $required ? 'required' : '' }} value="{{ old($fieldId) }}">
-                                    <div class="form-text-hint"><i class="fas fa-id-card me-1"></i> Nomor induk peserta didik, NIK, atau nomor identitas responden.</div>
+                                    <div class="form-text-hint"><i class="fas fa-id-card me-1"></i> Nomor induk peserta
+                                        didik, NIK, atau nomor identitas responden.</div>
                                 @endif
-
                             @elseif ($type === 'sae_rombel')
                                 @if ($user)
                                     <div class="field-locked-group">
-                                        <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}" class="form-control field-locked"
-                                            value="{{ $studentInfo->nama_rombel ?? (is_array($user) ? ($user['kelas'] ?? '') : '') }}" readonly>
-                                        <span class="field-badge-verified"><i class="fas fa-check-circle"></i> Terverifikasi Akun</span>
+                                        <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}"
+                                            class="form-control field-locked"
+                                            value="{{ $studentInfo->nama_rombel ?? (is_array($user) ? $user['kelas'] ?? '' : '') }}"
+                                            readonly>
+                                        <span class="field-badge-verified"><i class="fas fa-check-circle"></i>
+                                            Terverifikasi Akun</span>
                                     </div>
                                 @else
-                                    <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}" class="form-control"
+                                    <input type="text" name="{{ $fieldId }}" id="{{ $fieldId }}"
+                                        class="form-control"
                                         placeholder="{{ $placeholder ?: 'Contoh: XII TKJ 1, Guru, atau Umum...' }}"
                                         {{ $required ? 'required' : '' }} value="{{ old($fieldId) }}">
-                                    <div class="form-text-hint"><i class="fas fa-users-rectangle me-1"></i> Rombel/kelas, unit kerja, atau asal instansi.</div>
+                                    <div class="form-text-hint"><i class="fas fa-users-rectangle me-1"></i>
+                                        Rombel/kelas, unit kerja, atau asal instansi.</div>
                                 @endif
 
                                 <!-- Tipe: Teks Singkat -->

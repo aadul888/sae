@@ -1,0 +1,5058 @@
+/**
+ * SAE — Master Print & Cetak Stylesheet
+ * Terpusat untuk seluruh dokumen cetak (A4 Portrait, Landscape, Slip, SKL, SPT, dsb.)
+ */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #f3f4f6;
+    color: #111827;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 20px;
+    font-size: 11pt;
+    line-height: 1.4;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+/* Floating Action Toolbar (Non-Printable) */
+.no-print-bar {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    z-index: 9999;
+    font-size: 0.85rem;
+}
+
+.no-print-bar button,
+.no-print-bar a,
+.btn-print,
+.btn-back,
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-print, .btn-primary {
+    background: #10b981;
+    color: #fff;
+}
+.btn-print:hover, .btn-primary:hover {
+    background: #059669;
+}
+
+.btn-back, .btn-secondary {
+    background: rgba(255,255,255,0.15);
+    color: #e2e8f0;
+}
+.btn-back:hover, .btn-secondary:hover {
+    background: rgba(255,255,255,0.25);
+}
+
+/* Page Containers */
+.cetak-page, .paper {
+    background: #fff;
+    margin: 0 auto 28px auto;
+    padding: 20mm 20mm;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    max-width: 850px;
+    min-height: 297mm;
+}
+
+.cetak-page.landscape, .paper.landscape {
+    max-width: 1120px;
+    min-height: 210mm;
+}
+
+/* Watermark SAE */
+.watermark-sae {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 420px;
+    height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.watermark-sae img {
+    width: 100%;
+    height: auto;
+    filter: grayscale(100%);
+}
+
+/* KOP Surat & Header Dokumen */
+.kop-container, .doc-header {
+    text-align: center;
+    border-bottom: 2.5px solid #000;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 1;
+}
+
+.kop-double-line {
+    border-bottom: 3px double #000;
+}
+
+.kop-logo {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+}
+
+.kop-fallback {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    text-align: left;
+}
+
+.kop-text-wrap, .doc-header-text {
+    flex: 1;
+    text-align: center;
+}
+
+.kop-title, .doc-header .school-name {
+    font-size: 14pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+}
+
+.kop-subtitle, .doc-header .doc-subtitle {
+    font-size: 9.5pt;
+    color: #374151;
+    margin-top: 3px;
+    line-height: 1.35;
+}
+
+.doc-title-main {
+    font-size: 13pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 16px 0 4px 0;
+    text-align: center;
+    text-decoration: underline;
+}
+
+.doc-nomor-surat {
+    font-size: 10pt;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 18px;
+}
+
+/* Tabel Data Cetak */
+.table-cetak, .table-data {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 9.5pt;
+}
+
+.table-cetak th, .table-cetak td,
+.table-data th, .table-data td {
+    border: 1px solid #1f2937;
+    padding: 6px 8px;
+    vertical-align: middle;
+}
+
+.table-cetak th, .table-data th {
+    background-color: #f3f4f6 !important;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Tanda Tangan (Signature) */
+.signature-container, .ttd-container {
+    margin-top: 24px;
+    display: flex;
+    justify-content: flex-end;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.sig-box, .ttd-box {
+    text-align: center;
+    min-width: 220px;
+    font-size: 10pt;
+}
+
+.sig-space, .ttd-space {
+    height: 60px;
+}
+
+.sig-name, .ttd-name {
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.sig-nip, .ttd-nip {
+    font-size: 9pt;
+    color: #374151;
+}
+
+/* Media Print Rules */
+@media print {
+    @page {
+        size: auto;
+        margin: 10mm;
+    }
+
+    body {
+        background: none !important;
+        padding: 0 !important;
+    }
+
+    .no-print, .no-print-bar, .action-toolbar {
+        display: none !important;
+    }
+
+    .cetak-page, .paper {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    .page-break {
+        page-break-after: always;
+        break-after: always;
+    }
+}
+
+/* ==========================================================================
+   Template: agenda-kbm-cetak.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            color: #000;
+            background: #f1f5f9;
+            padding: 24px;
+            font-size: 11pt;
+            line-height: 1.35;
+        }
+        .paper {
+            background: #fff;
+            max-width: 297mm;
+            min-height: 210mm;
+            margin: 0 auto;
+            padding: 15mm 15mm;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .doc-header .school-name {
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+        }
+        .doc-header .doc-title-main {
+            font-size: 13pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1e3a8a;
+            margin: 4px 0 2px 0;
+        }
+        .doc-header .doc-subtitle {
+            font-size: 10pt;
+            color: #4b5563;
+        }
+        .doc-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 10pt;
+        }
+        .meta-row {
+            display: flex;
+            gap: 6px;
+        }
+        .meta-label {
+            width: 140px;
+        }
+        table.kbm-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+            margin-bottom: 20px;
+        }
+        table.kbm-table th, table.kbm-table td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            vertical-align: top;
+        }
+        table.kbm-table th {
+            background: #e2e8f0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+        .sig-box {
+            width: 240px;
+            text-align: center;
+            font-size: 10pt;
+        }
+        .sig-space {
+            height: 65px;
+        }
+        .sig-name {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .paper {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: jadwal-kbm-cetak-guru.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+            color: #111827;
+        }
+
+        .guru-page {
+            background: #fff;
+            max-width: 1200px;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .guru-page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 440px;
+            height: 440px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        .doc-header {
+            text-align: center;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .school-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #111827;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 3px 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.82rem;
+            color: #4b5563;
+        }
+
+        /* Bio Guru Box */
+        .bio-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bio-item {
+            margin-bottom: 4px;
+        }
+
+        .bio-label {
+            font-weight: 600;
+            color: #6b7280;
+            display: inline-block;
+            width: 110px;
+        }
+
+        /* Table Matriks Jam x Hari */
+        .table-guru {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-guru th,
+        .table-guru td {
+            border: 1px solid #9ca3af;
+            padding: 6px 8px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table-guru th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+        }
+
+        .th-jam {
+            background-color: #f9fafb;
+            font-weight: 700;
+            width: 110px;
+        }
+
+        .cell-kbm {
+            background-color: #eff6ff;
+            line-height: 1.25;
+            padding: 6px 4px;
+        }
+
+        .cell-upacara {
+            background-color: #fef2f2 !important;
+            border-left: 3px solid #ef4444 !important;
+        }
+
+        .cell-pembiasaan {
+            background-color: #f0fdf4 !important;
+            border-left: 3px solid #10b981 !important;
+        }
+
+        .cell-istirahat {
+            background-color: #fffbeb !important;
+            border-left: 3px solid #f59e0b !important;
+        }
+
+        .routine-title {
+            font-weight: 700;
+            display: block;
+            font-size: 0.76rem;
+        }
+
+        .cell-upacara .routine-title {
+            color: #b91c1c;
+        }
+
+        .cell-pembiasaan .routine-title {
+            color: #047857;
+        }
+
+        .cell-istirahat .routine-title {
+            color: #b45309;
+        }
+
+        .routine-desc {
+            font-size: 0.67rem;
+            color: #4b5563;
+            display: block;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .rombel-name {
+            font-weight: 700;
+            color: #1e3a8a;
+            display: block;
+            font-size: 0.78rem;
+        }
+
+        .mapel-name {
+            font-size: 0.70rem;
+            color: #374151;
+            display: block;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .ruangan-badge {
+            font-size: 0.65rem;
+            color: #059669;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 1px;
+        }
+
+        /* Signatures */
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            font-size: 0.82rem;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 240px;
+        }
+
+        .sig-space {
+            height: 55px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        /* Floating bar */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .guru-page {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                margin-bottom: 0;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+
+            @page {
+                size: landscape;
+                margin: 10mm 12mm;
+            }
+        }
+
+/* ==========================================================================
+   Template: jadwal-kbm-cetak-induk.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+            color: #111827;
+        }
+
+        .day-header-banner,
+        .day-header-banner *,
+        .day-header-banner span,
+        .day-header-banner i {
+            color: #ffffff !important;
+        }
+
+        .print-page {
+            background: #fff;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 460px;
+            height: 460px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        .doc-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .school-name {
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #111827;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 4px 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.82rem;
+            color: #4b5563;
+        }
+
+        /* Tabel Matriks */
+        .table-induk {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.72rem;
+            margin-bottom: 20px;
+        }
+
+        .table-induk th,
+        .table-induk td {
+            border: 1px solid #9ca3af;
+            padding: 4px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table-induk th {
+            background-color: #e5e7eb;
+            font-weight: 700;
+        }
+
+        .th-rombel {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            text-align: left !important;
+            padding-left: 8px !important;
+            white-space: nowrap;
+        }
+
+        .cell-kbm {
+            background-color: #eff6ff;
+            line-height: 1.2;
+            padding: 4px 2px;
+        }
+
+        .cell-upacara {
+            background-color: #fef2f2 !important;
+            border-left: 3px solid #ef4444 !important;
+        }
+
+        .cell-pembiasaan {
+            background-color: #f0fdf4 !important;
+            border-left: 3px solid #10b981 !important;
+        }
+
+        .cell-istirahat {
+            background-color: #fffbeb !important;
+            border-left: 3px solid #f59e0b !important;
+        }
+
+        .routine-title {
+            font-weight: 700;
+            display: block;
+            font-size: 0.7rem;
+        }
+
+        .cell-upacara .routine-title {
+            color: #b91c1c;
+        }
+
+        .cell-pembiasaan .routine-title {
+            color: #047857;
+        }
+
+        .cell-istirahat .routine-title {
+            color: #b45309;
+        }
+
+        .mapel-name {
+            font-weight: 700;
+            color: #1e3a8a;
+            display: block;
+            font-size: 0.7rem;
+        }
+
+        .guru-name {
+            font-size: 0.65rem;
+            color: #4b5563;
+            display: block;
+        }
+
+        .cell-empty {
+            color: #9ca3af;
+            font-size: 0.68rem;
+        }
+
+        /* Tanda Tangan */
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            font-size: 0.82rem;
+            page-break-inside: avoid;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 260px;
+        }
+
+        .sig-space {
+            height: 60px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        /* Tombol Navigasi / Floating */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .print-page {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+
+            @page {
+                size: landscape;
+                margin: 8mm 10mm;
+            }
+        }
+
+/* ==========================================================================
+   Template: jadwal-kbm-cetak-rombel.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+            color: #111827;
+        }
+
+        .rombel-page {
+            background: #fff;
+            max-width: 1050px;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rombel-page:last-child {
+            page-break-after: avoid;
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        .doc-header {
+            text-align: center;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .school-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #111827;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 3px 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.8rem;
+            color: #4b5563;
+        }
+
+        /* Info Rombel Box */
+        .info-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+        }
+
+        .info-item {
+            margin-bottom: 4px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            display: inline-block;
+            width: 100px;
+        }
+
+        /* Table */
+        .table-rombel {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            margin-bottom: 24px;
+        }
+
+        .table-rombel th,
+        .table-rombel td {
+            border: 1px solid #9ca3af;
+            padding: 6px 8px;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table-rombel th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+        }
+
+        .th-jam {
+            background-color: #f9fafb;
+            font-weight: 700;
+            width: 110px;
+        }
+
+        .cell-kbm {
+            background-color: #eff6ff;
+            line-height: 1.25;
+            padding: 6px 4px;
+        }
+
+        .cell-upacara {
+            background-color: #fef2f2 !important;
+            border-left: 3px solid #ef4444 !important;
+        }
+
+        .cell-pembiasaan {
+            background-color: #f0fdf4 !important;
+            border-left: 3px solid #10b981 !important;
+        }
+
+        .cell-istirahat {
+            background-color: #fffbeb !important;
+            border-left: 3px solid #f59e0b !important;
+        }
+
+        .routine-title {
+            font-weight: 700;
+            display: block;
+            font-size: 0.75rem;
+        }
+
+        .cell-upacara .routine-title {
+            color: #b91c1c;
+        }
+
+        .cell-pembiasaan .routine-title {
+            color: #047857;
+        }
+
+        .cell-istirahat .routine-title {
+            color: #b45309;
+        }
+
+        .mapel-name {
+            font-weight: 700;
+            color: #1e3a8a;
+            display: block;
+            font-size: 0.75rem;
+        }
+
+        .guru-name {
+            font-size: 0.68rem;
+            color: #4b5563;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* Signatures */
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            font-size: 0.82rem;
+            page-break-inside: avoid;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 240px;
+        }
+
+        .sig-space {
+            height: 55px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        /* Floating bar */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .rombel-page {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                margin-bottom: 0;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+
+            @page {
+                size: landscape;
+                margin: 10mm 12mm;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-cuti.blade.php
+   ========================================================================== */
+@page {
+            size: A4 portrait;
+            margin: 15mm 20mm 15mm 20mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #1f2937;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm 20mm;
+            margin: 0 auto;
+            background: #ffffff;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-sizing: border-box;
+        }
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 5.5rem;
+            font-weight: 900;
+            color: rgba(79, 70, 229, 0.035);
+            text-transform: uppercase;
+            letter-spacing: 12px;
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
+            user-select: none;
+        }
+        .kop-surat {
+            border-bottom: 3px double #1f2937;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .kop-surat img {
+            width: 100%;
+            max-height: 120px;
+            object-fit: contain;
+        }
+        .kop-fallback h2 {
+            margin: 0;
+            font-size: 14pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #111827;
+        }
+        .kop-fallback h1 {
+            margin: 4px 0;
+            font-size: 18pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #1e3a8a;
+        }
+        .kop-fallback p {
+            margin: 0;
+            font-size: 9.5pt;
+            color: #4b5563;
+        }
+        .doc-title {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .doc-title h3 {
+            margin: 0;
+            font-size: 13pt;
+            text-decoration: underline;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #111827;
+        }
+        .doc-title .doc-num {
+            margin: 4px 0 0 0;
+            font-size: 10.5pt;
+            color: #4b5563;
+        }
+        .content-body {
+            position: relative;
+            z-index: 1;
+            font-size: 11pt;
+            line-height: 1.6;
+            text-align: justify;
+        }
+        .bio-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0 20px 0;
+        }
+        .bio-table td {
+            padding: 5px 8px;
+            vertical-align: top;
+            font-size: 11pt;
+        }
+        .bio-table td.label {
+            width: 28%;
+            color: #374151;
+        }
+        .bio-table td.sep {
+            width: 3%;
+            text-align: center;
+        }
+        .bio-table td.val {
+            font-weight: 600;
+            color: #111827;
+        }
+        .ttd-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 40px;
+            position: relative;
+            z-index: 1;
+            page-break-inside: avoid;
+        }
+        .ttd-box {
+            text-align: center;
+            width: 250px;
+        }
+        .ttd-space {
+            height: 75px;
+        }
+        .print-control-bar {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #ffffff;
+            padding: 10px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            z-index: 99999;
+            border: 1px solid #e5e7eb;
+        }
+        .btn-print {
+            background: #4f46e5;
+            color: #ffffff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-print:hover {
+            background: #4338ca;
+        }
+        .btn-close-print {
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        @media print {
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .page-container {
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                min-height: auto;
+            }
+            .print-control-bar {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-mutasi.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+        }
+
+        .cetak-page {
+            background: #fff;
+            margin: 0 auto 28px auto;
+            padding: 24px 35px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            @if ($orientasi === 'landscape')
+                max-width: 1100px;
+            @else
+                max-width: 850px;
+            @endif
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Sekolah Resmi */
+        .kop-container {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+        }
+
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .kop-text-wrap {
+            flex: 1;
+        }
+
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Judul Surat Resmi */
+        .doc-header {
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #111827;
+            text-decoration: underline;
+            margin: 0 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.85rem;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        /* Isi Naskah Surat */
+        .surat-body {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            text-align: justify;
+            position: relative;
+            z-index: 1;
+        }
+
+        .surat-body p {
+            margin-bottom: 12px;
+            text-indent: 28px;
+        }
+
+        /* Tabel Biodata Siswa */
+        .table-bio {
+            width: 100%;
+            margin: 12px 0 16px 20px;
+            font-size: 0.88rem;
+            border-collapse: collapse;
+        }
+
+        .table-bio td {
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+
+        .table-bio td.label {
+            width: 190px;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        .table-bio td.colon {
+            width: 12px;
+        }
+
+        .table-bio td.val {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Signatures Area */
+        .signature-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+            font-size: 0.86rem;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 260px;
+        }
+
+        .sig-date {
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        .sig-title {
+            color: #111827;
+            font-weight: 700;
+            margin-bottom: 65px;
+        }
+
+        .sig-name {
+            font-weight: 800;
+            text-decoration: underline;
+            color: #111827;
+        }
+
+        .sig-nip {
+            font-size: 0.78rem;
+            color: #4b5563;
+            margin-top: 2px;
+        }
+
+        /* Footer Verifikasi Dokumen Digital */
+        .doc-footer {
+            margin-top: 30px;
+            padding-top: 12px;
+            border-top: 1px dashed #d1d5db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+            position: relative;
+            z-index: 1;
+        }
+
+        .qr-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .qr-badge img {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #d1d5db;
+            padding: 2px;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        /* Floating bar */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        .btn-back:hover {
+            background: #374151;
+        }
+
+        .orientation-switch {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 30px;
+            padding: 2px;
+        }
+
+        .btn-orientasi {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b5563;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-orientasi:hover {
+            color: #111827;
+        }
+
+        .btn-orientasi.active {
+            background: #1e3a8a;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
+        }
+
+        @page {
+            size: A4 {{ $orientasi }};
+            margin: 10mm 14mm;
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+            }
+
+            .cetak-page {
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                margin-bottom: 0 !important;
+                border-radius: 0 !important;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-panggilan-wali.blade.php
+   ========================================================================== */
+@page {
+            size: A4 portrait;
+            margin: 20mm 20mm 20mm 20mm;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            color: #000;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+        .kop-surat {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            border-bottom: 3px double #000;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .kop-logo {
+            width: 75px;
+            height: 75px;
+            object-fit: contain;
+        }
+        .kop-text h3 {
+            margin: 0;
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kop-text h2 {
+            margin: 2px 0;
+            font-size: 16pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .kop-text p {
+            margin: 0;
+            font-size: 9.5pt;
+        }
+        .meta-surat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 11.5pt;
+        }
+        .isi-surat {
+            font-size: 11.5pt;
+            text-align: justify;
+        }
+        .tabel-agenda {
+            width: 100%;
+            margin: 16px 0 20px 24px;
+            border-collapse: collapse;
+        }
+        .tabel-agenda td {
+            padding: 4px 6px;
+            vertical-align: top;
+            font-size: 11.5pt;
+        }
+        .ttd-box {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            page-break-inside: avoid;
+        }
+        .ttd-kanan {
+            text-align: left;
+            min-width: 240px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-rekap-prestasi.blade.php
+   ========================================================================== */
+@page {
+            size: A4 landscape;
+            margin: 15mm 15mm 15mm 15mm;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            color: #000;
+            line-height: 1.4;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+        .kop-surat {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            border-bottom: 3px double #000;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .kop-logo {
+            width: 75px;
+            height: 75px;
+            object-fit: contain;
+        }
+        .kop-text h3 {
+            margin: 0;
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kop-text h2 {
+            margin: 2px 0;
+            font-size: 16pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .kop-text p {
+            margin: 0;
+            font-size: 9.5pt;
+        }
+        .judul-laporan {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .judul-laporan h4 {
+            margin: 0;
+            font-size: 13pt;
+            text-decoration: underline;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .judul-laporan p {
+            margin: 4px 0 0 0;
+            font-size: 10pt;
+        }
+        .tabel-data {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .tabel-data th, .tabel-data td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 9.5pt;
+            vertical-align: middle;
+        }
+        .tabel-data th {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .ttd-box {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            page-break-inside: avoid;
+        }
+        .ttd-kolom {
+            text-align: left;
+            min-width: 250px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-skl.blade.php
+   ========================================================================== */
+@page {
+            size: A4 portrait;
+            margin: 20mm 20mm 20mm 20mm;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            color: #000;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+        }
+        .kop-surat {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            border-bottom: 3px double #000;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .kop-logo {
+            width: 75px;
+            height: 75px;
+            object-fit: contain;
+        }
+        .kop-text h3 {
+            margin: 0;
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kop-text h2 {
+            margin: 2px 0;
+            font-size: 16pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .kop-text p {
+            margin: 0;
+            font-size: 9.5pt;
+        }
+        .judul-surat {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .judul-surat h4 {
+            margin: 0;
+            font-size: 14pt;
+            text-decoration: underline;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .judul-surat p {
+            margin: 4px 0 0 0;
+            font-size: 11pt;
+        }
+        .isi-surat {
+            font-size: 11.5pt;
+            text-align: justify;
+        }
+        .tabel-bio {
+            width: 100%;
+            margin: 16px 0 20px 24px;
+            border-collapse: collapse;
+        }
+        .tabel-bio td {
+            padding: 4px 6px;
+            vertical-align: top;
+            font-size: 11.5pt;
+        }
+        .ttd-box {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            page-break-inside: avoid;
+        }
+        .ttd-kanan {
+            text-align: left;
+            min-width: 240px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-disposisi.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+        }
+
+        .cetak-page {
+            background: #fff;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            @if ($orientasi === 'landscape')
+                max-width: 1100px;
+            @else
+                max-width: 850px;
+            @endif
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Sekolah Resmi */
+        .kop-container {
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+        }
+
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .kop-text-wrap {
+            flex: 1;
+        }
+
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Dokumen Bersih */
+        .doc-header {
+            text-align: center;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 0 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.8rem;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        /* Table Box Disposisi */
+        .table-disp {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-disp th,
+        .table-disp td {
+            border: 1px solid #9ca3af;
+            padding: 8px 10px;
+            vertical-align: top;
+        }
+
+        .table-disp th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #111827;
+            width: 160px;
+        }
+
+        /* Checkbox list instruksi */
+        .instruksi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.82rem;
+        }
+
+        .instruksi-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .box-check {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #111827;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Signatures Area */
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            font-size: 0.82rem;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 240px;
+        }
+
+        .sig-title {
+            color: #4b5563;
+            line-height: 1.35;
+            margin-bottom: 60px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-decoration: underline;
+            color: #111827;
+        }
+
+        .sig-nip {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        /* Footer Verifikasi Dokumen Digital */
+        .doc-footer {
+            margin-top: 24px;
+            padding-top: 10px;
+            border-top: 1px dashed #d1d5db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Floating bar */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        .btn-back:hover {
+            background: #374151;
+        }
+
+        .orientation-switch {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 30px;
+            padding: 2px;
+        }
+
+        .btn-orientasi {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b5563;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-orientasi:hover {
+            color: #111827;
+        }
+
+        .btn-orientasi.active {
+            background: #1e3a8a;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
+        }
+
+        @page {
+            size: A4 {{ $orientasi }};
+            margin: 10mm 12mm;
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+            }
+
+            .cetak-page {
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                margin-bottom: 0 !important;
+                border-radius: 0 !important;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-spt.blade.php
+   ========================================================================== */
+@page {
+            size: A4 portrait;
+            margin: 15mm 20mm 15mm 20mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #1f2937;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .page-container {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm 20mm;
+            margin: 0 auto;
+            background: #ffffff;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .kop-surat {
+            border-bottom: 3px double #1f2937;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .kop-surat img {
+            width: 100%;
+            max-height: 120px;
+            object-fit: contain;
+        }
+        .kop-fallback h2 {
+            margin: 0;
+            font-size: 13pt;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #111827;
+        }
+        .kop-fallback h1 {
+            margin: 4px 0;
+            font-size: 17pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #1e3a8a;
+        }
+        .kop-fallback p {
+            margin: 0;
+            font-size: 9.5pt;
+            color: #4b5563;
+        }
+        .doc-title {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .doc-title h3 {
+            margin: 0;
+            font-size: 13pt;
+            text-decoration: underline;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #111827;
+        }
+        .doc-title .doc-num {
+            margin: 4px 0 0 0;
+            font-size: 10.5pt;
+            color: #374151;
+        }
+        .content-body {
+            text-align: justify;
+            margin-bottom: 20px;
+        }
+        table.table-gtk {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0 20px 0;
+        }
+        table.table-gtk th, table.table-gtk td {
+            border: 1px solid #374151;
+            padding: 8px 10px;
+            font-size: 10pt;
+        }
+        table.table-gtk th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            text-align: center;
+        }
+        .ttd-container {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .ttd-box {
+            width: 250px;
+            text-align: center;
+        }
+        .no-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 999;
+        }
+        .btn-print {
+            background: #2563eb;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+            }
+            .page-container {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+                min-height: auto;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-surat-keterangan.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+        }
+
+        .cetak-page {
+            background: #fff;
+            margin: 0 auto 28px auto;
+            padding: 24px 35px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            @if ($orientasi === 'landscape')
+                max-width: 1100px;
+            @else
+                max-width: 850px;
+            @endif
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Sekolah Resmi */
+        .kop-container {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+        }
+
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .kop-text-wrap {
+            flex: 1;
+        }
+
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Judul Surat Resmi */
+        .doc-header {
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #111827;
+            text-decoration: underline;
+            margin: 0 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.85rem;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        /* Isi Naskah Surat */
+        .surat-body {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            text-align: justify;
+            position: relative;
+            z-index: 1;
+        }
+
+        .surat-body p {
+            margin-bottom: 12px;
+            text-indent: 28px;
+        }
+
+        /* Tabel Biodata Siswa */
+        .table-bio {
+            width: 100%;
+            margin: 12px 0 16px 20px;
+            font-size: 0.88rem;
+            border-collapse: collapse;
+        }
+
+        .table-bio td {
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+
+        .table-bio td.label {
+            width: 180px;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        .table-bio td.colon {
+            width: 12px;
+        }
+
+        .table-bio td.val {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Signatures Area */
+        .signature-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+            font-size: 0.86rem;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 260px;
+        }
+
+        .sig-date {
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+        .sig-title {
+            color: #111827;
+            font-weight: 700;
+            margin-bottom: 65px;
+        }
+
+        .sig-name {
+            font-weight: 800;
+            text-decoration: underline;
+            color: #111827;
+        }
+
+        .sig-nip {
+            font-size: 0.78rem;
+            color: #4b5563;
+            margin-top: 2px;
+        }
+
+        /* Footer Verifikasi Dokumen Digital */
+        .doc-footer {
+            margin-top: 30px;
+            padding-top: 12px;
+            border-top: 1px dashed #d1d5db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+            position: relative;
+            z-index: 1;
+        }
+
+        .qr-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .qr-badge img {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #d1d5db;
+            padding: 2px;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        /* Floating bar */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        .btn-back:hover {
+            background: #374151;
+        }
+
+        .orientation-switch {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 30px;
+            padding: 2px;
+        }
+
+        .btn-orientasi {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b5563;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-orientasi:hover {
+            color: #111827;
+        }
+
+        .btn-orientasi.active {
+            background: #1e3a8a;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
+        }
+
+        @page {
+            size: A4 {{ $orientasi }};
+            margin: 10mm 14mm;
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+            }
+
+            .cetak-page {
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                margin-bottom: 0 !important;
+                border-radius: 0 !important;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: peserta-didik-aktif-cetak.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+        }
+
+        /* Container Dokumen */
+        .cetak-page {
+            background: #fff;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+
+            @if ($orientasi === 'landscape')
+                max-width: 1120px;
+            @else
+                max-width: 850px;
+            @endif
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Resmi */
+        .kop-container {
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+        }
+
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .kop-text-wrap {
+            flex: 1;
+        }
+
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+            line-height: 1.25;
+        }
+
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #374151;
+            margin-top: 3px;
+            line-height: 1.35;
+        }
+
+        /* Judul Dokumen */
+        .doc-title-block {
+            text-align: center;
+            margin: 16px 0 14px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #0f172a;
+        }
+
+        .doc-subtitle {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #059669;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Info Grid Kelas */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 8px 16px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .info-lbl {
+            font-weight: 600;
+            color: #64748b;
+            min-width: 115px;
+        }
+
+        .info-val {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Tabel Data Peserta Didik */
+        .table-data {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-data th,
+        .table-data td {
+            border: 1px solid #cbd5e1;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .table-data th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+
+        .table-data tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .col-center {
+            text-align: center;
+        }
+
+        .col-mono {
+            font-family: monospace;
+            font-size: 0.76rem;
+        }
+
+        /* Tanda Tangan */
+        .ttd-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 24px;
+            font-size: 0.82rem;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ttd-box {
+            text-align: center;
+            width: 250px;
+        }
+
+        .ttd-space {
+            height: 65px;
+        }
+
+        /* Floating Action Bar (No-Print) */
+        .no-print-bar {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+            z-index: 99999;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .no-print-bar a,
+        .no-print-bar button {
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.15);
+            color: #f1f5f9;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+
+        .orientation-switch {
+            display: flex;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 20px;
+            padding: 2px;
+        }
+
+        .btn-orientasi {
+            background: transparent;
+            color: #94a3b8;
+            padding: 4px 10px !important;
+            font-size: 0.75rem !important;
+        }
+
+        .btn-orientasi.active {
+            background: #059669;
+            color: #fff;
+        }
+
+        .btn-print {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #059669;
+        }
+
+        /* Aturan Cetak Browser */
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+
+            .cetak-page {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+
+            @page {
+                size: A4 {{ $orientasi }};
+                margin: 8mm 10mm;
+            }
+
+            .table-data th {
+                background-color: #f1f5f9 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .table-data tbody tr {
+                page-break-inside: avoid;
+            }
+
+            .info-grid {
+                background: #f8fafc !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+/* ==========================================================================
+   Template: peserta-didik-presensi-cetak.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+        }
+
+        .cetak-page {
+            background: #fff;
+            max-width: 900px;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Sekolah Resmi */
+        .kop-container {
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+        }
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 3px double #1f2937;
+            padding-bottom: 8px;
+            text-align: center;
+        }
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .kop-text-wrap {
+            flex: 1;
+        }
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Judul Dokumen (Sesuai Modul Jadwal KBM) */
+        .doc-header {
+            text-align: center;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .doc-header .doc-title-main {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #1e3a8a;
+            margin: 0 0 2px 0;
+        }
+        .doc-header .doc-subtitle {
+            font-size: 0.82rem;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        /* Info Box Identitas Siswa (Sesuai Modul Jadwal KBM) */
+        .info-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+            position: relative;
+            z-index: 1;
+        }
+        .info-item {
+            margin-bottom: 4px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            display: inline-block;
+            width: 140px;
+        }
+        .info-val {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Tabel Rekapitulasi Statistik */
+        .table-rekap {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .table-rekap th, .table-rekap td {
+            border: 1px solid #d1d5db;
+            padding: 6px 8px;
+            text-align: center;
+        }
+        .table-rekap th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #374151;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+        }
+
+        /* Tabel Rincian Kehadiran Harian */
+        .table-presensi {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+        .table-presensi th, .table-presensi td {
+            border: 1px solid #d1d5db;
+            padding: 6px 10px;
+            vertical-align: middle;
+        }
+        .table-presensi th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #374151;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 0.72rem;
+            letter-spacing: 0.5px;
+        }
+        .text-center { text-align: center; }
+        .font-mono { font-family: 'Courier New', Courier, monospace; }
+
+        /* Tanda Tangan 3 Pihak */
+        .ttd-box {
+            width: 100%;
+            margin-top: 20px;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+        .ttd-date {
+            text-align: right;
+            font-size: 0.82rem;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+        .ttd-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 0.82rem;
+        }
+        .ttd-table td {
+            padding: 4px;
+            vertical-align: top;
+        }
+        .ttd-space {
+            height: 60px;
+        }
+        .ttd-name {
+            font-weight: 700;
+            text-decoration: underline;
+            color: #111827;
+        }
+        .ttd-nip {
+            font-size: 0.76rem;
+            color: #4b5563;
+        }
+
+        /* Bar Navigasi Cetak / Kembali Melayang (Sesuai Modul Jadwal KBM) */
+        .no-print-bar {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            display: flex;
+            gap: 10px;
+            z-index: 9999;
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 8px 14px;
+            border-radius: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        }
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-print { background: #2563eb; color: #fff; }
+        .btn-print:hover { background: #1d4ed8; }
+        .btn-back { background: #4b5563; color: #fff; }
+        .btn-back:hover { background: #374151; }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .cetak-page {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+            .no-print-bar {
+                display: none !important;
+            }
+            @page {
+                size: portrait;
+                margin: 10mm 12mm 12mm 12mm;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-slip-izin.blade.php
+   ========================================================================== */
+@page {
+            size: A5 landscape;
+            margin: 10mm;
+        }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+            margin: 0;
+            padding: 15px;
+            font-size: 13px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px double #000;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+        .header h3 {
+            margin: 2px 0;
+            font-size: 14px;
+        }
+        .header p {
+            margin: 0;
+            font-size: 11px;
+            color: #444;
+        }
+        .title-box {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .title-box h4 {
+            margin: 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            text-decoration: underline;
+        }
+        .ticket-no {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+        .content-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .content-table td {
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+        .content-table td.label {
+            width: 140px;
+            font-weight: bold;
+        }
+        .content-table td.sep {
+            width: 10px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid #333;
+        }
+        .signature-table {
+            width: 100%;
+            margin-top: 25px;
+            text-align: center;
+        }
+        .signature-table td {
+            width: 33.33%;
+            vertical-align: top;
+        }
+        .sign-space {
+            height: 50px;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-bulanan.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            padding: 20px;
+            font-size: 10px;
+            line-height: 1.35;
+        }
+
+        /* Floating Action Bar (Hidden when Printing) */
+        .print-toolbar {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .print-toolbar span {
+            color: #f8fafc;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .print-btn {
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .print-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        /* Paper Document Styling */
+        .cetak-paper {
+            background: #ffffff;
+            max-width: 297mm;
+            min-height: 210mm;
+            margin: 50px auto 30px auto;
+            padding: 12mm 15mm 15mm 15mm;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.035;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Sekolah */
+        .kop-container {
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kop-image {
+            width: 100%;
+            max-height: 115px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 3px double #1f2937;
+            padding-bottom: 8px;
+            text-align: center;
+        }
+
+        .kop-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .kop-text-wrap {
+            flex: 1;
+        }
+
+        .kop-title {
+            font-size: 13pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #111827;
+        }
+
+        .kop-subtitle {
+            font-size: 8.5pt;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Dokumen */
+        .doc-header {
+            text-align: center;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-title-main {
+            font-size: 12pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1e3a8a;
+            margin-bottom: 2px;
+        }
+
+        .doc-subtitle {
+            font-size: 9pt;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        /* Meta Info Grid */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 9pt;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 7.5pt;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .meta-val {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Stat Pills */
+        .stat-pills {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-pill {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 5px 8px;
+            text-align: center;
+        }
+
+        .stat-pill .p-label {
+            font-size: 7pt;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .stat-pill .p-val {
+            font-size: 10pt;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #94a3b8;
+            padding: 4px 5px;
+            vertical-align: middle;
+        }
+
+        .data-table th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .data-table td.center {
+            text-align: center;
+        }
+
+        .data-table td.right {
+            text-align: right;
+        }
+
+        .data-table tfoot td {
+            background-color: #e2e8f0;
+            font-weight: bold;
+        }
+
+        /* Status Badges */
+        .badge-h {
+            color: #15803d;
+            font-weight: 700;
+        }
+
+        .badge-t {
+            color: #b45309;
+            font-weight: 700;
+        }
+
+        .badge-i {
+            color: #0284c7;
+            font-weight: 700;
+        }
+
+        .badge-s {
+            color: #7e22ce;
+            font-weight: 700;
+        }
+
+        .badge-d {
+            color: #475569;
+            font-weight: 700;
+        }
+
+        .badge-a {
+            color: #b91c1c;
+            font-weight: 800;
+        }
+
+        .badge-pct {
+            font-weight: 800;
+            color: #1e3a8a;
+        }
+
+        /* Signature Section */
+        .sig-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 18px;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-box {
+            width: 250px;
+            text-align: center;
+            font-size: 9pt;
+        }
+
+        .sig-space {
+            height: 55px;
+        }
+
+        .sig-name {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .sig-nip {
+            font-size: 8pt;
+            color: #4b5563;
+        }
+
+        /* Print Settings */
+        @page {
+            size: A4 landscape;
+            margin: 8mm 10mm 10mm 10mm;
+        }
+
+        @media print {
+            body {
+                background: #ffffff !important;
+                padding: 0 !important;
+            }
+
+            .print-toolbar {
+                display: none !important;
+            }
+
+            .cetak-paper {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                border-radius: 0 !important;
+            }
+
+            .data-table th {
+                background-color: #e2e8f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .data-table tbody tr:nth-child(even) {
+                background-color: #f8fafc !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .data-table tfoot td {
+                background-color: #cbd5e1 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-laporan.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+        }
+
+        /* Container Lembar Dokumen A4 (Identik dengan Jadwal KBM) */
+        .cetak-page {
+            background: #fff;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            @if ($orientasi === 'landscape')
+                max-width: 1100px;
+            @else
+                max-width: 850px;
+            @endif
+        }
+
+        /* Watermark Logo SAE (Identik dengan Jadwal KBM) */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Sekolah Resmi */
+        .kop-container {
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+        }
+
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .kop-text-wrap {
+            flex: 1;
+        }
+
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Judul Dokumen (Identik dengan Jadwal KBM) */
+        .doc-header {
+            text-align: center;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .school-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #111827;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 3px 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.8rem;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        /* Info Box Identitas Pegawai (Identik dengan Info Box Jadwal KBM) */
+        .info-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-item {
+            margin-bottom: 4px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            display: inline-block;
+            width: 130px;
+        }
+
+        .info-val {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Stats Box Ringkasan Kinerja (Selaras dengan Jadwal KBM) */
+        .stats-box {
+            display: flex;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 6px;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-item .val {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            display: block;
+        }
+
+        .stat-item .lbl {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #6b7280;
+            letter-spacing: 0.4px;
+        }
+
+        /* Section Subheading */
+        .section-subhead {
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #1e3a8a;
+            margin: 16px 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Tabel Data (Identik dengan .table-rombel / .table-guru di Jadwal KBM) */
+        .table-data {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-data th,
+        .table-data td {
+            border: 1px solid #9ca3af;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .table-data th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+        }
+
+        .table-data tr:nth-child(even) td {
+            background-color: #fafbfc;
+        }
+
+        .table-data .col-no {
+            width: 32px;
+            text-align: center;
+        }
+
+        .table-data .col-tgl {
+            width: 85px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .table-data .col-jam {
+            width: 85px;
+            text-align: center;
+            white-space: nowrap;
+            font-family: monospace;
+            font-size: 0.76rem;
+        }
+
+        .table-data .col-output {
+            width: 95px;
+            text-align: center;
+        }
+
+        .table-data .col-durasi {
+            width: 65px;
+            text-align: center;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .table-data .col-status {
+            width: 80px;
+            text-align: center;
+        }
+
+        /* Status Badges (Sesuai palette warna Jadwal KBM) */
+        .badge-kbm {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .badge-selesai {
+            background-color: #f0fdf4;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .badge-proses {
+            background-color: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .badge-tertunda {
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        /* Signatures (Identik dengan .signature-container di Jadwal KBM) */
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            font-size: 0.82rem;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 230px;
+        }
+
+        .sig-title {
+            color: #4b5563;
+            line-height: 1.35;
+            margin-bottom: 55px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-decoration: underline;
+            color: #111827;
+        }
+
+        .sig-nip {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        /* Footer Verifikasi Dokumen Digital */
+        .doc-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px dashed #d1d5db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+            position: relative;
+            z-index: 1;
+        }
+
+        .qr-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qr-badge img {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #d1d5db;
+            padding: 2px;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        /* Floating bar (Identik dengan Jadwal KBM) */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        .btn-back:hover {
+            background: #374151;
+        }
+
+        /* Orientation switch pills */
+        .orientation-switch {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 30px;
+            padding: 2px;
+        }
+
+        .btn-orientasi {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b5563;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-orientasi:hover {
+            color: #111827;
+        }
+
+        .btn-orientasi.active {
+            background: #1e3a8a;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
+        }
+
+        /* Media Print (Identik dengan Jadwal KBM) */
+        @page {
+            size: A4 {{ $orientasi }};
+            margin: 10mm 12mm;
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+            }
+
+            .cetak-page {
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                margin-bottom: 0 !important;
+                border-radius: 0 !important;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: cetak-presensi.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #111827;
+        }
+
+        body {
+            background-color: #f3f4f6;
+            padding: 24px;
+        }
+
+        /* Container Lembar Dokumen A4 (Identik dengan Jadwal KBM) */
+        .cetak-page {
+            background: #fff;
+            margin: 0 auto 28px auto;
+            padding: 24px 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            @if ($orientasi === 'landscape')
+                max-width: 1100px;
+            @else
+                max-width: 850px;
+            @endif
+        }
+
+        /* Watermark Logo SAE (Identik dengan Jadwal KBM) */
+        .watermark-sae {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Kop Surat Sekolah Resmi */
+        .kop-container {
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .kop-image {
+            width: 100%;
+            max-height: 125px;
+            object-fit: contain;
+            display: block;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+        }
+
+        .kop-fallback {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .kop-logo {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .kop-text-wrap {
+            flex: 1;
+        }
+
+        .kop-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+
+        .kop-subtitle {
+            font-size: 0.78rem;
+            color: #4b5563;
+            line-height: 1.35;
+        }
+
+        /* Header Judul Dokumen (Identik dengan Jadwal KBM) */
+        .doc-header {
+            text-align: center;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-header .school-name {
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #111827;
+        }
+
+        .doc-header .doc-title-main {
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #1e3a8a;
+            margin: 3px 0 2px 0;
+        }
+
+        .doc-header .doc-subtitle {
+            font-size: 0.8rem;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        /* Info Box Identitas Pegawai (Identik dengan Jadwal KBM) */
+        .info-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-item {
+            margin-bottom: 4px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6b7280;
+            display: inline-block;
+            width: 140px;
+        }
+
+        .info-val {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* Stats Box Ringkasan Kehadiran (Selaras dengan Jadwal KBM) */
+        .stats-box {
+            display: flex;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 6px;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .stat-item:last-child {
+            border-right: none;
+        }
+
+        .stat-item .val {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #1e3a8a;
+            display: block;
+        }
+
+        .stat-item .lbl {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #6b7280;
+            letter-spacing: 0.4px;
+        }
+
+        /* Section Subheading */
+        .section-subhead {
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #1e3a8a;
+            margin: 16px 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Tabel Data (Identik dengan .table-rombel di Jadwal KBM) */
+        .table-data {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.76rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-data th,
+        .table-data td {
+            border: 1px solid #9ca3af;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .table-data th {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            color: #111827;
+            text-align: center;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+        }
+
+        .table-data tr:nth-child(even) td {
+            background-color: #fafbfc;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        /* Signatures (Identik dengan .signature-container di Jadwal KBM) */
+        .signature-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+            font-size: 0.82rem;
+            page-break-inside: avoid;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sig-box {
+            text-align: center;
+            width: 230px;
+        }
+
+        .sig-title {
+            color: #4b5563;
+            line-height: 1.35;
+            margin-bottom: 55px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-decoration: underline;
+            color: #111827;
+        }
+
+        .sig-nip {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        /* Footer Verifikasi Dokumen Digital */
+        .doc-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px dashed #d1d5db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #6b7280;
+            position: relative;
+            z-index: 1;
+        }
+
+        .qr-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qr-badge img {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #d1d5db;
+            padding: 2px;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        /* Floating bar (Identik dengan Jadwal KBM) */
+        .no-print-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 8px 16px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-print {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .btn-print:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-back {
+            background: #4b5563;
+            color: #fff;
+        }
+
+        .btn-back:hover {
+            background: #374151;
+        }
+
+        /* Orientation switch pills */
+        .orientation-switch {
+            display: inline-flex;
+            align-items: center;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 30px;
+            padding: 2px;
+        }
+
+        .btn-orientasi {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #4b5563;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-orientasi:hover {
+            color: #111827;
+        }
+
+        .btn-orientasi.active {
+            background: #1e3a8a;
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
+        }
+
+        /* Media Print (Identik dengan Jadwal KBM) */
+        @page {
+            size: A4 {{ $orientasi }};
+            margin: 10mm 12mm;
+        }
+
+        @media print {
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+            }
+
+            .cetak-page {
+                box-shadow: none !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                margin-bottom: 0 !important;
+                border-radius: 0 !important;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+        }
+
+/* ==========================================================================
+   Template: pdf-rekap.blade.php
+   ========================================================================== */
+* {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        @page {
+            margin: {{ ($tipe === 'semester' || $tipe === 'tahun' || $tipe === 'bulan') ? '8mm 8mm 8mm 8mm' : '10mm 10mm 12mm 10mm' }};
+            size: {{ ($tipe === 'bulan' || $tipe === 'semester' || $tipe === 'tahun') ? 'A4 landscape' : 'A4 portrait' }};
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            color: #111827;
+            font-size: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '9.5px' : '10.5px' }};
+            line-height: 1.35;
+            background: #fff;
+        }
+
+        /* Watermark Logo SAE */
+        .watermark-sae {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 440px;
+            height: 440px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .watermark-sae img {
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%);
+        }
+
+        /* Header Dokumen Bersih (Tanpa Kop Surat) */
+        .doc-header {
+            text-align: center;
+            border-bottom: 2px solid #1f2937;
+            padding-bottom: 8px;
+            margin-bottom: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '8px' : '12px' }};
+            position: relative;
+            z-index: 1;
+        }
+        .doc-header .school-name {
+            font-size: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '13px' : '15px' }};
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #111827;
+        }
+
+        .doc-title-wrap {
+            text-align: center;
+            margin-bottom: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '5px' : '10px' }};
+        }
+        .doc-title {
+            font-size: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '12px' : '13px' }};
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 2px 0;
+            color: #111827;
+        }
+        .doc-subtitle {
+            font-size: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '9.5px' : '10.5px' }};
+            color: #4b5563;
+            margin: 0;
+        }
+
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '6px' : '10px' }};
+            font-size: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '9.5px' : '10px' }};
+        }
+        .meta-table td {
+            padding: 1.5px 0;
+            vertical-align: top;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '6px' : '10px' }};
+            font-size: {{ $tipe === 'bulan' ? '8.5px' : (($tipe === 'semester' || $tipe === 'tahun') ? '9px' : '10px') }};
+        }
+        .data-table th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            font-weight: 700;
+            text-align: center;
+            border: 1px solid #94a3b8;
+            padding: {{ $tipe === 'bulan' ? '3px 2px' : (($tipe === 'semester' || $tipe === 'tahun') ? '3px 4px' : '5px 6px') }};
+            vertical-align: middle;
+        }
+        .data-table td {
+            border: 1px solid #cbd5e1;
+            padding: {{ $tipe === 'bulan' ? '2.5px 2px' : (($tipe === 'semester' || $tipe === 'tahun') ? '2px 4px' : '4px 6px') }};
+            vertical-align: middle;
+        }
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .font-mono { font-family: monospace; }
+        .font-bold { font-weight: bold; }
+
+        /* Badge status sederhana untuk print */
+        .status-badge {
+            font-weight: bold;
+            display: inline-block;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 9px;
+        }
+        .status-h { background: #dcfce7; color: #15803d; }
+        .status-t { background: #fef3c7; color: #b45309; }
+        .status-i { background: #dbeafe; color: #1d4ed8; }
+        .status-s { background: #ede9fe; color: #6d28d9; }
+        .status-a { background: #fee2e2; color: #b91c1c; }
+
+        /* Summary Box */
+        .summary-box {
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
+            font-size: 10px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-table td {
+            padding: 2px 6px;
+            border: none;
+        }
+
+        /* Signatures */
+        .sig-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '8px' : '15px' }};
+            page-break-inside: avoid;
+            font-size: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '9.5px' : '10.5px' }};
+        }
+        .sig-col-left {
+            width: 40%;
+            text-align: center;
+            vertical-align: top;
+            padding: 0 5px;
+        }
+        .sig-col-spacer {
+            width: 20%;
+        }
+        .sig-col-right {
+            width: 40%;
+            text-align: center;
+            vertical-align: top;
+            padding: 0 5px;
+        }
+        .sig-space {
+            height: {{ ($tipe === 'semester' || $tipe === 'tahun') ? '38px' : '50px' }};
+        }
+        .sig-name {
+            font-weight: 800;
+            text-decoration: underline;
+            color: #000;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+            }
+        }

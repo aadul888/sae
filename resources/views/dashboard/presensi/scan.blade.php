@@ -15,12 +15,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 
     <!-- SAE Design System & Presensi CSS with Cache Busting -->
-    <script>
-        (function() {
-            const t = localStorage.getItem('sae_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-            if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
-        })();
-    </script>
+    <script src="{{ asset('js/theme-init.js') }}?v={{ @filemtime(public_path('js/theme-init.js')) ?: '1' }}"></script>
     <link rel="stylesheet"
         href="{{ asset('css/sae.css') }}?v={{ file_exists(public_path('css/sae.css')) ? filemtime(public_path('css/sae.css')) : time() }}">
     <link rel="stylesheet"
@@ -29,7 +24,8 @@
         href="{{ asset('css/presensi.css') }}?v={{ file_exists(public_path('css/presensi.css')) ? filemtime(public_path('css/presensi.css')) : time() }}">
     <!-- SweetAlert2 (bundle CSS+JS): wajib di head sebelum sae.js agar shim tidak aktif -->
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
+    <link rel="icon" type="image/png"
+        href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
     <link rel="shortcut icon" href="{{ asset('favicon.png') }}?v={{ @filemtime(public_path('favicon.png')) ?: '1' }}">
     @include('partials.pwa-head')
 </head>
@@ -42,7 +38,8 @@
                 $kioskLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
                 $kioskLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
             @endphp
-            <a href="{{ route('presensi.kiosk.lock') }}?redirect={{ urlencode(url('/')) }}" class="kiosk-lock-link" title="Kembali ke Beranda" style="display: inline-flex; align-items: center; text-decoration: none;">
+            <a href="{{ route('presensi.kiosk.lock') }}?redirect={{ urlencode(url('/')) }}" class="kiosk-lock-link"
+                title="Kembali ke Beranda" style="display: inline-flex; align-items: center; text-decoration: none;">
                 <img src="{{ $kioskLogoDark }}" alt="SAE Logo" class="kiosk-logo" id="navLogo"
                     data-dark="{{ $kioskLogoDark }}" data-light="{{ $kioskLogoLight }}"
                     onerror="this.onerror=null; this.src='/img/logo-dark.png';">
@@ -71,10 +68,12 @@
                     aria-label="Ganti Tema" title="Ganti Mode Gelap / Terang">
                     <i class="fas fa-moon"></i>
                 </button>
-                <button type="button" id="btnToggleSpeech" class="btn btn-primary btn-kiosk-action" title="Suara Aktif (Klik untuk membisukan)">
+                <button type="button" id="btnToggleSpeech" class="btn btn-primary btn-kiosk-action"
+                    title="Suara Aktif (Klik untuk membisukan)">
                     <i class="fas fa-volume-high"></i>
                 </button>
-                <a href="{{ route('presensi.kiosk.lock') }}" id="btnKioskLock" class="btn btn-danger btn-kiosk-action" title="Kunci Sistem (Power Off Terminal)">
+                <a href="{{ route('presensi.kiosk.lock') }}" id="btnKioskLock" class="btn btn-danger btn-kiosk-action"
+                    title="Kunci Sistem (Power Off Terminal)">
                     <i class="fas fa-power-off"></i>
                 </a>
             </div>
@@ -96,7 +95,8 @@
         <div class="card"
             style="margin-bottom: 20px; border-left: 4px solid var(--warning); background: rgba(245, 158, 11, 0.1); padding: 14px 20px; text-align: center;">
             <div style="font-weight: 800; font-size: 1rem; color: var(--warning);">
-                <i class="fas fa-calendar-minus me-2"></i> HARI NON-AKTIF BELAJAR: HARI {{ strtoupper(now()->translatedFormat('l')) }}
+                <i class="fas fa-calendar-minus me-2"></i> HARI NON-AKTIF BELAJAR: HARI
+                {{ strtoupper(now()->translatedFormat('l')) }}
             </div>
             <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
                 Hari ini tidak termasuk dalam jadwal hari aktif belajar sekolah. Terminal scanner dalam mode siaga.
@@ -162,10 +162,12 @@
                     <span id="cameraStatusBadge" class="badge-status-icon status-ok" title="Kamera Siap">
                         <i class="fas fa-video"></i>
                     </span>
-                    <button type="button" id="btnSwitchCamera" class="badge-status-icon btn-cam-switch" title="Ganti Kamera Depan / Belakang" style="display: none;">
+                    <button type="button" id="btnSwitchCamera" class="badge-status-icon btn-cam-switch"
+                        title="Ganti Kamera Depan / Belakang" style="display: none;">
                         <i class="fas fa-camera-rotate"></i>
                     </button>
-                    <span id="rfidStatusBadge" class="badge-status-icon status-ok" title="RFID Online (Siap Memindai)">
+                    <span id="rfidStatusBadge" class="badge-status-icon status-ok"
+                        title="RFID Online (Siap Memindai)">
                         <i class="fas fa-wifi"></i>
                     </span>
                     <span id="gpsStatusBadge" class="badge-status-icon status-warn" title="GPS: Menghubungkan...">
@@ -175,10 +177,16 @@
 
                 <!-- Overlay Pesan Error/Izin Kamera -->
                 <div id="cameraNoticeOverlay" class="camera-notice-overlay" style="display: none;">
-                    <i id="cameraNoticeIcon" class="fas fa-video-slash" style="font-size: 2.2rem; margin-bottom: 10px; color: var(--danger);"></i>
-                    <div id="cameraNoticeTitle" style="font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; color: var(--text-color);">Kamera Tidak Aktif</div>
-                    <div id="cameraNoticeDesc" style="font-size: 0.78rem; max-width: 340px; color: var(--text-muted); line-height: 1.45;"></div>
-                    <button type="button" id="btnRetryCamera" class="btn btn-primary btn-sm" style="margin-top: 14px; padding: 6px 16px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i id="cameraNoticeIcon" class="fas fa-video-slash"
+                        style="font-size: 2.2rem; margin-bottom: 10px; color: var(--danger);"></i>
+                    <div id="cameraNoticeTitle"
+                        style="font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; color: var(--text-color);">
+                        Kamera Tidak Aktif</div>
+                    <div id="cameraNoticeDesc"
+                        style="font-size: 0.78rem; max-width: 340px; color: var(--text-muted); line-height: 1.45;">
+                    </div>
+                    <button type="button" id="btnRetryCamera" class="btn btn-primary btn-sm"
+                        style="margin-top: 14px; padding: 6px 16px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-rotate-right"></i> <span>Coba Aktifkan Lagi</span>
                     </button>
                 </div>
@@ -196,8 +204,8 @@
             </div>
 
             <!-- Hidden Focus Target for USB RFID & Barcode Reader (Caret hidden) -->
-            <input type="text" id="kioskScannerInput" class="kiosk-scanner-input-hidden"
-                autocomplete="off" spellcheck="false" inputmode="none" autofocus>
+            <input type="text" id="kioskScannerInput" class="kiosk-scanner-input-hidden" autocomplete="off"
+                spellcheck="false" inputmode="none" autofocus>
 
 
         </div>
@@ -207,48 +215,62 @@
             <!-- Jadwal Info Card -->
             <div class="card" style="padding: 18px; border-radius: 16px;">
                 @if ($isLibur)
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--danger); text-transform: uppercase;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div
+                            style="font-size: 0.8rem; font-weight: 700; color: var(--danger); text-transform: uppercase;">
                             <i class="fas fa-umbrella-beach me-1"></i> Jadwal Operasional Hari Ini
                         </div>
-                        <span class="badge badge-danger" style="font-size: 0.7rem; font-weight: 700;">LIBUR SEKOLAH</span>
+                        <span class="badge badge-danger" style="font-size: 0.7rem; font-weight: 700;">LIBUR
+                            SEKOLAH</span>
                     </div>
-                    <div style="background: rgba(239,68,68,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(239,68,68,0.3); text-align: center;">
+                    <div
+                        style="background: rgba(239,68,68,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(239,68,68,0.3); text-align: center;">
                         <div style="color: #ef4444; font-weight: 800; font-size: 0.95rem; margin-bottom: 3px;">
                             <i class="fas fa-calendar-xmark me-1"></i> Tidak Beroperasi (Hari Libur)
                         </div>
                         <div style="color: var(--text-muted); font-size: 0.76rem; line-height: 1.4;">
-                            {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Libur Kalender Akademik' }}. Jam presensi masuk dan pulang tidak berlaku hari ini.
+                            {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Libur Kalender Akademik' }}. Jam presensi
+                            masuk dan pulang tidak berlaku hari ini.
                         </div>
                     </div>
                 @elseif (!$isHariAktif)
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--warning); text-transform: uppercase;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div
+                            style="font-size: 0.8rem; font-weight: 700; color: var(--warning); text-transform: uppercase;">
                             <i class="fas fa-clock text-warning me-1"></i> Jadwal Operasional Hari Ini
                         </div>
-                        <span class="badge badge-warning" style="font-size: 0.7rem; font-weight: 700;">HARI NON-AKTIF</span>
+                        <span class="badge badge-warning" style="font-size: 0.7rem; font-weight: 700;">HARI
+                            NON-AKTIF</span>
                     </div>
-                    <div style="background: rgba(245,158,11,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(245,158,11,0.3); text-align: center;">
+                    <div
+                        style="background: rgba(245,158,11,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(245,158,11,0.3); text-align: center;">
                         <div style="color: #f59e0b; font-weight: 800; font-size: 0.95rem; margin-bottom: 3px;">
                             <i class="fas fa-calendar-minus me-1"></i> Tidak Beroperasi (Hari Non-Aktif)
                         </div>
                         <div style="color: var(--text-muted); font-size: 0.76rem; line-height: 1.4;">
-                            Hari {{ now()->translatedFormat('l') }} tidak termasuk dalam jadwal hari aktif belajar sekolah.
+                            Hari {{ now()->translatedFormat('l') }} tidak termasuk dalam jadwal hari aktif belajar
+                            sekolah.
                         </div>
                     </div>
                 @elseif (isset($statusHari) && $statusHari['mode'] === 'daring')
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <div style="font-size: 0.8rem; font-weight: 700; color: #06b6d4; text-transform: uppercase;">
                             <i class="fas fa-laptop-house text-accent me-1"></i> Jadwal Operasional Hari Ini
                         </div>
-                        <span class="badge badge-primary" style="font-size: 0.7rem; font-weight: 700;">DARING (PJJ)</span>
+                        <span class="badge badge-primary" style="font-size: 0.7rem; font-weight: 700;">DARING
+                            (PJJ)</span>
                     </div>
-                    <div style="background: rgba(6,182,212,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(6,182,212,0.3); text-align: center;">
+                    <div
+                        style="background: rgba(6,182,212,0.08); padding: 12px 14px; border-radius: 10px; border: 1px dashed rgba(6,182,212,0.3); text-align: center;">
                         <div style="color: #06b6d4; font-weight: 800; font-size: 0.92rem; margin-bottom: 3px;">
                             <i class="fas fa-house-laptop me-1"></i> Pembelajaran Daring (PJJ)
                         </div>
                         <div style="color: var(--text-muted); font-size: 0.76rem; line-height: 1.4;">
-                            {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Belajar di Rumah' }}. Presensi gerbang dialihkan.
+                            {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Belajar di Rumah' }}. Presensi gerbang
+                            dialihkan.
                         </div>
                     </div>
                 @else

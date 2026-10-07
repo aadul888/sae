@@ -9,26 +9,8 @@
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('css/formulir-public.css') }}">
-    <style>
-        .receipt-card {
-            background: #f8fafc;
-            border: 1px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 24px;
-            text-align: left;
-            font-size: 0.82rem;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .receipt-row {
-            display: flex;
-            justify-content: space-between;
-        }
-    </style>
+    <link rel="stylesheet"
+        href="{{ asset('css/formulir-public.css') }}?v={{ file_exists(public_path('css/formulir-public.css')) ? filemtime(public_path('css/formulir-public.css')) : time() }}">
 </head>
 
 <body>
@@ -42,7 +24,8 @@
         <!-- Header Branding SAE -->
         <div style="text-align: center; margin-bottom: 24px;">
             <a href="{{ url('/') }}" style="display: inline-block; text-decoration: none;">
-                <img src="{{ $dashLogoDark }}" alt="SAE Logo" style="height: 38px; max-width: 160px; object-fit: contain;"
+                <img src="{{ $dashLogoDark }}" alt="SAE Logo"
+                    style="height: 38px; max-width: 160px; object-fit: contain;"
                     onerror="this.onerror=null; this.src='{{ $dashLogoIcon }}';">
             </a>
         </div>
@@ -76,7 +59,8 @@
 
             <div class="status-btn-group">
                 @if (session('user'))
-                    <a href="{{ route('dashboard.' . (session('user')['role'] ?? 'admin')) }}" class="btn-action btn-action-primary">
+                    <a href="{{ route('dashboard.' . (session('user')['role'] ?? 'admin')) }}"
+                        class="btn-action btn-action-primary">
                         <i class="fas fa-gauge-high"></i> Kembali ke Dashboard
                     </a>
                 @else

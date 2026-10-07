@@ -12,7 +12,8 @@
             </h2>
             <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">
                 Pemberitahuan resmi sekolah, agenda akademik, dan pengumuman sistem untuk
-                <strong style="color: var(--primary); text-transform: capitalize;">{{ str_replace('_', ' ', $role) }}</strong>.
+                <strong
+                    style="color: var(--primary); text-transform: capitalize;">{{ str_replace('_', ' ', $role) }}</strong>.
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -22,7 +23,8 @@
                     <i class="fas fa-sliders me-1"></i> Kelola Pengumuman
                 </a>
             @endif
-            <form action="{{ route('dashboard.informasi.mark-all-read') }}" method="POST" id="formMarkAllRead" style="margin: 0; display: inline;">
+            <form action="{{ route('dashboard.informasi.mark-all-read') }}" method="POST" id="formMarkAllRead"
+                style="margin: 0; display: inline;">
                 @csrf
                 <button type="submit" class="btn btn-primary" id="btnMarkAllRead"
                     style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600;"
@@ -76,7 +78,8 @@
             class="btn {{ $activeTab === 'unread' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-bell me-1"></i> Belum Dibaca
             @if ($countUnread > 0)
-                <span class="badge badge-danger ms-1" style="font-size: 0.68rem; padding: 2px 6px;">{{ $countUnread }}</span>
+                <span class="badge badge-danger ms-1"
+                    style="font-size: 0.68rem; padding: 2px 6px;">{{ $countUnread }}</span>
             @endif
         </a>
         <a href="{{ request()->fullUrlWithQuery(['tab' => 'umum', 'page' => 1]) }}"
@@ -118,7 +121,8 @@
                 <a href="{{ request()->fullUrlWithQuery(['tab' => 'unread', 'page' => 1]) }}"
                     class="custom-dropdown-item {{ $activeTab === 'unread' ? 'active' : '' }}">
                     <span>Belum Dibaca</span>
-                    <span class="badge {{ $countUnread > 0 ? 'badge-danger' : 'badge-outline' }} badge-sm">{{ $countUnread }}</span>
+                    <span
+                        class="badge {{ $countUnread > 0 ? 'badge-danger' : 'badge-outline' }} badge-sm">{{ $countUnread }}</span>
                 </a>
                 <a href="{{ request()->fullUrlWithQuery(['tab' => 'umum', 'page' => 1]) }}"
                     class="custom-dropdown-item {{ $activeTab === 'umum' ? 'active' : '' }}">
@@ -149,8 +153,8 @@
                     <input type="hidden" name="tab" value="{{ $activeTab }}">
                 @endif
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" name="q" placeholder="Cari judul atau isi pengumuman..." value="{{ $q }}"
-                    autocomplete="off">
+                <input type="text" name="q" placeholder="Cari judul atau isi pengumuman..."
+                    value="{{ $q }}" autocomplete="off">
                 @if ($q)
                     <a href="{{ request()->fullUrlWithQuery(['q' => null]) }}" class="clear-search visible"
                         title="Hapus pencarian">
@@ -173,7 +177,8 @@
                 style="margin-bottom: 0; padding: 20px; border-left: 4px solid {{ $isUnread ? '#ef4444' : 'var(--primary)' }}; transition: all 0.2s ease; position: relative;">
 
                 <!-- Header Bar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <span class="badge {{ $isSystem ? 'badge-accent' : 'badge-primary' }}"
                             style="font-size: 0.72rem; padding: 4px 9px; display: inline-flex; align-items: center; gap: 5px;">
@@ -183,7 +188,8 @@
 
                         @if ($item->target_peran !== 'semua')
                             <span class="badge badge-outline" style="font-size: 0.72rem; padding: 4px 8px;">
-                                <i class="fas fa-user-tag me-1"></i> Sasaran: {{ ucfirst(str_replace('_', ' ', $item->target_peran)) }}
+                                <i class="fas fa-user-tag me-1"></i> Sasaran:
+                                {{ ucfirst(str_replace('_', ' ', $item->target_peran)) }}
                             </span>
                         @else
                             <span class="badge badge-outline" style="font-size: 0.72rem; padding: 4px 8px;">
@@ -192,7 +198,8 @@
                         @endif
 
                         @if ($item->target === 'semua')
-                            <span class="badge badge-outline" style="font-size: 0.7rem; padding: 3px 6px; opacity: 0.8;" title="Tayang di teks berjalan & lonceng">
+                            <span class="badge badge-outline" style="font-size: 0.7rem; padding: 3px 6px; opacity: 0.8;"
+                                title="Tayang di teks berjalan & lonceng">
                                 <i class="fas fa-bullhorn"></i> Publik &amp; Lonceng
                             </span>
                         @endif
@@ -200,7 +207,8 @@
 
                     <div style="display: flex; align-items: center; gap: 8px;">
                         @if ($isUnread)
-                            <span class="badge badge-danger badge-unread-status" style="font-size: 0.72rem; padding: 4px 9px;">
+                            <span class="badge badge-danger badge-unread-status"
+                                style="font-size: 0.72rem; padding: 4px 9px;">
                                 <i class="fas fa-circle-dot me-1"></i> Baru
                             </span>
                         @else
@@ -213,18 +221,22 @@
 
                 <!-- Content Body -->
                 <div style="margin-bottom: 14px;">
-                    <h3 class="info-card-title btn-open-reader" data-id="{{ $item->id }}" data-item='@json($item)'
+                    <h3 class="info-card-title btn-open-reader" data-id="{{ $item->id }}"
+                        data-item='@json($item)'
                         style="font-size: 1.08rem; font-weight: 800; color: var(--text-color); margin-bottom: 8px; line-height: 1.4; cursor: pointer;">
                         {{ $item->judul }}
                     </h3>
-                    <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin: 0; white-space: pre-line;">
+                    <p
+                        style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; margin: 0; white-space: pre-line;">
                         {{ Str::limit($item->isi, 240) }}
                     </p>
                 </div>
 
                 <!-- Footer Bar -->
-                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; gap: 10px; flex-wrap: wrap;">
-                    <div style="font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 12px; gap: 10px; flex-wrap: wrap;">
+                    <div
+                        style="font-size: 0.76rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
                         <i class="fas fa-clock text-primary"></i>
                         <span>{{ $item->created_at ? $item->created_at->diffForHumans() : '-' }}</span>
                         <span style="opacity: 0.5;">&bull;</span>
@@ -240,8 +252,8 @@
                                 <i class="fas fa-check me-1"></i> Tandai Dibaca
                             </button>
                         @endif
-                        <button type="button" class="btn btn-primary btn-open-reader"
-                            data-id="{{ $item->id }}" data-item='@json($item)'
+                        <button type="button" class="btn btn-primary btn-open-reader" data-id="{{ $item->id }}"
+                            data-item='@json($item)'
                             style="padding: 6px 14px; font-size: 0.78rem; font-weight: 600;">
                             <i class="fas fa-book-open-reader me-1"></i> Baca Selengkapnya
                         </button>
@@ -264,7 +276,8 @@
                     @endif
                 </p>
                 @if ($q || $activeTab !== 'semua')
-                    <a href="{{ route('dashboard.informasi.index') }}" class="btn btn-outline" style="padding: 8px 18px; font-size: 0.82rem;">
+                    <a href="{{ route('dashboard.informasi.index') }}" class="btn btn-outline"
+                        style="padding: 8px 18px; font-size: 0.82rem;">
                         <i class="fas fa-rotate-left me-1"></i> Reset Filter
                     </a>
                 @endif
@@ -319,14 +332,18 @@
 
     <!-- Modal Reader (Pop-up Tampilan Baca Lengkap) -->
     <div id="userReaderModal" class="modal-backdrop">
-        <div class="card" style="max-width: 620px; width: 92%; margin: auto; padding: 24px; border-radius: 16px; box-shadow: 0 16px 45px rgba(0,0,0,0.5);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
+        <div class="card"
+            style="max-width: 620px; width: 92%; margin: auto; padding: 24px; border-radius: 16px; box-shadow: 0 16px 45px rgba(0,0,0,0.5);">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
                         <span id="readerPenulisBadge" class="badge badge-primary" style="font-size: 0.72rem;"></span>
                         <span id="readerSasaranBadge" class="badge badge-outline" style="font-size: 0.72rem;"></span>
                     </div>
-                    <h3 id="readerJudul" style="font-size: 1.2rem; font-weight: 800; color: var(--text-color); margin: 0; line-height: 1.35;"></h3>
+                    <h3 id="readerJudul"
+                        style="font-size: 1.2rem; font-weight: 800; color: var(--text-color); margin: 0; line-height: 1.35;">
+                    </h3>
                 </div>
                 <button type="button" id="btnCloseReaderModal"
                     style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.25rem; padding: 4px;">
@@ -334,7 +351,8 @@
                 </button>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px;">
+            <div
+                style="display: flex; align-items: center; gap: 12px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px;">
                 <div><i class="fas fa-user-pen me-1 text-primary"></i> <span id="readerPenulis"></span></div>
                 <span>&bull;</span>
                 <div><i class="fas fa-clock me-1"></i> <span id="readerTanggal"></span></div>
@@ -348,7 +366,8 @@
                 <span class="badge badge-outline" style="font-size: 0.72rem; color: var(--text-muted);">
                     <i class="fas fa-check-circle me-1 text-success"></i> Ditandai sudah dibaca
                 </span>
-                <button type="button" id="btnCloseReaderBtn" class="btn btn-outline" style="padding: 8px 20px; font-size: 0.85rem;">
+                <button type="button" id="btnCloseReaderBtn" class="btn btn-outline"
+                    style="padding: 8px 20px; font-size: 0.85rem;">
                     Tutup
                 </button>
             </div>
@@ -356,10 +375,6 @@
     </div>
 
     @push('scripts')
-        <script>
-            window.PAGE_HIGHLIGHT_ID = @json($highlightId ?? null);
-        </script>
         <script src="{{ asset('js/pengumuman.js') }}"></script>
     @endpush
 @endsection
-

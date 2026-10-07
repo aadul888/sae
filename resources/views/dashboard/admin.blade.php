@@ -4,55 +4,6 @@
 @section('dash_title', 'Dashboard Administrator')
 
 @section('content')
-    <style>
-        .dash-admin-main-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-            gap: 20px;
-            align-items: start;
-            margin-top: 24px;
-        }
-
-        @media (max-width: 991px) {
-            .dash-admin-main-grid {
-                grid-template-columns: 1fr !important;
-                gap: 20px !important;
-            }
-        }
-
-        @media (max-width: 767px) {
-            .table-responsive-stack tbody td[data-label="Waktu"] {
-                white-space: nowrap !important;
-            }
-
-            .table-responsive-stack tbody td[data-label="Waktu"]>* {
-                white-space: nowrap !important;
-                text-align: right !important;
-            }
-
-            .table-responsive-stack tbody td[data-label="Aktivitas"] {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 4px !important;
-                padding-top: 8px !important;
-                padding-bottom: 8px !important;
-            }
-
-            .table-responsive-stack tbody td[data-label="Aktivitas"]>* {
-                max-width: 100% !important;
-                text-align: left !important;
-                white-space: normal !important;
-            }
-
-            .table-responsive-stack tbody td[data-label="Aktivitas"] .aktivitas-outline {
-                white-space: normal !important;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-        }
-    </style>
     @php
         $hour = date('H');
         $greeting =

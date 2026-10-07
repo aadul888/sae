@@ -53,7 +53,8 @@
             @endif
 
             <!-- Segmented Switcher Peran: GTK/Siswa vs Orang Tua -->
-            <div style="display: flex; background: var(--bg-hover); padding: 4px; border-radius: 12px; margin-bottom: 22px; border: 1px solid var(--border-color); gap: 4px;">
+            <div
+                style="display: flex; background: var(--bg-hover); padding: 4px; border-radius: 12px; margin-bottom: 22px; border: 1px solid var(--border-color); gap: 4px;">
                 <button type="button" id="tabBtnUmum" onclick="switchLoginTab('umum')"
                     style="flex: 1; padding: 9px 12px; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; background: var(--primary); color: #fff; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
                     <i class="fas fa-user-shield"></i>
@@ -154,73 +155,7 @@
         </div>
     </div>
 
-    <script>
-        function togglePass(inputId, iconId) {
-            const pass = document.getElementById(inputId);
-            const eye = document.getElementById(iconId);
-            if (!pass || !eye) return;
-            if (pass.type === 'password') {
-                pass.type = 'text';
-                eye.classList.remove('fa-eye');
-                eye.classList.add('fa-eye-slash');
-            } else {
-                pass.type = 'password';
-                eye.classList.remove('fa-eye-slash');
-                eye.classList.add('fa-eye');
-            }
-        }
-
-        function switchLoginTab(type) {
-            const fUmum = document.getElementById('formLoginUmum');
-            const fOrtu = document.getElementById('formLoginOrtu');
-            const bUmum = document.getElementById('tabBtnUmum');
-            const bOrtu = document.getElementById('tabBtnOrtu');
-            const uInput = document.getElementById('usernameInput');
-            const pInput = document.getElementById('passwordInput');
-            const nInput = document.getElementById('inputNisnAnak');
-            const tInput = document.getElementById('inputTglLahirAnak');
-
-            if (type === 'orang_tua') {
-                fUmum.style.display = 'none';
-                fOrtu.style.display = 'block';
-
-                bOrtu.style.background = '#10b981';
-                bOrtu.style.color = '#fff';
-                bOrtu.style.fontWeight = '700';
-
-                bUmum.style.background = 'transparent';
-                bUmum.style.color = 'var(--text-muted)';
-                bUmum.style.fontWeight = '600';
-
-                uInput.removeAttribute('required');
-                pInput.removeAttribute('required');
-                nInput.setAttribute('required', 'required');
-                tInput.setAttribute('required', 'required');
-            } else {
-                fOrtu.style.display = 'none';
-                fUmum.style.display = 'block';
-
-                bUmum.style.background = 'var(--primary)';
-                bUmum.style.color = '#fff';
-                bUmum.style.fontWeight = '700';
-
-                bOrtu.style.background = 'transparent';
-                bOrtu.style.color = 'var(--text-muted)';
-                bOrtu.style.fontWeight = '600';
-
-                nInput.removeAttribute('required');
-                tInput.removeAttribute('required');
-                uInput.setAttribute('required', 'required');
-                pInput.setAttribute('required', 'required');
-            }
-        }
-
-        // Cek URL param ?tab=ortu jika diarahkan khusus
-        document.addEventListener('DOMContentLoaded', function () {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('tab') === 'ortu' || params.get('type') === 'orang_tua') {
-                switchLoginTab('orang_tua');
-            }
-        });
+    <script
+        src="{{ asset('js/login.js') }}?v={{ file_exists(public_path('js/login.js')) ? filemtime(public_path('js/login.js')) : time() }}">
     </script>
 @endsection

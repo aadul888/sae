@@ -1,7 +1,7 @@
 @extends('layouts.dashboard')
 
 @section('title', 'Portal Tendik — SAE')
-@section('dash_title', ($isKepalaTas ?? false) ? 'Portal TAS' : 'Portal Tendik')
+@section('dash_title', $isKepalaTas ?? false ? 'Portal TAS' : 'Portal Tendik')
 
 @section('content')
     @php
@@ -16,10 +16,15 @@
                         : 'Selamat Malam,'));
 
         $sessionUser = session('user');
-        $userName = is_array($sessionUser) ? ($sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Tenaga Kependidikan')) : ($sessionUser->name ?? ($sessionUser->nama ?? 'Tenaga Kependidikan'));
-        $fotoUrl = $fotoUrl ?? (is_array($sessionUser) ? ($sessionUser['foto_url'] ?? null) : ($sessionUser->foto_url ?? null));
+        $userName = is_array($sessionUser)
+            ? $sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Tenaga Kependidikan')
+            : $sessionUser->name ?? ($sessionUser->nama ?? 'Tenaga Kependidikan');
+        $fotoUrl =
+            $fotoUrl ?? (is_array($sessionUser) ? $sessionUser['foto_url'] ?? null : $sessionUser->foto_url ?? null);
         if (!$fotoUrl) {
-            $uId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+            $uId = is_array($sessionUser)
+                ? $sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)
+                : $sessionUser->pengguna_id ?? ($sessionUser->id ?? null);
             if ($uId) {
                 $fotoUrl = \App\Models\User::where('pengguna_id', $uId)->first()?->foto_url;
             }
@@ -42,7 +47,11 @@
             'perpustakaan' => ['label' => 'Perpustakaan', 'icon' => 'fas fa-book-open', 'color' => '#ec4899'],
             'teknisi' => ['label' => 'Teknisi IT', 'icon' => 'fas fa-network-wired', 'color' => '#6366f1'],
             'keamanan' => ['label' => 'Keamanan & Tamu', 'icon' => 'fas fa-shield-halved', 'color' => '#ef4444'],
-            'persuratan' => ['label' => 'Persuratan & Arsip', 'icon' => 'fas fa-envelope-open-text', 'color' => '#14b8a6'],
+            'persuratan' => [
+                'label' => 'Persuratan & Arsip',
+                'icon' => 'fas fa-envelope-open-text',
+                'color' => '#14b8a6',
+            ],
             'penjaga' => ['label' => 'Fasilitas & Penjaga', 'icon' => 'fas fa-broom', 'color' => '#84cc16'],
         ];
     @endphp
@@ -53,10 +62,11 @@
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
             @if ($fotoUrl)
                 <!-- Pasfoto Tenaga Kependidikan -->
-                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
-                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}" 
-                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
-                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                <div class="dash-banner-foto"
+                    style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}"
+                        style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                        onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
             @endif
 
@@ -71,7 +81,8 @@
                     style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
                     <span title="Penugasan / Bidang Tugas">
                         <i class="fas fa-briefcase text-primary me-1"></i>
-                        <strong style="color: var(--text-color);">{{ $bagianTugas ?? 'Tenaga Administrasi Sekolah' }}</strong>
+                        <strong
+                            style="color: var(--text-color);">{{ $bagianTugas ?? 'Tenaga Administrasi Sekolah' }}</strong>
                     </span>
                     @if (!empty(session('user.nip', $gtk->nip ?? null)))
                         <span title="Nomor Induk Pegawai (NIP)">
@@ -79,10 +90,11 @@
                             <strong style="color: var(--text-color);">{{ session('user.nip', $gtk->nip) }}</strong>
                         </span>
                     @endif
-                    @if(!empty($gtk->status_kepegawaian_id_str))
+                    @if (!empty($gtk->status_kepegawaian_id_str))
                         <span title="Status Kepegawaian">
                             <i class="fas fa-id-card-clip text-info me-1"></i>
-                            <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk->status_kepegawaian_id_str }}</span>
+                            <span class="badge badge-info"
+                                style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk->status_kepegawaian_id_str }}</span>
                         </span>
                     @endif
                 </div>
@@ -91,7 +103,7 @@
                         style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #3b82f6;">
                         <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                     </div>
-                    @if($isKepalaTas ?? false)
+                    @if ($isKepalaTas ?? false)
                         <div
                             style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 20px; font-size: 0.75rem; font-weight: 700; color: #10b981;">
                             <i class="fas fa-crown"></i> Kepala TAS / Koordinator Tata Usaha
@@ -107,3 +119,10 @@
     @include('dashboard.tendik.section-' . $activeSection)
 
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('vendor/chartjs/chart.umd.js') }}"></script>
+    <script
+        src="{{ asset('js/tendik-dashboard.js') }}?v={{ file_exists(public_path('js/tendik-dashboard.js')) ? filemtime(public_path('js/tendik-dashboard.js')) : time() }}">
+    </script>
+@endpush

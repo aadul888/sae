@@ -346,13 +346,6 @@
 @endsection
 
 @push('scripts')
-    <script>
-        window.keamananRoutes = {
-            verifikasiTiket: "{{ route('dashboard.keamanan.izin.verifikasi') }}",
-            checkoutBase: "{{ url('/dashboard/keamanan/izin/checkout') }}",
-            checkinBase: "{{ url('/dashboard/keamanan/izin/checkin') }}"
-        };
-    </script>
     <script
         src="{{ asset('js/keamanan-izin.js') }}?v={{ file_exists(public_path('js/keamanan-izin.js')) ? filemtime(public_path('js/keamanan-izin.js')) : time() }}">
     </script>

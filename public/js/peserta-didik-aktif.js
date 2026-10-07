@@ -1783,3 +1783,53 @@ document.addEventListener("click", async function (e) {
         });
     }
 });
+
+// =========================================================================
+// MODAL CETAK DATA ROMBEL
+// =========================================================================
+window.openCetakDataRombelModal = function (defaultRombel = "") {
+    const modal = document.getElementById("cetakDataRombelModal");
+    if (!modal) return;
+    const select = document.getElementById("selectCetakDataRombel");
+    if (select) {
+        const currentFilter =
+            document.getElementById("filterRombel")?.value || defaultRombel;
+        if (currentFilter) {
+            select.value = currentFilter;
+        }
+    }
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+};
+
+window.closeCetakDataRombelModal = function () {
+    const modal = document.getElementById("cetakDataRombelModal");
+    if (!modal) return;
+    modal.style.display = "none";
+    document.body.style.overflow = "";
+};
+
+window.handleCetakDataRombelBackdropClick = function (e) {
+    if (e.target.id === "cetakDataRombelModal") {
+        window.closeCetakDataRombelModal();
+    }
+};
+
+window.proceedCetakDataRombel = function () {
+    const select = document.getElementById("selectCetakDataRombel");
+    if (!select || !select.value) {
+        alert("Silakan pilih rombongan belajar (kelas) terlebih dahulu.");
+        return;
+    }
+    const rombelName = select.value;
+    const orientasi =
+        document.getElementById("selectOrientasiCetakData")?.value ||
+        "landscape";
+    const url =
+        "/dashboard/manajemen-data/peserta-didik-aktif/cetak-rombel/" +
+        encodeURIComponent(rombelName) +
+        "?orientasi=" +
+        encodeURIComponent(orientasi);
+    window.open(url, "_blank");
+    window.closeCetakDataRombelModal();
+};

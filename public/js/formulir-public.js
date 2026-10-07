@@ -24,6 +24,11 @@ window.previewFile = function (input, previewId) {
 };
 
 document.addEventListener('DOMContentLoaded', function () {
+    const themeColor = document.body.dataset.themeColor;
+    if (themeColor) {
+        document.documentElement.style.setProperty('--primary', themeColor);
+    }
+
     const form = document.getElementById('publicForm');
     if (form) {
         form.addEventListener('submit', function () {

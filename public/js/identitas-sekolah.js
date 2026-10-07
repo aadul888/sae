@@ -3,8 +3,19 @@
  * Script Modul Identitas Sekolah — Manajemen Data, Logo & Kop Surat Resmi
  */
 
-let currentSekolahLogoUrl = "";
-let currentSekolahKopUrl = "";
+let currentSekolahLogoUrl = window.currentSekolahLogoUrl || "";
+let currentSekolahKopUrl = window.currentSekolahKopUrl || "";
+
+document.addEventListener("DOMContentLoaded", function () {
+    const logoImg = document.getElementById("cardLogoPreviewImg");
+    if (logoImg && logoImg.getAttribute("src")) {
+        currentSekolahLogoUrl = logoImg.getAttribute("src");
+    }
+    const kopImg = document.getElementById("cardKopPreviewImg");
+    if (kopImg && kopImg.getAttribute("src")) {
+        currentSekolahKopUrl = kopImg.getAttribute("src");
+    }
+});
 
 // Modal Edit Identitas Sekolah
 window.openEditSekolahModal = function () {

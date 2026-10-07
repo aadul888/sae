@@ -73,39 +73,4 @@
     </div>
 </div>
 
-<script>
-    function openCetakRombelModal(defaultRombel = '') {
-        const modal = document.getElementById('cetakRombelModal');
-        if (!modal) return;
-        const select = document.getElementById('selectCetakRombel');
-        if (select && defaultRombel) {
-            select.value = defaultRombel;
-        }
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeCetakRombelModal() {
-        const modal = document.getElementById('cetakRombelModal');
-        if (!modal) return;
-        modal.style.display = 'none';
-        document.body.style.overflow = '';
-    }
-
-    function handleCetakRombelBackdropClick(e) {
-        if (e.target.id === 'cetakRombelModal') {
-            closeCetakRombelModal();
-        }
-    }
-
-    function proceedCetakRombel() {
-        const select = document.getElementById('selectCetakRombel');
-        if (!select || !select.value) {
-            alert('Silakan pilih rombongan belajar terlebih dahulu.');
-            return;
-        }
-        const rombelName = select.value;
-        window.open('{{ url('/dashboard/kartu-pelajar/cetak-rombel') }}/' + encodeURIComponent(rombelName), '_blank');
-        closeCetakRombelModal();
-    }
-</script>
+<script src="{{ asset('js/kartu-pelajar-preview.js') }}"></script>

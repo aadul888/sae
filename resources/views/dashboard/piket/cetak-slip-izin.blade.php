@@ -4,97 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slip e-Izin - {{ $tiket->nomor_tiket }}</title>
-    <style>
-        @page {
-            size: A5 landscape;
-            margin: 10mm;
-        }
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            color: #111;
-            margin: 0;
-            padding: 15px;
-            font-size: 13px;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 2px double #000;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-        }
-        .header h2 {
-            margin: 0;
-            font-size: 16px;
-            text-transform: uppercase;
-        }
-        .header h3 {
-            margin: 2px 0;
-            font-size: 14px;
-        }
-        .header p {
-            margin: 0;
-            font-size: 11px;
-            color: #444;
-        }
-        .title-box {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .title-box h4 {
-            margin: 0;
-            font-size: 14px;
-            text-transform: uppercase;
-            text-decoration: underline;
-        }
-        .ticket-no {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 15px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            margin-top: 4px;
-        }
-        .content-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-        }
-        .content-table td {
-            padding: 4px 6px;
-            vertical-align: top;
-        }
-        .content-table td.label {
-            width: 140px;
-            font-weight: bold;
-        }
-        .content-table td.sep {
-            width: 10px;
-        }
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            border: 1px solid #333;
-        }
-        .signature-table {
-            width: 100%;
-            margin-top: 25px;
-            text-align: center;
-        }
-        .signature-table td {
-            width: 33.33%;
-            vertical-align: top;
-        }
-        .sign-space {
-            height: 50px;
-        }
-        @media print {
-            .no-print {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 <body>
     <div class="no-print" style="margin-bottom: 15px; text-align: right;">
@@ -182,10 +92,6 @@
         </tr>
     </table>
 
-    <script>
-        window.addEventListener('load', function() {
-            // Auto print on load if requested
-        });
-    </script>
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 </html>

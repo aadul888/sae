@@ -223,8 +223,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Auto-open reader if URL has highlight parameter
-    if (window.PAGE_HIGHLIGHT_ID) {
-        const highlightCard = document.getElementById(`item-pengumuman-${window.PAGE_HIGHLIGHT_ID}`);
+    const highlightId = window.PAGE_HIGHLIGHT_ID || new URLSearchParams(window.location.search).get('highlight');
+    if (highlightId) {
+        const highlightCard = document.getElementById(`item-pengumuman-${highlightId}`);
         if (highlightCard) {
             highlightCard.scrollIntoView({ behavior: "smooth", block: "center" });
             highlightCard.style.outline = "2px solid var(--primary)";

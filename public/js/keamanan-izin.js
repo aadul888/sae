@@ -41,7 +41,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        fetch(`${window.keamananRoutes.verifikasiTiket}?nomor_tiket=${encodeURIComponent(noTiket)}`, {
+        const routes = window.keamananRoutes || {
+            verifikasiTiket: '/dashboard/keamanan/izin/verifikasi',
+            checkoutBase: '/dashboard/keamanan/izin/checkout',
+            checkinBase: '/dashboard/keamanan/izin/checkin'
+        };
+
+        fetch(`${routes.verifikasiTiket}?nomor_tiket=${encodeURIComponent(noTiket)}`, {
             headers: {
                 'Accept': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
@@ -69,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (data.status === 'menunggu_satpam') {
                 const formOut = document.createElement('form');
-                formOut.action = `${window.keamananRoutes.checkoutBase}/${data.id}`;
+                formOut.action = `${routes.checkoutBase}/${data.id}`;
                 formOut.method = 'POST';
                 formOut.innerHTML = `
                     <input type="hidden" name="_token" value="${token}">
@@ -80,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 actionContainer.appendChild(formOut);
             } else if (data.status === 'di_luar' && data.jenis_izin === 'keluar_sebentar') {
                 const formIn = document.createElement('form');
-                formIn.action = `${window.keamananRoutes.checkinBase}/${data.id}`;
+                formIn.action = `${routes.checkinBase}/${data.id}`;
                 formIn.method = 'POST';
                 formIn.innerHTML = `
                     <input type="hidden" name="_token" value="${token}">

@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -25,6 +26,16 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (HttpException $e, $request) {
+            if ($e->getStatusCode() === 419 && $request->expectsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'success' => false,
+                    'message' => 'Sesi halaman telah berakhir. Muat ulang halaman lalu ulangi aksi Anda.',
+                ], 419);
+            }
         });
     }
 }

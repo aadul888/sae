@@ -1,0 +1,380 @@
+/* ==========================================================================
+   JADWAL KBM MANUAL STYLES — SISTEM APLIKASI EDUKASI (SAE)
+   ========================================================================== */
+
+/* Layout Grid Dual-Panel Modul Jadwal KBM Manual */
+.jadwal-manual-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 380px) 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.panel-mapel-wrap {
+    padding: 16px;
+    border-radius: 12px;
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
+}
+
+.panel-matriks-wrap {
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+}
+
+/* Mobile Segmented Switcher (Mapel vs Matriks) */
+.manual-mobile-switcher {
+    display: none;
+    margin-bottom: 16px;
+}
+.manual-tab-bar {
+    display: flex;
+    background: var(--bg-card, #1e293b);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.manual-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.manual-tab-btn.active {
+    background: var(--primary, #6366f1);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+}
+
+/* Matriks Table Horizontal Scroll Container */
+.matrix-scroll-container {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
+    overscroll-behavior-x: contain;
+    position: relative;
+    border-radius: 0 0 12px 12px;
+}
+.matrix-scroll-container table.matrix-table {
+    display: table !important;
+    width: 100% !important;
+    min-width: 880px !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    margin: 0 !important;
+}
+.matrix-scroll-container thead {
+    display: table-header-group !important;
+}
+.matrix-scroll-container tbody {
+    display: table-row-group !important;
+}
+.matrix-scroll-container tr {
+    display: table-row !important;
+}
+.matrix-scroll-container th,
+.matrix-scroll-container td {
+    display: table-cell !important;
+    box-sizing: border-box !important;
+}
+.matrix-scroll-container tbody td::before {
+    display: none !important;
+}
+
+/* Sticky Column untuk Jam/JP di Matriks */
+.sticky-jp-col {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 5 !important;
+    width: 88px !important;
+    min-width: 88px !important;
+    background: var(--bg-card, #1e293b) !important;
+    box-shadow: 3px 0 8px rgba(0, 0, 0, 0.22) !important;
+}
+th.sticky-jp-col {
+    z-index: 6 !important;
+    background: var(--bg-card, #1e293b) !important;
+}
+
+/* Hint Scroll Horizontal di Layar Sempit */
+.table-scroll-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px dashed rgba(99, 102, 241, 0.25);
+    padding: 7px 14px;
+    border-radius: 8px;
+    margin: 10px 16px 0 16px;
+}
+
+/* Tombol Aksi Slot Touch-Friendly & Ergonomis */
+.btn-slot-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    border-radius: 7px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-hover, rgba(255,255,255,0.06));
+    color: var(--text-color);
+    font-size: 0.78rem;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.15s ease;
+}
+.btn-slot-action:hover, .btn-slot-action:focus-visible {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+.btn-slot-action.btn-slot-delete {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.btn-slot-action.btn-slot-delete:hover, .btn-slot-action.btn-slot-delete:focus-visible {
+    background: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+/* Mobile Matriks Switcher (Mode Harian vs Mode Tabel) */
+.mobile-matriks-switcher {
+    display: none;
+    padding: 12px 16px 0 16px;
+}
+.matriks-view-mode-bar {
+    display: flex;
+    background: var(--bg-hover, rgba(255,255,255,0.04));
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 4px;
+}
+.matriks-mode-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.2s ease;
+}
+.matriks-mode-btn.active {
+    background: var(--primary, #6366f1);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+/* Mobile Daily Timeline View */
+.view-harian-wrapper {
+    display: none;
+    padding: 14px 16px;
+}
+.harian-day-pills-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+.harian-day-pills-bar::-webkit-scrollbar {
+    height: 4px;
+}
+.harian-day-pills-bar::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+.harian-day-pill {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-hover, rgba(255,255,255,0.03));
+    color: var(--text-color);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.15s ease;
+}
+.harian-day-pill.active {
+    background: var(--primary, #6366f1);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+.harian-day-pill .day-count-badge {
+    font-size: 0.68rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.22);
+    color: inherit;
+}
+.harian-day-feed {
+    display: none;
+}
+.harian-day-feed.active {
+    display: block;
+}
+.harian-timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.harian-card-item {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-card);
+    padding: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.harian-card-scheduled {
+    border-left: 4px solid var(--primary, #6366f1);
+    background: rgba(99, 102, 241, 0.03);
+}
+.harian-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--border-color);
+}
+.harian-card-time {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.harian-jp-badge {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: var(--text-color);
+    background: var(--bg-hover);
+    padding: 2px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+.harian-clock-text {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
+.harian-mapel-name {
+    margin: 0 0 4px 0;
+    font-size: 0.94rem;
+    font-weight: 800;
+    color: var(--text-color);
+    line-height: 1.35;
+}
+.harian-guru-name, .harian-room-name {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.harian-conflict-warn {
+    font-size: 0.72rem;
+    color: #ef4444;
+    background: rgba(239,68,68,0.1);
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.harian-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border-color);
+}
+.harian-empty-day {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+}
+
+/* Responsif Mobile (< 992px) */
+@media (max-width: 991px) {
+    .jadwal-manual-layout-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .manual-mobile-switcher {
+        display: block;
+    }
+    .panel-mapel-wrap {
+        max-height: none;
+    }
+    .mobile-matriks-switcher {
+        display: block;
+    }
+    .view-harian-wrapper.mode-active {
+        display: block;
+    }
+    .view-tabel-wrapper {
+        display: none;
+    }
+    .view-tabel-wrapper.mode-active {
+        display: block;
+    }
+    .dash-banner-actions {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+/* Tampilan Desktop (>= 992px) */
+@media (min-width: 992px) {
+    .mobile-matriks-switcher {
+        display: none !important;
+    }
+    .view-harian-wrapper {
+        display: none !important;
+    }
+    .view-tabel-wrapper {
+        display: block !important;
+    }
+    .table-scroll-hint {
+        display: none !important;
+    }
+}

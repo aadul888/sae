@@ -14,7 +14,8 @@
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;" title="Tarik Data Dapodik">
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;"
+                title="Tarik Data Dapodik">
                 <i class="fas fa-cloud-arrow-down"></i>
             </a>
         </div>
@@ -173,7 +174,8 @@
                                         {{ $item->nama_mata_pelajaran }}</div>
                                     @if ($item->mata_pelajaran_id)
                                         <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
-                                            <span class="copyable" data-copy="{{ $item->mata_pelajaran_id }}" data-label="ID Mapel" title="Klik untuk salin ID Mapel">
+                                            <span class="copyable" data-copy="{{ $item->mata_pelajaran_id }}"
+                                                data-label="ID Mapel" title="Klik untuk salin ID Mapel">
                                                 ID: {{ $item->mata_pelajaran_id }}
                                             </span>
                                         </div>
@@ -183,18 +185,24 @@
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Kelas">
                             <div style="display: flex; flex-direction: column; align-items: flex-end; text-align: right;">
-                                <div style="font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px;">
+                                <div
+                                    style="font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px;">
                                     <span>{{ $item->nama_rombel ?: '-' }}</span>
                                     @if (!empty($item->is_pilihan))
-                                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.68rem; padding: 2px 6px; font-weight: 700;" title="Matapelajaran Pilihan (Tergabung via Ruang)">Pilihan</span>
+                                        <span class="badge"
+                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.68rem; padding: 2px 6px; font-weight: 700;"
+                                            title="Matapelajaran Pilihan (Tergabung via Ruang)">Pilihan</span>
                                     @endif
                                 </div>
                                 <div style="display: flex; gap: 4px; margin-top: 2px;">
                                     @if ($item->tingkat)
-                                        <span class="badge badge-outline" style="font-size: 0.70rem; padding: 2px 6px;">{{ $item->tingkat }}</span>
+                                        <span class="badge badge-outline"
+                                            style="font-size: 0.70rem; padding: 2px 6px;">{{ $item->tingkat }}</span>
                                     @endif
                                     @if (!empty($item->ruang))
-                                        <span class="badge badge-outline" style="font-size: 0.70rem; padding: 2px 6px; color: var(--text-muted);" title="Ruang Kelas: {{ $item->ruang }}">
+                                        <span class="badge badge-outline"
+                                            style="font-size: 0.70rem; padding: 2px 6px; color: var(--text-muted);"
+                                            title="Ruang Kelas: {{ $item->ruang }}">
                                             <i class="fas fa-door-open me-1"></i>{{ $item->ruang }}
                                         </span>
                                     @endif
@@ -217,11 +225,13 @@
                                         <div
                                             style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
                                             @if ($item->nuptk)
-                                                <span class="copyable" data-copy="{{ $item->nuptk }}" data-label="NUPTK" title="Klik untuk salin NUPTK">
+                                                <span class="copyable" data-copy="{{ $item->nuptk }}"
+                                                    data-label="NUPTK" title="Klik untuk salin NUPTK">
                                                     NUPTK: {{ $item->nuptk }}
                                                 </span>
                                             @else
-                                                <span class="copyable" data-copy="{{ $item->nip }}" data-label="NIP" title="Klik untuk salin NIP">
+                                                <span class="copyable" data-copy="{{ $item->nip }}" data-label="NIP"
+                                                    title="Klik untuk salin NIP">
                                                     NIP: {{ $item->nip }}
                                                 </span>
                                             @endif
@@ -239,7 +249,9 @@
                             </span>
                         </td>
                         <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Kurikulum">
-                            <span class="badge badge-outline" style="font-size: 0.72rem; padding: 3px 8px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle;" title="{{ $item->status_di_kurikulum_str ?: 'Wajib' }}">
+                            <span class="badge badge-outline"
+                                style="font-size: 0.72rem; padding: 3px 8px; max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle;"
+                                title="{{ $item->status_di_kurikulum_str ?: 'Wajib' }}">
                                 {{ $item->status_di_kurikulum_str ?: 'Wajib' }}
                             </span>
                         </td>
@@ -399,8 +411,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        window.PEMBELAJARAN_BASE_URL = "{{ url('dashboard/master-data/pembelajaran') }}";
-    </script>
     <script src="{{ asset('js/pembelajaran.js') }}"></script>
 @endpush

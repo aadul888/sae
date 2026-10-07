@@ -4,59 +4,6 @@
 @section('dash_title', 'Peserta Didik')
 
 @section('content')
-    <style>
-        .pd-nama[data-biodata-id]:hover {
-            color: var(--primary) !important;
-            text-decoration: underline;
-        }
-
-        .pd-foto-thumb[data-biodata-id]:hover {
-            transform: scale(1.08);
-            border-color: var(--primary) !important;
-            box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35) !important;
-        }
-
-        @media (max-width: 768px) {
-            .table-pd tbody td.cell-pd-berkas-item {
-                display: flex !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-                padding: 8px 0 !important;
-                border-bottom: 1px dashed rgba(255, 255, 255, 0.07) !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                text-align: right !important;
-            }
-
-            .table-pd tbody td.cell-pd-berkas-item::before {
-                content: attr(data-label) !important;
-                font-weight: 600 !important;
-                font-size: 0.74rem !important;
-                color: var(--text-muted) !important;
-                text-transform: uppercase !important;
-                text-align: left !important;
-            }
-
-            .table-pd tbody td.cell-pd-aksi {
-                order: 10 !important;
-                width: 100% !important;
-                border-top: 1px solid var(--border-color) !important;
-                padding-top: 12px !important;
-                margin-top: 4px !important;
-            }
-
-            .table-pd tbody td.cell-pd-aksi .table-actions {
-                width: 100% !important;
-                justify-content: center !important;
-            }
-
-            .table-pd tbody td.cell-pd-aksi .btn-validasi-berkas-detail {
-                width: 100% !important;
-                justify-content: center !important;
-            }
-        }
-    </style>
-
     <!-- 1. Header Banner & Actions -->
     <div class="dash-banner"
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">

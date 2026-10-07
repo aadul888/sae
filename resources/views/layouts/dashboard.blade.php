@@ -34,19 +34,7 @@
     <meta property="og:image:height" content="881">
 
     <!-- Prevent Theme Flicker (FOUC) -->
-    <script>
-        (function() {
-            try {
-                const savedTheme = localStorage.getItem('sae_theme') || (window.matchMedia(
-                    '(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-                if (savedTheme === 'light') {
-                    document.documentElement.setAttribute('data-theme', 'light');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                }
-            } catch (e) {}
-        })();
-    </script>
+    <script src="{{ asset('js/theme-init.js') }}?v={{ @filemtime(public_path('js/theme-init.js')) ?: '1' }}"></script>
 
     @php
         $dashLogoIconVer = @filemtime(public_path('img/logo-icon.png')) ?: '1';
