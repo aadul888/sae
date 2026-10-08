@@ -82,7 +82,7 @@
 
     // Section: Layanan Digital
     $hasLayananDigital =
-        $role !== 'orang_tua' &&
+        !in_array($role, ['orang_tua', 'peserta_didik'], true) &&
         ($canRole('menu_formulir') || $canRole('menu_pengumuman') || $canRole('menu_rfid') || $canRole('menu_e_izin'));
 
     // Section: Sistem
@@ -1852,7 +1852,7 @@
     @endif
 
     {{-- Layanan Digital (Collapsible) --}}
-    @if ($hasLayananDigital && $role !== 'orang_tua')
+    @if ($hasLayananDigital && !in_array($role, ['orang_tua', 'peserta_didik'], true))
         <span class="nav-section-label">Layanan Digital</span>
 
         @php

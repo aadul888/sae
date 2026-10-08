@@ -212,6 +212,12 @@ class RolePermission extends Model
             'menu_peserta_didik_tidak_aktif',
             'menu_guru_tidak_aktif',
             'menu_tendik_tidak_aktif',
+            'menu_formulir',
+            'menu_pengumuman',
+            'menu_rfid',
+            'menu_e_izin',
+            'menu_poin',
+            'menu_kelulusan',
             'menu_buku_tamu',
             'menu_agenda',
             'menu_pengguna',
@@ -242,6 +248,12 @@ class RolePermission extends Model
             'menu_peserta_didik_tidak_aktif',
             'menu_guru_tidak_aktif',
             'menu_tendik_tidak_aktif',
+            'menu_formulir',
+            'menu_pengumuman',
+            'menu_rfid',
+            'menu_e_izin',
+            'menu_poin',
+            'menu_kelulusan',
             'menu_buku_tamu',
             'menu_agenda',
             'menu_pengguna',
@@ -278,7 +290,7 @@ class RolePermission extends Model
             if (in_array($group, ['Manajemen Data', 'Master Data', 'Sistem & Pengaturan', 'Fitur Operasional'], true)) {
                 return true;
             }
-            if (in_array($permissionKey, ['menu_dapodik', 'menu_buku_tamu', 'menu_agenda', 'menu_kelulusan', 'menu_poin', 'menu_rfid', 'menu_formulir', 'menu_e_izin'], true)) {
+            if (in_array($permissionKey, ['menu_dapodik', 'menu_buku_tamu', 'menu_agenda', 'menu_kelulusan', 'menu_poin', 'menu_rfid', 'menu_formulir', 'menu_e_izin', 'menu_pengumuman'], true)) {
                 return true;
             }
         }
