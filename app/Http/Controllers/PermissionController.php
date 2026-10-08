@@ -72,10 +72,10 @@ class PermissionController extends Controller
                     $groups[] = $groupName;
                 }
 
-                $canCreate = $saved ? (bool) $saved->can_create : in_array($activeRole, ['admin', 'tugas_tambahan'], true);
-                $canRead   = $saved ? (bool) $saved->can_read   : (in_array($activeRole, ['admin', 'tugas_tambahan'], true) || $isDefault);
-                $canUpdate = $saved ? (bool) $saved->can_update : in_array($activeRole, ['admin', 'tugas_tambahan'], true);
-                $canDelete = $saved ? (bool) $saved->can_delete : ($activeRole === 'admin');
+                $canCreate = $saved ? (bool) $saved->can_create : in_array($activeRole, ['admin', 'tugas_tambahan', 'tendik'], true);
+                $canRead   = $saved ? (bool) $saved->can_read   : (in_array($activeRole, ['admin', 'tugas_tambahan', 'tendik'], true) || $isDefault);
+                $canUpdate = $saved ? (bool) $saved->can_update : in_array($activeRole, ['admin', 'tugas_tambahan', 'tendik'], true);
+                $canDelete = $saved ? (bool) $saved->can_delete : in_array($activeRole, ['admin', 'tugas_tambahan', 'tendik'], true);
 
                 $tableModules[] = [
                     'key'        => $permKey,

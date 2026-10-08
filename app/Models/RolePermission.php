@@ -567,61 +567,176 @@ class RolePermission extends Model
 
             'Tendik: Sarpras & Aset' => [
                 'menu_sarpras' => [
-                    'label' => 'Sarana & Prasarana Sekolah',
+                    'label' => 'Dashboard Sarana & Prasarana',
                     'icon' => 'fa-building',
                     'roles' => ['tugas_tambahan'],
                 ],
+                'menu_sarpras_ruang' => [
+                    'label' => 'Sarpras: Ruang & Gedung',
+                    'icon' => 'fa-door-open',
+                    'roles' => ['tugas_tambahan'],
+                ],
                 'menu_inventaris' => [
-                    'label' => 'Inventaris Sarpras',
+                    'label' => 'Sarpras: Inventaris & Aset',
                     'icon' => 'fa-boxes-stacked',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_sarpras_peminjaman' => [
+                    'label' => 'Sarpras: Peminjaman Sarpras',
+                    'icon' => 'fa-hand-holding',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
 
             'Tendik: Laboratorium' => [
                 'menu_laboran' => [
-                    'label' => 'Laboratorium & Praktik',
+                    'label' => 'Dashboard Laboratorium',
                     'icon' => 'fa-flask',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_inventaris' => [
+                    'label' => 'Laboratorium: Alat & Bahan Lab',
+                    'icon' => 'fa-vials',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_jadwal' => [
+                    'label' => 'Laboratorium: Jadwal & Pemakaian Lab',
+                    'icon' => 'fa-calendar-days',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_aset' => [
+                    'label' => 'Laboratorium: Inventaris & Aset Lab',
+                    'icon' => 'fa-boxes-stacked',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_laboran_peminjaman' => [
+                    'label' => 'Laboratorium: Peminjaman Alat & Sarpras',
+                    'icon' => 'fa-hand-holding',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
 
             'Tendik: Perpustakaan' => [
                 'menu_perpustakaan' => [
-                    'label' => 'Perpustakaan & Buku Digital',
+                    'label' => 'Dashboard Perpustakaan',
                     'icon' => 'fa-book-open',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_perpustakaan_koleksi' => [
+                    'label' => 'Perpustakaan: Katalog & Koleksi Buku',
+                    'icon' => 'fa-book',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_perpustakaan_sirkulasi' => [
+                    'label' => 'Perpustakaan: Sirkulasi & Denda',
+                    'icon' => 'fa-exchange-alt',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_perpustakaan_kunjungan' => [
+                    'label' => 'Perpustakaan: Buku Kunjungan Harian',
+                    'icon' => 'fa-user-check',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
 
             'Tendik: Teknisi IT' => [
                 'menu_teknisi' => [
-                    'label' => 'Teknisi IT & Infrastruktur',
+                    'label' => 'Dashboard Teknisi & IT',
                     'icon' => 'fa-network-wired',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_teknisi_wo' => [
+                    'label' => 'Teknisi: Work Order & Perbaikan',
+                    'icon' => 'fa-wrench',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_teknisi_pemeliharaan' => [
+                    'label' => 'Teknisi: Jadwal Pemeliharaan PM',
+                    'icon' => 'fa-calendar-check',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
 
             'Tendik: Keamanan & Tamu' => [
                 'menu_keamanan' => [
-                    'label' => 'Keamanan & Pos Satpam',
+                    'label' => 'Dashboard Keamanan & Satpam',
                     'icon' => 'fa-shield-halved',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_keamanan_izin' => [
+                    'label' => 'Keamanan: Verifikasi e-Izin Gerbang',
+                    'icon' => 'fa-shield-alt',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_keamanan_presensi' => [
+                    'label' => 'Keamanan: Monitoring Presensi Siswa',
+                    'icon' => 'fa-id-card-alt',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_keamanan_buku_tamu' => [
+                    'label' => 'Keamanan: Buku Tamu Pos Depan',
+                    'icon' => 'fa-book-open',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_keamanan_patroli' => [
+                    'label' => 'Keamanan: Patroli & Log Insiden',
+                    'icon' => 'fa-shield-virus',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_keamanan_scan' => [
+                    'label' => 'Keamanan: Pos Scanner RFID',
+                    'icon' => 'fa-qrcode',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
 
             'Tendik: Fasilitas & Penjaga' => [
                 'menu_penjaga' => [
-                    'label' => 'Fasilitas & Penjaga Sekolah',
+                    'label' => 'Dashboard Fasilitas & Penjaga',
                     'icon' => 'fa-broom',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_penjaga_kebersihan' => [
+                    'label' => 'Penjaga: Checklist Kebersihan',
+                    'icon' => 'fa-clipboard-check',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_penjaga_ronda' => [
+                    'label' => 'Penjaga: Buku Jaga & Ronda',
+                    'icon' => 'fa-moon',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
 
             'Tendik: Piket Sekolah' => [
                 'menu_piket' => [
-                    'label' => 'Petugas / Guru Piket',
+                    'label' => 'Dashboard Petugas / Guru Piket',
                     'icon' => 'fa-clipboard-user',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_piket_presensi_guru' => [
+                    'label' => 'Piket: Presensi Guru Mengajar',
+                    'icon' => 'fa-calendar-check',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_piket_presensi_kelas' => [
+                    'label' => 'Piket: Presensi Kelas',
+                    'icon' => 'fa-users-viewfinder',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_piket_agenda' => [
+                    'label' => 'Piket: Jurnal & Agenda KBM',
+                    'icon' => 'fa-book-open-reader',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_piket_izin' => [
+                    'label' => 'Piket: e-Izin Keluar Masuk Siswa',
+                    'icon' => 'fa-ticket-alt',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_piket_jurnal' => [
+                    'label' => 'Piket: Jurnal Guru Piket',
+                    'icon' => 'fa-clipboard-list',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
@@ -1717,27 +1832,27 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['KEPALA_PERPUSTAKAAN', 'PUSTAKAWAN'], true)) {
-                        foreach (['menu_perpustakaan'] as $k) {
+                        foreach (['menu_perpustakaan', 'menu_perpustakaan_koleksi', 'menu_perpustakaan_sirkulasi', 'menu_perpustakaan_kunjungan', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'LABORAN') {
-                        foreach (['menu_laboran', 'menu_inventaris'] as $k) {
+                        foreach (['menu_laboran', 'menu_laboran_inventaris', 'menu_laboran_jadwal', 'menu_laboran_aset', 'menu_laboran_peminjaman', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['TEKNISI_IT', 'TEKNISI_GEDUNG', 'TEKNISI_LAPANGAN'], true)) {
-                        foreach (['menu_teknisi'] as $k) {
+                        foreach (['menu_teknisi', 'menu_teknisi_wo', 'menu_teknisi_pemeliharaan', 'menu_inventaris'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'PETUGAS_KEAMANAN' || $kode === 'SATPAM') {
-                        foreach (['menu_keamanan'] as $k) {
+                        foreach (['menu_keamanan', 'menu_keamanan_izin', 'menu_keamanan_presensi', 'menu_keamanan_buku_tamu', 'menu_buku_tamu', 'menu_keamanan_patroli', 'menu_keamanan_scan', 'menu_rfid'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['PENJAGA_SEKOLAH', 'PESURUH'], true)) {
-                        foreach (['menu_penjaga'] as $k) {
+                        foreach (['menu_penjaga', 'menu_penjaga_kebersihan', 'menu_penjaga_ronda', 'menu_buku_tamu'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'GURU_PIKET') {
-                        foreach (['menu_piket', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_e_izin', 'menu_riwayat_rfid'] as $k) {
+                        foreach (['menu_piket', 'menu_piket_presensi_guru', 'menu_piket_presensi_kelas', 'menu_piket_agenda', 'menu_piket_izin', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_e_izin', 'menu_piket_jurnal', 'menu_riwayat_rfid'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'OPERATOR_DAPODIK') {
@@ -1745,7 +1860,19 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'KEPALA_TAS') {
-                        foreach (['menu_kepala_tas', 'menu_persuratan', 'menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan', 'menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi', 'menu_kepegawaian', 'menu_keuangan', 'menu_sarpras', 'menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik', 'menu_laboran', 'menu_perpustakaan', 'menu_teknisi', 'menu_keamanan', 'menu_penjaga', 'menu_piket', 'menu_inventaris'] as $k) {
+                        foreach ([
+                            'menu_kepala_tas', 'menu_persuratan', 'menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan',
+                            'menu_kesiswaan', 'menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi',
+                            'menu_kepegawaian', 'menu_kepegawaian_guru', 'menu_kepegawaian_tendik', 'menu_kepegawaian_kgb', 'menu_kepegawaian_cuti',
+                            'menu_keuangan', 'menu_sarpras', 'menu_sarpras_ruang', 'menu_inventaris', 'menu_sarpras_peminjaman',
+                            'menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik',
+                            'menu_laboran', 'menu_laboran_inventaris', 'menu_laboran_jadwal', 'menu_laboran_aset', 'menu_laboran_peminjaman',
+                            'menu_perpustakaan', 'menu_perpustakaan_koleksi', 'menu_perpustakaan_sirkulasi', 'menu_perpustakaan_kunjungan',
+                            'menu_teknisi', 'menu_teknisi_wo', 'menu_teknisi_pemeliharaan',
+                            'menu_keamanan', 'menu_keamanan_izin', 'menu_keamanan_presensi', 'menu_keamanan_buku_tamu', 'menu_buku_tamu', 'menu_keamanan_patroli', 'menu_keamanan_scan',
+                            'menu_penjaga', 'menu_penjaga_kebersihan', 'menu_penjaga_ronda',
+                            'menu_piket', 'menu_piket_presensi_guru', 'menu_piket_presensi_kelas', 'menu_piket_agenda', 'menu_piket_izin', 'menu_presensi_mengajar', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_e_izin', 'menu_piket_jurnal'
+                        ] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_PERSURATAN') {
@@ -1753,7 +1880,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_KEPEGAWAIAN') {
-                        foreach (['menu_kepegawaian', 'menu_tendik_aktif', 'menu_guru_aktif', 'menu_guru_tidak_aktif', 'menu_tendik_tidak_aktif', 'menu_rfid'] as $k) {
+                        foreach (['menu_kepegawaian', 'menu_kepegawaian_guru', 'menu_kepegawaian_tendik', 'menu_kepegawaian_kgb', 'menu_kepegawaian_cuti', 'menu_tendik_aktif', 'menu_guru_aktif', 'menu_guru_tidak_aktif', 'menu_tendik_tidak_aktif', 'menu_rfid'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_KESISWAAN') {
@@ -1761,7 +1888,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'STAF_SARPRAS') {
-                        foreach (['menu_sarpras', 'menu_inventaris', 'menu_rombel'] as $k) {
+                        foreach (['menu_sarpras', 'menu_sarpras_ruang', 'menu_inventaris', 'menu_sarpras_peminjaman', 'menu_rombel'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'KOORDINATOR_KELAS') {
@@ -1795,6 +1922,70 @@ class RolePermission extends Model
                     if (!isset($allowedKeys['menu_kesiswaan_kedisiplinan'])) $allowedKeys['menu_kesiswaan_kedisiplinan'] = true;
                     if (!isset($allowedKeys['menu_kesiswaan_kegiatan'])) $allowedKeys['menu_kesiswaan_kegiatan'] = true;
                     if (!isset($allowedKeys['menu_kesiswaan_prestasi'])) $allowedKeys['menu_kesiswaan_prestasi'] = true;
+                }
+
+                // Wariskan izin menu_kepegawaian ke sub-modul kepegawaian jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_kepegawaian'])) {
+                    if (!isset($allowedKeys['menu_kepegawaian_guru'])) $allowedKeys['menu_kepegawaian_guru'] = true;
+                    if (!isset($allowedKeys['menu_kepegawaian_tendik'])) $allowedKeys['menu_kepegawaian_tendik'] = true;
+                    if (!isset($allowedKeys['menu_kepegawaian_kgb'])) $allowedKeys['menu_kepegawaian_kgb'] = true;
+                    if (!isset($allowedKeys['menu_kepegawaian_cuti'])) $allowedKeys['menu_kepegawaian_cuti'] = true;
+                }
+
+                // Wariskan izin menu_perpustakaan ke sub-modul perpustakaan jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_perpustakaan'])) {
+                    if (!isset($allowedKeys['menu_perpustakaan_koleksi'])) $allowedKeys['menu_perpustakaan_koleksi'] = true;
+                    if (!isset($allowedKeys['menu_perpustakaan_sirkulasi'])) $allowedKeys['menu_perpustakaan_sirkulasi'] = true;
+                    if (!isset($allowedKeys['menu_perpustakaan_kunjungan'])) $allowedKeys['menu_perpustakaan_kunjungan'] = true;
+                }
+
+                // Wariskan izin menu_sarpras ke sub-modul sarpras jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_sarpras'])) {
+                    if (!isset($allowedKeys['menu_sarpras_ruang'])) $allowedKeys['menu_sarpras_ruang'] = true;
+                    if (!isset($allowedKeys['menu_inventaris'])) $allowedKeys['menu_inventaris'] = true;
+                    if (!isset($allowedKeys['menu_sarpras_peminjaman'])) $allowedKeys['menu_sarpras_peminjaman'] = true;
+                }
+
+                // Wariskan izin menu_laboran ke sub-modul laboran jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_laboran'])) {
+                    if (!isset($allowedKeys['menu_laboran_inventaris'])) $allowedKeys['menu_laboran_inventaris'] = true;
+                    if (!isset($allowedKeys['menu_laboran_jadwal'])) $allowedKeys['menu_laboran_jadwal'] = true;
+                    if (!isset($allowedKeys['menu_laboran_aset'])) $allowedKeys['menu_laboran_aset'] = true;
+                    if (!isset($allowedKeys['menu_laboran_peminjaman'])) $allowedKeys['menu_laboran_peminjaman'] = true;
+                }
+
+                // Wariskan izin menu_teknisi ke sub-modul teknisi jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_teknisi'])) {
+                    if (!isset($allowedKeys['menu_teknisi_wo'])) $allowedKeys['menu_teknisi_wo'] = true;
+                    if (!isset($allowedKeys['menu_teknisi_pemeliharaan'])) $allowedKeys['menu_teknisi_pemeliharaan'] = true;
+                }
+
+                // Wariskan izin menu_keamanan ke sub-modul keamanan jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_keamanan'])) {
+                    if (!isset($allowedKeys['menu_keamanan_izin'])) $allowedKeys['menu_keamanan_izin'] = true;
+                    if (!isset($allowedKeys['menu_keamanan_presensi'])) $allowedKeys['menu_keamanan_presensi'] = true;
+                    if (!isset($allowedKeys['menu_buku_tamu'])) $allowedKeys['menu_buku_tamu'] = true;
+                    if (!isset($allowedKeys['menu_keamanan_patroli'])) $allowedKeys['menu_keamanan_patroli'] = true;
+                    if (!isset($allowedKeys['menu_keamanan_scan'])) $allowedKeys['menu_keamanan_scan'] = true;
+                }
+
+                // Wariskan izin menu_penjaga ke sub-modul penjaga jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_penjaga'])) {
+                    if (!isset($allowedKeys['menu_penjaga_kebersihan'])) $allowedKeys['menu_penjaga_kebersihan'] = true;
+                    if (!isset($allowedKeys['menu_penjaga_ronda'])) $allowedKeys['menu_penjaga_ronda'] = true;
+                }
+
+                // Wariskan izin menu_piket ke sub-modul piket jika belum terdefinisi secara terpisah
+                if (!empty($allowedKeys['menu_piket'])) {
+                    if (!isset($allowedKeys['menu_piket_presensi_guru'])) $allowedKeys['menu_piket_presensi_guru'] = true;
+                    if (!isset($allowedKeys['menu_piket_presensi_kelas'])) $allowedKeys['menu_piket_presensi_kelas'] = true;
+                    if (!isset($allowedKeys['menu_piket_agenda'])) $allowedKeys['menu_piket_agenda'] = true;
+                    if (!isset($allowedKeys['menu_piket_izin'])) $allowedKeys['menu_piket_izin'] = true;
+                    if (!isset($allowedKeys['menu_presensi_mengajar'])) $allowedKeys['menu_presensi_mengajar'] = true;
+                    if (!isset($allowedKeys['menu_presensi_peserta_didik'])) $allowedKeys['menu_presensi_peserta_didik'] = true;
+                    if (!isset($allowedKeys['menu_agenda_kbm'])) $allowedKeys['menu_agenda_kbm'] = true;
+                    if (!isset($allowedKeys['menu_e_izin'])) $allowedKeys['menu_e_izin'] = true;
+                    if (!isset($allowedKeys['menu_piket_jurnal'])) $allowedKeys['menu_piket_jurnal'] = true;
                 }
 
                 self::$runtimeDutyPermissionsCache[$cacheKey] = $allowedKeys;
@@ -1991,29 +2182,61 @@ class RolePermission extends Model
             ],
             'STAF_SARPRAS' => [
                 'menu_sarpras',
+                'menu_sarpras_ruang',
                 'menu_inventaris',
+                'menu_sarpras_peminjaman',
                 'menu_rombel',
             ],
             'TEKNISI_IT' => [
                 'menu_teknisi',
+                'menu_teknisi_wo',
+                'menu_teknisi_pemeliharaan',
                 'menu_rfid',
                 'menu_inventaris',
             ],
             'LABORAN' => [
                 'menu_laboran',
+                'menu_laboran_inventaris',
+                'menu_laboran_jadwal',
+                'menu_laboran_aset',
+                'menu_laboran_peminjaman',
                 'menu_inventaris',
             ],
             'PUSTAKAWAN' => [
                 'menu_perpustakaan',
+                'menu_perpustakaan_koleksi',
+                'menu_perpustakaan_sirkulasi',
+                'menu_perpustakaan_kunjungan',
                 'menu_inventaris',
             ],
             'SATPAM' => [
                 'menu_keamanan',
+                'menu_keamanan_izin',
+                'menu_keamanan_presensi',
+                'menu_keamanan_buku_tamu',
                 'menu_buku_tamu',
+                'menu_keamanan_patroli',
+                'menu_keamanan_scan',
                 'menu_rfid',
             ],
             'PENJAGA_SEKOLAH' => [
                 'menu_penjaga',
+                'menu_penjaga_kebersihan',
+                'menu_penjaga_ronda',
+                'menu_buku_tamu',
+            ],
+            'GURU_PIKET' => [
+                'menu_piket',
+                'menu_piket_presensi_guru',
+                'menu_piket_presensi_kelas',
+                'menu_piket_agenda',
+                'menu_piket_izin',
+                'menu_presensi_mengajar',
+                'menu_agenda_kbm',
+                'menu_presensi_peserta_didik',
+                'menu_e_izin',
+                'menu_piket_jurnal',
+                'menu_riwayat_rfid',
                 'menu_buku_tamu',
             ],
             default => [],
@@ -2108,17 +2331,17 @@ class RolePermission extends Model
             ];
         }
 
-        if ($role === 'tendik' && in_array($permKey, ['menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'], true)) {
+        if ($role === 'tendik' || $role === 'tugas_tambahan') {
             return [
                 'is_allowed' => true,
                 'can_create' => true,
                 'can_read'   => true,
                 'can_update' => true,
-                'can_delete' => ($permKey !== 'menu_laporan_tendik'),
+                'can_delete' => true,
             ];
         }
 
-        // Standar baku setiap peran non-admin: memunculkan semua menu dengan batas Read saja
+        // Standar baku setiap peran non-admin lainnya: memunculkan semua menu dengan batas Read saja
         return [
             'is_allowed' => true,
             'can_create' => false,
@@ -2178,6 +2401,90 @@ class RolePermission extends Model
             if ($ref) {
                 $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
                 $merged = array_values(array_unique(array_merge($current, $persuratanAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
+        $sarprasAll = ['menu_sarpras', 'menu_sarpras_ruang', 'menu_inventaris', 'menu_sarpras_peminjaman', 'menu_rombel'];
+        foreach (['STAF_SARPRAS', 'WAKA_SARPRAS', 'KEPALA_TAS'] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $sarprasAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
+        $laboranAll = ['menu_laboran', 'menu_laboran_inventaris', 'menu_laboran_jadwal', 'menu_laboran_aset', 'menu_laboran_peminjaman', 'menu_inventaris'];
+        foreach (['LABORAN', 'KEPALA_LAB', 'KEPALA_TAS'] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $laboranAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
+        $perpustakaanAll = ['menu_perpustakaan', 'menu_perpustakaan_koleksi', 'menu_perpustakaan_sirkulasi', 'menu_perpustakaan_kunjungan', 'menu_inventaris'];
+        foreach (['PUSTAKAWAN', 'KEPALA_PERPUS', 'KEPALA_TAS'] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $perpustakaanAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
+        $teknisiAll = ['menu_teknisi', 'menu_teknisi_wo', 'menu_teknisi_pemeliharaan', 'menu_rfid', 'menu_inventaris'];
+        foreach (['TEKNISI_IT', 'KEPALA_TAS'] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $teknisiAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
+        $keamananAll = ['menu_keamanan', 'menu_keamanan_izin', 'menu_keamanan_presensi', 'menu_keamanan_buku_tamu', 'menu_buku_tamu', 'menu_keamanan_patroli', 'menu_keamanan_scan', 'menu_rfid'];
+        foreach (['SATPAM', 'PETUGAS_KEAMANAN', 'KEPALA_TAS'] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $keamananAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
+        $penjagaAll = ['menu_penjaga', 'menu_penjaga_kebersihan', 'menu_penjaga_ronda', 'menu_buku_tamu'];
+        foreach (['PENJAGA_SEKOLAH', 'PESURUH', 'KEPALA_TAS'] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $penjagaAll)));
+                if (count($merged) !== count($current)) {
+                    $ref->update(['granted_permissions' => $merged]);
+                }
+            }
+        }
+
+        $piketAll = ['menu_piket', 'menu_piket_presensi_guru', 'menu_piket_presensi_kelas', 'menu_piket_agenda', 'menu_piket_izin', 'menu_presensi_mengajar', 'menu_agenda_kbm', 'menu_presensi_peserta_didik', 'menu_e_izin', 'menu_piket_jurnal', 'menu_riwayat_rfid', 'menu_buku_tamu'];
+        foreach (['GURU_PIKET', 'KEPALA_TAS'] as $kode) {
+            $ref = \App\Models\RefTugasTambahan::where('kode', $kode)->first();
+            if ($ref) {
+                $current = is_array($ref->granted_permissions) ? $ref->granted_permissions : (json_decode($ref->granted_permissions, true) ?: []);
+                $merged = array_values(array_unique(array_merge($current, $piketAll)));
                 if (count($merged) !== count($current)) {
                     $ref->update(['granted_permissions' => $merged]);
                 }
