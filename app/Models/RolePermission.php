@@ -57,6 +57,9 @@ class RolePermission extends Model
      */
     public static function isDutyGroup(string $groupName): bool
     {
+        if ($groupName === 'Tendik: Kinerja & Aktivitas' || $groupName === 'Kinerja & Aktivitas Tendik') {
+            return false;
+        }
         return $groupName === 'Wali Kelas' || str_starts_with($groupName, 'Tendik:');
     }
 
@@ -65,14 +68,18 @@ class RolePermission extends Model
      */
     public static function isDutyModule(string $key, ?string $groupName = null): bool
     {
-        if ($groupName && self::isDutyGroup($groupName)) {
-            return true;
-        }
-        return self::isDutySpecificPermission($key) || in_array($key, [
+        if (in_array($key, [
             'menu_target_capaian',
             'menu_aktivitas_tendik',
             'menu_laporan_tendik',
-        ], true);
+        ], true)) {
+            return false;
+        }
+
+        if ($groupName && self::isDutyGroup($groupName)) {
+            return true;
+        }
+        return self::isDutySpecificPermission($key);
     }
 
     /**
@@ -135,6 +142,9 @@ class RolePermission extends Model
             'menu_kelulusan',
             'menu_buku_tamu',
             'menu_agenda',
+            'menu_target_capaian',
+            'menu_aktivitas_tendik',
+            'menu_laporan_tendik',
             'menu_pengguna',
             'menu_hak_akses',
             'menu_pengaturan',
@@ -617,17 +627,17 @@ class RolePermission extends Model
                 'menu_target_capaian' => [
                     'label' => 'Target & Capaian Pekerjaan',
                     'icon' => 'fa-bullseye',
-                    'roles' => ['tugas_tambahan'],
+                    'roles' => ['tendik'],
                 ],
                 'menu_aktivitas_tendik' => [
                     'label' => 'Aktivitas Harian Tendik',
                     'icon' => 'fa-list-check',
-                    'roles' => ['tugas_tambahan'],
+                    'roles' => ['tendik'],
                 ],
                 'menu_laporan_tendik' => [
                     'label' => 'Laporan Kinerja Tendik',
                     'icon' => 'fa-file-signature',
-                    'roles' => ['tugas_tambahan'],
+                    'roles' => ['tendik'],
                 ],
             ],
 
@@ -926,10 +936,10 @@ class RolePermission extends Model
                             'role'           => $role,
                             'permission_key' => $permKey,
                             'is_allowed'     => true,
-                            'can_create'     => ($role === 'admin') ? true : false,
+                            'can_create'     => (bool) $crud['can_create'],
                             'can_read'       => true,
-                            'can_update'     => ($role === 'admin') ? true : false,
-                            'can_delete'     => ($role === 'admin') ? true : false,
+                            'can_update'     => (bool) $crud['can_update'],
+                            'can_delete'     => (bool) $crud['can_delete'],
                             'created_at'     => $now,
                             'updated_at'     => $now,
                         ];
@@ -2095,6 +2105,16 @@ class RolePermission extends Model
             ];
         }
 
+        if ($role === 'tendik' && in_array($permKey, ['menu_target_capaian', 'menu_aktivitas_tendik', 'menu_laporan_tendik'], true)) {
+            return [
+                'is_allowed' => true,
+                'can_create' => true,
+                'can_read'   => true,
+                'can_update' => true,
+                'can_delete' => ($permKey !== 'menu_laporan_tendik'),
+            ];
+        }
+
         // Standar baku setiap peran non-admin: memunculkan semua menu dengan batas Read saja
         return [
             'is_allowed' => true,
@@ -2241,10 +2261,10 @@ class RolePermission extends Model
                             'role'           => $role,
                             'permission_key' => $permKey,
                             'is_allowed'     => true,
-                            'can_create'     => ($role === 'admin') ? (bool) $crud['can_create'] : false,
+                            'can_create'     => (bool) $crud['can_create'],
                             'can_read'       => true,
-                            'can_update'     => ($role === 'admin') ? (bool) $crud['can_update'] : false,
-                            'can_delete'     => ($role === 'admin') ? (bool) $crud['can_delete'] : false,
+                            'can_update'     => (bool) $crud['can_update'],
+                            'can_delete'     => (bool) $crud['can_delete'],
                             'created_at'     => $now,
                             'updated_at'     => $now,
                         ];
@@ -2341,10 +2361,10 @@ class RolePermission extends Model
                             'role'           => $role,
                             'permission_key' => $permKey,
                             'is_allowed'     => true,
-                            'can_create'     => ($role === 'admin') ? true : false,
+                            'can_create'     => (bool) $crud['can_create'],
                             'can_read'       => true,
-                            'can_update'     => ($role === 'admin') ? true : false,
-                            'can_delete'     => ($role === 'admin') ? true : false,
+                            'can_update'     => (bool) $crud['can_update'],
+                            'can_delete'     => (bool) $crud['can_delete'],
                             'created_at'     => $now,
                             'updated_at'     => $now,
                         ]);
