@@ -114,6 +114,9 @@ class RolePermission extends Model
             'menu_surat_izin_pd',
             'menu_riwayat_rfid',
             'menu_validasi_berkas',
+            'menu_target_capaian',
+            'menu_aktivitas_tendik',
+            'menu_laporan_tendik',
         ],
         'guru' => [
             'menu_identitas_siswa',

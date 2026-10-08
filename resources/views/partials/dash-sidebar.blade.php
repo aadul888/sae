@@ -298,23 +298,23 @@
                 </a>
             @endif
 
-            {{-- Target & Capaian, Input Aktivitas, dan Laporan Kinerja Tendik Umum --}}
-            @if ($role === 'tendik' || $role === 'admin' || collect($userDuties)->contains('kode', 'KEPALA_TAS'))
-                @if ($can('menu_target_capaian') || $role === 'tendik')
+            {{-- Target & Capaian, Input Aktivitas, dan Laporan Kinerja Khusus Tendik --}}
+            @if ($role === 'tendik')
+                @if ($can('menu_target_capaian'))
                     <a href="{{ route('dashboard.tendik.target.index') }}"
                         class="dash-nav-link {{ request()->routeIs('dashboard.tendik.target*') ? 'active' : '' }}">
                         <span class="nav-icon"><i class="fas fa-fw fa-bullseye"></i></span>
                         <span class="nav-label">Target &amp; Capaian</span>
                     </a>
                 @endif
-                @if ($can('menu_aktivitas_tendik') || $role === 'tendik')
+                @if ($can('menu_aktivitas_tendik'))
                     <a href="{{ route('dashboard.tendik.aktivitas.index') }}"
                         class="dash-nav-link {{ request()->routeIs('dashboard.tendik.aktivitas*') ? 'active' : '' }}">
                         <span class="nav-icon"><i class="fas fa-fw fa-clipboard-check"></i></span>
                         <span class="nav-label">Input Aktivitas</span>
                     </a>
                 @endif
-                @if ($can('menu_laporan_tendik') || $role === 'tendik')
+                @if ($can('menu_laporan_tendik'))
                     <a href="{{ route('dashboard.tendik.laporan.index') }}"
                         class="dash-nav-link {{ request()->routeIs('dashboard.tendik.laporan*') ? 'active' : '' }}">
                         <span class="nav-icon"><i class="fas fa-fw fa-file-lines"></i></span>
