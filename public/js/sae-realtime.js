@@ -64,6 +64,67 @@
     }
 
     /**
+     * Tambahkan item notifikasi baru ke dropdown header secara realtime & perbarui badge bel
+     */
+    function addNotificationToDropdown(title, message, icon = "bell", url = "#") {
+        // 1. Titik merah bel notifikasi di header
+        const bellBtn = document.getElementById("notifBellBtn");
+        let bellDot = document.getElementById("bellNotifDot");
+        if (!bellDot && bellBtn) {
+            bellDot = document.createElement("span");
+            bellDot.id = "bellNotifDot";
+            bellDot.className = "dash-notif-badge";
+            bellDot.style.cssText =
+                "position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid var(--nav-bg); box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);";
+            bellBtn.appendChild(bellDot);
+        }
+
+        // 2. Badge angka tab Sistem
+        const badgeTransaksi = document.getElementById("badgeTransaksiCount");
+        if (badgeTransaksi) {
+            const cur = parseInt(badgeTransaksi.textContent.replace(/\D/g, ""), 10) || 0;
+            badgeTransaksi.textContent = String(cur + 1);
+            badgeTransaksi.style.display = "inline-block";
+        }
+
+        // 3. Prepend item ke list notifikasi sistem di dropdown
+        const paneList = document.querySelector("#paneNotifTransaksi .dash-notif-list");
+        if (paneList) {
+            const emptyNotice = paneList.querySelector("div[style*='text-align: center']");
+            if (emptyNotice) {
+                emptyNotice.remove();
+            }
+
+            const item = document.createElement("a");
+            item.href = url || "#";
+            item.className = "dash-notif-item unread-item";
+            item.style.cssText = "display: flex; gap: 12px; align-items: flex-start; animation: fadeIn 0.3s ease;";
+            item.innerHTML = `
+                <div style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; background: rgba(16,185,129,0.15); color: var(--success, #10b981); font-size: 0.9rem;">
+                    <i class="fas fa-${icon}"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <div class="dash-notif-row">
+                        <div class="dash-notif-title" style="font-weight: 700;">
+                            <span class="dash-notif-dot" aria-hidden="true"></span>
+                            <span>${title}</span>
+                        </div>
+                        <span class="dash-notif-time">Baru saja</span>
+                    </div>
+                    <div class="dash-notif-content" style="color: var(--text-color); font-size: 0.78rem;">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            paneList.prepend(item);
+
+            while (paneList.children.length > 10) {
+                paneList.removeChild(paneList.lastChild);
+            }
+        }
+    }
+
+    /**
      * Memperbarui angka card rekap di setiap modul dashboard secara live tanpa reload
      */
     async function updateRekapCards(options = {}) {
@@ -292,32 +353,40 @@
             if (curPdId && data.peserta_didik_id === curPdId) {
                 if (curRole === "orang_tua") {
                     targetTitle = data.judul_ortu || data.judul_murid || "Informasi Siswa";
-                    targetMsg = data.pesan_ortu || data.pesan_murid || "Data kehadiran / izin putra-putri Anda telah diperbarui.";
-                    targetUrl = data.url_ortu || "/dashboard/orang-tua";
+                    targetMsg = data.pesan_ortu || data.pesan_murid || "Kehadiran siswa telah dicatat.";
+                    targetUrl = data.url_ortu || "/dashboard/orang-tua/kehadiran";
                 } else {
-                    targetTitle = data.judul_murid || "Presensi Anda Dicatat";
-                    targetMsg = data.pesan_murid || "Data kehadiran Anda telah diperbarui.";
+                    targetTitle = data.judul_murid || "Presensi Siswa";
+                    targetMsg = data.pesan_murid || "Kehadiran Anda telah dicatat.";
                     targetUrl = data.url_murid || "/dashboard/peserta-didik/presensi";
                 }
             } else if (curUserId && data.wali_user_id === curUserId) {
                 targetTitle = data.judul_wali || "Presensi Siswa Binaan";
-                targetMsg = data.pesan_wali || "Catatan presensi siswa di kelas binaan Anda telah dicatat.";
+                targetMsg = data.pesan_wali || "Catatan presensi siswa binaan telah diperbarui.";
                 targetUrl = data.url_wali || "/dashboard/wali-kelas/presensi";
             }
 
             if (targetTitle) {
                 const iconName = eventName === "izin.recorded" ? "ticket" : "calendar-check";
-                showToast(targetTitle, targetMsg, iconName, targetUrl);
 
-                // Tampilkan notifikasi perangkat OS melalui PWA Service Worker
-                if (window.SaeNotification && typeof window.SaeNotification.showLocal === "function") {
-                    window.SaeNotification.showLocal(targetTitle, {
-                        body: targetMsg,
-                        data: { url: targetUrl },
-                        icon: "/img/icons/icon-192x192.png",
-                        badge: "/img/icons/icon-96x96.png",
-                        vibrate: [200, 100, 200],
-                    });
+                // Tambahkan langsung ke dropdown list & update badge bel secara realtime
+                addNotificationToDropdown(targetTitle, targetMsg, iconName, targetUrl);
+
+                // Tampilkan popup toast jika bukan aksi yang baru saja diklik oleh user sendiri
+                const isOwnAction = data.actor_user_id && curUserId && String(data.actor_user_id) === String(curUserId);
+                if (!isOwnAction) {
+                    showToast(targetTitle, targetMsg, iconName, targetUrl);
+
+                    // Tampilkan notifikasi perangkat OS melalui PWA Service Worker
+                    if (window.SaeNotification && typeof window.SaeNotification.showLocal === "function") {
+                        window.SaeNotification.showLocal(targetTitle, {
+                            body: targetMsg,
+                            data: { url: targetUrl },
+                            icon: "/img/icons/icon-192x192.png",
+                            badge: "/img/icons/icon-96x96.png",
+                            vibrate: [200, 100, 200],
+                        });
+                    }
                 }
             }
         }
@@ -420,7 +489,7 @@
     function startPolling() {
         if (pollTimer) return;
         pollOnce();
-        pollTimer = setInterval(pollOnce, 5000); // Polling ringan setiap 5 detik
+        pollTimer = setInterval(pollOnce, 2500); // Polling responsif setiap 2.5 detik
     }
 
     // Auto pause/resume saat tab aktif/tidak aktif agar server hemat memori & CPU
@@ -430,13 +499,19 @@
         }
     });
 
-    // Jalankan realtime saat DOM siap (Gunakan polling ringan yang aman bagi semua webserver)
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
+    // Jalankan realtime saat DOM siap: coba EventSource (SSE), fallback otomatis ke polling
+    function initRealtime() {
+        if (window.EventSource) {
+            startSSE();
+        } else {
             startPolling();
-        });
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initRealtime);
     } else {
-        startPolling();
+        initRealtime();
     }
 
     // Expose API publik untuk script lain

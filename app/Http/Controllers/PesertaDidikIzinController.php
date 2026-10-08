@@ -238,18 +238,22 @@ class PesertaDidikIzinController extends Controller
             'status' => 'menunggu',
         ]);
 
-        // Buat notifikasi transaksi untuk murid
-        try {
-            NotifikasiTransaksi::create([
-                'peserta_didik_id' => $siswa->peserta_didik_id,
-                'judul' => 'Surat ' . $izin->jenis_label . ' Diajukan',
-                'pesan' => 'Permohonan surat ' . strtolower($izin->jenis_label) . ' periode ' . Carbon::parse($izin->tanggal_mulai)->translatedFormat('d M Y') . ' s/d ' . Carbon::parse($izin->tanggal_selesai)->translatedFormat('d M Y') . ' berhasil dikirim ke Wali Kelas.',
-                'tipe' => 'izin',
-                'is_read' => false,
-            ]);
-        } catch (\Throwable $e) {
-            // Lanjutkan jika notifikasi gagal
-        }
+        // Sampaikan notifikasi transaksi ringkas & realtime ke murid, wali kelas, dan orang tua
+        $tglMulai = Carbon::parse($izin->tanggal_mulai)->translatedFormat('d M');
+        $tglSelesai = Carbon::parse($izin->tanggal_selesai)->translatedFormat('d M');
+        $rentangTgl = ($izin->tanggal_mulai === $izin->tanggal_selesai) ? $tglMulai : "{$tglMulai} - {$tglSelesai}";
+
+        $sessionUser = session('user');
+        $actorUserId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+
+        \App\Models\NotifikasiTransaksi::kirimPengajuanIzinSiswa(
+            $siswa->peserta_didik_id,
+            $siswa->rombongan_belajar_id,
+            $siswa->nama,
+            $izin->jenis_label,
+            $rentangTgl,
+            $actorUserId
+        );
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

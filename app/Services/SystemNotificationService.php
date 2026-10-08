@@ -64,11 +64,20 @@ class SystemNotificationService
                     ->orderBy('created_at', 'desc')
                     ->take(10)
                     ->get()
-                    ->map(function ($notif) {
+                    ->map(function ($notif) use ($role) {
+                        $pesan = $notif->pesan;
+                        $judul = $notif->judul;
+                        if ($role === 'orang_tua') {
+                            $pesan = str_replace(
+                                ['kehadiran Anda', 'Kehadiran Anda', 'kehadiran anda', 'Kehadiran anda', 'Anda', 'anda'],
+                                ['kehadiran siswa', 'Kehadiran siswa', 'kehadiran siswa', 'Kehadiran siswa', 'siswa', 'siswa'],
+                                $pesan
+                            );
+                        }
                         return (object) [
                             'id'         => (string) $notif->id,
-                            'judul'      => $notif->judul,
-                            'pesan'      => $notif->pesan,
+                            'judul'      => $judul,
+                            'pesan'      => $pesan,
                             'kategori'   => $notif->kategori ?: 'sistem',
                             'tipe'       => $notif->tipe ?: 'info',
                             'icon'       => $notif->icon ?: 'fas fa-bell',
@@ -85,6 +94,11 @@ class SystemNotificationService
                 // Ignore query error
             }
         }
+
+        // Cek apakah sudah ada notifikasi presensi hari ini di database agar tidak diduplikasi
+        $hasDbPresensiToday = $items->contains(function ($item) {
+            return ($item->kategori ?? '') === 'presensi' && Carbon::parse($item->created_at)->isToday();
+        });
 
         // 2. Evaluasi Notifikasi & Peringatan Realtime Sesuai Role
         switch ($role) {
@@ -114,10 +128,17 @@ class SystemNotificationService
                 break;
 
             case 'peserta_didik':
-                $dynamicItems = static::getPesertaDidikDynamicReminders($currentUser, $pdId);
+                $dynamicItems = static::getPesertaDidikDynamicReminders($currentUser, $pdId, $hasDbPresensiToday);
                 $items = $dynamicItems->merge($items);
                 $footerUrl = route('dashboard.peserta-didik.presensi.index');
                 $footerText = 'Buka Riwayat Presensi & Izin';
+                break;
+
+            case 'orang_tua':
+                $dynamicItems = static::getOrangTuaDynamicReminders($currentUser, $pdId, $hasDbPresensiToday);
+                $items = $dynamicItems->merge($items);
+                $footerUrl = route('dashboard.orang-tua.kehadiran');
+                $footerText = 'Buka Riwayat Kehadiran Siswa';
                 break;
 
             case 'admin':
@@ -131,7 +152,7 @@ class SystemNotificationService
 
         // Deduplikasi dan limit 10 item terbaru
         $uniqueList = $items->unique(function ($item) {
-            return $item->judul . '|' . substr($item->pesan, 0, 30);
+            return ($item->kategori ?? '') . '|' . ($item->judul ?? '') . '|' . substr($item->pesan ?? '', 0, 20);
         })->take(10)->values();
 
         // Hitung unread count
@@ -569,15 +590,15 @@ class SystemNotificationService
     /**
      * Peringatan & Pengingat Dinamis untuk Peserta Didik
      */
-    protected static function getPesertaDidikDynamicReminders($currentUser, ?string $pdId): Collection
+    protected static function getPesertaDidikDynamicReminders($currentUser, ?string $pdId, bool $hasDbPresensiToday = false): Collection
     {
         $list = collect();
         if (!$pdId) return $list;
 
         $today = now()->toDateString();
 
-        // 1. Cek Presensi Harian Siswa Hari Ini
-        if (Schema::hasTable('presensi_harian')) {
+        // 1. Cek Presensi Harian Siswa Hari Ini (Hanya jika belum ada notifikasi presensi spesifik dari database)
+        if (!$hasDbPresensiToday && Schema::hasTable('presensi_harian')) {
             try {
                 $presensiHariIni = PresensiHarian::where('peserta_didik_id', $pdId)
                     ->whereDate('tanggal', $today)
@@ -590,8 +611,8 @@ class SystemNotificationService
 
                         $list->push((object) [
                             'id'         => 'dyn_pd_presensi_masuk',
-                            'judul'      => $isTepat ? 'Presensi Masuk Tepat Waktu' : 'Presensi Masuk Terlambat',
-                            'pesan'      => "Kehadiran masuk tercatat pukul {$jamFormatted} (" . ($isTepat ? 'Tepat Waktu' : "Terlambat {$presensiHariIni->menit_terlambat} mnt") . ').',
+                            'judul'      => $isTepat ? 'Presensi: Hadir Tepat Waktu' : 'Presensi: Terlambat',
+                            'pesan'      => "Kehadiran masuk tercatat ({$jamFormatted}).",
                             'kategori'   => 'presensi',
                             'tipe'       => $isTepat ? 'success' : 'warning',
                             'icon'       => 'fas fa-calendar-check',
@@ -607,11 +628,11 @@ class SystemNotificationService
                         $jamPulangFormatted = substr($presensiHariIni->jam_pulang, 0, 5) . ' WIB';
                         $list->push((object) [
                             'id'         => 'dyn_pd_presensi_pulang',
-                            'judul'      => 'Presensi Pulang Tercatat',
-                            'pesan'      => "Presensi kepulangan sekolah tercatat pada pukul {$jamPulangFormatted}.",
+                            'judul'      => 'Presensi Pulang',
+                            'pesan'      => "Kepulangan sekolah tercatat ({$jamPulangFormatted}).",
                             'kategori'   => 'presensi',
                             'tipe'       => 'success',
-                            'icon'       => 'fas fa-person-walking-arrow-right',
+                            'icon'       => 'fas fa-door-open',
                             'url'        => route('dashboard.peserta-didik.presensi.index'),
                             'created_at' => Carbon::parse($today . ' ' . $presensiHariIni->jam_pulang),
                             'time_diff'  => 'Hari Ini',
@@ -662,8 +683,8 @@ class SystemNotificationService
                     if ($iz->status === 'menunggu') {
                         $list->push((object) [
                             'id'         => 'dyn_pd_izin_menunggu_' . $iz->id,
-                            'judul'      => "Surat {$jenisStr} Menunggu Verifikasi",
-                            'pesan'      => "Permohonan surat {$iz->jenis} periode {$tglMulai} sedang dalam proses verifikasi Wali Kelas.",
+                            'judul'      => "Surat {$jenisStr} Menunggu",
+                            'pesan'      => "Permohonan surat {$iz->jenis} ({$tglMulai}) menunggu verifikasi Wali Kelas.",
                             'kategori'   => 'izin',
                             'tipe'       => 'info',
                             'icon'       => 'fas fa-hourglass-half',
@@ -673,11 +694,11 @@ class SystemNotificationService
                             'is_read'    => false,
                             'is_dynamic' => true,
                         ]);
-                    } elseif ($iz->status === 'disetujui' && $iz->updated_at && $iz->updated_at->diffInDays(now()) <= 5) {
+                    } elseif ($iz->status === 'disetujui' && $iz->updated_at && $iz->updated_at->diffInDays(now()) <= 3) {
                         $list->push((object) [
                             'id'         => 'dyn_pd_izin_acc_' . $iz->id,
                             'judul'      => "Surat {$jenisStr} Disetujui",
-                            'pesan'      => "Permohonan surat {$iz->jenis} periode {$tglMulai} telah disetujui oleh Wali Kelas.",
+                            'pesan'      => "Permohonan surat {$iz->jenis} ({$tglMulai}) telah disetujui Wali Kelas.",
                             'kategori'   => 'izin',
                             'tipe'       => 'success',
                             'icon'       => 'fas fa-circle-check',
@@ -687,11 +708,11 @@ class SystemNotificationService
                             'is_read'    => true,
                             'is_dynamic' => true,
                         ]);
-                    } elseif ($iz->status === 'ditolak' && $iz->updated_at && $iz->updated_at->diffInDays(now()) <= 5) {
+                    } elseif ($iz->status === 'ditolak' && $iz->updated_at && $iz->updated_at->diffInDays(now()) <= 3) {
                         $list->push((object) [
                             'id'         => 'dyn_pd_izin_rej_' . $iz->id,
                             'judul'      => "Surat {$jenisStr} Ditolak",
-                            'pesan'      => "Permohonan surat {$iz->jenis} ditolak: " . ($iz->catatan_petugas ?: 'Silakan hubungi Wali Kelas.'),
+                            'pesan'      => "Permohonan surat {$iz->jenis} ditolak" . ($iz->catatan_petugas ? ": {$iz->catatan_petugas}" : '.'),
                             'kategori'   => 'izin',
                             'tipe'       => 'danger',
                             'icon'       => 'fas fa-circle-xmark',
@@ -699,6 +720,112 @@ class SystemNotificationService
                             'created_at' => $iz->updated_at,
                             'time_diff'  => $iz->updated_at->diffForHumans(null, true),
                             'is_read'    => false,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        return $list;
+    }
+
+    /**
+     * Peringatan & Pengingat Dinamis untuk Orang Tua / Wali Murid
+     */
+    protected static function getOrangTuaDynamicReminders($currentUser, ?string $pdId, bool $hasDbPresensiToday = false): Collection
+    {
+        $list = collect();
+        if (!$pdId) return $list;
+
+        $today = now()->toDateString();
+        $siswaNama = is_array($currentUser) ? ($currentUser['siswa_nama'] ?? 'Putra/putri Anda') : ($currentUser->siswa_nama ?? 'Putra/putri Anda');
+
+        // 1. Cek Presensi Harian Siswa Hari Ini (Hanya jika belum tercatat di database)
+        if (!$hasDbPresensiToday && Schema::hasTable('presensi_harian')) {
+            try {
+                $presensiHariIni = PresensiHarian::where('peserta_didik_id', $pdId)
+                    ->whereDate('tanggal', $today)
+                    ->first();
+
+                if ($presensiHariIni) {
+                    if ($presensiHariIni->jam_masuk) {
+                        $isTepat = ($presensiHariIni->status_ketepatan_masuk ?? 'tepat_waktu') === 'tepat_waktu';
+                        $jamFormatted = substr($presensiHariIni->jam_masuk, 0, 5) . ' WIB';
+
+                        $list->push((object) [
+                            'id'         => 'dyn_ortu_presensi_masuk',
+                            'judul'      => "Presensi Masuk: {$siswaNama}",
+                            'pesan'      => "{$siswaNama} masuk sekolah pukul {$jamFormatted} (" . ($isTepat ? 'Tepat Waktu' : "Terlambat {$presensiHariIni->menit_terlambat}m") . ').',
+                            'kategori'   => 'presensi',
+                            'tipe'       => $isTepat ? 'success' : 'warning',
+                            'icon'       => 'fas fa-calendar-check',
+                            'url'        => route('dashboard.orang-tua.kehadiran'),
+                            'created_at' => Carbon::parse($today . ' ' . $presensiHariIni->jam_masuk),
+                            'time_diff'  => 'Hari Ini',
+                            'is_read'    => true,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+
+                    if ($presensiHariIni->jam_pulang) {
+                        $jamPulangFormatted = substr($presensiHariIni->jam_pulang, 0, 5) . ' WIB';
+                        $list->push((object) [
+                            'id'         => 'dyn_ortu_presensi_pulang',
+                            'judul'      => "Presensi Pulang: {$siswaNama}",
+                            'pesan'      => "{$siswaNama} telah pulang sekolah pukul {$jamPulangFormatted}.",
+                            'kategori'   => 'presensi',
+                            'tipe'       => 'success',
+                            'icon'       => 'fas fa-door-open',
+                            'url'        => route('dashboard.orang-tua.kehadiran'),
+                            'created_at' => Carbon::parse($today . ' ' . $presensiHariIni->jam_pulang),
+                            'time_diff'  => 'Hari Ini',
+                            'is_read'    => true,
+                            'is_dynamic' => true,
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {}
+        }
+
+        // 2. Cek Surat Izin yang Diajukan untuk Siswa
+        if (Schema::hasTable('presensi_izin')) {
+            try {
+                $recentIzins = PresensiIzin::where('peserta_didik_id', $pdId)
+                    ->orderBy('created_at', 'desc')
+                    ->take(2)
+                    ->get();
+
+                foreach ($recentIzins as $iz) {
+                    $jenisStr = ucfirst($iz->jenis ?: 'izin');
+                    $tglMulai = Carbon::parse($iz->tanggal_mulai)->translatedFormat('d M');
+
+                    if ($iz->status === 'menunggu') {
+                        $list->push((object) [
+                            'id'         => 'dyn_ortu_izin_menunggu_' . $iz->id,
+                            'judul'      => "Surat {$jenisStr} Menunggu",
+                            'pesan'      => "Surat {$iz->jenis} {$siswaNama} ({$tglMulai}) menunggu verifikasi sekolah.",
+                            'kategori'   => 'izin',
+                            'tipe'       => 'info',
+                            'icon'       => 'fas fa-hourglass-half',
+                            'url'        => route('dashboard.orang-tua.izin'),
+                            'created_at' => $iz->created_at ?: now(),
+                            'time_diff'  => $iz->created_at ? $iz->created_at->diffForHumans(null, true) : 'Menunggu',
+                            'is_read'    => false,
+                            'is_dynamic' => true,
+                        ]);
+                    } elseif ($iz->status === 'disetujui' && $iz->updated_at && $iz->updated_at->diffInDays(now()) <= 3) {
+                        $list->push((object) [
+                            'id'         => 'dyn_ortu_izin_acc_' . $iz->id,
+                            'judul'      => "Surat {$jenisStr} Disetujui",
+                            'pesan'      => "Surat {$iz->jenis} {$siswaNama} ({$tglMulai}) telah disetujui sekolah.",
+                            'kategori'   => 'izin',
+                            'tipe'       => 'success',
+                            'icon'       => 'fas fa-circle-check',
+                            'url'        => route('dashboard.orang-tua.izin'),
+                            'created_at' => $iz->updated_at,
+                            'time_diff'  => $iz->updated_at->diffForHumans(null, true),
+                            'is_read'    => true,
                             'is_dynamic' => true,
                         ]);
                     }

@@ -66,7 +66,8 @@ class NotifikasiTransaksi extends Model
         ?string $urlMurid = null,
         ?string $urlWali = null,
         ?string $judulOrtu = null,
-        ?string $pesanOrtu = null
+        ?string $pesanOrtu = null,
+        ?string $actorUserId = null
     ): void {
         try {
             // 1. Notifikasi ke Murid
@@ -101,7 +102,7 @@ class NotifikasiTransaksi extends Model
                 ? User::where('ptk_id', $waliPtkId)->first()
                 : null;
 
-            if ($waliUser) {
+            if ($waliUser && (!$actorUserId || $waliUser->pengguna_id !== $actorUserId)) {
                 self::create([
                     'pengguna_id'      => $waliUser->pengguna_id,
                     'peserta_didik_id' => null,
@@ -120,6 +121,7 @@ class NotifikasiTransaksi extends Model
                 'peserta_didik_id' => $pesertaDidikId,
                 'murid_user_id'    => $userMurid?->pengguna_id,
                 'wali_user_id'     => $waliUser?->pengguna_id,
+                'actor_user_id'    => $actorUserId,
                 'judul_murid'      => $judulMurid,
                 'pesan_murid'      => $pesanMurid,
                 'judul_wali'       => $judulWali,
@@ -146,7 +148,8 @@ class NotifikasiTransaksi extends Model
         string $pesan,
         string $tipe = 'warning',
         string $icon = 'fa-solid fa-ticket',
-        ?string $url = null
+        ?string $url = null,
+        ?string $actorUserId = null
     ): void {
         try {
             $userMurid = User::where('peserta_didik_id', $pesertaDidikId)->first();
@@ -165,6 +168,7 @@ class NotifikasiTransaksi extends Model
             \App\Services\RealtimeService::trigger('izin.recorded', [
                 'peserta_didik_id' => $pesertaDidikId,
                 'murid_user_id'    => $userMurid?->pengguna_id,
+                'actor_user_id'    => $actorUserId,
                 'judul_murid'      => $judul,
                 'pesan_murid'      => $pesan,
                 'judul_ortu'       => $judul,
@@ -175,6 +179,133 @@ class NotifikasiTransaksi extends Model
             ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi izin: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Kirim notifikasi saat siswa mengajukan surat izin/sakit baru ke Wali Kelas
+     */
+    public static function kirimPengajuanIzinSiswa(
+        string $pesertaDidikId,
+        string $rombelId,
+        string $siswaNama,
+        string $jenisLabel,
+        string $rentangTgl,
+        ?string $actorUserId = null
+    ): void {
+        try {
+            $userMurid = User::where('peserta_didik_id', $pesertaDidikId)->first();
+
+            // 1. Notifikasi ke Murid
+            self::create([
+                'pengguna_id'      => $userMurid?->pengguna_id,
+                'peserta_didik_id' => $pesertaDidikId,
+                'kategori'         => 'izin',
+                'judul'            => "Surat {$jenisLabel} Terkirim",
+                'pesan'            => "Permohonan surat {$jenisLabel} ({$rentangTgl}) berhasil dikirim ke Wali Kelas.",
+                'tipe'             => 'info',
+                'icon'             => 'fa-solid fa-paper-plane',
+                'url'              => route('dashboard.peserta-didik.izin.index'),
+                'is_read'          => false,
+            ]);
+
+            // 2. Cari Wali Kelas dari Rombel
+            $waliPtkId = \Illuminate\Support\Facades\DB::table('ptk_tugas_tambahan as ptt')
+                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
+                ->where('rtt.kode', 'WALI_KELAS')
+                ->where('ptt.is_active', true)
+                ->where('ptt.rombel_id', $rombelId)
+                ->value('ptt.ptk_id');
+
+            if (!$waliPtkId) {
+                $waliPtkId = \Illuminate\Support\Facades\DB::table('rombongan_belajar')
+                    ->where('rombongan_belajar_id', $rombelId)
+                    ->value('ptk_id');
+            }
+
+            $waliUser = $waliPtkId
+                ? User::where('ptk_id', $waliPtkId)->first()
+                : null;
+
+            if ($waliUser) {
+                self::create([
+                    'pengguna_id'      => $waliUser->pengguna_id,
+                    'peserta_didik_id' => null,
+                    'kategori'         => 'izin',
+                    'judul'            => "Pengajuan Izin: {$siswaNama}",
+                    'pesan'            => "{$siswaNama} mengajukan surat {$jenisLabel} ({$rentangTgl}).",
+                    'tipe'             => 'warning',
+                    'icon'             => 'fa-solid fa-envelope-open-text',
+                    'url'              => route('dashboard.wali-kelas.presensi.index'),
+                    'is_read'          => false,
+                ]);
+            }
+
+            // 3. Trigger Realtime Event
+            \App\Services\RealtimeService::trigger('izin.recorded', [
+                'peserta_didik_id' => $pesertaDidikId,
+                'murid_user_id'    => $userMurid?->pengguna_id,
+                'wali_user_id'     => $waliUser?->pengguna_id,
+                'actor_user_id'    => $actorUserId,
+                'judul_murid'      => "Surat {$jenisLabel} Terkirim",
+                'pesan_murid'      => "Permohonan surat {$jenisLabel} ({$rentangTgl}) terkirim ke Wali Kelas.",
+                'judul_wali'       => "Pengajuan Izin: {$siswaNama}",
+                'pesan_wali'       => "{$siswaNama} mengajukan surat {$jenisLabel} ({$rentangTgl}).",
+                'judul_ortu'       => "Pengajuan Izin: {$siswaNama}",
+                'pesan_ortu'       => "Surat {$jenisLabel} {$siswaNama} ({$rentangTgl}) telah diajukan ke sekolah.",
+                'url_murid'        => route('dashboard.peserta-didik.izin.index'),
+                'url_wali'         => route('dashboard.wali-kelas.presensi.index'),
+                'url_ortu'         => route('dashboard.orang-tua'),
+                'timestamp'        => time(),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi pengajuan izin: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Kirim notifikasi realtime saat Wali Kelas memverifikasi (setujui/tolak) izin siswa
+     */
+    public static function kirimNotifikasiIzinVerifikasi(
+        string $pesertaDidikId,
+        string $rombelId,
+        string $judulMurid,
+        string $pesanMurid,
+        string $judulOrtu,
+        string $pesanOrtu,
+        string $tipe = 'info',
+        string $icon = 'fa-solid fa-circle-check',
+        ?string $actorUserId = null
+    ): void {
+        try {
+            $userMurid = User::where('peserta_didik_id', $pesertaDidikId)->first();
+
+            self::create([
+                'pengguna_id'      => $userMurid?->pengguna_id,
+                'peserta_didik_id' => $pesertaDidikId,
+                'kategori'         => 'izin',
+                'judul'            => $judulMurid,
+                'pesan'            => $pesanMurid,
+                'tipe'             => $tipe,
+                'icon'             => $icon,
+                'url'              => route('dashboard.peserta-didik.izin.index'),
+                'is_read'          => false,
+            ]);
+
+            \App\Services\RealtimeService::trigger('izin.recorded', [
+                'peserta_didik_id' => $pesertaDidikId,
+                'murid_user_id'    => $userMurid?->pengguna_id,
+                'actor_user_id'    => $actorUserId,
+                'judul_murid'      => $judulMurid,
+                'pesan_murid'      => $pesanMurid,
+                'judul_ortu'       => $judulOrtu,
+                'pesan_ortu'       => $pesanOrtu,
+                'url_murid'        => route('dashboard.peserta-didik.izin.index'),
+                'url_ortu'         => route('dashboard.orang-tua'),
+                'timestamp'        => time(),
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal kirim notifikasi verifikasi izin: ' . $e->getMessage());
         }
     }
 }

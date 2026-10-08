@@ -994,16 +994,21 @@ class WaliKelasController extends Controller
 
             $jamPulangShort = substr($currentTime, 0, 5);
 
-            // Sampaikan notifikasi transaksi ke murid dan wali kelas serta push ke perangkat PWA
+            // Sampaikan notifikasi transaksi ringkas ke murid, ortu, dan wali kelas secara realtime
             \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
                 $siswa->peserta_didik_id,
                 $siswa->rombongan_belajar_id,
-                "Presensi Pulang Tercatat ({$jamPulangShort} WIB)",
-                "Presensi pulang Anda pada tanggal {$tglStr} dicatat pukul {$jamPulangShort} WIB oleh Wali Kelas.",
+                "Presensi Pulang",
+                "Kepulangan Anda dicatat pukul {$jamPulangShort} WIB.",
                 "Presensi Pulang: {$siswa->nama}",
-                "Siswa {$siswa->nama} dicatat pulang pada pukul {$jamPulangShort} WIB.",
+                "{$siswa->nama} pulang pukul {$jamPulangShort} WIB.",
                 'info',
-                'fa-solid fa-door-open'
+                'fa-solid fa-door-open',
+                null,
+                null,
+                "Presensi Pulang: {$siswa->nama}",
+                "{$siswa->nama} dicatat pulang pukul {$jamPulangShort} WIB.",
+                $userId
             );
 
             return response()->json([
@@ -1057,17 +1062,23 @@ class WaliKelasController extends Controller
 
         $statusLabel = PresensiHarian::STATUS_LABELS[$statusBaru] ?? $statusBaru;
         $notifTipe = ($statusBaru === 'H') ? 'success' : (($statusBaru === 'A') ? 'danger' : 'warning');
+        $jamMasukInfo = in_array($statusBaru, ['H', 'T'], true) ? ' (' . substr($currentTime, 0, 5) . ' WIB)' : '';
 
-        // Sampaikan notifikasi transaksi ke murid dan wali kelas serta push ke perangkat PWA
+        // Sampaikan notifikasi transaksi ringkas ke murid, ortu, dan wali kelas secara realtime
         \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
             $siswa->peserta_didik_id,
             $siswa->rombongan_belajar_id,
-            "Presensi Harian: {$statusLabel}",
-            "Presensi kehadiran harian Anda pada tanggal {$tglStr} dicatat sebagai {$statusLabel} oleh Wali Kelas.",
-            "Presensi Harian: {$siswa->nama}",
-            "Siswa {$siswa->nama} dicatat {$statusLabel} pada tanggal {$tglStr}.",
+            "Presensi: {$statusLabel}",
+            "Kehadiran Anda dicatat {$statusLabel}{$jamMasukInfo} oleh Wali Kelas.",
+            "Presensi: {$siswa->nama}",
+            "{$siswa->nama} dicatat {$statusLabel}{$jamMasukInfo}.",
             $notifTipe,
-            'fa-solid fa-clipboard-user'
+            'fa-solid fa-clipboard-user',
+            null,
+            null,
+            "Presensi: {$siswa->nama} ({$statusLabel})",
+            "{$siswa->nama} dicatat {$statusLabel}{$jamMasukInfo} oleh Wali Kelas.",
+            $userId
         );
 
         return response()->json([
@@ -1162,16 +1173,31 @@ class WaliKelasController extends Controller
             $izin->applyToDailyAttendance($verifiedBy);
         }
 
-        // Buat notifikasi transaksi ke murid
-        try {
-            NotifikasiTransaksi::create([
-                'peserta_didik_id' => $izin->peserta_didik_id,
-                'judul' => 'Surat ' . $izin->jenis_label . ' ' . ucfirst($izin->status),
-                'pesan' => 'Permohonan surat ' . strtolower($izin->jenis_label) . ' Anda telah diverifikasi (' . $izin->status . ') oleh ' . $verifiedBy . ($izin->catatan_petugas ? ': ' . $izin->catatan_petugas : '.'),
-                'tipe' => 'izin',
-                'is_read' => false,
-            ]);
-        } catch (\Throwable $e) {}
+        // Sampaikan notifikasi transaksi ringkas & realtime ke murid dan orang tua
+        $statusStr = ($izin->status === 'disetujui') ? 'Disetujui' : 'Ditolak';
+        $notifTipe = ($izin->status === 'disetujui') ? 'success' : 'danger';
+        $icon = ($izin->status === 'disetujui') ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+
+        $siswa = DB::table('peserta_didik')->where('peserta_didik_id', $izin->peserta_didik_id)->first();
+        $namaSiswa = $siswa?->nama ?? 'Siswa';
+
+        $judulMurid = "Surat {$izin->jenis_label}: {$statusStr}";
+        $pesanMurid = "Surat {$izin->jenis_label} Anda {$izin->status} oleh {$verifiedBy}." . ($izin->catatan_petugas ? " ({$izin->catatan_petugas})" : '');
+
+        $judulOrtu = "Surat {$izin->jenis_label}: {$namaSiswa} ({$statusStr})";
+        $pesanOrtu = "Surat {$izin->jenis_label} {$namaSiswa} telah {$izin->status} oleh Wali Kelas.";
+
+        \App\Models\NotifikasiTransaksi::kirimNotifikasiIzinVerifikasi(
+            $izin->peserta_didik_id,
+            $izin->rombongan_belajar_id ?? '',
+            $judulMurid,
+            $pesanMurid,
+            $judulOrtu,
+            $pesanOrtu,
+            $notifTipe,
+            $icon,
+            $userId
+        );
 
         return response()->json([
             'status'  => 'success',

@@ -788,18 +788,17 @@ class PresensiController extends Controller
                     ? "Presensi masuk Anda tercatat pada pukul {$jamStr} WIB (Terlambat {$presensi->menit_terlambat} menit)."
                     : "Presensi masuk Anda tercatat tepat waktu pada pukul {$jamStr} WIB.");
 
-            $judulWali = $actionType === 'pulang' ? "Presensi Pulang: {$siswa->nama}" : "Presensi Masuk: {$siswa->nama}";
-            $pesanWali = $actionType === 'pulang'
-                ? "Siswa {$siswa->nama} dicatat pulang pada pukul {$jamStr} WIB."
-                : ($presensi->status === 'T'
-                    ? "Siswa {$siswa->nama} tercatat masuk terlambat ({$presensi->menit_terlambat} menit) pada pukul {$jamStr} WIB."
-                    : "Siswa {$siswa->nama} tercatat masuk tepat waktu pada pukul {$jamStr} WIB.");
+            $jamShort = substr($jamStr, 0, 5);
+            $isPulang = ($actionType === 'pulang');
 
-            $pesanOrtu = $actionType === 'pulang'
-                ? "Putra/putri Anda ({$siswa->nama}) telah tercatat pulang sekolah pada pukul {$jamStr} WIB."
-                : ($presensi->status === 'T'
-                    ? "Putra/putri Anda ({$siswa->nama}) tercatat masuk sekolah pada pukul {$jamStr} WIB (Terlambat {$presensi->menit_terlambat} menit)."
-                    : "Putra/putri Anda ({$siswa->nama}) tercatat masuk sekolah tepat waktu pada pukul {$jamStr} WIB.");
+            $notifJudul = $isPulang ? 'Presensi Pulang' : ($presensi->status === 'T' ? 'Presensi: Terlambat' : 'Presensi: Hadir');
+            $pesanNotif = $isPulang ? "Kehadiran pulang tercatat ({$jamShort} WIB)." : ($presensi->status === 'T' ? "Kehadiran tercatat ({$jamShort} WIB, terlambat {$presensi->menit_terlambat}m)." : "Kehadiran tercatat ({$jamShort} WIB).");
+
+            $judulWali = $isPulang ? "Pulang: {$siswa->nama}" : "Masuk: {$siswa->nama}";
+            $pesanWali = "{$siswa->nama} tercatat " . ($isPulang ? 'pulang' : 'masuk') . " ({$jamShort} WIB).";
+
+            $judulOrtu = $isPulang ? "Presensi Pulang: {$siswa->nama}" : "Presensi Masuk: {$siswa->nama}";
+            $pesanOrtu = "{$siswa->nama} tercatat " . ($isPulang ? 'pulang sekolah' : ($presensi->status === 'T' ? 'masuk sekolah (Terlambat)' : 'masuk sekolah tepat waktu')) . " ({$jamShort} WIB).";
 
             \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
                 $siswa->peserta_didik_id,
@@ -812,7 +811,7 @@ class PresensiController extends Controller
                 $notifIcon,
                 route('dashboard.peserta-didik.presensi.index'),
                 route('dashboard.wali-kelas.presensi.index'),
-                $notifJudul,
+                $judulOrtu,
                 $pesanOrtu
             );
         } catch (\Throwable $th) {
@@ -1283,18 +1282,26 @@ class PresensiController extends Controller
         $mapelNama = $pembelajaran?->nama_mata_pelajaran ?: 'Mata Pelajaran';
         $statusLabel = PresensiMapel::STATUS_LABELS[$status] ?? $status;
         $notifTipe = ($status === 'H') ? 'success' : (($status === 'A') ? 'danger' : 'warning');
-        $tglStr = \Carbon\Carbon::parse($tanggal)->format('d/m/Y');
+        $jamInfo = $jamKe ? " (Jam {$jamKe})" : '';
 
-        // Sampaikan notifikasi transaksi ke murid dan wali kelas serta push ke perangkat PWA
+        $sessionUser = session('user');
+        $actorUserId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+
+        // Sampaikan notifikasi transaksi ringkas ke murid, ortu, dan wali kelas
         \App\Models\NotifikasiTransaksi::kirimNotifikasiPresensi(
             $siswa->peserta_didik_id,
             $targetRombelId,
-            "Presensi Mapel: {$mapelNama} ({$statusLabel})",
-            "Kehadiran Anda pada mata pelajaran {$mapelNama} ({$tglStr}) dicatat sebagai {$statusLabel}.",
-            "Presensi Siswa: {$siswa->nama}",
-            "Siswa {$siswa->nama} dicatat {$statusLabel} pada mata pelajaran {$mapelNama} ({$tglStr}).",
+            "Presensi Mapel: {$mapelNama}",
+            "Kehadiran pada {$mapelNama}{$jamInfo} dicatat {$statusLabel}.",
+            "Mapel: {$siswa->nama}",
+            "{$siswa->nama} dicatat {$statusLabel} pada {$mapelNama}{$jamInfo}.",
             $notifTipe,
-            'fa-solid fa-chalkboard-user'
+            'fa-solid fa-chalkboard-user',
+            null,
+            null,
+            "Presensi Mapel: {$siswa->nama}",
+            "{$siswa->nama} dicatat {$statusLabel} pada mapel {$mapelNama}.",
+            $actorUserId
         );
 
         return response()->json([
