@@ -117,6 +117,9 @@ class RolePermission extends Model
             'menu_target_capaian',
             'menu_aktivitas_tendik',
             'menu_laporan_tendik',
+            'menu_berkas_peserta_didik',
+            'menu_perubahan_data',
+            'menu_e_izin',
         ],
         'guru' => [
             'menu_identitas_siswa',
@@ -361,16 +364,6 @@ class RolePermission extends Model
                     'icon' => 'fa-id-badge',
                     'roles' => ['admin'],
                 ],
-                'menu_berkas_peserta_didik' => [
-                    'label' => 'Berkas Peserta Didik',
-                    'icon' => 'fa-folder-open',
-                    'roles' => ['admin'],
-                ],
-                'menu_perubahan_data' => [
-                    'label' => 'Perubahan Data',
-                    'icon' => 'fa-user-pen',
-                    'roles' => ['admin'],
-                ],
                 'menu_peserta_didik_tidak_aktif' => [
                     'label' => 'Peserta Didik Tidak Aktif',
                     'icon' => 'fa-user-xmark',
@@ -402,11 +395,6 @@ class RolePermission extends Model
                 'menu_rfid' => [
                     'label' => 'RFID & Presensi Realtime',
                     'icon' => 'fa-id-card',
-                    'roles' => ['admin'],
-                ],
-                'menu_e_izin' => [
-                    'label' => 'E-Izin',
-                    'icon' => 'fa-file-signature',
                     'roles' => ['admin'],
                 ],
                 'menu_poin' => [
@@ -537,6 +525,16 @@ class RolePermission extends Model
                 'menu_kesiswaan_prestasi' => [
                     'label' => 'Kesiswaan: Prestasi Peserta Didik',
                     'icon' => 'fa-trophy',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_berkas_peserta_didik' => [
+                    'label' => 'Kesiswaan: Berkas Peserta Didik',
+                    'icon' => 'fa-folder-open',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_perubahan_data' => [
+                    'label' => 'Kesiswaan: Perubahan Data Siswa',
+                    'icon' => 'fa-user-pen',
                     'roles' => ['tugas_tambahan'],
                 ],
             ],
@@ -744,6 +742,11 @@ class RolePermission extends Model
                 'menu_piket_izin' => [
                     'label' => 'Piket: e-Izin Keluar Masuk Siswa',
                     'icon' => 'fa-ticket-alt',
+                    'roles' => ['tugas_tambahan'],
+                ],
+                'menu_e_izin' => [
+                    'label' => 'Piket: Modul e-Izin Siswa',
+                    'icon' => 'fa-file-signature',
                     'roles' => ['tugas_tambahan'],
                 ],
                 'menu_piket_jurnal' => [
@@ -1511,6 +1514,9 @@ class RolePermission extends Model
             'menu_keamanan',
             'menu_penjaga',
             'menu_piket',
+            'menu_berkas_peserta_didik',
+            'menu_perubahan_data',
+            'menu_e_izin',
         ];
 
         foreach ($dutyPrefixes as $prefix) {
@@ -1592,6 +1598,9 @@ class RolePermission extends Model
         if ($role === 'admin') {
             if (in_array($permissionKey, ['menu_dashboard', 'menu_hak_akses'])) {
                 return true;
+            }
+            if (self::isForbiddenForRole('admin', $permissionKey)) {
+                return false;
             }
             if (self::$runtimeAdminExistsCache === null) {
                 self::$runtimeAdminExistsCache = self::where('role', 'admin')->exists();

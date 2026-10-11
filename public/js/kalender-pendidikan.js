@@ -390,19 +390,17 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ==========================================================================
        4. REAL-TIME FILTER ENGINE (AJAX refreshLiveTable)
        ========================================================================== */
-    const filterTahunAjaran = document.getElementById("filterTahunAjaran");
-    const filterSemester    = document.getElementById("filterSemester");
-    const filterBulan       = document.getElementById("filterBulan");
-    const filterModePresensi = document.getElementById("filterModePresensi");
-    const filterTipe        = document.getElementById("filterTipe");
-    const filterDampak      = document.getElementById("filterDampak");
-    const perPageSelect     = document.getElementById("perPageSelect");
-    const liveSearch        = document.getElementById("liveSearch");
-    const clearSearch       = document.getElementById("clearSearch");
-    const btnResetFilter    = document.getElementById("btnResetFilter");
-
     const applyFilters = (overrideParams = {}) => {
         const url = new URL(window.location.href);
+
+        const filterTahunAjaran  = document.getElementById("filterTahunAjaran");
+        const filterSemester     = document.getElementById("filterSemester");
+        const filterBulan        = document.getElementById("filterBulan");
+        const filterModePresensi = document.getElementById("filterModePresensi");
+        const filterTipe         = document.getElementById("filterTipe");
+        const filterDampak       = document.getElementById("filterDampak");
+        const perPageSelect      = document.getElementById("perPageSelect");
+        const liveSearch         = document.getElementById("liveSearch");
 
         if (filterTahunAjaran) {
             if (filterTahunAjaran.value) url.searchParams.set("tahun_ajaran", filterTahunAjaran.value);
@@ -462,52 +460,145 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    if (filterTahunAjaran) filterTahunAjaran.addEventListener("change", () => applyFilters());
-    if (filterSemester)    filterSemester.addEventListener("change", () => applyFilters());
-    if (filterBulan)       filterBulan.addEventListener("change", () => applyFilters());
-    if (filterModePresensi) filterModePresensi.addEventListener("change", () => applyFilters());
-    if (filterTipe)        filterTipe.addEventListener("change", () => applyFilters());
-    if (filterDampak)      filterDampak.addEventListener("change", () => applyFilters());
-    if (perPageSelect)     perPageSelect.addEventListener("change", () => applyFilters());
+    /* ==========================================================================
+       5. VIEW & SCOPE SWITCHERS (EVENT DELEGATION - TAHAN REFRESH REALTIME)
+       ========================================================================== */
+    document.addEventListener("click", (e) => {
+        // A. Scope Switcher (Per Bulan, Per Semester, 1 Tahun Ajaran)
+        const btnScope = e.target.closest(".btn-scope-switch");
+        if (btnScope) {
+            e.preventDefault();
+            const targetScope = btnScope.getAttribute("data-scope");
+            const overrides = { scope: targetScope, view: "kalender" };
 
-    let debounceTimer = null;
-    if (liveSearch) {
-        liveSearch.addEventListener("input", function () {
-            if (clearSearch) {
-                clearSearch.classList.toggle("visible", this.value.trim().length > 0);
+            if (targetScope === "tahun") {
+                overrides.bulan = "";
+                overrides.semester = "semua";
+            } else if (targetScope === "semester") {
+                overrides.bulan = "";
+                const semEl = document.getElementById("filterSemester");
+                const curSem = semEl ? semEl.value : "";
+                overrides.semester = (curSem === "2") ? "2" : "1";
+            } else if (targetScope === "bulan") {
+                const bulEl = document.getElementById("filterBulan");
+                const curBulan = bulEl ? bulEl.value : "";
+                if (!curBulan) {
+                    const nowMonth = String(new Date().getMonth() + 1).padStart(2, "0");
+                    overrides.bulan = nowMonth;
+                } else {
+                    overrides.bulan = curBulan;
+                }
             }
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => applyFilters(), 350);
-        });
 
-        liveSearch.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                clearTimeout(debounceTimer);
-                applyFilters();
+            applyFilters(overrides);
+            return;
+        }
+
+        // B. Navigasi Bulan (Bulan Sebelumnya / Berikutnya)
+        const btnNavM = e.target.closest(".btn-nav-month");
+        if (btnNavM) {
+            e.preventDefault();
+            const targetMonth = btnNavM.getAttribute("data-month");
+            if (targetMonth) {
+                applyFilters({ scope: "bulan", bulan: targetMonth, view: "kalender" });
             }
-        });
-    }
+            return;
+        }
 
-    if (clearSearch) {
-        clearSearch.addEventListener("click", () => {
-            if (liveSearch) {
-                liveSearch.value = "";
-                clearSearch.classList.remove("visible");
-                liveSearch.focus();
+        // C. Switcher Semester (Semester 1 / Semester 2)
+        const btnSem = e.target.closest(".btn-sem-switch");
+        if (btnSem) {
+            e.preventDefault();
+            const targetSem = btnSem.getAttribute("data-sem");
+            if (targetSem) {
+                applyFilters({ scope: "semester", semester: targetSem, bulan: "", view: "kalender" });
             }
-            applyFilters({ q: "" });
-        });
-    }
+            return;
+        }
 
-    if (btnResetFilter) {
-        btnResetFilter.addEventListener("click", () => {
+        // D. Tampilan Kalender vs Tabel
+        const btnViewK = e.target.closest("#btnViewKalender");
+        if (btnViewK) {
+            e.preventDefault();
+            applyFilters({ view: "kalender" });
+            return;
+        }
+
+        const btnViewT = e.target.closest("#btnViewTabel");
+        if (btnViewT) {
+            e.preventDefault();
+            applyFilters({ view: "tabel" });
+            return;
+        }
+
+        // E. Reset Filter
+        const btnReset = e.target.closest("#btnResetFilter");
+        if (btnReset) {
+            e.preventDefault();
             const cleanUrl = new URL(window.location.pathname, window.location.origin);
             if (typeof window.refreshLiveTable === "function") {
                 window.refreshLiveTable(cleanUrl.toString());
             } else {
                 window.location.href = cleanUrl.toString();
             }
-        });
-    }
+            return;
+        }
+
+        // F. Clear Search
+        const btnClear = e.target.closest("#clearSearch");
+        if (btnClear) {
+            e.preventDefault();
+            const liveSearch = document.getElementById("liveSearch");
+            if (liveSearch) {
+                liveSearch.value = "";
+                btnClear.classList.remove("visible");
+                liveSearch.focus();
+            }
+            applyFilters({ q: "" });
+            return;
+        }
+    });
+
+    // Delegated Change Event untuk Filter Toolbar
+    document.addEventListener("change", (e) => {
+        if (e.target.matches("#filterTahunAjaran, #filterSemester, #filterBulan, #filterModePresensi, #filterTipe, #filterDampak, #perPageSelect")) {
+            const changedId = e.target.id;
+            const overrides = {};
+            if (changedId === "filterBulan") {
+                if (e.target.value) {
+                    overrides.scope = "bulan";
+                }
+            } else if (changedId === "filterSemester") {
+                if (e.target.value && e.target.value !== "semua") {
+                    overrides.scope = "semester";
+                    overrides.bulan = "";
+                } else if (e.target.value === "semua") {
+                    overrides.scope = "tahun";
+                    overrides.bulan = "";
+                }
+            }
+            applyFilters(overrides);
+        }
+    });
+
+    // Search input debounce handler
+    let debounceTimer = null;
+    document.addEventListener("input", (e) => {
+        if (e.target && e.target.id === "liveSearch") {
+            const clearSearch = document.getElementById("clearSearch");
+            if (clearSearch) {
+                clearSearch.classList.toggle("visible", e.target.value.trim().length > 0);
+            }
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => applyFilters(), 350);
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.target && e.target.id === "liveSearch" && e.key === "Enter") {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            applyFilters();
+        }
+    });
 });

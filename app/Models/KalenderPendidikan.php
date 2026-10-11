@@ -344,4 +344,190 @@ class KalenderPendidikan extends Model
             'label'        => $label,
         ];
     }
+
+    /**
+     * Dapatkan data matriks kalender akademik visual (Bulan, Semester, Tahun)
+     * beserta rekap agenda dan keterangan per bulan.
+     */
+    public static function getAcademicCalendarData(
+        string $tahunAjaran,
+        string $semester = 'semua',
+        ?string $bulan = null,
+        string $scope = 'semester',
+        string $tipe = '',
+        string $modePresensi = ''
+    ): array {
+        $parts = explode('/', $tahunAjaran);
+        $now = now();
+        $currYear = (int) $now->year;
+        $startYear = isset($parts[0]) && is_numeric($parts[0]) ? (int) $parts[0] : $currYear;
+        $endYear = isset($parts[1]) && is_numeric($parts[1]) ? (int) $parts[1] : $startYear + 1;
+
+        $allAcademicMonths = [
+            ['year' => $startYear, 'month' => 7,  'month_str' => '07', 'name' => 'Juli',      'semester' => '1'],
+            ['year' => $startYear, 'month' => 8,  'month_str' => '08', 'name' => 'Agustus',   'semester' => '1'],
+            ['year' => $startYear, 'month' => 9,  'month_str' => '09', 'name' => 'September', 'semester' => '1'],
+            ['year' => $startYear, 'month' => 10, 'month_str' => '10', 'name' => 'Oktober',   'semester' => '1'],
+            ['year' => $startYear, 'month' => 11, 'month_str' => '11', 'name' => 'November',  'semester' => '1'],
+            ['year' => $startYear, 'month' => 12, 'month_str' => '12', 'name' => 'Desember',  'semester' => '1'],
+            ['year' => $endYear,   'month' => 1,  'month_str' => '01', 'name' => 'Januari',   'semester' => '2'],
+            ['year' => $endYear,   'month' => 2,  'month_str' => '02', 'name' => 'Februari',  'semester' => '2'],
+            ['year' => $endYear,   'month' => 3,  'month_str' => '03', 'name' => 'Maret',     'semester' => '2'],
+            ['year' => $endYear,   'month' => 4,  'month_str' => '04', 'name' => 'April',     'semester' => '2'],
+            ['year' => $endYear,   'month' => 5,  'month_str' => '05', 'name' => 'Mei',       'semester' => '2'],
+            ['year' => $endYear,   'month' => 6,  'month_str' => '06', 'name' => 'Juni',      'semester' => '2'],
+        ];
+
+        // Validasi Scope
+        if (!in_array($scope, ['bulan', 'semester', 'tahun'], true)) {
+            $scope = (!empty($bulan)) ? 'bulan' : (($semester !== 'semua') ? 'semester' : 'tahun');
+        }
+
+        // Tentukan daftar bulan yang akan dirender
+        $targetMonths = [];
+        $selectedMonthObj = null;
+
+        if ($scope === 'bulan') {
+            $targetMonthNum = !empty($bulan) ? (int) $bulan : (int) $now->month;
+            foreach ($allAcademicMonths as $m) {
+                if ($m['month'] === $targetMonthNum) {
+                    $selectedMonthObj = $m;
+                    $targetMonths = [$m];
+                    break;
+                }
+            }
+            if (empty($targetMonths)) {
+                $selectedMonthObj = $allAcademicMonths[0];
+                $targetMonths = [$allAcademicMonths[0]];
+            }
+        } elseif ($scope === 'semester') {
+            $targetSemester = $semester;
+            if ($targetSemester === 'semua' || empty($targetSemester)) {
+                $targetSemester = ($now->month >= 7) ? '1' : '2';
+            }
+            $targetMonths = array_values(array_filter($allAcademicMonths, function ($m) use ($targetSemester) {
+                return $m['semester'] === $targetSemester;
+            }));
+        } else {
+            // scope === 'tahun'
+            $targetMonths = $allAcademicMonths;
+        }
+
+        // Ambil semua event kalender dalam 1 tahun ajaran penuh
+        $eventsQuery = static::betweenDates("{$startYear}-07-01", "{$endYear}-06-30");
+        if ($tipe !== '') {
+            $eventsQuery->where('tipe', $tipe);
+        }
+        if ($modePresensi !== '') {
+            $eventsQuery->where('mode_presensi', $modePresensi);
+        }
+        $allEvents = $eventsQuery->orderBy('tanggal_mulai')->get();
+
+        // Petakan event per hari Y-m-d
+        $eventsByDate = [];
+        foreach ($allEvents as $ev) {
+            $curD = $ev->tanggal_mulai->copy();
+            $endD = $ev->tanggal_selesai->copy();
+            while ($curD->lte($endD)) {
+                $dStr = $curD->format('Y-m-d');
+                $eventsByDate[$dStr][] = $ev;
+                $curD->addDay();
+            }
+        }
+
+        $todayStr = now()->toDateString();
+        $monthsData = [];
+
+        foreach ($targetMonths as $mInfo) {
+            $y = $mInfo['year'];
+            $m = $mInfo['month'];
+            $startCarbon = \Carbon\Carbon::createFromDate($y, $m, 1);
+            $daysInMonth = $startCarbon->daysInMonth;
+            $firstDayIso = $startCarbon->dayOfWeekIso; // 1 = Sen, 7 = Min
+            $monthStartStr = $startCarbon->format('Y-m-d');
+            $monthEndStr = $startCarbon->copy()->endOfMonth()->format('Y-m-d');
+
+            // Agenda yang bersinggungan dengan bulan ini
+            $monthEvents = $allEvents->filter(function ($ev) use ($monthStartStr, $monthEndStr) {
+                $evStart = $ev->tanggal_mulai->format('Y-m-d');
+                $evEnd = $ev->tanggal_selesai->format('Y-m-d');
+                return ($evStart <= $monthEndStr && $evEnd >= $monthStartStr);
+            })->values();
+
+            // Bangun grid minggu
+            $weeks = [];
+            $curWeek = [];
+
+            // Padding hari sebelum tgl 1
+            for ($pad = 1; $pad < $firstDayIso; $pad++) {
+                $curWeek[] = null;
+            }
+
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $dateStr = sprintf('%04d-%02d-%02d', $y, $m, $d);
+                $dCarbon = \Carbon\Carbon::createFromDate($y, $m, $d);
+                $dayOfWeek = $dCarbon->dayOfWeekIso;
+                $dayEvs = $eventsByDate[$dateStr] ?? [];
+
+                $primaryEvent = null;
+                if (!empty($dayEvs)) {
+                    $primaryEvent = collect($dayEvs)->sortBy(function ($e) {
+                        if ($e->libur_pd || $e->mode_presensi === 'libur') return 1;
+                        if ($e->tipe === 'ujian_asesmen') return 2;
+                        if ($e->mode_presensi === 'daring') return 3;
+                        return 4;
+                    })->first();
+                }
+
+                $curWeek[] = [
+                    'day'           => $d,
+                    'date'          => $dateStr,
+                    'is_today'      => ($dateStr === $todayStr),
+                    'is_sunday'     => ($dayOfWeek === 7),
+                    'is_saturday'   => ($dayOfWeek === 6),
+                    'day_of_week'   => $dayOfWeek,
+                    'events'        => $dayEvs,
+                    'primary_event' => $primaryEvent,
+                ];
+
+                if (count($curWeek) === 7) {
+                    $weeks[] = $curWeek;
+                    $curWeek = [];
+                }
+            }
+
+            if (!empty($curWeek)) {
+                while (count($curWeek) < 7) {
+                    $curWeek[] = null;
+                }
+                $weeks[] = $curWeek;
+            }
+
+            $monthsData[] = [
+                'year'               => $y,
+                'month'              => $m,
+                'month_str'          => $mInfo['month_str'],
+                'name'               => $mInfo['name'],
+                'full_label'         => "{$mInfo['name']} {$y}",
+                'semester'           => $mInfo['semester'],
+                'days_in_month'      => $daysInMonth,
+                'weeks'              => $weeks,
+                'events'             => $monthEvents,
+                'events_count'       => $monthEvents->count(),
+                'start_date'         => $monthStartStr,
+                'end_date'           => $monthEndStr,
+                'heb_count'          => static::hitungHariEfektif($monthStartStr, $monthEndStr, 'pd'),
+            ];
+        }
+
+        return [
+            'scope'               => $scope,
+            'months'              => $monthsData,
+            'selected_month'      => $selectedMonthObj,
+            'all_academic_months' => $allAcademicMonths,
+            'start_year'          => $startYear,
+            'end_year'            => $endYear,
+            'tahun_ajaran'        => $tahunAjaran,
+        ];
+    }
 }

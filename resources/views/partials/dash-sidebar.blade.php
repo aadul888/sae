@@ -49,7 +49,7 @@
     // Izin tingkat peran dasar (Master/Manajemen data hanya tampil di grup utama jika diizinkan di level role)
     $canRole = function (string $key) use ($role, $can) {
         if ($role === 'admin') {
-            return true;
+            return !\App\Models\RolePermission::isForbiddenForRole('admin', $key);
         }
         if (!\Illuminate\Support\Facades\Schema::hasTable('role_permissions')) {
             return false;
@@ -70,12 +70,7 @@
     $hasPesertaDidik = $canRole('menu_peserta_didik_aktif') || $canRole('menu_peserta_didik_tidak_aktif');
     $hasGuru = $canRole('menu_guru_aktif') || $canRole('menu_guru_tidak_aktif');
     $hasTendik = $canRole('menu_tendik_aktif') || $canRole('menu_tendik_tidak_aktif');
-    $hasManajemenData =
-        $hasPesertaDidik ||
-        $hasGuru ||
-        $hasTendik ||
-        $canRole('menu_berkas_peserta_didik') ||
-        $canRole('menu_perubahan_data');
+    $hasManajemenData = $hasPesertaDidik || $hasGuru || $hasTendik;
 
     // Section: Utama
     $hasUtama = $can('menu_dashboard') || $can('menu_dapodik') || $hasMasterData || $hasManajemenData;
@@ -83,7 +78,7 @@
     // Section: Layanan Digital
     $hasLayananDigital =
         !in_array($role, ['orang_tua', 'peserta_didik'], true) &&
-        ($canRole('menu_formulir') || $canRole('menu_pengumuman') || $canRole('menu_rfid') || $canRole('menu_e_izin'));
+        ($canRole('menu_formulir') || $canRole('menu_pengumuman') || $canRole('menu_rfid'));
 
     // Section: Sistem
     $hasPengaturan =
@@ -576,20 +571,6 @@
                                     @endif
                                 </div>
                             </div>
-                        @endif
-
-                        @if ($can('menu_berkas_peserta_didik'))
-                            <a href="#" class="dash-nav-sublink">
-                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-folder-open"></i></span>
-                                <span class="nav-label">Berkas Peserta Didik</span>
-                            </a>
-                        @endif
-
-                        @if ($can('menu_perubahan_data'))
-                            <a href="#" class="dash-nav-sublink">
-                                <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-pen"></i></span>
-                                <span class="nav-label">Perubahan Data</span>
-                            </a>
                         @endif
                     </div>
                 </div>
@@ -1870,8 +1851,6 @@
                     !request()->routeIs('dashboard.presensi-mengajar')) ||
                 request()->routeIs('dashboard.rfid.*') ||
                 request()->routeIs('dashboard.rfid') ||
-                request()->routeIs('dashboard.e-izin.*') ||
-                request()->routeIs('dashboard.e-izin') ||
                 (request()->routeIs('dashboard.agenda.*') &&
                     !request()->routeIs('dashboard.agenda-kbm.*') &&
                     !request()->routeIs('dashboard.agenda-kbm')) ||
@@ -1916,13 +1895,6 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.*') && !request()->routeIs('dashboard.presensi.kelas*') && !request()->routeIs('dashboard.presensi.riwayat-saya*') && !request()->routeIs('dashboard.presensi-mengajar.*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card"></i></span>
                         <span class="nav-label">RFID &amp; Presensi</span>
-                    </a>
-                @endif
-
-                @if ($canRole('menu_e_izin'))
-                    <a href="#" class="dash-nav-sublink">
-                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-file-signature"></i></span>
-                        <span class="nav-label">E-Izin</span>
                     </a>
                 @endif
             </div>

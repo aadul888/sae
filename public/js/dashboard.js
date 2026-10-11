@@ -509,11 +509,14 @@ window.refreshLiveTable = async function (url, options = {}) {
 
     // 1. Locate the active table container in DOM
     const container =
-        document.querySelector("#tableDataContainer") ||
-        document.querySelector(
-            ".card.table-responsive-stack, .table-responsive-stack, .dash-table-card",
-        ) ||
-        document.querySelector("table");
+        (document.querySelector("#viewKalenderVisual") && document.querySelector("#viewKalenderVisual").style.display !== "none")
+            ? document.querySelector("#viewKalenderVisual")
+            : (document.querySelector("#tableDataContainer") ||
+               document.querySelector(
+                   ".card.table-responsive-stack, .table-responsive-stack, .dash-table-card",
+               ) ||
+               document.querySelector("#viewKalenderVisual") ||
+               document.querySelector("table"));
 
     if (!container) {
         window.location.href = targetUrl;
@@ -607,6 +610,28 @@ window.refreshLiveTable = async function (url, options = {}) {
             }
         }
 
+        // Swap Kalender Visual View jika ada pada modul kalender pendidikan
+        const curKalenderVisual = document.querySelector("#viewKalenderVisual");
+        const newKalenderVisual = doc.querySelector("#viewKalenderVisual");
+        if (curKalenderVisual && newKalenderVisual) {
+            curKalenderVisual.innerHTML = newKalenderVisual.innerHTML;
+            curKalenderVisual.style.display = newKalenderVisual.style.display;
+            if (!tableAnchor) tableAnchor = curKalenderVisual;
+        }
+
+        const curTabelContainer = document.querySelector("#viewTabelContainer");
+        const newTabelContainer = doc.querySelector("#viewTabelContainer");
+        if (curTabelContainer && newTabelContainer) {
+            curTabelContainer.style.display = newTabelContainer.style.display;
+        }
+
+        // Swap Periode Navigation Bar / Scope Switcher jika ada
+        const curPeriodeNav = document.querySelector(".periode-nav-wrapper");
+        const newPeriodeNav = doc.querySelector(".periode-nav-wrapper");
+        if (curPeriodeNav && newPeriodeNav) {
+            curPeriodeNav.innerHTML = newPeriodeNav.innerHTML;
+        }
+
         // 3b. Swap pagination universally across ALL modules
         const curPagination = document.querySelector(
             ".custom-pagination, .dash-pagination, .pagination",
@@ -659,7 +684,9 @@ window.refreshLiveTable = async function (url, options = {}) {
         });
 
         // 4c. Sync filter select values in toolbar if present
-        const curSelects = document.querySelectorAll(".per-page-select, #filterRombel, #filterGender, #filterStatus, #filterTahun");
+        const curSelects = document.querySelectorAll(
+            ".per-page-select, #filterRombel, #filterGender, #filterStatus, #filterTahun, #filterTahunAjaran, #filterSemester, #filterBulan, #filterModePresensi, #filterTipe, #filterDampak"
+        );
         if (curSelects.length > 0) {
             curSelects.forEach((curSel) => {
                 const newSel = doc.getElementById(curSel.id);
@@ -667,6 +694,14 @@ window.refreshLiveTable = async function (url, options = {}) {
                     curSel.value = newSel.value;
                 }
             });
+        }
+
+        const curResetBtn = document.querySelector("#btnResetFilter");
+        const newResetBtn = doc.querySelector("#btnResetFilter");
+        if (curResetBtn && newResetBtn) {
+            curResetBtn.style.display = "";
+        } else if (curResetBtn && !newResetBtn) {
+            curResetBtn.style.display = "none";
         }
 
         // Restore typing focus & cursor if element still exists

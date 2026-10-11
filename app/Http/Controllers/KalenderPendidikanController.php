@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\KalenderPendidikan;
 use App\Models\RolePermission;
+use App\Services\RealtimeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -44,6 +45,33 @@ class KalenderPendidikanController extends Controller
         $tahunAjaran  = trim($request->get('tahun_ajaran', $defaultTa));
         $semester     = trim($request->get('semester', 'semua')); // 'semua' | '1' | '2'
         $bulan        = trim($request->get('bulan', ''));
+
+        // Mode Tampilan: 'kalender' (Visual Grid) atau 'tabel' (Data Table)
+        $view = trim($request->get('view', 'kalender'));
+        if (!in_array($view, ['kalender', 'tabel'], true)) {
+            $view = 'kalender';
+        }
+
+        // Scope Tampilan Kalender: 'bulan', 'semester', 'tahun'
+        $scope = trim($request->get('scope', ''));
+        if (!in_array($scope, ['bulan', 'semester', 'tahun'], true)) {
+            $scope = (!empty($bulan)) ? 'bulan' : (($semester !== 'semua' && $semester !== '') ? 'semester' : 'tahun');
+        }
+
+        // Normalisasi parameter sesuai scope aktif
+        if ($scope === 'tahun') {
+            $bulan = '';
+            $semester = 'semua';
+        } elseif ($scope === 'semester') {
+            $bulan = '';
+            if ($semester === 'semua' || empty($semester)) {
+                $semester = ($now->month >= 7) ? '1' : '2';
+            }
+        } elseif ($scope === 'bulan') {
+            if (empty($bulan)) {
+                $bulan = sprintf('%02d', $now->month);
+            }
+        }
 
         // Resolusi Rentang Tanggal Kalender Akademik
         $periode = KalenderPendidikan::resolvePeriodeDates($tahunAjaran, $semester, $bulan);
@@ -112,6 +140,16 @@ class KalenderPendidikanController extends Controller
             $taOptions[] = "{$y}/" . ($y + 1);
         }
 
+        // Data Matriks Kalender Akademik per Bulan/Semester/Tahun beserta Keterangan
+        $calendarData = KalenderPendidikan::getAcademicCalendarData(
+            $tahunAjaran,
+            $semester,
+            $bulan,
+            $scope,
+            $tipe,
+            $modePresensi
+        );
+
         return view('dashboard.kalender-pendidikan', compact(
             'list',
             'hariEfektif',
@@ -135,7 +173,10 @@ class KalenderPendidikanController extends Controller
             'dampak',
             'perPage',
             'sort',
-            'sortDir'
+            'sortDir',
+            'view',
+            'scope',
+            'calendarData'
         ));
     }
 
@@ -218,6 +259,12 @@ class KalenderPendidikanController extends Controller
             'libur_guru'      => (bool) ($request->input('libur_guru', false)),
             'libur_tendik'    => (bool) ($request->input('libur_tendik', false)),
             'created_by'      => $userName,
+        ]);
+
+        RealtimeService::trigger('kalender.changed', [
+            'action'        => 'created',
+            'id'            => $event->id,
+            'nama_kegiatan' => $event->nama_kegiatan,
         ]);
 
         if ($request->expectsJson()) {
@@ -316,6 +363,12 @@ class KalenderPendidikanController extends Controller
             'libur_tendik'    => (bool) ($request->input('libur_tendik', false)),
         ]);
 
+        RealtimeService::trigger('kalender.changed', [
+            'action'        => 'updated',
+            'id'            => $event->id,
+            'nama_kegiatan' => $event->nama_kegiatan,
+        ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'status'  => 'success',
@@ -345,7 +398,15 @@ class KalenderPendidikanController extends Controller
             return back()->with('error', 'Data agenda tidak ditemukan.');
         }
 
+        $eventId = $event->id;
+        $eventNama = $event->nama_kegiatan;
         $event->delete();
+
+        RealtimeService::trigger('kalender.changed', [
+            'action'        => 'deleted',
+            'id'            => $eventId,
+            'nama_kegiatan' => $eventNama,
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json([

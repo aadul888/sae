@@ -4683,6 +4683,10 @@ input:disabled + .slider-toggle-crud {
 }
 
 .periode-nav-tab {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
     padding: 9px 18px;
     border-radius: 10px;
     color: var(--text-muted);

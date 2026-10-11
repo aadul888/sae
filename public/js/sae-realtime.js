@@ -226,6 +226,18 @@
                         curGrid.innerHTML = newGridM.innerHTML;
                     }
 
+                    const curVisual = document.querySelector("#viewKalenderVisual");
+                    const newVisual = doc.querySelector("#viewKalenderVisual");
+                    if (curVisual && newVisual) {
+                        curVisual.innerHTML = newVisual.innerHTML;
+                    }
+
+                    const curPeriodeNav = document.querySelector(".periode-nav-wrapper");
+                    const newPeriodeNav = doc.querySelector(".periode-nav-wrapper");
+                    if (curPeriodeNav && newPeriodeNav) {
+                        curPeriodeNav.innerHTML = newPeriodeNav.innerHTML;
+                    }
+
                     // Dispatch event agar module-specific JS tahu ada pembaruan realtime
                     window.dispatchEvent(
                         new CustomEvent("sae:tableRefreshed", {
@@ -397,7 +409,8 @@
                 eventName === "data.changed" ||
                 eventName === "presensi.scanned" ||
                 eventName === "presensi.recorded" ||
-                eventName === "jadwal.changed",
+                eventName === "jadwal.changed" ||
+                eventName === "kalender.changed",
         });
     }
 
