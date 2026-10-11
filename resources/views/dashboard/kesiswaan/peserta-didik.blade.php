@@ -34,53 +34,217 @@
         </div>
     </div>
 
-    <!-- 2. Stat Grid Baku SAE -->
-    <div class="dash-stat-grid" style="margin-bottom: 20px;">
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
-                <i class="fas fa-user-check"></i>
+    <!-- 2. Stat Grid Baku SAE (Disesuaikan Dinamis per Tab Terbuka - 4 Card Rapi) -->
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+        @if ($activeTab === 'aktif')
+            {{-- Rekap 4 Card untuk Tab Siswa Aktif --}}
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($stats['total_aktif'] ?? 0) }}
+                    </div>
+                    <div class="dash-stat-label">Total Siswa Aktif</div>
+                </div>
             </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_aktif'] ?? 0) }}</div>
-                <div class="dash-stat-label">Siswa Aktif</div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
+                    <i class="fas fa-mars"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($stats['aktif_laki'] ?? 0) }}
+                    </div>
+                    <div class="dash-stat-label">Laki-Laki (L)</div>
+                </div>
             </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
-                <i class="fas fa-user-xmark"></i>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(236,72,153,0.15); color: #ec4899;">
+                    <i class="fas fa-venus"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                        {{ number_format($stats['aktif_perempuan'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Perempuan (P)</div>
+                </div>
             </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_tidak_aktif'] ?? 0) }}</div>
-                <div class="dash-stat-label">Tidak Aktif</div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                    <i class="fas fa-chalkboard-user"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ $stats['total_rombel'] ?? 0 }}</div>
+                    <div class="dash-stat-label">Total Rombel Kelas</div>
+                </div>
             </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-                <i class="fas fa-file-circle-check"></i>
+        @elseif ($activeTab === 'tidak_aktif')
+            {{-- Rekap 4 Card untuk Tab Siswa Tidak Aktif --}}
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                    <i class="fas fa-user-xmark"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                        {{ number_format($stats['total_tidak_aktif'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Total Tidak Aktif</div>
+                </div>
             </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['berkas_lengkap'] ?? 0) }}</div>
-                <div class="dash-stat-label">Berkas Lengkap</div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                    <i class="fas fa-right-from-bracket"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ number_format($stats['ta_mutasi'] ?? 0) }}
+                    </div>
+                    <div class="dash-stat-label">Mutasi / Pindah</div>
+                </div>
             </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(168,85,247,0.12); color: #a855f7;">
-                <i class="fas fa-clock-rotate-left"></i>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                        {{ number_format($stats['ta_dikeluarkan'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Dikeluarkan (DO)</div>
+                </div>
             </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['usulan_menunggu'] ?? 0) }}</div>
-                <div class="dash-stat-label">Usulan Menunggu</div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(148,163,184,0.15); color: #94a3b8;">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                        {{ number_format($stats['ta_mengundurkan_lainnya'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Mengundurkan Diri &amp; Lainnya</div>
+                </div>
             </div>
-        </div>
-        <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;">
-                <i class="fas fa-graduation-cap"></i>
+        @elseif ($activeTab === 'berkas')
+            {{-- Rekap 4 Card untuk Tab Validasi Berkas --}}
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                        {{ number_format($stats['berkas_menunggu'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Menunggu Validasi</div>
+                </div>
             </div>
-            <div class="dash-stat-info">
-                <div class="dash-stat-value">{{ number_format($stats['total_alumni'] ?? 0) }}</div>
-                <div class="dash-stat-label">Total Alumni</div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                    <i class="fas fa-circle-xmark"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                        {{ number_format($stats['berkas_ditolak'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Ada Berkas Ditolak</div>
+                </div>
             </div>
-        </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(148,163,184,0.15); color: #94a3b8;">
+                    <i class="fas fa-folder-minus"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                        {{ number_format($stats['berkas_belum_lengkap'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Belum Lengkap</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                        {{ number_format($stats['berkas_lengkap'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Lengkap &amp; Valid</div>
+                </div>
+            </div>
+        @elseif ($activeTab === 'usulan')
+            {{-- Rekap 4 Card untuk Tab Usulan Perubahan Data --}}
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                    <i class="fas fa-clock-rotate-left"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                        {{ number_format($stats['usulan_menunggu'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Menunggu Review</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                        {{ number_format($stats['usulan_disetujui'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Disetujui (Siap Dapodik)</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #3b82f6;">
+                        {{ number_format($stats['usulan_dapodik'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Selesai di Dapodik</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                    <i class="fas fa-circle-xmark"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                        {{ number_format($stats['usulan_ditolak'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Ditolak Kesiswaan</div>
+                </div>
+            </div>
+        @elseif ($activeTab === 'alumni')
+            {{-- Rekap 4 Card untuk Tab Alumni --}}
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #2563eb;">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                        {{ number_format($stats['total_alumni'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Total Alumni</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
+                    <i class="fas fa-mars"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                        {{ number_format($stats['alumni_laki'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Alumni Laki-Laki</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(236,72,153,0.15); color: #ec4899;">
+                    <i class="fas fa-venus"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">
+                        {{ number_format($stats['alumni_perempuan'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Alumni Perempuan</div>
+                </div>
+            </div>
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem;">{{ $stats['alumni_angkatan'] ?? 0 }}</div>
+                    <div class="dash-stat-label">Total Angkatan Kelulusan</div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- 3. Navigation Tabs Wrapper (Urutan: Aktif, Tidak Aktif, Berkas Fisik, Usulan Perubahan, Alumni) -->
@@ -112,7 +276,8 @@
         <div class="periode-nav-mobile">
             <div class="periode-mobile-select-box" style="margin-bottom: 0;">
                 <label><i class="fas fa-layer-group text-primary me-1"></i> Pilih Kategori Data Siswa:</label>
-                <select class="periode-mobile-select form-select" onchange="if(this.value) window.location.href=this.value;"
+                <select class="periode-mobile-select form-select"
+                    onchange="if(this.value) window.location.href=this.value;"
                     style="font-size: 0.85rem; height: 40px; border-radius: 8px;">
                     <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'aktif']) }}"
                         {{ $activeTab === 'aktif' ? 'selected' : '' }}>
@@ -1392,7 +1557,8 @@
                         <h3 id="bioNama"
                             style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
                             Biodata Peserta Didik</h3>
-                        <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-</div>
+                        <div id="bioRombel" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">-
+                        </div>
                     </div>
                 </div>
                 <button type="button" class="close-modal" data-target="#biodataModal"
@@ -1415,7 +1581,8 @@
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">NISN / NIPD</td>
-                            <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">-
+                            <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">
+                                -
                             </td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
@@ -1554,8 +1721,8 @@
                     style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; padding: 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s ease;"><i
                         class="fas fa-times"></i></button>
             </div>
-            <form id="formUsulan" method="POST" action="{{ route('dashboard.kesiswaan.peserta-didik.usulan.store') }}"
-                enctype="multipart/form-data">
+            <form id="formUsulan" method="POST"
+                action="{{ route('dashboard.kesiswaan.peserta-didik.usulan.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label

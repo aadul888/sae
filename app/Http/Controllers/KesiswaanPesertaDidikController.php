@@ -63,34 +63,77 @@ class KesiswaanPesertaDidikController extends Controller
             $baseTidakAktif->whereNotIn('peserta_didik_id', $activePdIds);
         }
 
-        // 1. Statistik Ringkas
+        // 1. Statistik Ringkas Disesuaikan per Tab
         $totalAktif = PesertaDidik::count();
-        $totalTidakAktif = (clone $baseTidakAktif)
-            ->where(function ($b) {
-                $b->where('status_keluar', '<>', 'Alumni')
-                  ->orWhereNull('status_keluar');
-            })
-            ->where('alasan_keluar', 'not like', '%Lulus%')
-            ->where('alasan_keluar', 'not like', '%Tamat%')
-            ->count();
-        $totalAlumni = (clone $baseTidakAktif)
-            ->where(function ($b) {
-                $b->where('status_keluar', 'Alumni')
-                  ->orWhere('alasan_keluar', 'like', '%Lulus%')
-                  ->orWhere('alasan_keluar', 'like', '%Tamat%');
-            })->count();
+        $aktifLaki = PesertaDidik::where('jenis_kelamin', 'L')->count();
+        $aktifPerempuan = PesertaDidik::where('jenis_kelamin', 'P')->count();
+        $totalRombelAktif = PesertaDidik::whereNotNull('nama_rombel')->where('nama_rombel', '<>', '')->distinct()->count('nama_rombel');
+        $totalKoordinator = Schema::hasTable('peserta_didik_meta') ? PesertaDidikMeta::where('is_koordinator', true)->count() : 0;
+
+        $taMutasi = (clone $baseTidakAktif)->where('status_keluar', 'Mutasi')->count();
+        $taDikeluarkan = (clone $baseTidakAktif)->where('status_keluar', 'Dikeluarkan')->count();
+        $taMengundurkan = (clone $baseTidakAktif)->where('status_keluar', 'Mengundurkan Diri')->count();
+        $taLainnya = (clone $baseTidakAktif)->whereNotIn('status_keluar', ['Alumni', 'Mutasi', 'Dikeluarkan', 'Mengundurkan Diri'])->count();
+        $totalTidakAktif = $taMutasi + $taDikeluarkan + $taMengundurkan + $taLainnya;
+
+        $totalAlumni = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->count();
+        $alumniLaki = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->where('jenis_kelamin', 'L')->count();
+        $alumniPerempuan = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->where('jenis_kelamin', 'P')->count();
+        $alumniTahunCount = (clone $baseTidakAktif)->where('status_keluar', 'Alumni')->whereNotNull('tahun_lulus')->where('tahun_lulus', '<>', '')->distinct()->count('tahun_lulus');
+
         $totalBerkasLengkap = KesiswaanBerkasVerifikasi::where('akta_kelahiran', true)
             ->where('kartu_keluarga', true)
             ->where('ijazah_smp', true)
             ->count();
-        $totalUsulanMenunggu = SiswaUsulanPerubahan::where('status', 'menunggu')->count();
+        $berkasMenungguCount = Schema::hasTable('peserta_didik_berkas')
+            ? DB::table('peserta_didik_berkas')->where('status', 'menunggu')->distinct()->count('peserta_didik_id')
+            : 0;
+        $berkasDitolakCount = Schema::hasTable('peserta_didik_berkas')
+            ? DB::table('peserta_didik_berkas')->where('status', 'tidak_valid')->distinct()->count('peserta_didik_id')
+            : 0;
+        $berkasBelumLengkap = max(0, $totalAktif - $totalBerkasLengkap);
+
+        $totalUsulan = SiswaUsulanPerubahan::count();
+        $usulanMenunggu = SiswaUsulanPerubahan::where('status', 'menunggu')->count();
+        $usulanDisetujui = SiswaUsulanPerubahan::where('status', 'disetujui')->count();
+        $usulanDapodik = SiswaUsulanPerubahan::where('status', 'sudah_ke_dapodik')->count();
+        $usulanDitolak = SiswaUsulanPerubahan::where('status', 'ditolak')->count();
 
         $stats = [
-            'total_aktif'       => $totalAktif,
-            'total_tidak_aktif' => $totalTidakAktif,
-            'total_alumni'      => $totalAlumni,
-            'berkas_lengkap'    => $totalBerkasLengkap,
-            'usulan_menunggu'   => $totalUsulanMenunggu,
+            // Tab Aktif
+            'total_aktif'          => $totalAktif,
+            'aktif_laki'           => $aktifLaki,
+            'aktif_perempuan'      => $aktifPerempuan,
+            'total_rombel'         => $totalRombelAktif,
+            'total_koordinator'    => $totalKoordinator,
+
+            // Tab Tidak Aktif
+            'total_tidak_aktif'        => $totalTidakAktif,
+            'ta_mutasi'                => $taMutasi,
+            'ta_dikeluarkan'           => $taDikeluarkan,
+            'ta_mengundurkan'          => $taMengundurkan,
+            'ta_mengundurkan_lainnya'  => $taMengundurkan + $taLainnya,
+            'ta_lainnya'               => $taLainnya,
+
+            // Tab Berkas
+            'berkas_total_siswa'   => $totalAktif,
+            'berkas_lengkap'       => $totalBerkasLengkap,
+            'berkas_menunggu'      => $berkasMenungguCount,
+            'berkas_ditolak'       => $berkasDitolakCount,
+            'berkas_belum_lengkap' => $berkasBelumLengkap,
+
+            // Tab Usulan
+            'usulan_total'         => $totalUsulan,
+            'usulan_menunggu'      => $usulanMenunggu,
+            'usulan_disetujui'     => $usulanDisetujui,
+            'usulan_dapodik'       => $usulanDapodik,
+            'usulan_ditolak'       => $usulanDitolak,
+
+            // Tab Alumni
+            'total_alumni'         => $totalAlumni,
+            'alumni_laki'          => $alumniLaki,
+            'alumni_perempuan'     => $alumniPerempuan,
+            'alumni_angkatan'      => $alumniTahunCount,
         ];
 
         // Daftar rombel aktif untuk filter
