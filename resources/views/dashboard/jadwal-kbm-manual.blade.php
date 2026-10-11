@@ -489,6 +489,18 @@
                                                     1,
                                                     (int) $schedule->jam_ke_selesai - (int) $schedule->jam_ke_mulai + 1,
                                                 );
+                                                $isRoutine =
+                                                    in_array(
+                                                        $schedule->mata_pelajaran_id,
+                                                        ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'],
+                                                        true,
+                                                    ) ||
+                                                    str_starts_with($schedule->pembelajaran_id ?? '', 'ROUTINE_') ||
+                                                    in_array(
+                                                        strtolower(trim($schedule->nama_mata_pelajaran)),
+                                                        ['upacara', 'upacara bendera', 'istirahat', 'pembiasaan'],
+                                                        true,
+                                                    );
                                             @endphp
                                             <div class="harian-card-item harian-card-scheduled">
                                                 <div class="harian-card-header">
@@ -502,23 +514,25 @@
                                                             {{ $jamSelesai }} WIB</span>
                                                     </div>
                                                     <span class="badge"
-                                                        style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">{{ $jpSpan }}
+                                                        style="background: {{ $isRoutine ? 'rgba(100,116,139,0.18)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isRoutine ? 'var(--text-muted)' : 'var(--primary)' }}; font-size: 0.74rem; font-weight: 700; padding: 3px 8px; border-radius: 6px;">{{ $jpSpan }}
                                                         JP</span>
                                                 </div>
                                                 <div>
                                                     <h4 class="harian-mapel-name">{{ $schedule->nama_mata_pelajaran }}
                                                     </h4>
-                                                    <div class="harian-guru-name">
-                                                        <i class="fas fa-user-tie text-muted me-1"></i>
-                                                        <span>{{ $schedule->nama_guru ?: 'Guru belum ditentukan' }}</span>
-                                                    </div>
+                                                    @if (!$isRoutine)
+                                                        <div class="harian-guru-name">
+                                                            <i class="fas fa-user-tie text-muted me-1"></i>
+                                                            <span>{{ $schedule->nama_guru ?: 'Guru belum ditentukan' }}</span>
+                                                        </div>
+                                                    @endif
                                                     @if ($schedule->ruangan)
                                                         <div class="harian-room-name">
                                                             <i class="fas fa-location-dot text-success me-1"></i>
                                                             <span>{{ $schedule->ruangan }}</span>
                                                         </div>
                                                     @endif
-                                                    @if ($routine)
+                                                    @if ($routine && !$isRoutine)
                                                         <div class="harian-conflict-warn">
                                                             <i class="fas fa-triangle-exclamation me-1"></i>
                                                             <span>Bentrok dengan {{ $routine->nama }}</span>
@@ -526,27 +540,38 @@
                                                     @endif
                                                 </div>
                                                 <div class="harian-card-actions">
-                                                    <button type="button" class="btn btn-sm btn-outline btn-edit-slot"
-                                                        data-id="{{ $schedule->id }}"
-                                                        data-pembelajaran-id="{{ $schedule->pembelajaran_id }}"
-                                                        data-mapel-id="{{ $schedule->mata_pelajaran_id }}"
-                                                        data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
-                                                        data-hari="{{ $schedule->hari }}"
-                                                        data-jam-mulai="{{ $schedule->jam_ke_mulai }}"
-                                                        data-jam-selesai="{{ $schedule->jam_ke_selesai }}"
-                                                        data-ruangan="{{ $schedule->ruangan }}"
-                                                        data-keterangan="{{ $schedule->keterangan }}"
-                                                        style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px;">
-                                                        <i class="fas fa-pen me-1"></i> Edit
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-outline btn-hapus-slot"
-                                                        data-id="{{ $schedule->id }}"
-                                                        data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
-                                                        data-hari="{{ $schedule->hari }}"
-                                                        data-jam="Jam ke-{{ $schedule->jam_ke_mulai }} s/d {{ $schedule->jam_ke_selesai }}"
-                                                        style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);">
-                                                        <i class="fas fa-trash me-1"></i> Hapus
-                                                    </button>
+                                                    @if ($isRoutine)
+                                                        <span class="badge"
+                                                            style="background: rgba(100,116,139,0.15); color: var(--text-muted); font-size: 0.75rem; padding: 6px 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;"
+                                                            title="Kegiatan rutin sekolah otomatis berdasarkan Pengaturan Jam &amp; Bel KBM">
+                                                            <i class="fas fa-lock" style="font-size: 0.65rem;"></i>
+                                                            Pengaturan Jam
+                                                        </span>
+                                                    @else
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-outline btn-edit-slot"
+                                                            data-id="{{ $schedule->id }}"
+                                                            data-pembelajaran-id="{{ $schedule->pembelajaran_id }}"
+                                                            data-mapel-id="{{ $schedule->mata_pelajaran_id }}"
+                                                            data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
+                                                            data-hari="{{ $schedule->hari }}"
+                                                            data-jam-mulai="{{ $schedule->jam_ke_mulai }}"
+                                                            data-jam-selesai="{{ $schedule->jam_ke_selesai }}"
+                                                            data-ruangan="{{ $schedule->ruangan }}"
+                                                            data-keterangan="{{ $schedule->keterangan }}"
+                                                            style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px;">
+                                                            <i class="fas fa-pen me-1"></i> Edit
+                                                        </button>
+                                                        <button type="button"
+                                                            class="btn btn-sm btn-outline btn-hapus-slot"
+                                                            data-id="{{ $schedule->id }}"
+                                                            data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
+                                                            data-hari="{{ $schedule->hari }}"
+                                                            data-jam="Jam ke-{{ $schedule->jam_ke_mulai }} s/d {{ $schedule->jam_ke_selesai }}"
+                                                            style="padding: 6px 14px; font-size: 0.8rem; border-radius: 6px; color: #ef4444; border-color: rgba(239,68,68,0.3);">
+                                                            <i class="fas fa-trash me-1"></i> Hapus
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         @elseif ($routine)
@@ -688,11 +713,23 @@
                                                             (int) $schedule->jam_ke_mulai +
                                                             1,
                                                     );
+                                                    $isRoutine =
+                                                        in_array(
+                                                            $schedule->mata_pelajaran_id,
+                                                            ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'],
+                                                            true,
+                                                        ) ||
+                                                        str_starts_with($schedule->pembelajaran_id ?? '', 'ROUTINE_') ||
+                                                        in_array(
+                                                            strtolower(trim($schedule->nama_mata_pelajaran)),
+                                                            ['upacara', 'upacara bendera', 'istirahat', 'pembiasaan'],
+                                                            true,
+                                                        );
                                                 @endphp
                                                 <td rowspan="{{ $jpSpan }}"
-                                                    style="padding: 8px; border-left: 1px solid var(--border-color); vertical-align: top; background: rgba(99,102,241,0.04);">
+                                                    style="padding: 8px; border-left: 1px solid var(--border-color); vertical-align: top; background: {{ $isRoutine ? 'rgba(100,116,139,0.03)' : 'rgba(99,102,241,0.04)' }};">
                                                     <div class="slot-card-active"
-                                                        style="padding: 10px; border-radius: 8px; border: 1px solid rgba(99,102,241,0.35); background: var(--bg-card); box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                                                        style="padding: 10px; border-radius: 8px; border: 1px solid {{ $isRoutine ? 'rgba(100,116,139,0.35)' : 'rgba(99,102,241,0.35)' }}; background: var(--bg-card); box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
                                                         <div>
                                                             <div
                                                                 style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 4px;">
@@ -702,18 +739,20 @@
                                                                     {{ $schedule->nama_mata_pelajaran }}
                                                                 </strong>
                                                                 <span class="badge"
-                                                                    style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">
+                                                                    style="background: {{ $isRoutine ? 'rgba(100,116,139,0.18)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isRoutine ? 'var(--text-muted)' : 'var(--primary)' }}; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">
                                                                     {{ $jpSpan }} JP
                                                                 </span>
                                                             </div>
 
-                                                            <div
-                                                                style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
-                                                                <i class="fas fa-user-tie"
-                                                                    style="font-size: 0.68rem;"></i>
-                                                                <span
-                                                                    title="{{ $schedule->nama_guru }}">{{ $schedule->nama_guru ?: 'Guru belum ada' }}</span>
-                                                            </div>
+                                                            @if (!$isRoutine)
+                                                                <div
+                                                                    style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                                                                    <i class="fas fa-user-tie"
+                                                                        style="font-size: 0.68rem;"></i>
+                                                                    <span
+                                                                        title="{{ $schedule->nama_guru }}">{{ $schedule->nama_guru ?: 'Guru belum ada' }}</span>
+                                                                </div>
+                                                            @endif
 
                                                             @if ($schedule->ruangan)
                                                                 <div
@@ -724,7 +763,7 @@
                                                                 </div>
                                                             @endif
 
-                                                            @if ($routine)
+                                                            @if ($routine && !$isRoutine)
                                                                 <div
                                                                     style="margin-top: 4px; font-size: 0.68rem; color: #ef4444; background: rgba(239,68,68,0.1); border-radius: 4px; padding: 2px 5px; display: inline-flex; align-items: center; gap: 3px;">
                                                                     <i class="fas fa-triangle-exclamation"></i>
@@ -735,29 +774,39 @@
 
                                                         <!-- Tombol Aksi Slot (Touch-Friendly & Responsif) -->
                                                         <div
-                                                            style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border-color);">
-                                                            <button type="button" class="btn-slot-action btn-edit-slot"
-                                                                data-id="{{ $schedule->id }}"
-                                                                data-pembelajaran-id="{{ $schedule->pembelajaran_id }}"
-                                                                data-mapel-id="{{ $schedule->mata_pelajaran_id }}"
-                                                                data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
-                                                                data-hari="{{ $schedule->hari }}"
-                                                                data-jam-mulai="{{ $schedule->jam_ke_mulai }}"
-                                                                data-jam-selesai="{{ $schedule->jam_ke_selesai }}"
-                                                                data-ruangan="{{ $schedule->ruangan }}"
-                                                                data-keterangan="{{ $schedule->keterangan }}"
-                                                                title="Edit Slot Ini" aria-label="Edit Slot Ini">
-                                                                <i class="fas fa-pen"></i>
-                                                            </button>
-                                                            <button type="button"
-                                                                class="btn-slot-action btn-slot-delete btn-hapus-slot"
-                                                                data-id="{{ $schedule->id }}"
-                                                                data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
-                                                                data-hari="{{ $schedule->hari }}"
-                                                                data-jam="Jam ke-{{ $schedule->jam_ke_mulai }} s/d {{ $schedule->jam_ke_selesai }}"
-                                                                title="Hapus Slot Ini" aria-label="Hapus Slot Ini">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
+                                                            style="display: flex; justify-content: {{ $isRoutine ? 'space-between' : 'flex-end' }}; align-items: center; gap: 8px; margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border-color);">
+                                                            @if ($isRoutine)
+                                                                <span
+                                                                    style="font-size: 0.68rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;"
+                                                                    title="Kegiatan rutin sekolah otomatis berdasarkan Pengaturan Jam &amp; Bel KBM">
+                                                                    <i class="fas fa-lock"
+                                                                        style="font-size: 0.62rem;"></i> Pengaturan Jam
+                                                                </span>
+                                                            @else
+                                                                <button type="button"
+                                                                    class="btn-slot-action btn-edit-slot"
+                                                                    data-id="{{ $schedule->id }}"
+                                                                    data-pembelajaran-id="{{ $schedule->pembelajaran_id }}"
+                                                                    data-mapel-id="{{ $schedule->mata_pelajaran_id }}"
+                                                                    data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
+                                                                    data-hari="{{ $schedule->hari }}"
+                                                                    data-jam-mulai="{{ $schedule->jam_ke_mulai }}"
+                                                                    data-jam-selesai="{{ $schedule->jam_ke_selesai }}"
+                                                                    data-ruangan="{{ $schedule->ruangan }}"
+                                                                    data-keterangan="{{ $schedule->keterangan }}"
+                                                                    title="Edit Slot Ini" aria-label="Edit Slot Ini">
+                                                                    <i class="fas fa-pen"></i>
+                                                                </button>
+                                                                <button type="button"
+                                                                    class="btn-slot-action btn-slot-delete btn-hapus-slot"
+                                                                    data-id="{{ $schedule->id }}"
+                                                                    data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
+                                                                    data-hari="{{ $schedule->hari }}"
+                                                                    data-jam="Jam ke-{{ $schedule->jam_ke_mulai }} s/d {{ $schedule->jam_ke_selesai }}"
+                                                                    title="Hapus Slot Ini" aria-label="Hapus Slot Ini">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 </td>

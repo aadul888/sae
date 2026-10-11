@@ -1563,7 +1563,15 @@
 @media (max-width: 480px) {
     .dash-stat-grid {
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 6px;
+        grid-auto-rows: 1fr !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+    }
+    .dash-stat-card {
+        padding: 12px 10px !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        box-sizing: border-box !important;
     }
     .dash-header-right {
         gap: 6px;
@@ -4652,7 +4660,6 @@ input:disabled + .slider-toggle-crud {
         grid-auto-rows: 1fr !important;
         gap: 8px !important;
         align-items: stretch !important;
-    }
     }
 }
 

@@ -498,6 +498,18 @@ class JadwalKbmManualController extends Controller
 
         $jadwal = JadwalKbm::findOrFail($id);
 
+        // Proteksi Kegiatan Rutin (Upacara, Istirahat, Pembiasaan)
+        $isRoutine = in_array($jadwal->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)
+            || str_starts_with($jadwal->pembelajaran_id ?? '', 'ROUTINE_')
+            || in_array(strtolower(trim($jadwal->nama_mata_pelajaran)), ['upacara', 'upacara bendera', 'istirahat', 'pembiasaan'], true);
+
+        if ($isRoutine) {
+            return response()->json([
+                'success' => false,
+                'message' => "Kegiatan rutin '{$jadwal->nama_mata_pelajaran}' tidak dapat diubah secara manual karena ditentukan dari Pengaturan Jam & Bel KBM.",
+            ], 422);
+        }
+
         // Proteksi Otoritas
         if ($role !== 'admin') {
             $context = $this->resolveUserContext($request, $user);
@@ -625,6 +637,18 @@ class JadwalKbmManualController extends Controller
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
         $jadwal = JadwalKbm::findOrFail($id);
+
+        // Proteksi Kegiatan Rutin (Upacara, Istirahat, Pembiasaan)
+        $isRoutine = in_array($jadwal->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)
+            || str_starts_with($jadwal->pembelajaran_id ?? '', 'ROUTINE_')
+            || in_array(strtolower(trim($jadwal->nama_mata_pelajaran)), ['upacara', 'upacara bendera', 'istirahat', 'pembiasaan'], true);
+
+        if ($isRoutine) {
+            return response()->json([
+                'success' => false,
+                'message' => "Kegiatan rutin '{$jadwal->nama_mata_pelajaran}' tidak dapat dihapus karena ditentukan dari Pengaturan Jam & Bel KBM.",
+            ], 422);
+        }
 
         if ($role !== 'admin') {
             $context = $this->resolveUserContext($request, $user);

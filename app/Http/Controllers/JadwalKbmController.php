@@ -1243,6 +1243,10 @@ class JadwalKbmController extends Controller
 
         $jadwal = JadwalKbm::findOrFail($id);
 
+        if (in_array($jadwal->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true) || str_starts_with($jadwal->pembelajaran_id ?? '', 'ROUTINE_')) {
+            return response()->json(['success' => false, 'message' => "Kegiatan rutin '{$jadwal->nama_mata_pelajaran}' tidak dapat diubah secara manual karena ditentukan dari Pengaturan Jam & Bel KBM."], 422);
+        }
+
         $validated = $request->validate([
             'rombongan_belajar_id' => 'required|string|max:50',
             'pembelajaran_id'      => 'required|string|max:50',
@@ -1357,6 +1361,11 @@ class JadwalKbmController extends Controller
         }
 
         $jadwal = JadwalKbm::findOrFail($id);
+
+        if (in_array($jadwal->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true) || str_starts_with($jadwal->pembelajaran_id ?? '', 'ROUTINE_')) {
+            return response()->json(['success' => false, 'message' => "Kegiatan rutin '{$jadwal->nama_mata_pelajaran}' tidak dapat dihapus karena ditentukan dari Pengaturan Jam & Bel KBM."], 422);
+        }
+
         $jadwal->delete();
 
         RealtimeService::trigger('jadwal.changed', [

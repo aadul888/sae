@@ -10,11 +10,9 @@
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="color: #3b82f6;">
                 {{ number_format($chartsUmum['populasi']['Peserta Didik'] ?? ($stats['total_siswa'] ?? 0), 0, ',', '.') }}
-                Siswa</div>
-            <div class="dash-stat-label">Peserta Didik Aktif</div>
-            <div class="dash-stat-sub">
-                {{ $chartsUmum['genderSiswa']['L'] ?? 0 }} L / {{ $chartsUmum['genderSiswa']['P'] ?? 0 }} P
+                Siswa
             </div>
+            <div class="dash-stat-label">Peserta Didik Aktif</div>
         </div>
     </div>
 
@@ -25,11 +23,9 @@
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="color: #10b981;">
-                {{ $chartsUmum['populasi']['Guru Pendidik'] ?? ($stats['total_guru'] ?? 0) }} Guru</div>
-            <div class="dash-stat-label">Tenaga Pendidik</div>
-            <div class="dash-stat-sub">
-                KBM &amp; Pembelajaran
+                {{ $chartsUmum['populasi']['Guru Pendidik'] ?? ($stats['total_guru'] ?? 0) }} Guru
             </div>
+            <div class="dash-stat-label">Tenaga Pendidik</div>
         </div>
     </div>
 
@@ -40,11 +36,9 @@
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="color: var(--primary);">
-                {{ $chartsUmum['populasi']['Tenaga Tendik'] ?? ($stats['total_tendik'] ?? 0) }} Tendik</div>
-            <div class="dash-stat-label" title="Tenaga Kependidikan (TAS)">Tenaga Kependidikan</div>
-            <div class="dash-stat-sub" title="{{ $bagianTugas ?? 'Tenaga Kependidikan' }}">
-                {{ Str::limit($bagianTugas ?? 'Tenaga Administrasi', 22) }}
+                {{ $chartsUmum['populasi']['Tenaga Tendik'] ?? ($stats['total_tendik'] ?? 0) }} Tendik
             </div>
+            <div class="dash-stat-label">Tenaga Kependidikan</div>
         </div>
     </div>
 
@@ -55,11 +49,9 @@
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="color: #f59e0b;">
-                {{ $chartsUmum['populasi']['Rombel Belajar'] ?? ($stats['total_rombel'] ?? 0) }} Rombel</div>
-            <div class="dash-stat-label">Rombongan Belajar</div>
-            <div class="dash-stat-sub">
-                Tingkat 10, 11 &amp; 12
+                {{ $chartsUmum['populasi']['Rombel Belajar'] ?? ($stats['total_rombel'] ?? 0) }} Rombel
             </div>
+            <div class="dash-stat-label">Rombongan Belajar</div>
         </div>
     </div>
 </div>
@@ -172,8 +164,8 @@
 
 <!-- 3. Quick Links Modul Tendik Universal -->
 <div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
-    <a href="{{ route('dashboard.tendik.target.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
+    <a href="{{ route('dashboard.tendik.target.index') }}" class="kepegawaian-quick-btn" style="--quick-color: #6366f1;"
+        title="Target &amp; Capaian Kinerja">
         <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
             <i class="fas fa-bullseye"></i>
         </div>
