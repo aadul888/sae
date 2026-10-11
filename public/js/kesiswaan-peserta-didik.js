@@ -968,16 +968,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Datatable Realtime Live Search, Entri perPage, dan Filter Standar SAE
-    const searchInput = document.getElementById("liveSearch");
-    const clearBtn = document.getElementById("clearSearch");
-    const perPageSelect = document.getElementById("perPageSelect");
-    const filterRombel = document.getElementById("filterRombel");
-    const filterGender = document.getElementById("filterGender");
-    const filterTahunLulus = document.getElementById("filterTahunLulus");
+    // Modal Preview Pasfoto Siswa Tidak Aktif
+    window.openPhotoPreviewModal = function (url, name) {
+        const modal = document.getElementById("photoPreviewModal");
+        const img = document.getElementById("photoPreviewImg");
+        const nameEl = document.getElementById("photoPreviewName");
+        if (!modal || !img) return;
+        img.src = url;
+        if (nameEl) nameEl.textContent = name || "Pasfoto Peserta Didik";
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+    };
 
+    window.closePhotoPreviewModal = function () {
+        const modal = document.getElementById("photoPreviewModal");
+        if (modal) modal.style.display = "none";
+        document.body.style.overflow = "";
+    };
+
+    // Datatable Realtime Live Search, Entri perPage, dan Filter Standar SAE
     function applyFilter() {
         const url = new URL(window.location.href);
+        const searchInput = document.getElementById("liveSearch");
+        const filterRombel = document.getElementById("filterRombel");
+        const filterGender = document.getElementById("filterGender");
+        const filterStatus = document.getElementById("filterStatus");
+        const filterTahunLulus = document.getElementById("filterTahunLulus");
+        const perPageSelect = document.getElementById("perPageSelect");
+
         if (searchInput && searchInput.value.trim()) {
             url.searchParams.set("q", searchInput.value.trim());
         } else {
@@ -994,6 +1012,12 @@ document.addEventListener('DOMContentLoaded', function () {
             url.searchParams.set("gender", filterGender.value);
         } else {
             url.searchParams.delete("gender");
+        }
+
+        if (filterStatus && filterStatus.value) {
+            url.searchParams.set("status", filterStatus.value);
+        } else {
+            url.searchParams.delete("status");
         }
 
         if (filterTahunLulus && filterTahunLulus.value.trim()) {
@@ -1021,6 +1045,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    const searchInput = document.getElementById("liveSearch");
+    const clearBtn = document.getElementById("clearSearch");
     if (searchInput) {
         let timer = null;
         searchInput.addEventListener("input", function () {
@@ -1048,8 +1074,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (filterRombel) filterRombel.addEventListener("change", applyFilter);
-    if (filterGender) filterGender.addEventListener("change", applyFilter);
+    // Delegated Change Event untuk Filter Toolbar (Tahan AJAX DOM Swapping)
+    document.addEventListener("change", function (e) {
+        if (e.target.matches("#filterRombel, #filterGender, #filterStatus, #perPageSelect")) {
+            applyFilter();
+        }
+    });
+
+    const filterTahunLulus = document.getElementById("filterTahunLulus");
     if (filterTahunLulus) {
         filterTahunLulus.addEventListener("change", applyFilter);
         filterTahunLulus.addEventListener("keydown", function (e) {
@@ -1059,5 +1091,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
-    if (perPageSelect) perPageSelect.addEventListener("change", applyFilter);
+
+    // Delegated Click Event untuk Header Kolom Sortable
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (th) {
+            const sortKey = th.getAttribute("data-sort");
+            if (!sortKey) return;
+            const url = new URL(window.location.href);
+            const curSort = url.searchParams.get("sort") || "nama";
+            const curDir = url.searchParams.get("sort_dir") || "asc";
+            let newDir = "asc";
+            if (curSort === sortKey && curDir === "asc") {
+                newDir = "desc";
+            }
+            url.searchParams.set("sort", sortKey);
+            url.searchParams.set("sort_dir", newDir);
+            url.searchParams.delete("page");
+            url.searchParams.delete("aktif_page");
+            url.searchParams.delete("tidak_aktif_page");
+            url.searchParams.delete("berkas_page");
+            url.searchParams.delete("usulan_page");
+            url.searchParams.delete("alumni_page");
+
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
+        }
+    });
 });
