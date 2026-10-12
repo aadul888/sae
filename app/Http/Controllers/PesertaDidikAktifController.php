@@ -305,11 +305,23 @@ class PesertaDidikAktifController extends Controller
 
         // Jika bukan Administrator murni, pastikan Wali Kelas / Koordinator hanya mengedit siswa di kelas perwaliannya
         if (!$isAdmin && $isWaliOrAdmin) {
-            $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
-            if ($waliRombel && !empty($pesertaDidik->nama_rombel) && strcasecmp(trim($pesertaDidik->nama_rombel), trim($waliRombel)) !== 0) {
+            $waliRombelInfo = \App\Models\RolePermission::getWaliKelasRombelInfo($user);
+            $waliRombelName = $waliRombelInfo?->nama ?: \App\Models\RolePermission::getWaliKelasRombel($user);
+            $waliRombelId = $waliRombelInfo?->rombongan_belajar_id ?? null;
+
+            $isMatch = false;
+            if ($waliRombelId && !empty($pesertaDidik->rombongan_belajar_id) && $pesertaDidik->rombongan_belajar_id === $waliRombelId) {
+                $isMatch = true;
+            } elseif ($waliRombelName && !empty($pesertaDidik->nama_rombel) && strcasecmp(trim($pesertaDidik->nama_rombel), trim($waliRombelName)) === 0) {
+                $isMatch = true;
+            } elseif (!$waliRombelName && !$waliRombelId) {
+                $isMatch = true;
+            }
+
+            if (!$isMatch) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Akses ditolak: Anda hanya berwenang mengubah pasfoto peserta didik di kelas perwalian Anda (' . $waliRombel . ').'
+                    'message' => 'Akses ditolak: Anda hanya berwenang mengubah pasfoto peserta didik di kelas binaan Anda (' . ($waliRombelName ?: 'Kelas Binaan') . ').'
                 ], 403);
             }
         }
@@ -392,11 +404,23 @@ class PesertaDidikAktifController extends Controller
 
         $pd = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
         if (!$isAdmin && $isWaliOrAdmin && $pd) {
-            $waliRombel = \App\Models\RolePermission::getWaliKelasRombel($user);
-            if ($waliRombel && !empty($pd->nama_rombel) && strcasecmp(trim($pd->nama_rombel), trim($waliRombel)) !== 0) {
+            $waliRombelInfo = \App\Models\RolePermission::getWaliKelasRombelInfo($user);
+            $waliRombelName = $waliRombelInfo?->nama ?: \App\Models\RolePermission::getWaliKelasRombel($user);
+            $waliRombelId = $waliRombelInfo?->rombongan_belajar_id ?? null;
+
+            $isMatch = false;
+            if ($waliRombelId && !empty($pd->rombongan_belajar_id) && $pd->rombongan_belajar_id === $waliRombelId) {
+                $isMatch = true;
+            } elseif ($waliRombelName && !empty($pd->nama_rombel) && strcasecmp(trim($pd->nama_rombel), trim($waliRombelName)) === 0) {
+                $isMatch = true;
+            } elseif (!$waliRombelName && !$waliRombelId) {
+                $isMatch = true;
+            }
+
+            if (!$isMatch) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Akses ditolak: Anda hanya berwenang menghapus pasfoto peserta didik di kelas perwalian Anda (' . $waliRombel . ').'
+                    'message' => 'Akses ditolak: Anda hanya berwenang menghapus pasfoto peserta didik di kelas binaan Anda (' . ($waliRombelName ?: 'Kelas Binaan') . ').'
                 ], 403);
             }
         }
@@ -889,8 +913,12 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        // Hanya role berizin update pada menu_peserta_didik_aktif atau menu_wali_kelas_aktif
-        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update') && !\App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update')) {
+        // Role berizin update pada menu_peserta_didik_aktif, menu_wali_kelas_aktif, atau Wali Kelas / Koordinator Kelas
+        $canAccessUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update')
+            || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update')
+            || \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+
+        if (!$canAccessUpdate) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk mereset password akun peserta didik.',
@@ -955,7 +983,11 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update') && !\App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update')) {
+        $canAccessUpdate = \App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update')
+            || \App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update')
+            || \App\Models\RolePermission::isWaliKelasOrAdmin($user);
+
+        if (!$canAccessUpdate) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk menunjuk Koordinator Kelas.',

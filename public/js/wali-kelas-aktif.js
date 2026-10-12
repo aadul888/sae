@@ -326,9 +326,6 @@ document.addEventListener("DOMContentLoaded", function () {
         applyFilter({ sort: sortField, sort_dir: newDir });
     });
 
-        applyFilter({ sort: sortField, sort_dir: newDir });
-    });
-
     // Wire up Drag & Drop and File Input for Photo Upload Modal
     const fileInput = document.getElementById("fotoFileInput");
     const dropZone = document.getElementById("fotoDropZone");

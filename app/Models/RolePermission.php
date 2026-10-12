@@ -1530,7 +1530,7 @@ class RolePermission extends Model
 
     /**
      * Dapatkan status izin (termasuk CRUD) untuk Wali Kelas pada suatu permission key.
-     * Digunakan oleh Koordinator Kelas untuk mewarisi hak akses Wali Kelas secara otomatis.
+     * Digunakan oleh Wali Kelas dan Koordinator Kelas untuk memperoleh hak akses Wali Kelas secara otomatis.
      */
     public static function getWaliKelasPermission(string $permissionKey, string $action = 'read'): bool
     {
@@ -1539,23 +1539,19 @@ class RolePermission extends Model
             $actionCol = 'can_read';
         }
 
-        // 1. Cek di role_permissions untuk peran 'guru' (peran standar pengampu wali kelas)
-        if (!isset(self::$runtimeRolePermissionsCache['guru'])) {
-            self::$runtimeRolePermissionsCache['guru'] = self::where('role', 'guru')->get()->keyBy('permission_key');
+        // 1. Cek di role_permissions untuk peran 'tugas_tambahan'
+        if (!isset(self::$runtimeRolePermissionsCache['tugas_tambahan'])) {
+            self::$runtimeRolePermissionsCache['tugas_tambahan'] = self::where('role', 'tugas_tambahan')->get()->keyBy('permission_key');
         }
-        $guruRow = self::$runtimeRolePermissionsCache['guru']->get($permissionKey);
-        if (!$guruRow && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal'], true)) {
-            $guruRow = self::$runtimeRolePermissionsCache['guru']->get('menu_wali_kelas');
+        $dutyRow = self::$runtimeRolePermissionsCache['tugas_tambahan']->get($permissionKey);
+        if (!$dutyRow && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal'], true)) {
+            $dutyRow = self::$runtimeRolePermissionsCache['tugas_tambahan']->get('menu_wali_kelas');
         }
-
-        if ($guruRow) {
-            if ($guruRow->is_allowed && $guruRow->can_read) {
-                return $actionCol === 'can_read' ? true : (bool) $guruRow->{$actionCol};
-            }
-            return false;
+        if ($dutyRow && $dutyRow->is_allowed && $dutyRow->can_read) {
+            return $actionCol === 'can_read' ? true : (bool) ($dutyRow->{$actionCol} ?? true);
         }
 
-        // 2. Cek di role_permissions untuk peran 'admin' jika belum ada row guru
+        // 2. Cek di role_permissions untuk peran 'admin'
         if (isset(self::$runtimeRolePermissionsCache['admin'])) {
             $adminRow = self::$runtimeRolePermissionsCache['admin']->get($permissionKey);
             if ($adminRow && $adminRow->is_allowed && $adminRow->can_read) {
@@ -1563,9 +1559,9 @@ class RolePermission extends Model
             }
         }
 
-        // 3. Fallback default untuk modul wali kelas: read, create, update diizinkan
-        if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_presensi_peserta_didik'])) {
-            return in_array($actionCol, ['can_read', 'can_create', 'can_update']);
+        // 3. Fallback default untuk modul wali kelas & peserta didik binaan: read, create, update diizinkan penuh
+        if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'], true)) {
+            return in_array($actionCol, ['can_read', 'can_create', 'can_update'], true);
         }
 
         return false;
@@ -1667,10 +1663,10 @@ class RolePermission extends Model
         }
         $hasDutyTables = self::$runtimeHasTableDuties;
 
-        // Khusus Peserta Didik yang ditunjuk sebagai Koordinator Kelas:
+        // Khusus Wali Kelas (Guru) dan Koordinator Kelas (Peserta Didik):
         // Menu + CRUD otomatis mewarisi hak akses Wali Kelas
-        if ($role === 'peserta_didik' && self::isKoordinator($user)) {
-            if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'], true)) {
+        if (($role === 'guru' && self::isWaliKelasOrAdmin($user)) || ($role === 'peserta_didik' && self::isKoordinator($user))) {
+            if (str_starts_with($permissionKey, 'menu_wali_kelas') || in_array($permissionKey, ['menu_peserta_didik_aktif', 'menu_peserta_didik_tidak_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'], true)) {
                 return self::getWaliKelasPermission($permissionKey, $action);
             }
         }
@@ -1913,7 +1909,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'KOORDINATOR_KELAS') {
-                        foreach (['menu_peserta_didik_aktif', 'menu_presensi_peserta_didik'] as $k) {
+                        foreach (['menu_wali_kelas_aktif', 'menu_peserta_didik_aktif', 'menu_wali_kelas_presensi', 'menu_presensi_peserta_didik'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     }

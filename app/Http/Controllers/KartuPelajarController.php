@@ -46,13 +46,16 @@ class KartuPelajarController extends Controller
             $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
             $userNisn = is_array($user) ? ($user['nisn'] ?? '') : ($user->nisn ?? '');
 
-            // Jika peserta didik atau orang tua, hanya boleh melihat pratinjau kartu miliknya / putra-putrinya sendiri
+            // Jika peserta didik atau orang tua, hanya boleh melihat pratinjau kartu miliknya sendiri (kecuali Koordinator Kelas untuk kelas binaannya)
             if (in_array($role, ['peserta_didik', 'orang_tua'], true) && $userNisn !== $nisn) {
-                return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda hanya berhak melihat kartu milik putra/putri Anda.'], 403);
+                $isKoord = ($role === 'peserta_didik') && \App\Models\RolePermission::isKoordinator($user);
+                if (!$isKoord) {
+                    return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda hanya berhak melihat kartu milik Anda sendiri.'], 403);
+                }
             }
 
             // Jika guru atau tendik, harus Administrator atau Wali Kelas
-            if (in_array($role, ['guru', 'tendik']) && !\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
+            if (in_array($role, ['guru', 'tendik'], true) && !\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
                 return response()->json(['success' => false, 'message' => 'Akses ditolak: Hanya Administrator dan Wali Kelas yang berwenang membuka kartu pelajar.'], 403);
             }
         }
@@ -88,9 +91,10 @@ class KartuPelajarController extends Controller
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $userNisn = is_array($user) ? ($user['nisn'] ?? '') : ($user->nisn ?? '');
 
-        // Peserta didik hanya berwenang mencetak kartu miliknya sendiri
+        // Peserta didik hanya berwenang mencetak kartu miliknya sendiri (kecuali Koordinator Kelas)
         if ($role === 'peserta_didik') {
-            if ($userNisn !== $nisn) {
+            $isKoord = \App\Models\RolePermission::isKoordinator($user);
+            if ($userNisn !== $nisn && !$isKoord) {
                 abort(403, 'Akses ditolak: Anda hanya dapat mencetak kartu pelajar milik Anda sendiri.');
             }
         } elseif (!\App\Models\RolePermission::isWaliKelasOrAdmin($user)) {
