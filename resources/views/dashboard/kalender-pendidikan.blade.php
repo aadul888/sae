@@ -5,7 +5,7 @@
 
 @push('styles')
     <style>
-        .periode-nav-wrapper .periode-nav-desktop,
+        .periode-nav-wrapper .periode-nav-scope,
         .periode-nav-wrapper .scope-subnav-bulan,
         .periode-nav-wrapper .scope-subnav-semester,
         .periode-nav-wrapper .view-switcher-group {
@@ -72,6 +72,71 @@
             opacity: 0.3 !important;
             cursor: not-allowed !important;
         }
+
+        @media (max-width: 768px) {
+            .dash-banner {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+
+            .dash-banner-actions {
+                width: 100% !important;
+            }
+
+            .dash-banner-actions .btn {
+                width: 100% !important;
+                justify-content: center !important;
+                display: inline-flex !important;
+            }
+
+            .periode-nav-wrapper .periode-nav-inner {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+
+            .periode-nav-wrapper .periode-nav-scope {
+                display: flex !important;
+                width: 100% !important;
+                justify-content: space-between !important;
+            }
+
+            .periode-nav-wrapper .periode-nav-scope .periode-nav-tab {
+                flex: 1 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                padding: 7px 8px !important;
+                font-size: 0.76rem !important;
+            }
+
+            .periode-nav-wrapper .scope-subnav-bulan,
+            .periode-nav-wrapper .scope-subnav-semester {
+                display: flex !important;
+                width: 100% !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+            }
+
+            .periode-nav-wrapper .scope-subnav-semester .periode-nav-tab {
+                flex: 1 !important;
+                text-align: center !important;
+                justify-content: center !important;
+            }
+
+            .periode-nav-wrapper .view-switcher-group {
+                display: flex !important;
+                width: 100% !important;
+            }
+
+            .periode-nav-wrapper .view-switcher-group .periode-nav-tab {
+                flex: 1 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                padding: 7px 10px !important;
+                font-size: 0.78rem !important;
+            }
+        }
     </style>
 @endpush
 
@@ -89,93 +154,13 @@
         </div>
         <div class="dash-banner-actions">
             @if ($canCreate)
-                <button type="button" class="btn btn-primary btn-responsive-icon" id="btnTambahAgenda"
+                <button type="button" class="btn btn-primary" id="btnTambahAgenda"
                     onclick="if(typeof openAddModal === 'function') openAddModal();"
-                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600;" title="Tambah Agenda">
-                    <i class="fas fa-plus"></i> <span class="btn-responsive-text">Tambah Agenda</span>
+                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
+                    title="Tambah Agenda">
+                    <i class="fas fa-plus"></i> <span>Tambah Agenda</span>
                 </button>
             @endif
-        </div>
-    </div>
-
-    <!-- Navigasi Periode & View Switcher (Kalender vs Tabel, Per Bulan / Semester / Tahun) -->
-    <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
-        <div
-            style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; width: 100%;">
-            <!-- Scope Switcher: Bulan, Semester, Tahun (Pills) -->
-            <div class="periode-nav-desktop">
-                <button type="button" class="periode-nav-tab btn-scope-switch {{ $scope === 'bulan' ? 'active' : '' }}"
-                    data-scope="bulan">
-                    <i class="fas fa-calendar-day me-1"></i> Per Bulan
-                </button>
-                <button type="button" class="periode-nav-tab btn-scope-switch {{ $scope === 'semester' ? 'active' : '' }}"
-                    data-scope="semester">
-                    <i class="fas fa-layer-group me-1"></i> Per Semester
-                </button>
-                <button type="button" class="periode-nav-tab btn-scope-switch {{ $scope === 'tahun' ? 'active' : '' }}"
-                    data-scope="tahun">
-                    <i class="fas fa-calendar-alt me-1"></i> 1 Tahun Ajaran
-                </button>
-            </div>
-
-            <!-- Sub Navigasi Dinamis untuk Bulan atau Semester -->
-            @php
-                $academicMonthsList = $calendarData['all_academic_months'] ?? [];
-                $curMNum = !empty($bulan) ? (int) $bulan : (int) now()->month;
-                $curMonthIndex = 0;
-                foreach ($academicMonthsList as $idx => $am) {
-                    if ($am['month'] === $curMNum) {
-                        $curMonthIndex = $idx;
-                        break;
-                    }
-                }
-                $prevMonthStr = $curMonthIndex > 0 ? $academicMonthsList[$curMonthIndex - 1]['month_str'] : null;
-                $nextMonthStr =
-                    $curMonthIndex < count($academicMonthsList) - 1
-                        ? $academicMonthsList[$curMonthIndex + 1]['month_str']
-                        : null;
-                $curMonthName = $academicMonthsList[$curMonthIndex]['name'] ?? 'Bulan';
-                $curMonthYear = $academicMonthsList[$curMonthIndex]['year'] ?? now()->year;
-            @endphp
-
-            @if ($scope === 'bulan')
-                <div class="scope-subnav-bulan">
-                    <button type="button" class="btn-nav-month" data-month="{{ $prevMonthStr }}"
-                        {{ !$prevMonthStr ? 'disabled' : '' }} title="Bulan Sebelumnya">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <span
-                        style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); min-width: 135px; text-align: center;">
-                        <i class="fas fa-calendar-check text-primary me-1"></i> {{ $curMonthName }} {{ $curMonthYear }}
-                    </span>
-                    <button type="button" class="btn-nav-month" data-month="{{ $nextMonthStr }}"
-                        {{ !$nextMonthStr ? 'disabled' : '' }} title="Bulan Berikutnya">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-            @elseif ($scope === 'semester')
-                <div class="scope-subnav-semester">
-                    <button type="button" class="periode-nav-tab btn-sem-switch {{ $semester === '1' ? 'active' : '' }}"
-                        data-sem="1">
-                        <i class="fas fa-1 me-1"></i> Semester 1 (Ganjil)
-                    </button>
-                    <button type="button" class="periode-nav-tab btn-sem-switch {{ $semester === '2' ? 'active' : '' }}"
-                        data-sem="2">
-                        <i class="fas fa-2 me-1"></i> Semester 2 (Genap)
-                    </button>
-                </div>
-            @endif
-
-            <!-- View Switcher: Kalender Visual vs Tabel Datatable -->
-            <div class="view-switcher-group">
-                <button type="button" id="btnViewKalender"
-                    class="periode-nav-tab {{ $view === 'kalender' ? 'active' : '' }}">
-                    <i class="fas fa-calendar-days"></i> <span>Tampilan Kalender</span>
-                </button>
-                <button type="button" id="btnViewTabel" class="periode-nav-tab {{ $view === 'tabel' ? 'active' : '' }}">
-                    <i class="fas fa-table-list"></i> <span>Tampilan Tabel</span>
-                </button>
-            </div>
         </div>
     </div>
 
@@ -274,6 +259,88 @@
                 <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
                     Evaluasi Akademik
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigasi Periode & View Switcher (Berada di Bawah Card Statistik) -->
+    <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+        <div class="periode-nav-inner"
+            style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; width: 100%;">
+            <!-- Scope Switcher: Bulan, Semester, Tahun (Pills) -->
+            <div class="periode-nav-scope">
+                <button type="button" class="periode-nav-tab btn-scope-switch {{ $scope === 'bulan' ? 'active' : '' }}"
+                    data-scope="bulan">
+                    <i class="fas fa-calendar-day me-1"></i> Per Bulan
+                </button>
+                <button type="button" class="periode-nav-tab btn-scope-switch {{ $scope === 'semester' ? 'active' : '' }}"
+                    data-scope="semester">
+                    <i class="fas fa-layer-group me-1"></i> Per Semester
+                </button>
+                <button type="button" class="periode-nav-tab btn-scope-switch {{ $scope === 'tahun' ? 'active' : '' }}"
+                    data-scope="tahun">
+                    <i class="fas fa-calendar-alt me-1"></i> 1 Tahun Ajaran
+                </button>
+            </div>
+
+            <!-- Sub Navigasi Dinamis untuk Bulan atau Semester -->
+            @php
+                $academicMonthsList = $calendarData['all_academic_months'] ?? [];
+                $curMNum = !empty($bulan) ? (int) $bulan : (int) now()->month;
+                $curMonthIndex = 0;
+                foreach ($academicMonthsList as $idx => $am) {
+                    if ($am['month'] === $curMNum) {
+                        $curMonthIndex = $idx;
+                        break;
+                    }
+                }
+                $prevMonthStr = $curMonthIndex > 0 ? $academicMonthsList[$curMonthIndex - 1]['month_str'] : null;
+                $nextMonthStr =
+                    $curMonthIndex < count($academicMonthsList) - 1
+                        ? $academicMonthsList[$curMonthIndex + 1]['month_str']
+                        : null;
+                $curMonthName = $academicMonthsList[$curMonthIndex]['name'] ?? 'Bulan';
+                $curMonthYear = $academicMonthsList[$curMonthIndex]['year'] ?? now()->year;
+            @endphp
+
+            @if ($scope === 'bulan')
+                <div class="scope-subnav-bulan">
+                    <button type="button" class="btn-nav-month" data-month="{{ $prevMonthStr }}"
+                        {{ !$prevMonthStr ? 'disabled' : '' }} title="Bulan Sebelumnya">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span
+                        style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); min-width: 135px; text-align: center;">
+                        <i class="fas fa-calendar-check text-primary me-1"></i> {{ $curMonthName }} {{ $curMonthYear }}
+                    </span>
+                    <button type="button" class="btn-nav-month" data-month="{{ $nextMonthStr }}"
+                        {{ !$nextMonthStr ? 'disabled' : '' }} title="Bulan Berikutnya">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            @elseif ($scope === 'semester')
+                <div class="scope-subnav-semester">
+                    <button type="button" class="periode-nav-tab btn-sem-switch {{ $semester === '1' ? 'active' : '' }}"
+                        data-sem="1">
+                        <i class="fas fa-1 me-1"></i> Semester 1 (Ganjil)
+                    </button>
+                    <button type="button" class="periode-nav-tab btn-sem-switch {{ $semester === '2' ? 'active' : '' }}"
+                        data-sem="2">
+                        <i class="fas fa-2 me-1"></i> Semester 2 (Genap)
+                    </button>
+                </div>
+            @endif
+
+            <!-- View Switcher: Kalender Visual vs Tabel Datatable -->
+            <div class="view-switcher-group">
+                <button type="button" id="btnViewKalender"
+                    class="periode-nav-tab {{ $view === 'kalender' ? 'active' : '' }}">
+                    <i class="fas fa-calendar-days"></i> <span>Tampilan Kalender</span>
+                </button>
+                <button type="button" id="btnViewTabel"
+                    class="periode-nav-tab {{ $view === 'tabel' ? 'active' : '' }}">
+                    <i class="fas fa-table-list"></i> <span>Tampilan Tabel</span>
+                </button>
             </div>
         </div>
     </div>

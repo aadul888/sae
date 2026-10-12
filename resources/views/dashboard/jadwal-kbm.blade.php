@@ -3,6 +3,137 @@
 @section('title', 'Master Data — Jadwal KBM — SAE')
 @section('dash_title', 'Jadwal Kegiatan Belajar Mengajar (KBM)')
 
+@push('styles')
+    <style>
+        .banner-action-buttons {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .jadwal-subnav-desktop {
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .dash-banner {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+
+            .dash-banner-actions {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+
+            .pemberlakuan-badge-wrap {
+                display: flex !important;
+                flex-direction: column !important;
+                width: 100% !important;
+                gap: 6px !important;
+            }
+
+            .pemberlakuan-badge-wrap .badge,
+            .pemberlakuan-badge-wrap .btn {
+                width: 100% !important;
+                text-align: center !important;
+                justify-content: center !important;
+            }
+
+            .jadwal-view-switcher {
+                display: flex !important;
+                width: 100% !important;
+            }
+
+            .jadwal-view-switcher .btn {
+                flex: 1 !important;
+                text-align: center !important;
+                justify-content: center !important;
+            }
+
+            .banner-action-buttons {
+                display: flex !important;
+                width: 100% !important;
+                gap: 6px !important;
+                justify-content: space-between !important;
+            }
+
+            .banner-action-buttons>button,
+            .banner-action-buttons>div,
+            .banner-action-buttons>div>button {
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 9px 6px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            .jadwal-subnav-desktop {
+                display: flex !important;
+                width: 100% !important;
+            }
+
+            .jadwal-subnav-desktop .periode-nav-tab {
+                flex: 1 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                font-size: 0.78rem !important;
+                padding: 8px 8px !important;
+            }
+
+            #jadwalTabBarContainer {
+                padding: 10px 12px !important;
+            }
+
+            #jadwalTabBarContainer>div:first-child {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+
+            .jadwal-days-strip {
+                display: flex !important;
+                width: 100% !important;
+                overflow-x: auto !important;
+                flex-wrap: nowrap !important;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 6px;
+                gap: 6px !important;
+            }
+
+            .jadwal-days-strip .btn-day-tab {
+                flex-shrink: 0 !important;
+                padding: 6px 12px !important;
+                font-size: 0.78rem !important;
+            }
+
+            .jadwal-tingkat-strip {
+                display: flex !important;
+                width: 100% !important;
+                gap: 6px !important;
+                justify-content: space-between !important;
+            }
+
+            .jadwal-tingkat-strip .btn-tingkat-filter {
+                flex: 1 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                padding: 6px 6px !important;
+                font-size: 0.76rem !important;
+            }
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="dash-banner">
         <div>
@@ -59,7 +190,7 @@
             @endif
 
             <!-- View Mode Switcher -->
-            <div
+            <div class="jadwal-view-switcher"
                 style="display: inline-flex; background: var(--bg-hover); padding: 3px; border-radius: 8px; border: 1px solid var(--border-color);">
                 <a href="{{ route('dashboard.jadwal-kbm.index', array_merge(request()->query(), ['view_mode' => 'grid', 'hari' => $selectedHari])) }}"
                     class="btn {{ $viewMode === 'grid' ? 'btn-primary' : 'btn-outline' }}"
@@ -73,69 +204,72 @@
                 </a>
             </div>
 
-            <!-- Dropdown Cetak Jadwal Multi-Format -->
-            <div style="position: relative; display: inline-block;">
-                <button type="button" class="btn btn-outline" id="btnDropdownCetak"
-                    style="padding: 8px 14px; font-size: 0.9rem;" title="Cetak Jadwal (Induk, Guru, Kelas)">
-                    <i class="fas fa-print"></i>
-                </button>
-                <div id="dropdownMenuCetak"
-                    style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); min-width: 220px; z-index: 1000; overflow: hidden;">
-                    <a href="{{ route('dashboard.jadwal-kbm.cetak-induk') }}" target="_blank"
-                        style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem; border-bottom: 1px solid var(--border-color);">
-                        <i class="fas fa-table text-primary" style="width: 18px;"></i>
-                        <div>
-                            <strong>Jadwal Induk Sekolah</strong>
-                            <div style="font-size: 0.72rem; color: var(--text-muted);">Matriks besar seluruh kelas</div>
-                        </div>
-                    </a>
-                    <a href="{{ route('dashboard.jadwal-kbm.cetak-guru') }}" target="_blank"
-                        style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem; border-bottom: 1px solid var(--border-color);">
-                        <i class="fas fa-chalkboard-user text-success" style="width: 18px;"></i>
-                        <div>
-                            <strong>Jadwal per Guru</strong>
-                            <div style="font-size: 0.72rem; color: var(--text-muted);">Kartu jadwal mengajar GTK</div>
-                        </div>
-                    </a>
-                    <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel') }}" target="_blank"
-                        style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem;">
-                        <i class="fas fa-school text-warning" style="width: 18px;"></i>
-                        <div>
-                            <strong>Jadwal per Kelas</strong>
-                            <div style="font-size: 0.72rem; color: var(--text-muted);">Format siap tempel di kelas</div>
-                        </div>
-                    </a>
+            <!-- Toolbar Action Buttons (Cetak, Preferensi, Slot, Auto, Tambah) -->
+            <div class="banner-action-buttons">
+                <!-- Dropdown Cetak Jadwal Multi-Format -->
+                <div style="position: relative; display: inline-block;">
+                    <button type="button" class="btn btn-outline" id="btnDropdownCetak"
+                        style="padding: 8px 14px; font-size: 0.9rem;" title="Cetak Jadwal (Induk, Guru, Kelas)">
+                        <i class="fas fa-print"></i>
+                    </button>
+                    <div id="dropdownMenuCetak"
+                        style="display: none; position: absolute; right: 0; top: 110%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); min-width: 220px; z-index: 1000; overflow: hidden;">
+                        <a href="{{ route('dashboard.jadwal-kbm.cetak-induk') }}" target="_blank"
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem; border-bottom: 1px solid var(--border-color);">
+                            <i class="fas fa-table text-primary" style="width: 18px;"></i>
+                            <div>
+                                <strong>Jadwal Induk Sekolah</strong>
+                                <div style="font-size: 0.72rem; color: var(--text-muted);">Matriks besar seluruh kelas</div>
+                            </div>
+                        </a>
+                        <a href="{{ route('dashboard.jadwal-kbm.cetak-guru') }}" target="_blank"
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem; border-bottom: 1px solid var(--border-color);">
+                            <i class="fas fa-chalkboard-user text-success" style="width: 18px;"></i>
+                            <div>
+                                <strong>Jadwal per Guru</strong>
+                                <div style="font-size: 0.72rem; color: var(--text-muted);">Kartu jadwal mengajar GTK</div>
+                            </div>
+                        </a>
+                        <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel') }}" target="_blank"
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; color: var(--text-color); text-decoration: none; font-size: 0.84rem;">
+                            <i class="fas fa-school text-warning" style="width: 18px;"></i>
+                            <div>
+                                <strong>Jadwal per Kelas</strong>
+                                <div style="font-size: 0.72rem; color: var(--text-muted);">Format siap tempel di kelas</div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
+
+                @if ($canUpdate)
+                    <button type="button" class="btn btn-outline" id="btnBukaPreferensiGuru"
+                        style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Hari Off dan Jam Berhalangan Guru">
+                        <i class="fas fa-user-clock"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btnBukaPengaturanSlot"
+                        style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Jam Pelajaran, Durasi JP, dan Istirahat">
+                        <i class="fas fa-sliders"></i>
+                    </button>
+                @endif
+
+                @if ($canCreate)
+                    <button type="button" class="btn" id="btnBukaAutoGenerate"
+                        style="padding: 8px 14px; font-size: 0.9rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);"
+                        title="Auto-Generate Jadwal Otomatis">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnTambahJadwal"
+                        style="padding: 8px 14px; font-size: 0.9rem;" title="Tambah Jadwal Manual">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                @endif
             </div>
-
-            @if ($canUpdate)
-                <button type="button" class="btn btn-outline" id="btnBukaPreferensiGuru"
-                    style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Hari Off dan Jam Berhalangan Guru">
-                    <i class="fas fa-user-clock"></i>
-                </button>
-                <button type="button" class="btn btn-outline" id="btnBukaPengaturanSlot"
-                    style="padding: 8px 14px; font-size: 0.9rem;" title="Atur Jam Pelajaran, Durasi JP, dan Istirahat">
-                    <i class="fas fa-sliders"></i>
-                </button>
-            @endif
-
-            @if ($canCreate)
-                <button type="button" class="btn" id="btnBukaAutoGenerate"
-                    style="padding: 8px 14px; font-size: 0.9rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);"
-                    title="Auto-Generate Jadwal Otomatis">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                </button>
-                <button type="button" class="btn btn-primary" id="btnTambahJadwal"
-                    style="padding: 8px 14px; font-size: 0.9rem;" title="Tambah Jadwal Manual">
-                    <i class="fas fa-plus"></i>
-                </button>
-            @endif
         </div>
     </div>
 
     <!-- Sub-Menu Navigasi Jadwal KBM (Generate vs Manual) -->
     <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
-        <div class="periode-nav-desktop">
+        <div class="jadwal-subnav-desktop">
             <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab active">
                 <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
             </a>
@@ -143,6 +277,12 @@
                 <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
             </a>
         </div>
+    </div>
+    </a>
+    <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}" class="periode-nav-tab">
+        <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
+    </a>
+    </div>
     </div>
 
     <!-- Banner Integrasi Kalender Pendidikan -->
@@ -284,9 +424,9 @@
         <div class="card" id="jadwalTabBarContainer" style="padding: 12px 16px; margin-bottom: 16px;">
             <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
                 <!-- Tab Hari Buttons -->
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <div class="jadwal-days-strip" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                     <span
-                        style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px;">
+                        style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; white-space: nowrap;">
                         <i class="fas fa-calendar-day me-1"></i> Hari:
                     </span>
                     @foreach (\App\Models\JadwalKbm::HARI_LIST as $h)
@@ -321,9 +461,9 @@
                 </div>
 
                 <!-- Filter Tingkat Rombel -->
-                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                <div class="jadwal-tingkat-strip" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                     <span
-                        style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px;">
+                        style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px; white-space: nowrap;">
                         Tingkat:
                     </span>
                     @foreach (['' => 'Semua', '10' => 'Kelas X', '11' => 'Kelas XI', '12' => 'Kelas XII'] as $tVal => $tLabel)

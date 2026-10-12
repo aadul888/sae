@@ -226,8 +226,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const perPageSelect = document.getElementById("perPageSelect");
     const filterGender = document.getElementById("filterGender");
     const adminRombelSelect = document.getElementById("adminRombelSelect");
-    const liveSearchInput = document.getElementById("liveSearchInput");
-    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    const searchInput = document.getElementById("liveSearch") || document.getElementById("liveSearchInput");
+    const clearBtn = document.getElementById("clearSearch") || document.getElementById("clearSearchBtn");
 
     function applyFilter(overrideParams = {}) {
         const url = new URL(window.location.href);
@@ -241,8 +241,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (adminRombelSelect.value) url.searchParams.set("rombel_id", adminRombelSelect.value);
             else url.searchParams.delete("rombel_id");
         }
-        if (liveSearchInput) {
-            const qVal = liveSearchInput.value.trim();
+        const searchEl = document.getElementById("liveSearch") || document.getElementById("liveSearchInput");
+        if (searchEl) {
+            const qVal = searchEl.value.trim();
             if (qVal) url.searchParams.set("q", qVal);
             else url.searchParams.delete("q");
         }
@@ -269,38 +270,41 @@ document.addEventListener("DOMContentLoaded", function () {
     if (filterGender) filterGender.addEventListener("change", () => applyFilter());
     if (adminRombelSelect) adminRombelSelect.addEventListener("change", () => applyFilter());
 
-    // Live search asinkron dengan debounce
+    // Live search asinkron dengan debounce 450ms
     let searchDebounce = null;
-    if (liveSearchInput) {
-        liveSearchInput.addEventListener("input", function () {
-            clearTimeout(searchDebounce);
-            if (clearSearchBtn) {
-                clearSearchBtn.classList.toggle("visible", this.value.trim().length > 0);
+    document.addEventListener("input", function (e) {
+        if (e.target && (e.target.id === "liveSearch" || e.target.id === "liveSearchInput")) {
+            const cBtn = document.getElementById("clearSearch") || document.getElementById("clearSearchBtn");
+            if (cBtn) {
+                cBtn.classList.toggle("visible", e.target.value.trim().length > 0);
             }
+            clearTimeout(searchDebounce);
             searchDebounce = setTimeout(() => {
                 applyFilter();
-            }, 350);
-        });
+            }, 450);
+        }
+    });
 
-        liveSearchInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                clearTimeout(searchDebounce);
-                applyFilter();
-            }
-        });
-    }
+    document.addEventListener("keydown", function (e) {
+        if (e.target && (e.target.id === "liveSearch" || e.target.id === "liveSearchInput") && e.key === "Enter") {
+            e.preventDefault();
+            clearTimeout(searchDebounce);
+            applyFilter();
+        }
+    });
 
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener("click", function () {
-            if (liveSearchInput) {
-                liveSearchInput.value = "";
-                this.classList.remove("visible");
-                liveSearchInput.focus();
+    document.addEventListener("click", function (e) {
+        const cBtn = e.target.closest("#clearSearch, #clearSearchBtn");
+        if (cBtn) {
+            const sEl = document.getElementById("liveSearch") || document.getElementById("liveSearchInput");
+            if (sEl) {
+                sEl.value = "";
+                cBtn.classList.remove("visible");
+                sEl.focus();
             }
             applyFilter({ q: "" });
-        });
-    }
+        }
+    });
 
     // Sortable Column Header Server-Side
     document.addEventListener("click", function (e) {
@@ -318,6 +322,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (currentSort === sortField && currentDir === "asc") {
             newDir = "desc";
         }
+
+        applyFilter({ sort: sortField, sort_dir: newDir });
+    });
 
         applyFilter({ sort: sortField, sort_dir: newDir });
     });
@@ -577,3 +584,198 @@ window.handleDeleteFoto = async function () {
         alert(err.message || "Terjadi kesalahan.");
     }
 };
+
+// =========================================================================
+// 4. RESET PASSWORD PESERTA DIDIK KE DEFAULT (NISN)
+// =========================================================================
+document.addEventListener("click", async function (e) {
+    const btnReset = e.target.closest(".btn-reset-password");
+    if (!btnReset) return;
+
+    const pdId = btnReset.dataset.id;
+    const pdNama = btnReset.dataset.nama || "Peserta Didik";
+    const pdNisn = btnReset.dataset.nisn || "NISN";
+
+    const result = await Swal.fire({
+        title: "Reset Password Akun?",
+        html:
+            `Apakah Anda yakin ingin mereset password akun untuk <b>${pdNama}</b>?<br><br>` +
+            `<div style="font-size: 0.85rem; padding: 10px 14px; background: rgba(245,158,11,0.1); border: 1px dashed rgba(245,158,11,0.4); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;">` +
+            `<i class="fas fa-info-circle text-warning me-1"></i> Password akan dikembalikan ke default: <b>${pdNisn}</b>.<br>` +
+            `Peserta didik akan diminta memperbarui password saat login pertama kali.</div>`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#f59e0b",
+        cancelButtonColor: "#64748b",
+        confirmButtonText: '<i class="fas fa-key me-1"></i> Ya, Reset Password',
+        cancelButtonText: "Batal",
+        reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    Swal.fire({
+        title: "Memproses Reset...",
+        text: "Menyimpan pengaturan password default.",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+        const csrfToken =
+            document.querySelector('meta[name="csrf-token"]')?.content || "";
+        const res = await fetch(
+            "/dashboard/manajemen-data/peserta-didik-aktif/reset-password",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ peserta_didik_id: pdId }),
+            },
+        );
+
+        const data = await res.json();
+
+        if (res.ok && data.status === "success") {
+            Swal.fire({
+                title: "Password Berhasil Direset!",
+                html: data.message,
+                icon: "success",
+                confirmButtonColor: "#10b981",
+            });
+        } else {
+            Swal.fire({
+                title: "Gagal Mereset",
+                text:
+                    data.message ||
+                    "Terjadi kesalahan sistem saat mereset password.",
+                icon: "error",
+                confirmButtonColor: "#ef4444",
+            });
+        }
+    } catch (err) {
+        Swal.fire({
+            title: "Kesalahan Jaringan",
+            text: "Gagal terhubung ke server. Silakan coba kembali.",
+            icon: "error",
+            confirmButtonColor: "#ef4444",
+        });
+    }
+});
+
+// =========================================================================
+// 5. TUNJUK / CABUT STATUS KOORDINATOR KELAS (ASISTEN WALI KELAS)
+// =========================================================================
+document.addEventListener("click", async function (e) {
+    const btnKoord = e.target.closest(".btn-toggle-koordinator");
+    if (!btnKoord) return;
+
+    const pdId = btnKoord.dataset.id;
+    const pdNama = btnKoord.dataset.nama || "Peserta Didik";
+    const pdRombel = btnKoord.dataset.rombel || "Kelas";
+    const isCurrent = btnKoord.dataset.status === "1";
+
+    const confirmBtnColor = isCurrent ? "#ef4444" : "#6366f1";
+    const confirmBtnIcon = isCurrent ? "fa-user-slash" : "fa-crown";
+
+    const result = await Swal.fire({
+        title: isCurrent
+            ? "Cabut Status Koordinator?"
+            : "Tunjuk Koordinator Kelas?",
+        html: isCurrent
+            ? `Apakah Anda yakin ingin mencabut wewenang Koordinator Kelas untuk <b>${pdNama}</b> (${pdRombel})?<br><br>` +
+              `<small style="color: var(--text-muted);">Akses bantuan Wali Kelas (presensi kelas & daftar peserta didik kelas) akan dinonaktifkan untuk akun ini.</small>`
+            : `Tunjuk <b>${pdNama}</b> (${pdRombel}) sebagai Koordinator Kelas?<br><br>` +
+              `<div style="font-size: 0.85rem; padding: 10px 14px; background: rgba(99,102,241,0.08); border: 1px dashed rgba(99,102,241,0.3); border-radius: 8px; text-align: left; color: var(--text-color); line-height: 1.5;">` +
+              `<i class="fas fa-crown text-warning me-1"></i> Peserta didik akan memiliki akses setara asisten Wali Kelas:<br>` +
+              `• Mencatat presensi harian / KBM kelas binaannya.<br>` +
+              `• Membantu tugas wali kelas dalam memantau kehadiran rombel.</div>`,
+        icon: isCurrent ? "warning" : "question",
+        showCancelButton: true,
+        confirmButtonColor: confirmBtnColor,
+        cancelButtonColor: "#64748b",
+        confirmButtonText: `<i class="fas ${confirmBtnIcon} me-1"></i> Ya, ${isCurrent ? "Cabut" : "Tunjuk"}`,
+        cancelButtonText: "Batal",
+        reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    Swal.fire({
+        title: "Memproses...",
+        text: "Memperbarui wewenang Koordinator Kelas.",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+    });
+
+    try {
+        const csrfToken =
+            document.querySelector('meta[name="csrf-token"]')?.content || "";
+        const res = await fetch(
+            "/dashboard/manajemen-data/peserta-didik-aktif/toggle-koordinator",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                },
+                body: JSON.stringify({ peserta_didik_id: pdId }),
+            },
+        );
+
+        const data = await res.json();
+
+        if (res.ok && data.status === "success") {
+            const newStatus = !!data.is_koordinator;
+
+            // Update status tombol & UI badge
+            btnKoord.dataset.status = newStatus ? "1" : "0";
+            btnKoord.title = newStatus
+                ? "Cabut Wewenang Koordinator Kelas"
+                : "Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)";
+
+            const icon = btnKoord.querySelector("i");
+            if (icon) {
+                if (newStatus) {
+                    icon.style.color = "#f59e0b";
+                    icon.style.opacity = "1";
+                    btnKoord.classList.add("is-active");
+                } else {
+                    icon.style.color = "";
+                    icon.style.opacity = "0.55";
+                    btnKoord.classList.remove("is-active");
+                }
+            }
+
+            const badge = document.getElementById("badgeKoordinator_" + pdId);
+            if (badge) {
+                badge.style.display = newStatus ? "inline-flex" : "none";
+            }
+
+            Swal.fire({
+                title: "Berhasil!",
+                html: data.message,
+                icon: "success",
+                confirmButtonColor: "#10b981",
+            });
+        } else {
+            Swal.fire({
+                title: "Gagal",
+                text: data.message || "Gagal memperbarui status koordinator.",
+                icon: "error",
+                confirmButtonColor: "#ef4444",
+            });
+        }
+    } catch (err) {
+        Swal.fire({
+            title: "Kesalahan Jaringan",
+            text: "Gagal terhubung ke server.",
+            icon: "error",
+            confirmButtonColor: "#ef4444",
+        });
+    }
+});

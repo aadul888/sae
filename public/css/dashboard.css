@@ -1462,6 +1462,20 @@
         padding: 9px 12px !important;
         font-size: 0.82rem !important;
     }
+    .banner-action-buttons {
+        display: flex !important;
+        width: 100% !important;
+        flex-direction: row !important;
+        gap: 6px !important;
+    }
+    .banner-action-buttons .btn,
+    .banner-action-buttons > div,
+    .banner-action-buttons > div .btn {
+        width: auto !important;
+        flex: 1 !important;
+        padding: 9px 6px !important;
+        min-width: 0 !important;
+    }
     .dash-stat-grid {
         grid-template-columns: repeat(2, 1fr) !important;
         grid-auto-rows: 1fr !important;

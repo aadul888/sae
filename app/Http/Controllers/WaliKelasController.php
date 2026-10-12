@@ -16,8 +16,8 @@ use Carbon\Carbon;
 
 class WaliKelasController extends Controller
 {
-    private const SORTABLE_AKTIF = ['nama', 'nisn', 'nipd', 'jenis_kelamin', 'tanggal_lahir'];
-    private const SORTABLE_TIDAK_AKTIF = ['nama', 'nisn', 'nipd', 'jenis_kelamin', 'status_keluar', 'tahun_lulus'];
+    private const SORTABLE_AKTIF = ['nama', 'nisn', 'nipd', 'jenis_kelamin', 'nama_rombel', 'tingkat_pendidikan_id'];
+    private const SORTABLE_TIDAK_AKTIF = ['nama', 'nisn', 'nipd', 'jenis_kelamin', 'nama_rombel_terakhir', 'tingkat_pendidikan_terakhir', 'tahun_lulus', 'status_keluar'];
 
     /**
      * Resolusi konteks Rombel Binaan Wali Kelas
@@ -231,6 +231,9 @@ class WaliKelasController extends Controller
             foreach ($list as $item) {
                 $meta = $metaMap->get($item->peserta_didik_id);
                 $item->foto_url = $meta?->foto_url;
+                $item->foto_size = $meta?->formatted_foto_size;
+                $item->is_koordinator = (bool) ($meta?->is_koordinator ?? false);
+                $item->jabatan_koordinator = $meta?->jabatan_koordinator ?? 'Koordinator Kelas';
             }
         }
 
@@ -375,14 +378,19 @@ class WaliKelasController extends Controller
         }
 
         if ($sort === 'nama') {
-            $query->orderByRaw("LOWER(TRIM(pd.nama)) {$sortDir}")->orderBy('pd.nisn', 'asc');
+            $query->orderByRaw("LOWER(TRIM(nama)) {$sortDir}")->orderBy('nisn', 'asc');
         } else {
-            $query->orderBy($sort, $sortDir)->orderByRaw("LOWER(TRIM(pd.nama)) asc");
+            $query->orderBy($sort, $sortDir)->orderByRaw("LOWER(TRIM(nama)) asc");
         }
         $list = $query->paginate($perPage)->appends($request->query());
 
+        $taPdIds = $list->pluck('peserta_didik_id')->filter()->values()->all();
+        $metaMapTa = collect();
+        if (!empty($taPdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMapTa = PesertaDidikMeta::whereIn('peserta_didik_id', $taPdIds)->get()->keyBy('peserta_didik_id');
+        }
         foreach ($list as $item) {
-            $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
+            $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : ($metaMapTa[$item->peserta_didik_id]?->foto_url ?? null);
         }
 
         return view('dashboard.wali-kelas-tidak-aktif', [

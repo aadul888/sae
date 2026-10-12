@@ -6,6 +6,80 @@
 @push('styles')
     <link rel="stylesheet"
         href="{{ asset('css/jadwal-kbm-manual.css') }}?v={{ file_exists(public_path('css/jadwal-kbm-manual.css')) ? filemtime(public_path('css/jadwal-kbm-manual.css')) : time() }}">
+    <style>
+        .banner-action-buttons {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .jadwal-subnav-desktop {
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .dash-banner {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px !important;
+            }
+
+            .dash-banner-actions {
+                width: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+
+            .pemberlakuan-badge-wrap {
+                display: flex !important;
+                flex-direction: column !important;
+                width: 100% !important;
+                gap: 6px !important;
+            }
+
+            .pemberlakuan-badge-wrap .badge,
+            .pemberlakuan-badge-wrap .btn {
+                width: 100% !important;
+                text-align: center !important;
+                justify-content: center !important;
+            }
+
+            .banner-action-buttons {
+                display: flex !important;
+                width: 100% !important;
+                gap: 6px !important;
+            }
+
+            .banner-action-buttons>* {
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 8px 6px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 0.78rem !important;
+            }
+
+            .jadwal-subnav-desktop {
+                display: flex !important;
+                width: 100% !important;
+            }
+
+            .jadwal-subnav-desktop .periode-nav-tab {
+                flex: 1 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                font-size: 0.78rem !important;
+                padding: 8px 8px !important;
+            }
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -89,31 +163,33 @@
             @endif
 
             @if ($activeRombel)
-                <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel', ['rombel_id' => $activeRombel->rombongan_belajar_id]) }}"
-                    target="_blank" class="btn btn-outline" style="padding: 7px 14px; font-size: 0.84rem;"
-                    title="Cetak Jadwal Kelas Ini (Format Siap Tempel)">
-                    <i class="fas fa-print me-1"></i> Cetak Jadwal
-                </a>
+                <div class="banner-action-buttons">
+                    <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel', ['rombel_id' => $activeRombel->rombongan_belajar_id]) }}"
+                        target="_blank" class="btn btn-outline" style="padding: 7px 14px; font-size: 0.84rem;"
+                        title="Cetak Jadwal Kelas Ini (Format Siap Tempel)">
+                        <i class="fas fa-print me-1"></i> Cetak Jadwal
+                    </a>
 
-                <button type="button" class="btn btn-outline" id="btnResetRombel"
-                    data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
-                    data-rombel-name="{{ $activeRombel->nama }}"
-                    style="padding: 7px 14px; font-size: 0.84rem; border-color: rgba(239,68,68,0.4); color: #ef4444;"
-                    title="Kosongkan Seluruh Jadwal Kelas Ini">
-                    <i class="fas fa-rotate-left me-1"></i> Reset Kelas
-                </button>
+                    <button type="button" class="btn btn-outline" id="btnResetRombel"
+                        data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
+                        data-rombel-name="{{ $activeRombel->nama }}"
+                        style="padding: 7px 14px; font-size: 0.84rem; border-color: rgba(239,68,68,0.4); color: #ef4444;"
+                        title="Kosongkan Seluruh Jadwal Kelas Ini">
+                        <i class="fas fa-rotate-left me-1"></i> Reset Kelas
+                    </button>
 
-                <button type="button" class="btn btn-primary" id="btnTambahSlotManual"
-                    style="padding: 7px 16px; font-size: 0.84rem;" title="Tambah Slot Pelajaran Baru">
-                    <i class="fas fa-plus me-1"></i> Tambah Slot
-                </button>
+                    <button type="button" class="btn btn-primary" id="btnTambahSlotManual"
+                        style="padding: 7px 16px; font-size: 0.84rem;" title="Tambah Slot Pelajaran Baru">
+                        <i class="fas fa-plus me-1"></i> Tambah Slot
+                    </button>
+                </div>
             @endif
         </div>
     </div>
 
     <!-- Sub-Menu Navigasi Jadwal KBM (Generate vs Manual) -->
     <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
-        <div class="periode-nav-desktop">
+        <div class="jadwal-subnav-desktop">
             <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab">
                 <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
             </a>

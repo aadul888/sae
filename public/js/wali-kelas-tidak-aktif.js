@@ -156,6 +156,26 @@ document.addEventListener("click", function (e) {
 });
 
 // ==========================================
+// 1b. MODAL PREVIEW PASFOTO SISWA
+// ==========================================
+window.openPhotoPreviewModal = function (url, name) {
+    const modal = document.getElementById("photoPreviewModal");
+    const img = document.getElementById("photoPreviewImg");
+    const nameEl = document.getElementById("photoPreviewName");
+    if (!modal || !img) return;
+    img.src = url;
+    if (nameEl) nameEl.textContent = name || "Pasfoto Peserta Didik";
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+};
+
+window.closePhotoPreviewModal = function () {
+    const modal = document.getElementById("photoPreviewModal");
+    if (modal) modal.style.display = "none";
+    document.body.style.overflow = "";
+};
+
+// ==========================================
 // 2. FILTER & LIVE TABLE ENGINE
 // ==========================================
 document.addEventListener("DOMContentLoaded", function () {
@@ -182,8 +202,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (adminRombelSelect.value) url.searchParams.set("rombel_id", adminRombelSelect.value);
             else url.searchParams.delete("rombel_id");
         }
-        if (liveSearchInput) {
-            const qVal = liveSearchInput.value.trim();
+        const searchEl = document.getElementById("liveSearch") || document.getElementById("liveSearchInput");
+        if (searchEl) {
+            const qVal = searchEl.value.trim();
             if (qVal) url.searchParams.set("q", qVal);
             else url.searchParams.delete("q");
         }
@@ -211,36 +232,39 @@ document.addEventListener("DOMContentLoaded", function () {
     if (adminRombelSelect) adminRombelSelect.addEventListener("change", () => applyFilter());
 
     let searchDebounce = null;
-    if (liveSearchInput) {
-        liveSearchInput.addEventListener("input", function () {
-            clearTimeout(searchDebounce);
-            if (clearSearchBtn) {
-                clearSearchBtn.classList.toggle("visible", this.value.trim().length > 0);
+    document.addEventListener("input", function (e) {
+        if (e.target && (e.target.id === "liveSearch" || e.target.id === "liveSearchInput")) {
+            const cBtn = document.getElementById("clearSearch") || document.getElementById("clearSearchBtn");
+            if (cBtn) {
+                cBtn.classList.toggle("visible", e.target.value.trim().length > 0);
             }
+            clearTimeout(searchDebounce);
             searchDebounce = setTimeout(() => {
                 applyFilter();
-            }, 350);
-        });
+            }, 450);
+        }
+    });
 
-        liveSearchInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                clearTimeout(searchDebounce);
-                applyFilter();
-            }
-        });
-    }
+    document.addEventListener("keydown", function (e) {
+        if (e.target && (e.target.id === "liveSearch" || e.target.id === "liveSearchInput") && e.key === "Enter") {
+            e.preventDefault();
+            clearTimeout(searchDebounce);
+            applyFilter();
+        }
+    });
 
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener("click", function () {
-            if (liveSearchInput) {
-                liveSearchInput.value = "";
-                this.classList.remove("visible");
-                liveSearchInput.focus();
+    document.addEventListener("click", function (e) {
+        const cBtn = e.target.closest("#clearSearch, #clearSearchBtn");
+        if (cBtn) {
+            const sEl = document.getElementById("liveSearch") || document.getElementById("liveSearchInput");
+            if (sEl) {
+                sEl.value = "";
+                cBtn.classList.remove("visible");
+                sEl.focus();
             }
             applyFilter({ q: "" });
-        });
-    }
+        }
+    });
 
     document.addEventListener("click", function (e) {
         const th = e.target.closest(".sortable-th");

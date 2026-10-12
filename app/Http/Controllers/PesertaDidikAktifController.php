@@ -889,8 +889,8 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        // Hanya role berizin update pada menu_peserta_didik_aktif (Admin / wewenang resmi)
-        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update')) {
+        // Hanya role berizin update pada menu_peserta_didik_aktif atau menu_wali_kelas_aktif
+        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update') && !\App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk mereset password akun peserta didik.',
@@ -955,7 +955,7 @@ class PesertaDidikAktifController extends Controller
         $user = session('user');
         if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
 
-        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update')) {
+        if (!\App\Models\RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'update') && !\App\Models\RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'update')) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk menunjuk Koordinator Kelas.',

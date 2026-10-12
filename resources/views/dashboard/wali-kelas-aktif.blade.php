@@ -152,9 +152,9 @@
                 <!-- Live Search Box -->
                 <div class="live-search-wrap">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearchInput" placeholder="Cari nama / NISN / NIK..."
+                    <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIK..."
                         value="{{ $q }}" autocomplete="off">
-                    <button type="button" id="clearSearchBtn" class="clear-search {{ $q ? 'visible' : '' }}"
+                    <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                         title="Hapus pencarian">
                         <i class="fas fa-times"></i>
                     </button>
@@ -168,7 +168,13 @@
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                         @php
-                            $cols = [['nama', 'Nama Lengkap'], ['nisn', 'NISN / NIPD'], ['jenis_kelamin', 'L/P']];
+                            $cols = [
+                                ['nama', 'Nama Lengkap'],
+                                ['nisn', 'NISN / NIPD'],
+                                ['jenis_kelamin', 'L/P'],
+                                ['nama_rombel', 'Rombel Kelas'],
+                                ['tingkat_pendidikan_id', 'Tingkat'],
+                            ];
                         @endphp
                         @foreach ($cols as [$key, $label])
                             <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
@@ -180,11 +186,7 @@
                         @endforeach
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            TTL
-                        </th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Kontak / Ortu
+                            Tempat, Tanggal Lahir
                         </th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
@@ -198,20 +200,26 @@
                             <!-- Kolom Nama & Avatar -->
                             <td class="cell-pd-nama"
                                 style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                                data-label="Nama">
+                                data-label="Nama Lengkap">
                                 <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25);"
-                                            @if ($canUpdate || $canCreate || $isAdmin) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url }}', '')" style="cursor: pointer;" title="Klik untuk ubah pasfoto" @endif>
+                                        <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
+                                            @if ($canUpdate || $canCreate || $isAdmin) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url }}', '{{ $item->foto_size ?? '' }}')"
+                                            title="Klik untuk melihat / mengubah pasfoto peserta didik"
+                                            @else
+                                            title="Pasfoto {{ $item->nama }}" @endif
+                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; {{ $canUpdate || $canCreate || $isAdmin ? 'cursor: pointer;' : 'cursor: default;' }} flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
                                             <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
                                                 style="width: 100%; height: 100%; object-fit: cover;">
                                         </div>
                                     @else
-                                        <div class="pd-foto-thumb empty"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0;"
-                                            @if ($canUpdate || $canCreate || $isAdmin) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '', '')" style="cursor: pointer;" title="Klik untuk unggah pasfoto" @endif>
-                                            <i class="fas fa-camera" style="opacity: 0.7;"></i>
+                                        <div class="pd-foto-thumb empty" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
+                                            @if ($canUpdate || $canCreate || $isAdmin) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '', '')"
+                                            title="Klik untuk mengunggah pasfoto peserta didik"
+                                            @else
+                                            title="Belum ada pasfoto" @endif
+                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; {{ $canUpdate || $canCreate || $isAdmin ? 'cursor: pointer;' : 'cursor: default;' }} transition: all 0.2s ease;">
+                                            <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
                                         </div>
                                     @endif
                                     <div class="pd-info">
@@ -219,6 +227,21 @@
                                             style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                             <span class="pd-nama"
                                                 style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
+                                            @if (!empty($item->is_koordinator))
+                                                <span class="badge badge-koordinator"
+                                                    id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                                    style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                                    title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
+                                                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                </span>
+                                            @else
+                                                <span class="badge badge-koordinator"
+                                                    id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                                    style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; align-items: center; gap: 4px;"
+                                                    title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
+                                                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                </span>
+                                            @endif
                                         </div>
                                         @if ($item->nik)
                                             <div
@@ -247,7 +270,7 @@
                                         @endif
                                     </div>
                                     @if ($item->nipd)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
                                             <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
                                                 title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
                                         </div>
@@ -263,6 +286,22 @@
                                 </span>
                             </td>
 
+                            <!-- Kolom Rombel Kelas -->
+                            <td class="cell-pd-rombel"
+                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                data-label="Rombel">
+                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                    {{ $item->nama_rombel ?: '-' }}
+                                </span>
+                            </td>
+
+                            <!-- Kolom Tingkat -->
+                            <td class="cell-pd-tingkat"
+                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="Tingkat">
+                                {{ $item->tingkat_pendidikan_id ?: '-' }}
+                            </td>
+
                             <!-- Kolom Tempat, Tanggal Lahir -->
                             <td class="cell-pd-ttl"
                                 style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
@@ -272,45 +311,51 @@
                                 </div>
                             </td>
 
-                            <!-- Kolom Kontak / Orang Tua -->
-                            <td class="cell-pd-kontak"
-                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                                data-label="Kontak">
-                                <div class="cell-col-right">
-                                    <div style="color: var(--text-color); font-weight: 600;">
-                                        {{ $item->nama_ayah ?: ($item->nama_ibu ?: ($item->nama_wali ?: '-')) }}</div>
-                                    @if ($item->no_hp)
-                                        <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">
-                                            <i class="fas fa-phone-alt me-1" style="font-size: 0.68rem;"></i>
-                                            <span class="copyable" data-copy="{{ $item->no_hp }}" data-label="No HP"
-                                                title="Klik untuk salin No HP">{{ $item->no_hp }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-
                             <!-- Kolom Aksi -->
                             <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                 <div class="table-actions">
-                                    @if ($canUpdate || $canCreate || $isAdmin)
+                                    @if ($isAdmin || $canUpdate || $canCreate)
                                         <button type="button" class="btn-icon"
-                                            title="{{ !empty($item->foto_url) ? 'Ganti Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik' }}"
-                                            onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '')">
+                                            title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
+                                            onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
                                             <i class="fas fa-camera"
                                                 style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
                                         </button>
-                                    @endif
-                                    <button type="button" class="btn-icon btn-detail-siswa"
-                                        title="Lihat Biodata Lengkap"
-                                        onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')"
-                                        data-id="{{ $item->peserta_didik_id }}">
-                                        <i class="fas fa-id-card"></i>
-                                    </button>
-                                    @if (!empty($item->nisn))
-                                        <button type="button" class="btn-icon"
-                                            title="Pratinjau / Cetak Kartu Pelajar Digital"
-                                            onclick="openKartuPelajarModal('{{ $item->nisn }}')">
-                                            <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                        <button type="button" class="btn-icon btn-detail-siswa"
+                                            title="Lihat Biodata Lengkap"
+                                            onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
+                                            <i class="fas fa-id-card"></i>
+                                        </button>
+                                        @if (!empty($item->nisn))
+                                            <button type="button" class="btn-icon"
+                                                title="Pratinjau / Cetak Kartu Pelajar Digital"
+                                                onclick="openKartuPelajarModal('{{ $item->nisn }}')">
+                                                <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                            </button>
+                                        @endif
+                                        <button type="button"
+                                            class="btn-icon btn-toggle-koordinator {{ !empty($item->is_koordinator) ? 'is-active' : '' }}"
+                                            id="btnKoordinator_{{ $item->peserta_didik_id }}"
+                                            data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                            data-rombel="{{ $item->nama_rombel ?: '-' }}"
+                                            data-status="{{ !empty($item->is_koordinator) ? '1' : '0' }}"
+                                            title="{{ !empty($item->is_koordinator) ? 'Cabut Wewenang Koordinator Kelas' : 'Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)' }}">
+                                            <i class="fas fa-crown"
+                                                style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b;' : 'opacity: 0.55;' }}"></i>
+                                        </button>
+
+                                        {{-- Tombol Reset Password ke Default (NISN) --}}
+                                        <button type="button" class="btn-icon btn-reset-password"
+                                            data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                            data-nisn="{{ $item->nisn ?: ($item->nipd ?: ($item->nik ?: 'NISN')) }}"
+                                            title="Reset Password Akun ke Default (NISN)">
+                                            <i class="fas fa-key" style="color: #f59e0b;"></i>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn-icon btn-detail-siswa"
+                                            title="Lihat Biodata Lengkap"
+                                            onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
+                                            <i class="fas fa-id-card"></i>
                                         </button>
                                     @endif
                                 </div>
@@ -318,7 +363,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6"
+                            <td colspan="7"
                                 style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                 <div>Tidak ada data peserta didik aktif yang sesuai dengan kriteria pencarian di kelas ini.
