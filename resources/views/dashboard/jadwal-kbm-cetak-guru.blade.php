@@ -15,7 +15,19 @@
         <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
         </a>
-        <button onclick="window.print()" class="btn-action btn-print">
+
+        @if (!empty($allGuruOptions) && count($allGuruOptions) > 1)
+            <select class="select-cetak" data-param="ptk_id" title="Pilih Guru untuk Dicetak">
+                <option value="">Semua Guru ({{ count($allGuruOptions) }} Guru)</option>
+                @foreach ($allGuruOptions as $g)
+                    <option value="{{ $g->ptk_id }}" {{ ($ptkId ?? '') == $g->ptk_id ? 'selected' : '' }}>
+                        {{ $g->nama }}
+                    </option>
+                @endforeach
+            </select>
+        @endif
+
+        <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Jadwal Guru (Print / PDF)
         </button>
     </div>
@@ -172,6 +184,7 @@
         </div>
     @endforelse
 
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 
 </html>

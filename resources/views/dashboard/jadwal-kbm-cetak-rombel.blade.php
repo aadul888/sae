@@ -15,7 +15,19 @@
         <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
         </a>
-        <button onclick="window.print()" class="btn-action btn-print">
+
+        @if (!empty($allRombelOptions) && count($allRombelOptions) > 1)
+            <select class="select-cetak" data-param="rombel_id" title="Pilih Kelas untuk Dicetak">
+                <option value="">Semua Kelas ({{ count($allRombelOptions) }} Kelas)</option>
+                @foreach ($allRombelOptions as $r)
+                    <option value="{{ $r->rombongan_belajar_id }}" {{ ($rombelId ?? '') == $r->rombongan_belajar_id ? 'selected' : '' }}>
+                        Kelas {{ $r->nama }}
+                    </option>
+                @endforeach
+            </select>
+        @endif
+
+        <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Jadwal Kelas (Print / PDF)
         </button>
     </div>
@@ -168,7 +180,6 @@
             <p style="color: #9ca3af;">Tidak ada rombongan belajar yang ditemukan.</p>
         </div>
     @endforelse
-
-</body>
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script></body>
 
 </html>

@@ -38,7 +38,7 @@
             </a>
         </div>
 
-        <button onclick="window.print()" class="btn-action btn-print">
+        <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Surat Mutasi (Print / PDF)
         </button>
     </div>
@@ -179,6 +179,7 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 
 </html>

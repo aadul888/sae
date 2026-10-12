@@ -134,6 +134,27 @@ body {
     box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3) !important;
 }
 
+/* Dropdown filter selector inside toolbar (e.g. Guru / Rombel filter) */
+.no-print-bar select.select-cetak,
+.select-cetak {
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+    border-radius: 20px !important;
+    padding: 6px 14px !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    outline: none !important;
+    cursor: pointer !important;
+    max-width: 260px !important;
+}
+
+.no-print-bar select.select-cetak option,
+.select-cetak option {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+}
+
 /* Screen Margins so document never gets covered by toolbar */
 .cetak-page,
 .print-page,
@@ -309,10 +330,7 @@ body {
 
 /* Media Print Rules */
 @media print {
-    @page {
-        size: auto;
-        margin: 10mm;
-    }
+    
 
     body {
         background: none !important;
@@ -752,10 +770,7 @@ body {
                 display: none !important;
             }
 
-            @page {
-                size: landscape;
-                margin: 10mm 12mm;
-            }
+            
         }
 
 /* ==========================================================================
@@ -1001,10 +1016,7 @@ body {
                 display: none !important;
             }
 
-            @page {
-                size: landscape;
-                margin: 8mm 10mm;
-            }
+            
         }
 
 /* ==========================================================================
@@ -1261,19 +1273,13 @@ body {
                 display: none !important;
             }
 
-            @page {
-                size: landscape;
-                margin: 10mm 12mm;
-            }
+            
         }
 
 /* ==========================================================================
    Template: cetak-cuti.blade.php
    ========================================================================== */
-@page {
-            size: A4 portrait;
-            margin: 15mm 20mm 15mm 20mm;
-        }
+
         * {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
@@ -1763,10 +1769,7 @@ body {
             box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
         }
 
-        @page {
-            size: auto;
-            margin: 10mm 14mm;
-        }
+        
 
         @media print {
             body {
@@ -1790,10 +1793,7 @@ body {
 /* ==========================================================================
    Template: cetak-panggilan-wali.blade.php
    ========================================================================== */
-@page {
-            size: A4 portrait;
-            margin: 20mm 20mm 20mm 20mm;
-        }
+
         body {
             font-family: 'Times New Roman', Times, serif;
             color: #000;
@@ -1874,10 +1874,7 @@ body {
 /* ==========================================================================
    Template: cetak-rekap-prestasi.blade.php
    ========================================================================== */
-@page {
-            size: A4 landscape;
-            margin: 15mm 15mm 15mm 15mm;
-        }
+
         body {
             font-family: 'Times New Roman', Times, serif;
             color: #000;
@@ -1970,10 +1967,7 @@ body {
 /* ==========================================================================
    Template: cetak-skl.blade.php
    ========================================================================== */
-@page {
-            size: A4 portrait;
-            margin: 20mm 20mm 20mm 20mm;
-        }
+
         body {
             font-family: 'Times New Roman', Times, serif;
             color: #000;
@@ -2348,10 +2342,7 @@ body {
             box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
         }
 
-        @page {
-            size: auto;
-            margin: 10mm 12mm;
-        }
+        
 
         @media print {
             body {
@@ -2375,10 +2366,7 @@ body {
 /* ==========================================================================
    Template: cetak-spt.blade.php
    ========================================================================== */
-@page {
-            size: A4 portrait;
-            margin: 15mm 20mm 15mm 20mm;
-        }
+
         * {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact !important;
@@ -2816,10 +2804,7 @@ body {
             box-shadow: 0 2px 6px rgba(30, 58, 138, 0.3);
         }
 
-        @page {
-            size: auto;
-            margin: 10mm 14mm;
-        }
+        
 
         @media print {
             body {
@@ -3135,10 +3120,7 @@ body {
                 max-width: 100% !important;
             }
 
-            @page {
-                size: auto;
-                margin: 8mm 10mm;
-            }
+            
 
             .table-data th {
                 background-color: #f1f5f9 !important;
@@ -3414,19 +3396,13 @@ body {
             .no-print-bar {
                 display: none !important;
             }
-            @page {
-                size: portrait;
-                margin: 10mm 12mm 12mm 12mm;
-            }
+            
         }
 
 /* ==========================================================================
    Template: cetak-slip-izin.blade.php
    ========================================================================== */
-@page {
-            size: A5 landscape;
-            margin: 10mm;
-        }
+
         body {
             font-family: Arial, Helvetica, sans-serif;
             color: #111;
@@ -3873,10 +3849,7 @@ body {
         }
 
         /* Print Settings */
-        @page {
-            size: A4 landscape;
-            margin: 8mm 10mm 10mm 10mm;
-        }
+        
 
         @media print {
             body {
@@ -4362,10 +4335,7 @@ body {
         }
 
         /* Media Print (Identik dengan Jadwal KBM) */
-        @page {
-            size: auto;
-            margin: 10mm 12mm;
-        }
+        
 
         @media print {
             body {
@@ -4768,10 +4738,7 @@ body {
         }
 
         /* Media Print (Identik dengan Jadwal KBM) */
-        @page {
-            size: auto;
-            margin: 10mm 12mm;
-        }
+        
 
         @media print {
             body {
@@ -4799,10 +4766,7 @@ body {
             box-sizing: border-box;
             font-family: Arial, Helvetica, sans-serif;
         }
-        @page {
-            margin: 10mm;
-            size: auto;
-        }
+        
         body {
             margin: 0;
             padding: 0;
@@ -4981,10 +4945,7 @@ body {
    Universal Print Rules (Final Override)
    ========================================================================== */
 @media print {
-    @page {
-        size: auto;
-        margin: 8mm 10mm;
-    }
+    
     body {
         background: #ffffff !important;
         padding: 0 !important;
@@ -5014,5 +4975,68 @@ body {
     .page-break {
         page-break-after: always;
         break-after: always;
+    }
+}
+@page {
+    size: auto;
+    margin: 8mm 10mm;
+}
+
+@media print {
+    *, *:before, *:after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+    body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+    }
+    .no-print,
+    .no-print-bar,
+    .print-toolbar,
+    .print-control-bar,
+    .action-toolbar,
+    .watermark-sae,
+    .watermark {
+        display: none !important;
+    }
+    .cetak-page,
+    .print-page,
+    .paper,
+    .guru-page,
+    .rombel-page,
+    .slip-page {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+    .guru-page,
+    .rombel-page {
+        page-break-after: always !important;
+        break-after: page !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    .guru-page:last-child,
+    .rombel-page:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+    .signature-container,
+    .signatures,
+    .ttd-container,
+    .ttd-box,
+    .sig-box {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 }

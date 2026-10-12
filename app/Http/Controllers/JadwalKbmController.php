@@ -842,6 +842,19 @@ class JadwalKbmController extends Controller
         $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
         $ptkId = $request->get('ptk_id');
 
+        $activePtkIds = DB::table('jadwal_kbm')
+            ->where('sumber', $sumber)
+            ->where('is_active', true)
+            ->whereNotNull('ptk_id')
+            ->distinct()
+            ->pluck('ptk_id');
+
+        $allGuruOptions = DB::table('gtk')
+            ->whereIn('ptk_id', $activePtkIds)
+            ->whereNotNull('nama')
+            ->orderBy('nama', 'asc')
+            ->get();
+
         $guruQuery = DB::table('gtk')
             ->whereNotNull('nama')
             ->orderBy('nama', 'asc');
@@ -849,12 +862,6 @@ class JadwalKbmController extends Controller
         if ($ptkId) {
             $guruQuery->where('ptk_id', $ptkId);
         } else {
-            $activePtkIds = DB::table('jadwal_kbm')
-                ->where('sumber', $sumber)
-                ->where('is_active', true)
-                ->whereNotNull('ptk_id')
-                ->distinct()
-                ->pluck('ptk_id');
             $guruQuery->whereIn('ptk_id', $activePtkIds);
         }
 
@@ -1024,7 +1031,8 @@ class JadwalKbmController extends Controller
             'occupied',
             'totalJpPerGuru',
             'totalSesiPerGuru',
-            'ptkId'
+            'ptkId',
+            'allGuruOptions'
         ));
     }
 
@@ -1057,14 +1065,21 @@ class JadwalKbmController extends Controller
 
         $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
 
+        $activeRombelIds = DB::table('jadwal_kbm')
+            ->where('sumber', $sumber)
+            ->where('is_active', true)
+            ->distinct()
+            ->pluck('rombongan_belajar_id');
+
+        $allRombelOptions = DB::table('rombongan_belajar')
+            ->whereIn('rombongan_belajar_id', $activeRombelIds)
+            ->orderBy('tingkat_pendidikan_id', 'asc')
+            ->orderBy('nama', 'asc')
+            ->get();
+
         if ($rombelId) {
             $rombelQuery->where('r.rombongan_belajar_id', $rombelId);
         } else {
-            $activeRombelIds = DB::table('jadwal_kbm')
-                ->where('sumber', $sumber)
-                ->where('is_active', true)
-                ->distinct()
-                ->pluck('rombongan_belajar_id');
             $rombelQuery->whereIn('r.rombongan_belajar_id', $activeRombelIds);
         }
 
@@ -1108,7 +1123,8 @@ class JadwalKbmController extends Controller
             'rombelList',
             'matrix',
             'occupied',
-            'rombelId'
+            'rombelId',
+            'allRombelOptions'
         ));
     }
 

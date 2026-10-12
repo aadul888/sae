@@ -12,12 +12,12 @@
     <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 <body>
-    <div class="print-control-bar">
-        <button class="btn-print" onclick="window.print()">
-            <i class="fas fa-print"></i> Cetak Dokumen
+    <div class="no-print-bar">
+        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+            <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button class="btn-close-print" onclick="window.close()">
-            <i class="fas fa-times"></i> Tutup
+        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+            <i class="fas fa-print"></i> Cetak Dokumen (Print / PDF)
         </button>
     </div>
 
@@ -106,5 +106,6 @@
             </div>
         </div>
     </div>
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 </html>

@@ -23,12 +23,12 @@
 <body style="background: #f1f5f9; min-height: 100vh; padding: 20px 0;">
 
     <!-- Action Toolbar (Hanya Muncul di Layar, Tersembunyi saat Dicetak) -->
-    <div class="no-print" style="position: fixed; top: 16px; right: 24px; z-index: 999999; display: flex; gap: 10px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px); padding: 10px 16px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15);">
-        <button type="button" onclick="window.print()" style="background: #4f46e5; color: #fff; border: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.4);">
-            <i class="fas fa-print"></i> Cetak / Simpan PDF
+    <div class="no-print-bar">
+        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+            <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button type="button" onclick="window.close()" style="background: rgba(255,255,255,0.18); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-            <i class="fas fa-times"></i> Tutup
+        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+            <i class="fas fa-print"></i> Cetak / Simpan PDF
         </button>
     </div>
 
@@ -425,5 +425,6 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 </html>

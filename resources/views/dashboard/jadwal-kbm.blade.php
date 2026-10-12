@@ -278,12 +278,6 @@
             </a>
         </div>
     </div>
-    </a>
-    <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}" class="periode-nav-tab">
-        <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
-    </a>
-    </div>
-    </div>
 
     <!-- Banner Integrasi Kalender Pendidikan -->
     <div class="card"

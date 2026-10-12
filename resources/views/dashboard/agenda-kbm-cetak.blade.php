@@ -8,11 +8,11 @@
     <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 <body>
-    <div class="no-print" style="max-width: 297mm; margin: 0 auto 16px auto; display: flex; justify-content: space-between; align-items: center;">
-        <a href="{{ route('dashboard.agenda-kbm.index') }}" style="color: #4f46e5; text-decoration: none; font-size: 10pt; font-family: sans-serif; display: inline-flex; align-items: center; gap: 6px;">
+    <div class="no-print-bar">
+        <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
         </a>
-        <button onclick="window.print()" style="padding: 8px 18px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 10pt; font-family: sans-serif; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+        <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak / Simpan PDF
         </button>
     </div>
@@ -123,5 +123,6 @@
             </div>
         </div>
     </div>
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 </html>

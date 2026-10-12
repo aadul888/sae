@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slip e-Izin - {{ $tiket->nomor_tiket }}</title>
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 <body>
-    <div class="no-print" style="margin-bottom: 15px; text-align: right;">
-        <button onclick="window.print()" style="padding: 8px 16px; font-weight: bold; background: #2563eb; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
-            Cetak Slip
+    <div class="no-print-bar">
+        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+            <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button onclick="window.close()" style="padding: 8px 16px; background: #6b7280; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-left: 6px;">
-            Tutup
+        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+            <i class="fas fa-print"></i> Cetak Slip (Print / PDF)
         </button>
     </div>
 

@@ -4,21 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Rekapitulasi Prestasi Siswa - {{ $sekolah->nama ?? 'Sekolah' }}</title>
+    <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 <body>
-    <div class="no-print" style="background: #f1f5f9; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; font-family: sans-serif; margin-bottom: 20px;">
-        <div style="font-size: 0.9rem; color: #334155;">
-            <strong>Pratinjau Cetak Laporan Prestasi Siswa</strong> (Ukuran A4 Landscape)
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button onclick="window.print()" style="background: #2563eb; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                Cetak Laporan
-            </button>
-            <button onclick="window.close()" style="background: #64748b; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                Tutup
-            </button>
-        </div>
+    <div class="no-print-bar">
+        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </button>
+        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+            <i class="fas fa-print"></i> Cetak Laporan (Print / PDF)
+        </button>
     </div>
 
     <!-- KOP SURAT RESMI SEKOLAH -->
@@ -118,5 +114,6 @@
             </p>
         </div>
     </div>
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 </html>

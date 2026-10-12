@@ -12,13 +12,12 @@
 <body>
 
     <!-- Floating Print Control Bar -->
-    <div class="print-toolbar">
-        <span><i class="fas fa-file-pdf me-1" style="color: #ef4444;"></i> Rekap Presensi {{ $namaRombel }}</span>
-        <button type="button" class="print-btn" onclick="window.print()">
-            <i class="fas fa-print"></i> Cetak / Simpan PDF
+    <div class="no-print-bar">
+        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+            <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button type="button" class="close-btn" onclick="window.close()">
-            <i class="fas fa-xmark"></i> Tutup
+        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+            <i class="fas fa-print"></i> Cetak / Simpan PDF
         </button>
     </div>
 
@@ -220,6 +219,7 @@
         </div>
     </div>
 
+    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
 </body>
 
 </html>
