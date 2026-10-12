@@ -664,7 +664,7 @@ function initAdminActivityDatatable() {
                 clearBtn.classList.toggle('visible', e.target.value.trim().length > 0);
             }
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(applyFilter, 250);
+            debounceTimer = setTimeout(applyFilter, 450);
         }
     });
 

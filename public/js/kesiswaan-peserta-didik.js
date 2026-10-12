@@ -1052,7 +1052,7 @@ document.addEventListener('DOMContentLoaded', function () {
         searchInput.addEventListener("input", function () {
             if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
             clearTimeout(timer);
-            timer = setTimeout(applyFilter, 300);
+            timer = setTimeout(applyFilter, 450);
         });
 
         searchInput.addEventListener("keydown", function (e) {

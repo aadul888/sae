@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     this.value.trim().length > 0,
                 );
             clearTimeout(searchTimer);
-            searchTimer = setTimeout(applyFilter, 300);
+            searchTimer = setTimeout(applyFilter, 450);
         });
 
         searchInput.addEventListener("keydown", function (e) {

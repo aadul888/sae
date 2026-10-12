@@ -297,7 +297,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
             }
             clearTimeout(timer);
-            timer = setTimeout(applyFilter, 300);
+            timer = setTimeout(applyFilter, 450);
         });
 
         searchInput.addEventListener("keydown", function (e) {

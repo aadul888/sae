@@ -590,7 +590,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 clearSearch.classList.toggle("visible", e.target.value.trim().length > 0);
             }
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => applyFilters(), 350);
+            debounceTimer = setTimeout(() => applyFilters(), 450);
         }
     });
 

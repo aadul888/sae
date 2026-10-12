@@ -495,6 +495,8 @@ window.escapeHtml = function (str) {
  * Refreshes datatables and pagination via AJAX without reloading the entire page.
  * Keeps input focus, cursor position, and smooth transitions.
  */
+let liveTableAbortController = null;
+
 window.refreshLiveTable = async function (url, options = {}) {
     if (!url) return;
     let targetUrl = typeof url === "string" ? url : url.toString();
@@ -529,6 +531,15 @@ window.refreshLiveTable = async function (url, options = {}) {
     }
     container.dataset.liveRefreshing = targetUrl;
 
+    // Batalkan request fetch sebelumnya jika masih berjalan (mencegah race condition saat pengguna mengetik)
+    if (liveTableAbortController) {
+        try {
+            liveTableAbortController.abort();
+        } catch (e) {}
+    }
+    liveTableAbortController = new AbortController();
+    const currentSignal = liveTableAbortController.signal;
+
     // 2. Subtle loading visual feedback
     const originalOpacity =
         container.style.opacity && container.style.opacity !== "0.45"
@@ -536,28 +547,25 @@ window.refreshLiveTable = async function (url, options = {}) {
             : "";
     container.style.transition = "opacity 0.15s ease";
     container.style.opacity = "0.45";
-    container.style.pointerEvents = "none";
 
-    // Remember focused input to restore cursor & focus after HTML swap
-    let focusedElId = null;
-    let cursorStart = null;
-    let cursorEnd = null;
-    if (
+    // Jangan nonaktifkan pointerEvents jika elemen yang sedang fokus berada di dalam container
+    const isFocusInsideContainer = document.activeElement && container.contains(document.activeElement);
+    if (!isFocusInsideContainer) {
+        container.style.pointerEvents = "none";
+    }
+
+    // Remember focused input to restore focus only if element is recreated in DOM
+    const isInputActive =
         document.activeElement &&
         (document.activeElement.tagName === "INPUT" ||
-            document.activeElement.tagName === "SELECT")
-    ) {
-        focusedElId = document.activeElement.id || null;
-        if (document.activeElement.tagName === "INPUT") {
-            try {
-                cursorStart = document.activeElement.selectionStart;
-                cursorEnd = document.activeElement.selectionEnd;
-            } catch (e) {}
-        }
-    }
+            document.activeElement.tagName === "TEXTAREA" ||
+            document.activeElement.tagName === "SELECT");
+    const activeEl = isInputActive ? document.activeElement : null;
+    const focusedElId = activeEl ? activeEl.id : null;
 
     try {
         const response = await fetch(targetUrl, {
+            signal: currentSignal,
             credentials: "same-origin",
             headers: {
                 "X-Requested-With": "XMLHttpRequest",
@@ -704,24 +712,37 @@ window.refreshLiveTable = async function (url, options = {}) {
             curResetBtn.style.display = "none";
         }
 
-        // Restore typing focus & cursor if element still exists
+        // 4d. Jaga agar kursor dan fokus input pengguna TIDAK terganggu saat mengetik
         if (focusedElId) {
             const reFocusEl = document.getElementById(focusedElId);
             if (reFocusEl) {
-                reFocusEl.focus();
-                if (
-                    cursorStart !== null &&
-                    typeof reFocusEl.setSelectionRange === "function"
-                ) {
+                // Hanya refocus jika fokus sempat terlepas (misal container input ter-render ulang)
+                if (document.activeElement !== reFocusEl) {
+                    reFocusEl.focus();
+                    const curLen = reFocusEl.value ? reFocusEl.value.length : 0;
                     try {
-                        reFocusEl.setSelectionRange(cursorStart, cursorEnd);
+                        reFocusEl.setSelectionRange(curLen, curLen);
                     } catch (e) {}
                 }
+                // Jika reFocusEl SUDAH merupakan document.activeElement, kursor TIDAK diubah
+                // agar kursor tidak meloncat mundur ke belakang saat pengguna masih mengetik.
             }
         }
 
         // 5. Update browser URL silently without page reload
-        window.history.replaceState(null, "", targetUrl);
+        if (activeEl && activeEl.value !== undefined) {
+            try {
+                const currentUrlObj = new URL(targetUrl, window.location.origin);
+                const currentVal = activeEl.value.trim();
+                if (currentVal) currentUrlObj.searchParams.set("q", currentVal);
+                else currentUrlObj.searchParams.delete("q");
+                window.history.replaceState(null, "", currentUrlObj.toString());
+            } catch (e) {
+                window.history.replaceState(null, "", targetUrl);
+            }
+        } else {
+            window.history.replaceState(null, "", targetUrl);
+        }
 
         // 6. Notify any custom listeners
         window.dispatchEvent(
@@ -730,16 +751,26 @@ window.refreshLiveTable = async function (url, options = {}) {
             }),
         );
     } catch (err) {
-        console.warn("[SAE LiveSearch] Refresh failed, using fallback:", err);
-        // Fallback navigasi penuh dengan proteksi protokol HTTPS
-        let fallbackUrl = targetUrl;
-        if (
-            window.location.protocol === "https:" &&
-            fallbackUrl.startsWith("http:")
-        ) {
-            fallbackUrl = fallbackUrl.replace(/^http:/, "https:");
+        if (err.name === "AbortError" || (currentSignal && currentSignal.aborted)) {
+            // Permintaan dibatalkan karena ada ketikan baru yang lebih segar, abaikan hening
+            return;
         }
-        window.location.href = fallbackUrl;
+        console.warn("[SAE LiveSearch] Refresh failed:", err);
+        // JANGAN fallback reload penuh jika pengguna sedang aktif berada di input pencarian
+        const isTypingNow =
+            document.activeElement &&
+            (document.activeElement.tagName === "INPUT" ||
+                document.activeElement.tagName === "TEXTAREA");
+        if (!isTypingNow) {
+            let fallbackUrl = targetUrl;
+            if (
+                window.location.protocol === "https:" &&
+                fallbackUrl.startsWith("http:")
+            ) {
+                fallbackUrl = fallbackUrl.replace(/^http:/, "https:");
+            }
+            window.location.href = fallbackUrl;
+        }
     } finally {
         container.style.opacity = originalOpacity;
         container.style.pointerEvents = "";
@@ -820,7 +851,7 @@ document.addEventListener("input", function (e) {
             }
             url.searchParams.set("page", "1");
             window.refreshLiveTable(url.toString());
-        }, 300);
+        }, 450);
     }
 });
 
