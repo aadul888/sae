@@ -98,10 +98,11 @@ Route::post('/api/check-nisn', [HomeController::class, 'checkNisn'])->name('api.
 Route::get('/v/doc/{doc_id}', [\App\Http\Controllers\SuratPublicVerifyController::class, 'verifyDoc'])->name('surat.public-verify');
 Route::get('/verifikasi-surat/{doc_id}', [\App\Http\Controllers\SuratPublicVerifyController::class, 'verifyDoc'])->name('surat.public-verify-long');
 
-// Kartu Pelajar Digital — Verifikasi Publik & Direct Scan (Privacy-by-Design)
+// Kartu Pelajar Digital — Verifikasi Publik & Direct Scan (Mendukung URL Baru /v/{nisn} dan Format Lama /{nisn})
 Route::get('/v/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->name('kartu-pelajar.verify-short');
 Route::get('/verifikasi-pelajar/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->name('kartu-pelajar.verify');
 Route::get('/kartu-pelajar/preview/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'preview'])->name('kartu-pelajar.preview');
+Route::get('/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'verify'])->where('nisn', '[0-9]{10}')->name('kartu-pelajar.verify-legacy');
 
 // SAE Forms — Formulir & Survei Publik
 Route::get('/f/{slug}', [\App\Http\Controllers\FormulirController::class, 'showPublic'])->name('formulir.public');
