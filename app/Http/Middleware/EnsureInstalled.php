@@ -29,7 +29,20 @@ class EnsureInstalled
         if (File::exists(base_path('.env'))) {
             try {
                 DB::connection()->getPdo();
-                $installed = DB::getSchemaBuilder()->hasTable('pengguna') && DB::table('pengguna')->exists();
+                if (DB::getSchemaBuilder()->hasTable('pengguna')) {
+                    if (!DB::table('pengguna')->exists()) {
+                        DB::table('pengguna')->insert([
+                            'pengguna_id' => 'seed-admin-1',
+                            'username' => 'admin@sae.id',
+                            'nama' => 'Administrator',
+                            'peran_id_str' => 'Administrator',
+                            'password' => '$2y$12$DZRVMUgFWgc0MUhZY/4maOM15Lrw71j0FO4qi0/PphVu7GiHCnpzi',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                    $installed = true;
+                }
             } catch (\Throwable $e) {
                 // Jika DB connection gagal namun ada bootstrap config cache stale, bersihkan dan coba sekali lagi
                 $configCache = base_path('bootstrap/cache/config.php');
@@ -38,7 +51,20 @@ class EnsureInstalled
                     try {
                         DB::purge('mysql');
                         DB::connection()->getPdo();
-                        $installed = DB::getSchemaBuilder()->hasTable('pengguna') && DB::table('pengguna')->exists();
+                        if (DB::getSchemaBuilder()->hasTable('pengguna')) {
+                            if (!DB::table('pengguna')->exists()) {
+                                DB::table('pengguna')->insert([
+                                    'pengguna_id' => 'seed-admin-1',
+                                    'username' => 'admin@sae.id',
+                                    'nama' => 'Administrator',
+                                    'peran_id_str' => 'Administrator',
+                                    'password' => '$2y$12$DZRVMUgFWgc0MUhZY/4maOM15Lrw71j0FO4qi0/PphVu7GiHCnpzi',
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ]);
+                            }
+                            $installed = true;
+                        }
                     } catch (\Throwable $retryEx) {
                         $installed = false;
                     }

@@ -31,6 +31,21 @@ class InstallController extends Controller
         return view('install.index', compact('status'));
     }
 
+    public function finish()
+    {
+        $configCache = base_path('bootstrap/cache/config.php');
+        if (File::exists($configCache)) {
+            @unlink($configCache);
+        }
+
+        $status = $this->getInstallationStatus();
+        if ($status['db_connected'] && $status['has_tables']) {
+            return redirect()->route('login')->with('success', 'Instalasi sistem SAE berhasil! Silakan login menggunakan akun default Administrator.');
+        }
+
+        return redirect()->route('install.index')->with('warning', 'Database belum siap atau konfigurasi belum lengkap.');
+    }
+
     public function process(Request $request)
     {
         @ini_set('max_execution_time', '300');
@@ -269,6 +284,12 @@ class InstallController extends Controller
 
                 if ($hasPengguna) {
                     $userCount = $pdo->query("SELECT COUNT(*) FROM `pengguna`")->fetchColumn();
+                    if ($userCount == 0) {
+                        // Otomatis seed akun bawaan jika tabel pengguna masih kosong
+                        $this->ensureDefaultAccounts($pdo);
+                        $userCount = $pdo->query("SELECT COUNT(*) FROM `pengguna`")->fetchColumn();
+                    }
+
                     if ($userCount > 0) {
                         return [
                             'installed' => true,

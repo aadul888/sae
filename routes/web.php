@@ -25,6 +25,7 @@ use App\Http\Controllers\KompetensiKeahlianController;
 // Installer Routes
 Route::get('/install', [InstallController::class, 'index'])->name('install.index');
 Route::post('/install', [InstallController::class, 'process'])->name('install.process');
+Route::match(['get', 'post'], '/install/finish', [InstallController::class, 'finish'])->name('install.finish');
 
 // Public Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');

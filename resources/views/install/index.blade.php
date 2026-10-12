@@ -38,7 +38,7 @@
                         <b>{{ $status['table_count'] }} tabel</b> dan konfigurasi <code>.env</code> sudah ada. Anda dapat
                         langsung menyelesaikan langkah instalasi dan menuju halaman login.
                     </p>
-                    <a href="{{ route('login') }}" class="btn btn-primary"
+                    <a href="{{ route('install.finish') }}" class="btn btn-primary"
                         style="width: 100%; padding: 11px; font-weight: 700; font-size: 0.88rem; justify-content: center; text-decoration: none; display: flex; align-items: center; gap: 8px; background: #10b981; border-color: #10b981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
                         <i class="fas fa-arrow-right-to-bracket"></i> Selesaikan &amp; Buka Halaman Login
                     </a>
@@ -228,7 +228,7 @@
 
                 // Simulasi progres visual sembari server mengeksekusi
                 setTimeout(() => advanceStep(stepConnect, stepEnv, 'Koneksi MySQL terverifikasi'),
-                1000);
+                    1000);
                 setTimeout(() => advanceStep(stepEnv, stepDb, 'File konfigurasi .env tersimpan'), 2200);
 
                 const formData = new FormData(form);
