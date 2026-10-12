@@ -1024,108 +1024,107 @@
         <div class="modal-overlay" id="modalSpt"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
             <div class="modal-container"
-                        style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 24px;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                            <h4
-                                style="margin: 0; font-size: 1.1rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-file-contract text-primary"></i> Terbitkan Surat Perintah Tugas (SPT)
-                            </h4>
-                            <button type="button" id="btnCloseModalSpt"
-                                style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
-                        </div>
-
-                        <form action="{{ route('dashboard.persuratan.keluar.spt.store') }}" method="POST"
-                            id="formSpt">
-                            @csrf
-                            <div class="form-group" style="margin-bottom: 14px;">
-                                <label
-                                    style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
-                                    Kegiatan / Tugas Dinas <span style="color: #ef4444;">*</span></label>
-                                <input type="text" name="nama_kegiatan" class="form-control"
-                                    placeholder="Contoh: Mengikuti Bimtek Implementasi Kurikulum Merdeka" required
-                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 14px;">
-                                <label
-                                    style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
-                                    / Tempat Tujuan <span style="color: #ef4444;">*</span></label>
-                                <input type="text" name="lokasi_tujuan" class="form-control"
-                                    placeholder="Contoh: Hotel Grand Sahid / BBGP Provinsi" required
-                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
-                            </div>
-
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                                <div>
-                                    <label
-                                        style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                        Berangkat <span style="color: #ef4444;">*</span></label>
-                                    <input type="date" name="tanggal_berangkat" class="form-control" required
-                                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
-                                </div>
-                                <div>
-                                    <label
-                                        style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                        Kembali <span style="color: #ef4444;">*</span></label>
-                                    <input type="date" name="tanggal_kembali" class="form-control" required
-                                        style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
-                                </div>
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 14px;">
-                                <label
-                                    style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Beban
-                                    Anggaran <span style="color: #ef4444;">*</span></label>
-                                <select name="beban_anggaran" class="form-control" required
-                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
-                                    <option value="BOS Reguler">BOS Reguler</option>
-                                    <option value="BOS Kinerja">BOS Kinerja</option>
-                                    <option value="Komite Sekolah">Komite Sekolah</option>
-                                    <option value="Penyelenggara / Panitia">Biaya Penyelenggara / Gratis</option>
-                                    <option value="Mandiri">Mandiri</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 14px;">
-                                <label
-                                    style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                                    GTK Yang Ditugaskan <span style="color: #ef4444;">*</span></label>
-                                <input type="search" id="searchGtkSpt" class="form-control"
-                                    placeholder="Cari nama, NIP, NUPTK, atau NIK..." autocomplete="off"
-                                    data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="gtk"
-                                    data-people-multiple-target="#selectedGtkSpt"
-                                    data-people-multiple-name="daftar_ptk_id[]" data-people-multiple-required="true">
-                                <div id="selectedGtkSpt" class="people-autocomplete-selected-list"></div>
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 20px;">
-                                <label
-                                    style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Dasar
-                                    Penugasan (Opsional)</label>
-                                <textarea name="dasar_penugasan" class="form-control" rows="2"
-                                    placeholder="Contoh: Surat Undangan Dinas Pendidikan No. 421/123/2026 tanggal 15 September 2026..."
-                                    style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;"></textarea>
-                            </div>
-
-                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                                <button type="button" id="btnCancelModalSpt" class="btn btn-outline"
-                                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">Batal</button>
-                                <button type="submit" class="btn btn-primary"
-                                    style="padding: 8px 18px; border-radius: 8px; font-size: 0.84rem;"><i
-                                        class="fas fa-check-circle me-1"></i> Terbitkan SPT</button>
-                            </div>
-                        </form>
-                    </div>
+                style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 24px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <h4
+                        style="margin: 0; font-size: 1.1rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-file-contract text-primary"></i> Terbitkan Surat Perintah Tugas (SPT)
+                    </h4>
+                    <button type="button" id="btnCloseModalSpt"
+                        style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
                 </div>
-            </div>
-        @endsection
 
-            @push('scripts')
-                <script
-                    src="{{ asset('js/people-autocomplete.js') }}?v={{ file_exists(public_path('js/people-autocomplete.js')) ? filemtime(public_path('js/people-autocomplete.js')) : time() }}">
-                </script>
-                <script
-                    src="{{ asset('js/persuratan-keluar.js') }}?v={{ file_exists(public_path('js/persuratan-keluar.js')) ? filemtime(public_path('js/persuratan-keluar.js')) : time() }}">
-                </script>
-            @endpush
+                <form action="{{ route('dashboard.persuratan.keluar.spt.store') }}" method="POST" id="formSpt">
+                    @csrf
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
+                            Kegiatan / Tugas Dinas <span style="color: #ef4444;">*</span></label>
+                        <input type="text" name="nama_kegiatan" class="form-control"
+                            placeholder="Contoh: Mengikuti Bimtek Implementasi Kurikulum Merdeka" required
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
+                            / Tempat Tujuan <span style="color: #ef4444;">*</span></label>
+                        <input type="text" name="lokasi_tujuan" class="form-control"
+                            placeholder="Contoh: Hotel Grand Sahid / BBGP Provinsi" required
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
+                                Berangkat <span style="color: #ef4444;">*</span></label>
+                            <input type="date" name="tanggal_berangkat" class="form-control" required
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
+                                Kembali <span style="color: #ef4444;">*</span></label>
+                            <input type="date" name="tanggal_kembali" class="form-control" required
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Beban
+                            Anggaran <span style="color: #ef4444;">*</span></label>
+                        <select name="beban_anggaran" class="form-control" required
+                            style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                            <option value="BOS Reguler">BOS Reguler</option>
+                            <option value="BOS Kinerja">BOS Kinerja</option>
+                            <option value="Komite Sekolah">Komite Sekolah</option>
+                            <option value="Penyelenggara / Panitia">Biaya Penyelenggara / Gratis</option>
+                            <option value="Mandiri">Mandiri</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
+                            GTK Yang Ditugaskan <span style="color: #ef4444;">*</span></label>
+                        <input type="search" id="searchGtkSpt" class="form-control"
+                            placeholder="Cari nama, NIP, NUPTK, atau NIK..." autocomplete="off"
+                            data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="gtk"
+                            data-people-multiple-target="#selectedGtkSpt" data-people-multiple-name="daftar_ptk_id[]"
+                            data-people-multiple-required="true">
+                        <div id="selectedGtkSpt" class="people-autocomplete-selected-list"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Dasar
+                            Penugasan (Opsional)</label>
+                        <textarea name="dasar_penugasan" class="form-control" rows="2"
+                            placeholder="Contoh: Surat Undangan Dinas Pendidikan No. 421/123/2026 tanggal 15 September 2026..."
+                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;"></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button type="button" id="btnCancelModalSpt" class="btn btn-outline"
+                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">Batal</button>
+                        <button type="submit" class="btn btn-primary"
+                            style="padding: 8px 18px; border-radius: 8px; font-size: 0.84rem;"><i
+                                class="fas fa-check-circle me-1"></i> Terbitkan SPT</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@push('scripts')
+    <script
+        src="{{ asset('js/people-autocomplete.js') }}?v={{ file_exists(public_path('js/people-autocomplete.js')) ? filemtime(public_path('js/people-autocomplete.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/persuratan-keluar.js') }}?v={{ file_exists(public_path('js/persuratan-keluar.js')) ? filemtime(public_path('js/persuratan-keluar.js')) : time() }}">
+    </script>
+@endpush

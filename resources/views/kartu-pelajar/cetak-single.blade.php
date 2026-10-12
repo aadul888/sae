@@ -21,19 +21,22 @@
 <body>
 
     <div class="no-print-bar">
-        <a href="javascript:if(window.history.length>1){window.history.back();}else{window.close();}" class="btn-action btn-back">
+        <a href="javascript:if(window.history.length>1){window.history.back();}else{window.close();}"
+            class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Tutup Jendela
         </a>
 
         <div class="orientation-switch">
-            <select id="sideFilter" class="select-cetak" onchange="changeSideFilter(this.value)" title="Pilih Tampilan Sisi Kartu">
+            <select id="sideFilter" class="select-cetak" onchange="changeSideFilter(this.value)"
+                title="Pilih Tampilan Sisi Kartu">
                 <option value="both">Depan &amp; Belakang</option>
                 <option value="front-only">Depan Saja</option>
                 <option value="back-only">Belakang Saja</option>
             </select>
         </div>
 
-        <button type="button" onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
+        <button type="button" onclick="window.SAE_Print ? window.SAE_Print() : window.print()"
+            class="btn-action btn-print">
             <i class="fas fa-print"></i> Cetak Kartu Sekarang
         </button>
 
