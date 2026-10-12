@@ -25,6 +25,13 @@ class PesertaDidikPresensiController extends Controller
         $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
         $nisn = is_array($user) ? ($user['nisn'] ?? null) : ($user->nisn ?? null);
 
+        if (!$pdId && request('peserta_didik_id')) {
+            $pdId = request('peserta_didik_id');
+        }
+        if (!$nisn && request('nisn')) {
+            $nisn = request('nisn');
+        }
+
         if ($pdId) {
             return DB::table('peserta_didik as pd')
                 ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
@@ -63,7 +70,23 @@ class PesertaDidikPresensiController extends Controller
                 ->first();
         }
 
-        return null;
+        // Fallback untuk akun Admin saat meninjau modul riwayat presensi peserta didik
+        return DB::table('peserta_didik as pd')
+            ->leftJoin('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+            ->leftJoin('gtk as wali', 'rb.ptk_id', '=', 'wali.ptk_id')
+            ->select(
+                'pd.*',
+                'rb.nama as nama_rombel',
+                'rb.tingkat_pendidikan_id',
+                'rb.jurusan_id_str',
+                'pdm.foto_path',
+                'pdm.rfid_uid',
+                'wali.nama as wali_nama',
+                'wali.nip as wali_nip',
+                'wali.nuptk as wali_nuptk'
+            )
+            ->first();
     }
 
     /**

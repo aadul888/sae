@@ -282,8 +282,9 @@ class RolePermission extends Model
             return true;
         }
 
+        // Administrator memiliki akses ke seluruh modul sistem tanpa batasan
         if ($role === 'admin') {
-            return in_array($permissionKey, self::FORBIDDEN_MODULES['admin'] ?? [], true);
+            return false;
         }
 
         // Kelompok Manajemen Data, Master Data, Sistem & Pengaturan, dan Fitur Operasional tidak boleh ada di peran non-admin
@@ -1590,70 +1591,8 @@ class RolePermission extends Model
             $actionCol = 'can_read';
         }
 
-        // Khusus Administrator:
+        // Khusus Administrator: Superadmin memiliki wewenang penuh tanpa batasan terhadap seluruh modul dan aksi CRUD
         if ($role === 'admin') {
-            if (in_array($permissionKey, ['menu_dashboard', 'menu_hak_akses'])) {
-                return true;
-            }
-            if (self::isForbiddenForRole('admin', $permissionKey)) {
-                return false;
-            }
-            if (self::$runtimeAdminExistsCache === null) {
-                self::$runtimeAdminExistsCache = self::where('role', 'admin')->exists();
-            }
-            if (self::$runtimeAdminExistsCache) {
-                if (!isset(self::$runtimeRolePermissionsCache['admin'])) {
-                    self::$runtimeRolePermissionsCache['admin'] = self::where('role', 'admin')->get()->keyBy('permission_key');
-                }
-                $adminRow = self::$runtimeRolePermissionsCache['admin']->get($permissionKey);
-                if (!$adminRow && in_array($permissionKey, ['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'], true)) {
-                    $adminRow = self::$runtimeRolePermissionsCache['admin']->get('menu_persuratan');
-                }
-                if (!$adminRow && in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true)) {
-                    $adminRow = self::$runtimeRolePermissionsCache['admin']->get('menu_kesiswaan');
-                }
-                if (!$adminRow && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal'], true)) {
-                    $adminRow = self::$runtimeRolePermissionsCache['admin']->get('menu_wali_kelas');
-                }
-                if (!$adminRow && $permissionKey === 'menu_kesiswaan') {
-                    foreach (['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'] as $sk) {
-                        $sr = self::$runtimeRolePermissionsCache['admin']->get($sk);
-                        if ($sr && $sr->is_allowed && $sr->can_read) {
-                            $adminRow = $sr;
-                            break;
-                        }
-                    }
-                }
-                if (!$adminRow && $permissionKey === 'menu_persuratan') {
-                    foreach (['menu_surat_masuk', 'menu_surat_keluar', 'menu_pengaturan_persuratan'] as $sk) {
-                        $sr = self::$runtimeRolePermissionsCache['admin']->get($sk);
-                        if ($sr && $sr->is_allowed && $sr->can_read) {
-                            $adminRow = $sr;
-                            break;
-                        }
-                    }
-                }
-                if (!$adminRow && $permissionKey === 'menu_wali_kelas') {
-                    foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal'] as $sk) {
-                        $sr = self::$runtimeRolePermissionsCache['admin']->get($sk);
-                        if ($sr && $sr->is_allowed && $sr->can_read) {
-                            $adminRow = $sr;
-                            break;
-                        }
-                    }
-                }
-                if ($adminRow) {
-                    if ($adminRow->is_allowed && $adminRow->can_read) {
-                        return $actionCol === 'can_read' ? true : (bool) $adminRow->{$actionCol};
-                    }
-                    return false;
-                }
-
-                // Modul baru belum tercatat di database untuk Admin:
-                // Auto-register realtime on-the-fly dan berikan izin penuh untuk Administrator
-                self::autoRegisterNewPermission($permissionKey);
-                return true;
-            }
             return true;
         }
 
