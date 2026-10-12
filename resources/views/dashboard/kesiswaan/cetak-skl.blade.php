@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cetak SKL - {{ $siswa->nama }} - {{ $kelulusan->nomor_skl }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
+
 <body>
     <div class="no-print-bar">
-        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+        <button type="button" class="btn-action btn-back"
+            onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
             <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+        <button type="button" class="btn-action btn-print"
+            onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
             <i class="fas fa-print"></i> Cetak SKL (Print / PDF)
         </button>
     </div>
@@ -28,8 +33,10 @@
             <div class="kop-text">
                 <h3>PEMERINTAH PROVINSI</h3>
                 <h2>{{ $sekolah?->nama ?: 'SMK NEGERI 1' }}</h2>
-                <p>{{ $sekolah?->alamat_jalan ?: 'Jl. Pendidikan No. 1' }}, {{ $sekolah?->desa_kelurahan ?: '' }}, {{ $sekolah?->kecamatan ?: '' }}</p>
-                <p>NPSN: {{ $sekolah?->npsn ?: '-' }} | Website: {{ $sekolah?->website ?: '-' }} | Email: {{ $sekolah?->email ?: '-' }}</p>
+                <p>{{ $sekolah?->alamat_jalan ?: 'Jl. Pendidikan No. 1' }}, {{ $sekolah?->desa_kelurahan ?: '' }},
+                    {{ $sekolah?->kecamatan ?: '' }}</p>
+                <p>NPSN: {{ $sekolah?->npsn ?: '-' }} | Website: {{ $sekolah?->website ?: '-' }} | Email:
+                    {{ $sekolah?->email ?: '-' }}</p>
             </div>
         </div>
 
@@ -41,7 +48,8 @@
 
         <!-- Isi Surat -->
         <div class="isi-surat">
-            <p>Yang bertanda tangan di bawah ini Kepala {{ $sekolah?->nama ?: 'Sekolah' }}, menerangkan dengan sesungguhnya bahwa:</p>
+            <p>Yang bertanda tangan di bawah ini Kepala {{ $sekolah?->nama ?: 'Sekolah' }}, menerangkan dengan
+                sesungguhnya bahwa:</p>
 
             <table class="tabel-bio">
                 <tr>
@@ -52,7 +60,8 @@
                 <tr>
                     <td>Tempat, Tanggal Lahir</td>
                     <td>:</td>
-                    <td>{{ $siswa->tempat_lahir ?: '-' }}, {{ $siswa->tanggal_lahir ? date('d F Y', strtotime($siswa->tanggal_lahir)) : '-' }}</td>
+                    <td>{{ $siswa->tempat_lahir ?: '-' }},
+                        {{ $siswa->tanggal_lahir ? date('d F Y', strtotime($siswa->tanggal_lahir)) : '-' }}</td>
                 </tr>
                 <tr>
                     <td>Nomor Induk Siswa Nasional (NISN)</td>
@@ -77,17 +86,22 @@
             </table>
 
             <p style="text-indent: 36px;">
-                Berdasarkan kriteria kelulusan satuan pendidikan dan hasil rapat dewan guru pada tanggal {{ date('d F Y', strtotime($kelulusan->tanggal_lulus ?: date('Y-m-d'))) }}, yang bersangkutan dinyatakan:
+                Berdasarkan kriteria kelulusan satuan pendidikan dan hasil rapat dewan guru pada tanggal
+                {{ date('d F Y', strtotime($kelulusan->tanggal_lulus ?: date('Y-m-d'))) }}, yang bersangkutan
+                dinyatakan:
             </p>
 
             <div style="text-align: center; margin: 24px 0;">
-                <span style="display: inline-block; padding: 10px 40px; border: 2px solid #000; font-size: 16pt; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
+                <span
+                    style="display: inline-block; padding: 10px 40px; border: 2px solid #000; font-size: 16pt; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
                     {{ $kelulusan->status_kelulusan === 'lulus' ? 'L U L U S' : 'TIDAK LULUS' }}
                 </span>
             </div>
 
             <p style="text-indent: 36px;">
-                Surat Keterangan Lulus ini berlaku sementara sampai dengan diterbitkannya Ijazah asli yang sah, dan dapat dipergunakan sebagaimana mestinya untuk keperluan pendaftaran perguruan tinggi atau melamar pekerjaan.
+                Surat Keterangan Lulus ini berlaku sementara sampai dengan diterbitkannya Ijazah asli yang sah, dan
+                dapat dipergunakan sebagaimana mestinya untuk keperluan pendaftaran perguruan tinggi atau melamar
+                pekerjaan.
             </p>
         </div>
 
@@ -112,6 +126,9 @@
             </div>
         </div>
     </div>
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
+
 </html>

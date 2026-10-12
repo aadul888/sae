@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slip e-Izin - {{ $tiket->nomor_tiket }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
+
 <body>
     <div class="no-print-bar">
-        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+        <button type="button" class="btn-action btn-back"
+            onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
             <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+        <button type="button" class="btn-action btn-print"
+            onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
             <i class="fas fa-print"></i> Cetak Slip (Print / PDF)
         </button>
     </div>
@@ -69,7 +74,8 @@
         </tr>
     </table>
 
-    <div style="font-size: 11px; font-style: italic; color: #333; margin-top: 5px; border-left: 3px solid #666; padding-left: 8px;">
+    <div
+        style="font-size: 11px; font-style: italic; color: #333; margin-top: 5px; border-left: 3px solid #666; padding-left: 8px;">
         *Catatan: Slip izin ini wajib ditunjukkan kepada petugas Satpam di pos gerbang sekolah saat keluar dan kembali.
     </div>
 
@@ -93,6 +99,9 @@
         </tr>
     </table>
 
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
+
 </html>

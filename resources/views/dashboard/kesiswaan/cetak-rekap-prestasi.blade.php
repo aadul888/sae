@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Rekapitulasi Prestasi Siswa - {{ $sekolah->nama ?? 'Sekolah' }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
+
 <body>
     <div class="no-print-bar">
-        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+        <button type="button" class="btn-action btn-back"
+            onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
             <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+        <button type="button" class="btn-action btn-print"
+            onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
             <i class="fas fa-print"></i> Cetak Laporan (Print / PDF)
         </button>
     </div>
@@ -27,7 +32,8 @@
         <div class="kop-text">
             <h3>PEMERINTAH DAERAH PROVINSI / KABUPATEN / KOTA</h3>
             <h2>{{ $sekolah->nama ?? 'NAMA SATUAN PENDIDIKAN' }}</h2>
-            <p>{{ $sekolah->alamat_jalan ?? 'Alamat Sekolah' }}, NPSN: {{ $sekolah->npsn ?? '-' }} | Telepon: {{ $sekolah->nomor_telepon ?? '-' }}</p>
+            <p>{{ $sekolah->alamat_jalan ?? 'Alamat Sekolah' }}, NPSN: {{ $sekolah->npsn ?? '-' }} | Telepon:
+                {{ $sekolah->nomor_telepon ?? '-' }}</p>
             <p>Email: {{ $sekolah->email ?? '-' }} | Website: {{ $sekolah->website ?? '-' }}</p>
         </div>
     </div>
@@ -36,8 +42,8 @@
     <div class="judul-laporan">
         <h4>REKAPITULASI PRESTASI PESERTA DIDIK</h4>
         <p>
-            Tahun: {{ $tahun ?: 'Semua' }} | 
-            Kategori: {{ $kategori ? ucfirst($kategori) : 'Semua Kategori' }} | 
+            Tahun: {{ $tahun ?: 'Semua' }} |
+            Kategori: {{ $kategori ? ucfirst($kategori) : 'Semua Kategori' }} |
             Tingkat: {{ $tingkat ? ucwords(str_replace('_', ' ', $tingkat)) : 'Semua Tingkat' }}
         </p>
     </div>
@@ -114,6 +120,9 @@
             </p>
         </div>
     </div>
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
+
 </html>

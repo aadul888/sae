@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surat Perintah Tugas (SPT) - {{ $spt->nomor_spt }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
+
 <body>
     <div class="no-print-bar">
-        <button type="button" class="btn-action btn-back" onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
+        <button type="button" class="btn-action btn-back"
+            onclick="if(window.history.length>1){window.history.back();}else{window.close();}">
             <i class="fas fa-arrow-left"></i> Kembali
         </button>
-        <button type="button" class="btn-action btn-print" onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
+        <button type="button" class="btn-action btn-print"
+            onclick="window.SAE_Print ? window.SAE_Print() : window.print()">
             <i class="fas fa-print"></i> Cetak Dokumen (Print / PDF)
         </button>
     </div>
@@ -20,13 +25,14 @@
     <div class="page-container">
         <!-- KOP SURAT -->
         <div class="kop-surat">
-            @if(!empty($sekolahMeta?->kop_surat_path))
+            @if (!empty($sekolahMeta?->kop_surat_path))
                 <img src="{{ asset('storage/' . $sekolahMeta->kop_surat_path) }}" alt="KOP Surat">
             @else
                 <div class="kop-fallback">
                     <h2>PEMERINTAH PROVINSI / DAERAH</h2>
                     <h1>{{ $sekolah?->nama ?? 'SMK NEGERI CONTOH' }}</h1>
-                    <p>{{ $sekolah?->alamat_jalan ?? 'Jl. Pendidikan No. 1' }} | NPSN: {{ $sekolah?->npsn ?? '-' }} | Email: {{ $sekolah?->email ?? '-' }}</p>
+                    <p>{{ $sekolah?->alamat_jalan ?? 'Jl. Pendidikan No. 1' }} | NPSN: {{ $sekolah?->npsn ?? '-' }} |
+                        Email: {{ $sekolah?->email ?? '-' }}</p>
                 </div>
             @endif
         </div>
@@ -70,28 +76,30 @@
                 </thead>
                 <tbody>
                     @forelse($gtkList as $idx => $g)
-                    <tr>
-                        <td style="text-align: center;">{{ $idx + 1 }}</td>
-                        <td style="font-weight: 600;">{{ $g->nama }}</td>
-                        <td>NIP: {{ $g->nip ?: '-' }}<br><small style="color: #6b7280;">NUPTK: {{ $g->nuptk ?: '-' }}</small></td>
-                        <td>{{ $g->jenis_ptk_id_str ?: 'Guru / Tendik' }}</td>
-                    </tr>
+                        <tr>
+                            <td style="text-align: center;">{{ $idx + 1 }}</td>
+                            <td style="font-weight: 600;">{{ $g->nama }}</td>
+                            <td>NIP: {{ $g->nip ?: '-' }}<br><small style="color: #6b7280;">NUPTK:
+                                    {{ $g->nuptk ?: '-' }}</small></td>
+                            <td>{{ $g->jenis_ptk_id_str ?: 'Guru / Tendik' }}</td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #6b7280;">Tidak ada personil terdaftar</td>
-                    </tr>
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #6b7280;">Tidak ada personil terdaftar
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
 
             <p>Untuk melaksanakan tugas kedinasan:</p>
             <table style="width: 100%; margin-bottom: 14px; border-collapse: collapse;">
-                @if(!empty($spt->dasar_penugasan))
-                <tr>
-                    <td style="width: 180px; padding: 3px 0; vertical-align: top;">Dasar Penugasan</td>
-                    <td style="width: 15px; padding: 3px 0; vertical-align: top;">:</td>
-                    <td style="vertical-align: top;">{{ $spt->dasar_penugasan }}</td>
-                </tr>
+                @if (!empty($spt->dasar_penugasan))
+                    <tr>
+                        <td style="width: 180px; padding: 3px 0; vertical-align: top;">Dasar Penugasan</td>
+                        <td style="width: 15px; padding: 3px 0; vertical-align: top;">:</td>
+                        <td style="vertical-align: top;">{{ $spt->dasar_penugasan }}</td>
+                    </tr>
                 @endif
                 <tr>
                     <td style="width: 180px; padding: 3px 0; vertical-align: top;">Kegiatan</td>
@@ -107,7 +115,7 @@
                     <td style="padding: 3px 0;">Waktu Pelaksanaan</td>
                     <td style="padding: 3px 0;">:</td>
                     <td>
-                        {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d F Y') }} s/d 
+                        {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d F Y') }} s/d
                         {{ \Carbon\Carbon::parse($spt->tanggal_kembali)->translatedFormat('d F Y') }}
                         ({{ $spt->lama_hari }} hari)
                     </td>
@@ -120,7 +128,8 @@
             </table>
 
             <p style="margin-top: 16px;">
-                Demikian Surat Perintah Tugas ini diberikan untuk dapat dilaksanakan dengan penuh tanggung jawab serta melaporkan hasil pelaksanaannya kepada Kepala Sekolah.
+                Demikian Surat Perintah Tugas ini diberikan untuk dapat dilaksanakan dengan penuh tanggung jawab serta
+                melaporkan hasil pelaksanaannya kepada Kepala Sekolah.
             </p>
         </div>
 
@@ -128,12 +137,17 @@
         <div class="ttd-container">
             <div class="ttd-box">
                 <p style="margin: 0 0 6px 0;">Dikeluarkan di: {{ $sekolah?->kabupaten_kota ?? 'Sekolah' }}</p>
-                <p style="margin: 0 0 50px 0;">Pada tanggal: {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d F Y') }}</p>
-                <p style="margin: 0; font-weight: 700; text-decoration: underline;">{{ $spt->pejabat_nama ?? ($kepsek?->nama ?? 'Kepala Sekolah') }}</p>
+                <p style="margin: 0 0 50px 0;">Pada tanggal:
+                    {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d F Y') }}</p>
+                <p style="margin: 0; font-weight: 700; text-decoration: underline;">
+                    {{ $spt->pejabat_nama ?? ($kepsek?->nama ?? 'Kepala Sekolah') }}</p>
                 <p style="margin: 0; font-size: 9.5pt;">NIP. {{ $kepsek?->nip ?? '-' }}</p>
             </div>
         </div>
     </div>
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
+
 </html>

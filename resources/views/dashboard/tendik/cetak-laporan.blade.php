@@ -8,14 +8,16 @@
     <link rel="icon" type="image/png"
         href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 
 <body>
 
     {{-- Floating Bar (Identik dengan Jadwal KBM) --}}
     <div class="no-print-bar">
-        <a href="{{ route('dashboard.tendik.laporan.index', request()->except('orientasi')) }}" class="btn-action btn-back">
+        <a href="{{ route('dashboard.tendik.laporan.index', request()->except('orientasi')) }}"
+            class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
 
@@ -46,20 +48,26 @@
         <div class="kop-container">
             @if (!empty($sekolahMeta?->kop_url))
                 <!-- File Gambar Kop Surat Resmi dari Identitas Sekolah -->
-                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}" class="kop-image">
+                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}"
+                    class="kop-image">
             @else
                 <!-- Fallback Kop Standar Resmi -->
                 <div class="kop-fallback">
                     @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url) ? $sekolahMeta->logo_url : asset('img/logo-dark.png');
+                        $logoUrl = !empty($sekolahMeta?->logo_url)
+                            ? $sekolahMeta->logo_url
+                            : asset('img/logo-dark.png');
                     @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo" onerror="this.src='/img/logo-dark.png'">
+                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo"
+                        onerror="this.src='/img/logo-dark.png'">
                     <div class="kop-text-wrap">
                         <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
                         <div class="kop-subtitle">
-                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat: {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
+                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat:
+                            {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
                             {{ $sekolah->kabupaten_kota ?? '' }}, {{ $sekolah->provinsi ?? '' }}<br>
-                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }} &bull; Website: {{ $sekolah->website ?? '-' }}
+                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }}
+                            &bull; Website: {{ $sekolah->website ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -72,7 +80,8 @@
                 <div class="school-name">{{ $sekolah->nama ?? 'SMK NEGERI 1 PAGELARAN' }}</div>
             @endif
             <div class="doc-title-main">LAPORAN CAPAIAN KINERJA &amp; LOG AKTIVITAS HARIAN</div>
-            <div class="doc-subtitle">PERIODE: {{ strtoupper($range['label']) }} &bull; FORMAT: A4 {{ strtoupper($orientasi) }}</div>
+            <div class="doc-subtitle">PERIODE: {{ strtoupper($range['label']) }} &bull; FORMAT: A4
+                {{ strtoupper($orientasi) }}</div>
         </div>
 
         <!-- 3. Info Box Identitas Pegawai (Identik dengan Jadwal KBM) -->
@@ -137,22 +146,25 @@
         <!-- 4b. Diagram Visual (Print-Safe SVG Bar Chart) -->
         @php
             $total = $totalAktivitas ?: 1;
-            $pctSelesai = round($totalSelesai / $total * 100);
-            $pctProses = round($totalProses / $total * 100);
-            $pctTertunda = round($totalTertunda / $total * 100);
+            $pctSelesai = round(($totalSelesai / $total) * 100);
+            $pctProses = round(($totalProses / $total) * 100);
+            $pctTertunda = round(($totalTertunda / $total) * 100);
 
             $distribusiBidang = $aktivitasList->groupBy('bidang')->map->count()->sortDesc()->take(6);
             $maxBidang = $distribusiBidang->max() ?: 1;
         @endphp
-        <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; position: relative; z-index: 1;">
+        <div
+            style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; position: relative; z-index: 1;">
             <!-- Diagram Proporsi Status (Horizontal Stacked Bar) -->
             <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px;">
-                <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
+                <div
+                    style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
                     Proporsi Penyelesaian Tugas
                 </div>
 
                 <!-- Stacked bar SVG -->
-                <div style="background: #f3f4f6; border-radius: 4px; height: 16px; overflow: hidden; display: flex; margin-bottom: 6px;">
+                <div
+                    style="background: #f3f4f6; border-radius: 4px; height: 16px; overflow: hidden; display: flex; margin-bottom: 6px;">
                     @if ($totalSelesai > 0)
                         <div style="width: {{ $pctSelesai }}%; background: #047857; height: 100%;"></div>
                     @endif
@@ -182,7 +194,8 @@
 
             <!-- Distribusi Aktivitas per Bidang (Horizontal Bar) -->
             <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px;">
-                <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
+                <div
+                    style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a; margin-bottom: 8px;">
                     Distribusi Aktivitas per Bidang Kerja
                 </div>
                 @php
@@ -191,13 +204,18 @@
                 @forelse ($distribusiBidang as $bKey => $bCount)
                     @php $barW = round($bCount / $maxBidang * 100); @endphp
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 0.7rem;">
-                        <span style="width: 90px; flex-shrink: 0; color: #4b5563; font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $bidangLabelsMap[$bKey] ?? $bKey }}">
+                        <span
+                            style="width: 90px; flex-shrink: 0; color: #4b5563; font-weight: 600; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                            title="{{ $bidangLabelsMap[$bKey] ?? $bKey }}">
                             {{ \Illuminate\Support\Str::limit($bidangLabelsMap[$bKey] ?? $bKey, 15) }}
                         </span>
                         <div style="flex: 1; background: #f3f4f6; border-radius: 3px; height: 10px; overflow: hidden;">
-                            <div style="width: {{ $barW }}%; height: 100%; background: #1e3a8a; border-radius: 3px;"></div>
+                            <div
+                                style="width: {{ $barW }}%; height: 100%; background: #1e3a8a; border-radius: 3px;">
+                            </div>
                         </div>
-                        <span style="width: 24px; text-align: right; color: #111827; font-weight: 700;">{{ $bCount }}</span>
+                        <span
+                            style="width: 24px; text-align: right; color: #111827; font-weight: 700;">{{ $bCount }}</span>
                     </div>
                 @empty
                     <p style="font-size: 0.72rem; color: #9ca3af; margin: 0;">Tidak ada data distribusi bidang.</p>
@@ -207,7 +225,8 @@
 
         <!-- 4c. Matriks Sasaran & Indikator Kinerja -->
         <div style="margin-top: 14px; margin-bottom: 16px; position: relative; z-index: 1;">
-            <div style="text-align: center; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; color: #111827;">
+            <div
+                style="text-align: center; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; color: #111827;">
                 MATRIKS SASARAN &amp; INDIKATOR CAPAIAN KINERJA PEGAWAI
             </div>
             <table class="table-data" style="margin-bottom: 14px;">
@@ -228,7 +247,8 @@
                             <td>{{ $ind->indikator_kinerja }}</td>
                             <td class="center"><strong>{{ $ind->target_label }}</strong></td>
                             <td class="center">
-                                <span class="badge-kbm {{ $ind->capaian_persen >= 100 ? 'badge-selesai' : 'badge-proses' }}">
+                                <span
+                                    class="badge-kbm {{ $ind->capaian_persen >= 100 ? 'badge-selesai' : 'badge-proses' }}">
                                     {{ $ind->realisasi_label }} ({{ $ind->capaian_persen }}%)
                                 </span>
                             </td>
@@ -274,7 +294,8 @@
                             <td class="center" style="color: #b45309;">{{ $rb['proses'] }}</td>
                             <td class="center font-mono">{{ $rb['durasi_jam'] }} Jam</td>
                             <td class="center">
-                                <span class="badge-kbm {{ $pct >= 80 ? 'badge-selesai' : ($pct >= 50 ? 'badge-proses' : 'badge-tertunda') }}">
+                                <span
+                                    class="badge-kbm {{ $pct >= 80 ? 'badge-selesai' : ($pct >= 50 ? 'badge-proses' : 'badge-tertunda') }}">
                                     {{ $pct }}%
                                 </span>
                             </td>
@@ -366,8 +387,9 @@
                 <div class="sig-title">
                     Mengetahui,<br>Kepala Satuan Pendidikan,
                 </div>
-                <div class="sig-name">{{ $kepsek?->nama ?: ($sekolah->nama_kepsek ?? 'Drs. H. Mulyadi, M.Pd.') }}</div>
-                <div class="sig-nip">NIP: {{ $kepsek?->nip ?: ($sekolah->nip_kepsek ?? '—') }}</div>
+                <div class="sig-name">{{ $kepsek?->nama ?: $sekolah->nama_kepsek ?? 'Drs. H. Mulyadi, M.Pd.' }}
+                </div>
+                <div class="sig-nip">NIP: {{ $kepsek?->nip ?: $sekolah->nip_kepsek ?? '—' }}</div>
             </div>
         </div>
 
@@ -392,7 +414,9 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
 
 </html>

@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rekap Presensi Peserta Didik — {{ $siswa->nama }} ({{ $range['label'] }})</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
+
 <body data-auto-print>
 
     <!-- Bar Aksi Cetak & Kembali Melayang -->
@@ -29,20 +32,26 @@
         <div class="kop-container">
             @if (!empty($sekolahMeta?->kop_url))
                 <!-- Menggunakan File Gambar Kop Surat Resmi yang sudah diunggah -->
-                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}" class="kop-image">
+                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}"
+                    class="kop-image">
             @else
                 <!-- Fallback Kop Standar jika belum ada file gambar kop -->
                 <div class="kop-fallback">
                     @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url) ? $sekolahMeta->logo_url : asset('img/logo-dark.png');
+                        $logoUrl = !empty($sekolahMeta?->logo_url)
+                            ? $sekolahMeta->logo_url
+                            : asset('img/logo-dark.png');
                     @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo" onerror="this.src='/img/logo-dark.png'">
+                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo"
+                        onerror="this.src='/img/logo-dark.png'">
                     <div class="kop-text-wrap">
                         <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
                         <div class="kop-subtitle">
-                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat: {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
+                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat:
+                            {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
                             {{ $sekolah->kabupaten_kota ?? '' }}, {{ $sekolah->provinsi ?? '' }}<br>
-                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }} &bull; Website: {{ $sekolah->website ?? '-' }}
+                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }}
+                            &bull; Website: {{ $sekolah->website ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -64,7 +73,8 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">NISN / NIPD:</span>
-                    <span class="info-val font-mono">{{ ($siswa->nisn ?? null) ?: '-' }} / {{ ($siswa->nipd ?? null) ?: '-' }}</span>
+                    <span class="info-val font-mono">{{ $siswa->nisn ?? null ?: '-' }} /
+                        {{ $siswa->nipd ?? null ?: '-' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Jenis Kelamin:</span>
@@ -74,15 +84,15 @@
             <div>
                 <div class="info-item">
                     <span class="info-label">Kelas / Rombel:</span>
-                    <span class="info-val" style="color: #1e3a8a;">{{ ($siswa->nama_rombel ?? null) ?: '-' }}</span>
+                    <span class="info-val" style="color: #1e3a8a;">{{ $siswa->nama_rombel ?? null ?: '-' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Program Keahlian:</span>
-                    <span>{{ ($siswa->jurusan_id_str ?? null) ?: 'Umum' }}</span>
+                    <span>{{ $siswa->jurusan_id_str ?? null ?: 'Umum' }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Wali Kelas:</span>
-                    <span class="info-val">{{ ($siswa->wali_nama ?? null) ?: '-' }}</span>
+                    <span class="info-val">{{ $siswa->wali_nama ?? null ?: '-' }}</span>
                 </div>
             </div>
         </div>
@@ -132,7 +142,8 @@
                 @forelse ($logs as $i => $l)
                     <tr>
                         <td class="text-center">{{ $i + 1 }}</td>
-                        <td class="text-center font-mono">{{ \Carbon\Carbon::parse($l->tanggal)->format('d/m/Y') }}</td>
+                        <td class="text-center font-mono">{{ \Carbon\Carbon::parse($l->tanggal)->format('d/m/Y') }}
+                        </td>
                         <td>{{ \Carbon\Carbon::parse($l->tanggal)->translatedFormat('l') }}</td>
                         <td class="text-center font-mono">
                             {{ $l->jam_masuk ? substr($l->jam_masuk, 0, 5) . ' WIB' : '-' }}
@@ -144,7 +155,8 @@
                             @if ($l->status === 'H')
                                 <span style="font-weight: 700; color: #059669;">Hadir</span>
                             @elseif ($l->status === 'T')
-                                <span style="font-weight: 700; color: #d97706;">Terlambat (+{{ $l->menit_terlambat }}m)</span>
+                                <span style="font-weight: 700; color: #d97706;">Terlambat
+                                    (+{{ $l->menit_terlambat }}m)</span>
                             @elseif ($l->status === 'I')
                                 <span style="font-weight: 700; color: #2563eb;">Izin</span>
                             @elseif ($l->status === 'S')
@@ -185,13 +197,16 @@
                     <td style="width: 33%;">
                         Wali Kelas
                         <div class="ttd-space"></div>
-                        <div class="ttd-name">{{ ($siswa->wali_nama ?? null) ?: '...................................................' }}</div>
-                        <div class="ttd-nip">NIP. {{ ($siswa->wali_nip ?? null) ?: '-' }}</div>
+                        <div class="ttd-name">
+                            {{ $siswa->wali_nama ?? null ?: '...................................................' }}
+                        </div>
+                        <div class="ttd-nip">NIP. {{ $siswa->wali_nip ?? null ?: '-' }}</div>
                     </td>
                     <td style="width: 34%;">
                         Kepala Sekolah
                         <div class="ttd-space"></div>
-                        <div class="ttd-name">{{ $kepsek?->nama ?: '...................................................' }}</div>
+                        <div class="ttd-name">
+                            {{ $kepsek?->nama ?: '...................................................' }}</div>
                         <div class="ttd-nip">NIP. {{ $kepsek?->nip ?: '-' }}</div>
                     </td>
                 </tr>
@@ -199,6 +214,9 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
+
 </html>

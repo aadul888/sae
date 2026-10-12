@@ -8,6 +8,7 @@
     $kepalaTas = $kepalaTas ?? null;
     $disposisiCatatan = $disposisiCatatan ?? ($disposisi?->catatan ?? null);
 @endphp
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +16,8 @@
     <link rel="icon" type="image/png"
         href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 
 <body>
@@ -56,13 +58,17 @@
             @else
                 <div class="kop-fallback">
                     @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url) ? $sekolahMeta->logo_url : asset('img/logo-dark.png');
+                        $logoUrl = !empty($sekolahMeta?->logo_url)
+                            ? $sekolahMeta->logo_url
+                            : asset('img/logo-dark.png');
                     @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo" onerror="this.src='/img/logo-dark.png'">
+                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo"
+                        onerror="this.src='/img/logo-dark.png'">
                     <div class="kop-text-wrap">
                         <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
                         <div class="kop-subtitle">
-                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat: {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
+                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat:
+                            {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
                             {{ $sekolah->kabupaten_kota ?? '' }}<br>
                             Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }}
                         </div>
@@ -74,7 +80,8 @@
         {{-- Header Lembar Disposisi --}}
         <div class="doc-header">
             <div class="doc-title-main">LEMBAR DISPOSISI SURAT DINAS</div>
-            <div class="doc-subtitle">Nomor Agenda: #{{ str_pad($surat->id, 4, '0', STR_PAD_LEFT) }} &bull; Klasifikasi: {{ strtoupper($surat->jenis_surat) }}</div>
+            <div class="doc-subtitle">Nomor Agenda: #{{ str_pad($surat->id, 4, '0', STR_PAD_LEFT) }} &bull;
+                Klasifikasi: {{ strtoupper($surat->jenis_surat) }}</div>
         </div>
 
         {{-- Data Surat Masuk --}}
@@ -83,13 +90,15 @@
                 <th>Surat Dari</th>
                 <td><strong>{{ $surat->pengirim_asal ?: '—' }}</strong></td>
                 <th style="width: 130px;">Tanggal Surat</th>
-                <td style="width: 170px;">{{ \Carbon\Carbon::parse($surat->tanggal_surat)->translatedFormat('d F Y') }}</td>
+                <td style="width: 170px;">{{ \Carbon\Carbon::parse($surat->tanggal_surat)->translatedFormat('d F Y') }}
+                </td>
             </tr>
             <tr>
                 <th>Nomor Surat</th>
                 <td><strong>{{ $surat->nomor_surat }}</strong></td>
                 <th>Tanggal Diterima</th>
-                <td>{{ $surat->tanggal_diterima ? \Carbon\Carbon::parse($surat->tanggal_diterima)->translatedFormat('d F Y') : '—' }}</td>
+                <td>{{ $surat->tanggal_diterima ? \Carbon\Carbon::parse($surat->tanggal_diterima)->translatedFormat('d F Y') : '—' }}
+                </td>
             </tr>
             <tr>
                 <th>Perihal / Isi Ringkas</th>
@@ -112,33 +121,40 @@
                 <td style="padding: 12px;">
                     <div class="instruksi-grid">
                         <div class="instruksi-item">
-                            <span class="box-check">{{ in_array('Waka Kurikulum', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ in_array('Waka Kurikulum', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
                             <span>Waka Kurikulum</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ in_array('Waka Kesiswaan', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ in_array('Waka Kesiswaan', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
                             <span>Waka Kesiswaan</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ in_array('Waka Sarpras', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ in_array('Waka Sarpras', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
                             <span>Waka Sarpras</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ in_array('Waka Hubin', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ in_array('Waka Hubin', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
                             <span>Waka Hubin</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ in_array('Kepala TAS', $disposisiTujuan ?? []) || in_array('KTU', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ in_array('Kepala TAS', $disposisiTujuan ?? []) || in_array('KTU', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
                             <span>Kepala TAS / Tata Usaha</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ in_array('Guru Piket', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ in_array('Guru Piket', $disposisiTujuan ?? []) ? '✓' : '' }}</span>
                             <span>Guru Piket / Kesiswaan</span>
                         </div>
                     </div>
 
                     @if (!empty($disposisiTujuanLain))
-                        <div style="margin-top: 10px; font-size: 0.8rem; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                        <div
+                            style="margin-top: 10px; font-size: 0.8rem; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
                             <strong>Personel Ditunjuk:</strong> {{ $disposisiTujuanLain }}
                         </div>
                     @endif
@@ -146,23 +162,28 @@
                 <td style="padding: 12px;">
                     <div class="instruksi-grid">
                         <div class="instruksi-item">
-                            <span class="box-check">{{ ($disposisiInstruksi ?? '') === 'Tanggapi / Tindak Lanjuti' ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ ($disposisiInstruksi ?? '') === 'Tanggapi / Tindak Lanjuti' ? '✓' : '' }}</span>
                             <span>Tanggapi / Tindak Lanjuti</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ ($disposisiInstruksi ?? '') === 'Hadir / Wakili' ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ ($disposisiInstruksi ?? '') === 'Hadir / Wakili' ? '✓' : '' }}</span>
                             <span>Hadir / Wakili</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ ($disposisiInstruksi ?? '') === 'Teliti & Laporkan' ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ ($disposisiInstruksi ?? '') === 'Teliti & Laporkan' ? '✓' : '' }}</span>
                             <span>Teliti &amp; Laporkan</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ ($disposisiInstruksi ?? '') === 'Koordinasikan' ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ ($disposisiInstruksi ?? '') === 'Koordinasikan' ? '✓' : '' }}</span>
                             <span>Koordinasikan</span>
                         </div>
                         <div class="instruksi-item">
-                            <span class="box-check">{{ ($disposisiInstruksi ?? '') === 'Bicarakan Bersama' ? '✓' : '' }}</span>
+                            <span
+                                class="box-check">{{ ($disposisiInstruksi ?? '') === 'Bicarakan Bersama' ? '✓' : '' }}</span>
                             <span>Bicarakan Bersama</span>
                         </div>
                         <div class="instruksi-item">
@@ -196,8 +217,8 @@
                 <div class="sig-title">
                     Kepala Satuan Pendidikan,
                 </div>
-                <div class="sig-name">{{ $kepsek?->nama ?: ($sekolah->nama_kepsek ?? 'Drs. H. Mulyadi, M.Pd.') }}</div>
-                <div class="sig-nip">NIP: {{ $kepsek?->nip ?: ($sekolah->nip_kepsek ?? '—') }}</div>
+                <div class="sig-name">{{ $kepsek?->nama ?: $sekolah->nama_kepsek ?? 'Drs. H. Mulyadi, M.Pd.' }}</div>
+                <div class="sig-nip">NIP: {{ $kepsek?->nip ?: $sekolah->nip_kepsek ?? '—' }}</div>
             </div>
         </div>
 
@@ -205,7 +226,8 @@
         <div class="doc-footer">
             <div>
                 <strong>Dokumen Sah Tata Naskah Dinas Sekolah — Sistem Aplikasi Edukasi (SAE)</strong><br>
-                Dicetak pada {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y H:i') }} WIB &bull; Status: {{ strtoupper($surat->status) }}
+                Dicetak pada {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y H:i') }} WIB &bull; Status:
+                {{ strtoupper($surat->status) }}
             </div>
             <div>
                 Format A4 {{ ucfirst($orientasi) }}
@@ -213,7 +235,9 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
 
 </html>

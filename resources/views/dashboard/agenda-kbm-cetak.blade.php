@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jurnal Agenda KBM — {{ $guru->nama ?? 'Guru' }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
+
 <body>
     <div class="no-print-bar">
         <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn-action btn-back">
@@ -74,13 +77,15 @@
                         <td style="text-align: center;">{{ $idx + 1 }}</td>
                         <td>
                             <strong>{{ $item->hari }}</strong><br>
-                            <span style="font-size: 9pt;">{{ $item->tanggal ? $item->tanggal->format('d/m/Y') : '-' }}</span>
+                            <span
+                                style="font-size: 9pt;">{{ $item->tanggal ? $item->tanggal->format('d/m/Y') : '-' }}</span>
                         </td>
                         <td style="text-align: center;">{{ $item->jam_ke_mulai }}-{{ $item->jam_ke_selesai }}</td>
                         <td>{{ $item->nama_rombel }}</td>
                         <td>{{ $item->nama_mata_pelajaran }}</td>
                         <td>
-                            <div style="font-weight: bold; margin-bottom: 2px;">(Pertemuan #{{ $item->pertemuan_ke }})</div>
+                            <div style="font-weight: bold; margin-bottom: 2px;">(Pertemuan #{{ $item->pertemuan_ke }})
+                            </div>
                             {{ $item->materi_pokok }}
                         </td>
                         <td>
@@ -111,11 +116,14 @@
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah,</div>
                 <div class="sig-space"></div>
-                <div class="sig-name">{{ $kepalaSekolah?->nama ?? '...................................................' }}</div>
+                <div class="sig-name">
+                    {{ $kepalaSekolah?->nama ?? '...................................................' }}</div>
                 <div>NIP. {{ $kepalaSekolah?->nip ?: ($kepalaSekolah?->nuptk ?: '—') }}</div>
             </div>
             <div class="sig-box">
-                <div>{{ $sekolah->kabupaten_kota ? str_replace(['Kabupaten ', 'Kota '], '', $sekolah->kabupaten_kota) : 'Tempat' }}, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+                <div>
+                    {{ $sekolah->kabupaten_kota ? str_replace(['Kabupaten ', 'Kota '], '', $sekolah->kabupaten_kota) : 'Tempat' }},
+                    {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
                 <div>Guru Mata Pelajaran,</div>
                 <div class="sig-space"></div>
                 <div class="sig-name">{{ $guru->nama ?? 'Guru Pengampu' }}</div>
@@ -123,6 +131,9 @@
             </div>
         </div>
     </div>
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
+
 </html>

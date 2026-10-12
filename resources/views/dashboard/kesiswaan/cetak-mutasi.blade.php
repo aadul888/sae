@@ -9,14 +9,16 @@
     $qrUri = $qrUri ?? null;
     $siswa = $siswa ?? ($mutasi->siswa ?? null);
 @endphp
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surat Keterangan Mutasi — {{ $siswa?->nama ?? $mutasi->siswa?->nama ?? 'Peserta Didik' }}</title>
+    <title>Surat Keterangan Mutasi — {{ $siswa?->nama ?? ($mutasi->siswa?->nama ?? 'Peserta Didik') }}</title>
     <link rel="icon" type="image/png"
         href="{{ asset('img/logo-icon.png') }}?v={{ @filemtime(public_path('img/logo-icon.png')) ?: '1' }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 
 <body>
@@ -57,13 +59,17 @@
             @else
                 <div class="kop-fallback">
                     @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url) ? $sekolahMeta->logo_url : asset('img/logo-dark.png');
+                        $logoUrl = !empty($sekolahMeta?->logo_url)
+                            ? $sekolahMeta->logo_url
+                            : asset('img/logo-dark.png');
                     @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo" onerror="this.src='/img/logo-dark.png'">
+                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo"
+                        onerror="this.src='/img/logo-dark.png'">
                     <div class="kop-text-wrap">
                         <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
                         <div class="kop-subtitle">
-                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat: {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
+                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat:
+                            {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
                             {{ $sekolah->kabupaten_kota ?? '' }}<br>
                             Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }}
                         </div>
@@ -81,7 +87,8 @@
         {{-- Naskah Surat --}}
         <div class="surat-body">
             <p>
-                Yang bertanda tangan di bawah ini, Kepala {{ $sekolah->nama ?? 'SMK NEGERI 1 PAGELARAN' }}, menerangkan bahwa:
+                Yang bertanda tangan di bawah ini, Kepala {{ $sekolah->nama ?? 'SMK NEGERI 1 PAGELARAN' }}, menerangkan
+                bahwa:
             </p>
 
             <table class="table-bio">
@@ -98,7 +105,9 @@
                 <tr>
                     <td class="label">Tempat, Tanggal Lahir</td>
                     <td class="colon">:</td>
-                    <td class="val">{{ $siswa->tempat_lahir ?: '—' }}, {{ $siswa->tanggal_lahir ? \Carbon\Carbon::parse($siswa->tanggal_lahir)->translatedFormat('d F Y') : '—' }}</td>
+                    <td class="val">{{ $siswa->tempat_lahir ?: '—' }},
+                        {{ $siswa->tanggal_lahir ? \Carbon\Carbon::parse($siswa->tanggal_lahir)->translatedFormat('d F Y') : '—' }}
+                    </td>
                 </tr>
                 <tr>
                     <td class="label">Jenis Kelamin</td>
@@ -123,7 +132,10 @@
             </table>
 
             <p>
-                Sesuai dengan permohonan tertulis dari orang tua/wali siswa bersangkutan, terhitung sejak tanggal <strong>{{ \Carbon\Carbon::parse($mutasi->tanggal_mutasi)->translatedFormat('d F Y') }}</strong> dinyatakan telah <strong>PINDAH / KELUAR</strong> dari {{ $sekolah->nama ?? 'SMK NEGERI 1 PAGELARAN' }} menuju:
+                Sesuai dengan permohonan tertulis dari orang tua/wali siswa bersangkutan, terhitung sejak tanggal
+                <strong>{{ \Carbon\Carbon::parse($mutasi->tanggal_mutasi)->translatedFormat('d F Y') }}</strong>
+                dinyatakan telah <strong>PINDAH / KELUAR</strong> dari {{ $sekolah->nama ?? 'SMK NEGERI 1 PAGELARAN' }}
+                menuju:
             </p>
 
             <table class="table-bio">
@@ -140,7 +152,8 @@
             </table>
 
             <p>
-                Surat keterangan pindah sekolah ini diterbitkan dengan catatan bahwa seluruh administrasi dan kewajiban peserta didik selama berada di satuan pendidikan kami telah diselesaikan.
+                Surat keterangan pindah sekolah ini diterbitkan dengan catatan bahwa seluruh administrasi dan kewajiban
+                peserta didik selama berada di satuan pendidikan kami telah diselesaikan.
             </p>
 
             <p>
@@ -158,8 +171,8 @@
                 <div class="sig-title">
                     Kepala Satuan Pendidikan,
                 </div>
-                <div class="sig-name">{{ $kepsek?->nama ?: ($sekolah->nama_kepsek ?? 'Drs. H. Mulyadi, M.Pd.') }}</div>
-                <div class="sig-nip">NIP: {{ $kepsek?->nip ?: ($sekolah->nip_kepsek ?? '—') }}</div>
+                <div class="sig-name">{{ $kepsek?->nama ?: $sekolah->nama_kepsek ?? 'Drs. H. Mulyadi, M.Pd.' }}</div>
+                <div class="sig-nip">NIP: {{ $kepsek?->nip ?: $sekolah->nip_kepsek ?? '—' }}</div>
             </div>
         </div>
 
@@ -169,7 +182,8 @@
                 <img src="{{ $qrUri }}" alt="QR Code Verifikasi">
                 <div>
                     <strong>Dokumen Sah Mutasi Siswa — Sistem Aplikasi Edukasi (SAE)</strong><br>
-                    ID Dokumen: <code>{{ $docId }}</code> &bull; Pindai QR Code untuk verifikasi keaslian berkas digital.
+                    ID Dokumen: <code>{{ $docId }}</code> &bull; Pindai QR Code untuk verifikasi keaslian berkas
+                    digital.
                 </div>
             </div>
             <div style="text-align: right;">
@@ -179,7 +193,9 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
 </body>
 
 </html>

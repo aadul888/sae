@@ -25,8 +25,7 @@
                     <i class="fas fa-arrow-left"></i> @yield('back_text', 'Kembali')
                 </a>
             @else
-                <button type="button"
-                    onclick="if(window.history.length > 1){window.history.back();}else{window.close();}"
+                <button type="button" onclick="if(window.history.length > 1){window.history.back();}else{window.close();}"
                     class="btn-action btn-back">
                     <i class="fas fa-arrow-left"></i> @yield('back_text', 'Kembali')
                 </button>

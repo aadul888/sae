@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jadwal Pelajaran Kelas - {{ $sekolah->nama ?? 'Sekolah' }}</title>
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
 </head>
 
 <body>
@@ -20,7 +21,8 @@
             <select class="select-cetak" data-param="rombel_id" title="Pilih Kelas untuk Dicetak">
                 <option value="">Semua Kelas ({{ count($allRombelOptions) }} Kelas)</option>
                 @foreach ($allRombelOptions as $r)
-                    <option value="{{ $r->rombongan_belajar_id }}" {{ ($rombelId ?? '') == $r->rombongan_belajar_id ? 'selected' : '' }}>
+                    <option value="{{ $r->rombongan_belajar_id }}"
+                        {{ ($rombelId ?? '') == $r->rombongan_belajar_id ? 'selected' : '' }}>
                         Kelas {{ $r->nama }}
                     </option>
                 @endforeach
@@ -43,7 +45,8 @@
             <div class="doc-header">
                 <div class="school-name">{{ $sekolah->nama ?? 'SEKOLAH' }}</div>
                 <div class="doc-title-main">JADWAL PELAJARAN KELAS {{ strtoupper($rombel->nama) }}</div>
-                <div class="doc-subtitle">Tahun Pelajaran {{ date('Y') }}/{{ date('Y') + 1 }} &bull; Semester Genap
+                <div class="doc-subtitle">Tahun Pelajaran {{ date('Y') }}/{{ date('Y') + 1 }} &bull; Semester
+                    Genap
                 </div>
             </div>
 
@@ -180,6 +183,9 @@
             <p style="color: #9ca3af;">Tidak ada rombongan belajar yang ditemukan.</p>
         </div>
     @endforelse
-    <script src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}"></script></body>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
+</body>
 
 </html>
