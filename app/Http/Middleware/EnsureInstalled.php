@@ -30,8 +30,21 @@ class EnsureInstalled
             try {
                 DB::connection()->getPdo();
                 $installed = DB::getSchemaBuilder()->hasTable('pengguna') && DB::table('pengguna')->exists();
-            } catch (\Exception $e) {
-                $installed = false;
+            } catch (\Throwable $e) {
+                // Jika DB connection gagal namun ada bootstrap config cache stale, bersihkan dan coba sekali lagi
+                $configCache = base_path('bootstrap/cache/config.php');
+                if (File::exists($configCache)) {
+                    @unlink($configCache);
+                    try {
+                        DB::purge('mysql');
+                        DB::connection()->getPdo();
+                        $installed = DB::getSchemaBuilder()->hasTable('pengguna') && DB::table('pengguna')->exists();
+                    } catch (\Throwable $retryEx) {
+                        $installed = false;
+                    }
+                } else {
+                    $installed = false;
+                }
             }
         }
 
@@ -40,7 +53,7 @@ class EnsureInstalled
         }
 
         if ($installed && $isInstallRoute) {
-            return redirect()->route('login');
+            return redirect()->route('login')->with('info', 'Sistem SAE sudah terinstal. Silakan login.');
         }
 
         return $next($request);
