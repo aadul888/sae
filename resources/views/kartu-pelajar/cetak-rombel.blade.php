@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="{{ asset('css/fonts.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
+        href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
+    <link rel="stylesheet"
         href="{{ asset('css/kartu-pelajar.css') }}?v={{ file_exists(public_path('css/kartu-pelajar.css')) ? filemtime(public_path('css/kartu-pelajar.css')) : time() }}">
     <link rel="stylesheet"
         href="{{ asset('css/dashboard.css') }}?v={{ file_exists(public_path('css/dashboard.css')) ? filemtime(public_path('css/dashboard.css')) : time() }}">
@@ -18,34 +20,28 @@
 
 <body>
 
-    <!-- Sticky Toolbar (Non-Printable) -->
-    <div class="action-toolbar no-print">
-        <div class="toolbar-info">
-            <div class="toolbar-title">
-                <i class="fas fa-print" style="color: #0284c7;"></i> Cetak Masal Kartu Pelajar: {{ $rombel->nama }}
-            </div>
-            <div class="toolbar-desc">
-                Total {{ count($cards) }} Peserta Didik &bull; Standar CR-80 Portrait (54mm &times; 85.6mm)
-            </div>
-        </div>
+    <!-- Sticky Floating Toolbar (Non-Printable) -->
+    <div class="no-print-bar">
+        <a href="javascript:if(window.history.length>1){window.history.back();}else{window.close();}" class="btn-action btn-back">
+            <i class="fas fa-arrow-left"></i> Tutup
+        </a>
 
-        <div class="toolbar-controls">
-            <label for="sideFilter" style="font-size: 0.8rem; font-weight: 700; color: #475569;">Tampilan Sisi:</label>
-            <select id="sideFilter" class="filter-select" onchange="changeSideFilter(this.value)">
+        <div class="orientation-switch">
+            <select id="sideFilter" class="select-cetak" onchange="changeSideFilter(this.value)" title="Pilih Tampilan Sisi Kartu">
                 <option value="both">Depan &amp; Belakang</option>
                 <option value="front-only">Halaman Depan Saja</option>
                 <option value="back-only">Halaman Belakang Saja</option>
             </select>
-
-            <button onclick="window.print()" class="btn-print">
-                <i class="fas fa-print"></i> Cetak Dokumen
-            </button>
-
-            <button type="button" id="btnUnduhSemuaJpg" onclick="unduhSemuaKartuRombelZip()" class="btn-print"
-                style="background: #059669; border-color: #059669;">
-                <i class="fas fa-file-zipper"></i> Unduh Semua JPG (.zip)
-            </button>
         </div>
+
+        <button type="button" onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
+            <i class="fas fa-print"></i> Cetak Kartu: {{ $rombel->nama }}
+        </button>
+
+        <button type="button" id="btnUnduhSemuaJpg" onclick="unduhSemuaKartuRombelZip()" class="btn-action"
+            style="background: #059669 !important; color: #ffffff !important;">
+            <i class="fas fa-file-zipper"></i> Unduh Semua JPG (.zip)
+        </button>
     </div>
 
     <!-- Container Cetak Kartu -->
@@ -66,6 +62,9 @@
     <script src="{{ asset('vendor/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('js/html2canvas.min.js') }}"></script>
     <script src="{{ asset('js/jszip.min.js') }}"></script>
+    <script
+        src="{{ asset('js/cetak.js') }}?v={{ file_exists(public_path('js/cetak.js')) ? filemtime(public_path('js/cetak.js')) : time() }}">
+    </script>
     <script
         src="{{ asset('js/kartu-pelajar-cetak.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-cetak.js')) ? filemtime(public_path('js/kartu-pelajar-cetak.js')) : time() }}">
     </script>

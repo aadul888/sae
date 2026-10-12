@@ -1017,10 +1017,13 @@
                     <img id="previewImage" src="" alt="Preview Berkas"
                         style="max-width: 100%; max-height: 100%; object-fit: contain; display: none;">
                 </div>
-                <!-- Modal 4: Buat Surat Perintah Tugas (SPT) -->
-                <div class="modal-overlay" id="modalSpt"
-                    style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
-                    <div class="modal-container"
+            </div>
+        </div>
+
+        <!-- Modal 4: Buat Surat Perintah Tugas (SPT) -->
+        <div class="modal-overlay" id="modalSpt"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
+            <div class="modal-container"
                         style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 24px;">
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
@@ -1115,9 +1118,13 @@
                         </form>
                     </div>
                 </div>
-            @endsection
+            </div>
+        @endsection
 
             @push('scripts')
+                <script
+                    src="{{ asset('js/people-autocomplete.js') }}?v={{ file_exists(public_path('js/people-autocomplete.js')) ? filemtime(public_path('js/people-autocomplete.js')) : time() }}">
+                </script>
                 <script
                     src="{{ asset('js/persuratan-keluar.js') }}?v={{ file_exists(public_path('js/persuratan-keluar.js')) ? filemtime(public_path('js/persuratan-keluar.js')) : time() }}">
                 </script>

@@ -306,8 +306,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'show'])->name('persuratan.keluar.show')->middleware('permission:menu_surat_keluar,read');
     Route::put('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'update'])->name('persuratan.keluar.update')->middleware('permission:menu_surat_keluar,update');
     Route::delete('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'destroy'])->name('persuratan.keluar.destroy')->middleware('permission:menu_surat_keluar,delete');
+    Route::get('/persuratan/keluar/keterangan', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'keterangan']));
     Route::post('/persuratan/keluar/keterangan', [\App\Http\Controllers\SuratKeluarController::class, 'suratKeteranganStore'])->name('persuratan.keterangan.store')->middleware('permission:menu_surat_keluar,create');
     Route::get('/persuratan/keluar/keterangan/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'suratKeteranganCetak'])->name('persuratan.keterangan.cetak')->middleware('permission:menu_surat_keluar,read');
+    Route::get('/persuratan/keluar/spt', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'spt']));
     Route::post('/persuratan/keluar/spt', [\App\Http\Controllers\SuratKeluarController::class, 'storeSpt'])->name('persuratan.keluar.spt.store')->middleware('permission:menu_surat_keluar,create');
     Route::delete('/persuratan/keluar/spt/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteSpt'])->name('persuratan.keluar.spt.delete')->middleware('permission:menu_surat_keluar,delete');
     Route::get('/persuratan/keluar/spt/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakSpt'])->name('persuratan.keluar.spt.cetak')->middleware('permission:menu_surat_keluar,read');

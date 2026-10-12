@@ -659,7 +659,7 @@ class SuratKeluarController extends Controller
 
         $kepsek = Gtk::where(function ($q) {
             $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
+              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
         })->first();
 
         DB::table('gtk_spt')->insert([
@@ -725,7 +725,7 @@ class SuratKeluarController extends Controller
         $sekolahMeta = \App\Models\SekolahMeta::first();
         $kepsek = Gtk::where(function ($q) {
             $q->where('jenis_ptk_id_str', 'like', '%kepala sekolah%')
-              ->orWhere('jabatan_ptk', 'like', '%kepala sekolah%');
+              ->orWhere('jabatan_ptk_id_str', 'like', '%kepala sekolah%');
         })->first();
 
         return view('dashboard.persuratan.cetak-spt', compact(

@@ -3,7 +3,24 @@
     $userName = is_array($user)
         ? $user['name'] ?? ($user['nama'] ?? 'Pengguna')
         : $user->name ?? ($user->nama ?? 'Pengguna');
-    $role = is_array($user) ? $user['role'] ?? 'peserta_didik' : $user->role ?? 'peserta_didik';
+    $rawRole = is_array($user)
+        ? $user['role'] ?? ($user['peran_id_str'] ?? 'peserta_didik')
+        : $user->role ?? ($user->peran_id_str ?? 'peserta_didik');
+    $role = match (strtolower(trim($rawRole))) {
+        'admin', 'administrator', 'operator' => 'admin',
+        'guru', 'ptk' => 'guru',
+        'tendik', 'tenaga kependidikan', 'tata usaha', 'pegawai' => 'tendik',
+        'orang tua', 'orang_tua', 'wali murid', 'wali_murid' => 'orang_tua',
+        default => 'peserta_didik',
+    };
+
+    $dashHomeRoute = match ($role) {
+        'admin' => 'dashboard.admin',
+        'guru' => 'dashboard.guru',
+        'tendik' => 'dashboard.tendik',
+        'orang_tua' => 'dashboard.orang-tua',
+        default => 'dashboard.peserta-didik',
+    };
 
     // Evaluasi gabungan: hak role dasar + tugas tambahan aktif pengguna
     $can = fn(string $key, string $action = 'read') => \App\Models\RolePermission::canAccess(
@@ -171,7 +188,7 @@
             $dashLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
             $dashLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
         @endphp
-        <a href="{{ route('dashboard.' . $role) }}" class="brand"
+        <a href="{{ route($dashHomeRoute) }}" class="brand"
             style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
             <img id="dashLogo" src="{{ $dashLogoDark }}" data-dark="{{ $dashLogoDark }}" data-light="{{ $dashLogoLight }}"
                 alt="SAE Logo" style="height: 36px; max-width: 140px; object-fit: contain;"

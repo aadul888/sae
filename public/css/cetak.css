@@ -190,26 +190,10 @@ body {
     min-height: 210mm;
 }
 
-/* Watermark SAE */
-.watermark-sae {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 420px;
-    height: 420px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.04;
-    pointer-events: none;
-    z-index: 0;
-}
-
-.watermark-sae img {
-    width: 100%;
-    height: auto;
-    filter: grayscale(100%);
+/* Watermark SAE — Disembunyikan agar dokumen resmi sekolah bersih dan tidak terhalang */
+.watermark-sae,
+.watermark {
+    display: none !important;
 }
 
 /* KOP Surat & Header Dokumen */
