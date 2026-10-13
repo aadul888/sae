@@ -799,120 +799,171 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 4. Modal Verifikasi Pengajuan Izin
-    document.querySelectorAll('.btn-verif-izin').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const izinId = this.getAttribute('data-id');
-            const nama = this.getAttribute('data-nama');
-            const jenis = this.getAttribute('data-jenis');
-            const rentang = this.getAttribute('data-rentang');
-            const alasan = this.getAttribute('data-alasan');
+    // 4. Modal Verifikasi Pengajuan Izin (Event Delegation agar tahan banting AJAX / Pindah Halaman)
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-verif-izin');
+        if (!btn) return;
+        e.preventDefault();
 
-            Swal.fire({
-                title: `Verifikasi ${jenis}`,
-                html: `
-                    <div style="text-align: left; font-size: 0.9rem;">
-                        <p><strong>Nama Peserta Didik:</strong> ${nama}</p>
-                        <p><strong>Rentang Tanggal:</strong> ${rentang}</p>
-                        <p><strong>Alasan:</strong> ${alasan}</p>
-                        <hr style="border-color: var(--border-color); margin: 12px 0;">
-                        <label style="display:block; margin-bottom: 6px; font-weight: 600;">Catatan Verifikator (Opsional):</label>
-                        <input type="text" id="swalCatatanIzin" class="input" style="width: 100%;" placeholder="Catatan persetujuan/penolakan...">
-                    </div>
-                `,
-                showCancelButton: true,
-                showDenyButton: true,
-                confirmButtonText: '<i class="fas fa-check"></i> Setujui',
-                denyButtonText: '<i class="fas fa-times"></i> Tolak',
-                cancelButtonText: 'Batal',
-                confirmButtonColor: '#10b981',
-                denyButtonColor: '#ef4444'
-            }).then(async (result) => {
-                if (result.isConfirmed || result.isDenied) {
-                    const statusVal = result.isConfirmed ? 'disetujui' : 'ditolak';
-                    const catatan = document.getElementById('swalCatatanIzin')?.value || '';
+        const izinId = btn.getAttribute('data-id');
+        const nama = btn.getAttribute('data-nama');
+        const jenis = btn.getAttribute('data-jenis');
+        const rentang = btn.getAttribute('data-rentang');
+        const alasan = btn.getAttribute('data-alasan');
 
-                    try {
-                        const res = await fetch(`/dashboard/presensi/izin/${izinId}/verifikasi`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({ status: statusVal, catatan: catatan })
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: data.message,
-                                timer: 1500,
-                                showConfirmButton: false
-                            }).then(() => window.location.reload());
-                        } else {
-                            Swal.fire('Error', data.message || 'Gagal memproses izin.', 'error');
-                        }
-                    } catch (e) {
-                        Swal.fire('Error', 'Gagal memproses verifikasi izin.', 'error');
+        Swal.fire({
+            title: `Verifikasi ${jenis}`,
+            html: `
+                <div style="text-align: left; font-size: 0.9rem;">
+                    <p><strong>Nama Peserta Didik:</strong> ${nama}</p>
+                    <p><strong>Rentang Tanggal:</strong> ${rentang}</p>
+                    <p><strong>Alasan:</strong> ${alasan}</p>
+                    <hr style="border-color: var(--border-color); margin: 12px 0;">
+                    <label style="display:block; margin-bottom: 6px; font-weight: 600;">Catatan Verifikator (Opsional):</label>
+                    <input type="text" id="swalCatatanIzin" class="input" style="width: 100%;" placeholder="Catatan persetujuan/penolakan...">
+                </div>
+            `,
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonText: '<i class="fas fa-check"></i> Setujui',
+            denyButtonText: '<i class="fas fa-times"></i> Tolak',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#10b981',
+            denyButtonColor: '#ef4444'
+        }).then(async (result) => {
+            if (result.isConfirmed || result.isDenied) {
+                const statusVal = result.isConfirmed ? 'disetujui' : 'ditolak';
+                const catatan = document.getElementById('swalCatatanIzin')?.value || '';
+
+                try {
+                    const res = await fetch(`/dashboard/presensi/izin/${izinId}/verifikasi`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ status: statusVal, catatan: catatan })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: data.message,
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => window.location.reload());
+                    } else {
+                        Swal.fire('Error', data.message || 'Gagal memproses izin.', 'error');
                     }
+                } catch (e) {
+                    Swal.fire('Error', 'Gagal memproses verifikasi izin.', 'error');
                 }
-            });
+            }
         });
     });
 
-    // 5. Preview Foto Snapshot Presensi Modal
-    const modalFoto = document.getElementById('modalFotoSnapshot');
-    const imgFotoSnapshot = document.getElementById('imgFotoSnapshot');
-    const fotoSnapshotTitle = document.getElementById('fotoSnapshotTitle');
-    const btnCloseFotoModal = document.getElementById('btnCloseFotoModal');
+    // 5. Preview Foto Snapshot Presensi Modal (Event Delegation: Tahan Banting AJAX / Pindah Halaman)
+    document.addEventListener('click', function (e) {
+        // Tombol Snapshot Foto Masuk / Pulang
+        const btnSnapshot = e.target.closest('.btn-preview-snapshot');
+        if (btnSnapshot) {
+            e.preventDefault();
+            const url = btnSnapshot.getAttribute('data-url');
+            const title = btnSnapshot.getAttribute('data-title') || 'Foto Bukti Presensi';
 
-    document.querySelectorAll('.btn-preview-snapshot').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const url = this.getAttribute('data-url');
-            const title = this.getAttribute('data-title') || 'Foto Bukti Presensi';
+            const modalFoto = document.getElementById('modalFotoSnapshot');
+            const imgFotoSnapshot = document.getElementById('imgFotoSnapshot');
+            const fotoSnapshotTitle = document.getElementById('fotoSnapshotTitle');
 
-            if (imgFotoSnapshot && modalFoto) {
+            if (imgFotoSnapshot && modalFoto && url) {
                 imgFotoSnapshot.src = url;
                 if (fotoSnapshotTitle) fotoSnapshotTitle.textContent = title;
                 modalFoto.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
             }
-        });
+            return;
+        }
+
+        // Klik Avatar Siswa di Tabel Log untuk Preview Foto Profil
+        const avatar = e.target.closest('.cell-log-siswa .log-avatar');
+        if (avatar && avatar.src && !avatar.src.includes('logo-dark')) {
+            const modalFoto = document.getElementById('modalFotoSnapshot');
+            const imgFotoSnapshot = document.getElementById('imgFotoSnapshot');
+            const fotoSnapshotTitle = document.getElementById('fotoSnapshotTitle');
+            if (imgFotoSnapshot && modalFoto) {
+                imgFotoSnapshot.src = avatar.src;
+                const nama = avatar.alt || 'Peserta Didik';
+                if (fotoSnapshotTitle) fotoSnapshotTitle.textContent = 'Foto Profil — ' + nama;
+                modalFoto.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+            return;
+        }
+
+        // Tombol Silang / Close Modal
+        const btnClose = e.target.closest('#btnCloseFotoModal');
+        if (btnClose) {
+            e.preventDefault();
+            const modalFoto = document.getElementById('modalFotoSnapshot');
+            if (modalFoto) {
+                modalFoto.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+            return;
+        }
+
+        // Klik di Luar Modal (Backdrop) untuk Menutup
+        const modalFoto = document.getElementById('modalFotoSnapshot');
+        if (modalFoto && e.target === modalFoto) {
+            modalFoto.style.display = 'none';
+            document.body.style.overflow = '';
+            return;
+        }
     });
 
-    if (btnCloseFotoModal) {
-        btnCloseFotoModal.addEventListener('click', () => {
-            if (modalFoto) modalFoto.style.display = 'none';
-        });
-    }
+    // Menutup Modal Snapshot dengan Tombol Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const modalFoto = document.getElementById('modalFotoSnapshot');
+            if (modalFoto && modalFoto.style.display !== 'none') {
+                modalFoto.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+    });
 
     /* ==========================================================================
-       SORT HEADER — Klik th.sortable-th untuk sort kolom server-side
+       SORT HEADER — Klik th.sortable-th untuk sort kolom server-side (Delegated)
        ========================================================================== */
-    document.querySelectorAll('.sortable-th').forEach(function (th) {
-        th.style.cursor = 'pointer';
-        th.addEventListener('click', function () {
-            const sortField = this.getAttribute('data-sort');
-            if (!sortField) return;
+    document.addEventListener('click', function (e) {
+        const th = e.target.closest('#tab-log .sortable-th');
+        if (!th) return;
 
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get('sort') || 'jam_masuk';
-            const currentDir = url.searchParams.get('sort_dir') || 'desc';
+        const sortField = th.getAttribute('data-sort');
+        if (!sortField) return;
 
-            let newDir = 'asc';
-            if (currentSort === sortField && currentDir === 'asc') {
-                newDir = 'desc';
-            }
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get('sort') || 'jam_masuk';
+        const currentDir = url.searchParams.get('sort_dir') || 'desc';
 
-            url.searchParams.set('sort', sortField);
-            url.searchParams.set('sort_dir', newDir);
-            url.searchParams.delete('page'); // reset ke halaman pertama
-            // Pastikan tab log tetap aktif
-            if (!url.searchParams.has('tab')) {
-                url.searchParams.set('tab', 'log');
-            }
+        let newDir = 'asc';
+        if (currentSort === sortField && currentDir === 'asc') {
+            newDir = 'desc';
+        }
+
+        url.searchParams.set('sort', sortField);
+        url.searchParams.set('sort_dir', newDir);
+        url.searchParams.delete('page'); // reset ke halaman pertama
+        if (!url.searchParams.has('tab')) {
+            url.searchParams.set('tab', 'log');
+        }
+
+        if (typeof window.refreshLiveTable === 'function') {
+            window.refreshLiveTable(url.toString());
+        } else {
             window.location.href = url.toString();
-        });
+        }
     });
 });

@@ -317,7 +317,7 @@
         </div>
 
         <!-- Datatable Log Presensi -->
-        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table table-presensi-log" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
@@ -368,7 +368,8 @@
                                 <div class="log-siswa-wrapper" style="display: flex; align-items: center; gap: 12px;">
                                     <img src="{{ $log->foto_profil_url ?: asset('img/logo-dark.png') }}"
                                         alt="{{ $log->nama_siswa }}" class="log-avatar"
-                                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
+                                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0; {{ $log->foto_profil_url ? 'cursor: pointer;' : '' }}"
+                                        title="{{ $log->foto_profil_url ? 'Klik untuk memperbesar foto profil' : '' }}"
                                         onerror="this.src='/img/logo-dark.png';">
                                     <div>
                                         <div style="font-weight: 700; color: var(--text-color); font-size: 0.9rem;">
