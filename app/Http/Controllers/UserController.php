@@ -260,6 +260,77 @@ class UserController extends Controller
     }
 
     /**
+     * Tambah pengguna baru (Guru, Tendik, Peserta Didik, atau Admin di luar Dapodik)
+     */
+    public function store(Request $request)
+    {
+        $authUser = session('user');
+        if (!\App\Models\RolePermission::canAccess($authUser, 'menu_pengguna', 'create')) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki hak akses untuk menambah data pengguna.');
+        }
+
+        $validated = $request->validate([
+            'nama'         => 'required|string|max:200',
+            'username'     => 'required|string|max:100|unique:pengguna,username',
+            'peran_id_str' => 'required|string|max:100',
+            'password'     => 'required|string|min:6',
+            'no_hp'        => 'nullable|string|max:30',
+            'alamat'       => 'nullable|string',
+            'rfid_uid'     => 'nullable|string|max:64|unique:pengguna,rfid_uid',
+        ], [
+            'nama.required'         => 'Nama lengkap wajib diisi.',
+            'username.required'     => 'Username / ID login wajib diisi.',
+            'username.unique'       => 'Username ini sudah terdaftar. Gunakan username lain.',
+            'password.required'     => 'Password awal wajib diisi (minimal 6 karakter).',
+            'password.min'          => 'Password minimal 6 karakter.',
+            'rfid_uid.unique'       => 'UID Kartu RFID ini sudah digunakan oleh pengguna lain.',
+            'peran_id_str.required' => 'Pilih peran / kategori pengguna.',
+        ]);
+
+        $rfidUid = !empty($validated['rfid_uid']) ? strtoupper(trim($validated['rfid_uid'])) : null;
+        if ($rfidUid) {
+            $siswaWithRfid = \App\Models\PesertaDidikMeta::where('rfid_uid', $rfidUid)->first();
+            if ($siswaWithRfid) {
+                return back()->withErrors(['rfid_uid' => "Kartu RFID UID [{$rfidUid}] sudah digunakan oleh peserta didik (NISN: {$siswaWithRfid->nisn})."])->withInput();
+            }
+        }
+
+        $sekolahId = DB::table('sekolah')->value('sekolah_id');
+
+        $user = new User();
+        $user->pengguna_id = (string) \Illuminate\Support\Str::uuid();
+        $user->sekolah_id = $sekolahId;
+        $user->nama = trim($validated['nama']);
+        $user->username = trim($validated['username']);
+        $user->peran_id_str = trim($validated['peran_id_str']);
+        $user->password = Hash::make($validated['password']);
+        $user->no_hp = $validated['no_hp'] ?? null;
+        $user->alamat = $validated['alamat'] ?? null;
+        $user->password_updated_at = now();
+
+        if ($rfidUid) {
+            $user->rfid_uid = $rfidUid;
+            $user->rfid_registered_at = now();
+        }
+
+        $user->save();
+
+        // Alihkan ke tab yang relevan dengan peran baru
+        $peran = strtolower($user->peran_id_str);
+        $tab = 'admin';
+        if (str_contains($peran, 'guru')) {
+            $tab = 'guru';
+        } elseif (str_contains($peran, 'tendik') || str_contains($peran, 'tenaga kependidikan') || str_contains($peran, 'tata usaha')) {
+            $tab = 'tendik';
+        } elseif (str_contains($peran, 'peserta didik')) {
+            $tab = 'peserta_didik';
+        }
+
+        return redirect()->route('dashboard.pengguna.index', ['tab' => $tab])
+            ->with('success', "Pengguna baru {$user->nama} ({$user->peran_id_str}) berhasil ditambahkan dan siap digunakan untuk login.");
+    }
+
+    /**
      * Update pengguna (modal edit)
      */
     public function update(Request $request, string|int $id)
@@ -326,7 +397,7 @@ class UserController extends Controller
     }
 
     /**
-     * Reset password peserta didik ke NISN dari tabel peserta_didik
+     * Reset password pengguna (Peserta Didik, Guru, Tendik, Administrator)
      */
     public function resetPassword(string|int $id)
     {
@@ -336,27 +407,81 @@ class UserController extends Controller
         }
 
         $user = User::findOrFail($id);
+        $role = $user->role;
 
-        if (!$user->peserta_didik_id) {
-            return back()->with('error', 'Pengguna bukan peserta didik (tidak memiliki peserta_didik_id).');
+        $defaultPassword = 'Sae12345!';
+        $resetReason = '';
+
+        if ($role === 'peserta_didik' || str_contains(strtolower($user->peran_id_str ?? ''), 'peserta didik')) {
+            $pd = null;
+            if ($user->peserta_didik_id) {
+                $pd = DB::table('peserta_didik')->where('peserta_didik_id', $user->peserta_didik_id)->first();
+            }
+            if (!$pd) {
+                $pd = DB::table('peserta_didik')->where('nisn', $user->username)->first();
+            }
+
+            if ($pd && !empty($pd->nisn)) {
+                $defaultPassword = trim($pd->nisn);
+                $resetReason = "NISN ({$defaultPassword})";
+            } elseif (ctype_digit(trim($user->username))) {
+                $defaultPassword = trim($user->username);
+                $resetReason = "NISN/Username ({$defaultPassword})";
+            } else {
+                $defaultPassword = 'PesertaDidik543!';
+                $resetReason = "password default ({$defaultPassword})";
+            }
+        } elseif ($role === 'guru' || str_contains(strtolower($user->peran_id_str ?? ''), 'guru')) {
+            $gtk = null;
+            if ($user->ptk_id) {
+                $gtk = DB::table('gtk')->where('ptk_id', $user->ptk_id)->first();
+            }
+            if (!$gtk) {
+                $gtk = DB::table('gtk')->where('nip', $user->username)->orWhere('nuptk', $user->username)->first();
+            }
+
+            if ($gtk && !empty($gtk->nip)) {
+                $defaultPassword = trim($gtk->nip);
+                $resetReason = "NIP ({$defaultPassword})";
+            } else {
+                $defaultPassword = 'Geteka543!';
+                $resetReason = "password default ({$defaultPassword})";
+            }
+        } elseif ($role === 'tendik' || str_contains(strtolower($user->peran_id_str ?? ''), 'tendik') || str_contains(strtolower($user->peran_id_str ?? ''), 'tenaga kependidikan')) {
+            $gtk = null;
+            if ($user->ptk_id) {
+                $gtk = DB::table('gtk')->where('ptk_id', $user->ptk_id)->first();
+            }
+            if (!$gtk) {
+                $gtk = DB::table('gtk')->where('nip', $user->username)->orWhere('nuptk', $user->username)->first();
+            }
+
+            if ($gtk && !empty($gtk->nip)) {
+                $defaultPassword = trim($gtk->nip);
+                $resetReason = "NIP ({$defaultPassword})";
+            } else {
+                $defaultPassword = 'Geteka543!';
+                $resetReason = "password default ({$defaultPassword})";
+            }
+        } else {
+            $defaultPassword = 'Admin543!';
+            $resetReason = "password default ({$defaultPassword})";
         }
 
-        $pd = DB::table('peserta_didik')
-            ->where('peserta_didik_id', $user->peserta_didik_id)
-            ->first();
-
-        if (!$pd || empty($pd->nisn)) {
-            return back()->with('error', 'Data NISN tidak ditemukan untuk peserta didik ini.');
-        }
-
-        $user->password = Hash::make($pd->nisn);
+        $user->password = Hash::make($defaultPassword);
         $user->password_updated_at = null;
         $raw = !empty($user->raw_data) ? (json_decode($user->raw_data, true) ?: []) : [];
         unset($raw['password_updated_at'], $raw['is_password_updated']);
         $user->raw_data = !empty($raw) ? json_encode($raw) : null;
         $user->save();
 
-        return back()->with('success', "Password peserta didik {$user->nama} direset ke NISN.");
+        $msg = "Password akun {$user->nama} berhasil direset ke {$resetReason}.";
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $msg]);
+        }
+
+        return back()->with('success', $msg);
     }
 
     /**

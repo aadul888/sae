@@ -9,9 +9,42 @@ document.addEventListener("DOMContentLoaded", function () {
     const methodField = document.getElementById("methodField");
     const passwordHelp = document.getElementById("passwordHelp");
     const inputPassword = document.getElementById("inputPassword");
+    const passwordLabel = document.getElementById("passwordLabel");
+
+    // --- Create Modal (Tambah Pengguna Baru) ---
+    window.openCreateModal = function () {
+        if (!modal || !form) return;
+        title.textContent = "Tambah Pengguna Baru";
+        form.action = "/dashboard/pengguna";
+        methodField.innerHTML = "";
+        document.getElementById("inputNama").value = "";
+        document.getElementById("inputUsername").value = "";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentTab = urlParams.get("tab") || "admin";
+        const peranMap = {
+            admin: "Administrator",
+            guru: "Guru",
+            tendik: "Tenaga Kependidikan",
+            peserta_didik: "Peserta Didik",
+        };
+        const inputPeran = document.getElementById("inputPeran");
+        if (inputPeran) inputPeran.value = peranMap[currentTab] || "Guru";
+
+        document.getElementById("inputHp").value = "";
+        document.getElementById("inputAlamat").value = "";
+        const inputRfid = document.getElementById("inputRfidUid");
+        if (inputRfid) inputRfid.value = "";
+        inputPassword.value = "";
+        inputPassword.required = true;
+        if (passwordLabel) passwordLabel.innerHTML = 'Password Awal <span style="color:#ef4444;">*</span>';
+        if (passwordHelp) passwordHelp.style.display = "none";
+        modal.style.display = "flex";
+    };
 
     // --- Edit Modal ---
     window.openEditModal = function (user) {
+        if (!modal || !form) return;
         title.textContent = "Edit Data Pengguna";
         form.action = "/dashboard/pengguna/" + user.pengguna_id;
         methodField.innerHTML =
@@ -26,7 +59,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (inputRfid) inputRfid.value = user.rfid_uid || "";
         inputPassword.value = "";
         inputPassword.required = false;
-        passwordHelp.style.display = "block";
+        if (passwordLabel) passwordLabel.textContent = "Password Baru";
+        if (passwordHelp) passwordHelp.style.display = "block";
         modal.style.display = "flex";
     };
 
@@ -149,10 +183,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
-                window.location.href = url.toString();
-            }
-        });
-    });
 
     // --- Form Confirmations (SAE Unified Dialog System) ---
     document.addEventListener("submit", async function (e) {
@@ -162,12 +192,23 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
         const type = targetForm.dataset.actionType;
         const nama = targetForm.dataset.name || "item ini";
+        const role = (targetForm.dataset.role || "").toLowerCase();
         const isDelete = type === "delete";
 
         const title = isDelete ? "Hapus Pengguna?" : "Reset Password?";
-        const msg = isDelete
-            ? `Yakin ingin menghapus akun pengguna <strong>${nama}</strong>?<br><span style="color:#ef4444; font-size:0.8rem;">Tindakan ini tidak dapat dibatalkan.</span>`
-            : `Reset password akun <strong>${nama}</strong> ke default (NISN / Sae12345!)?`;
+        let msg = "";
+        if (isDelete) {
+            msg = `Yakin ingin menghapus akun pengguna <strong>${nama}</strong>?<br><span style="color:#ef4444; font-size:0.8rem;">Tindakan ini tidak dapat dibatalkan.</span>`;
+        } else if (role.includes("peserta didik")) {
+            msg = `Reset password akun peserta didik <strong>${nama}</strong> ke default (NISN)?`;
+        } else if (role.includes("guru")) {
+            msg = `Reset password akun guru <strong>${nama}</strong> ke default (NIP / Geteka543!)?`;
+        } else if (role.includes("tendik") || role.includes("kependidikan")) {
+            msg = `Reset password akun tendik <strong>${nama}</strong> ke default (NIP / Geteka543!)?`;
+        } else {
+            msg = `Reset password akun <strong>${nama}</strong> ke password default sistem?`;
+        }
+
         const confirmBtnText = isDelete ? "Ya, Hapus Akun" : "Ya, Reset Password";
 
         const confirmed = await window.SAE.confirm(

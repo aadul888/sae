@@ -201,6 +201,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Manajemen Pengguna (5 Tab: Admin, Guru, Tendik, Peserta Didik, Tugas Tambahan & Penugasan)
     Route::get('/pengguna', [UserController::class, 'index'])->name('pengguna.index')->middleware('permission:menu_pengguna');
+    Route::post('/pengguna', [UserController::class, 'store'])->name('pengguna.store')->middleware('permission:menu_pengguna,create');
     Route::put('/pengguna/{pengguna}', [UserController::class, 'update'])->name('pengguna.update')->middleware('permission:fitur_pengguna_edit');
     Route::delete('/pengguna/{pengguna}', [UserController::class, 'destroy'])->name('pengguna.destroy')->middleware('permission:fitur_pengguna_hapus');
     Route::post('/pengguna/{pengguna}/reset-password', [UserController::class, 'resetPassword'])->name('pengguna.resetPassword')->middleware('permission:fitur_pengguna_reset');

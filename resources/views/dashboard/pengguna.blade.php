@@ -139,6 +139,11 @@
                     style="padding: 7px 14px; font-size: 0.84rem;">
                     <i class="fas fa-sync-alt me-1"></i> Tarik Wali Kelas (Dapodik)
                 </button>
+            @elseif ($canCreate)
+                <button type="button" class="btn btn-primary" id="btnOpenCreateUser" onclick="openCreateModal()"
+                    style="padding: 7px 14px; font-size: 0.84rem;">
+                    <i class="fas fa-user-plus me-1"></i> Tambah Pengguna
+                </button>
             @endif
         </div>
 
@@ -343,12 +348,14 @@
                                             <i class="fas fa-pen-to-square"></i>
                                         </button>
                                     @endif
-                                    @if ($canUpdate && $activeTab === 'peserta_didik' && $item->peserta_didik_id)
+                                    @if ($canUpdate)
                                         <form action="{{ route('dashboard.pengguna.resetPassword', $item->pengguna_id) }}"
                                             method="POST" style="display: inline; margin: 0;" data-action-type="reset"
-                                            data-name="{{ $item->nama }}">
+                                            data-name="{{ $item->nama }}"
+                                            data-role="{{ $item->peran_id_str ?: ($activeTab === 'peserta_didik' ? 'Peserta Didik' : ($activeTab === 'guru' ? 'Guru' : 'Tendik')) }}">
                                             @csrf
-                                            <button type="submit" class="btn-icon reset" title="Reset Password ke NISN">
+                                            <button type="submit" class="btn-icon reset"
+                                                title="Reset Password Akun ke Default" style="color: #f59e0b;">
                                                 <i class="fas fa-key"></i>
                                             </button>
                                         </form>
@@ -471,7 +478,7 @@
                             instan dengan tap kartu.</div>
                     </div>
                     <div class="form-group-compact full-width">
-                        <label>Password Baru</label>
+                        <label id="passwordLabel">Password</label>
                         <input type="password" name="password" id="inputPassword" placeholder="Minimal 6 karakter">
                         <div class="input-hint" id="passwordHelp" style="display: none;">Biarkan kosong jika tidak ingin
                             mengubah password.</div>
@@ -514,7 +521,8 @@
                             <option value="">-- Pilih PTK / GTK --</option>
                             @foreach ($ptkList as $p)
                                 <option value="{{ $p->ptk_id }}">{{ $p->nama }}
-                                    ({{ $p->nip ? 'NIP: ' . $p->nip : ($p->jenis_ptk_id_str ?: 'GTK') }})</option>
+                                    ({{ $p->nip ? 'NIP: ' . $p->nip : ($p->jenis_ptk_id_str ?: 'GTK') }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -525,7 +533,8 @@
                             <option value="">-- Pilih Tugas Tambahan --</option>
                             @foreach ($refTugasList as $rt)
                                 <option value="{{ $rt->id }}" data-kode="{{ $rt->kode }}">{{ $rt->nama }}
-                                    ({{ $rt->bidang ?: $rt->kelompok }})</option>
+                                    ({{ $rt->bidang ?: $rt->kelompok }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
