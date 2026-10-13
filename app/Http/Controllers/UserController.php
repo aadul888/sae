@@ -16,7 +16,37 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $activeTab = $request->get('tab', 'admin');
+        $activeTab = $request->get('tab');
+        if (!$activeTab) {
+            if ($request->has('guru_page')) {
+                $activeTab = 'guru';
+            } elseif ($request->has('tendik_page')) {
+                $activeTab = 'tendik';
+            } elseif ($request->has('peserta_didik_page')) {
+                $activeTab = 'peserta_didik';
+            } elseif ($request->has('tugas_page')) {
+                $activeTab = 'tugas_tambahan';
+            } elseif ($request->has('admin_page')) {
+                $activeTab = 'admin';
+            } else {
+                $activeTab = 'admin';
+            }
+        }
+
+        // Kompatibilitas mundur jika ada tautan / bookmark lama yang membawa parameter *_page
+        if (!$request->has('page')) {
+            $legacyPage = match ($activeTab) {
+                'guru' => $request->get('guru_page'),
+                'tendik' => $request->get('tendik_page'),
+                'peserta_didik' => $request->get('peserta_didik_page'),
+                'tugas_tambahan' => $request->get('tugas_page'),
+                default => $request->get('admin_page'),
+            };
+            if ($legacyPage) {
+                $request->merge(['page' => $legacyPage]);
+            }
+        }
+
         $q         = trim($request->get('q', ''));
         $perPage   = (int) $request->get('perPage', 15);
         $sort      = in_array($request->get('sort'), self::SORTABLE, true) ? $request->get('sort') : 'nama';
@@ -115,11 +145,6 @@ class UserController extends Controller
             $query->orderBy($sort, $sortDir)->orderBy('nama', 'asc');
         };
 
-        $admins  = tap($adminQuery, $orderFn)->paginate($perPage, ['*'], 'admin_page');
-        $gurus   = tap($guruQuery, $orderFn)->paginate($perPage, ['*'], 'guru_page');
-        $tendiks = tap($tendikQuery, $orderFn)->paginate($perPage, ['*'], 'tendik_page');
-        $pesertaDidiks  = tap($pesertaDidikQuery, $orderFn)->paginate($perPage, ['*'], 'peserta_didik_page');
-
         // Tab 5: Tugas Tambahan & Penugasan
         $tugasQuery = DB::table('ptk_tugas_tambahan as ptt')
             ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
@@ -157,10 +182,49 @@ class UserController extends Controller
             });
         }
 
-        $tugasTambahanList = $tugasQuery->orderBy('rtt.kelompok')
-            ->orderBy('rtt.bidang')
-            ->orderBy('ptk_nama')
-            ->paginate($perPage, ['*'], 'tugas_page');
+        $counts = [
+            'admin'          => (clone $adminQuery)->count(),
+            'guru'           => (clone $guruQuery)->count(),
+            'tendik'         => (clone $tendikQuery)->count(),
+            'peserta_didik'  => (clone $pesertaDidikQuery)->count(),
+            'tugas_tambahan' => DB::table('ptk_tugas_tambahan')->count(),
+        ];
+
+        // Buat paginator kosong untuk tab yang tidak aktif demi efisiensi query
+        $emptyPaginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            [], 0, $perPage, 1, [
+                'path' => $request->url(),
+                'query' => array_merge($request->query(), ['tab' => $activeTab])
+            ]
+        );
+
+        $admins            = $emptyPaginator;
+        $gurus             = $emptyPaginator;
+        $tendiks           = $emptyPaginator;
+        $pesertaDidiks     = $emptyPaginator;
+        $tugasTambahanList = $emptyPaginator;
+
+        // Paginasi hanya query tab yang aktif dengan query string lengkap (memastikan tab konsisten)
+        if ($activeTab === 'admin') {
+            $admins = tap($adminQuery, $orderFn)->paginate($perPage)->appends(array_merge($request->query(), ['tab' => 'admin']));
+            $list   = $admins;
+        } elseif ($activeTab === 'guru') {
+            $gurus = tap($guruQuery, $orderFn)->paginate($perPage)->appends(array_merge($request->query(), ['tab' => 'guru']));
+            $list  = $gurus;
+        } elseif ($activeTab === 'tendik') {
+            $tendiks = tap($tendikQuery, $orderFn)->paginate($perPage)->appends(array_merge($request->query(), ['tab' => 'tendik']));
+            $list    = $tendiks;
+        } elseif ($activeTab === 'tugas_tambahan') {
+            $tugasTambahanList = $tugasQuery->orderBy('rtt.kelompok')
+                ->orderBy('rtt.bidang')
+                ->orderBy('ptk_nama')
+                ->paginate($perPage)
+                ->appends(array_merge($request->query(), ['tab' => 'tugas_tambahan']));
+            $list = $tugasTambahanList;
+        } else {
+            $pesertaDidiks = tap($pesertaDidikQuery, $orderFn)->paginate($perPage)->appends(array_merge($request->query(), ['tab' => 'peserta_didik']));
+            $list          = $pesertaDidiks;
+        }
 
         $refTugasList = DB::table('ref_tugas_tambahan')
             ->where('is_active', true)
@@ -172,20 +236,13 @@ class UserController extends Controller
         $ptkList = DB::table('gtk')->select('ptk_id', 'nama', 'nip', 'jenis_ptk_id_str')->orderBy('nama')->get();
         $rombelList = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->select('rombongan_belajar_id', 'nama')->orderBy('nama')->get();
 
-        $counts = [
-            'admin'          => (clone $adminQuery)->count(),
-            'guru'           => (clone $guruQuery)->count(),
-            'tendik'         => (clone $tendikQuery)->count(),
-            'peserta_didik'  => (clone $pesertaDidikQuery)->count(),
-            'tugas_tambahan' => DB::table('ptk_tugas_tambahan')->count(),
-        ];
-
         return view('dashboard.pengguna', compact(
             'admins',
             'gurus',
             'tendiks',
             'pesertaDidiks',
             'tugasTambahanList',
+            'list',
             'refTugasList',
             'ptkList',
             'rombelList',

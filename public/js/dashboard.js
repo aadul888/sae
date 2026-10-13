@@ -640,6 +640,19 @@ window.refreshLiveTable = async function (url, options = {}) {
             curPeriodeNav.innerHTML = newPeriodeNav.innerHTML;
         }
 
+        // Swap Segmented Tab Navigation Bar jika ada (seperti Manajemen Pengguna, dsb)
+        const curTabsNav = document.querySelector(".dash-tabs-nav, .dash-desktop-tabs");
+        const newTabsNav = doc.querySelector(".dash-tabs-nav, .dash-desktop-tabs");
+        if (curTabsNav && newTabsNav) {
+            curTabsNav.innerHTML = newTabsNav.innerHTML;
+        }
+
+        const curMobileTabs = document.querySelector(".dash-mobile-tab-select-wrap");
+        const newMobileTabs = doc.querySelector(".dash-mobile-tab-select-wrap");
+        if (curMobileTabs && newMobileTabs) {
+            curMobileTabs.innerHTML = newMobileTabs.innerHTML;
+        }
+
         // 3b. Swap pagination universally across ALL modules
         const curPagination = document.querySelector(
             ".custom-pagination, .dash-pagination, .pagination",

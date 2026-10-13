@@ -43,9 +43,28 @@ document.addEventListener("DOMContentLoaded", function () {
     const liveSearch = document.getElementById("liveSearch");
     const clearSearch = document.getElementById("clearSearch");
 
+    function cleanUrlParams(url) {
+        url.searchParams.delete("admin_page");
+        url.searchParams.delete("guru_page");
+        url.searchParams.delete("tendik_page");
+        url.searchParams.delete("peserta_didik_page");
+        url.searchParams.delete("tugas_page");
+        if (!url.searchParams.get("tab")) {
+            const activeTabBtn = document.querySelector(".dash-desktop-tabs .btn-primary");
+            if (activeTabBtn && activeTabBtn.href) {
+                try {
+                    const tabUrlObj = new URL(activeTabBtn.href, window.location.origin);
+                    const t = tabUrlObj.searchParams.get("tab");
+                    if (t) url.searchParams.set("tab", t);
+                } catch (e) {}
+            }
+        }
+    }
+
     if (liveSearch) {
         const triggerSearch = (val) => {
             const url = new URL(window.location.href);
+            cleanUrlParams(url);
             if (val) {
                 url.searchParams.set("q", val);
             } else {
@@ -81,6 +100,7 @@ document.addEventListener("DOMContentLoaded", function () {
             liveSearch.value = "";
             clearSearch.classList.remove("visible");
             const url = new URL(window.location.href);
+            cleanUrlParams(url);
             url.searchParams.delete("q");
             url.searchParams.set("page", "1");
             if (typeof window.refreshLiveTable === "function") {
@@ -96,6 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (perPageSelect) {
         perPageSelect.addEventListener("change", function () {
             const url = new URL(window.location.href);
+            cleanUrlParams(url);
             url.searchParams.set("perPage", this.value);
             url.searchParams.set("page", "1");
             if (typeof window.refreshLiveTable === "function") {
@@ -111,6 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
         th.addEventListener("click", function () {
             const sortKey = this.dataset.sort;
             const url = new URL(window.location.href);
+            cleanUrlParams(url);
             const currentSort = url.searchParams.get("sort");
             const currentDir = url.searchParams.get("sort_dir");
             if (currentSort === sortKey && currentDir === "asc") {
@@ -123,6 +145,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (typeof window.refreshLiveTable === "function") {
                 window.refreshLiveTable(url.toString());
             } else {
+                window.location.href = url.toString();
+            }
+        });
+    });
                 window.location.href = url.toString();
             }
         });

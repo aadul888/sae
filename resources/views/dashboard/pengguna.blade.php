@@ -15,25 +15,41 @@
         </div>
     </div>
 
+    @php
+        $tabUrl = function (string $t) use ($perPage, $q, $sort, $sortDir) {
+            $params = ['tab' => $t];
+            if ($perPage && $perPage != 15) {
+                $params['perPage'] = $perPage;
+            }
+            if (!empty($q)) {
+                $params['q'] = $q;
+            }
+            if ($sort && $sort !== 'nama') {
+                $params['sort'] = $sort;
+            }
+            if ($sortDir && $sortDir !== 'asc') {
+                $params['sort_dir'] = $sortDir;
+            }
+            return route('dashboard.pengguna.index', $params);
+        };
+    @endphp
+
     <!-- Desktop Segmented Tabs -->
     <div class="dash-tabs-nav dash-desktop-tabs">
-        <a href="{{ request()->fullUrlWithQuery(['tab' => 'admin']) }}"
-            class="btn {{ $activeTab === 'admin' ? 'btn-primary' : 'btn-outline' }}">
+        <a href="{{ $tabUrl('admin') }}" class="btn {{ $activeTab === 'admin' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-shield me-1"></i> Administrator ({{ $counts['admin'] }})
         </a>
-        <a href="{{ request()->fullUrlWithQuery(['tab' => 'guru']) }}"
-            class="btn {{ $activeTab === 'guru' ? 'btn-primary' : 'btn-outline' }}">
+        <a href="{{ $tabUrl('guru') }}" class="btn {{ $activeTab === 'guru' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-chalkboard-user me-1"></i> Guru ({{ $counts['guru'] }})
         </a>
-        <a href="{{ request()->fullUrlWithQuery(['tab' => 'tendik']) }}"
-            class="btn {{ $activeTab === 'tendik' ? 'btn-primary' : 'btn-outline' }}">
+        <a href="{{ $tabUrl('tendik') }}" class="btn {{ $activeTab === 'tendik' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-id-badge me-1"></i> Tendik ({{ $counts['tendik'] }})
         </a>
-        <a href="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}"
+        <a href="{{ $tabUrl('peserta_didik') }}"
             class="btn {{ $activeTab === 'peserta_didik' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-user-graduate me-1"></i> Peserta Didik ({{ $counts['peserta_didik'] }})
         </a>
-        <a href="{{ request()->fullUrlWithQuery(['tab' => 'tugas_tambahan']) }}"
+        <a href="{{ $tabUrl('tugas_tambahan') }}"
             class="btn {{ $activeTab === 'tugas_tambahan' ? 'btn-primary' : 'btn-outline' }}">
             <i class="fas fa-briefcase me-1"></i> Tugas Tambahan ({{ $counts['tugas_tambahan'] ?? 0 }})
         </a>
@@ -52,7 +68,7 @@
                 <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
             </button>
             <div class="custom-dropdown-menu" role="listbox">
-                <a href="{{ request()->fullUrlWithQuery(['tab' => 'admin']) }}"
+                <a href="{{ $tabUrl('admin') }}"
                     class="custom-dropdown-item {{ $activeTab === 'admin' ? 'active' : '' }}">
                     <div class="dropdown-item-left">
                         <i class="fas fa-user-shield text-primary me-2"></i>
@@ -61,8 +77,7 @@
                     <span
                         class="badge {{ $activeTab === 'admin' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['admin'] }}</span>
                 </a>
-                <a href="{{ request()->fullUrlWithQuery(['tab' => 'guru']) }}"
-                    class="custom-dropdown-item {{ $activeTab === 'guru' ? 'active' : '' }}">
+                <a href="{{ $tabUrl('guru') }}" class="custom-dropdown-item {{ $activeTab === 'guru' ? 'active' : '' }}">
                     <div class="dropdown-item-left">
                         <i class="fas fa-chalkboard-user text-primary me-2"></i>
                         <span>Guru</span>
@@ -70,7 +85,7 @@
                     <span
                         class="badge {{ $activeTab === 'guru' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['guru'] }}</span>
                 </a>
-                <a href="{{ request()->fullUrlWithQuery(['tab' => 'tendik']) }}"
+                <a href="{{ $tabUrl('tendik') }}"
                     class="custom-dropdown-item {{ $activeTab === 'tendik' ? 'active' : '' }}">
                     <div class="dropdown-item-left">
                         <i class="fas fa-id-badge text-primary me-2"></i>
@@ -79,7 +94,7 @@
                     <span
                         class="badge {{ $activeTab === 'tendik' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['tendik'] }}</span>
                 </a>
-                <a href="{{ request()->fullUrlWithQuery(['tab' => 'peserta_didik']) }}"
+                <a href="{{ $tabUrl('peserta_didik') }}"
                     class="custom-dropdown-item {{ $activeTab === 'peserta_didik' ? 'active' : '' }}">
                     <div class="dropdown-item-left">
                         <i class="fas fa-user-graduate text-primary me-2"></i>
@@ -88,7 +103,7 @@
                     <span
                         class="badge {{ $activeTab === 'peserta_didik' ? 'badge-primary' : 'badge-outline' }} badge-sm">{{ $counts['peserta_didik'] }}</span>
                 </a>
-                <a href="{{ request()->fullUrlWithQuery(['tab' => 'tugas_tambahan']) }}"
+                <a href="{{ $tabUrl('tugas_tambahan') }}"
                     class="custom-dropdown-item {{ $activeTab === 'tugas_tambahan' ? 'active' : '' }}">
                     <div class="dropdown-item-left">
                         <i class="fas fa-briefcase text-primary me-2"></i>
@@ -101,7 +116,8 @@
         </div>
     </div>
 
-    <div class="toolbar-row" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div class="toolbar-row"
+        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
             <div class="toolbar-entries">
                 <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
@@ -115,10 +131,12 @@
             </div>
 
             @if ($activeTab === 'tugas_tambahan' && $canCreate)
-                <button type="button" class="btn btn-primary" id="btnOpenAssignModal" style="padding: 7px 14px; font-size: 0.84rem;">
+                <button type="button" class="btn btn-primary" id="btnOpenAssignModal"
+                    style="padding: 7px 14px; font-size: 0.84rem;">
                     <i class="fas fa-plus me-1"></i> Tambah Penugasan
                 </button>
-                <button type="button" class="btn btn-outline" id="btnSyncWaliKelas" style="padding: 7px 14px; font-size: 0.84rem;">
+                <button type="button" class="btn btn-outline" id="btnSyncWaliKelas"
+                    style="padding: 7px 14px; font-size: 0.84rem;">
                     <i class="fas fa-sync-alt me-1"></i> Tarik Wali Kelas (Dapodik)
                 </button>
             @endif
@@ -126,8 +144,9 @@
 
         <div class="live-search-wrap">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="liveSearch" placeholder="{{ $activeTab === 'tugas_tambahan' ? 'Cari nama PTK / tugas / kelas...' : 'Cari nama / username / no HP...' }}" value="{{ $q }}"
-                autocomplete="off">
+            <input type="text" id="liveSearch"
+                placeholder="{{ $activeTab === 'tugas_tambahan' ? 'Cari nama PTK / tugas / kelas...' : 'Cari nama / username / no HP...' }}"
+                value="{{ $q }}" autocomplete="off">
             <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}" title="Hapus pencarian">
                 <i class="fas fa-times"></i>
             </button>
@@ -136,17 +155,31 @@
 
     @if ($activeTab === 'tugas_tambahan')
         {{-- TABEL PENUGASAN TUGAS TAMBAHAN --}}
-        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">No</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">PTK / Personel</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Tugas Tambahan</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Bidang & Kelompok</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">SK & Periode</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Rombel / Info</th>
-                        <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">Aksi</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            No</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            PTK / Personel</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Tugas Tambahan</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Bidang & Kelompok</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            SK & Periode</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Rombel / Info</th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -156,32 +189,43 @@
                             <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-muted);" data-label="No">
                                 {{ ($tugasTambahanList->currentPage() - 1) * $tugasTambahanList->perPage() + $idx + 1 }}
                             </td>
-                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.86rem;" data-label="PTK">
+                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.86rem;"
+                                data-label="PTK">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem;">
+                                    <div
+                                        style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-hover); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.8rem;">
                                         <i class="fas {{ $item->tugas_icon ?: 'fa-user' }}"></i>
                                     </div>
                                     <div>
                                         <div>{{ $item->ptk_nama }}</div>
-                                        <div style="font-size: 0.73rem; color: var(--text-muted); font-family: monospace;">NIP: {{ $item->ptk_nip }}</div>
+                                        <div style="font-size: 0.73rem; color: var(--text-muted); font-family: monospace;">
+                                            NIP: {{ $item->ptk_nip }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td style="padding: 14px 18px; font-size: 0.84rem;" data-label="Tugas">
-                                <span class="badge badge-primary" style="font-size: 0.76rem; padding: 4px 8px; border-radius: 6px;">
+                                <span class="badge badge-primary"
+                                    style="font-size: 0.76rem; padding: 4px 8px; border-radius: 6px;">
                                     {{ $item->tugas_nama }}
                                 </span>
                                 @if (!empty($item->ekuivalensi_jam))
-                                    <span class="badge badge-outline ms-1" style="font-size: 0.7rem;">{{ $item->ekuivalensi_jam }} JP</span>
+                                    <span class="badge badge-outline ms-1"
+                                        style="font-size: 0.7rem;">{{ $item->ekuivalensi_jam }} JP</span>
                                 @endif
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Bidang">
-                                <div><strong style="color: var(--text-color);">{{ $item->tugas_bidang ?: '-' }}</strong></div>
-                                <div style="font-size: 0.72rem; text-transform: uppercase;">{{ $item->tugas_kelompok }}</div>
+                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="Bidang">
+                                <div><strong style="color: var(--text-color);">{{ $item->tugas_bidang ?: '-' }}</strong>
+                                </div>
+                                <div style="font-size: 0.72rem; text-transform: uppercase;">{{ $item->tugas_kelompok }}
+                                </div>
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="SK & Periode">
-                                <div><i class="fas fa-file-signature me-1"></i> {{ $item->nomor_sk ?: 'SK Sekolah' }}</div>
-                                <div style="font-size: 0.72rem;">{{ $item->tmt_tugas ? date('d/m/Y', strtotime($item->tmt_tugas)) : 'TMT Aktif' }}</div>
+                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="SK & Periode">
+                                <div><i class="fas fa-file-signature me-1"></i> {{ $item->nomor_sk ?: 'SK Sekolah' }}
+                                </div>
+                                <div style="font-size: 0.72rem;">
+                                    {{ $item->tmt_tugas ? date('d/m/Y', strtotime($item->tmt_tugas)) : 'TMT Aktif' }}</div>
                             </td>
                             <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Rombel / Info">
                                 @if ($item->rombel_nama)
@@ -189,12 +233,16 @@
                                         <i class="fas fa-chalkboard-user me-1"></i> {{ $item->rombel_nama }}
                                     </span>
                                 @else
-                                    <span style="color: var(--text-muted); font-size: 0.76rem;">{{ $item->keterangan ?: '-' }}</span>
+                                    <span
+                                        style="color: var(--text-muted); font-size: 0.76rem;">{{ $item->keterangan ?: '-' }}</span>
                                 @endif
                             </td>
                             <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                 @if ($canDelete)
-                                    <button type="button" class="btn-icon danger btn-delete-duty" data-id="{{ $item->id }}" data-name="{{ $item->ptk_nama }} ({{ $item->tugas_nama }})" title="Hapus Penugasan">
+                                    <button type="button" class="btn-icon danger btn-delete-duty"
+                                        data-id="{{ $item->id }}"
+                                        data-name="{{ $item->ptk_nama }} ({{ $item->tugas_nama }})"
+                                        title="Hapus Penugasan">
                                         <i class="fas fa-trash-can"></i>
                                     </button>
                                 @endif
@@ -202,9 +250,11 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                            <td colspan="7"
+                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                 <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada penugasan tugas tambahan. Silakan klik "Tambah Penugasan" atau "Tarik Wali Kelas (Dapodik)".</div>
+                                <div>Belum ada penugasan tugas tambahan. Silakan klik "Tambah Penugasan" atau "Tarik Wali
+                                    Kelas (Dapodik)".</div>
                             </td>
                         </tr>
                     @endforelse
@@ -213,7 +263,7 @@
         </div>
     @else
         {{-- TABEL PENGGUNA STANDAR (ADMIN, GURU, TENDIK, SISWA) --}}
-        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
             <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
@@ -233,12 +283,14 @@
                 </thead>
                 <tbody>
                     @php
-                        $list = match ($activeTab) {
-                            'admin' => $admins,
-                            'guru' => $gurus,
-                            'tendik' => $tendiks,
-                            default => $pesertaDidiks,
-                        };
+                        $list =
+                            $list ??
+                            match ($activeTab) {
+                                'admin' => $admins,
+                                'guru' => $gurus,
+                                'tendik' => $tendiks,
+                                default => $pesertaDidiks,
+                            };
                     @endphp
                     @forelse ($list as $item)
                         <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
@@ -271,22 +323,25 @@
                                 </span>
                                 @if (!empty($item->rfid_uid))
                                     <div style="margin-top: 5px;">
-                                        <span class="badge badge-success" style="font-size: 0.7rem; font-family: monospace; padding: 2px 6px;" title="Kartu RFID Fisik Aktif">
+                                        <span class="badge badge-success"
+                                            style="font-size: 0.7rem; font-family: monospace; padding: 2px 6px;"
+                                            title="Kartu RFID Fisik Aktif">
                                             <i class="fas fa-id-card me-1"></i> {{ $item->rfid_uid }}
                                         </span>
                                     </div>
                                 @endif
                             </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);" data-label="Kontak">
+                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="Kontak">
                                 {{ $item->no_hp ?: '-' }}
                             </td>
                             <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                 <div class="table-actions">
                                     @if ($canUpdate)
-                                    <button type="button" class="btn-icon" title="Edit"
-                                        onclick="openEditModal({{ json_encode($item) }})">
-                                        <i class="fas fa-pen-to-square"></i>
-                                    </button>
+                                        <button type="button" class="btn-icon" title="Edit"
+                                            onclick="openEditModal({{ json_encode($item) }})">
+                                            <i class="fas fa-pen-to-square"></i>
+                                        </button>
                                     @endif
                                     @if ($canUpdate && $activeTab === 'peserta_didik' && $item->peserta_didik_id)
                                         <form action="{{ route('dashboard.pengguna.resetPassword', $item->pengguna_id) }}"
@@ -299,15 +354,15 @@
                                         </form>
                                     @endif
                                     @if ($canDelete)
-                                    <form action="{{ route('dashboard.pengguna.destroy', $item->pengguna_id) }}"
-                                        method="POST" style="display: inline; margin: 0;" data-action-type="delete"
-                                        data-name="{{ $item->nama }}">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-icon danger" title="Hapus">
-                                            <i class="fas fa-trash-can"></i>
-                                        </button>
-                                    </form>
+                                        <form action="{{ route('dashboard.pengguna.destroy', $item->pengguna_id) }}"
+                                            method="POST" style="display: inline; margin: 0;" data-action-type="delete"
+                                            data-name="{{ $item->nama }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-icon danger" title="Hapus">
+                                                <i class="fas fa-trash-can"></i>
+                                            </button>
+                                        </form>
                                     @endif
                                 </div>
                             </td>
@@ -408,9 +463,12 @@
                         <input type="text" name="alamat" id="inputAlamat">
                     </div>
                     <div class="form-group-compact full-width">
-                        <label><i class="fas fa-id-card text-primary me-1"></i> UID Kartu RFID (Akses Kiosk Terminal)</label>
-                        <input type="text" name="rfid_uid" id="inputRfidUid" placeholder="Tempel kartu RFID atau ketik UID..." autocomplete="off">
-                        <div class="input-hint">Digunakan untuk membuka akses layar pemindai terminal kiosk presensi secara instan dengan tap kartu.</div>
+                        <label><i class="fas fa-id-card text-primary me-1"></i> UID Kartu RFID (Akses Kiosk
+                            Terminal)</label>
+                        <input type="text" name="rfid_uid" id="inputRfidUid"
+                            placeholder="Tempel kartu RFID atau ketik UID..." autocomplete="off">
+                        <div class="input-hint">Digunakan untuk membuka akses layar pemindai terminal kiosk presensi secara
+                            instan dengan tap kartu.</div>
                     </div>
                     <div class="form-group-compact full-width">
                         <label>Password Baru</label>
@@ -455,7 +513,8 @@
                         <select name="ptk_id" id="dutyPtkSelect" required>
                             <option value="">-- Pilih PTK / GTK --</option>
                             @foreach ($ptkList as $p)
-                                <option value="{{ $p->ptk_id }}">{{ $p->nama }} ({{ $p->nip ? 'NIP: ' . $p->nip : ($p->jenis_ptk_id_str ?: 'GTK') }})</option>
+                                <option value="{{ $p->ptk_id }}">{{ $p->nama }}
+                                    ({{ $p->nip ? 'NIP: ' . $p->nip : ($p->jenis_ptk_id_str ?: 'GTK') }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -465,7 +524,8 @@
                         <select name="tugas_tambahan_id" id="dutyTugasSelect" required>
                             <option value="">-- Pilih Tugas Tambahan --</option>
                             @foreach ($refTugasList as $rt)
-                                <option value="{{ $rt->id }}" data-kode="{{ $rt->kode }}">{{ $rt->nama }} ({{ $rt->bidang ?: $rt->kelompok }})</option>
+                                <option value="{{ $rt->id }}" data-kode="{{ $rt->kode }}">{{ $rt->nama }}
+                                    ({{ $rt->bidang ?: $rt->kelompok }})</option>
                             @endforeach
                         </select>
                     </div>
@@ -501,9 +561,12 @@
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
-                    <button type="button" class="btn btn-outline" id="btnCancelDutyModal" style="padding: 8px 14px; font-size: 0.82rem;">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btnSubmitDutyModal" style="padding: 8px 16px; font-size: 0.82rem;">Simpan Penugasan</button>
+                <div
+                    style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px;">
+                    <button type="button" class="btn btn-outline" id="btnCancelDutyModal"
+                        style="padding: 8px 14px; font-size: 0.82rem;">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitDutyModal"
+                        style="padding: 8px 16px; font-size: 0.82rem;">Simpan Penugasan</button>
                 </div>
             </form>
         </div>
