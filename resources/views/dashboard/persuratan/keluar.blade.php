@@ -5,7 +5,9 @@
 
 @section('content')
     <div id="suratKeluarContainer" data-cetak-id="{{ session('cetak_id') ?? '' }}"
+        data-cetak-template-id="{{ session('cetak_template_id') ?? '' }}"
         data-cetak-base-url="{{ url('/dashboard/persuratan/keluar/keterangan') }}"
+        data-cetak-template-base-url="{{ url('/dashboard/persuratan/keluar/template') }}"
         data-store-url="{{ route('dashboard.persuratan.keluar.store') }}"
         data-base-url="{{ url('/dashboard/persuratan/keluar') }}"
         data-next-number-url="{{ route('dashboard.persuratan.keluar.next-number') }}"
@@ -25,8 +27,8 @@
                         Buku Agenda Surat Keluar
                     </h2>
                     <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
-                        Penomoran surat dinas otomatis, penerbitan surat keterangan aktif siswa ber-QR Code, dan arsip
-                        dokumen di harddisk.
+                        Penomoran surat dinas otomatis, penerbitan surat dari template Autocrat, dan arsip dokumen di
+                        harddisk.
                     </div>
                 </div>
             </div>
@@ -49,7 +51,18 @@
                             title="Terbitkan Surat Perintah Tugas (SPT)">
                             <i class="fas fa-plus"></i> Buat SPT Baru
                         </button>
+                    @elseif (($tab ?? '') === 'template')
+                        <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
+                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);"
+                            title="Buat Surat Keluar dari Template Autocrat">
+                            <i class="fas fa-wand-magic-sparkles"></i> Buat Surat dari Template
+                        </button>
                     @else
+                        <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
+                            style="padding: 7px 12px; border-radius: 8px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 5px; background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3);"
+                            title="Buat Surat dari Template Autocrat">
+                            <i class="fas fa-wand-magic-sparkles"></i> Template Surat
+                        </button>
                         <button type="button" class="btn btn-outline" id="btnOpenCreateKet"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(99,102,241,0.4); color: var(--primary);"
                             title="Buat Surat Keterangan Siswa Aktif">
@@ -81,7 +94,7 @@
             </div>
         @endif
 
-        <!-- 3. Stat Grid Baku SAE -->
+        <!-- 3. Stat Grid Baku SAE (4 Card Simetris) -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
@@ -114,12 +127,12 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-                    <i class="fas fa-hard-drive"></i>
+                <div class="dash-stat-icon" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
+                    <i class="fas fa-wand-magic-sparkles"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: 1rem;">{{ $hddStatus['free_formatted'] }}</div>
-                    <div class="dash-stat-label">Ruang Bebas Harddisk</div>
+                    <div class="dash-stat-value">{{ number_format($stats['template'] ?? 0) }}</div>
+                    <div class="dash-stat-label">Template Surat Autocrat</div>
                 </div>
             </div>
         </div>
@@ -139,6 +152,10 @@
                     class="periode-nav-tab {{ ($tab ?? '') === 'spt' ? 'active' : '' }}">
                     <i class="fas fa-file-contract"></i> Surat Perintah Tugas (SPT)
                 </a>
+                <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => 'template']) }}"
+                    class="periode-nav-tab {{ ($tab ?? '') === 'template' ? 'active' : '' }}">
+                    <i class="fas fa-wand-magic-sparkles"></i> Template Surat (Autocrat)
+                </a>
             </div>
         </div>
 
@@ -157,7 +174,7 @@
                         <span>entri</span>
                     </div>
 
-                    @if (($tab ?? '') !== 'spt')
+                    @if (($tab ?? '') !== 'spt' && ($tab ?? '') !== 'template')
                         <select id="filterKodeIndeks" class="toolbar-filter-select">
                             <option value="">Semua Indeks</option>
                             @foreach ($indeksList as $idx)
@@ -308,6 +325,125 @@
                                     <i class="fas fa-file-contract mb-2"
                                         style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
                                     <div>Belum ada Surat Perintah Tugas (SPT) yang diterbitkan.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        @elseif (($tab ?? '') === 'template')
+            <!-- Container Datatable: Surat Keluar dari Template Autocrat -->
+            <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                No</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Nomor Surat &amp; Indeks</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Jenis Template &amp; Perihal</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Tujuan Penerima</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Tanggal &amp; Penandatangan</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
+                                Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($items as $idx => $tmpl)
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 16px; text-align: center; font-size: 0.88rem; color: var(--text-muted);"
+                                    data-label="No">
+                                    {{ $items->firstItem() + $idx }}
+                                </td>
+                                <td style="padding: 12px 16px;" data-label="Nomor Surat">
+                                    <div
+                                        style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                        {{ $tmpl->nomor_surat }}</div>
+                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                        Indeks: <span class="badge-compact"
+                                            style="background: rgba(99,102,241,0.1); color: var(--primary);">{{ $tmpl->kode_indeks ?: '-' }}</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 16px;" data-label="Template &amp; Perihal">
+                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                        {{ $tmpl->perihal }}</div>
+                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                        <span class="badge-compact"
+                                            style="background: rgba(16,185,129,0.1); color: #10b981; text-transform: uppercase;">
+                                            <i class="fas fa-wand-magic-sparkles me-1"></i>
+                                            {{ ucfirst($tmpl->template_type) }}
+                                        </span>
+                                        @if ($tmpl->lampiran && $tmpl->lampiran !== '-')
+                                            <span style="margin-left: 6px;">Lampiran: {{ $tmpl->lampiran }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 16px;" data-label="Tujuan">
+                                    <div style="font-weight: 600; color: var(--text-color); font-size: 0.84rem;">
+                                        <i class="fas fa-location-arrow text-success me-1"></i>
+                                        {{ $tmpl->tujuan_penerima }}
+                                    </div>
+                                    <div style="font-size: 0.74rem; color: var(--text-muted);">
+                                        {{ $tmpl->tujuan_lokasi ?: 'Di Tempat' }}
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 16px;" data-label="Tanggal &amp; Pejabat">
+                                    <div style="font-size: 0.82rem; color: var(--text-color);">
+                                        <i class="far fa-calendar-alt text-muted me-1"></i>
+                                        {{ \Carbon\Carbon::parse($tmpl->tanggal_surat)->translatedFormat('d F Y') }}
+                                    </div>
+                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                        TTD: {{ $tmpl->pejabat_nama ?: 'Kepala Sekolah' }}
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
+                                    <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
+                                        <a href="{{ route('dashboard.persuratan.keluar.template.cetak', $tmpl->id) }}"
+                                            target="_blank" class="btn-icon" style="color: #2563eb;"
+                                            title="Cetak Lembar Resmi A4 (Print / PDF)">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                        <a href="{{ url('/v/doc/' . $tmpl->doc_id) }}" target="_blank"
+                                            class="btn-icon text-info" title="Halaman Verifikasi Publik (QR Code)">
+                                            <i class="fas fa-qrcode"></i>
+                                        </a>
+                                        @if ($canDelete)
+                                            <form
+                                                action="{{ route('dashboard.persuratan.keluar.template.delete', $tmpl->id) }}"
+                                                method="POST" style="display: inline;" data-confirm="delete"
+                                                data-name="{{ $tmpl->nomor_surat }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-icon text-danger"
+                                                    title="Hapus Dokumen Template">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                    <i class="fas fa-wand-magic-sparkles mb-2"
+                                        style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                    <div>Belum ada surat keluar yang dibuat dari template Autocrat.</div>
+                                    @if ($canCreate)
+                                        <button type="button" class="btn btn-outline btn-sm mt-3"
+                                            onclick="document.getElementById('btnOpenModalTemplate')?.click()">
+                                            <i class="fas fa-plus me-1"></i> Buat Surat Sekarang
+                                        </button>
+                                    @endif
                                 </td>
                             </tr>
                         @endforelse
@@ -1113,6 +1249,217 @@
                         <button type="submit" class="btn btn-primary"
                             style="padding: 8px 18px; border-radius: 8px; font-size: 0.84rem;"><i
                                 class="fas fa-check-circle me-1"></i> Terbitkan SPT</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal 5: Buat Surat Keluar dari Template (Autocrat Merge) -->
+        <div class="modal-overlay" id="modalTemplateSurat"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
+            <div class="modal-container"
+                style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 24px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                    <h4
+                        style="margin: 0; font-size: 1.1rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-wand-magic-sparkles text-primary"></i> Buat Surat Keluar dari Template (Autocrat)
+                    </h4>
+                    <button type="button" id="btnCloseModalTemplate"
+                        style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+                </div>
+
+                <form action="{{ route('dashboard.persuratan.keluar.template.store') }}" method="POST"
+                    id="formTemplateSurat">
+                    @csrf
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Pilihan Template Naskah <span style="color: #ef4444;">*</span>
+                            </label>
+                            <select name="template_type" id="selectTemplateType" class="form-control" required
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                                @foreach ($templatePresets as $tKey => $tVal)
+                                    <option value="{{ $tKey }}" data-indeks="{{ $tVal['indeks'] }}"
+                                        data-perihal="{{ $tVal['perihal'] }}" data-salam="{{ $tVal['salam'] }}"
+                                        data-pembuka="{{ $tVal['pembuka'] }}" data-penutup="{{ $tVal['penutup'] }}">
+                                        {{ $tVal['label'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Kode Indeks Klasifikasi <span style="color: #ef4444;">*</span>
+                            </label>
+                            <select name="kode_indeks" id="inputTmplKodeIndeks" class="form-control" required
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                                @foreach ($indeksList as $idx)
+                                    <option value="{{ $idx->kode }}"
+                                        {{ $idx->kode === 'HM.01.02' ? 'selected' : '' }}>
+                                        {{ $idx->kode }} - {{ $idx->judul }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Nomor Surat Resmi (Auto / Manual)
+                            </label>
+                            <input type="text" name="nomor_surat" id="inputTmplNomorSurat" class="form-control"
+                                value="{{ $suggestedTemplateNumber }}" placeholder="Kosongkan untuk auto-generate..."
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem; font-family: monospace;">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Tanggal Surat <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="date" name="tanggal_surat" class="form-control"
+                                value="{{ date('Y-m-d') }}" required
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Hal / Perihal Surat <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="text" name="perihal" id="inputTmplPerihal" class="form-control" required
+                                value="{{ $templatePresets['undangan']['perihal'] ?? '' }}"
+                                placeholder="Contoh: Undangan Rapat Evaluasi Belajar Semester Genap"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Lampiran
+                            </label>
+                            <input type="text" name="lampiran" class="form-control" value="-"
+                                placeholder="Misal: 1 Berkas"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Kepada Yth. (Tujuan Penerima) <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input type="text" name="tujuan_penerima" class="form-control" required
+                                placeholder="Contoh: Bapak / Ibu Orang Tua / Wali Murid Kelas X"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                                Lokasi / Alamat Tujuan
+                            </label>
+                            <input type="text" name="tujuan_lokasi" class="form-control" value="Di Tempat"
+                                placeholder="Contoh: Di Tempat / Pandeglang"
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                            Salam &amp; Paragraf Pembuka
+                        </label>
+                        <input type="text" name="salam_pembuka" id="inputTmplSalam" class="form-control mb-2"
+                            value="Dengan hormat,"
+                            style="width: 100%; height: 36px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">
+                        <textarea name="paragraf_pembuka" id="inputTmplPembuka" class="form-control" rows="2"
+                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">{{ $templatePresets['undangan']['pembuka'] ?? '' }}</textarea>
+                    </div>
+
+                    {{-- Form Rincian Acara / Kegiatan (Autocrat Merge Fields) --}}
+                    <div
+                        style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+                        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
+                            <i class="fas fa-calendar-check text-primary me-1"></i> Rincian Agenda / Kegiatan / Berkas
+                            (Opsional)
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px;">
+                            <div>
+                                <label
+                                    style="display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px;">Hari
+                                    / Tanggal</label>
+                                <input type="text" name="hari_tanggal_kegiatan"
+                                    placeholder="Contoh: Senin, 20 Oktober 2026"
+                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;">
+                            </div>
+                            <div>
+                                <label
+                                    style="display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px;">Waktu
+                                    / Pukul</label>
+                                <input type="text" name="waktu_kegiatan" placeholder="Contoh: 08.00 WIB s.d. Selesai"
+                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;">
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label
+                                    style="display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px;">Tempat
+                                    Pelaksanaan</label>
+                                <input type="text" name="tempat_kegiatan" placeholder="Contoh: Aula Serbaguna Sekolah"
+                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;">
+                            </div>
+                            <div>
+                                <label
+                                    style="display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 4px;">Agenda
+                                    / Acara</label>
+                                <input type="text" name="agenda_kegiatan"
+                                    placeholder="Contoh: Rapat Komite &amp; Sosialisasi Program"
+                                    style="width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                            Isi Tambahan / Uraian Bebas (Opsional)
+                        </label>
+                        <textarea name="isi_surat" class="form-control" rows="2"
+                            placeholder="Tuliskan poin-poin tambahan atau isi bebas lainnya jika diperlukan..."
+                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 14px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                            Paragraf Penutup
+                        </label>
+                        <textarea name="paragraf_penutup" id="inputTmplPenutup" class="form-control" rows="2"
+                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;">{{ $templatePresets['undangan']['penutup'] ?? '' }}</textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label
+                            style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
+                            Tembusan (Opsional)
+                        </label>
+                        <textarea name="tembusan" class="form-control" rows="1" placeholder="1. Ketua Komite Sekolah&#10;2. Arsip"
+                            style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.84rem;"></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button type="button" id="btnCancelModalTemplate" class="btn btn-outline"
+                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">Batal</button>
+                        <button type="submit" class="btn btn-primary"
+                            style="padding: 8px 20px; border-radius: 8px; font-size: 0.84rem; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none;">
+                            <i class="fas fa-wand-magic-sparkles me-1"></i> Terbitkan &amp; Cetak Surat
+                        </button>
                     </div>
                 </form>
             </div>

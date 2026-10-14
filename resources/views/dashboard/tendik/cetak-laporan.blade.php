@@ -44,35 +44,8 @@
             <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
         </div>
 
-        <!-- 1. KOP SURAT SEKOLAH RESMI YANG TELAH DISEDIAKAN & DITETAPKAN -->
-        <div class="kop-container">
-            @if (!empty($sekolahMeta?->kop_url))
-                <!-- File Gambar Kop Surat Resmi dari Identitas Sekolah -->
-                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}"
-                    class="kop-image">
-            @else
-                <!-- Fallback Kop Standar Resmi -->
-                <div class="kop-fallback">
-                    @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url)
-                            ? $sekolahMeta->logo_url
-                            : asset('img/logo-dark.png');
-                    @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo"
-                        onerror="this.src='/img/logo-dark.png'">
-                    <div class="kop-text-wrap">
-                        <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
-                        <div class="kop-subtitle">
-                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat:
-                            {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
-                            {{ $sekolah->kabupaten_kota ?? '' }}, {{ $sekolah->provinsi ?? '' }}<br>
-                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }}
-                            &bull; Website: {{ $sekolah->website ?? '-' }}
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
+        <!-- 1. KOP SURAT SEKOLAH RESMI -->
+        @include('partials.kop-surat')
 
         <!-- 2. Header Dokumen Bersih (Identik dengan Jadwal KBM) -->
         <div class="doc-header">

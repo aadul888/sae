@@ -871,6 +871,8 @@ class WaliKelasController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
         }
 
+        $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
+
         if (!RolePermission::isWaliKelasOrAdmin($user) || !RolePermission::canAccess($user, 'menu_wali_kelas_presensi', 'update')) {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses mencatat presensi kelas.'], 403);
         }
@@ -1147,6 +1149,8 @@ class WaliKelasController extends Controller
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'Sesi login telah berakhir.'], 401);
         }
+
+        $userId = is_array($user) ? ($user['pengguna_id'] ?? ($user['id'] ?? null)) : ($user->pengguna_id ?? ($user->id ?? null));
 
         if (!RolePermission::isWaliKelasOrAdmin($user) || !RolePermission::canAccess($user, 'menu_wali_kelas_presensi', 'update')) {
             return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses verifikasi izin.'], 403);

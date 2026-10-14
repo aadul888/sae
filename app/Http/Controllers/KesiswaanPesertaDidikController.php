@@ -1071,6 +1071,120 @@ class KesiswaanPesertaDidikController extends Controller
     }
 
     /**
+     * Upload berkas siswa langsung oleh Tendik / Staf Kesiswaan (otomatis berstatus 'valid').
+     */
+    public function uploadBerkasTendik(Request $request, $id)
+    {
+        if ($res = $this->checkAuth()) return $res;
+
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        $canUpdate = in_array($role, ['admin', 'tendik'], true)
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update');
+
+        if (!$canUpdate) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'jenis_berkas' => 'required|string',
+            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ], [
+            'file.required' => 'Pilih file dokumen yang ingin diunggah.',
+            'file.mimes' => 'Format file harus PDF, JPG, JPEG, atau PNG.',
+            'file.max' => 'Ukuran file maksimal 10 MB.',
+        ]);
+
+        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
+        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+            $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
+        }
+
+        if (!$pd) {
+            return response()->json(['status' => 'error', 'message' => 'Peserta didik tidak ditemukan.'], 404);
+        }
+
+        $file = $request->file('file');
+        $jenisBerkas = $request->input('jenis_berkas');
+        $slots = PesertaDidikBerkas::getJenisBerkasOptions();
+        $namaBerkas = $slots[$jenisBerkas]['label'] ?? 'Dokumen Siswa';
+
+        // Hapus file lama jika ada
+        $existing = PesertaDidikBerkas::where('peserta_didik_id', $pd->peserta_didik_id)
+            ->where('jenis_berkas', $jenisBerkas)
+            ->first();
+
+        if ($existing && !empty($existing->file_path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($existing->file_path);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        $fileName = $jenisBerkas . '_' . time() . '.' . $extension;
+        $directory = 'berkas_siswa/' . $pd->peserta_didik_id;
+        $savedPath = $file->storeAs($directory, $fileName, 'public');
+
+        $userName = is_array($user) ? ($user['nama'] ?? 'Staf Kesiswaan') : ($user->nama ?? 'Staf Kesiswaan');
+
+        // Otomatis tersimpan dan LANGSUNG VALID
+        $berkas = PesertaDidikBerkas::updateOrCreate(
+            [
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'jenis_berkas' => $jenisBerkas,
+            ],
+            [
+                'nama_berkas' => $namaBerkas,
+                'file_path' => $savedPath,
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize(),
+                'mime_type' => $file->getMimeType(),
+                'status' => 'valid', // OTOMATIS VALID
+                'catatan_penolakan' => null,
+                'rekomendasi_penolakan' => null,
+                'verified_by' => $userName . ' (Tendik)',
+                'verified_at' => now(),
+                'uploaded_by' => $userName . ' (Tendik Kesiswaan)',
+            ]
+        );
+
+        // Sinkronisasi status checklist ke tabel kesiswaan_berkas_verifikasi jika kolom utama
+        $coreColumns = ['akta_kelahiran', 'kartu_keluarga', 'ijazah_smp', 'ktp_orang_tua', 'kip_pip'];
+        if (in_array($berkas->jenis_berkas, $coreColumns, true)) {
+            $kbv = KesiswaanBerkasVerifikasi::firstOrNew(['peserta_didik_id' => $id]);
+            $kbv->{$berkas->jenis_berkas} = true;
+            $kbv->verified_by = $userName;
+            $kbv->verified_at = now();
+            $kbv->save();
+        }
+
+        if (class_exists(AdminAktivitas::class)) {
+            AdminAktivitas::record(
+                "Upload Berkas Tendik: {$pd->nama} - {$berkas->nama_berkas} (Valid)",
+                'Kesiswaan',
+                "Dokumen diunggah langsung oleh {$userName} dan otomatis diverifikasi valid.",
+                'success'
+            );
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Berkas \"{$berkas->nama_berkas}\" berhasil diunggah dan otomatis diverifikasi VALID.",
+            'data' => [
+                'berkas_id' => $berkas->id,
+                'file_name' => $berkas->file_name,
+                'file_size' => $berkas->formatted_file_size,
+                'file_url' => route('dashboard.berkas.preview', $berkas->id),
+                'status' => 'valid',
+                'verified_by' => $berkas->verified_by,
+                'verified_at' => $berkas->verified_at ? $berkas->verified_at->translatedFormat('d M Y, H:i') : null,
+                'uploaded_at' => $berkas->created_at ? $berkas->created_at->translatedFormat('d M Y, H:i') : null,
+            ]
+        ]);
+    }
+
+    /**
      * Detail lengkap biodata peserta didik (JSON) untuk Modal Biodata.
      */
     public function show($id)

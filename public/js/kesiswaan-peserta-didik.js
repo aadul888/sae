@@ -191,6 +191,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 html += `
+                    <!-- Fitur Upload Dokumen Langsung oleh Tendik (Otomatis Berstatus Valid) -->
+                    <div style="background: rgba(16,185,129,0.06); border: 1px dashed rgba(16,185,129,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                        <div style="font-size: 0.78rem; color: var(--text-color);">
+                            <i class="fas fa-cloud-arrow-up text-success me-1"></i>
+                            <strong>Unggah Berkas Siswa oleh Petugas Kesiswaan:</strong>
+                            <span style="font-size: 0.72rem; color: var(--text-muted); display: block;">File (PDF, JPG, PNG) yang diunggah petugas otomatis diverifikasi berstatus <strong>VALID</strong>.</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="file" id="fileTendik_${item.jenis_berkas}" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" class="input-file-tendik" data-pd-id="${id}" data-key="${item.jenis_berkas}">
+                            <button type="button" class="btn btn-outline" onclick="document.getElementById('fileTendik_${item.jenis_berkas}').click()" style="padding: 5px 12px; font-size: 0.78rem; border-color: #10b981; color: #10b981; border-radius: 6px; cursor: pointer;">
+                                <i class="fas fa-upload me-1"></i> ${item.is_uploaded ? 'Ganti File (Auto-Valid)' : 'Unggah File (Auto-Valid)'}
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Form Validasi Status (HANYA 2 PILIHAN STATUS: valid atau tidak_valid) -->
                     <div style="background: var(--card-bg); border-radius: 8px; padding: 12px 14px; border: 1px solid var(--border-color);">
                         <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-color); margin-bottom: 8px;">
@@ -263,6 +278,61 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (textarea) {
                         textarea.value = text;
                         textarea.focus();
+                    }
+                });
+            });
+
+            // Wire up file input change for direct tendik upload
+            content.querySelectorAll('.input-file-tendik').forEach(fileInput => {
+                fileInput.addEventListener('change', async function () {
+                    const file = this.files[0];
+                    if (!file) return;
+
+                    const pdId = this.getAttribute('data-pd-id');
+                    const key = this.getAttribute('data-key');
+
+                    const formData = new FormData();
+                    formData.append('jenis_berkas', key);
+                    formData.append('file', file);
+
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+                        || document.querySelector('input[name="_token"]')?.value
+                        || '';
+
+                    Swal.fire({
+                        title: 'Mengunggah Berkas...',
+                        text: 'File sedang diproses dan otomatis diverifikasi VALID.',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    try {
+                        const upRes = await fetch(`/dashboard/kesiswaan/peserta-didik/berkas-upload/${encodeURIComponent(pdId)}`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            body: formData
+                        });
+                        const upJson = await upRes.json();
+                        if (upRes.ok && upJson.status === 'success') {
+                            berkasStatusChanged = true;
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil Diunggah!',
+                                text: upJson.message,
+                                timer: 1800,
+                                showConfirmButton: false
+                            });
+                            // Refresh modal detail to show updated file and valid status
+                            window.openModalVerifikasiBerkas(pdId, siswa.nama);
+                        } else {
+                            Swal.fire('Gagal Unggah', upJson.message || 'Terjadi kesalahan sistem.', 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Kesalahan Jaringan', 'Tidak dapat terhubung ke server.', 'error');
                     }
                 });
             });

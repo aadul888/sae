@@ -31,6 +31,27 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    const cetakTemplateId = container?.dataset?.cetakTemplateId || '';
+    const templateCetakBaseUrl = container?.dataset?.cetakTemplateBaseUrl || '';
+
+    // Notifikasi Cetak Langsung Setelah Surat Template Autocrat Diterbitkan
+    if (cetakTemplateId && templateCetakBaseUrl) {
+        Swal.fire({
+            icon: 'success',
+            title: 'Surat Template Berhasil Diterbitkan!',
+            text: 'Dokumen Autocrat dan QR Code verifikasi telah siap. Apakah Anda ingin langsung mencetak lembar resmi sekarang?',
+            showCancelButton: true,
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-print me-1"></i> Cetak Sekarang',
+            cancelButtonText: 'Nanti Saja'
+        }).then(res => {
+            if (res.isConfirmed) {
+                window.open(templateCetakBaseUrl + '/' + cetakTemplateId + '/cetak', '_blank');
+            }
+        });
+    }
+
     // 2. Modal Catat / Edit Surat Keluar Umum
     const modalSuratKeluar = document.getElementById('modalSuratKeluar');
     const formSuratKeluar = document.getElementById('formSuratKeluar');
@@ -536,7 +557,54 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 6. Konfirmasi Hapus Form (Delete SPT & Surat Keluar) via SweetAlert2
+    // 5b. Handler Modal Surat Keluar Template Autocrat
+    const modalTemplate = document.getElementById('modalTemplateSurat');
+    const btnOpenModalTemplate = document.getElementById('btnOpenModalTemplate');
+    const btnCloseModalTemplate = document.getElementById('btnCloseModalTemplate');
+    const btnCancelModalTemplate = document.getElementById('btnCancelModalTemplate');
+    const formTemplateSurat = document.getElementById('formTemplateSurat');
+    const selectTemplateType = document.getElementById('selectTemplateType');
+    const inputTmplPerihal = document.getElementById('inputTmplPerihal');
+    const inputTmplKodeIndeks = document.getElementById('inputTmplKodeIndeks');
+    const inputTmplSalam = document.getElementById('inputTmplSalam');
+    const inputTmplPembuka = document.getElementById('inputTmplPembuka');
+    const inputTmplPenutup = document.getElementById('inputTmplPenutup');
+
+    if (btnOpenModalTemplate && modalTemplate) {
+        btnOpenModalTemplate.addEventListener('click', function () {
+            modalTemplate.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    }
+
+    function closeModalTemplate() {
+        if (!modalTemplate) return;
+        modalTemplate.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    if (btnCloseModalTemplate) btnCloseModalTemplate.addEventListener('click', closeModalTemplate);
+    if (btnCancelModalTemplate) btnCancelModalTemplate.addEventListener('click', closeModalTemplate);
+
+    if (modalTemplate) {
+        modalTemplate.addEventListener('click', function (e) {
+            if (e.target === modalTemplate) closeModalTemplate();
+        });
+    }
+
+    if (selectTemplateType) {
+        selectTemplateType.addEventListener('change', function () {
+            const opt = this.options[this.selectedIndex];
+            if (!opt) return;
+            if (inputTmplPerihal && opt.dataset.perihal) inputTmplPerihal.value = opt.dataset.perihal;
+            if (inputTmplKodeIndeks && opt.dataset.indeks) inputTmplKodeIndeks.value = opt.dataset.indeks;
+            if (inputTmplSalam && opt.dataset.salam) inputTmplSalam.value = opt.dataset.salam;
+            if (inputTmplPembuka && opt.dataset.pembuka) inputTmplPembuka.value = opt.dataset.pembuka;
+            if (inputTmplPenutup && opt.dataset.penutup) inputTmplPenutup.value = opt.dataset.penutup;
+        });
+    }
+
+    // 6. Konfirmasi Hapus Form (Delete SPT, Template & Surat Keluar) via SweetAlert2
     document.addEventListener('submit', function (e) {
         const form = e.target.closest('form[data-confirm="delete"]');
         if (form && !form.dataset.confirmed) {

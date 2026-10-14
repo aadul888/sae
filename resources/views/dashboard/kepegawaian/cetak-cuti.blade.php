@@ -29,21 +29,8 @@
     <div class="page-container">
         <div class="watermark">SAE RESMI</div>
 
-        {{-- Kop Surat --}}
-        <div class="kop-surat">
-            @if ($sekolahMeta && $sekolahMeta->kop_url)
-                <img src="{{ asset($sekolahMeta->kop_url) }}" alt="Kop Surat">
-            @else
-                <div class="kop-fallback">
-                    <h2>PEMERINTAH PROVINSI / DAERAH</h2>
-                    <h2>DINAS PENDIDIKAN DAN KEBUDAYAAN</h2>
-                    <h1>{{ $sekolah ? $sekolah->nama : 'SMK NEGERI CONTOH' }}</h1>
-                    <p>{{ $sekolah ? $sekolah->alamat_jalan . ', ' . $sekolah->desa_kelurahan . ', ' . $sekolah->kecamatan : 'Jalan Pendidikan No. 123' }}
-                    </p>
-                    <p>NPSN: {{ $sekolah ? $sekolah->npsn : '-' }} | Surel: {{ $sekolah ? $sekolah->email : '-' }}</p>
-                </div>
-            @endif
-        </div>
+        {{-- Kop Surat Resmi --}}
+        @include('partials.kop-surat')
 
         {{-- Judul Surat --}}
         <div class="doc-title">
@@ -57,11 +44,13 @@
             @if ($isDinas)
                 <p>Yang bertanda tangan di bawah ini Kepala Sekolah
                     <strong>{{ $sekolah ? $sekolah->nama : 'Satuan Pendidikan' }}</strong>, dengan ini memberikan tugas
-                    kedinasan kepada:</p>
+                    kedinasan kepada:
+                </p>
             @else
                 <p>Yang bertanda tangan di bawah ini Kepala Sekolah
                     <strong>{{ $sekolah ? $sekolah->nama : 'Satuan Pendidikan' }}</strong>, dengan ini memberikan izin
-                    / cuti kepada:</p>
+                    / cuti kepada:
+                </p>
             @endif
 
             <table class="bio-table">

@@ -44,40 +44,7 @@
         </div>
 
         <!-- 1. KOP SURAT RESMI SEKOLAH -->
-        <div class="kop-container">
-            @if (!empty($sekolahMeta?->kop_url))
-                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}"
-                    class="kop-image">
-            @else
-                <div class="kop-fallback">
-                    @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url)
-                            ? $sekolahMeta->logo_url
-                            : asset('img/logo-dark.png');
-                    @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo Sekolah" class="kop-logo"
-                        onerror="this.src='/img/logo-dark.png'">
-                    <div class="kop-text-wrap">
-                        <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
-                        <div class="kop-subtitle">
-                            {{ $sekolah->alamat_jalan ?? 'Alamat Sekolah Belum Diatur' }}
-                            @if (!empty($sekolah->desa_kelurahan))
-                                , {{ $sekolah->desa_kelurahan }}
-                            @endif
-                            @if (!empty($sekolah->kecamatan))
-                                , Kec. {{ $sekolah->kecamatan }}
-                            @endif
-                            @if (!empty($sekolah->kabupaten_kota))
-                                , {{ $sekolah->kabupaten_kota }}
-                            @endif
-                            <br>
-                            NPSN: {{ $sekolah->npsn ?? '-' }} | Website: {{ $sekolah->website ?? '-' }} | Email:
-                            {{ $sekolah->email ?? '-' }}
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
+        @include('partials.kop-surat')
 
         <!-- 2. JUDUL DOKUMEN -->
         <div class="doc-title-block">

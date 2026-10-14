@@ -315,6 +315,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::delete('/persuratan/keluar/spt/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteSpt'])->name('persuratan.keluar.spt.delete')->middleware('permission:menu_surat_keluar,delete');
     Route::get('/persuratan/keluar/spt/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakSpt'])->name('persuratan.keluar.spt.cetak')->middleware('permission:menu_surat_keluar,read');
 
+    // Tab Template Surat Keluar (Autocrat-Style)
+    Route::get('/persuratan/keluar/template', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'template']));
+    Route::post('/persuratan/keluar/template', [\App\Http\Controllers\SuratKeluarController::class, 'storeTemplate'])->name('persuratan.keluar.template.store')->middleware('permission:menu_surat_keluar,create');
+    Route::delete('/persuratan/keluar/template/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteTemplate'])->name('persuratan.keluar.template.delete')->middleware('permission:menu_surat_keluar,delete');
+    Route::get('/persuratan/keluar/template/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakTemplate'])->name('persuratan.keluar.template.cetak')->middleware('permission:menu_surat_keluar,read');
+
     // 3. Pengaturan Sistem Persuratan & Harddisk (HDD)
     Route::get('/persuratan/pengaturan', [\App\Http\Controllers\PersuratanSettingController::class, 'index'])->name('persuratan.pengaturan.index')->middleware('permission:menu_pengaturan_persuratan,read');
     Route::post('/persuratan/pengaturan', [\App\Http\Controllers\PersuratanSettingController::class, 'updateSettings'])->name('persuratan.pengaturan.update')->middleware('permission:menu_pengaturan_persuratan,update');
@@ -341,6 +347,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::post('/berkas/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateBerkas'])->name('berkas.update')->middleware('permission:menu_kesiswaan_peserta_didik,update');
             Route::get('/berkas-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getBerkasDetail'])->name('berkas.detail')->middleware('permission:menu_kesiswaan_peserta_didik,read');
             Route::post('/berkas-verifikasi/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiBerkasItem'])->name('berkas.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik,update');
+            Route::post('/berkas-upload/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'uploadBerkasTendik'])->name('berkas.upload-tendik')->middleware('permission:menu_kesiswaan_peserta_didik,update');
             Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan_peserta_didik,read');
         });
 

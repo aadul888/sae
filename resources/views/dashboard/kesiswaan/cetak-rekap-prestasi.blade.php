@@ -23,20 +23,7 @@
     </div>
 
     <!-- KOP SURAT RESMI SEKOLAH -->
-    <div class="kop-surat">
-        @if ($sekolahMeta && $sekolahMeta->logo_kiri)
-            <img src="{{ asset($sekolahMeta->logo_kiri) }}" alt="Logo" class="kop-logo">
-        @elseif (file_exists(public_path('images/logo.png')))
-            <img src="{{ asset('images/logo.png') }}" alt="Logo" class="kop-logo">
-        @endif
-        <div class="kop-text">
-            <h3>PEMERINTAH DAERAH PROVINSI / KABUPATEN / KOTA</h3>
-            <h2>{{ $sekolah->nama ?? 'NAMA SATUAN PENDIDIKAN' }}</h2>
-            <p>{{ $sekolah->alamat_jalan ?? 'Alamat Sekolah' }}, NPSN: {{ $sekolah->npsn ?? '-' }} | Telepon:
-                {{ $sekolah->nomor_telepon ?? '-' }}</p>
-            <p>Email: {{ $sekolah->email ?? '-' }} | Website: {{ $sekolah->website ?? '-' }}</p>
-        </div>
-    </div>
+    @include('partials.kop-surat')
 
     <!-- JUDUL LAPORAN -->
     <div class="judul-laporan">

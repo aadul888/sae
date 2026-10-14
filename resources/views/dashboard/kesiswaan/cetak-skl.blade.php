@@ -23,22 +23,8 @@
     </div>
 
     <div style="padding: 20px 0;">
-        <!-- Kop Surat -->
-        <div class="kop-surat">
-            @if (!empty($sekolahMeta?->logo_path) && file_exists(public_path($sekolahMeta->logo_path)))
-                <img src="{{ asset($sekolahMeta->logo_path) }}" class="kop-logo" alt="Logo">
-            @else
-                <img src="{{ asset('img/logo-dark.png') }}" class="kop-logo" alt="Logo">
-            @endif
-            <div class="kop-text">
-                <h3>PEMERINTAH PROVINSI</h3>
-                <h2>{{ $sekolah?->nama ?: 'SMK NEGERI 1' }}</h2>
-                <p>{{ $sekolah?->alamat_jalan ?: 'Jl. Pendidikan No. 1' }}, {{ $sekolah?->desa_kelurahan ?: '' }},
-                    {{ $sekolah?->kecamatan ?: '' }}</p>
-                <p>NPSN: {{ $sekolah?->npsn ?: '-' }} | Website: {{ $sekolah?->website ?: '-' }} | Email:
-                    {{ $sekolah?->email ?: '-' }}</p>
-            </div>
-        </div>
+        <!-- Kop Surat Resmi -->
+        @include('partials.kop-surat')
 
         <!-- Judul -->
         <div class="judul-surat">

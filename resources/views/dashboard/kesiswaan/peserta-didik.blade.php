@@ -260,7 +260,7 @@
             </a>
             <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'berkas']) }}"
                 class="periode-nav-tab {{ $activeTab === 'berkas' ? 'active' : '' }}">
-                <i class="fas fa-folder-open"></i> Validasi
+                <i class="fas fa-folder-open"></i> Berkas
             </a>
             <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
                 class="periode-nav-tab {{ $activeTab === 'usulan' ? 'active' : '' }}">
@@ -289,7 +289,7 @@
                     </option>
                     <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'berkas']) }}"
                         {{ $activeTab === 'berkas' ? 'selected' : '' }}>
-                        📁 Validasi
+                        📁 Berkas
                     </option>
                     <option value="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
                         {{ $activeTab === 'usulan' ? 'selected' : '' }}>

@@ -175,7 +175,7 @@ class SuratMasukController extends Controller
             'created_by' => $userName,
         ]);
 
-        return redirect()->route('persuratan.masuk.index')->with('success', "Surat masuk nomor {$persuratan->nomor_surat} berhasil dicatat.");
+        return redirect()->route('dashboard.persuratan.masuk.index')->with('success', "Surat masuk nomor {$persuratan->nomor_surat} berhasil dicatat.");
     }
 
     /**
@@ -191,8 +191,8 @@ class SuratMasukController extends Controller
             'data' => $surat,
             'disposisi' => $disposisi,
             'has_file' => !empty($surat->file_path),
-            'file_url' => !empty($surat->file_path) ? route('persuratan.dokumen.view', $surat->id) : null,
-            'file_download_url' => !empty($surat->file_path) ? route('persuratan.dokumen.download', $surat->id) : null,
+            'file_url' => !empty($surat->file_path) ? route('dashboard.persuratan.dokumen.view', $surat->id) : null,
+            'file_download_url' => !empty($surat->file_path) ? route('dashboard.persuratan.dokumen.download', $surat->id) : null,
         ]);
     }
 
@@ -249,7 +249,7 @@ class SuratMasukController extends Controller
 
         $surat->update($data);
 
-        return redirect()->route('persuratan.masuk.index')->with('success', 'Data surat masuk berhasil diperbarui.');
+        return redirect()->route('dashboard.persuratan.masuk.index')->with('success', 'Data surat masuk berhasil diperbarui.');
     }
 
     /**
@@ -277,7 +277,7 @@ class SuratMasukController extends Controller
         PersuratanDisposisi::where('persuratan_id', $id)->delete();
         $surat->delete();
 
-        return redirect()->route('persuratan.masuk.index')->with('success', 'Surat masuk beserta arsip dokumennya berhasil dihapus.');
+        return redirect()->route('dashboard.persuratan.masuk.index')->with('success', 'Surat masuk beserta arsip dokumennya berhasil dihapus.');
     }
 
     /**
@@ -320,7 +320,7 @@ class SuratMasukController extends Controller
         // Update status surat ke diproses
         $surat->update(['status' => 'diproses']);
 
-        return redirect()->route('persuratan.masuk.index')->with('success', 'Lembar disposisi surat masuk berhasil disimpan.');
+        return redirect()->route('dashboard.persuratan.masuk.index')->with('success', 'Lembar disposisi surat masuk berhasil disimpan.');
     }
 
     /**

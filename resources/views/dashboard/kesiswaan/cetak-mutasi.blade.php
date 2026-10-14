@@ -52,31 +52,8 @@
             <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
         </div>
 
-        {{-- Kop Surat Sekolah --}}
-        <div class="kop-container">
-            @if (!empty($sekolahMeta?->kop_url))
-                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat" class="kop-image">
-            @else
-                <div class="kop-fallback">
-                    @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url)
-                            ? $sekolahMeta->logo_url
-                            : asset('img/logo-dark.png');
-                    @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo"
-                        onerror="this.src='/img/logo-dark.png'">
-                    <div class="kop-text-wrap">
-                        <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
-                        <div class="kop-subtitle">
-                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat:
-                            {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
-                            {{ $sekolah->kabupaten_kota ?? '' }}<br>
-                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }}
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
+        {{-- Kop Surat Sekolah Resmi --}}
+        @include('partials.kop-surat')
 
         {{-- Header Judul Surat --}}
         <div class="doc-header">

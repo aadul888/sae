@@ -28,35 +28,8 @@
             <img src="{{ asset('img/logo-icon.png') }}" alt="Watermark SAE">
         </div>
 
-        <!-- 1. KOP SURAT RESMI SEKOLAH YANG SUDAH DISIAPKAN -->
-        <div class="kop-container">
-            @if (!empty($sekolahMeta?->kop_url))
-                <!-- Menggunakan File Gambar Kop Surat Resmi yang sudah diunggah -->
-                <img src="{{ $sekolahMeta->kop_url }}" alt="Kop Surat Resmi {{ $sekolah->nama ?? 'Sekolah' }}"
-                    class="kop-image">
-            @else
-                <!-- Fallback Kop Standar jika belum ada file gambar kop -->
-                <div class="kop-fallback">
-                    @php
-                        $logoUrl = !empty($sekolahMeta?->logo_url)
-                            ? $sekolahMeta->logo_url
-                            : asset('img/logo-dark.png');
-                    @endphp
-                    <img src="{{ $logoUrl }}" alt="Logo" class="kop-logo"
-                        onerror="this.src='/img/logo-dark.png'">
-                    <div class="kop-text-wrap">
-                        <div class="kop-title">{{ $sekolah->nama ?? 'SISTEM APLIKASI EDUKASI (SAE)' }}</div>
-                        <div class="kop-subtitle">
-                            NPSN: {{ $sekolah->npsn ?? '-' }} &bull; Alamat:
-                            {{ $sekolah->alamat_jalan ?? 'Jalan Pendidikan' }},
-                            {{ $sekolah->kabupaten_kota ?? '' }}, {{ $sekolah->provinsi ?? '' }}<br>
-                            Kontak: {{ $sekolah->nomor_telepon ?? '-' }} &bull; Email: {{ $sekolah->email ?? '-' }}
-                            &bull; Website: {{ $sekolah->website ?? '-' }}
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
+        <!-- 1. KOP SURAT RESMI SEKOLAH -->
+        @include('partials.kop-surat')
 
         <!-- 2. Header Judul Dokumen (Format Bersih Jadwal KBM) -->
         <div class="doc-header">
@@ -156,7 +129,8 @@
                                 <span style="font-weight: 700; color: #059669;">Hadir</span>
                             @elseif ($l->status === 'T')
                                 <span style="font-weight: 700; color: #d97706;">Terlambat
-                                    (+{{ $l->menit_terlambat }}m)</span>
+                                    (+{{ $l->menit_terlambat }}m)
+                                </span>
                             @elseif ($l->status === 'I')
                                 <span style="font-weight: 700; color: #2563eb;">Izin</span>
                             @elseif ($l->status === 'S')

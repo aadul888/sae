@@ -23,19 +23,8 @@
     </div>
 
     <div class="page-container">
-        <!-- KOP SURAT -->
-        <div class="kop-surat">
-            @if (!empty($sekolahMeta?->kop_surat_path))
-                <img src="{{ asset('storage/' . $sekolahMeta->kop_surat_path) }}" alt="KOP Surat">
-            @else
-                <div class="kop-fallback">
-                    <h2>PEMERINTAH PROVINSI / DAERAH</h2>
-                    <h1>{{ $sekolah?->nama ?? 'SMK NEGERI CONTOH' }}</h1>
-                    <p>{{ $sekolah?->alamat_jalan ?? 'Jl. Pendidikan No. 1' }} | NPSN: {{ $sekolah?->npsn ?? '-' }} |
-                        Email: {{ $sekolah?->email ?? '-' }}</p>
-                </div>
-            @endif
-        </div>
+        <!-- KOP SURAT RESMI -->
+        @include('partials.kop-surat')
 
         <!-- JUDUL SURAT -->
         <div class="doc-title">
