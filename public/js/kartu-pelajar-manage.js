@@ -881,6 +881,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (m) {
             m.style.display = "flex";
             document.body.style.overflow = "hidden";
+            document.getElementById("formTambahRequest")?.reset();
+            document.getElementById("rqPdId") && (document.getElementById("rqPdId").value = "");
+            document.getElementById("rqPilihInfo") && (document.getElementById("rqPilihInfo").textContent = "Belum ada peserta didik dipilih.");
+            document.getElementById("rqSubmit") && (document.getElementById("rqSubmit").disabled = true);
             document.getElementById("rqCari")?.focus();
         }
     };

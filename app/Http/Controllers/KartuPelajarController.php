@@ -334,7 +334,14 @@ class KartuPelajarController extends Controller
 
             $rq = DB::table('kartu_pelajar_request as r')
                 ->join('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id')
-                ->select('r.*', 'pd.nama', 'pd.nama_rombel');
+                ->leftJoin('kartu_pelajar_pembayaran as kp', 'r.peserta_didik_id', '=', 'kp.peserta_didik_id')
+                ->select(
+                    'r.*',
+                    'pd.nama',
+                    'pd.nama_rombel',
+                    DB::raw("COALESCE(r.metode_pembayaran, kp.metode_pembayaran) as metode_pembayaran_aktif"),
+                    DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran_aktif")
+                );
             if (isset(KartuPelajarRequest::STATUS[$reqStatus])) {
                 $rq->where('r.status', $reqStatus);
             }
@@ -425,6 +432,10 @@ class KartuPelajarController extends Controller
                 'created_by'        => is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin'),
             ]
         );
+
+        KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
+            ->whereIn('status', ['menunggu', 'diproses'])
+            ->update(['metode_pembayaran' => $record->metode_pembayaran]);
 
         $sekolahInfo = $this->getSekolahInfo();
         $targetWa = $record->nomor_wa ?: ($pd->nomor_telepon_seluler ?: $pd->nomor_telepon_rumah);
@@ -572,6 +583,11 @@ class KartuPelajarController extends Controller
             }
 
             $record->save();
+
+            KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->whereIn('status', ['menunggu', 'diproses'])
+                ->update(['metode_pembayaran' => $record->metode_pembayaran]);
+
             $count++;
         }
 
@@ -1324,16 +1340,30 @@ class KartuPelajarController extends Controller
             'peserta_didik_id' => 'required|string|exists:peserta_didik,peserta_didik_id',
             'jenis_request'    => 'required|in:' . implode(',', array_keys(KartuPelajarRequest::JENIS)),
             'alasan'           => 'nullable|string|max:500',
+            'metode_pembayaran' => 'nullable|in:' . implode(',', array_keys(KartuPelajarRequest::METODE_PEMBAYARAN)),
         ]);
 
         $pd = DB::table('peserta_didik')->where('peserta_didik_id', $data['peserta_didik_id'])->first();
+        $payment = KartuPelajarPembayaran::where('peserta_didik_id', $pd->peserta_didik_id)->first();
         $user = session('user');
+
+        // Cek duplicate request: sama tanggal, sama status, sama peserta_didik
+        $existingRequest = KartuPelajarRequest::where('peserta_didik_id', $data['peserta_didik_id'])
+            ->where('request_date', now()->toDateString())
+            ->where('status', 'menunggu')
+            ->first();
+
+        if ($existingRequest) {
+            return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
+                ->with('error', "Peserta didik {$pd->nama} sudah memiliki request menunggu pada tanggal ini. Silakan gunakan request yang sudah ada.");
+        }
 
         KartuPelajarRequest::create([
             'peserta_didik_id' => $pd->peserta_didik_id,
             'nisn'             => $pd->nisn,
             'jenis_request'    => $data['jenis_request'],
             'alasan'           => trim((string) ($data['alasan'] ?? '')),
+            'metode_pembayaran' => $data['metode_pembayaran'] ?? $payment?->metode_pembayaran,
             'status'           => 'menunggu',
             'diminta_oleh'     => is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin'),
         ]);

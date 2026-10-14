@@ -437,6 +437,9 @@
                             Jenis &amp; Alasan</th>
                         <th
                             style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                            Pembayaran</th>
+                        <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
                             Status</th>
                         <th
                             style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 170px;">
@@ -479,6 +482,14 @@
                                             class="fas fa-comment-dots me-1"></i>{{ $rq->catatan_admin }}</div>
                                 @endif
                             </td>
+                            <td style="padding: 12px 14px;" data-label="Pembayaran">
+                                <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
+                                    {{ \App\Models\KartuPelajarRequest::METODE_PEMBAYARAN[$rq->metode_pembayaran_aktif] ?? strtoupper($rq->metode_pembayaran_aktif ?: 'Belum diisi') }}
+                                </span>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    {{ $rq->status_pembayaran_aktif === 'lunas' ? 'Lunas' : 'Belum Bayar' }}
+                                </div>
+                            </td>
                             <td style="padding: 12px 14px;" data-label="Status">
                                 <span class="badge {{ $rqColor }}"
                                     style="font-size: 0.74rem; padding: 3px 8px;">{{ \App\Models\KartuPelajarRequest::STATUS[$rq->status] ?? $rq->status }}</span>
@@ -515,7 +526,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="padding: 35px; text-align: center; color: var(--text-muted);">
+                            <td colspan="7" style="padding: 35px; text-align: center; color: var(--text-muted);">
                                 <i class="fas fa-paper-plane mb-2"
                                     style="font-size: 2rem; opacity: 0.4; display: block;"></i>
                                 Belum ada request cetak kartu.
@@ -2004,6 +2015,17 @@
                                 <option value="{{ $jKey }}">{{ $jVal }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="rqMetodePembayaran">Metode Pembayaran</label>
+                        <select id="rqMetodePembayaran" name="metode_pembayaran" class="form-control">
+                            <option value="">Ikuti data pembayaran peserta didik</option>
+                            @foreach (\App\Models\KartuPelajarRequest::METODE_PEMBAYARAN as $mKey => $mVal)
+                                <option value="{{ $mKey }}">{{ $mVal }}</option>
+                            @endforeach
+                        </select>
+                        <div class="kp-form-hint">Jika kosong, antrean mengikuti metode pembayaran di tab Data Peserta Didik.</div>
                     </div>
 
                     <div class="kp-form-group">

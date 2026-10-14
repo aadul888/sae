@@ -14,6 +14,7 @@ class KartuPelajarRequest extends Model
         'jenis_request',
         'alasan',
         'status',
+        'metode_pembayaran',
         'catatan_admin',
         'diminta_oleh',
         'selesai_at',
@@ -35,4 +36,17 @@ class KartuPelajarRequest extends Model
         'selesai'  => 'Selesai',
         'ditolak'  => 'Ditolak',
     ];
+
+    public const METODE_PEMBAYARAN = [
+        'tunai' => 'Tunai',
+        'transfer' => 'Transfer Bank',
+        'qris' => 'QRIS',
+        'ewallet' => 'E-Wallet',
+        'lainnya' => 'Lainnya',
+    ];
+
+    public function pesertaDidik()
+    {
+        return $this->belongsTo(PesertaDidik::class, 'peserta_didik_id', 'peserta_didik_id');
+    }
 }
