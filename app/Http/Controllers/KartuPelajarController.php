@@ -328,6 +328,7 @@ class KartuPelajarController extends Controller
         $requestStats = ['menunggu' => 0, 'diproses' => 0, 'selesai' => 0, 'ditolak' => 0];
         $reqStatus = trim((string) $request->get('req_status', ''));
         if ($tab === 'request' && Schema::hasTable('kartu_pelajar_request')) {
+            $requestHasMetodePembayaran = Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran');
             foreach (DB::table('kartu_pelajar_request')->select('status', DB::raw('COUNT(*) as total'))->groupBy('status')->pluck('total', 'status') as $st => $n) {
                 $requestStats[$st] = (int) $n;
             }
@@ -339,7 +340,7 @@ class KartuPelajarController extends Controller
                     'r.*',
                     'pd.nama',
                     'pd.nama_rombel',
-                    DB::raw("COALESCE(r.metode_pembayaran, kp.metode_pembayaran) as metode_pembayaran_aktif"),
+                    DB::raw($requestHasMetodePembayaran ? "COALESCE(r.metode_pembayaran, kp.metode_pembayaran) as metode_pembayaran_aktif" : "kp.metode_pembayaran as metode_pembayaran_aktif"),
                     DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran_aktif")
                 );
             if (isset(KartuPelajarRequest::STATUS[$reqStatus])) {
@@ -433,9 +434,11 @@ class KartuPelajarController extends Controller
             ]
         );
 
-        KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
-            ->whereIn('status', ['menunggu', 'diproses'])
-            ->update(['metode_pembayaran' => $record->metode_pembayaran]);
+        if (Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran')) {
+            KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
+                ->whereIn('status', ['menunggu', 'diproses'])
+                ->update(['metode_pembayaran' => $record->metode_pembayaran]);
+        }
 
         $sekolahInfo = $this->getSekolahInfo();
         $targetWa = $record->nomor_wa ?: ($pd->nomor_telepon_seluler ?: $pd->nomor_telepon_rumah);
@@ -584,9 +587,11 @@ class KartuPelajarController extends Controller
 
             $record->save();
 
-            KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
-                ->whereIn('status', ['menunggu', 'diproses'])
-                ->update(['metode_pembayaran' => $record->metode_pembayaran]);
+            if (Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran')) {
+                KartuPelajarRequest::where('peserta_didik_id', $pd->peserta_didik_id)
+                    ->whereIn('status', ['menunggu', 'diproses'])
+                    ->update(['metode_pembayaran' => $record->metode_pembayaran]);
+            }
 
             $count++;
         }
@@ -1349,7 +1354,11 @@ class KartuPelajarController extends Controller
 
         // Cek duplicate request: sama tanggal, sama status, sama peserta_didik
         $existingRequest = KartuPelajarRequest::where('peserta_didik_id', $data['peserta_didik_id'])
-            ->where('request_date', now()->toDateString())
+            ->when(
+                Schema::hasColumn('kartu_pelajar_request', 'request_date'),
+                fn($query) => $query->where('request_date', now()->toDateString()),
+                fn($query) => $query->whereDate('created_at', now()->toDateString())
+            )
             ->where('status', 'menunggu')
             ->first();
 
@@ -1358,15 +1367,19 @@ class KartuPelajarController extends Controller
                 ->with('error', "Peserta didik {$pd->nama} sudah memiliki request menunggu pada tanggal ini. Silakan gunakan request yang sudah ada.");
         }
 
-        KartuPelajarRequest::create([
+        $payload = [
             'peserta_didik_id' => $pd->peserta_didik_id,
             'nisn'             => $pd->nisn,
             'jenis_request'    => $data['jenis_request'],
             'alasan'           => trim((string) ($data['alasan'] ?? '')),
-            'metode_pembayaran' => $data['metode_pembayaran'] ?? $payment?->metode_pembayaran,
             'status'           => 'menunggu',
             'diminta_oleh'     => is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin'),
-        ]);
+        ];
+        if (Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran')) {
+            $payload['metode_pembayaran'] = $data['metode_pembayaran'] ?? $payment?->metode_pembayaran;
+        }
+
+        KartuPelajarRequest::create($payload);
 
         return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
             ->with('success', "Request cetak kartu untuk {$pd->nama} berhasil ditambahkan.");
