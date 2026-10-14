@@ -500,6 +500,15 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/manajemen-data/tendik-aktif', [\App\Http\Controllers\TendikAktifController::class, 'index'])->name('tendik-aktif.index')->middleware('permission:menu_tendik_aktif,read');
     Route::get('/manajemen-data/tendik-aktif/{id}', [\App\Http\Controllers\TendikAktifController::class, 'show'])->name('tendik-aktif.show')->middleware('permission:menu_tendik_aktif,read');
 
+    // Kartu Pelajar Digital — Pengelolaan Pembayaran, Status Cetak & Layanan WhatsApp (Khusus Admin)
+    Route::get('/kartu-pelajar', [\App\Http\Controllers\KartuPelajarController::class, 'manageIndex'])->name('kartu-pelajar.index');
+    Route::post('/kartu-pelajar/pembayaran', [\App\Http\Controllers\KartuPelajarController::class, 'updatePembayaran'])->name('kartu-pelajar.update-pembayaran');
+    Route::post('/kartu-pelajar/toggle-cetak', [\App\Http\Controllers\KartuPelajarController::class, 'toggleCetak'])->name('kartu-pelajar.toggle-cetak');
+    Route::post('/kartu-pelajar/bulk-action', [\App\Http\Controllers\KartuPelajarController::class, 'bulkAction'])->name('kartu-pelajar.bulk-action');
+    Route::get('/kartu-pelajar/wa-data/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'getWaData'])->name('kartu-pelajar.wa-data');
+    Route::post('/kartu-pelajar/log-wa', [\App\Http\Controllers\KartuPelajarController::class, 'logWa'])->name('kartu-pelajar.log-wa');
+    Route::get('/kartu-pelajar/qrcode-svg/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'downloadQrSvg'])->name('kartu-pelajar.qrcode-svg');
+
     // Kartu Pelajar Digital — Layanan Cetak
     Route::get('/kartu-pelajar/cetak/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'printSingle'])->name('kartu-pelajar.cetak-single');
     Route::get('/kartu-pelajar/cetak-rombel/{rombelId}', [\App\Http\Controllers\KartuPelajarController::class, 'printRombel'])->name('kartu-pelajar.cetak-rombel');

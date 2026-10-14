@@ -3,17 +3,429 @@
 namespace App\Http\Controllers;
 
 use App\Models\JurusanMeta;
+use App\Models\KartuPelajarPembayaran;
 use App\Models\PesertaDidikMeta;
+use App\Models\RolePermission;
 use App\Models\SekolahMeta;
 use App\Services\BarcodeService;
 use App\Services\QrCodeService;
 use App\Support\SemesterHelper;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class KartuPelajarController extends Controller
 {
+    /**
+     * Halaman Manajemen Kartu Pelajar, Pembayaran, Status Cetak & Notifikasi WhatsApp (Admin Only)
+     */
+    public function manageIndex(Request $request)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'read')) {
+            abort(403, 'Akses ditolak: Menu ini khusus untuk Administrator.');
+        }
+
+        $q = trim($request->get('q', ''));
+        $rombel = trim($request->get('rombel', ''));
+        $statusBayar = trim($request->get('status_pembayaran', ''));
+        $statusCetak = trim($request->get('status_cetak', ''));
+        $perPageVal = $request->get('perPage', '15');
+        $perPage = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 15;
+        $sort = in_array($request->get('sort'), ['nama', 'nisn', 'nama_rombel', 'status_pembayaran', 'status_cetak', 'nominal', 'tanggal_bayar'], true) ? $request->get('sort') : 'nama';
+        $sortDir = strtolower($request->get('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        // Base query dari peserta_didik
+        $query = DB::table('peserta_didik as pd')
+            ->leftJoin('kartu_pelajar_pembayaran as kp', 'pd.peserta_didik_id', '=', 'kp.peserta_didik_id')
+            ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+            ->select(
+                'pd.peserta_didik_id',
+                'pd.nama',
+                'pd.nisn',
+                'pd.nipd',
+                'pd.nama_rombel',
+                'pd.rombongan_belajar_id',
+                'pd.nomor_telepon_seluler',
+                'pd.nomor_telepon_rumah',
+                'pdm.foto_path',
+                'kp.id as pembayaran_id',
+                DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran"),
+                DB::raw("COALESCE(kp.nominal, 25000) as nominal"),
+                'kp.metode_pembayaran',
+                'kp.tanggal_bayar',
+                DB::raw("COALESCE(kp.status_cetak, 'belum_cetak') as status_cetak"),
+                'kp.tanggal_cetak',
+                'kp.nomor_wa',
+                'kp.wa_terkirim_at',
+                'kp.catatan'
+            );
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
+                    ->orWhere('pd.nipd', 'LIKE', "%{$q}%");
+            });
+        }
+
+        if ($rombel !== '') {
+            $query->where('pd.nama_rombel', $rombel);
+        }
+
+        if ($statusBayar === 'lunas') {
+            $query->where('kp.status_pembayaran', 'lunas');
+        } elseif ($statusBayar === 'belum_bayar') {
+            $query->where(function ($sq) {
+                $sq->whereNull('kp.status_pembayaran')
+                    ->orWhere('kp.status_pembayaran', 'belum_bayar');
+            });
+        }
+
+        if ($statusCetak === 'sudah_cetak') {
+            $query->where('kp.status_cetak', 'sudah_cetak');
+        } elseif ($statusCetak === 'belum_cetak') {
+            $query->where(function ($sq) {
+                $sq->whereNull('kp.status_cetak')
+                    ->orWhere('kp.status_cetak', 'belum_cetak');
+            });
+        }
+
+        $orderColumn = match ($sort) {
+            'nisn' => 'pd.nisn',
+            'nama_rombel' => 'pd.nama_rombel',
+            'status_pembayaran' => 'status_pembayaran',
+            'status_cetak' => 'status_cetak',
+            'nominal' => 'nominal',
+            'tanggal_bayar' => 'kp.tanggal_bayar',
+            default => 'pd.nama',
+        };
+
+        $students = $query->orderBy($orderColumn, $sortDir)->orderBy('pd.nama', 'asc')->paginate($perPage)->withQueryString();
+
+        // Format foto URL dan nomor WA
+        $students->getCollection()->transform(function ($item) {
+            $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
+            $rawWa = $item->nomor_wa ?: ($item->nomor_telepon_seluler ?: $item->nomor_telepon_rumah);
+            $item->wa_clean = KartuPelajarPembayaran::normalizePhoneNumber($rawWa);
+            return $item;
+        });
+
+        // Hitung statistik
+        $totalSiswa = DB::table('peserta_didik')->count();
+        $totalLunas = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->count();
+        $totalBelumBayar = max(0, $totalSiswa - $totalLunas);
+        $totalDanaTerkumpul = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->sum('nominal');
+
+        $totalSudahCetak = DB::table('kartu_pelajar_pembayaran')->where('status_cetak', 'sudah_cetak')->count();
+        $totalBelumCetak = max(0, $totalSiswa - $totalSudahCetak);
+
+        $stats = [
+            'total_siswa' => $totalSiswa,
+            'total_lunas' => $totalLunas,
+            'total_belum_bayar' => $totalBelumBayar,
+            'total_dana' => $totalDanaTerkumpul,
+            'total_sudah_cetak' => $totalSudahCetak,
+            'total_belum_cetak' => $totalBelumCetak,
+        ];
+
+        // Daftar Rombel untuk Filter
+        $rombelList = DB::table('rombongan_belajar')
+            ->where('jenis_rombel', '1')
+            ->orderBy('tingkat_pendidikan_id', 'asc')
+            ->orderBy('nama', 'asc')
+            ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
+            ->get();
+
+        $sekolahInfo = $this->getSekolahInfo();
+
+        return view('dashboard.kartu-pelajar.index', compact(
+            'students',
+            'stats',
+            'rombelList',
+            'q',
+            'rombel',
+            'statusBayar',
+            'statusCetak',
+            'perPage',
+            'sort',
+            'sortDir',
+            'sekolahInfo'
+        ));
+    }
+
+    /**
+     * Update Catatan Pembayaran Kartu Pelajar (Single)
+     */
+    public function updatePembayaran(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'peserta_didik_id'   => 'required|string',
+            'status_pembayaran'  => 'required|in:belum_bayar,lunas',
+            'nominal'            => 'nullable|numeric|min:0',
+            'metode_pembayaran'  => 'nullable|string|max:50',
+            'tanggal_bayar'      => 'nullable|date',
+            'status_cetak'       => 'nullable|in:belum_cetak,sudah_cetak',
+            'nomor_wa'           => 'nullable|string|max:30',
+            'catatan'            => 'nullable|string|max:500',
+        ]);
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $request->peserta_didik_id)->first();
+        if (!$pd) {
+            return response()->json(['success' => false, 'message' => 'Peserta didik tidak ditemukan.'], 404);
+        }
+
+        $statusBayar = $request->status_pembayaran;
+        $statusCetak = $request->status_cetak ?: 'belum_cetak';
+        $nominal = $request->filled('nominal') ? (int) $request->nominal : 25000;
+        $tanggalBayar = $statusBayar === 'lunas' ? ($request->tanggal_bayar ?: now()->toDateString()) : null;
+        $tanggalCetak = $statusCetak === 'sudah_cetak' ? now() : null;
+
+        $record = KartuPelajarPembayaran::updateOrCreate(
+            ['peserta_didik_id' => $pd->peserta_didik_id],
+            [
+                'nisn'              => $pd->nisn,
+                'status_pembayaran' => $statusBayar,
+                'nominal'           => $nominal,
+                'metode_pembayaran' => $statusBayar === 'lunas' ? ($request->metode_pembayaran ?: 'tunai') : null,
+                'tanggal_bayar'     => $tanggalBayar,
+                'status_cetak'      => $statusCetak,
+                'tanggal_cetak'     => $tanggalCetak,
+                'nomor_wa'          => $request->nomor_wa ? KartuPelajarPembayaran::normalizePhoneNumber($request->nomor_wa) : null,
+                'catatan'           => $request->catatan,
+                'created_by'        => is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin'),
+            ]
+        );
+
+        $sekolahInfo = $this->getSekolahInfo();
+        $targetWa = $record->nomor_wa ?: ($pd->nomor_telepon_seluler ?: $pd->nomor_telepon_rumah);
+        $cleanWa = KartuPelajarPembayaran::normalizePhoneNumber($targetWa);
+
+        $waData = [
+            'nama' => $pd->nama,
+            'nisn' => $pd->nisn,
+            'rombel' => $pd->nama_rombel ?: '-',
+            'status_pembayaran' => $record->status_pembayaran,
+            'nominal' => $record->nominal,
+            'metode_pembayaran' => $record->metode_pembayaran,
+            'tanggal_bayar' => $record->tanggal_bayar,
+            'status_cetak' => $record->status_cetak,
+            'verify_url' => route('kartu-pelajar.verify-short', ['nisn' => $pd->nisn]),
+        ];
+
+        $pesanWa = KartuPelajarPembayaran::buildWhatsAppMessage($waData, $sekolahInfo);
+        $waUrl = $cleanWa ? ('https://wa.me/' . $cleanWa . '?text=' . rawurlencode($pesanWa)) : null;
+
+        return response()->json([
+            'success' => true,
+            'message' => "Data pembayaran kartu pelajar untuk {$pd->nama} berhasil disimpan.",
+            'data' => $record,
+            'wa_clean' => $cleanWa,
+            'wa_message' => $pesanWa,
+            'wa_url' => $waUrl,
+        ]);
+    }
+
+    /**
+     * Toggle Status Cetak Kartu Pelajar (Sudah Cetak / Belum Cetak)
+     */
+    public function toggleCetak(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'peserta_didik_id' => 'required|string',
+        ]);
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $request->peserta_didik_id)->first();
+        if (!$pd) {
+            return response()->json(['success' => false, 'message' => 'Peserta didik tidak ditemukan.'], 404);
+        }
+
+        $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
+        $record->nisn = $pd->nisn;
+
+        $newStatus = ($record->status_cetak === 'sudah_cetak') ? 'belum_cetak' : 'sudah_cetak';
+        $record->status_cetak = $newStatus;
+        $record->tanggal_cetak = ($newStatus === 'sudah_cetak') ? now() : null;
+        $record->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Status cetak kartu pelajar {$pd->nama} berhasil diubah menjadi: " . ($newStatus === 'sudah_cetak' ? 'Sudah Dicetak' : 'Belum Dicetak'),
+            'status_cetak' => $newStatus,
+            'tanggal_cetak' => $record->tanggal_cetak ? $record->tanggal_cetak->translatedFormat('d/m/Y H:i') : '-',
+        ]);
+    }
+
+    /**
+     * Aksi Massal (Bulk Action): Tandai Lunas atau Tandai Cetak
+     */
+    public function bulkAction(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'action' => 'required|in:set_lunas,set_belum_bayar,set_sudah_cetak,set_belum_cetak',
+            'ids'    => 'required|array|min:1',
+        ]);
+
+        $action = $request->action;
+        $ids = $request->ids;
+        $count = 0;
+
+        foreach ($ids as $pdId) {
+            $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
+            if (!$pd) continue;
+
+            $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
+            $record->nisn = $pd->nisn;
+
+            if ($action === 'set_lunas') {
+                $record->status_pembayaran = 'lunas';
+                if (empty($record->nominal)) $record->nominal = 25000;
+                if (empty($record->metode_pembayaran)) $record->metode_pembayaran = 'tunai';
+                $record->tanggal_bayar = now()->toDateString();
+            } elseif ($action === 'set_belum_bayar') {
+                $record->status_pembayaran = 'belum_bayar';
+                $record->tanggal_bayar = null;
+            } elseif ($action === 'set_sudah_cetak') {
+                $record->status_cetak = 'sudah_cetak';
+                $record->tanggal_cetak = now();
+            } elseif ($action === 'set_belum_cetak') {
+                $record->status_cetak = 'belum_cetak';
+                $record->tanggal_cetak = null;
+            }
+
+            $record->save();
+            $count++;
+        }
+
+        $labelAction = match ($action) {
+            'set_lunas' => 'ditandai Lunas',
+            'set_belum_bayar' => 'ditandai Belum Bayar',
+            'set_sudah_cetak' => 'ditandai Sudah Dicetak',
+            'set_belum_cetak' => 'ditandai Belum Dicetak',
+        };
+
+        return response()->json([
+            'success' => true,
+            'message' => "Sebanyak {$count} peserta didik berhasil {$labelAction}.",
+        ]);
+    }
+
+    /**
+     * Dapatkan data WhatsApp & QR Code untuk modal kirim pesan WhatsApp
+     */
+    public function getWaData(Request $request, string $nisn): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'read')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $pd = DB::table('peserta_didik')->where('nisn', $nisn)->first();
+        if (!$pd) {
+            return response()->json(['success' => false, 'message' => 'Peserta didik tidak ditemukan.'], 404);
+        }
+
+        $record = KartuPelajarPembayaran::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+        $sekolahInfo = $this->getSekolahInfo();
+
+        $rawPhone = $record?->nomor_wa ?: ($pd->nomor_telepon_seluler ?: $pd->nomor_telepon_rumah);
+        $cleanPhone = KartuPelajarPembayaran::normalizePhoneNumber($rawPhone);
+        $verifyUrl = route('kartu-pelajar.verify-short', ['nisn' => $pd->nisn]);
+
+        $dataPayload = [
+            'nama' => $pd->nama,
+            'nisn' => $pd->nisn,
+            'rombel' => $pd->nama_rombel ?: '-',
+            'status_pembayaran' => $record?->status_pembayaran ?? 'belum_bayar',
+            'nominal' => $record?->nominal ?? 25000,
+            'metode_pembayaran' => $record?->metode_pembayaran ?? 'tunai',
+            'tanggal_bayar' => $record?->tanggal_bayar,
+            'status_cetak' => $record?->status_cetak ?? 'belum_cetak',
+            'verify_url' => $verifyUrl,
+        ];
+
+        $pesan = KartuPelajarPembayaran::buildWhatsAppMessage($dataPayload, $sekolahInfo);
+        $qrSvg = QrCodeService::generateSvg($verifyUrl, 160, 1);
+        $qrDataUri = QrCodeService::generateDataUri($verifyUrl, 160, 1);
+
+        return response()->json([
+            'success' => true,
+            'siswa' => [
+                'peserta_didik_id' => $pd->peserta_didik_id,
+                'nama' => $pd->nama,
+                'nisn' => $pd->nisn,
+                'rombel' => $pd->nama_rombel,
+                'phone_raw' => $rawPhone,
+                'phone_clean' => $cleanPhone,
+            ],
+            'pembayaran' => $record,
+            'message' => $pesan,
+            'verify_url' => $verifyUrl,
+            'qr_svg' => $qrSvg,
+            'qr_data_uri' => $qrDataUri,
+            'wa_url' => $cleanPhone ? ('https://wa.me/' . $cleanPhone . '?text=' . rawurlencode($pesan)) : null,
+        ]);
+    }
+
+    /**
+     * Log waktu pengiriman pesan WhatsApp ke riwayat pembayaran
+     */
+    public function logWa(Request $request): JsonResponse
+    {
+        $request->validate([
+            'peserta_didik_id' => 'required|string',
+            'nomor_wa'         => 'nullable|string',
+        ]);
+
+        $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $request->peserta_didik_id]);
+        if ($request->filled('nomor_wa')) {
+            $record->nomor_wa = KartuPelajarPembayaran::normalizePhoneNumber($request->nomor_wa);
+        }
+        $record->wa_terkirim_at = now();
+        $record->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status pengiriman WhatsApp berhasil diperbarui.',
+            'wa_terkirim_at' => $record->wa_terkirim_at->translatedFormat('d/m/Y H:i'),
+        ]);
+    }
+
+    /**
+     * Download langsung file QR Code Kartu Pelajar (SVG)
+     */
+    public function downloadQrSvg(string $nisn)
+    {
+        $verifyUrl = route('kartu-pelajar.verify-short', ['nisn' => $nisn]);
+        $svg = QrCodeService::generateSvg($verifyUrl, 300, 2);
+
+        return response($svg, 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Content-Disposition' => 'attachment; filename="QR_Kartu_Pelajar_' . $nisn . '.svg"',
+        ]);
+    }
+
     /**
      * Halaman Publik Verifikasi Resmi Kartu Pelajar (Direct scan dari QR code)
      */

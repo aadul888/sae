@@ -95,7 +95,11 @@
     // Section: Layanan Digital
     $hasLayananDigital =
         !in_array($role, ['orang_tua', 'peserta_didik'], true) &&
-        ($canRole('menu_formulir') || $canRole('menu_pengumuman') || $canRole('menu_rfid'));
+        ($canRole('menu_formulir') ||
+            $canRole('menu_pengumuman') ||
+            $canRole('menu_rfid') ||
+            $role === 'admin' ||
+            $canRole('menu_kartu_pelajar'));
 
     // Section: Sistem
     $hasPengaturan =
@@ -1868,6 +1872,7 @@
                     !request()->routeIs('dashboard.presensi-mengajar')) ||
                 request()->routeIs('dashboard.rfid.*') ||
                 request()->routeIs('dashboard.rfid') ||
+                request()->routeIs('dashboard.kartu-pelajar.*') ||
                 (request()->routeIs('dashboard.agenda.*') &&
                     !request()->routeIs('dashboard.agenda-kbm.*') &&
                     !request()->routeIs('dashboard.agenda-kbm')) ||
@@ -1912,6 +1917,14 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi.*') && !request()->routeIs('dashboard.presensi.kelas*') && !request()->routeIs('dashboard.presensi.riwayat-saya*') && !request()->routeIs('dashboard.presensi-mengajar.*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-id-card"></i></span>
                         <span class="nav-label">RFID &amp; Presensi</span>
+                    </a>
+                @endif
+
+                @if ($role === 'admin' || $canRole('menu_kartu_pelajar'))
+                    <a href="{{ route('dashboard.kartu-pelajar.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.kartu-pelajar.*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-address-card"></i></span>
+                        <span class="nav-label">Kartu Pelajar</span>
                     </a>
                 @endif
             </div>

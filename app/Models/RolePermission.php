@@ -398,6 +398,11 @@ class RolePermission extends Model
                     'icon' => 'fa-id-card',
                     'roles' => ['admin'],
                 ],
+                'menu_kartu_pelajar' => [
+                    'label' => 'Kartu Pelajar & Pembayaran',
+                    'icon' => 'fa-address-card',
+                    'roles' => ['admin'],
+                ],
                 'menu_poin' => [
                     'label' => 'Poin & Kedisiplinan',
                     'icon' => 'fa-award',
