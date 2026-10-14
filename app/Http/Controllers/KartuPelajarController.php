@@ -473,13 +473,36 @@ class KartuPelajarController extends Controller
         }
 
         $request->validate([
-            'action' => 'required|in:set_lunas,set_belum_bayar,set_sudah_cetak,set_belum_cetak',
-            'ids'    => 'required|array|min:1',
+            'action'                 => 'required|in:set_lunas,set_belum_bayar,set_sudah_cetak,set_belum_cetak,custom_bulk',
+            'ids'                    => 'required|array|min:1',
+            'status_pembayaran'      => 'nullable|in:lunas,belum_bayar,keep',
+            'bulk_status_pembayaran' => 'nullable|in:lunas,belum_bayar,keep',
+            'nominal'                => 'nullable|numeric|min:0',
+            'bulk_nominal'           => 'nullable|numeric|min:0',
+            'metode_pembayaran'      => 'nullable|string|max:50',
+            'bulk_metode_pembayaran' => 'nullable|string|max:50',
+            'tanggal_bayar'          => 'nullable|date',
+            'bulk_tanggal_bayar'     => 'nullable|date',
+            'status_cetak'           => 'nullable|in:sudah_cetak,belum_cetak,keep',
+            'bulk_status_cetak'      => 'nullable|in:sudah_cetak,belum_cetak,keep',
+            'tanggal_cetak'          => 'nullable|date',
+            'bulk_tanggal_cetak'     => 'nullable|date',
+            'catatan'                => 'nullable|string|max:500',
+            'bulk_catatan'           => 'nullable|string|max:500',
         ]);
 
+        $settings = KartuPelajarPengaturan::getSettings();
         $action = $request->action;
         $ids = $request->ids;
         $count = 0;
+
+        $statusBayar = $request->bulk_status_pembayaran ?: $request->status_pembayaran;
+        $nominal = $request->filled('bulk_nominal') ? (int) $request->bulk_nominal : ($request->filled('nominal') ? (int) $request->nominal : null);
+        $metodeBayar = $request->bulk_metode_pembayaran ?: ($request->metode_pembayaran ?: 'tunai');
+        $tanggalBayar = $request->bulk_tanggal_bayar ?: ($request->tanggal_bayar ?: now()->toDateString());
+        $statusCetak = $request->bulk_status_cetak ?: $request->status_cetak;
+        $tanggalCetak = $request->bulk_tanggal_cetak ?: ($request->tanggal_cetak ?: now());
+        $catatan = $request->filled('bulk_catatan') ? $request->bulk_catatan : $request->catatan;
 
         foreach ($ids as $pdId) {
             $pd = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
@@ -488,23 +511,32 @@ class KartuPelajarController extends Controller
             $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
             $record->nisn = $pd->nisn;
 
-            if ($action === 'set_lunas') {
+            // Update status pembayaran jika ada perubahan
+            if ($action === 'set_lunas' || $statusBayar === 'lunas') {
                 $record->status_pembayaran = 'lunas';
-                if (empty($record->nominal)) $record->nominal = 25000;
-                if (empty($record->metode_pembayaran)) $record->metode_pembayaran = 'tunai';
-                $record->tanggal_bayar = now()->toDateString();
-            } elseif ($action === 'set_belum_bayar') {
+                $record->nominal = $nominal ?: ($record->nominal ?: (int) ($settings->biaya_standar ?? 25000));
+                $record->metode_pembayaran = $metodeBayar;
+                $record->tanggal_bayar = $tanggalBayar;
+            } elseif ($action === 'set_belum_bayar' || $statusBayar === 'belum_bayar') {
                 $record->status_pembayaran = 'belum_bayar';
                 $record->tanggal_bayar = null;
-            } elseif ($action === 'set_sudah_cetak') {
+            }
+
+            // Update status cetak fisik jika ada perubahan
+            if ($action === 'set_sudah_cetak' || $statusCetak === 'sudah_cetak') {
                 $record->status_cetak = 'sudah_cetak';
-                $record->tanggal_cetak = now();
+                $record->tanggal_cetak = $tanggalCetak ? \Carbon\Carbon::parse($tanggalCetak) : now();
                 if (empty($record->nominal)) {
                     $record->nominal = (int) ($settings->biaya_standar ?? 25000);
                 }
-            } elseif ($action === 'set_belum_cetak') {
+            } elseif ($action === 'set_belum_cetak' || $statusCetak === 'belum_cetak') {
                 $record->status_cetak = 'belum_cetak';
                 $record->tanggal_cetak = null;
+            }
+
+            // Catatan khusus
+            if ($catatan !== null && trim($catatan) !== '') {
+                $record->catatan = trim($catatan);
             }
 
             $record->save();
@@ -512,15 +544,16 @@ class KartuPelajarController extends Controller
         }
 
         $labelAction = match ($action) {
-            'set_lunas' => 'ditandai Lunas',
+            'set_lunas'       => 'ditandai Lunas',
             'set_belum_bayar' => 'ditandai Belum Bayar',
             'set_sudah_cetak' => 'ditandai Sudah Dicetak',
             'set_belum_cetak' => 'ditandai Belum Dicetak',
+            default           => 'berhasil diperbarui data pembayarannya',
         };
 
         return response()->json([
             'success' => true,
-            'message' => "Sebanyak {$count} peserta didik berhasil {$labelAction}.",
+            'message' => "Sebanyak {$count} peserta didik {$labelAction}.",
         ]);
     }
 

@@ -162,5 +162,29 @@ class KartuPelajarTest extends TestCase
         $pengambilanRes->assertOk();
         $pengambilanRes->assertSee('DAFTAR DISTRIBUSI &amp; SERAH TERIMA', false);
         $pengambilanRes->assertSee('Tanggal Cetak Selesai', false);
+
+        // 6. Test Bulk Action dengan Modal Form (Penyesuaian Tanggal, Nominal, Status Cetak & Metode Bayar)
+        $pd = \Illuminate\Support\Facades\DB::table('peserta_didik')->first();
+        if ($pd) {
+            $bulkCustomRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.bulk-action'), [
+                'action'                 => 'custom_bulk',
+                'ids'                    => [$pd->peserta_didik_id],
+                'bulk_status_pembayaran' => 'lunas',
+                'bulk_nominal'           => 30000,
+                'bulk_metode_pembayaran' => 'qris',
+                'bulk_tanggal_bayar'     => '2026-10-14',
+                'bulk_status_cetak'      => 'sudah_cetak',
+                'bulk_tanggal_cetak'     => '2026-10-14',
+                'bulk_catatan'           => 'Pembayaran massal via QRIS',
+            ]);
+            $bulkCustomRes->assertOk();
+
+            $pembayaran = KartuPelajarPembayaran::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+            $this->assertEquals('lunas', $pembayaran->status_pembayaran);
+            $this->assertEquals(30000, $pembayaran->nominal);
+            $this->assertEquals('qris', $pembayaran->metode_pembayaran);
+            $this->assertEquals('sudah_cetak', $pembayaran->status_cetak);
+            $this->assertEquals('Pembayaran massal via QRIS', $pembayaran->catatan);
+        }
     }
 }

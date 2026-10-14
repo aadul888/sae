@@ -227,6 +227,149 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // =========================================================================
+    // 2B. Modal Penyesuaian Data Pembayaran & Cetak Masal (Bulk Action Modal)
+    // =========================================================================
+    const modalBulkBayar = document.getElementById("modalBulkPembayaran");
+    const formBulkBayar = document.getElementById("formBulkPembayaran");
+
+    window.openModalBulkPembayaran = function (presetAction) {
+        const ids = getSelectedIds();
+        if (!ids.length) {
+            Swal.fire("Peringatan", "Pilih minimal satu peserta didik terlebih dahulu.", "warning");
+            return;
+        }
+
+        if (!modalBulkBayar) return;
+
+        const countEl = document.getElementById("bulkModalSelectedCount");
+        if (countEl) countEl.textContent = ids.length;
+
+        const actionInput = document.getElementById("bulkModalAction");
+        if (actionInput) actionInput.value = presetAction || "custom_bulk";
+
+        const todayStr = new Date().toISOString().substring(0, 10);
+        const radioBayar = document.querySelectorAll('input[name="bulk_status_pembayaran"]');
+        const detailWrap = document.getElementById("bulkBayarDetailWrap");
+        const selectCetak = document.getElementById("bulkStatusCetak");
+        const tglBayarInput = document.getElementById("bulkTanggalBayar");
+        const tglCetakInput = document.getElementById("bulkTanggalCetak");
+        const tglCetakWrap = document.getElementById("bulkTanggalCetakWrap");
+
+        if (tglBayarInput) tglBayarInput.value = todayStr;
+        if (tglCetakInput) tglCetakInput.value = todayStr;
+
+        if (presetAction === "set_lunas") {
+            radioBayar.forEach(r => r.checked = (r.value === "lunas"));
+            if (detailWrap) detailWrap.style.display = "block";
+            if (selectCetak) selectCetak.value = "keep";
+            if (tglCetakWrap) tglCetakWrap.style.display = "none";
+        } else if (presetAction === "set_belum_bayar") {
+            radioBayar.forEach(r => r.checked = (r.value === "belum_bayar"));
+            if (detailWrap) detailWrap.style.display = "none";
+            if (selectCetak) selectCetak.value = "keep";
+            if (tglCetakWrap) tglCetakWrap.style.display = "none";
+        } else if (presetAction === "set_sudah_cetak") {
+            radioBayar.forEach(r => r.checked = (r.value === "keep"));
+            if (detailWrap) detailWrap.style.display = "none";
+            if (selectCetak) selectCetak.value = "sudah_cetak";
+            if (tglCetakWrap) tglCetakWrap.style.display = "block";
+        } else if (presetAction === "set_belum_cetak") {
+            radioBayar.forEach(r => r.checked = (r.value === "keep"));
+            if (detailWrap) detailWrap.style.display = "none";
+            if (selectCetak) selectCetak.value = "belum_cetak";
+            if (tglCetakWrap) tglCetakWrap.style.display = "none";
+        } else {
+            // custom_bulk
+            radioBayar.forEach(r => r.checked = (r.value === "keep"));
+            if (detailWrap) detailWrap.style.display = "none";
+            if (selectCetak) selectCetak.value = "keep";
+            if (tglCetakWrap) tglCetakWrap.style.display = "none";
+        }
+
+        modalBulkBayar.style.display = "flex";
+        document.body.style.overflow = "hidden";
+    };
+
+    window.closeModalBulkPembayaran = function () {
+        if (!modalBulkBayar) return;
+        modalBulkBayar.style.display = "none";
+        document.body.style.overflow = "";
+    };
+
+    document.querySelectorAll('input[name="bulk_status_pembayaran"]').forEach(r => {
+        r.addEventListener("change", function () {
+            const wrap = document.getElementById("bulkBayarDetailWrap");
+            if (wrap) wrap.style.display = (this.value === "lunas") ? "block" : "none";
+        });
+    });
+
+    const bulkSelectCetak = document.getElementById("bulkStatusCetak");
+    if (bulkSelectCetak) {
+        bulkSelectCetak.addEventListener("change", function () {
+            const wrap = document.getElementById("bulkTanggalCetakWrap");
+            if (wrap) wrap.style.display = (this.value === "sudah_cetak") ? "block" : "none";
+        });
+    }
+
+    if (formBulkBayar) {
+        formBulkBayar.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const ids = getSelectedIds();
+            if (!ids.length) {
+                Swal.fire("Peringatan", "Pilih minimal satu peserta didik.", "warning");
+                return;
+            }
+
+            const btnSubmit = document.getElementById("btnSubmitBulkPembayaran");
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menerapkan...';
+
+            const formData = new FormData(formBulkBayar);
+            const payload = Object.fromEntries(formData.entries());
+            payload.ids = ids;
+
+            try {
+                const res = await fetch("/dashboard/kartu-pelajar/bulk-action", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalText;
+
+                if (res.ok && data.success) {
+                    closeModalBulkPembayaran();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil!",
+                        text: data.message,
+                        timer: 1600,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        if (typeof window.refreshLiveTable === "function") {
+                            window.refreshLiveTable(window.location.href);
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                } else {
+                    Swal.fire("Gagal", data.message || "Terjadi kesalahan sistem.", "error");
+                }
+            } catch (err) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalText;
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
+        });
+    }
+
+    // =========================================================================
     // 3. Modal Edit / Catat Pembayaran
     // =========================================================================
     const modalEditBayar = document.getElementById("modalEditPembayaran");
@@ -703,6 +846,7 @@ document.addEventListener("DOMContentLoaded", function () {
             closeEditPembayaran();
             closeModalWa();
             closeKlaimGaransi();
+            closeModalBulkPembayaran();
         }
     });
 });

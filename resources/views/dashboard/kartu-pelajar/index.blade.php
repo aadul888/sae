@@ -526,19 +526,26 @@
                     <span><span id="bulkSelectedCount">0</span> peserta didik dipilih</span>
                 </div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="executeBulkAction('set_lunas')"
+                    <button type="button" class="btn btn-primary btn-sm"
+                        onclick="openModalBulkPembayaran('custom_bulk')" style="font-weight: 700;">
+                        <i class="fas fa-sliders-h me-1"></i> Sesuaikan Masal
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openModalBulkPembayaran('set_lunas')"
                         style="border-color: #10b981; color: #10b981; font-weight: 600;">
                         <i class="fas fa-check me-1"></i> Tandai Lunas
                     </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="executeBulkAction('set_belum_bayar')"
+                    <button type="button" class="btn btn-outline btn-sm"
+                        onclick="openModalBulkPembayaran('set_belum_bayar')"
                         style="border-color: #f59e0b; color: #f59e0b; font-weight: 600;">
                         <i class="fas fa-clock me-1"></i> Tandai Belum Bayar
                     </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="executeBulkAction('set_sudah_cetak')"
+                    <button type="button" class="btn btn-outline btn-sm"
+                        onclick="openModalBulkPembayaran('set_sudah_cetak')"
                         style="border-color: #2563eb; color: #2563eb; font-weight: 600;">
                         <i class="fas fa-print me-1"></i> Tandai Sudah Cetak
                     </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="executeBulkAction('set_belum_cetak')"
+                    <button type="button" class="btn btn-outline btn-sm"
+                        onclick="openModalBulkPembayaran('set_belum_cetak')"
                         style="border-color: #64748b; color: #64748b; font-weight: 600;">
                         <i class="fas fa-hourglass-start me-1"></i> Tandai Belum Cetak
                     </button>
@@ -1391,6 +1398,146 @@
         </div>
     </div>
 
+    <!-- MODAL 1B: Penyesuaian Data Pembayaran & Cetak Masal (Bulk Action) -->
+    <div id="modalBulkPembayaran" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
+        <div class="card"
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 22px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h4
+                    style="margin: 0; font-size: 1.05rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-tasks text-primary"></i> Penyesuaian Data Pembayaran Masal
+                </h4>
+                <button type="button" onclick="closeModalBulkPembayaran()"
+                    style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+            </div>
+
+            <!-- Summary Count Alert -->
+            <div
+                style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.84rem; color: var(--primary); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-check-square"></i>
+                <span>Menyesuaikan data untuk <strong id="bulkModalSelectedCount">0</strong> peserta didik terpilih
+                    sekaligus.</span>
+            </div>
+
+            <form id="formBulkPembayaran">
+                <input type="hidden" name="action" id="bulkModalAction" value="custom_bulk">
+
+                <!-- 1. Status Pembayaran -->
+                <div style="margin-bottom: 14px;">
+                    <label
+                        style="display: block; font-size: 0.84rem; font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
+                        Status Pembayaran:
+                    </label>
+                    <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                        <label
+                            style="display: flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 700; color: #10b981; cursor: pointer;">
+                            <input type="radio" name="bulk_status_pembayaran" value="lunas">
+                            <i class="fas fa-check-circle"></i> Lunas
+                        </label>
+                        <label
+                            style="display: flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 700; color: #f59e0b; cursor: pointer;">
+                            <input type="radio" name="bulk_status_pembayaran" value="belum_bayar">
+                            <i class="fas fa-clock"></i> Belum Bayar
+                        </label>
+                        <label
+                            style="display: flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 600; color: var(--text-muted); cursor: pointer;">
+                            <input type="radio" name="bulk_status_pembayaran" value="keep" checked>
+                            <span>Tetap (Jangan Ubah)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Detail Pembayaran (Aktif saat Lunas) -->
+                <div id="bulkBayarDetailWrap"
+                    style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                                Nominal / Biaya (Rp)
+                            </label>
+                            <input type="number" name="bulk_nominal" id="bulkNominal" class="form-control"
+                                value="{{ $settings->biaya_standar ?? 25000 }}" min="0" step="1000"
+                                style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                                Metode Pembayaran
+                            </label>
+                            <select name="bulk_metode_pembayaran" id="bulkMetode" class="form-control"
+                                style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                                <option value="tunai">Tunai / Cash</option>
+                                <option value="transfer">Transfer Bank</option>
+                                <option value="qris">QRIS / Digital</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                            Tanggal Pembayaran
+                        </label>
+                        <input type="date" name="bulk_tanggal_bayar" id="bulkTanggalBayar" class="form-control"
+                            value="{{ date('Y-m-d') }}"
+                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                    </div>
+                </div>
+
+                <!-- 2. Status Fisik Kartu -->
+                <div
+                    style="background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                                Status Fisik Kartu:
+                            </label>
+                            <select name="bulk_status_cetak" id="bulkStatusCetak" class="form-control"
+                                style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                                <option value="keep">Tetap (Jangan Ubah)</option>
+                                <option value="sudah_cetak">Sudah Dicetak (Garansi Aktif)</option>
+                                <option value="belum_cetak">Belum Dicetak</option>
+                            </select>
+                        </div>
+                        <div id="bulkTanggalCetakWrap">
+                            <label
+                                style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                                Tanggal Selesai Dicetak:
+                            </label>
+                            <input type="date" name="bulk_tanggal_cetak" id="bulkTanggalCetak" class="form-control"
+                                value="{{ date('Y-m-d') }}"
+                                style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Catatan Khusus Massal (Opsional) -->
+                <div style="margin-bottom: 18px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
+                        Catatan Khusus Massal (Opsional)
+                    </label>
+                    <textarea name="bulk_catatan" id="bulkCatatan" rows="2" class="form-control"
+                        placeholder="Tambahkan catatan khusus untuk seluruh siswa terpilih..."
+                        style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" onclick="closeModalBulkPembayaran()" class="btn btn-outline"
+                        style="padding: 7px 14px; font-size: 0.82rem;">Batal</button>
+                    <button type="submit" id="btnSubmitBulkPembayaran" class="btn btn-primary"
+                        style="padding: 7px 18px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-check-double"></i> Terapkan ke Semua Terpilih
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL 2: Kirim Notifikasi WhatsApp & QR Code Langsung -->
     <div id="modalKirimWa" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
@@ -1655,7 +1802,8 @@
                             style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
                             Tanggal Pembelanjaan <span style="color: #ef4444;">*</span>
                         </label>
-                        <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required class="form-control"
+                        <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required
+                            class="form-control"
                             style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
                     </div>
                     <div>
@@ -1663,8 +1811,8 @@
                             style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
                             Unggah Bukti Nota / Kwitansi
                         </label>
-                        <input type="file" name="bukti_nota" accept="image/jpeg,image/png,application/pdf,image/webp"
-                            class="form-control"
+                        <input type="file" name="bukti_nota"
+                            accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control"
                             style="width: 100%; padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.8rem;">
                     </div>
                 </div>
@@ -1762,50 +1910,53 @@
         src="{{ asset('js/kartu-pelajar-manage.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-manage.js')) ? filemtime(public_path('js/kartu-pelajar-manage.js')) : time() }}">
     </script>
     <script>
-        function openModalCetakPengambilan() {
+        window.openModalCetakPengambilan = function() {
             const m = document.getElementById("modalCetakPengambilan");
             if (m) {
                 m.style.display = "flex";
                 document.body.style.overflow = "hidden";
             }
-        }
+        };
 
-        function closeModalCetakPengambilan() {
+        window.closeModalCetakPengambilan = function() {
             const m = document.getElementById("modalCetakPengambilan");
             if (m) {
                 m.style.display = "none";
                 document.body.style.overflow = "";
             }
-        }
+        };
 
-        function openTambahPengeluaran() {
+        window.openTambahPengeluaran = function() {
             const m = document.getElementById("modalTambahPengeluaran");
             if (m) {
                 m.style.display = "flex";
                 document.body.style.overflow = "hidden";
             }
-        }
+        };
 
-        function closeTambahPengeluaran() {
+        window.closeTambahPengeluaran = function() {
             const m = document.getElementById("modalTambahPengeluaran");
             if (m) {
                 m.style.display = "none";
                 document.body.style.overflow = "";
             }
-        }
-        m.style.display = "none";
-        document.body.style.overflow = "";
-        }
-        }
+        };
 
-        document.addEventListener("DOMContentLoaded", function() {
+        window._kpChartBarInstance = null;
+        window._kpChartDoughnutInstance = null;
+
+        function initKeuanganCharts() {
             @if ($tab === 'keuangan')
+                if (typeof Chart === 'undefined') return;
                 const chartData = @json($chartKeuangan);
 
                 // 1. Chart Bar Arus Kas (Pemasukan vs Pengeluaran)
                 const ctxBar = document.getElementById('chartArusKasBar');
-                if (ctxBar && typeof Chart !== 'undefined') {
-                    new Chart(ctxBar, {
+                if (ctxBar) {
+                    if (window._kpChartBarInstance) {
+                        window._kpChartBarInstance.destroy();
+                    }
+                    window._kpChartBarInstance = new Chart(ctxBar, {
                         type: 'bar',
                         data: {
                             labels: chartData.labels,
@@ -1876,12 +2027,15 @@
 
                 // 2. Chart Doughnut Kategori Pengeluaran
                 const ctxDoughnut = document.getElementById('chartKategoriDoughnut');
-                if (ctxDoughnut && typeof Chart !== 'undefined') {
+                if (ctxDoughnut) {
+                    if (window._kpChartDoughnutInstance) {
+                        window._kpChartDoughnutInstance.destroy();
+                    }
                     const colors = ['#6366f1', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#64748b'];
                     const katVals = chartData.kategori_values;
                     const hasData = katVals.length > 0 && katVals.some(v => v > 0);
 
-                    new Chart(ctxDoughnut, {
+                    window._kpChartDoughnutInstance = new Chart(ctxDoughnut, {
                         type: 'doughnut',
                         data: {
                             labels: hasData ? chartData.kategori_labels : ['Belum Ada Pengeluaran'],
@@ -1923,6 +2077,21 @@
                     });
                 }
             @endif
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initKeuanganCharts);
+        } else {
+            initKeuanganCharts();
+        }
+
+        window.addEventListener('sae:tableRefreshed', initKeuanganCharts);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModalCetakPengambilan();
+                closeTambahPengeluaran();
+            }
         });
     </script>
 @endpush
