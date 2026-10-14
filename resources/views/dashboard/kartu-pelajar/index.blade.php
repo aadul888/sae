@@ -28,6 +28,10 @@
                 style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fas fa-print"></i> Cetak Masal per Rombel
             </button>
+            <button type="button" class="btn btn-outline" onclick="openModalCetakPengambilan()"
+                style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-color: var(--primary); color: var(--primary); background: var(--card-bg);">
+                <i class="fas fa-clipboard-check"></i> List Siap Diambil (Per Tgl Cetak)
+            </button>
         </div>
     </div>
 
@@ -49,6 +53,10 @@
 
     <!-- Segmented Navigation Tabs -->
     <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
+        <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']) }}"
+            class="tab-btn btn {{ $tab === 'keuangan' ? 'btn-primary active' : 'btn-outline' }}">
+            <i class="fas fa-money-bill-wave me-1"></i> Catatan Keuangan
+        </a>
         <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'siswa']) }}"
             class="tab-btn btn {{ $tab === 'siswa' ? 'btn-primary active' : 'btn-outline' }}">
             <i class="fas fa-users me-1"></i> Data Peserta Didik
@@ -67,10 +75,311 @@
         </a>
     </div>
 
-    @if ($tab === 'siswa')
-        <!-- 3. Stat Grid Baku SAE (5 Kartu Ringkasan) -->
+    @if ($tab === 'keuangan')
+        <!-- TAB 1: Catatan Keuangan, Pengeluaran Bahan/Alat, Chart & Laporan -->
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-color);">
+                    Arus Kas &amp; Pembukuan Operasional Kartu Pelajar
+                </h3>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    Monitoring uang masuk pembayaran siswa, pencatatan belanja alat &amp; bahan cetak, serta analisa saldo
+                    kas.
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary" onclick="openTambahPengeluaran()"
+                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-plus-circle"></i> Catat Pengeluaran
+                </button>
+                <a href="{{ route('dashboard.kartu-pelajar.cetak-keuangan') }}" target="_blank" class="btn btn-outline"
+                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: var(--primary); color: var(--primary);">
+                    <i class="fas fa-print"></i> Cetak Laporan Keuangan
+                </a>
+            </div>
+        </div>
+
+        <!-- 4 Card Ringkasan Keuangan (Jumlah Genap: 4 Kartu) -->
         <div class="dash-stat-grid"
-            style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 20px;">
+            style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                    <i class="fas fa-arrow-down-long"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                        Rp {{ number_format($keuangan['total_pemasukan'], 0, ',', '.') }}
+                    </div>
+                    <div class="dash-stat-label">Total Uang Masuk (Siswa Lunas)</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                        {{ number_format($keuangan['total_transaksi_masuk'], 0, ',', '.') }} pembayaran terverifikasi
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                    <i class="fas fa-arrow-up-long"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                        Rp {{ number_format($keuangan['total_pengeluaran'], 0, ',', '.') }}
+                    </div>
+                    <div class="dash-stat-label">Total Pengeluaran Bahan/Alat</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                        {{ number_format($keuangan['total_transaksi_keluar'], 0, ',', '.') }} catatan pengadaan logistik
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
+                        Rp {{ number_format($keuangan['saldo_bersih'], 0, ',', '.') }}
+                    </div>
+                    <div class="dash-stat-label">Sisa Saldo Kas Bersih</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                        {{ $keuangan['saldo_bersih'] >= 0 ? 'Surplus / Kas Tersedia' : 'Defisit Anggaran' }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                    <i class="fas fa-clock-rotate-left"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                        Rp {{ number_format($keuangan['estimasi_piutang'], 0, ',', '.') }}
+                    </div>
+                    <div class="dash-stat-label">Estimasi Piutang Belum Bayar</div>
+                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                        Dari {{ number_format($keuangan['siswa_belum_bayar'], 0, ',', '.') }} siswa belum bayar
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2 Visual Charts Interaktif -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <!-- Chart 1: Arus Kas 6 Bulan Terakhir -->
+            <div class="card" style="padding: 20px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h4
+                        style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-chart-column text-primary"></i> Tren Arus Kas 6 Bulan Terakhir
+                    </h4>
+                    <span class="badge badge-outline" style="font-size: 0.7rem;">Pemasukan vs Pengeluaran</span>
+                </div>
+                <div style="position: relative; height: 260px;">
+                    <canvas id="chartArusKasBar"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Komposisi Pengeluaran per Kategori -->
+            <div class="card" style="padding: 20px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h4
+                        style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-chart-pie text-warning"></i> Alokasi Pengeluaran per Kategori
+                    </h4>
+                    <span class="badge badge-outline" style="font-size: 0.7rem;">Distribusi Biaya</span>
+                </div>
+                <div
+                    style="position: relative; height: 260px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="chartKategoriDoughnut"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dua Card Tabel: Pengeluaran & Pemasukan Terbaru -->
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; margin-bottom: 24px;">
+            <!-- Tabel Kiri: Catatan Pengeluaran -->
+            <div class="card table-responsive-stack" style="padding: 0;">
+                <div
+                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h4
+                        style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-receipt text-danger"></i> Catatan Belanja Bahan &amp; Alat
+                    </h4>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openTambahPengeluaran()"
+                        style="padding: 4px 10px; font-size: 0.76rem; border-color: #ef4444; color: #ef4444;">
+                        <i class="fas fa-plus me-1"></i> Tambah
+                    </button>
+                </div>
+
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Tanggal</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Uraian &amp; Kategori</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                Nominal</th>
+                            <th
+                                style="padding: 10px 12px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 85px;">
+                                Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if ($pengeluaranList && $pengeluaranList->count() > 0)
+                            @foreach ($pengeluaranList as $p)
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td
+                                        style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;">
+                                        {{ \Carbon\Carbon::parse($p->tanggal)->translatedFormat('d M Y') }}
+                                    </td>
+                                    <td style="padding: 12px 14px;">
+                                        <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
+                                            {{ $p->judul }}</div>
+                                        <div
+                                            style="display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap;">
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.68rem; padding: 2px 6px;">
+                                                {{ $kategoriList[$p->kategori] ?? ucfirst($p->kategori) }}
+                                            </span>
+                                            @if ($p->petugas)
+                                                <span style="font-size: 0.7rem; color: var(--text-muted);">
+                                                    &bull; Oleh: {{ $p->petugas }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if ($p->keterangan)
+                                            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                                {{ $p->keterangan }}</div>
+                                        @endif
+                                    </td>
+                                    <td
+                                        style="padding: 12px 14px; text-align: right; font-weight: 700; color: #ef4444; font-size: 0.86rem; white-space: nowrap;">
+                                        Rp {{ number_format($p->nominal, 0, ',', '.') }}
+                                    </td>
+                                    <td style="padding: 12px 12px; text-align: center;">
+                                        <div
+                                            style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                            @if ($p->bukti_nota_path)
+                                                <a href="{{ asset('storage/' . ltrim($p->bukti_nota_path, '/')) }}"
+                                                    target="_blank" class="btn-icon" style="color: #3b82f6;"
+                                                    title="Lihat Bukti Nota">
+                                                    <i class="fas fa-file-invoice"></i>
+                                                </a>
+                                            @endif
+                                            <form
+                                                action="{{ route('dashboard.kartu-pelajar.destroy-pengeluaran', $p->id) }}"
+                                                method="POST"
+                                                onsubmit="return confirm('Hapus catatan pengeluaran ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-icon" style="color: #ef4444;"
+                                                    title="Hapus Pengeluaran">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="4" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                    <i class="fas fa-receipt mb-2"
+                                        style="font-size: 1.8rem; opacity: 0.4; display: block;"></i>
+                                    <div>Belum ada catatan pengeluaran alat / bahan kartu pelajar.</div>
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+
+                @if ($pengeluaranList && $pengeluaranList->hasPages())
+                    <div style="padding: 12px 16px;">
+                        {{ $pengeluaranList->links() }}
+                    </div>
+                @endif
+            </div>
+
+            <!-- Tabel Kanan: Pemasukan Siswa Terbaru -->
+            <div class="card table-responsive-stack" style="padding: 0;">
+                <div
+                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h4
+                        style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-money-check-dollar text-success"></i> Penerimaan Pembayaran Siswa Terbaru
+                    </h4>
+                    <span class="badge badge-success" style="font-size: 0.7rem;">Top 10 Transaksi</span>
+                </div>
+
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Tgl Bayar</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Peserta Didik</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Metode</th>
+                            <th
+                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                Nominal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if ($recentPemasukan && $recentPemasukan->count() > 0)
+                            @foreach ($recentPemasukan as $rp)
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td
+                                        style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;">
+                                        {{ $rp->tanggal_bayar ? \Carbon\Carbon::parse($rp->tanggal_bayar)->translatedFormat('d M Y') : '-' }}
+                                    </td>
+                                    <td style="padding: 12px 14px;">
+                                        <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
+                                            {{ $rp->nama }}</div>
+                                        <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                            {{ $rp->nama_rombel ?: '-' }} &bull; NISN: {{ $rp->nisn ?: '-' }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 14px;">
+                                        <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
+                                            {{ strtoupper($rp->metode_pembayaran ?: 'Tunai') }}
+                                        </span>
+                                    </td>
+                                    <td
+                                        style="padding: 12px 14px; text-align: right; font-weight: 700; color: #10b981; font-size: 0.86rem; white-space: nowrap;">
+                                        Rp {{ number_format($rp->nominal, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="4" style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                    <i class="fas fa-receipt mb-2"
+                                        style="font-size: 1.8rem; opacity: 0.4; display: block;"></i>
+                                    <div>Belum ada data pembayaran siswa lunas.</div>
+                                </td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @elseif ($tab === 'siswa')
+        <!-- 3. Stat Grid Baku SAE (6 Kartu Ringkasan - Jumlah Genap Rapi) -->
+        <div class="dash-stat-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
                     <i class="fas fa-users"></i>
@@ -130,6 +439,21 @@
                         {{ number_format($stats['total_belum_cetak'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Belum Dicetak (Antrean)</div>
+                </div>
+            </div>
+
+            <div class="dash-stat-card">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="dash-stat-info">
+                    <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                        {{ number_format(($stats['total_klaim_kartu'] ?? 0) + ($stats['total_klaim_stiker'] ?? 0), 0, ',', '.') }}
+                    </div>
+                    <div class="dash-stat-label">
+                        Klaim Garansi ({{ $stats['total_klaim_kartu'] ?? 0 }} Kartu &bull;
+                        {{ $stats['total_klaim_stiker'] ?? 0 }} Stiker)
+                    </div>
                 </div>
             </div>
         </div>
@@ -329,6 +653,13 @@
                                 @endif
                             </td>
                             <td style="padding: 12px 16px;" data-label="Status Cetak">
+                                @php
+                                    $sisaKartu = max(
+                                        0,
+                                        ($settings->kuota_ganti_kartu_full ?? 1) - (int) $s->klaim_ganti_kartu,
+                                    );
+                                    $sisaStiker = max(0, ($settings->kuota_ganti_stiker ?? 3) - (int) $s->klaim_stiker);
+                                @endphp
                                 @if ($isCetak)
                                     <span id="badgeCetak_{{ $s->peserta_didik_id }}" class="badge badge-primary"
                                         style="font-size: 0.74rem; padding: 3px 8px;">
@@ -339,11 +670,20 @@
                                             {{ \Carbon\Carbon::parse($s->tanggal_cetak)->translatedFormat('d/m/Y H:i') }}
                                         </div>
                                     @endif
+                                    <div
+                                        style="font-size: 0.69rem; color: #10b981; margin-top: 3px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-shield-alt text-success"></i>
+                                        <span>Garansi: {{ $sisaKartu }} Kartu &bull; {{ $sisaStiker }} Stiker</span>
+                                    </div>
                                 @else
                                     <span id="badgeCetak_{{ $s->peserta_didik_id }}" class="badge badge-outline"
                                         style="font-size: 0.74rem; padding: 3px 8px;">
                                         <i class="fas fa-clock me-1"></i> Belum Dicetak
                                     </span>
+                                    <div
+                                        style="font-size: 0.69rem; color: var(--text-muted); margin-top: 3px; font-style: italic;">
+                                        <i class="fas fa-shield-alt" style="opacity: 0.4;"></i> Garansi belum aktif
+                                    </div>
                                 @endif
                             </td>
                             <td style="padding: 12px 14px;" data-label="WhatsApp">
@@ -381,9 +721,10 @@
                                     </button>
 
                                     {{-- Tombol Klaim Garansi --}}
-                                    <button type="button" class="btn-icon" style="color: #f59e0b;"
-                                        onclick="openKlaimGaransi('{{ $s->peserta_didik_id }}', '{{ addslashes($s->nama) }}', '{{ $s->nisn }}', '{{ addslashes($s->nama_rombel ?? '-') }}', {{ (int) $s->klaim_ganti_kartu }}, {{ (int) $s->klaim_stiker }}, {{ (int) ($settings->kuota_ganti_kartu_full ?? 1) }}, {{ (int) ($settings->kuota_ganti_stiker ?? 3) }})"
-                                        title="Klaim Garansi Kartu Pelajar">
+                                    <button type="button" class="btn-icon"
+                                        style="color: {{ $isCetak ? '#f59e0b' : '#94a3b8' }}; opacity: {{ $isCetak ? '1' : '0.6' }};"
+                                        onclick="openKlaimGaransi('{{ $s->peserta_didik_id }}', '{{ addslashes($s->nama) }}', '{{ $s->nisn }}', '{{ addslashes($s->nama_rombel ?? '-') }}', {{ (int) $s->klaim_ganti_kartu }}, {{ (int) $s->klaim_stiker }}, {{ (int) ($settings->kuota_ganti_kartu_full ?? 1) }}, {{ (int) ($settings->kuota_ganti_stiker ?? 3) }}, {{ $isCetak ? 1 : 0 }})"
+                                        title="{{ $isCetak ? 'Klaim Garansi (Sisa: ' . $sisaKartu . ' Kartu, ' . $sisaStiker . ' Stiker)' : 'Garansi Belum Aktif (Kartu Belum Dicetak)' }}">
                                         <i class="fas fa-shield-alt"></i>
                                     </button>
 
@@ -1171,6 +1512,26 @@
                 </div>
             </div>
 
+            <!-- Banner Garansi Aktif (Jika status sudah cetak) -->
+            <div id="garansiActiveNotice"
+                style="display: none; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #059669; padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 14px; align-items: center; gap: 8px;">
+                <i class="fas fa-check-circle" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                <div>
+                    <strong>Status Kartu: Sudah Dicetak</strong><br>
+                    Garansi resmi otomatis berlaku untuk kedua fasilitas (Ganti Kartu Penuh &amp; Cetak Stiker).
+                </div>
+            </div>
+
+            <!-- Banner Garansi Belum Aktif (Jika status belum cetak) -->
+            <div id="garansiNotActiveNotice"
+                style="display: none; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #d97706; padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 14px; align-items: center; gap: 8px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                <div>
+                    <strong>Garansi Belum Berlaku:</strong> Kartu fisik belum dicetak (Status: Belum Dicetak). Garansi resmi
+                    baru otomatis berlaku setelah kartu berstatus Sudah Dicetak.
+                </div>
+            </div>
+
             <form id="formKlaimGaransi">
                 <input type="hidden" name="peserta_didik_id" id="garansiPdId">
 
@@ -1236,10 +1597,159 @@
         </div>
     </div>
 
-    <!-- MODAL 4: Pratinjau & Cetak Lembar Kartu Pelajar Digital (Sama dengan Peserta Didik Aktif) -->
+    <!-- MODAL 4: Catat Pengeluaran Alat & Bahan Cetak -->
+    <div id="modalTambahPengeluaran" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
+        <div class="card"
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 22px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h4
+                    style="margin: 0; font-size: 1.05rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-plus-circle text-danger"></i> Catat Pengeluaran Alat &amp; Bahan
+                </h4>
+                <button type="button" onclick="closeTambahPengeluaran()"
+                    style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+            </div>
+
+            <form action="{{ route('dashboard.kartu-pelajar.store-pengeluaran') }}" method="POST"
+                enctype="multipart/form-data">
+                @csrf
+                <div style="margin-bottom: 14px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                        Uraian / Judul Pembelanjaan <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="text" name="judul" required
+                        placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon" class="form-control"
+                        style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                            Kategori Pengeluaran <span style="color: #ef4444;">*</span>
+                        </label>
+                        <select name="kategori" required class="form-control"
+                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                            @foreach ($kategoriList as $kKey => $kVal)
+                                <option value="{{ $kKey }}">{{ $kVal }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                            Nominal Pengeluaran (Rp) <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="number" name="nominal" min="1" step="1000" required
+                            placeholder="Contoh: 350000" class="form-control"
+                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem; font-weight: 700;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                            Tanggal Pembelanjaan <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required class="form-control"
+                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                            Unggah Bukti Nota / Kwitansi
+                        </label>
+                        <input type="file" name="bukti_nota" accept="image/jpeg,image/png,application/pdf,image/webp"
+                            class="form-control"
+                            style="width: 100%; padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.8rem;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                        Keterangan Tambahan / Toko Pembelian (Opsional)
+                    </label>
+                    <textarea name="keterangan" rows="2"
+                        placeholder="Catatan toko, nomor pesanan marketplace, atau rincian spesifikasi..." class="form-control"
+                        style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" onclick="closeTambahPengeluaran()" class="btn btn-outline"
+                        style="padding: 7px 14px; font-size: 0.82rem;">Batal</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="padding: 7px 18px; font-size: 0.82rem; font-weight: 700;">
+                        <i class="fas fa-save me-1"></i> Simpan Catatan Pengeluaran
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: Dialog Pilih Tanggal Cetak untuk Lembar Pengambilan -->
+    <div id="modalCetakPengambilan" class="modal-backdrop"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
+        <div class="card"
+            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 22px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                <h4
+                    style="margin: 0; font-size: 1.05rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-clipboard-check text-primary"></i> Cetak Lembar Pengambilan Kartu
+                </h4>
+                <button type="button" onclick="closeModalCetakPengambilan()"
+                    style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+            </div>
+
+            <form action="{{ route('dashboard.kartu-pelajar.cetak-pengambilan') }}" method="GET" target="_blank">
+                <div style="margin-bottom: 14px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                        Pilih Tanggal Selesai Dicetak <span style="color: #ef4444;">*</span>
+                    </label>
+                    <input type="date" name="tanggal_cetak" value="{{ date('Y-m-d') }}" required
+                        class="form-control"
+                        style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.86rem;">
+                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                        Mencetak daftar siswa yang status cetaknya selesai pada tanggal tersebut untuk diambil.
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label
+                        style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
+                        Filter Rombel / Kelas (Opsional)
+                    </label>
+                    <select name="rombel" class="form-control"
+                        style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                        <option value="">Semua Rombel (Seluruh Siswa yang Dicetak)</option>
+                        @foreach ($rombelList as $r)
+                            <option value="{{ $r->nama }}">{{ $r->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" onclick="closeModalCetakPengambilan()" class="btn btn-outline"
+                        style="padding: 7px 14px; font-size: 0.82rem;">Batal</button>
+                    <button type="submit" class="btn btn-primary" onclick="closeModalCetakPengambilan()"
+                        style="padding: 7px 18px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-print"></i> Buka Lembar Cetak
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 6: Pratinjau & Cetak Lembar Kartu Pelajar Digital (Sama dengan Peserta Didik Aktif) -->
     @include('kartu-pelajar.modal-preview')
 
-    <!-- MODAL 5: Dialog Pilih Rombel untuk Cetak Masal -->
+    <!-- MODAL 7: Dialog Pilih Rombel untuk Cetak Masal -->
     @include('kartu-pelajar.modal-cetak-rombel', ['filterRombel' => $rombelList->pluck('nama')])
 
 @endsection
@@ -1250,5 +1760,169 @@
     </script>
     <script
         src="{{ asset('js/kartu-pelajar-manage.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-manage.js')) ? filemtime(public_path('js/kartu-pelajar-manage.js')) : time() }}">
+    </script>
+    <script>
+        function openModalCetakPengambilan() {
+            const m = document.getElementById("modalCetakPengambilan");
+            if (m) {
+                m.style.display = "flex";
+                document.body.style.overflow = "hidden";
+            }
+        }
+
+        function closeModalCetakPengambilan() {
+            const m = document.getElementById("modalCetakPengambilan");
+            if (m) {
+                m.style.display = "none";
+                document.body.style.overflow = "";
+            }
+        }
+
+        function openTambahPengeluaran() {
+            const m = document.getElementById("modalTambahPengeluaran");
+            if (m) {
+                m.style.display = "flex";
+                document.body.style.overflow = "hidden";
+            }
+        }
+
+        function closeTambahPengeluaran() {
+            const m = document.getElementById("modalTambahPengeluaran");
+            if (m) {
+                m.style.display = "none";
+                document.body.style.overflow = "";
+            }
+        }
+        m.style.display = "none";
+        document.body.style.overflow = "";
+        }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            @if ($tab === 'keuangan')
+                const chartData = @json($chartKeuangan);
+
+                // 1. Chart Bar Arus Kas (Pemasukan vs Pengeluaran)
+                const ctxBar = document.getElementById('chartArusKasBar');
+                if (ctxBar && typeof Chart !== 'undefined') {
+                    new Chart(ctxBar, {
+                        type: 'bar',
+                        data: {
+                            labels: chartData.labels,
+                            datasets: [{
+                                    label: 'Pemasukan (Siswa)',
+                                    data: chartData.pemasukan,
+                                    backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                                    borderColor: '#10b981',
+                                    borderWidth: 1.5,
+                                    borderRadius: 6,
+                                },
+                                {
+                                    label: 'Pengeluaran (Bahan/Alat)',
+                                    data: chartData.pengeluaran,
+                                    backgroundColor: 'rgba(239, 68, 68, 0.75)',
+                                    borderColor: '#ef4444',
+                                    borderWidth: 1.5,
+                                    borderRadius: 6,
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'top',
+                                    labels: {
+                                        font: {
+                                            family: 'Plus Jakarta Sans',
+                                            size: 11
+                                        }
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.dataset.label + ': Rp ' + new Intl.NumberFormat(
+                                                'id-ID').format(ctx.raw);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(v) {
+                                            return 'Rp ' + (v >= 1000000 ? (v / 1000000) + 'jt' : (v >=
+                                                1000 ? (v / 1000) + 'rb' : v));
+                                        },
+                                        font: {
+                                            size: 10
+                                        }
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        font: {
+                                            size: 10
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 2. Chart Doughnut Kategori Pengeluaran
+                const ctxDoughnut = document.getElementById('chartKategoriDoughnut');
+                if (ctxDoughnut && typeof Chart !== 'undefined') {
+                    const colors = ['#6366f1', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#64748b'];
+                    const katVals = chartData.kategori_values;
+                    const hasData = katVals.length > 0 && katVals.some(v => v > 0);
+
+                    new Chart(ctxDoughnut, {
+                        type: 'doughnut',
+                        data: {
+                            labels: hasData ? chartData.kategori_labels : ['Belum Ada Pengeluaran'],
+                            datasets: [{
+                                data: hasData ? katVals : [1],
+                                backgroundColor: hasData ? colors.slice(0, katVals.length) : [
+                                    '#e2e8f0'
+                                ],
+                                borderWidth: 2,
+                                borderColor: '#ffffff',
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        font: {
+                                            family: 'Plus Jakarta Sans',
+                                            size: 10
+                                        },
+                                        boxWidth: 12
+                                    }
+                                },
+                                tooltip: {
+                                    enabled: hasData,
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            return ctx.label + ': Rp ' + new Intl.NumberFormat('id-ID')
+                                                .format(ctx.raw);
+                                        }
+                                    }
+                                }
+                            },
+                            cutout: '62%'
+                        }
+                    });
+                }
+            @endif
+        });
     </script>
 @endpush

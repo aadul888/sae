@@ -118,16 +118,16 @@ document.addEventListener("DOMContentLoaded", function () {
     // =========================================================================
     // 2. Multi-Select & Bulk Actions
     // =========================================================================
-    const checkAll = document.getElementById("checkAllStudents");
-    const bulkBar = document.getElementById("bulkActionBar");
-    const bulkCountEl = document.getElementById("bulkSelectedCount");
-
     function getSelectedIds() {
         return Array.from(document.querySelectorAll(".check-student-row:checked")).map(c => c.value);
     }
 
     function updateBulkBar() {
         const ids = getSelectedIds();
+        const bulkBar = document.getElementById("bulkActionBar");
+        const bulkCountEl = document.getElementById("bulkSelectedCount");
+        const checkAll = document.getElementById("checkAllStudents");
+
         if (bulkBar && bulkCountEl) {
             if (ids.length > 0) {
                 bulkBar.style.display = "flex";
@@ -139,22 +139,26 @@ document.addEventListener("DOMContentLoaded", function () {
         if (checkAll) {
             const allBoxes = document.querySelectorAll(".check-student-row");
             checkAll.checked = allBoxes.length > 0 && ids.length === allBoxes.length;
+            checkAll.indeterminate = ids.length > 0 && ids.length < allBoxes.length;
         }
     }
 
-    if (checkAll) {
-        checkAll.addEventListener("change", function () {
+    // Delegated Change Handler pada document agar selalu aktif walau tabel di-swap oleh AJAX
+    document.addEventListener("change", function (e) {
+        if (e.target && e.target.id === "checkAllStudents") {
+            const isChecked = e.target.checked;
             document.querySelectorAll(".check-student-row").forEach(c => {
-                c.checked = checkAll.checked;
+                c.checked = isChecked;
             });
             updateBulkBar();
-        });
-    }
-
-    document.addEventListener("change", function (e) {
-        if (e.target.classList.contains("check-student-row")) {
+        } else if (e.target && e.target.classList.contains("check-student-row")) {
             updateBulkBar();
         }
+    });
+
+    // Sinkronkan kembali bulk bar saat tabel di-refresh via AJAX
+    window.addEventListener("sae:tableRefreshed", function () {
+        updateBulkBar();
     });
 
     window.executeBulkAction = async function (action) {
@@ -167,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const actionLabels = {
             set_lunas: "menandai LUNAS",
             set_belum_bayar: "menandai BELUM BAYAR",
-            set_sudah_cetak: "menandai SUDAH DICETAK",
+            set_sudah_cetak: "menandai SUDAH DICETAK (Garansi Aktif)",
             set_belum_cetak: "menandai BELUM DICETAK",
         };
 
@@ -208,7 +212,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     timer: 1500,
                     showConfirmButton: false,
                 }).then(() => {
-                    window.location.reload();
+                    if (typeof window.refreshLiveTable === "function") {
+                        window.refreshLiveTable(window.location.href);
+                    } else {
+                        window.location.reload();
+                    }
                 });
             } else {
                 Swal.fire("Gagal", data.message || "Terjadi kesalahan sistem.", "error");
@@ -353,20 +361,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (window.SAE && typeof window.SAE.toast === "function") {
                     window.SAE.toast(data.message, "success");
                 }
-
-                // Update badge & icon
-                const badgeEl = document.getElementById("badgeCetak_" + pdId);
-                if (badgeEl) {
-                    if (data.status_cetak === "sudah_cetak") {
-                        badgeEl.className = "badge badge-primary";
-                        badgeEl.innerHTML = '<i class="fas fa-print me-1"></i> Sudah Dicetak';
-                    } else {
-                        badgeEl.className = "badge badge-outline";
-                        badgeEl.innerHTML = '<i class="fas fa-clock me-1"></i> Belum Dicetak';
-                    }
-                }
-                if (btnEl) {
-                    btnEl.title = data.status_cetak === "sudah_cetak" ? "Tandai Belum Dicetak" : "Tandai Sudah Dicetak";
+                if (typeof window.refreshLiveTable === "function") {
+                    window.refreshLiveTable(window.location.href);
+                } else {
+                    window.location.reload();
                 }
             } else {
                 Swal.fire("Error", data.message || "Gagal mengubah status.", "error");
@@ -517,7 +515,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const modalGaransi = document.getElementById("modalKlaimGaransi");
     const formGaransi = document.getElementById("formKlaimGaransi");
 
-    window.openKlaimGaransi = function (pdId, nama, nisn, rombel, klaimKartu, klaimStiker, kuotaKartu, kuotaStiker) {
+    window.openKlaimGaransi = function (pdId, nama, nisn, rombel, klaimKartu, klaimStiker, kuotaKartu, kuotaStiker, isCetak) {
         if (!modalGaransi) return;
 
         document.getElementById("garansiPdId").value = pdId;
@@ -525,27 +523,79 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("garansiPdNisn").textContent = nisn || "-";
         document.getElementById("garansiPdRombel").textContent = rombel || "-";
 
+        const isCetakBool = Boolean(parseInt(isCetak));
         const sisaKartu = Math.max(0, kuotaKartu - klaimKartu);
         const sisaStiker = Math.max(0, kuotaStiker - klaimStiker);
 
+        const bannerActive = document.getElementById("garansiActiveNotice");
+        const bannerNotActive = document.getElementById("garansiNotActiveNotice");
+        const btnSubmit = document.getElementById("btnSubmitGaransi");
+
         const badgeKartu = document.getElementById("garansiSisaKartu");
         const badgeStiker = document.getElementById("garansiSisaStiker");
-        if (badgeKartu) badgeKartu.textContent = `${sisaKartu} dari ${kuotaKartu} kali`;
-        if (badgeStiker) badgeStiker.textContent = `${sisaStiker} dari ${kuotaStiker} kali`;
-
         const optKartu = document.getElementById("optGaransiKartu");
         const optStiker = document.getElementById("optGaransiStiker");
-        if (optKartu) {
-            optKartu.disabled = sisaKartu <= 0;
-            if (sisaKartu > 0) optKartu.checked = true;
-        }
-        if (optStiker) {
-            optStiker.disabled = sisaStiker <= 0;
-            if (sisaKartu <= 0 && sisaStiker > 0) optStiker.checked = true;
-        }
-
         const alasanInput = document.getElementById("garansiAlasan");
-        if (alasanInput) alasanInput.value = "";
+
+        if (isCetakBool) {
+            if (bannerActive) bannerActive.style.display = "flex";
+            if (bannerNotActive) bannerNotActive.style.display = "none";
+
+            if (badgeKartu) badgeKartu.textContent = `${sisaKartu} dari ${kuotaKartu} kali`;
+            if (badgeStiker) badgeStiker.textContent = `${sisaStiker} dari ${kuotaStiker} kali`;
+
+            if (optKartu) {
+                optKartu.disabled = sisaKartu <= 0;
+                if (sisaKartu > 0) optKartu.checked = true;
+                else optKartu.checked = false;
+            }
+            if (optStiker) {
+                optStiker.disabled = sisaStiker <= 0;
+                if (sisaKartu <= 0 && sisaStiker > 0) optStiker.checked = true;
+                else if (sisaStiker <= 0) optStiker.checked = false;
+            }
+
+            if (alasanInput) {
+                alasanInput.disabled = false;
+                alasanInput.value = "";
+            }
+
+            if (btnSubmit) {
+                if (sisaKartu <= 0 && sisaStiker <= 0) {
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = '<i class="fas fa-ban me-1"></i> Kuota Garansi Habis';
+                } else {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="fas fa-check me-1"></i> Simpan Klaim Garansi';
+                }
+            }
+        } else {
+            // Belum Dicetak: Garansi belum aktif
+            if (bannerActive) bannerActive.style.display = "none";
+            if (bannerNotActive) bannerNotActive.style.display = "flex";
+
+            if (badgeKartu) badgeKartu.textContent = `0 dari ${kuotaKartu} kali (Belum Aktif)`;
+            if (badgeStiker) badgeStiker.textContent = `0 dari ${kuotaStiker} kali (Belum Aktif)`;
+
+            if (optKartu) {
+                optKartu.disabled = true;
+                optKartu.checked = false;
+            }
+            if (optStiker) {
+                optStiker.disabled = true;
+                optStiker.checked = false;
+            }
+
+            if (alasanInput) {
+                alasanInput.disabled = true;
+                alasanInput.value = "";
+            }
+
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-lock me-1"></i> Garansi Belum Berlaku';
+            }
+        }
 
         modalGaransi.style.display = "flex";
         document.body.style.overflow = "hidden";
@@ -591,7 +641,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         timer: 1800,
                         showConfirmButton: false,
                     }).then(() => {
-                        window.location.reload();
+                        if (typeof window.refreshLiveTable === "function") {
+                            window.refreshLiveTable(window.location.href);
+                        } else {
+                            window.location.reload();
+                        }
                     });
                 } else {
                     Swal.fire("Klaim Ditolak", data.message || "Gagal mencatat klaim garansi.", "error");

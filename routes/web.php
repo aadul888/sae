@@ -510,10 +510,14 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/kartu-pelajar/qrcode-svg/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'downloadQrSvg'])->name('kartu-pelajar.qrcode-svg');
     Route::post('/kartu-pelajar/pengaturan', [\App\Http\Controllers\KartuPelajarController::class, 'updatePengaturan'])->name('kartu-pelajar.pengaturan');
     Route::post('/kartu-pelajar/klaim-garansi', [\App\Http\Controllers\KartuPelajarController::class, 'klaimGaransi'])->name('kartu-pelajar.klaim-garansi');
+    Route::post('/kartu-pelajar/pengeluaran', [\App\Http\Controllers\KartuPelajarController::class, 'storePengeluaran'])->name('kartu-pelajar.store-pengeluaran');
+    Route::delete('/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran'])->name('kartu-pelajar.destroy-pengeluaran');
 
     // Kartu Pelajar Digital — Layanan Cetak
     Route::get('/kartu-pelajar/cetak/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'printSingle'])->name('kartu-pelajar.cetak-single');
     Route::get('/kartu-pelajar/cetak-rombel/{rombelId}', [\App\Http\Controllers\KartuPelajarController::class, 'printRombel'])->name('kartu-pelajar.cetak-rombel');
+    Route::get('/kartu-pelajar/cetak-keuangan', [\App\Http\Controllers\KartuPelajarController::class, 'printLaporanKeuangan'])->name('kartu-pelajar.cetak-keuangan');
+    Route::get('/kartu-pelajar/cetak-pengambilan', [\App\Http\Controllers\KartuPelajarController::class, 'printPengambilan'])->name('kartu-pelajar.cetak-pengambilan');
 
     // Arsip & Maintenance (Hanya Admin)
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance,read');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JurusanMeta;
 use App\Models\KartuPelajarPembayaran;
 use App\Models\KartuPelajarPengaturan;
+use App\Models\KartuPelajarPengeluaran;
 use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
 use App\Models\SekolahMeta;
@@ -30,7 +31,7 @@ class KartuPelajarController extends Controller
             abort(403, 'Akses ditolak: Menu ini khusus untuk Administrator.');
         }
 
-        $tab = $request->get('tab', 'siswa'); // 'siswa', 'harga', 'whatsapp', 'garansi'
+        $tab = $request->get('tab', 'keuangan'); // 'keuangan', 'siswa', 'harga', 'whatsapp', 'garansi'
         $settings = KartuPelajarPengaturan::getSettings();
 
         $q = trim($request->get('q', ''));
@@ -224,6 +225,101 @@ class KartuPelajarController extends Controller
             $garansiLogs = $logQuery->orderByDesc('kgl.tanggal_klaim')->paginate(15, ['*'], 'garansi_page')->withQueryString();
         }
 
+        // Data Catatan Keuangan Kartu Pelajar (Pemasukan Siswa, Pengeluaran Bahan/Alat, Saldo Bersih, Piutang)
+        $totalPemasukan = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->sum('nominal');
+        $countPemasukan = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->count();
+        $totalPengeluaran = Schema::hasTable('kartu_pelajar_pengeluaran') ? DB::table('kartu_pelajar_pengeluaran')->sum('nominal') : 0;
+        $countPengeluaran = Schema::hasTable('kartu_pelajar_pengeluaran') ? DB::table('kartu_pelajar_pengeluaran')->count() : 0;
+        $saldoBersih = $totalPemasukan - $totalPengeluaran;
+
+        $totalSiswaGlobal = DB::table('peserta_didik')->count();
+        $siswaBelumBayarGlobal = max(0, $totalSiswaGlobal - $countPemasukan);
+        $estimasiPiutang = $siswaBelumBayarGlobal * (int) ($settings->biaya_standar ?? 25000);
+
+        $keuangan = [
+            'total_pemasukan'        => (int) $totalPemasukan,
+            'total_transaksi_masuk'  => $countPemasukan,
+            'total_pengeluaran'      => (int) $totalPengeluaran,
+            'total_transaksi_keluar' => $countPengeluaran,
+            'saldo_bersih'           => (int) $saldoBersih,
+            'estimasi_piutang'       => (int) $estimasiPiutang,
+            'siswa_belum_bayar'      => $siswaBelumBayarGlobal,
+        ];
+
+        $pengeluaranList = null;
+        $recentPemasukan = null;
+        $chartKeuangan = [
+            'labels'          => [],
+            'pemasukan'       => [],
+            'pengeluaran'     => [],
+            'kategori_labels' => [],
+            'kategori_values' => [],
+        ];
+
+        if ($tab === 'keuangan') {
+            if (Schema::hasTable('kartu_pelajar_pengeluaran')) {
+                $pQuery = DB::table('kartu_pelajar_pengeluaran');
+                if ($q !== '') {
+                    $pQuery->where(function ($sub) use ($q) {
+                        $sub->where('judul', 'LIKE', "%{$q}%")
+                            ->orWhere('kategori', 'LIKE', "%{$q}%")
+                            ->orWhere('keterangan', 'LIKE', "%{$q}%")
+                            ->orWhere('petugas', 'LIKE', "%{$q}%");
+                    });
+                }
+                $pengeluaranList = $pQuery->orderByDesc('tanggal')->orderByDesc('id')->paginate(10, ['*'], 'pengeluaran_page')->withQueryString();
+            }
+
+            $recentPemasukan = DB::table('kartu_pelajar_pembayaran as kp')
+                ->join('peserta_didik as pd', 'kp.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                ->where('kp.status_pembayaran', 'lunas')
+                ->select('kp.*', 'pd.nama', 'pd.nama_rombel', 'pd.nisn')
+                ->orderByDesc('kp.tanggal_bayar')
+                ->orderByDesc('kp.updated_at')
+                ->limit(10)
+                ->get();
+
+            // Time series 6 bulan terakhir untuk chart bar pemasukan vs pengeluaran
+            for ($i = 5; $i >= 0; $i--) {
+                $mDate = now()->subMonths($i);
+                $mLabel = $mDate->translatedFormat('M Y');
+                $chartKeuangan['labels'][] = $mLabel;
+
+                $masukBulan = DB::table('kartu_pelajar_pembayaran')
+                    ->where('status_pembayaran', 'lunas')
+                    ->whereYear('tanggal_bayar', $mDate->year)
+                    ->whereMonth('tanggal_bayar', $mDate->month)
+                    ->sum('nominal');
+                $chartKeuangan['pemasukan'][] = (int) $masukBulan;
+
+                $keluarBulan = Schema::hasTable('kartu_pelajar_pengeluaran')
+                    ? DB::table('kartu_pelajar_pengeluaran')
+                        ->whereYear('tanggal', $mDate->year)
+                        ->whereMonth('tanggal', $mDate->month)
+                        ->sum('nominal')
+                    : 0;
+                $chartKeuangan['pengeluaran'][] = (int) $keluarBulan;
+            }
+
+            // Kategori Pengeluaran untuk Chart Doughnut
+            if (Schema::hasTable('kartu_pelajar_pengeluaran')) {
+                $kategoriMapping = KartuPelajarPengeluaran::getKategoriList();
+                $katSums = DB::table('kartu_pelajar_pengeluaran')
+                    ->select('kategori', DB::raw('SUM(nominal) as total'))
+                    ->groupBy('kategori')
+                    ->pluck('total', 'kategori');
+
+                foreach ($kategoriMapping as $kKey => $kLabel) {
+                    $val = (int) ($katSums[$kKey] ?? 0);
+                    if ($val > 0) {
+                        $chartKeuangan['kategori_labels'][] = $kLabel;
+                        $chartKeuangan['kategori_values'][] = $val;
+                    }
+                }
+            }
+        }
+
+        $kategoriList = KartuPelajarPengeluaran::getKategoriList();
         $sekolahInfo = $this->getSekolahInfo();
 
         return view('dashboard.kartu-pelajar.index', compact(
@@ -240,7 +336,12 @@ class KartuPelajarController extends Controller
             'sekolahInfo',
             'tab',
             'settings',
-            'garansiLogs'
+            'garansiLogs',
+            'keuangan',
+            'pengeluaranList',
+            'recentPemasukan',
+            'chartKeuangan',
+            'kategoriList'
         ));
     }
 
@@ -398,6 +499,9 @@ class KartuPelajarController extends Controller
             } elseif ($action === 'set_sudah_cetak') {
                 $record->status_cetak = 'sudah_cetak';
                 $record->tanggal_cetak = now();
+                if (empty($record->nominal)) {
+                    $record->nominal = (int) ($settings->biaya_standar ?? 25000);
+                }
             } elseif ($action === 'set_belum_cetak') {
                 $record->status_cetak = 'belum_cetak';
                 $record->tanggal_cetak = null;
@@ -633,6 +737,25 @@ class KartuPelajarController extends Controller
         $settings = KartuPelajarPengaturan::getSettings();
         $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
         $record->nisn = $pd->nisn;
+
+        // 1. Validasi: Garansi resmi hanya berlaku selama berstatus Peserta Didik Aktif
+        $isAktif = DB::table('peserta_didik')->where('peserta_didik_id', $pd->peserta_didik_id)->exists()
+            && (!Schema::hasTable('peserta_didik_tidak_aktif') || !DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $pd->peserta_didik_id)->exists());
+
+        if (!$isAktif) {
+            return response()->json([
+                'success' => false,
+                'message' => "Garansi kartu pelajar tidak berlaku. Fasilitas garansi hanya berlaku selama siswa berstatus Peserta Didik Aktif di sekolah."
+            ], 422);
+        }
+
+        // 2. Validasi: Garansi resmi otomatis aktif hanya jika status kartu sudah dicetak
+        if ($record->status_cetak !== 'sudah_cetak') {
+            return response()->json([
+                'success' => false,
+                'message' => "Garansi kartu pelajar belum berlaku karena kartu fisik belum dicetak (Status masih Belum Dicetak)."
+            ], 422);
+        }
 
         $jenisKlaim = $request->jenis_klaim;
         $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
@@ -973,5 +1096,178 @@ class KartuPelajarController extends Controller
             'logo_url' => $sekolahMeta?->logo_url ?: asset('img/logo-icon.png'),
             'kop_url' => $sekolahMeta?->kop_url,
         ];
+    }
+
+    /**
+     * Simpan Catatan Pengeluaran Baru (Alat / Bahan Cetak Kartu Pelajar)
+     */
+    public function storePengeluaran(Request $request)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'create')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $request->validate([
+            'judul'           => 'required|string|max:255',
+            'kategori'        => 'required|string|max:50',
+            'nominal'         => 'required|numeric|min:1',
+            'tanggal'         => 'required|date',
+            'keterangan'      => 'nullable|string|max:1000',
+            'bukti_nota'      => 'nullable|file|mimes:jpg,jpeg,png,pdf,webp|max:5120',
+        ]);
+
+        $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
+        $buktiPath = null;
+        if ($request->hasFile('bukti_nota')) {
+            $ext = $request->file('bukti_nota')->getClientOriginalExtension();
+            $buktiPath = $request->file('bukti_nota')->storeAs('pengeluaran_kartu', 'nota_' . time() . '_' . uniqid() . '.' . $ext, 'public');
+        }
+
+        KartuPelajarPengeluaran::create([
+            'judul'           => trim($request->judul),
+            'kategori'        => $request->kategori,
+            'nominal'         => (int) $request->nominal,
+            'tanggal'         => $request->tanggal,
+            'keterangan'      => trim((string) $request->keterangan),
+            'bukti_nota_path' => $buktiPath,
+            'petugas'         => $userName,
+        ]);
+
+        return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan'])
+            ->with('success', 'Catatan pengeluaran berhasil disimpan.');
+    }
+
+    /**
+     * Hapus Catatan Pengeluaran
+     */
+    public function destroyPengeluaran(int $id)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'delete')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $item = KartuPelajarPengeluaran::findOrFail($id);
+        if ($item->bukti_nota_path && Storage::disk('public')->exists($item->bukti_nota_path)) {
+            Storage::disk('public')->delete($item->bukti_nota_path);
+        }
+        $item->delete();
+
+        return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan'])
+            ->with('success', 'Catatan pengeluaran berhasil dihapus.');
+    }
+
+    /**
+     * Cetak Laporan Keuangan Resmi Kartu Pelajar (Pemasukan, Pengeluaran & Saldo)
+     */
+    public function printLaporanKeuangan(Request $request)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'read')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $dari = $request->get('dari');
+        $sampai = $request->get('sampai');
+
+        $pemasukanQuery = DB::table('kartu_pelajar_pembayaran as kp')
+            ->join('peserta_didik as pd', 'kp.peserta_didik_id', '=', 'pd.peserta_didik_id')
+            ->where('kp.status_pembayaran', 'lunas')
+            ->select('kp.*', 'pd.nama', 'pd.nisn', 'pd.nama_rombel');
+
+        $pengeluaranQuery = DB::table('kartu_pelajar_pengeluaran');
+
+        if ($dari) {
+            $pemasukanQuery->whereDate('kp.tanggal_bayar', '>=', $dari);
+            $pengeluaranQuery->whereDate('tanggal', '>=', $dari);
+        }
+        if ($sampai) {
+            $pemasukanQuery->whereDate('kp.tanggal_bayar', '<=', $sampai);
+            $pengeluaranQuery->whereDate('tanggal', '<=', $sampai);
+        }
+
+        $pemasukanList = $pemasukanQuery->orderBy('kp.tanggal_bayar', 'asc')->get();
+        $pengeluaranList = $pengeluaranQuery->orderBy('tanggal', 'asc')->get();
+
+        $totalPemasukan = $pemasukanList->sum('nominal');
+        $totalPengeluaran = $pengeluaranList->sum('nominal');
+        $saldoBersih = $totalPemasukan - $totalPengeluaran;
+
+        $sekolahInfo = $this->getSekolahInfo();
+        $kategoriList = KartuPelajarPengeluaran::getKategoriList();
+
+        return view('kartu-pelajar.cetak-keuangan', compact(
+            'pemasukanList',
+            'pengeluaranList',
+            'totalPemasukan',
+            'totalPengeluaran',
+            'saldoBersih',
+            'sekolahInfo',
+            'kategoriList',
+            'dari',
+            'sampai'
+        ));
+    }
+
+    /**
+     * Cetak Lembar Pengambilan / Serah Terima Kartu Pelajar Per Tanggal Cetak
+     */
+    public function printPengambilan(Request $request)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'read')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        // Ambil daftar tanggal cetak yang tersedia untuk dropdown filter
+        $tanggalCetakList = DB::table('kartu_pelajar_pembayaran')
+            ->where('status_cetak', 'sudah_cetak')
+            ->whereNotNull('tanggal_cetak')
+            ->select(DB::raw('DATE(tanggal_cetak) as tgl'), DB::raw('COUNT(*) as total'))
+            ->groupBy('tgl')
+            ->orderByDesc('tgl')
+            ->get();
+
+        $latestDate = $tanggalCetakList->first()?->tgl ?: now()->toDateString();
+        $tanggalCetak = $request->get('tanggal_cetak', $latestDate);
+        $rombel = $request->get('rombel');
+
+        $query = DB::table('kartu_pelajar_pembayaran as kp')
+            ->join('peserta_didik as pd', 'kp.peserta_didik_id', '=', 'pd.peserta_didik_id')
+            ->where('kp.status_cetak', 'sudah_cetak');
+
+        if ($tanggalCetak) {
+            $query->whereDate('kp.tanggal_cetak', $tanggalCetak);
+        }
+
+        if ($rombel) {
+            $query->where('pd.nama_rombel', $rombel);
+        }
+
+        $students = $query->orderBy('pd.nama_rombel', 'asc')
+            ->orderBy('pd.nama', 'asc')
+            ->select('kp.*', 'pd.nama', 'pd.nisn', 'pd.nipd', 'pd.nama_rombel')
+            ->get();
+
+        $sekolahInfo = $this->getSekolahInfo();
+        $rombelList = DB::table('rombongan_belajar')
+            ->where('jenis_rombel', '1')
+            ->orderBy('tingkat_pendidikan_id', 'asc')
+            ->orderBy('nama', 'asc')
+            ->pluck('nama');
+
+        return view('kartu-pelajar.cetak-pengambilan', compact(
+            'students',
+            'tanggalCetak',
+            'rombel',
+            'sekolahInfo',
+            'rombelList',
+            'tanggalCetakList'
+        ));
     }
 }

@@ -44,4 +44,123 @@ class KartuPelajarTest extends TestCase
         $this->assertStringContainsString('1x Garansi Ganti Kartu Full', $msg);
         $this->assertStringContainsString('3x Garansi Cetak Stiker', $msg);
     }
+
+    public function test_klaim_garansi_requires_sudah_cetak_and_reduces_quota(): void
+    {
+        $pd = \Illuminate\Support\Facades\DB::table('peserta_didik')->first();
+        if (!$pd) {
+            $this->markTestSkipped('Data peserta didik kosong.');
+        }
+
+        // Pastikan record pembayaran ada dan diset belum_cetak
+        $record = KartuPelajarPembayaran::updateOrCreate(
+            ['peserta_didik_id' => $pd->peserta_didik_id],
+            [
+                'nisn'              => $pd->nisn,
+                'status_cetak'      => 'belum_cetak',
+                'klaim_ganti_kartu' => 0,
+                'klaim_stiker'      => 0,
+            ]
+        );
+
+        // Simulasi sesi admin
+        $adminSession = [
+            'user' => [
+                'id'       => 1,
+                'nama'     => 'Administrator Test',
+                'username' => 'admin',
+                'role'     => 'admin',
+            ],
+        ];
+
+        // 1. Klaim saat belum_cetak harus ditolak (garansi belum aktif)
+        $res = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.klaim-garansi'), [
+            'peserta_didik_id' => $pd->peserta_didik_id,
+            'jenis_klaim'      => 'ganti_kartu_full',
+            'alasan'           => 'Kartu patah uji coba',
+        ]);
+        $res->assertStatus(422);
+
+        // 2. Set sudah_cetak via bulk action
+        $bulkRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.bulk-action'), [
+            'action' => 'set_sudah_cetak',
+            'ids'    => [$pd->peserta_didik_id],
+        ]);
+        $bulkRes->assertOk();
+
+        $record->refresh();
+        $this->assertEquals('sudah_cetak', $record->status_cetak);
+
+        // 3. Klaim saat sudah_cetak harus berhasil dan mengurangi kuota yang berlaku
+        $klaimRes = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.klaim-garansi'), [
+            'peserta_didik_id' => $pd->peserta_didik_id,
+            'jenis_klaim'      => 'ganti_kartu_full',
+            'alasan'           => 'Kartu patah uji coba',
+        ]);
+        $klaimRes->assertOk();
+        $this->assertEquals(1, $klaimRes->json('klaim_ganti_kartu'));
+
+        $record->refresh();
+        $this->assertEquals(1, $record->klaim_ganti_kartu);
+
+        // 4. Klaim kedua untuk ganti_kartu_full harus ditolak karena kuota 1 kali habis
+        $klaimRes2 = $this->withSession($adminSession)->postJson(route('dashboard.kartu-pelajar.klaim-garansi'), [
+            'peserta_didik_id' => $pd->peserta_didik_id,
+            'jenis_klaim'      => 'ganti_kartu_full',
+            'alasan'           => 'Kartu patah lagi',
+        ]);
+        $klaimRes2->assertStatus(422);
+    }
+
+    public function test_catatan_keuangan_pengeluaran_and_cetak_laporan(): void
+    {
+        $adminSession = [
+            'user' => [
+                'id'       => 1,
+                'nama'     => 'Administrator Test',
+                'username' => 'admin',
+                'role'     => 'admin',
+            ],
+        ];
+
+        // 1. Simpan Pengeluaran Bahan Cetak
+        $postRes = $this->withSession($adminSession)->post(route('dashboard.kartu-pelajar.store-pengeluaran'), [
+            'judul'      => 'Beli 100 Kartu PVC RFID Blank',
+            'kategori'   => 'bahan_pvc',
+            'nominal'    => 250000,
+            'tanggal'    => '2026-10-14',
+            'keterangan' => 'Pembelian toko elektronik',
+        ]);
+        $postRes->assertRedirect(route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']));
+
+        $item = \App\Models\KartuPelajarPengeluaran::where('judul', 'Beli 100 Kartu PVC RFID Blank')->first();
+        $this->assertNotNull($item);
+        $this->assertEquals(250000, $item->nominal);
+
+        // 2. Akses Tab Keuangan
+        $this->withoutExceptionHandling();
+        $viewRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']));
+        $viewRes->assertOk();
+        $viewRes->assertSee('Catatan Belanja Bahan &amp; Alat', false);
+        $viewRes->assertSee('Beli 100 Kartu PVC RFID Blank');
+
+        // 3. Akses Halaman Cetak Laporan Keuangan
+        $cetakRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.cetak-keuangan'));
+        $cetakRes->assertOk();
+        $cetakRes->assertSee('LAPORAN KEUANGAN &amp; ARUS KAS KARTU PELAJAR', false);
+        $cetakRes->assertSee('Beli 100 Kartu PVC RFID Blank');
+
+        // 4. Hapus Pengeluaran
+        $delRes = $this->withSession($adminSession)->delete(route('dashboard.kartu-pelajar.destroy-pengeluaran', $item->id));
+        $delRes->assertRedirect(route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']));
+        $this->assertNull(\App\Models\KartuPelajarPengeluaran::find($item->id));
+
+        // 5. Akses Halaman Cetak Lembar Pengambilan / Serah Terima Kartu Per Tanggal Cetak
+        $pengambilanRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.cetak-pengambilan', [
+            'tanggal_cetak' => '2026-10-14',
+        ]));
+        $pengambilanRes->assertOk();
+        $pengambilanRes->assertSee('DAFTAR DISTRIBUSI &amp; SERAH TERIMA', false);
+        $pengambilanRes->assertSee('Tanggal Cetak Selesai', false);
+    }
 }

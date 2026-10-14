@@ -19,6 +19,8 @@ class KartuPelajarPembayaran extends Model
         'metode_pembayaran',
         'tanggal_bayar',
         'status_cetak',
+        'klaim_ganti_kartu',
+        'klaim_stiker',
         'tanggal_cetak',
         'nomor_wa',
         'wa_terkirim_at',
@@ -27,10 +29,12 @@ class KartuPelajarPembayaran extends Model
     ];
 
     protected $casts = [
-        'tanggal_bayar'  => 'date',
-        'tanggal_cetak'  => 'datetime',
-        'wa_terkirim_at' => 'datetime',
-        'nominal'        => 'integer',
+        'tanggal_bayar'     => 'date',
+        'tanggal_cetak'     => 'datetime',
+        'wa_terkirim_at'    => 'datetime',
+        'nominal'           => 'integer',
+        'klaim_ganti_kartu' => 'integer',
+        'klaim_stiker'      => 'integer',
     ];
 
     public function pesertaDidik()

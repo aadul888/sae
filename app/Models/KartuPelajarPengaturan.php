@@ -98,7 +98,10 @@ class KartuPelajarPengaturan extends Model
         return "1. Fasilitas Garansi Resmi Kartu Pelajar Siswa:\n"
             . "   - 1x Garansi Ganti Kartu Penuh (Full Cetak Fisik PVC/RFID & Stiker Baru) jika kartu hilang, patah, atau rusak total.\n"
             . "   - 3x Garansi Cetak Stiker Kartu Pelajar Saja jika stiker pudar, terkelupas, atau tergores tanpa kerusakan chip RFID.\n"
-            . "2. Pengajuan klaim garansi diverifikasi langsung oleh pihak Administrator / Pengelola Kartu Pelajar di sekolah.\n"
-            . "3. Kartu fisik pengganti otomatis disinkronkan kembali nomor RFID dan QR Code identitas digitalnya ke sistem.";
+            . "2. Masa Berlaku Garansi:\n"
+            . "   - Seluruh fasilitas garansi HANYA berlaku selama siswa berstatus sebagai Peserta Didik Aktif di sekolah.\n"
+            . "   - Apabila peserta didik telah lulus (alumni), mutasi, atau keluar, seluruh hak garansi otomatis hangus.\n"
+            . "3. Pengajuan klaim garansi diverifikasi langsung oleh pihak Administrator / Pengelola Kartu Pelajar di sekolah.\n"
+            . "4. Kartu fisik pengganti otomatis disinkronkan kembali nomor RFID dan QR Code identitas digitalnya ke sistem.";
     }
 }
