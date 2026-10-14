@@ -2025,7 +2025,8 @@
                                 <option value="{{ $mKey }}">{{ $mVal }}</option>
                             @endforeach
                         </select>
-                        <div class="kp-form-hint">Jika kosong, antrean mengikuti metode pembayaran di tab Data Peserta Didik.</div>
+                        <div class="kp-form-hint">Jika kosong, antrean mengikuti metode pembayaran di tab Data Peserta
+                            Didik.</div>
                     </div>
 
                     <div class="kp-form-group">
