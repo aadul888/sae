@@ -115,22 +115,19 @@
 </head>
 
 <body>
-    <div class="no-print-bar">
+    <div class="no-print-bar" style="white-space: nowrap; flex-wrap: nowrap; gap: 10px; max-width: 96vw;">
         <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']) }}" class="btn-action btn-back">
-            <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+            <i class="fas fa-arrow-left"></i> Kembali
         </a>
 
         <form method="GET" action="{{ route('dashboard.kartu-pelajar.cetak-keuangan') }}"
-            style="display: inline-flex; align-items: center; gap: 8px; margin: 0 12px;">
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0;">Dari:</label>
+            style="display: inline-flex; align-items: center; gap: 8px; margin: 0 4px; white-space: nowrap; flex-shrink: 0;">
+            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0; font-weight: 600;">Dari:</label>
             <input type="date" name="dari" value="{{ $dari }}" class="select-cetak"
-                style="padding: 4px 8px; font-size: 0.78rem;">
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0;">Sampai:</label>
+                onchange="this.form.submit()" style="padding: 4px 8px; font-size: 0.78rem;">
+            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0 0 0 4px; font-weight: 600;">Sampai:</label>
             <input type="date" name="sampai" value="{{ $sampai }}" class="select-cetak"
-                style="padding: 4px 8px; font-size: 0.78rem;">
-            <button type="submit" class="btn-action" style="padding: 5px 12px; font-size: 0.78rem;">
-                <i class="fas fa-filter"></i> Filter
-            </button>
+                onchange="this.form.submit()" style="padding: 4px 8px; font-size: 0.78rem;">
             @if ($dari || $sampai)
                 <a href="{{ route('dashboard.kartu-pelajar.cetak-keuangan') }}" class="btn-action"
                     style="padding: 5px 10px; font-size: 0.78rem;" title="Reset Filter">
@@ -147,24 +144,9 @@
     <div class="paper"
         style="max-width: 900px; margin: 20px auto; background: #ffffff; padding: 25px 35px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
         <!-- Kop Dokumen Resmi Sekolah -->
-        <div
-            style="display: flex; align-items: center; gap: 16px; border-bottom: 3px double #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
-            @if (!empty($sekolahInfo['logo_url']))
-                <img src="{{ $sekolahInfo['logo_url'] }}" alt="Logo Sekolah"
-                    style="width: 70px; height: 70px; object-fit: contain;">
-            @endif
-            <div style="flex: 1; text-align: center;">
-                <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                    PEMERINTAH DAERAH PROVINSI JAWA BARAT</div>
-                <div style="font-size: 1.15rem; font-weight: 800; text-transform: uppercase; margin: 2px 0;">
-                    {{ $sekolahInfo['nama'] ?? 'SMK NEGERI 1 PAGELARAN' }}</div>
-                <div style="font-size: 0.78rem; color: #334155;">{{ $sekolahInfo['alamat'] ?? '-' }}</div>
-                <div style="font-size: 0.75rem; color: #475569;">NPSN: {{ $sekolahInfo['npsn'] ?? '-' }} &bull;
-                    Website: {{ $sekolahInfo['website'] ?? '-' }}</div>
-            </div>
-        </div>
+        @include('partials.kop-surat')
 
-        <div style="text-align: center; margin-bottom: 18px;">
+        <div style="text-align: center; margin-top: 14px; margin-bottom: 18px;">
             <h3
                 style="font-size: 1.1rem; font-weight: 800; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">
                 LAPORAN KEUANGAN &amp; ARUS KAS KARTU PELAJAR

@@ -117,16 +117,17 @@
 </head>
 
 <body>
-    <div class="no-print-bar">
+    <div class="no-print-bar" style="white-space: nowrap; flex-wrap: nowrap; gap: 10px; max-width: 96vw;">
         <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'siswa']) }}" class="btn-action btn-back">
-            <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+            <i class="fas fa-arrow-left"></i> Kembali
         </a>
 
-        <!-- Filter Form Tanggal Cetak & Rombel -->
+        <!-- Filter Form Tanggal Cetak & Rombel (Satu Baris Rapi, Auto-Submit on Change) -->
         <form method="GET" action="{{ route('dashboard.kartu-pelajar.cetak-pengambilan') }}"
-            style="display: inline-flex; align-items: center; gap: 8px; margin: 0 12px; flex-wrap: wrap;">
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0;">Tanggal Cetak:</label>
-            <select name="tanggal_cetak" class="select-cetak" style="padding: 4px 8px; font-size: 0.78rem;">
+            style="display: inline-flex; align-items: center; gap: 8px; margin: 0 4px; white-space: nowrap; flex-shrink: 0;">
+            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0; font-weight: 600;">Tanggal Cetak:</label>
+            <select name="tanggal_cetak" class="select-cetak" onchange="this.form.submit()"
+                title="Pilih Tanggal Selesai Cetak">
                 @if ($tanggalCetakList && $tanggalCetakList->count() > 0)
                     @foreach ($tanggalCetakList as $tc)
                         <option value="{{ $tc->tgl }}" {{ $tanggalCetak === $tc->tgl ? 'selected' : '' }}>
@@ -140,25 +141,15 @@
                 @endif
             </select>
 
-            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0;">Rombel:</label>
-            <select name="rombel" class="select-cetak" style="padding: 4px 8px; font-size: 0.78rem;">
-                <option value="">Semua Rombel</option>
+            <label style="font-size: 0.78rem; color: #cbd5e1; margin: 0 0 0 4px; font-weight: 600;">Rombel:</label>
+            <select name="rombel" class="select-cetak" onchange="this.form.submit()" title="Filter Berdasarkan Rombel">
+                <option value="">Semua Rombel Terpilih</option>
                 @foreach ($rombelList as $rName)
                     <option value="{{ $rName }}" {{ $rombel === $rName ? 'selected' : '' }}>
                         {{ $rName }}
                     </option>
                 @endforeach
             </select>
-
-            <button type="submit" class="btn-action" style="padding: 5px 12px; font-size: 0.78rem;">
-                <i class="fas fa-filter"></i> Tampilkan
-            </button>
-            @if ($rombel)
-                <a href="{{ route('dashboard.kartu-pelajar.cetak-pengambilan', ['tanggal_cetak' => $tanggalCetak]) }}"
-                    class="btn-action" style="padding: 5px 10px; font-size: 0.78rem;" title="Reset Filter Rombel">
-                    <i class="fas fa-undo"></i>
-                </a>
-            @endif
         </form>
 
         <button onclick="window.SAE_Print ? window.SAE_Print() : window.print()" class="btn-action btn-print">
@@ -168,25 +159,10 @@
 
     <div class="paper"
         style="max-width: 900px; margin: 20px auto; background: #ffffff; padding: 25px 35px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
-        <!-- Kop Dokumen Resmi Sekolah -->
-        <div
-            style="display: flex; align-items: center; gap: 16px; border-bottom: 3px double #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
-            @if (!empty($sekolahInfo['logo_url']))
-                <img src="{{ $sekolahInfo['logo_url'] }}" alt="Logo Sekolah"
-                    style="width: 70px; height: 70px; object-fit: contain;">
-            @endif
-            <div style="flex: 1; text-align: center;">
-                <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                    PEMERINTAH DAERAH PROVINSI JAWA BARAT</div>
-                <div style="font-size: 1.15rem; font-weight: 800; text-transform: uppercase; margin: 2px 0;">
-                    {{ $sekolahInfo['nama'] ?? 'SMK NEGERI 1 PAGELARAN' }}</div>
-                <div style="font-size: 0.78rem; color: #334155;">{{ $sekolahInfo['alamat'] ?? '-' }}</div>
-                <div style="font-size: 0.75rem; color: #475569;">NPSN: {{ $sekolahInfo['npsn'] ?? '-' }} &bull;
-                    Website: {{ $sekolahInfo['website'] ?? '-' }}</div>
-            </div>
-        </div>
+        <!-- Kop Surat Resmi Sekolah -->
+        @include('partials.kop-surat')
 
-        <div style="text-align: center; margin-bottom: 14px;">
+        <div style="text-align: center; margin-top: 14px; margin-bottom: 14px;">
             <h3
                 style="font-size: 1.1rem; font-weight: 800; text-transform: uppercase; margin: 0 0 4px 0; letter-spacing: 0.5px;">
                 DAFTAR DISTRIBUSI &amp; SERAH TERIMA KARTU PELAJAR FISIK (RFID)
@@ -279,28 +255,54 @@
         </table>
 
         <!-- Blok Tanda Tangan Serah Terima -->
-        <div class="signature-grid">
-            <div class="sig-block">
-                <div>Diterima oleh,</div>
-                <div style="font-weight: 700;">Wali Kelas / Pengambil Kartu</div>
-                <div class="sig-space"></div>
-                <div
-                    style="font-weight: 800; border-bottom: 1px dotted #0f172a; display: inline-block; min-width: 180px;">
-                    &nbsp;</div>
-                <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">NIP. -</div>
-            </div>
-
-            <div class="sig-block">
-                <div>Pagelaran, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
-                <div style="font-weight: 700;">Petugas Cetak / Pengelola Kartu Pelajar</div>
-                <div class="sig-space"></div>
-                <div
-                    style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 180px;">
-                    {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}
+        @if (!empty($rombel))
+            <div class="signature-grid">
+                <div class="sig-block">
+                    <div>Diterima oleh,</div>
+                    <div style="font-weight: 700;">Wali Kelas {{ $rombel }}</div>
+                    <div class="sig-space"></div>
+                    @if (!empty($waliGtk))
+                        <div
+                            style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 180px;">
+                            {{ $waliGtk->nama }}
+                        </div>
+                        <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">
+                            NIP. {{ $waliGtk->nip ?? ($waliGtk->nuptk ?? '-') }}
+                        </div>
+                    @else
+                        <div
+                            style="font-weight: 800; border-bottom: 1px dotted #0f172a; display: inline-block; min-width: 180px;">
+                            &nbsp;
+                        </div>
+                        <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">NIP. -</div>
+                    @endif
                 </div>
-                <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
+
+                <div class="sig-block">
+                    <div>Pagelaran, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+                    <div style="font-weight: 700;">Petugas Cetak / Pengelola Kartu Pelajar</div>
+                    <div class="sig-space"></div>
+                    <div
+                        style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 180px;">
+                        {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}
+                    </div>
+                    <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
+                </div>
             </div>
-        </div>
+        @else
+            <div style="display: flex; justify-content: flex-end; margin-top: 36px; page-break-inside: avoid;">
+                <div class="sig-block" style="min-width: 250px; text-align: center;">
+                    <div>Pagelaran, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</div>
+                    <div style="font-weight: 700;">Petugas Cetak / Pengelola Kartu Pelajar</div>
+                    <div class="sig-space"></div>
+                    <div
+                        style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 200px;">
+                        {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}
+                    </div>
+                    <div style="font-size: 0.78rem; color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
+                </div>
+            </div>
+        @endif
     </div>
 </body>
 

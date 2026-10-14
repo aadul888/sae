@@ -1288,6 +1288,23 @@ class KartuPelajarController extends Controller
             ->get();
 
         $sekolahInfo = $this->getSekolahInfo();
+        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolahMeta = Schema::hasTable('sekolah_meta') ? SekolahMeta::first() : null;
+
+        // Ambil data Wali Kelas jika rombel spesifik dipilih
+        $waliGtk = null;
+        if ($rombel) {
+            $activeRombelRow = DB::table('rombongan_belajar')->where('nama', $rombel)->first();
+            if ($activeRombelRow) {
+                if (!empty($activeRombelRow->ptk_id)) {
+                    $waliGtk = DB::table('gtk')->where('ptk_id', $activeRombelRow->ptk_id)->first();
+                }
+                if (!$waliGtk && !empty($activeRombelRow->ptk_id_str)) {
+                    $waliGtk = DB::table('gtk')->where('nama', $activeRombelRow->ptk_id_str)->first();
+                }
+            }
+        }
+
         $rombelList = DB::table('rombongan_belajar')
             ->where('jenis_rombel', '1')
             ->orderBy('tingkat_pendidikan_id', 'asc')
@@ -1299,6 +1316,9 @@ class KartuPelajarController extends Controller
             'tanggalCetak',
             'rombel',
             'sekolahInfo',
+            'sekolah',
+            'sekolahMeta',
+            'waliGtk',
             'rombelList',
             'tanggalCetakList'
         ));
