@@ -403,7 +403,7 @@
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
             @foreach ([['menunggu', 'Menunggu', 'fa-hourglass-half', '#f59e0b', '245,158,11'], ['diproses', 'Diproses', 'fa-gears', '#2563eb', '37,99,235'], ['selesai', 'Selesai', 'fa-circle-check', '#10b981', '16,185,129'], ['ditolak', 'Ditolak', 'fa-ban', '#ef4444', '239,68,68']] as [$sKey, $sLabel, $sIcon, $sColor, $sRgb])
-                <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request', 'req_status' => $reqStatus === $sKey ? '' : $sKey]) }}"
+                <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request', 'req_status' => $reqStatus === $sKey ? '' : $sKey, 'q' => $q, 'perPage' => $perPage]) }}"
                     class="dash-stat-card"
                     style="text-decoration: none; {{ $reqStatus === $sKey ? 'outline: 2px solid ' . $sColor . ';' : '' }}">
                     <div class="dash-stat-icon"
@@ -420,6 +420,54 @@
         </div>
 
         <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+            <div class="card"
+                style="padding: 16px; margin: 0; border: 0; border-bottom: 1px solid var(--border-color); border-radius: 0;">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="perPage" class="per-page-select">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                        {{ $n }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <select id="filterReqStatus" name="req_status" class="toolbar-filter-select">
+                            <option value="">Semua Status Request</option>
+                            @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
+                                <option value="{{ $stKey }}" {{ $reqStatus === $stKey ? 'selected' : '' }}>
+                                    {{ $stLabel }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @if ($q || $reqStatus)
+                            <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request']) }}"
+                                class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
+                                title="Reset filter">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
+                    </div>
+
+                    <div class="live-search-wrap">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchKartuPelajar" name="q"
+                            placeholder="Cari nama / NISN / NIPD / alasan..." value="{{ $q }}"
+                            autocomplete="off">
+                        <button type="button" id="clearSearchKartuPelajar"
+                            class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
@@ -538,7 +586,42 @@
         </div>
 
         @if (!empty($requestList) && $requestList->hasPages())
-            <div style="margin-bottom: 24px;">{{ $requestList->links() }}</div>
+            <div class="custom-pagination" style="margin-bottom: 24px;">
+                @if ($requestList->onFirstPage())
+                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+                @else
+                    <a href="{{ $requestList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
+                            class="fas fa-chevron-left"></i></a>
+                @endif
+                @php
+                    $cur = $requestList->currentPage();
+                    $last = $requestList->lastPage();
+                    $from = max(1, $cur - 2);
+                    $to = min($last, $cur + 2);
+                @endphp
+                @if ($from > 1)
+                    <a href="{{ $requestList->url(1) }}" class="page-btn">1</a>
+                    @if ($from > 2)
+                        <span class="page-info">&hellip;</span>
+                    @endif
+                @endif
+                @for ($i = $from; $i <= $to; $i++)
+                    <a href="{{ $requestList->url($i) }}"
+                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
+                @endfor
+                @if ($to < $last)
+                    @if ($to < $last - 1)
+                        <span class="page-info">&hellip;</span>
+                    @endif
+                    <a href="{{ $requestList->url($last) }}" class="page-btn">{{ $last }}</a>
+                @endif
+                @if ($requestList->hasMorePages())
+                    <a href="{{ $requestList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
+                            class="fas fa-chevron-right"></i></a>
+                @else
+                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+                @endif
+            </div>
         @endif
     @elseif ($tab === 'siswa')
         <!-- 3. Stat Grid Baku SAE (6 Kartu Ringkasan - Jumlah Genap Rapi) -->
@@ -1673,8 +1756,8 @@
                                 style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
                                 Tanggal Selesai Dicetak:
                             </label>
-                            <input type="date" name="bulk_tanggal_cetak" id="bulkTanggalCetak" class="form-control"
-                                value="{{ date('Y-m-d') }}"
+                            <input type="date" name="bulk_tanggal_cetak" id="bulkTanggalCetak"
+                                class="form-control" value="{{ date('Y-m-d') }}"
                                 style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
                         </div>
                     </div>

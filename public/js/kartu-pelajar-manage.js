@@ -23,8 +23,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (filterRombel && filterRombel.value) url.searchParams.set("rombel", filterRombel.value);
         if (filterStatusBayar && filterStatusBayar.value) url.searchParams.set("status_pembayaran", filterStatusBayar.value);
         if (filterStatusCetak && filterStatusCetak.value) url.searchParams.set("status_cetak", filterStatusCetak.value);
+        if (filterReqStatus && filterReqStatus.value) url.searchParams.set("req_status", filterReqStatus.value);
         if (perPageSelect && perPageSelect.value) url.searchParams.set("perPage", perPageSelect.value);
         url.searchParams.delete("page");
+        url.searchParams.delete("request_page");
         if (typeof window.refreshLiveTable === "function") {
             window.refreshLiveTable(url.toString());
         } else {
@@ -64,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const filterRombel = document.getElementById("filterRombel");
     const filterStatusBayar = document.getElementById("filterStatusBayar");
     const filterStatusCetak = document.getElementById("filterStatusCetak");
+    const filterReqStatus = document.getElementById("filterReqStatus");
     const perPageSelect = document.getElementById("perPageSelect");
 
     function applyFilterChange(paramName, value) {
@@ -80,6 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
             url.searchParams.delete("q");
         }
         url.searchParams.delete("page");
+        url.searchParams.delete("request_page");
         if (typeof window.refreshLiveTable === "function") {
             window.refreshLiveTable(url.toString());
         } else {
@@ -105,6 +109,13 @@ document.addEventListener("DOMContentLoaded", function () {
         filterStatusCetak.addEventListener("change", function (e) {
             e.stopImmediatePropagation();
             applyFilterChange("status_cetak", this.value);
+        });
+    }
+
+    if (filterReqStatus) {
+        filterReqStatus.addEventListener("change", function (e) {
+            e.stopImmediatePropagation();
+            applyFilterChange("req_status", this.value);
         });
     }
 

@@ -350,12 +350,21 @@ class KartuPelajarController extends Controller
                 $rq->where(function ($sub) use ($q) {
                     $sub->where('pd.nama', 'LIKE', "%{$q}%")
                         ->orWhere('r.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nipd', 'LIKE', "%{$q}%")
                         ->orWhere('r.alasan', 'LIKE', "%{$q}%");
                 });
             }
+
+            $totalRequestFiltered = (clone $rq)->count();
+            $lastRequestPage = max(1, (int) ceil($totalRequestFiltered / $perPage));
+            $currentRequestPage = (int) $request->get('request_page', 1);
+            if ($currentRequestPage > $lastRequestPage || $currentRequestPage < 1) {
+                $currentRequestPage = 1;
+            }
+
             $requestList = $rq->orderByRaw("FIELD(r.status, 'menunggu','diproses','selesai','ditolak')")
                 ->orderByDesc('r.created_at')
-                ->paginate(15, ['*'], 'request_page')
+                ->paginate($perPage, ['*'], 'request_page', $currentRequestPage)
                 ->withQueryString();
         }
 
