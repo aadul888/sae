@@ -508,6 +508,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/kartu-pelajar/wa-data/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'getWaData'])->name('kartu-pelajar.wa-data');
     Route::post('/kartu-pelajar/log-wa', [\App\Http\Controllers\KartuPelajarController::class, 'logWa'])->name('kartu-pelajar.log-wa');
     Route::get('/kartu-pelajar/qrcode-svg/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'downloadQrSvg'])->name('kartu-pelajar.qrcode-svg');
+    Route::post('/kartu-pelajar/pengaturan', [\App\Http\Controllers\KartuPelajarController::class, 'updatePengaturan'])->name('kartu-pelajar.pengaturan');
+    Route::post('/kartu-pelajar/klaim-garansi', [\App\Http\Controllers\KartuPelajarController::class, 'klaimGaransi'])->name('kartu-pelajar.klaim-garansi');
 
     // Kartu Pelajar Digital — Layanan Cetak
     Route::get('/kartu-pelajar/cetak/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'printSingle'])->name('kartu-pelajar.cetak-single');

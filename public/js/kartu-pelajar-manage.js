@@ -497,11 +497,144 @@ document.addEventListener("DOMContentLoaded", function () {
         window.location.href = `/dashboard/kartu-pelajar/qrcode-svg/${encodeURIComponent(currentWaNisn)}`;
     };
 
+    // =========================================================================
+    // 6. Modal Klaim Garansi Kartu Pelajar (1x Ganti Kartu Full, 3x Stiker)
+    // =========================================================================
+    const modalGaransi = document.getElementById("modalKlaimGaransi");
+    const formGaransi = document.getElementById("formKlaimGaransi");
+
+    window.openKlaimGaransi = function (pdId, nama, nisn, rombel, klaimKartu, klaimStiker, kuotaKartu, kuotaStiker) {
+        if (!modalGaransi) return;
+
+        document.getElementById("garansiPdId").value = pdId;
+        document.getElementById("garansiPdNama").textContent = nama;
+        document.getElementById("garansiPdNisn").textContent = nisn || "-";
+        document.getElementById("garansiPdRombel").textContent = rombel || "-";
+
+        const sisaKartu = Math.max(0, kuotaKartu - klaimKartu);
+        const sisaStiker = Math.max(0, kuotaStiker - klaimStiker);
+
+        const badgeKartu = document.getElementById("garansiSisaKartu");
+        const badgeStiker = document.getElementById("garansiSisaStiker");
+        if (badgeKartu) badgeKartu.textContent = `${sisaKartu} dari ${kuotaKartu} kali`;
+        if (badgeStiker) badgeStiker.textContent = `${sisaStiker} dari ${kuotaStiker} kali`;
+
+        const optKartu = document.getElementById("optGaransiKartu");
+        const optStiker = document.getElementById("optGaransiStiker");
+        if (optKartu) {
+            optKartu.disabled = sisaKartu <= 0;
+            if (sisaKartu > 0) optKartu.checked = true;
+        }
+        if (optStiker) {
+            optStiker.disabled = sisaStiker <= 0;
+            if (sisaKartu <= 0 && sisaStiker > 0) optStiker.checked = true;
+        }
+
+        const alasanInput = document.getElementById("garansiAlasan");
+        if (alasanInput) alasanInput.value = "";
+
+        modalGaransi.style.display = "flex";
+        document.body.style.overflow = "hidden";
+    };
+
+    window.closeKlaimGaransi = function () {
+        if (!modalGaransi) return;
+        modalGaransi.style.display = "none";
+        document.body.style.overflow = "";
+    };
+
+    if (formGaransi) {
+        formGaransi.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById("btnSubmitGaransi");
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memproses...';
+
+            const formData = new FormData(formGaransi);
+            const payload = Object.fromEntries(formData.entries());
+
+            try {
+                const res = await fetch("/dashboard/kartu-pelajar/klaim-garansi", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalText;
+
+                if (res.ok && data.success) {
+                    closeKlaimGaransi();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Klaim Berhasil Dicatat!",
+                        text: data.message,
+                        timer: 1800,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire("Klaim Ditolak", data.message || "Gagal mencatat klaim garansi.", "error");
+                }
+            } catch (err) {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalText;
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
+        });
+    }
+
+    // =========================================================================
+    // 7. Tab 3 WhatsApp Template Live Preview & Tag Chips
+    // =========================================================================
+    const templateWaTextarea = document.getElementById("templateWaTextarea");
+    const waLivePreviewContent = document.getElementById("waLivePreviewContent");
+
+    function updateTemplateWaPreview() {
+        if (!templateWaTextarea || !waLivePreviewContent) return;
+        let val = templateWaTextarea.value;
+        val = val
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\*(.*?)\*/g, "<strong>$1</strong>")
+            .replace(/_(.*?)_/g, "<em>$1</em>")
+            .replace(/~(.*?)~/g, "<del>$1</del>")
+            .replace(/\n/g, "<br>");
+        waLivePreviewContent.innerHTML = val;
+    }
+
+    if (templateWaTextarea && waLivePreviewContent) {
+        templateWaTextarea.addEventListener("input", updateTemplateWaPreview);
+        updateTemplateWaPreview();
+    }
+
+    document.querySelectorAll(".btn-wa-tag-chip").forEach(chip => {
+        chip.addEventListener("click", function () {
+            const tag = this.getAttribute("data-tag");
+            if (!templateWaTextarea || !tag) return;
+            const start = templateWaTextarea.selectionStart;
+            const end = templateWaTextarea.selectionEnd;
+            const text = templateWaTextarea.value;
+            templateWaTextarea.value = text.substring(0, start) + tag + text.substring(end);
+            templateWaTextarea.focus();
+            templateWaTextarea.selectionStart = templateWaTextarea.selectionEnd = start + tag.length;
+            updateTemplateWaPreview();
+        });
+    });
+
     // Close modals on escape key
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
             closeEditPembayaran();
             closeModalWa();
+            closeKlaimGaransi();
         }
     });
 });

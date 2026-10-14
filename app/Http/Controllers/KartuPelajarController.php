@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\JurusanMeta;
 use App\Models\KartuPelajarPembayaran;
+use App\Models\KartuPelajarPengaturan;
 use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
 use App\Models\SekolahMeta;
@@ -14,6 +15,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class KartuPelajarController extends Controller
 {
@@ -27,6 +29,9 @@ class KartuPelajarController extends Controller
         if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'read')) {
             abort(403, 'Akses ditolak: Menu ini khusus untuk Administrator.');
         }
+
+        $tab = $request->get('tab', 'siswa'); // 'siswa', 'harga', 'whatsapp', 'garansi'
+        $settings = KartuPelajarPengaturan::getSettings();
 
         $q = trim($request->get('q', ''));
         $rombel = trim($request->get('rombel', ''));
@@ -53,14 +58,16 @@ class KartuPelajarController extends Controller
                 'pdm.foto_path',
                 'kp.id as pembayaran_id',
                 DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran"),
-                DB::raw("COALESCE(kp.nominal, 25000) as nominal"),
+                DB::raw("COALESCE(kp.nominal, " . (int)$settings->biaya_standar . ") as nominal"),
                 'kp.metode_pembayaran',
                 'kp.tanggal_bayar',
                 DB::raw("COALESCE(kp.status_cetak, 'belum_cetak') as status_cetak"),
                 'kp.tanggal_cetak',
                 'kp.nomor_wa',
                 'kp.wa_terkirim_at',
-                'kp.catatan'
+                'kp.catatan',
+                DB::raw("COALESCE(kp.klaim_ganti_kartu, 0) as klaim_ganti_kartu"),
+                DB::raw("COALESCE(kp.klaim_stiker, 0) as klaim_stiker")
             );
 
         if ($q !== '') {
@@ -122,6 +129,13 @@ class KartuPelajarController extends Controller
         $totalSudahCetak = DB::table('kartu_pelajar_pembayaran')->where('status_cetak', 'sudah_cetak')->count();
         $totalBelumCetak = max(0, $totalSiswa - $totalSudahCetak);
 
+        $totalKlaimKartu = Schema::hasTable('kartu_pelajar_garansi_log')
+            ? DB::table('kartu_pelajar_garansi_log')->where('jenis_klaim', 'ganti_kartu_full')->count()
+            : 0;
+        $totalKlaimStiker = Schema::hasTable('kartu_pelajar_garansi_log')
+            ? DB::table('kartu_pelajar_garansi_log')->where('jenis_klaim', 'cetak_stiker')->count()
+            : 0;
+
         $stats = [
             'total_siswa' => $totalSiswa,
             'total_lunas' => $totalLunas,
@@ -129,6 +143,8 @@ class KartuPelajarController extends Controller
             'total_dana' => $totalDanaTerkumpul,
             'total_sudah_cetak' => $totalSudahCetak,
             'total_belum_cetak' => $totalBelumCetak,
+            'total_klaim_kartu' => $totalKlaimKartu,
+            'total_klaim_stiker' => $totalKlaimStiker,
         ];
 
         // Daftar Rombel untuk Filter
@@ -138,6 +154,25 @@ class KartuPelajarController extends Controller
             ->orderBy('nama', 'asc')
             ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
             ->get();
+
+        // Riwayat Log Garansi jika tab garansi aktif
+        $garansiLogs = null;
+        if ($tab === 'garansi') {
+            $logQuery = DB::table('kartu_pelajar_garansi_log as kgl')
+                ->leftJoin('peserta_didik as pd', 'kgl.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                ->select('kgl.*', 'pd.nama as nama_siswa', 'pd.nama_rombel as rombel_siswa');
+
+            if ($q !== '') {
+                $logQuery->where(function ($sub) use ($q) {
+                    $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                        ->orWhere('kgl.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('kgl.alasan', 'LIKE', "%{$q}%")
+                        ->orWhere('kgl.petugas', 'LIKE', "%{$q}%");
+                });
+            }
+
+            $garansiLogs = $logQuery->orderByDesc('kgl.tanggal_klaim')->paginate(15, ['*'], 'garansi_page')->withQueryString();
+        }
 
         $sekolahInfo = $this->getSekolahInfo();
 
@@ -152,7 +187,10 @@ class KartuPelajarController extends Controller
             'perPage',
             'sort',
             'sortDir',
-            'sekolahInfo'
+            'sekolahInfo',
+            'tab',
+            'settings',
+            'garansiLogs'
         ));
     }
 
@@ -218,6 +256,8 @@ class KartuPelajarController extends Controller
             'metode_pembayaran' => $record->metode_pembayaran,
             'tanggal_bayar' => $record->tanggal_bayar,
             'status_cetak' => $record->status_cetak,
+            'klaim_ganti_kartu' => $record->klaim_ganti_kartu ?? 0,
+            'klaim_stiker' => $record->klaim_stiker ?? 0,
             'verify_url' => route('kartu-pelajar.verify-short', ['nisn' => $pd->nisn]),
         ];
 
@@ -362,6 +402,8 @@ class KartuPelajarController extends Controller
             'metode_pembayaran' => $record?->metode_pembayaran ?? 'tunai',
             'tanggal_bayar' => $record?->tanggal_bayar,
             'status_cetak' => $record?->status_cetak ?? 'belum_cetak',
+            'klaim_ganti_kartu' => $record?->klaim_ganti_kartu ?? 0,
+            'klaim_stiker' => $record?->klaim_stiker ?? 0,
             'verify_url' => $verifyUrl,
         ];
 
@@ -423,6 +465,171 @@ class KartuPelajarController extends Controller
         return response($svg, 200, [
             'Content-Type' => 'image/svg+xml',
             'Content-Disposition' => 'attachment; filename="QR_Kartu_Pelajar_' . $nisn . '.svg"',
+        ]);
+    }
+
+    /**
+     * Update Pengaturan Kartu Pelajar (Harga & QRIS, Template WhatsApp, Kuota Garansi)
+     */
+    public function updatePengaturan(Request $request)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'update')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $subtab = $request->input('subtab', 'harga');
+        $settings = KartuPelajarPengaturan::getSettings();
+        $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
+
+        if ($subtab === 'harga') {
+            $request->validate([
+                'biaya_standar'        => 'required|numeric|min:0',
+                'bank_nama'            => 'nullable|string|max:100',
+                'bank_rekening'        => 'nullable|string|max:100',
+                'bank_atas_nama'       => 'nullable|string|max:150',
+                'instruksi_pembayaran' => 'nullable|string|max:2000',
+                'qris_image'           => 'nullable|file|mimes:png,jpg,jpeg,webp|max:5120',
+            ]);
+
+            $settings->biaya_standar = (int) $request->biaya_standar;
+            $settings->bank_nama = trim((string) $request->bank_nama);
+            $settings->bank_rekening = trim((string) $request->bank_rekening);
+            $settings->bank_atas_nama = trim((string) $request->bank_atas_nama);
+            $settings->instruksi_pembayaran = trim((string) $request->instruksi_pembayaran);
+
+            // Handle QRIS Image Upload
+            if ($request->hasFile('qris_image')) {
+                if ($settings->qris_image_path && Storage::disk('public')->exists($settings->qris_image_path)) {
+                    Storage::disk('public')->delete($settings->qris_image_path);
+                }
+                $ext = $request->file('qris_image')->getClientOriginalExtension();
+                $path = $request->file('qris_image')->storeAs('qris_kartu', 'qris_pembayaran_' . time() . '.' . $ext, 'public');
+                $settings->qris_image_path = $path;
+            } elseif ($request->boolean('hapus_qris')) {
+                if ($settings->qris_image_path && Storage::disk('public')->exists($settings->qris_image_path)) {
+                    Storage::disk('public')->delete($settings->qris_image_path);
+                }
+                $settings->qris_image_path = null;
+            }
+
+            $settings->updated_by = $userName;
+            $settings->save();
+
+            return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'harga'])
+                ->with('success', 'Pengaturan harga standar, rekening pembayaran, dan gambar QRIS berhasil diperbarui.');
+        }
+
+        if ($subtab === 'whatsapp') {
+            if ($request->boolean('reset_template')) {
+                $settings->template_wa = KartuPelajarPengaturan::getDefaultWaTemplate();
+            } else {
+                $request->validate([
+                    'template_wa' => 'required|string',
+                ]);
+                $settings->template_wa = trim($request->template_wa);
+            }
+
+            $settings->updated_by = $userName;
+            $settings->save();
+
+            return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'whatsapp'])
+                ->with('success', 'Template pesan otomatis WhatsApp berhasil diperbarui.');
+        }
+
+        if ($subtab === 'garansi') {
+            $request->validate([
+                'kuota_ganti_kartu_full' => 'required|integer|min:0|max:10',
+                'kuota_ganti_stiker'     => 'required|integer|min:0|max:20',
+                'ketentuan_garansi'      => 'nullable|string|max:3000',
+            ]);
+
+            $settings->kuota_ganti_kartu_full = (int) $request->kuota_ganti_kartu_full;
+            $settings->kuota_ganti_stiker = (int) $request->kuota_ganti_stiker;
+            $settings->ketentuan_garansi = trim((string) $request->ketentuan_garansi);
+            $settings->updated_by = $userName;
+            $settings->save();
+
+            return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'garansi'])
+                ->with('success', 'Ketentuan dan kuota garansi kartu pelajar berhasil diperbarui.');
+        }
+
+        return redirect()->route('dashboard.kartu-pelajar.index');
+    }
+
+    /**
+     * Catat Klaim Garansi Kartu Pelajar Siswa
+     */
+    public function klaimGaransi(Request $request): JsonResponse
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'peserta_didik_id' => 'required|string',
+            'jenis_klaim'      => 'required|in:ganti_kartu_full,cetak_stiker',
+            'alasan'           => 'required|string|max:500',
+        ]);
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $request->peserta_didik_id)->first();
+        if (!$pd) {
+            return response()->json(['success' => false, 'message' => 'Peserta didik tidak ditemukan.'], 404);
+        }
+
+        $settings = KartuPelajarPengaturan::getSettings();
+        $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
+        $record->nisn = $pd->nisn;
+
+        $jenisKlaim = $request->jenis_klaim;
+        $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
+
+        if ($jenisKlaim === 'ganti_kartu_full') {
+            $maxKuota = $settings->kuota_ganti_kartu_full ?? 1;
+            if ($record->klaim_ganti_kartu >= $maxKuota) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Kuota garansi penggantian kartu penuh untuk {$pd->nama} sudah habis (maksimal {$maxKuota} kali)."
+                ], 422);
+            }
+            $record->klaim_ganti_kartu += 1;
+            $record->status_cetak = 'sudah_cetak';
+            $record->tanggal_cetak = now();
+            $labelKlaim = "1x Ganti Kartu Fisik Full (PVC/RFID & Stiker Baru)";
+        } else {
+            $maxKuota = $settings->kuota_ganti_stiker ?? 3;
+            if ($record->klaim_stiker >= $maxKuota) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Kuota garansi cetak stiker kartu untuk {$pd->nama} sudah habis (maksimal {$maxKuota} kali)."
+                ], 422);
+            }
+            $record->klaim_stiker += 1;
+            $labelKlaim = "Cetak Ulang Stiker Kartu Pelajar";
+        }
+
+        $record->save();
+
+        // Catat ke tabel log garansi
+        DB::table('kartu_pelajar_garansi_log')->insert([
+            'peserta_didik_id' => $pd->peserta_didik_id,
+            'nisn'             => $pd->nisn,
+            'jenis_klaim'      => $jenisKlaim,
+            'alasan'           => trim($request->alasan),
+            'tanggal_klaim'    => now(),
+            'petugas'          => $userName,
+            'created_at'       => now(),
+            'updated_at'       => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Klaim garansi [{$labelKlaim}] untuk {$pd->nama} berhasil dicatat.",
+            'klaim_ganti_kartu' => $record->klaim_ganti_kartu,
+            'klaim_stiker' => $record->klaim_stiker,
         ]);
     }
 

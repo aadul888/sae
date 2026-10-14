@@ -68,12 +68,15 @@ class KartuPelajarPembayaran extends Model
      */
     public static function buildWhatsAppMessage(array $data, array $sekolahInfo): string
     {
+        $settings = KartuPelajarPengaturan::getSettings();
+        $template = $settings->template_wa ?: KartuPelajarPengaturan::getDefaultWaTemplate();
+
         $namaSekolah = $sekolahInfo['nama'] ?? 'SMK NEGERI 1 PAGELARAN';
         $namaSiswa = $data['nama'] ?? '-';
         $nisn = $data['nisn'] ?? '-';
         $rombel = $data['rombel'] ?? '-';
         $statusBayar = ($data['status_pembayaran'] ?? 'belum_bayar') === 'lunas' ? 'LUNAS (TERVERIFIKASI)' : 'BELUM DIBAYAR';
-        $nominal = number_format((int)($data['nominal'] ?? 25000), 0, ',', '.');
+        $nominal = number_format((int) ($data['nominal'] ?? $settings->biaya_standar), 0, ',', '.');
         $metode = strtoupper($data['metode_pembayaran'] ?? 'TUNAI');
         $tglBayar = !empty($data['tanggal_bayar'])
             ? \Carbon\Carbon::parse($data['tanggal_bayar'])->translatedFormat('d F Y')
@@ -81,34 +84,38 @@ class KartuPelajarPembayaran extends Model
         $statusCetak = ($data['status_cetak'] ?? 'belum_cetak') === 'sudah_cetak' ? 'Sudah Dicetak' : 'Belum Dicetak (Dalam Antrean)';
         $verifyUrl = $data['verify_url'] ?? url('/v/' . $nisn);
 
-        $pesan = "*INFORMASI ADMINISTRASI & PEMBAYARAN KARTU PELAJAR*\n";
-        $pesan .= "*{$namaSekolah}*\n";
-        $pesan .= "--------------------------------------------------\n\n";
-        $pesan .= "Yth. Orang Tua / Wali Murid & Peserta Didik:\n";
-        $pesan .= "• Nama: *{$namaSiswa}*\n";
-        $pesan .= "• NISN: *{$nisn}*\n";
-        $pesan .= "• Kelas: *{$rombel}*\n\n";
+        // Garansi info
+        $kuotaKartu = $settings->kuota_ganti_kartu_full ?? 1;
+        $kuotaStiker = $settings->kuota_ganti_stiker ?? 3;
+        $klaimKartu = (int) ($data['klaim_ganti_kartu'] ?? 0);
+        $klaimStiker = (int) ($data['klaim_stiker'] ?? 0);
+        $sisaKartu = max(0, $kuotaKartu - $klaimKartu);
+        $sisaStiker = max(0, $kuotaStiker - $klaimStiker);
 
-        $pesan .= "*Rincian Status Administrasi Kartu Pelajar:*\n";
-        $pesan .= "• Status Pembayaran: *{$statusBayar}*\n";
-        $pesan .= "• Biaya / Nominal: *Rp {$nominal}*\n";
-        if (($data['status_pembayaran'] ?? '') === 'lunas') {
-            $pesan .= "• Metode Bayar: *{$metode}*\n";
-            $pesan .= "• Tanggal Pembayaran: *{$tglBayar}*\n";
-        }
-        $pesan .= "• Status Fisik Kartu: *{$statusCetak}*\n\n";
+        $infoGaransi = "• 1x Garansi Ganti Kartu Full: Sisa {$sisaKartu} dari {$kuotaKartu} kali\n"
+            . "• 3x Garansi Cetak Stiker: Sisa {$sisaStiker} dari {$kuotaStiker} kali";
 
-        if (($data['status_pembayaran'] ?? '') !== 'lunas') {
-            $pesan .= "Pembayaran administrasi kartu tanda pelajar digital & fisik RFID dapat diselesaikan melalui bendahara sekolah / wali kelas.\n\n";
+        // Deskripsi pembayaran
+        $deskripsiBayar = $settings->instruksi_pembayaran ?: '';
+        if (!empty($settings->bank_rekening)) {
+            $deskripsiBayar .= "\nRekening Pembayaran: *{$settings->bank_nama} {$settings->bank_rekening}* a.n. *{$settings->bank_atas_nama}*";
         }
 
-        $pesan .= "*Verifikasi Kartu Pelajar & QR Code Digital:*\n";
-        $pesan .= "Untuk melihat kartu tanda pelajar resmi dan memindai QR Code keabsahan digital, silakan kunjungi:\n";
-        $pesan .= "🔗 {$verifyUrl}\n\n";
+        $replacements = [
+            '{NAMA_SEKOLAH}'         => $namaSekolah,
+            '{NAMA_SISWA}'           => $namaSiswa,
+            '{NISN}'                 => $nisn,
+            '{ROMBEL}'               => $rombel,
+            '{STATUS_BAYAR}'         => $statusBayar,
+            '{NOMINAL}'              => $nominal,
+            '{METODE_BAYAR}'         => $metode,
+            '{TANGGAL_BAYAR}'        => $tglBayar,
+            '{STATUS_CETAK}'         => $statusCetak,
+            '{INFO_GARANSI}'         => $infoGaransi,
+            '{DESKRIPSI_PEMBAYARAN}' => $deskripsiBayar,
+            '{VERIFY_URL}'           => $verifyUrl,
+        ];
 
-        $pesan .= "Simpan pesan ini sebagai bukti catatan administrasi resmi. Terima kasih.\n";
-        $pesan .= "_{$namaSekolah}_";
-
-        return $pesan;
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
 }
