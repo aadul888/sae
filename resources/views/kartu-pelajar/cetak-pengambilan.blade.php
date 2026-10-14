@@ -12,108 +12,6 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
     <link rel="stylesheet"
         href="{{ asset('css/cetak.css') }}?v={{ file_exists(public_path('css/cetak.css')) ? filemtime(public_path('css/cetak.css')) : time() }}">
-
-    <style>
-        .meta-grid-box {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin: 16px 0 20px 0;
-            background: #f8fafc;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 12px 16px;
-        }
-
-        .meta-col-title {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: #64748b;
-            margin-bottom: 3px;
-        }
-
-        .meta-col-val {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-        .table-distribusi {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.82rem;
-            margin-bottom: 24px;
-        }
-
-        .table-distribusi th {
-            background: #f1f5f9;
-            border: 1px solid #94a3b8;
-            padding: 8px 10px;
-            text-align: left;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .table-distribusi td {
-            border: 1px solid #cbd5e1;
-            padding: 7px 10px;
-            color: #334155;
-            vertical-align: middle;
-        }
-
-        .ttd-box {
-            width: 130px;
-            height: 38px;
-            position: relative;
-        }
-
-        .ttd-num {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #94a3b8;
-            position: absolute;
-            top: 2px;
-            left: 3px;
-        }
-
-        .signature-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-top: 36px;
-            page-break-inside: avoid;
-        }
-
-        .sig-block {
-            text-align: center;
-            font-size: 0.85rem;
-        }
-
-        .sig-space {
-            height: 65px;
-        }
-
-        @media print {
-            .no-print-bar {
-                display: none !important;
-            }
-
-            body {
-                background: #ffffff !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
-            .paper {
-                box-shadow: none !important;
-                border: none !important;
-                margin: 0 !important;
-                width: 100% !important;
-                padding: 12mm 15mm !important;
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -197,47 +95,52 @@
         <table class="table-distribusi">
             <thead>
                 <tr>
-                    <th style="width: 35px; text-align: center;">No</th>
-                    <th style="width: 100px;">NISN / NIPD</th>
+                    <th style="width: 32px; text-align: center;">No</th>
+                    <th style="width: 95px; white-space: nowrap;">NISN / NIPD</th>
                     <th>Nama Lengkap Peserta Didik</th>
-                    <th style="width: 90px;">Kelas</th>
-                    <th style="width: 80px; text-align: center;">Jam Cetak</th>
-                    <th style="width: 80px; text-align: center;">Status Bayar</th>
-                    <th style="width: 130px; text-align: center;">Tanda Tangan Pengambil</th>
-                    <th style="width: 90px; text-align: center;">Keterangan</th>
+                    <th style="width: 85px; white-space: nowrap;">Kelas</th>
+                    <th style="width: 75px; text-align: center; white-space: nowrap;">Jam Cetak</th>
+                    <th style="width: 75px; text-align: center; white-space: nowrap;">Pembayaran</th>
+                    <th style="width: 140px; text-align: center; white-space: nowrap;">Tanda Tangan Pengambil</th>
+                    <th style="width: 80px; text-align: center;">Keterangan</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($students as $idx => $s)
                     <tr>
-                        <td style="text-align: center;">{{ $idx + 1 }}</td>
-                        <td style="font-family: monospace; font-size: 0.78rem;">
+                        <td style="text-align: center; font-weight: 700;">{{ $idx + 1 }}</td>
+                        <td style="font-family: monospace; font-size: 0.74rem; line-height: 1.25; white-space: nowrap;">
                             {{ $s->nisn ?: '-' }}<br>
                             <span style="color: #64748b;">{{ $s->nipd ?: '-' }}</span>
                         </td>
                         <td>
-                            <strong>{{ $s->nama }}</strong>
+                            <strong style="font-size: 0.82rem;">{{ $s->nama }}</strong>
                         </td>
-                        <td>
-                            <span
-                                style="display: inline-block; padding: 2px 6px; background: #f1f5f9; border-radius: 4px; font-weight: 700; font-size: 0.75rem;">
-                                {{ $s->nama_rombel ?: '-' }}
-                            </span>
+                        <td style="white-space: nowrap; font-size: 0.78rem; font-weight: 700;">
+                            {{ $s->nama_rombel ?: '-' }}
                         </td>
-                        <td style="text-align: center; font-size: 0.78rem; color: #475569;">
+                        <td style="text-align: center; font-size: 0.75rem; color: #475569; white-space: nowrap;">
                             {{ $s->tanggal_cetak ? \Carbon\Carbon::parse($s->tanggal_cetak)->format('H:i') : '-' }} WIB
                         </td>
-                        <td style="text-align: center;">
+                        <td style="text-align: center; white-space: nowrap;">
                             @if ($s->status_pembayaran === 'lunas')
-                                <span style="color: #059669; font-weight: 700; font-size: 0.74rem;">LUNAS</span>
+                                <span style="color: #059669; font-weight: 700; font-size: 0.72rem;">LUNAS</span>
                             @else
-                                <span style="color: #d97706; font-weight: 700; font-size: 0.74rem;">BELUM</span>
+                                <span style="color: #d97706; font-weight: 700; font-size: 0.72rem;">BELUM</span>
                             @endif
                         </td>
                         <td>
-                            <div class="ttd-box">
-                                <span class="ttd-num">{{ $idx + 1 }}.</span>
-                            </div>
+                            @if (($idx + 1) % 2 !== 0)
+                                <div class="ttd-box-odd">
+                                    <span>{{ $idx + 1 }}.</span>
+                                    <span class="ttd-dot">....................</span>
+                                </div>
+                            @else
+                                <div class="ttd-box-even">
+                                    <span>{{ $idx + 1 }}.</span>
+                                    <span class="ttd-dot">....................</span>
+                                </div>
+                            @endif
                         </td>
                         <td style="text-align: center; font-size: 0.74rem; color: #64748b;">
                             {{ $s->catatan ?: '-' }}

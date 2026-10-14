@@ -840,6 +840,203 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // =========================================================================
+    // 8. Modal Cetak Pengambilan & Tambah Pengeluaran
+    // =========================================================================
+    window.openModalCetakPengambilan = function () {
+        const m = document.getElementById("modalCetakPengambilan");
+        if (m) {
+            m.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+    };
+
+    window.closeModalCetakPengambilan = function () {
+        const m = document.getElementById("modalCetakPengambilan");
+        if (m) {
+            m.style.display = "none";
+            document.body.style.overflow = "";
+        }
+    };
+
+    window.openTambahPengeluaran = function () {
+        const m = document.getElementById("modalTambahPengeluaran");
+        if (m) {
+            m.style.display = "flex";
+            document.body.style.overflow = "hidden";
+        }
+    };
+
+    window.closeTambahPengeluaran = function () {
+        const m = document.getElementById("modalTambahPengeluaran");
+        if (m) {
+            m.style.display = "none";
+            document.body.style.overflow = "";
+        }
+    };
+
+    // =========================================================================
+    // 9. Inisialisasi Chart Keuangan Kartu Pelajar (Bar & Doughnut)
+    // =========================================================================
+    window._kpChartBarInstance = null;
+    window._kpChartDoughnutInstance = null;
+
+    window.initKeuanganCharts = function () {
+        const payloadEl = document.getElementById("kartuPelajarChartPayload");
+        if (!payloadEl || typeof Chart === "undefined") return;
+
+        let chartData = {};
+        try {
+            chartData = JSON.parse(payloadEl.getAttribute("data-chart") || "{}");
+        } catch (e) {
+            console.error("Gagal parse kartuPelajarChartPayload", e);
+            return;
+        }
+
+        // 1. Chart Bar Arus Kas (Pemasukan vs Pengeluaran)
+        const ctxBar = document.getElementById("chartArusKasBar");
+        if (ctxBar && chartData.labels) {
+            if (window._kpChartBarInstance) {
+                window._kpChartBarInstance.destroy();
+            }
+            window._kpChartBarInstance = new Chart(ctxBar, {
+                type: "bar",
+                data: {
+                    labels: chartData.labels,
+                    datasets: [
+                        {
+                            label: "Pemasukan (Siswa)",
+                            data: chartData.pemasukan || [],
+                            backgroundColor: "rgba(16, 185, 129, 0.75)",
+                            borderColor: "#10b981",
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                        },
+                        {
+                            label: "Pengeluaran (Bahan/Alat)",
+                            data: chartData.pengeluaran || [],
+                            backgroundColor: "rgba(239, 68, 68, 0.75)",
+                            borderColor: "#ef4444",
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "top",
+                            labels: {
+                                font: {
+                                    family: "Plus Jakarta Sans",
+                                    size: 11,
+                                },
+                            },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    return (
+                                        ctx.dataset.label +
+                                        ": Rp " +
+                                        new Intl.NumberFormat("id-ID").format(ctx.raw)
+                                    );
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (v) {
+                                    return (
+                                        "Rp " +
+                                        (v >= 1000000
+                                            ? v / 1000000 + "jt"
+                                            : v >= 1000
+                                              ? v / 1000 + "rb"
+                                              : v)
+                                    );
+                                },
+                                font: {
+                                    size: 10,
+                                },
+                            },
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 10,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+        // 2. Chart Doughnut Kategori Pengeluaran
+        const ctxDoughnut = document.getElementById("chartKategoriDoughnut");
+        if (ctxDoughnut && chartData.kategori_labels) {
+            if (window._kpChartDoughnutInstance) {
+                window._kpChartDoughnutInstance.destroy();
+            }
+            const colors = ["#6366f1", "#f59e0b", "#ef4444", "#06b6d4", "#8b5cf6", "#64748b"];
+            const katVals = chartData.kategori_values || [];
+            const hasData = katVals.length > 0 && katVals.some(v => v > 0);
+
+            window._kpChartDoughnutInstance = new Chart(ctxDoughnut, {
+                type: "doughnut",
+                data: {
+                    labels: hasData ? chartData.kategori_labels : ["Belum Ada Pengeluaran"],
+                    datasets: [
+                        {
+                            data: hasData ? katVals : [1],
+                            backgroundColor: hasData ? colors.slice(0, katVals.length) : ["#e2e8f0"],
+                            borderWidth: 2,
+                            borderColor: "#ffffff",
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                font: {
+                                    family: "Plus Jakarta Sans",
+                                    size: 10,
+                                },
+                                boxWidth: 12,
+                            },
+                        },
+                        tooltip: {
+                            enabled: hasData,
+                            callbacks: {
+                                label: function (ctx) {
+                                    return (
+                                        ctx.label +
+                                        ": Rp " +
+                                        new Intl.NumberFormat("id-ID").format(ctx.raw)
+                                    );
+                                },
+                            },
+                        },
+                    },
+                    cutout: "62%",
+                },
+            });
+        }
+    };
+
+    window.initKeuanganCharts();
+    window.addEventListener("sae:tableRefreshed", window.initKeuanganCharts);
+
     // Close modals on escape key
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
@@ -847,6 +1044,8 @@ document.addEventListener("DOMContentLoaded", function () {
             closeModalWa();
             closeKlaimGaransi();
             closeModalBulkPembayaran();
+            closeModalCetakPengambilan();
+            closeTambahPengeluaran();
         }
     });
 });

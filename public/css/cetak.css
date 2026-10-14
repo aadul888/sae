@@ -5002,6 +5002,9 @@ body {
         max-width: 100% !important;
         width: 100% !important;
         border-radius: 0 !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
     }
     .page-break {
         page-break-after: always;
@@ -5071,3 +5074,180 @@ body {
         break-inside: avoid !important;
     }
 }
+
+/* ==========================================================================
+   Laporan & Distribusi Kartu Pelajar (cetak-pengambilan & cetak-keuangan)
+   ========================================================================== */
+.meta-grid-box {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 12px 0 16px 0;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 14px;
+}
+
+.meta-col-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.meta-col-val {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.table-distribusi {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+}
+
+.table-distribusi th {
+    background: #f1f5f9;
+    border: 1px solid #94a3b8;
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 0.76rem;
+}
+
+.table-distribusi td {
+    border: 1px solid #cbd5e1;
+    padding: 5px 8px;
+    color: #1e293b;
+    vertical-align: middle;
+}
+
+.ttd-box-odd {
+    text-align: left;
+    padding-left: 8px;
+    font-size: 0.78rem;
+    height: 26px;
+    display: flex;
+    align-items: center;
+}
+
+.ttd-box-even {
+    text-align: left;
+    padding-left: 55px;
+    font-size: 0.78rem;
+    height: 26px;
+    display: flex;
+    align-items: center;
+}
+
+.ttd-dot {
+    color: #94a3b8;
+    letter-spacing: 2px;
+    margin-left: 4px;
+}
+
+.summary-box-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 18px 0 24px 0;
+}
+
+.summary-box {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #f8fafc;
+}
+
+.summary-box-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.summary-box-val {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.section-title {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 20px 0 10px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #0f172a;
+    padding-bottom: 4px;
+}
+
+.table-laporan {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin-bottom: 18px;
+}
+
+.table-laporan th {
+    background: #f1f5f9;
+    border: 1px solid #94a3b8;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.table-laporan td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    color: #334155;
+}
+
+.signature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 24px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.sig-block {
+    text-align: center;
+    font-size: 0.82rem;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+.sig-space {
+    height: 55px;
+}
+
+@media print {
+    table.table-distribusi,
+    table.table-laporan {
+        width: 100% !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+    }
+    table.table-distribusi thead,
+    table.table-laporan thead {
+        display: table-header-group !important;
+    }
+    table.table-distribusi tr,
+    table.table-laporan tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+}
+
