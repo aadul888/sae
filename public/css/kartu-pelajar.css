@@ -2073,3 +2073,175 @@ body.filter-back-only .kp-card-front {
     align-items: center;
     gap: 8px;
 }
+
+
+/* ==========================================================================
+   Modal & Form Dashboard Kartu Pelajar (pengeluaran, request cetak)
+   ========================================================================== */
+.kp-modal-card.card {
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.kp-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px 12px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.kp-modal-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kp-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.kp-modal-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.kp-modal-body {
+    padding: 16px 22px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.kp-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 22px 16px;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.kp-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.kp-form-group {
+    margin-bottom: 14px;
+    min-width: 0;
+}
+
+.kp-form-grid .kp-form-group {
+    margin-bottom: 0;
+}
+
+.kp-form-grid {
+    margin-bottom: 14px;
+}
+
+.kp-form-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text-color);
+}
+
+.kp-form-label .req {
+    color: #ef4444;
+}
+
+.kp-modal-body .form-control {
+    width: 100%;
+    min-height: 38px;
+    background-color: var(--bg-hover) !important;
+}
+
+.kp-modal-body textarea.form-control {
+    resize: vertical;
+}
+
+.kp-modal-body input[type="file"].form-control {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+.kp-form-hint {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Autocomplete peserta didik (request cetak) */
+.kp-ac-wrap {
+    position: relative;
+}
+
+.kp-ac-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    margin-top: 2px;
+    max-height: 220px;
+    overflow-y: auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    display: none;
+}
+
+.kp-ac-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 0.84rem;
+    cursor: pointer;
+}
+
+.kp-ac-item:last-child {
+    border-bottom: none;
+}
+
+.kp-ac-item:hover {
+    background: var(--bg-hover);
+}
+
+.kp-ac-item small {
+    display: block;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+@media (max-width: 560px) {
+    .kp-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

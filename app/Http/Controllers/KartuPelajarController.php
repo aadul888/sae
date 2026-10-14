@@ -6,6 +6,7 @@ use App\Models\JurusanMeta;
 use App\Models\KartuPelajarPembayaran;
 use App\Models\KartuPelajarPengaturan;
 use App\Models\KartuPelajarPengeluaran;
+use App\Models\KartuPelajarRequest;
 use App\Models\PesertaDidikMeta;
 use App\Models\RolePermission;
 use App\Models\SekolahMeta;
@@ -322,6 +323,34 @@ class KartuPelajarController extends Controller
         $kategoriList = KartuPelajarPengeluaran::getKategoriList();
         $sekolahInfo = $this->getSekolahInfo();
 
+        // Tab Request Cetak Kartu Pelajar
+        $requestList = null;
+        $requestStats = ['menunggu' => 0, 'diproses' => 0, 'selesai' => 0, 'ditolak' => 0];
+        $reqStatus = trim((string) $request->get('req_status', ''));
+        if ($tab === 'request' && Schema::hasTable('kartu_pelajar_request')) {
+            foreach (DB::table('kartu_pelajar_request')->select('status', DB::raw('COUNT(*) as total'))->groupBy('status')->pluck('total', 'status') as $st => $n) {
+                $requestStats[$st] = (int) $n;
+            }
+
+            $rq = DB::table('kartu_pelajar_request as r')
+                ->join('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                ->select('r.*', 'pd.nama', 'pd.nama_rombel');
+            if (isset(KartuPelajarRequest::STATUS[$reqStatus])) {
+                $rq->where('r.status', $reqStatus);
+            }
+            if ($q !== '') {
+                $rq->where(function ($sub) use ($q) {
+                    $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                        ->orWhere('r.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('r.alasan', 'LIKE', "%{$q}%");
+                });
+            }
+            $requestList = $rq->orderByRaw("FIELD(r.status, 'menunggu','diproses','selesai','ditolak')")
+                ->orderByDesc('r.created_at')
+                ->paginate(15, ['*'], 'request_page')
+                ->withQueryString();
+        }
+
         return view('dashboard.kartu-pelajar.index', compact(
             'students',
             'stats',
@@ -341,7 +370,10 @@ class KartuPelajarController extends Controller
             'pengeluaranList',
             'recentPemasukan',
             'chartKeuangan',
-            'kategoriList'
+            'kategoriList',
+            'requestList',
+            'requestStats',
+            'reqStatus'
         ));
     }
 
@@ -1244,6 +1276,116 @@ class KartuPelajarController extends Controller
             'dari',
             'sampai'
         ));
+    }
+
+    private function canKartuPelajar(string $perm): bool
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        return $role === 'admin' || RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', $perm);
+    }
+
+    /**
+     * Autocomplete peserta didik untuk form request cetak
+     */
+    public function cariSiswa(Request $request): JsonResponse
+    {
+        if (!$this->canKartuPelajar('read')) {
+            return response()->json([], 403);
+        }
+
+        $q = trim((string) $request->get('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            DB::table('peserta_didik')
+                ->where(function ($s) use ($q) {
+                    $s->where('nama', 'LIKE', "%{$q}%")->orWhere('nisn', 'LIKE', "%{$q}%")->orWhere('nipd', 'LIKE', "%{$q}%");
+                })
+                ->orderBy('nama')
+                ->limit(15)
+                ->get(['peserta_didik_id', 'nama', 'nisn', 'nama_rombel'])
+        );
+    }
+
+    /**
+     * Simpan request cetak kartu pelajar
+     */
+    public function storeRequest(Request $request)
+    {
+        if (!$this->canKartuPelajar('create')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $data = $request->validate([
+            'peserta_didik_id' => 'required|string|exists:peserta_didik,peserta_didik_id',
+            'jenis_request'    => 'required|in:' . implode(',', array_keys(KartuPelajarRequest::JENIS)),
+            'alasan'           => 'nullable|string|max:500',
+        ]);
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $data['peserta_didik_id'])->first();
+        $user = session('user');
+
+        KartuPelajarRequest::create([
+            'peserta_didik_id' => $pd->peserta_didik_id,
+            'nisn'             => $pd->nisn,
+            'jenis_request'    => $data['jenis_request'],
+            'alasan'           => trim((string) ($data['alasan'] ?? '')),
+            'status'           => 'menunggu',
+            'diminta_oleh'     => is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin'),
+        ]);
+
+        return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
+            ->with('success', "Request cetak kartu untuk {$pd->nama} berhasil ditambahkan.");
+    }
+
+    /**
+     * Ubah status request. Status 'selesai' otomatis menandai kartu sudah dicetak.
+     */
+    public function updateStatusRequest(Request $request, int $id)
+    {
+        if (!$this->canKartuPelajar('update')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $data = $request->validate([
+            'status'        => 'required|in:' . implode(',', array_keys(KartuPelajarRequest::STATUS)),
+            'catatan_admin' => 'nullable|string|max:500',
+        ]);
+
+        $item = KartuPelajarRequest::findOrFail($id);
+        $item->status = $data['status'];
+        if (array_key_exists('catatan_admin', $data)) {
+            $item->catatan_admin = $data['catatan_admin'];
+        }
+        $item->selesai_at = $data['status'] === 'selesai' ? now() : null;
+        $item->save();
+
+        if ($data['status'] === 'selesai') {
+            $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $item->peserta_didik_id]);
+            $record->nisn = $item->nisn;
+            $record->status_cetak = 'sudah_cetak';
+            $record->tanggal_cetak = now();
+            $record->save();
+        }
+
+        return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
+            ->with('success', 'Status request diperbarui menjadi ' . KartuPelajarRequest::STATUS[$data['status']] . '.');
+    }
+
+    public function destroyRequest(int $id)
+    {
+        if (!$this->canKartuPelajar('delete')) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        KartuPelajarRequest::findOrFail($id)->delete();
+
+        return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
+            ->with('success', 'Request cetak dihapus.');
     }
 
     /**

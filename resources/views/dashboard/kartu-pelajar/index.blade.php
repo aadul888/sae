@@ -57,6 +57,10 @@
             class="tab-btn btn {{ $tab === 'keuangan' ? 'btn-primary active' : 'btn-outline' }}">
             <i class="fas fa-money-bill-wave me-1"></i> Catatan Keuangan
         </a>
+        <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request']) }}"
+            class="tab-btn btn {{ $tab === 'request' ? 'btn-primary active' : 'btn-outline' }}">
+            <i class="fas fa-paper-plane me-1"></i> Request Cetak
+        </a>
         <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'siswa']) }}"
             class="tab-btn btn {{ $tab === 'siswa' ? 'btn-primary active' : 'btn-outline' }}">
             <i class="fas fa-users me-1"></i> Data Peserta Didik
@@ -379,6 +383,152 @@
                 </table>
             </div>
         </div>
+    @elseif ($tab === 'request')
+        <!-- TAB: Request Cetak Kartu Pelajar -->
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-color);">Antrean Request
+                    Cetak Kartu</h3>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
+                    Catat permintaan cetak baru / penggantian kartu. Status "Selesai" otomatis menandai kartu sudah dicetak.
+                </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="openTambahRequest()"
+                style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-plus-circle"></i> Tambah Request
+            </button>
+        </div>
+
+        <div class="dash-stat-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
+            @foreach ([['menunggu', 'Menunggu', 'fa-hourglass-half', '#f59e0b', '245,158,11'], ['diproses', 'Diproses', 'fa-gears', '#2563eb', '37,99,235'], ['selesai', 'Selesai', 'fa-circle-check', '#10b981', '16,185,129'], ['ditolak', 'Ditolak', 'fa-ban', '#ef4444', '239,68,68']] as [$sKey, $sLabel, $sIcon, $sColor, $sRgb])
+                <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request', 'req_status' => $reqStatus === $sKey ? '' : $sKey]) }}"
+                    class="dash-stat-card"
+                    style="text-decoration: none; {{ $reqStatus === $sKey ? 'outline: 2px solid ' . $sColor . ';' : '' }}">
+                    <div class="dash-stat-icon"
+                        style="background: rgba({{ $sRgb }},0.12); color: {{ $sColor }};">
+                        <i class="fas {{ $sIcon }}"></i>
+                    </div>
+                    <div class="dash-stat-info">
+                        <div class="dash-stat-value" style="font-size: 1.35rem; color: {{ $sColor }};">
+                            {{ number_format($requestStats[$sKey] ?? 0, 0, ',', '.') }}</div>
+                        <div class="dash-stat-label">{{ $sLabel }}</div>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+
+        <div class="card table-responsive-stack" style="padding: 0; margin-bottom: 24px;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                        <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 50px; text-align: center;">
+                            No</th>
+                        <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                            Tanggal</th>
+                        <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                            Peserta Didik</th>
+                        <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                            Jenis &amp; Alasan</th>
+                        <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
+                            Status</th>
+                        <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 170px;">
+                            Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse (($requestList ?? []) as $ri => $rq)
+                        @php
+                            $rqColor =
+                                [
+                                    'menunggu' => 'badge-warning',
+                                    'diproses' => 'badge-primary',
+                                    'selesai' => 'badge-success',
+                                    'ditolak' => 'badge-danger',
+                                ][$rq->status] ?? 'badge-outline';
+                        @endphp
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;" data-label="No">
+                                {{ $requestList->firstItem() + $ri }}</td>
+                            <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;"
+                                data-label="Tanggal">
+                                {{ \Carbon\Carbon::parse($rq->created_at)->translatedFormat('d M Y H:i') }}
+                                <div>oleh {{ $rq->diminta_oleh ?: 'Admin' }}</div>
+                            </td>
+                            <td style="padding: 12px 14px;" data-label="Peserta Didik">
+                                <div style="font-weight: 700; font-size: 0.86rem;">{{ $rq->nama }}</div>
+                                <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                    {{ $rq->nama_rombel ?: '-' }} &bull; NISN: {{ $rq->nisn ?: '-' }}</div>
+                            </td>
+                            <td style="padding: 12px 14px;" data-label="Jenis">
+                                <span class="badge badge-outline"
+                                    style="font-size: 0.72rem;">{{ \App\Models\KartuPelajarRequest::JENIS[$rq->jenis_request] ?? $rq->jenis_request }}</span>
+                                @if ($rq->alasan)
+                                    <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;">
+                                        {{ $rq->alasan }}</div>
+                                @endif
+                                @if ($rq->catatan_admin)
+                                    <div style="font-size: 0.74rem; color: var(--primary); margin-top: 2px;"><i
+                                            class="fas fa-comment-dots me-1"></i>{{ $rq->catatan_admin }}</div>
+                                @endif
+                            </td>
+                            <td style="padding: 12px 14px;" data-label="Status">
+                                <span class="badge {{ $rqColor }}"
+                                    style="font-size: 0.74rem; padding: 3px 8px;">{{ \App\Models\KartuPelajarRequest::STATUS[$rq->status] ?? $rq->status }}</span>
+                                @if ($rq->selesai_at)
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                        {{ \Carbon\Carbon::parse($rq->selesai_at)->translatedFormat('d M Y H:i') }}</div>
+                                @endif
+                            </td>
+                            <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
+                                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                                    <form action="{{ route('dashboard.kartu-pelajar.update-request', $rq->id) }}"
+                                        method="POST" style="margin: 0;">
+                                        @csrf
+                                        <select name="status" class="form-control" onchange="this.form.submit()"
+                                            data-no-ajax
+                                            style="min-width: 110px; height: 32px; padding: 0 8px; font-size: 0.78rem;">
+                                            @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
+                                                <option value="{{ $stKey }}"
+                                                    {{ $rq->status === $stKey ? 'selected' : '' }}>{{ $stLabel }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </form>
+                                    <form action="{{ route('dashboard.kartu-pelajar.destroy-request', $rq->id) }}"
+                                        method="POST" style="margin: 0;"
+                                        onsubmit="return confirm('Hapus request ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-icon" style="color: #ef4444;"
+                                            title="Hapus Request"><i class="fas fa-trash-alt"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" style="padding: 35px; text-align: center; color: var(--text-muted);">
+                                <i class="fas fa-paper-plane mb-2"
+                                    style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                Belum ada request cetak kartu.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if (!empty($requestList) && $requestList->hasPages())
+            <div style="margin-bottom: 24px;">{{ $requestList->links() }}</div>
+        @endif
     @elseif ($tab === 'siswa')
         <!-- 3. Stat Grid Baku SAE (6 Kartu Ringkasan - Jumlah Genap Rapi) -->
         <div class="dash-stat-grid"
@@ -683,7 +833,8 @@
                                     <div
                                         style="font-size: 0.69rem; color: #10b981; margin-top: 3px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
                                         <i class="fas fa-shield-alt text-success"></i>
-                                        <span>Garansi: {{ $sisaKartu }} Kartu &bull; {{ $sisaStiker }} Stiker</span>
+                                        <span>Garansi: {{ $sisaKartu }} Kartu &bull; {{ $sisaStiker }}
+                                            Stiker</span>
                                     </div>
                                 @else
                                     <span id="badgeCetak_{{ $s->peserta_didik_id }}" class="badge badge-outline"
@@ -1621,8 +1772,8 @@
                 <div
                     style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 16px; display: flex; align-items: center; gap: 6px;">
                     <i class="fas fa-info-circle text-primary"></i>
-                    <span>Tautan QR Code resmi yang dilampirkan: <a href="#" id="waVerifyLinkText" target="_blank"
-                            style="color: var(--primary); text-decoration: underline;"></a></span>
+                    <span>Tautan QR Code resmi yang dilampirkan: <a href="#" id="waVerifyLinkText"
+                            target="_blank" style="color: var(--primary); text-decoration: underline;"></a></span>
                 </div>
 
                 <div
@@ -1748,94 +1899,124 @@
     </div>
 
     <!-- MODAL 4: Catat Pengeluaran Alat & Bahan Cetak -->
-    <div id="modalTambahPengeluaran" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
-        <div class="card"
-            style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.4); padding: 22px;">
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
-                <h4
-                    style="margin: 0; font-size: 1.05rem; color: var(--text-color); font-weight: 700; display: flex; align-items: center; gap: 8px;">
+    <div id="modalTambahPengeluaran" class="modal-backdrop">
+        <div class="card kp-modal-card">
+            <div class="kp-modal-header">
+                <h4 class="kp-modal-title">
                     <i class="fas fa-plus-circle text-danger"></i> Catat Pengeluaran Alat &amp; Bahan
                 </h4>
-                <button type="button" onclick="closeTambahPengeluaran()"
-                    style="background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer;">&times;</button>
+                <button type="button" class="kp-modal-close" onclick="closeTambahPengeluaran()"
+                    aria-label="Tutup">&times;</button>
             </div>
 
             <form action="{{ route('dashboard.kartu-pelajar.store-pengeluaran') }}" method="POST"
-                enctype="multipart/form-data">
+                enctype="multipart/form-data" class="kp-modal-form">
                 @csrf
-                <div style="margin-bottom: 14px;">
-                    <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                        Uraian / Judul Pembelanjaan <span style="color: #ef4444;">*</span>
-                    </label>
-                    <input type="text" name="judul" required
-                        placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon" class="form-control"
-                        style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
+                <div class="kp-modal-body">
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="pgJudul">Uraian / Judul Pembelanjaan <span
+                                class="req">*</span></label>
+                        <input type="text" id="pgJudul" name="judul" required maxlength="255"
+                            class="form-control" placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon">
+                    </div>
+
+                    <div class="kp-form-grid">
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="pgKategori">Kategori <span
+                                    class="req">*</span></label>
+                            <select id="pgKategori" name="kategori" required class="form-control">
+                                @foreach ($kategoriList as $kKey => $kVal)
+                                    <option value="{{ $kKey }}">{{ $kVal }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="pgNominal">Nominal (Rp) <span
+                                    class="req">*</span></label>
+                            <input type="number" id="pgNominal" name="nominal" min="1" step="500"
+                                required inputmode="numeric" class="form-control" placeholder="350000">
+                        </div>
+                    </div>
+
+                    <div class="kp-form-grid">
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="pgTanggal">Tanggal <span class="req">*</span></label>
+                            <input type="date" id="pgTanggal" name="tanggal" value="{{ date('Y-m-d') }}"
+                                required class="form-control">
+                        </div>
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="pgNota">Bukti Nota / Kwitansi</label>
+                            <input type="file" id="pgNota" name="bukti_nota"
+                                accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control">
+                            <div class="kp-form-hint">JPG, PNG, WebP, PDF. Maks. 5 MB.</div>
+                        </div>
+                    </div>
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="pgKeterangan">Keterangan / Toko (Opsional)</label>
+                        <textarea id="pgKeterangan" name="keterangan" rows="2" maxlength="1000" class="form-control"
+                            placeholder="Nama toko, nomor pesanan, atau spesifikasi barang..."></textarea>
+                    </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                    <div>
-                        <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                            Kategori Pengeluaran <span style="color: #ef4444;">*</span>
-                        </label>
-                        <select name="kategori" required class="form-control"
-                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
-                            @foreach ($kategoriList as $kKey => $kVal)
-                                <option value="{{ $kKey }}">{{ $kVal }}</option>
+                <div class="kp-modal-footer">
+                    <button type="button" onclick="closeTambahPengeluaran()" class="btn btn-outline">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Simpan Pengeluaran
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4B: Tambah Request Cetak Kartu Pelajar -->
+    <div id="modalTambahRequest" class="modal-backdrop">
+        <div class="card kp-modal-card">
+            <div class="kp-modal-header">
+                <h4 class="kp-modal-title">
+                    <i class="fas fa-paper-plane text-primary"></i> Tambah Request Cetak Kartu
+                </h4>
+                <button type="button" class="kp-modal-close" onclick="closeTambahRequest()"
+                    aria-label="Tutup">&times;</button>
+            </div>
+
+            <form action="{{ route('dashboard.kartu-pelajar.store-request') }}" method="POST" class="kp-modal-form"
+                id="formTambahRequest">
+                @csrf
+                <input type="hidden" name="peserta_didik_id" id="rqPdId">
+                <div class="kp-modal-body">
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="rqCari">Cari Peserta Didik <span
+                                class="req">*</span></label>
+                        <div class="kp-ac-wrap">
+                            <input type="text" id="rqCari" class="form-control" autocomplete="off"
+                                placeholder="Ketik nama / NISN / NIPD (min. 2 huruf)...">
+                            <div id="rqAcList" class="kp-ac-list"></div>
+                        </div>
+                        <div class="kp-form-hint" id="rqPilihInfo">Belum ada peserta didik dipilih.</div>
+                    </div>
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="rqJenis">Jenis Request <span
+                                class="req">*</span></label>
+                        <select id="rqJenis" name="jenis_request" required class="form-control">
+                            @foreach (\App\Models\KartuPelajarRequest::JENIS as $jKey => $jVal)
+                                <option value="{{ $jKey }}">{{ $jVal }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div>
-                        <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                            Nominal Pengeluaran (Rp) <span style="color: #ef4444;">*</span>
-                        </label>
-                        <input type="number" name="nominal" min="1" step="1000" required
-                            placeholder="Contoh: 350000" class="form-control"
-                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem; font-weight: 700;">
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="rqAlasan">Alasan / Catatan</label>
+                        <textarea id="rqAlasan" name="alasan" rows="3" maxlength="500" class="form-control"
+                            placeholder="Contoh: Kartu hilang, chip tidak terbaca, siswa baru..."></textarea>
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
-                    <div>
-                        <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                            Tanggal Pembelanjaan <span style="color: #ef4444;">*</span>
-                        </label>
-                        <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required
-                            class="form-control"
-                            style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
-                    </div>
-                    <div>
-                        <label
-                            style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                            Unggah Bukti Nota / Kwitansi
-                        </label>
-                        <input type="file" name="bukti_nota"
-                            accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control"
-                            style="width: 100%; padding: 5px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.8rem;">
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 18px;">
-                    <label
-                        style="display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                        Keterangan Tambahan / Toko Pembelian (Opsional)
-                    </label>
-                    <textarea name="keterangan" rows="2"
-                        placeholder="Catatan toko, nomor pesanan marketplace, atau rincian spesifikasi..." class="form-control"
-                        style="width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.82rem;"></textarea>
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                    <button type="button" onclick="closeTambahPengeluaran()" class="btn btn-outline"
-                        style="padding: 7px 14px; font-size: 0.82rem;">Batal</button>
-                    <button type="submit" class="btn btn-primary"
-                        style="padding: 7px 18px; font-size: 0.82rem; font-weight: 700;">
-                        <i class="fas fa-save me-1"></i> Simpan Catatan Pengeluaran
+                <div class="kp-modal-footer">
+                    <button type="button" onclick="closeTambahRequest()" class="btn btn-outline">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="rqSubmit" disabled>
+                        <i class="fas fa-paper-plane me-1"></i> Kirim Request
                     </button>
                 </div>
             </form>

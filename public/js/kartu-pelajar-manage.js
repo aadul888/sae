@@ -875,6 +875,80 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
+    // Modal Request Cetak + Autocomplete Peserta Didik
+    window.openTambahRequest = function () {
+        const m = document.getElementById("modalTambahRequest");
+        if (m) {
+            m.style.display = "flex";
+            document.body.style.overflow = "hidden";
+            document.getElementById("rqCari")?.focus();
+        }
+    };
+
+    window.closeTambahRequest = function () {
+        const m = document.getElementById("modalTambahRequest");
+        if (m) {
+            m.style.display = "none";
+            document.body.style.overflow = "";
+        }
+    };
+
+    (function initRequestAutocomplete() {
+        const input = document.getElementById("rqCari");
+        const list = document.getElementById("rqAcList");
+        const hidden = document.getElementById("rqPdId");
+        const info = document.getElementById("rqPilihInfo");
+        const submit = document.getElementById("rqSubmit");
+        if (!input || !list || !hidden) return;
+
+        let timer = null;
+        const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        function reset() {
+            hidden.value = "";
+            if (submit) submit.disabled = true;
+            if (info) info.textContent = "Belum ada peserta didik dipilih.";
+        }
+
+        input.addEventListener("input", function () {
+            reset();
+            clearTimeout(timer);
+            const q = this.value.trim();
+            if (q.length < 2) {
+                list.style.display = "none";
+                return;
+            }
+            timer = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/dashboard/kartu-pelajar/cari-siswa?q=${encodeURIComponent(q)}`, {
+                        headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },
+                    });
+                    const rows = await res.json();
+                    list.innerHTML = rows.length
+                        ? rows.map((r) => `<button type="button" class="kp-ac-item" data-id="${esc(r.peserta_didik_id)}" data-label="${esc(r.nama)} (${esc(r.nama_rombel || "-")})">${esc(r.nama)}<small>${esc(r.nama_rombel || "-")} &bull; NISN: ${esc(r.nisn || "-")}</small></button>`).join("")
+                        : '<div class="kp-ac-item" style="cursor:default;">Tidak ditemukan.</div>';
+                    list.style.display = "block";
+                } catch (e) {
+                    list.style.display = "none";
+                }
+            }, 300);
+        });
+
+        list.addEventListener("click", function (e) {
+            const btn = e.target.closest(".kp-ac-item[data-id]");
+            if (!btn) return;
+            hidden.value = btn.dataset.id;
+            input.value = btn.dataset.label;
+            if (info) info.textContent = "Dipilih: " + btn.dataset.label;
+            if (submit) submit.disabled = false;
+            list.style.display = "none";
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!e.target.closest(".kp-ac-wrap")) list.style.display = "none";
+        });
+    })();
+
     // =========================================================================
     // 9. Inisialisasi Chart Keuangan Kartu Pelajar (Bar & Doughnut)
     // =========================================================================
@@ -1046,6 +1120,7 @@ document.addEventListener("DOMContentLoaded", function () {
             closeModalBulkPembayaran();
             closeModalCetakPengambilan();
             closeTambahPengeluaran();
+            closeTambahRequest();
         }
     });
 });
