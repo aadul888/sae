@@ -743,7 +743,16 @@ window.refreshLiveTable = async function (url, options = {}) {
         }
 
         // 5. Update browser URL silently without page reload
-        if (activeEl && activeEl.value !== undefined) {
+        const isSearchField =
+            activeEl &&
+            activeEl.tagName === "INPUT" &&
+            (activeEl.name === "q" ||
+                activeEl.name === "search" ||
+                activeEl.type === "search" ||
+                Boolean(activeEl.closest(".live-search-wrap")) ||
+                (activeEl.id && activeEl.id.toLowerCase().includes("search")));
+
+        if (isSearchField && activeEl.value !== undefined) {
             try {
                 const currentUrlObj = new URL(targetUrl, window.location.origin);
                 const currentVal = activeEl.value.trim();

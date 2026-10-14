@@ -110,7 +110,18 @@ class KartuPelajarController extends Controller
             default => 'pd.nama',
         };
 
-        $students = $query->orderBy($orderColumn, $sortDir)->orderBy('pd.nama', 'asc')->paginate($perPage)->withQueryString();
+        // Cegah halaman kosong akibat perubahan filter / perPage saat berada di page > 1
+        $totalFiltered = (clone $query)->count();
+        $lastPage = max(1, (int) ceil($totalFiltered / $perPage));
+        $currentPage = (int) $request->get('page', 1);
+        if ($currentPage > $lastPage || $currentPage < 1) {
+            $currentPage = 1;
+        }
+
+        $students = $query->orderBy($orderColumn, $sortDir)
+            ->orderBy('pd.nama', 'asc')
+            ->paginate($perPage, ['*'], 'page', $currentPage)
+            ->withQueryString();
 
         // Format foto URL dan nomor WA
         $students->getCollection()->transform(function ($item) {
@@ -120,14 +131,53 @@ class KartuPelajarController extends Controller
             return $item;
         });
 
-        // Hitung statistik
-        $totalSiswa = DB::table('peserta_didik')->count();
-        $totalLunas = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->count();
-        $totalBelumBayar = max(0, $totalSiswa - $totalLunas);
-        $totalDanaTerkumpul = DB::table('kartu_pelajar_pembayaran')->where('status_pembayaran', 'lunas')->sum('nominal');
+        // Hitung statistik live sesuai filter yang aktif di datatable
+        $statScope = DB::table('peserta_didik as pd')
+            ->leftJoin('kartu_pelajar_pembayaran as kp', 'pd.peserta_didik_id', '=', 'kp.peserta_didik_id');
 
-        $totalSudahCetak = DB::table('kartu_pelajar_pembayaran')->where('status_cetak', 'sudah_cetak')->count();
-        $totalBelumCetak = max(0, $totalSiswa - $totalSudahCetak);
+        if ($q !== '') {
+            $statScope->where(function ($sub) use ($q) {
+                $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
+                    ->orWhere('pd.nipd', 'LIKE', "%{$q}%");
+            });
+        }
+
+        if ($rombel !== '') {
+            $statScope->where('pd.nama_rombel', $rombel);
+        }
+
+        if ($statusBayar === 'lunas') {
+            $statScope->where('kp.status_pembayaran', 'lunas');
+        } elseif ($statusBayar === 'belum_bayar') {
+            $statScope->where(function ($sq) {
+                $sq->whereNull('kp.status_pembayaran')
+                    ->orWhere('kp.status_pembayaran', 'belum_bayar');
+            });
+        }
+
+        if ($statusCetak === 'sudah_cetak') {
+            $statScope->where('kp.status_cetak', 'sudah_cetak');
+        } elseif ($statusCetak === 'belum_cetak') {
+            $statScope->where(function ($sq) {
+                $sq->whereNull('kp.status_cetak')
+                    ->orWhere('kp.status_cetak', 'belum_cetak');
+            });
+        }
+
+        $totalSiswa = (clone $statScope)->count();
+        $totalLunas = (clone $statScope)->where('kp.status_pembayaran', 'lunas')->count();
+        $totalBelumBayar = (clone $statScope)->where(function ($sq) {
+            $sq->whereNull('kp.status_pembayaran')
+                ->orWhere('kp.status_pembayaran', 'belum_bayar');
+        })->count();
+        $totalDanaTerkumpul = (clone $statScope)->where('kp.status_pembayaran', 'lunas')->sum('kp.nominal');
+
+        $totalSudahCetak = (clone $statScope)->where('kp.status_cetak', 'sudah_cetak')->count();
+        $totalBelumCetak = (clone $statScope)->where(function ($sq) {
+            $sq->whereNull('kp.status_cetak')
+                ->orWhere('kp.status_cetak', 'belum_cetak');
+        })->count();
 
         $totalKlaimKartu = Schema::hasTable('kartu_pelajar_garansi_log')
             ? DB::table('kartu_pelajar_garansi_log')->where('jenis_klaim', 'ganti_kartu_full')->count()

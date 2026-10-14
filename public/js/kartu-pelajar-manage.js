@@ -20,6 +20,10 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             url.searchParams.delete("q");
         }
+        if (filterRombel && filterRombel.value) url.searchParams.set("rombel", filterRombel.value);
+        if (filterStatusBayar && filterStatusBayar.value) url.searchParams.set("status_pembayaran", filterStatusBayar.value);
+        if (filterStatusCetak && filterStatusCetak.value) url.searchParams.set("status_cetak", filterStatusCetak.value);
+        if (perPageSelect && perPageSelect.value) url.searchParams.set("perPage", perPageSelect.value);
         url.searchParams.delete("page");
         if (typeof window.refreshLiveTable === "function") {
             window.refreshLiveTable(url.toString());
@@ -69,6 +73,12 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             url.searchParams.delete(paramName);
         }
+        // Sinkronkan nilai pencarian aktif dari input jika ada
+        if (searchInput && searchInput.value.trim()) {
+            url.searchParams.set("q", searchInput.value.trim());
+        } else {
+            url.searchParams.delete("q");
+        }
         url.searchParams.delete("page");
         if (typeof window.refreshLiveTable === "function") {
             window.refreshLiveTable(url.toString());
@@ -78,25 +88,29 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (filterRombel) {
-        filterRombel.addEventListener("change", function () {
+        filterRombel.addEventListener("change", function (e) {
+            e.stopImmediatePropagation();
             applyFilterChange("rombel", this.value);
         });
     }
 
     if (filterStatusBayar) {
-        filterStatusBayar.addEventListener("change", function () {
+        filterStatusBayar.addEventListener("change", function (e) {
+            e.stopImmediatePropagation();
             applyFilterChange("status_pembayaran", this.value);
         });
     }
 
     if (filterStatusCetak) {
-        filterStatusCetak.addEventListener("change", function () {
+        filterStatusCetak.addEventListener("change", function (e) {
+            e.stopImmediatePropagation();
             applyFilterChange("status_cetak", this.value);
         });
     }
 
     if (perPageSelect) {
-        perPageSelect.addEventListener("change", function () {
+        perPageSelect.addEventListener("change", function (e) {
+            e.stopImmediatePropagation();
             applyFilterChange("perPage", this.value);
         });
     }

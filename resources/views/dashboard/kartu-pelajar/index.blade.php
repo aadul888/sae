@@ -140,7 +140,7 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select">
+                        <select id="perPageSelect" name="perPage" class="per-page-select">
                             @foreach ([10, 15, 25, 50, 100] as $n)
                                 <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                     {{ $n }}
@@ -150,7 +150,7 @@
                         <span>entri</span>
                     </div>
 
-                    <select id="filterRombel" class="toolbar-filter-select">
+                    <select id="filterRombel" name="rombel" class="toolbar-filter-select">
                         <option value="">Semua Rombel</option>
                         @foreach ($rombelList as $r)
                             <option value="{{ $r->nama }}" {{ $rombel === $r->nama ? 'selected' : '' }}>
@@ -159,14 +159,14 @@
                         @endforeach
                     </select>
 
-                    <select id="filterStatusBayar" class="toolbar-filter-select">
+                    <select id="filterStatusBayar" name="status_pembayaran" class="toolbar-filter-select">
                         <option value="">Semua Status Pembayaran</option>
                         <option value="lunas" {{ $statusBayar === 'lunas' ? 'selected' : '' }}>Lunas</option>
                         <option value="belum_bayar" {{ $statusBayar === 'belum_bayar' ? 'selected' : '' }}>Belum Bayar
                         </option>
                     </select>
 
-                    <select id="filterStatusCetak" class="toolbar-filter-select">
+                    <select id="filterStatusCetak" name="status_cetak" class="toolbar-filter-select">
                         <option value="">Semua Status Cetak</option>
                         <option value="sudah_cetak" {{ $statusCetak === 'sudah_cetak' ? 'selected' : '' }}>Sudah Dicetak
                         </option>
@@ -175,8 +175,8 @@
                     </select>
 
                     @if ($q || $rombel || $statusBayar || $statusCetak)
-                        <a href="{{ route('dashboard.kartu-pelajar.index') }}" class="btn btn-outline"
-                            style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                        <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'siswa']) }}"
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -184,8 +184,8 @@
 
                 <div class="live-search-wrap">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchKartuPelajar" placeholder="Cari nama / NISN / NIPD..."
-                        value="{{ $q }}" autocomplete="off">
+                    <input type="text" id="searchKartuPelajar" name="q"
+                        placeholder="Cari nama / NISN / NIPD..." value="{{ $q }}" autocomplete="off">
                     <button type="button" id="clearSearchKartuPelajar"
                         class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
                         <i class="fas fa-times"></i>
