@@ -1338,13 +1338,23 @@ class KartuPelajarController extends Controller
         }
 
         return response()->json(
-            DB::table('peserta_didik')
+            DB::table('peserta_didik as pd')
+                ->leftJoin('kartu_pelajar_pembayaran as kp', 'pd.peserta_didik_id', '=', 'kp.peserta_didik_id')
                 ->where(function ($s) use ($q) {
-                    $s->where('nama', 'LIKE', "%{$q}%")->orWhere('nisn', 'LIKE', "%{$q}%")->orWhere('nipd', 'LIKE', "%{$q}%");
+                    $s->where('pd.nama', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nipd', 'LIKE', "%{$q}%");
                 })
-                ->orderBy('nama')
+                ->orderBy('pd.nama')
                 ->limit(15)
-                ->get(['peserta_didik_id', 'nama', 'nisn', 'nama_rombel'])
+                ->get([
+                    'pd.peserta_didik_id',
+                    'pd.nama',
+                    'pd.nisn',
+                    'pd.nama_rombel',
+                    DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran"),
+                    'kp.metode_pembayaran',
+                ])
         );
     }
 
@@ -1358,14 +1368,14 @@ class KartuPelajarController extends Controller
         }
 
         $data = $request->validate([
-            'peserta_didik_id' => 'required|string|exists:peserta_didik,peserta_didik_id',
-            'jenis_request'    => 'required|in:' . implode(',', array_keys(KartuPelajarRequest::JENIS)),
-            'alasan'           => 'nullable|string|max:500',
-            'metode_pembayaran' => 'nullable|in:' . implode(',', array_keys(KartuPelajarRequest::METODE_PEMBAYARAN)),
+            'peserta_didik_id'   => 'required|string|exists:peserta_didik,peserta_didik_id',
+            'jenis_request'      => 'required|in:' . implode(',', array_keys(KartuPelajarRequest::JENIS)),
+            'status_pembayaran'  => 'nullable|in:belum_bayar,lunas',
+            'metode_pembayaran'  => 'nullable|in:' . implode(',', array_keys(KartuPelajarRequest::METODE_PEMBAYARAN)),
+            'alasan'             => 'nullable|string|max:500',
         ]);
 
         $pd = DB::table('peserta_didik')->where('peserta_didik_id', $data['peserta_didik_id'])->first();
-        $payment = KartuPelajarPembayaran::where('peserta_didik_id', $pd->peserta_didik_id)->first();
         $user = session('user');
 
         // Cek duplicate request: sama tanggal, sama status, sama peserta_didik
@@ -1379,9 +1389,47 @@ class KartuPelajarController extends Controller
             ->first();
 
         if ($existingRequest) {
+            $msg = "Peserta didik {$pd->nama} sudah memiliki request antrean berstatus Menunggu pada tanggal hari ini.";
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
             return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
-                ->with('error', "Peserta didik {$pd->nama} sudah memiliki request menunggu pada tanggal ini. Silakan gunakan request yang sudah ada.");
+                ->with('error', $msg);
         }
+
+        // Sinkronisasi data pembayaran peserta didik
+        $settings = KartuPelajarPengaturan::getSettings();
+        $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $pd->peserta_didik_id]);
+        $record->nisn = $pd->nisn;
+
+        $hasPaymentChange = false;
+        if (!empty($data['status_pembayaran'])) {
+            $record->status_pembayaran = $data['status_pembayaran'];
+            if ($data['status_pembayaran'] === 'lunas') {
+                if (empty($record->tanggal_bayar)) {
+                    $record->tanggal_bayar = now()->toDateString();
+                }
+            } else {
+                $record->tanggal_bayar = null;
+            }
+            $hasPaymentChange = true;
+        }
+
+        if (!empty($data['metode_pembayaran'])) {
+            $record->metode_pembayaran = $data['metode_pembayaran'];
+            $hasPaymentChange = true;
+        }
+
+        if ($hasPaymentChange) {
+            if (empty($record->nominal)) {
+                $record->nominal = (int) ($settings->biaya_standar ?? 25000);
+            }
+            $record->save();
+        }
+
+        $metodeFinal = !empty($data['metode_pembayaran'])
+            ? $data['metode_pembayaran']
+            : ($record->metode_pembayaran ?: null);
 
         $payload = [
             'peserta_didik_id' => $pd->peserta_didik_id,
@@ -1392,7 +1440,10 @@ class KartuPelajarController extends Controller
             'diminta_oleh'     => is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin'),
         ];
         if (Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran')) {
-            $payload['metode_pembayaran'] = $data['metode_pembayaran'] ?? $payment?->metode_pembayaran;
+            $payload['metode_pembayaran'] = $metodeFinal;
+        }
+        if (Schema::hasColumn('kartu_pelajar_request', 'request_date')) {
+            $payload['request_date'] = now()->toDateString();
         }
 
         KartuPelajarRequest::create($payload);
@@ -1419,6 +1470,27 @@ class KartuPelajarController extends Controller
         ]);
 
         $item = KartuPelajarRequest::findOrFail($id);
+
+        // Validasi cegah request ganda pada tanggal yang sama dengan status yang sama
+        $itemDate = $item->request_date ?? ($item->created_at ? $item->created_at->toDateString() : now()->toDateString());
+        $isDuplicate = KartuPelajarRequest::where('id', '!=', $item->id)
+            ->where('peserta_didik_id', $item->peserta_didik_id)
+            ->where('status', $data['status'])
+            ->when(
+                Schema::hasColumn('kartu_pelajar_request', 'request_date'),
+                fn($query) => $query->where('request_date', $itemDate),
+                fn($query) => $query->whereDate('created_at', $itemDate)
+            )
+            ->exists();
+
+        if ($isDuplicate) {
+            $msg = "Sudah ada request lain untuk siswa ini pada tanggal tersebut dengan status " . (KartuPelajarRequest::STATUS[$data['status']] ?? $data['status']) . ".";
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])->with('error', $msg);
+        }
+
         $item->status = $data['status'];
         if (array_key_exists('catatan_admin', $data)) {
             $item->catatan_admin = $data['catatan_admin'];

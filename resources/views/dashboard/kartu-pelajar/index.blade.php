@@ -559,9 +559,10 @@
                             <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
                                 <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
                                     <form action="{{ route('dashboard.kartu-pelajar.update-request', $rq->id) }}"
-                                        method="POST" style="margin: 0;">
+                                        method="POST" class="form-update-request-status" style="margin: 0;">
                                         @csrf
-                                        <select name="status" class="form-control"
+                                        <select name="status" class="form-control select-request-status"
+                                            data-current="{{ $rq->status }}"
                                             style="min-width: 110px; height: 32px; padding: 0 8px; font-size: 0.78rem;">
                                             @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
                                                 <option value="{{ $stKey }}"
@@ -571,7 +572,8 @@
                                         </select>
                                     </form>
                                     <form action="{{ route('dashboard.kartu-pelajar.destroy-request', $rq->id) }}"
-                                        method="POST" class="delete-request-form" style="margin: 0;">
+                                        method="POST" class="delete-request-form form-destroy-request"
+                                        style="margin: 0;">
                                         @csrf
                                         <button type="submit" class="btn-icon" style="color: #ef4444;"
                                             title="Hapus Request"><i class="fas fa-trash-alt"></i></button>
@@ -2107,16 +2109,28 @@
                         </select>
                     </div>
 
-                    <div class="kp-form-group">
-                        <label class="kp-form-label" for="rqMetodePembayaran">Metode Pembayaran</label>
-                        <select id="rqMetodePembayaran" name="metode_pembayaran" class="form-control">
-                            <option value="">Ikuti data pembayaran peserta didik</option>
-                            @foreach (\App\Models\KartuPelajarRequest::METODE_PEMBAYARAN as $mKey => $mVal)
-                                <option value="{{ $mKey }}">{{ $mVal }}</option>
-                            @endforeach
-                        </select>
-                        <div class="kp-form-hint">Jika kosong, antrean mengikuti metode pembayaran di tab Data Peserta
-                            Didik.</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="rqStatusPembayaran">Status Pembayaran</label>
+                            <select id="rqStatusPembayaran" name="status_pembayaran" class="form-control">
+                                <option value="">Ikuti data peserta didik</option>
+                                <option value="belum_bayar">Belum Bayar</option>
+                                <option value="lunas">Lunas</option>
+                            </select>
+                        </div>
+
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="rqMetodePembayaran">Metode Pembayaran</label>
+                            <select id="rqMetodePembayaran" name="metode_pembayaran" class="form-control">
+                                <option value="">Ikuti data peserta didik</option>
+                                @foreach (\App\Models\KartuPelajarRequest::METODE_PEMBAYARAN as $mKey => $mVal)
+                                    <option value="{{ $mKey }}">{{ $mVal }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="kp-form-hint" style="margin-top: -6px; margin-bottom: 12px;">
+                        Jika diisi/diubah, status &amp; metode pembayaran peserta didik otomatis tersinkronisasi.
                     </div>
 
                     <div class="kp-form-group">

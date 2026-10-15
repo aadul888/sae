@@ -902,6 +902,8 @@ document.addEventListener("DOMContentLoaded", function () {
             document.body.style.overflow = "hidden";
             document.getElementById("formTambahRequest")?.reset();
             document.getElementById("rqPdId") && (document.getElementById("rqPdId").value = "");
+            document.getElementById("rqStatusPembayaran") && (document.getElementById("rqStatusPembayaran").value = "");
+            document.getElementById("rqMetodePembayaran") && (document.getElementById("rqMetodePembayaran").value = "");
             document.getElementById("rqPilihInfo") && (document.getElementById("rqPilihInfo").textContent = "Belum ada peserta didik dipilih.");
             document.getElementById("rqSubmit") && (document.getElementById("rqSubmit").disabled = true);
             document.getElementById("rqCari")?.focus();
@@ -948,7 +950,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                     const rows = await res.json();
                     list.innerHTML = rows.length
-                        ? rows.map((r) => `<button type="button" class="kp-ac-item" data-id="${esc(r.peserta_didik_id)}" data-label="${esc(r.nama)} (${esc(r.nama_rombel || "-")})">${esc(r.nama)}<small>${esc(r.nama_rombel || "-")} &bull; NISN: ${esc(r.nisn || "-")}</small></button>`).join("")
+                        ? rows.map((r) => {
+                            const stText = r.status_pembayaran === 'lunas' ? 'Lunas' : 'Belum Bayar';
+                            const stColor = r.status_pembayaran === 'lunas' ? '#10b981' : '#f59e0b';
+                            const mtText = r.metode_pembayaran ? ' &bull; ' + esc(r.metode_pembayaran.toUpperCase()) : '';
+                            return `<button type="button" class="kp-ac-item" data-id="${esc(r.peserta_didik_id)}" data-label="${esc(r.nama)} (${esc(r.nama_rombel || "-")})" data-status="${esc(r.status_pembayaran || 'belum_bayar')}" data-metode="${esc(r.metode_pembayaran || '')}">
+                                ${esc(r.nama)}
+                                <small>${esc(r.nama_rombel || "-")} &bull; NISN: ${esc(r.nisn || "-")} &bull; <span style="color:${stColor}; font-weight:700;">${stText}</span>${mtText}</small>
+                            </button>`;
+                        }).join("")
                         : '<div class="kp-ac-item" style="cursor:default;">Tidak ditemukan.</div>';
                     list.style.display = "block";
                 } catch (e) {
@@ -962,7 +972,20 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!btn) return;
             hidden.value = btn.dataset.id;
             input.value = btn.dataset.label;
-            if (info) info.textContent = "Dipilih: " + btn.dataset.label;
+            const curStatus = btn.dataset.status || "belum_bayar";
+            const curMetode = btn.dataset.metode || "";
+            if (document.getElementById("rqStatusPembayaran")) {
+                document.getElementById("rqStatusPembayaran").value = curStatus;
+            }
+            if (document.getElementById("rqMetodePembayaran")) {
+                document.getElementById("rqMetodePembayaran").value = curMetode;
+            }
+            if (info) {
+                const badgeClass = curStatus === 'lunas' ? 'badge-success' : 'badge-warning';
+                const stText = curStatus === 'lunas' ? 'LUNAS' : 'BELUM BAYAR';
+                const mtText = curMetode ? ` (${curMetode.toUpperCase()})` : '';
+                info.innerHTML = `Dipilih: <strong>${esc(btn.dataset.label)}</strong> &bull; Status saat ini: <span class="badge ${badgeClass}" style="font-size:0.7rem; padding:1px 6px;">${stText}${mtText}</span>`;
+            }
             if (submit) submit.disabled = false;
             list.style.display = "none";
         });
@@ -1192,59 +1215,92 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Delegated handler: status select change -> AJAX submit
-    document.addEventListener("change", function (e) {
+    document.addEventListener("change", async function (e) {
         const sel = e.target;
-        if (sel && sel.matches('select[name="status"]') && !sel.hasAttribute("data-no-ajax") && sel.closest('form[action*="update-request"]')) {
+        if (sel && sel.name === "status" && sel.closest(".form-update-request-status, form[action*='/request/']")) {
             const form = sel.closest("form");
             if (!form) return;
             e.preventDefault();
+            const originalVal = sel.dataset.current || sel.value;
+            const newStatus = sel.value;
+            sel.disabled = true;
+
             const formData = new FormData(form);
-            formData.append("_method", "PUT");
-            fetch(form.action, {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                    "X-Requested-With": "XMLHttpRequest",
-                    Accept: "application/json",
-                },
-                body: new URLSearchParams(formData),
-            }).then(r => r.json()).then(data => {
-                if (data.success) {
+            try {
+                const res = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "application/json",
+                    },
+                    body: new URLSearchParams(formData),
+                });
+                const data = await res.json();
+                sel.disabled = false;
+
+                if (res.ok && data.success) {
+                    sel.dataset.current = newStatus;
+                    if (window.SAE && typeof window.SAE.toast === "function") {
+                        window.SAE.toast(data.message, "success");
+                    }
                     if (typeof window.refreshLiveTable === "function") {
                         window.refreshLiveTable(window.location.href);
                     }
                 } else {
+                    sel.value = originalVal;
                     Swal.fire("Gagal", data.message || "Gagal memperbarui status.", "error");
                 }
-            }).catch(() => Swal.fire("Error", "Gagal menghubungi server.", "error"));
+            } catch (err) {
+                sel.disabled = false;
+                sel.value = originalVal;
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
         }
     });
 
     // Delegated handler: delete request -> AJAX
-    document.addEventListener("submit", function (e) {
+    document.addEventListener("submit", async function (e) {
         const form = e.target;
-        if (form && form.matches('form[action*="destroy-request"]')) {
+        if (form && form.matches(".delete-request-form, .form-destroy-request, form[action*='/delete']")) {
             e.preventDefault();
-            if (!confirm("Hapus request ini?")) return;
+            const result = await Swal.fire({
+                title: "Hapus Request?",
+                text: "Data antrean cetak kartu ini akan dihapus permanen.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#ef4444",
+                cancelButtonColor: "#64748b",
+                confirmButtonText: "Ya, Hapus!",
+                cancelButtonText: "Batal",
+            });
+            if (!result.isConfirmed) return;
+
             const formData = new FormData(form);
-            formData.append("_method", "DELETE");
-            fetch(form.action, {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": csrfToken,
-                    "X-Requested-With": "XMLHttpRequest",
-                    Accept: "application/json",
-                },
-                body: new URLSearchParams(formData),
-            }).then(r => r.json()).then(data => {
-                if (data.success) {
+            try {
+                const res = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "application/json",
+                    },
+                    body: new URLSearchParams(formData),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    if (window.SAE && typeof window.SAE.toast === "function") {
+                        window.SAE.toast(data.message, "success");
+                    }
                     if (typeof window.refreshLiveTable === "function") {
                         window.refreshLiveTable(window.location.href);
                     }
                 } else {
                     Swal.fire("Gagal", data.message || "Gagal menghapus request.", "error");
                 }
-            }).catch(() => Swal.fire("Error", "Gagal menghubungi server.", "error"));
+            } catch (err) {
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
         }
     });
 

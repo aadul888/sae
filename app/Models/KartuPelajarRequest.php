@@ -14,6 +14,7 @@ class KartuPelajarRequest extends Model
         'jenis_request',
         'alasan',
         'status',
+        'request_date',
         'metode_pembayaran',
         'catatan_admin',
         'diminta_oleh',
