@@ -219,6 +219,7 @@ class PipController extends Controller
 
         $q = trim((string) $request->get('q', ''));
         $statusVerif = trim((string) $request->get('status_verifikasi', ''));
+        $jenisSkFilter = trim((string) $request->get('jenis_sk', ''));
         $perPageVal = $request->get('perPage', '15');
         $perPage = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 15;
 
