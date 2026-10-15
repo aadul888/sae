@@ -65,14 +65,16 @@
                 @csrf
                 <div class="kp-modal-body">
                     <div class="kp-form-group">
-                        <label class="kp-form-label" for="pipJenisSk">Jenis SK SiPintar <span class="req">*</span></label>
+                        <label class="kp-form-label" for="pipJenisSk">Jenis SK SiPintar <span
+                                class="req">*</span></label>
                         <select id="pipJenisSk" name="jenis_sk" class="form-control" required style="font-weight: 700;"
                             onchange="pipOnJenisSkChange(this.value)">
                             <option value="pemberian" selected>SK Pemberian (Pencairan Dana PIP)</option>
                             <option value="nominasi">SK Nominasi (Aktivasi Rekening Siswa Baru/Penerima Baru)</option>
                         </select>
                         <div class="kp-form-hint" id="pipJenisSkHint" style="margin-top: 4px; font-weight: 600;">
-                            <i class="fas fa-check-circle text-success me-1"></i> SK Pemberian: Menyimpan data penerima resmi beserta status pencairan dana.
+                            <i class="fas fa-check-circle text-success me-1"></i> SK Pemberian: Menyimpan data penerima
+                            resmi beserta status pencairan dana.
                         </div>
                     </div>
 
@@ -84,7 +86,8 @@
                         <div class="kp-form-hint">
                             Mendukung file unduhan langsung dari SiPintar (.xls, .xlsx, .csv, maks. 30 MB).<br>
                             <span id="pipValidationRuleHint" style="color: var(--primary); font-weight: 600;">
-                                &bull; Pada SK Nominasi, sistem otomatis memvalidasi agar peserta didik yang sudah ada di SK Pemberian tidak tersimpan ganda.
+                                &bull; Pada SK Nominasi, sistem otomatis memvalidasi agar peserta didik yang sudah ada
+                                di SK Pemberian tidak tersimpan ganda.
                             </span>
                         </div>
                     </div>
@@ -114,11 +117,13 @@
                 <div class="kp-modal-body">
                     <div class="kp-form-group">
                         <label class="kp-form-label" for="rwJenisSk">Jenis SK <span class="req">*</span></label>
-                        <select id="rwJenisSk" name="jenis_sk" class="form-control" required style="font-weight: 700;">
+                        <select id="rwJenisSk" name="jenis_sk" class="form-control" required
+                            style="font-weight: 700;">
                             <option value="pemberian" selected>SK Pemberian (Pencairan Dana)</option>
                             <option value="nominasi">SK Nominasi (Aktivasi Rekening)</option>
                         </select>
-                        <div class="kp-form-hint">Khusus SK Nominasi: Siswa yang sudah ada pada SK Pemberian akan divalidasi dan ditolak.</div>
+                        <div class="kp-form-hint">Khusus SK Nominasi: Siswa yang sudah ada pada SK Pemberian akan
+                            divalidasi dan ditolak.</div>
                     </div>
 
                     <div class="kp-form-group">
@@ -170,7 +175,8 @@
                                 maxlength="50" placeholder="Sudah Cair / Belum Cair / dsb.">
                         </div>
                         <div class="kp-form-group" style="grid-column: span 2;">
-                            <label class="kp-form-label" for="rwAktivasi">Tanggal Aktivasi Rekening (Khusus Nominasi)</label>
+                            <label class="kp-form-label" for="rwAktivasi">Tanggal Aktivasi Rekening (Khusus
+                                Nominasi)</label>
                             <input type="text" id="rwAktivasi" name="tanggal_aktivasi" class="form-control"
                                 maxlength="30" placeholder="YYYY-MM-DD atau sesuai dokumen bank">
                         </div>

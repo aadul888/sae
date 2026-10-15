@@ -293,7 +293,8 @@
                     @endif
                     <td style="padding: 10px 14px; text-align: center;" data-label="Prioritas">
                         <div class="pip-priority-stepper">
-                            <button type="button" class="pip-stepper-btn pip-btn-up" title="Naikkan prioritas (Urutan lebih awal)"
+                            <button type="button" class="pip-stepper-btn pip-btn-up"
+                                title="Naikkan prioritas (Urutan lebih awal)"
                                 onclick="pipMovePrioritas({{ $u->id }}, 'up')">
                                 <i class="fas fa-chevron-up"></i>
                             </button>
@@ -304,7 +305,8 @@
                                     data-current="{{ $u->prioritas }}"
                                     title="Ketik angka urutan lalu tekan Enter / klik di luar">
                             </div>
-                            <button type="button" class="pip-stepper-btn pip-btn-down" title="Turunkan prioritas (Urutan berikutnya)"
+                            <button type="button" class="pip-stepper-btn pip-btn-down"
+                                title="Turunkan prioritas (Urutan berikutnya)"
                                 onclick="pipMovePrioritas({{ $u->id }}, 'down')">
                                 <i class="fas fa-chevron-down"></i>
                             </button>

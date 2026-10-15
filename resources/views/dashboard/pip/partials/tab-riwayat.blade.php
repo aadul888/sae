@@ -66,8 +66,10 @@
 
             <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select">
                 <option value="">Semua Jenis SK</option>
-                <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK Pemberian</option>
-                <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK Nominasi</option>
+                <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK Pemberian
+                </option>
+                <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK Nominasi
+                </option>
             </select>
 
             @if ($isAdmin)
@@ -144,7 +146,9 @@
             @forelse ($riwayatList as $r)
                 @php
                     $isNominasi = ($r->jenis_sk ?? 'pemberian') === 'nominasi';
-                    $cair = stripos((string) $r->status_cair, 'cair') !== false && stripos((string) $r->status_cair, 'belum') === false;
+                    $cair =
+                        stripos((string) $r->status_cair, 'cair') !== false &&
+                        stripos((string) $r->status_cair, 'belum') === false;
                 @endphp
                 <tr style="border-bottom: 1px solid var(--border-color);">
                     <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;" data-label="No">
