@@ -1172,15 +1172,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             const formData = new FormData(formTambahRequest);
+            const payload = Object.fromEntries(formData.entries());
+
             try {
                 const res = await fetch(formTambahRequest.action, {
                     method: "POST",
                     headers: {
+                        "Content-Type": "application/json",
                         "X-CSRF-TOKEN": csrfToken,
                         "X-Requested-With": "XMLHttpRequest",
                         Accept: "application/json",
                     },
-                    body: new URLSearchParams(formData),
+                    body: JSON.stringify(payload),
                 });
                 const data = await res.json();
                 if (btnSubmit) {
@@ -1190,19 +1193,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (res.ok && data.success) {
                     closeTambahRequest();
-                    Swal.fire({
-                        icon: "success",
-                        title: "Berhasil!",
-                        text: data.message,
-                        timer: 1500,
-                        showConfirmButton: false,
-                    }).then(() => {
-                        if (typeof window.refreshLiveTable === "function") {
-                            window.refreshLiveTable(window.location.href);
-                        }
-                    });
+                    if (window.SAE && typeof window.SAE.toast === "function") {
+                        window.SAE.toast(data.message, "success");
+                    }
+                    if (typeof window.refreshLiveTable === "function") {
+                        window.refreshLiveTable(window.location.href);
+                    }
                 } else {
-                    Swal.fire("Gagal", data.message || "Terjadi kesalahan sistem.", "error");
+                    const errorMsg = data.errors
+                        ? Object.values(data.errors).flat().join(" ")
+                        : (data.message || "Terjadi kesalahan sistem.");
+                    Swal.fire("Gagal", errorMsg, "error");
                 }
             } catch (err) {
                 if (btnSubmit) {
@@ -1223,18 +1224,25 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             const originalVal = sel.dataset.current || sel.value;
             const newStatus = sel.value;
+
+            // Jangan disable elemen sebelum mengambil nilai
+            const payload = {
+                status: newStatus,
+                _token: csrfToken,
+            };
+
             sel.disabled = true;
 
-            const formData = new FormData(form);
             try {
                 const res = await fetch(form.action, {
                     method: "POST",
                     headers: {
+                        "Content-Type": "application/json",
                         "X-CSRF-TOKEN": csrfToken,
                         "X-Requested-With": "XMLHttpRequest",
                         Accept: "application/json",
                     },
-                    body: new URLSearchParams(formData),
+                    body: JSON.stringify(payload),
                 });
                 const data = await res.json();
                 sel.disabled = false;
@@ -1249,7 +1257,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 } else {
                     sel.value = originalVal;
-                    Swal.fire("Gagal", data.message || "Gagal memperbarui status.", "error");
+                    const errorMsg = data.errors && data.errors.status
+                        ? data.errors.status.join(" ")
+                        : (data.message || "Gagal memperbarui status.");
+                    Swal.fire("Gagal", errorMsg, "error");
                 }
             } catch (err) {
                 sel.disabled = false;
@@ -1276,16 +1287,16 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             if (!result.isConfirmed) return;
 
-            const formData = new FormData(form);
             try {
                 const res = await fetch(form.action, {
                     method: "POST",
                     headers: {
+                        "Content-Type": "application/json",
                         "X-CSRF-TOKEN": csrfToken,
                         "X-Requested-With": "XMLHttpRequest",
                         Accept: "application/json",
                     },
-                    body: new URLSearchParams(formData),
+                    body: JSON.stringify({ _token: csrfToken }),
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {

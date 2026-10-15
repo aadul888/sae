@@ -1373,6 +1373,13 @@ class KartuPelajarController extends Controller
             'status_pembayaran'  => 'nullable|in:belum_bayar,lunas',
             'metode_pembayaran'  => 'nullable|in:' . implode(',', array_keys(KartuPelajarRequest::METODE_PEMBAYARAN)),
             'alasan'             => 'nullable|string|max:500',
+        ], [
+            'peserta_didik_id.required' => 'Peserta didik wajib dipilih.',
+            'peserta_didik_id.exists'   => 'Peserta didik tidak ditemukan.',
+            'jenis_request.required'    => 'Jenis request wajib dipilih.',
+            'jenis_request.in'          => 'Pilihan jenis request tidak valid.',
+            'status_pembayaran.in'      => 'Status pembayaran tidak valid.',
+            'metode_pembayaran.in'      => 'Metode pembayaran tidak valid.',
         ]);
 
         $pd = DB::table('peserta_didik')->where('peserta_didik_id', $data['peserta_didik_id'])->first();
@@ -1467,6 +1474,9 @@ class KartuPelajarController extends Controller
         $data = $request->validate([
             'status'        => 'required|in:' . implode(',', array_keys(KartuPelajarRequest::STATUS)),
             'catatan_admin' => 'nullable|string|max:500',
+        ], [
+            'status.required' => 'Status request wajib dipilih.',
+            'status.in'       => 'Pilihan status request tidak valid.',
         ]);
 
         $item = KartuPelajarRequest::findOrFail($id);
