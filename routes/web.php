@@ -523,6 +523,19 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/kartu-pelajar/cetak-keuangan', [\App\Http\Controllers\KartuPelajarController::class, 'printLaporanKeuangan'])->name('kartu-pelajar.cetak-keuangan');
     Route::get('/kartu-pelajar/cetak-pengambilan', [\App\Http\Controllers\KartuPelajarController::class, 'printPengambilan'])->name('kartu-pelajar.cetak-pengambilan');
 
+    // Modul Pengelolaan Usulan & Riwayat PIP (Wali Kelas & Admin)
+    Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index');
+    Route::get('/pip/cari-siswa', [\App\Http\Controllers\PipController::class, 'cariSiswa'])->name('pip.cari-siswa');
+    Route::post('/pip/usulan', [\App\Http\Controllers\PipController::class, 'storeUsulan'])->name('pip.store-usulan');
+    Route::post('/pip/usulan/prioritas', [\App\Http\Controllers\PipController::class, 'updatePrioritas'])->name('pip.update-prioritas');
+    Route::match(['post', 'delete'], '/pip/usulan/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyUsulan'])->name('pip.destroy-usulan');
+    Route::post('/pip/usulan/{id}/verifikasi', [\App\Http\Controllers\PipController::class, 'updateVerifikasi'])->name('pip.update-verifikasi');
+    Route::post('/pip/usulan/bulk-verifikasi', [\App\Http\Controllers\PipController::class, 'bulkVerifikasi'])->name('pip.bulk-verifikasi');
+    Route::post('/pip/kuota', [\App\Http\Controllers\PipController::class, 'updateKuota'])->name('pip.update-kuota');
+    Route::post('/pip/riwayat/import', [\App\Http\Controllers\PipController::class, 'importRiwayatExcel'])->name('pip.import-riwayat');
+    Route::post('/pip/riwayat', [\App\Http\Controllers\PipController::class, 'storeRiwayatManual'])->name('pip.store-riwayat');
+    Route::match(['post', 'delete'], '/pip/riwayat/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyRiwayat'])->name('pip.destroy-riwayat');
+
     // Arsip & Maintenance (Hanya Admin)
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance,read');
     Route::get('/maintenance/download', [\App\Http\Controllers\MaintenanceController::class, 'downloadArchive'])->name('maintenance.download')->middleware('permission:menu_maintenance,read');

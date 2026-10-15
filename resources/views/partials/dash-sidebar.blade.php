@@ -1849,6 +1849,12 @@
                         <span class="nav-label">Input Jadwal KBM</span>
                     </a>
                 @endif
+
+                <a href="{{ route('dashboard.pip.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.pip*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding-dollar"></i></span>
+                    <span class="nav-label">Usulan PIP</span>
+                </a>
             </div>
         </div>
     @endif
@@ -1873,6 +1879,7 @@
                 request()->routeIs('dashboard.rfid.*') ||
                 request()->routeIs('dashboard.rfid') ||
                 request()->routeIs('dashboard.kartu-pelajar.*') ||
+                request()->routeIs('dashboard.pip.*') ||
                 (request()->routeIs('dashboard.agenda.*') &&
                     !request()->routeIs('dashboard.agenda-kbm.*') &&
                     !request()->routeIs('dashboard.agenda-kbm')) ||
@@ -1925,6 +1932,14 @@
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.kartu-pelajar.*') ? 'active' : '' }}">
                         <span class="nav-icon sub-icon"><i class="fas fa-fw fa-address-card"></i></span>
                         <span class="nav-label">Kartu Pelajar</span>
+                    </a>
+                @endif
+
+                @if ($role === 'admin' || $canRole('menu_pip'))
+                    <a href="{{ route('dashboard.pip.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.pip.*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding-dollar"></i></span>
+                        <span class="nav-label">Usulan &amp; Riwayat PIP</span>
                     </a>
                 @endif
             </div>

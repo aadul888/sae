@@ -403,6 +403,11 @@ class RolePermission extends Model
                     'icon' => 'fa-address-card',
                     'roles' => ['admin'],
                 ],
+                'menu_pip' => [
+                    'label' => 'Usulan & Riwayat PIP',
+                    'icon' => 'fa-hand-holding-dollar',
+                    'roles' => ['admin'],
+                ],
                 'menu_poin' => [
                     'label' => 'Poin & Kedisiplinan',
                     'icon' => 'fa-award',
