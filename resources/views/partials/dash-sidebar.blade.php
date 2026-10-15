@@ -125,7 +125,8 @@
             $can('menu_wali_kelas_aktif') ||
             $can('menu_wali_kelas_tidak_aktif') ||
             $can('menu_wali_kelas_presensi') ||
-            $can('menu_wali_kelas_jadwal'));
+            $can('menu_wali_kelas_jadwal') ||
+            $can('menu_wali_kelas_pip'));
     $waliKelasRombelName = in_array($role, ['guru', 'peserta_didik'], true)
         ? \App\Models\RolePermission::getWaliKelasRombel($user)
         : null;
@@ -146,6 +147,7 @@
         'menu_wali_kelas_tidak_aktif',
         'menu_wali_kelas_presensi',
         'menu_wali_kelas_jadwal',
+        'menu_wali_kelas_pip',
         'menu_guru_aktif',
         'menu_guru_tidak_aktif',
         'menu_tendik_aktif',
@@ -1793,6 +1795,7 @@
                 request()->routeIs('dashboard.wali-kelas.peserta-didik-tidak-aktif*') ||
                 request()->routeIs('dashboard.wali-kelas.*') ||
                 request()->routeIs('dashboard.wali-kelas') ||
+                (request()->routeIs('dashboard.pip*') && !($role === 'admin' && empty($activeRombel))) ||
                 (request()->routeIs('dashboard.tugas-tambahan.show') && request()->route('kode') === 'wali-kelas');
         @endphp
         <div class="dash-nav-group {{ $isWaliKelasActive ? 'open active-group' : '' }}">
@@ -1850,11 +1853,13 @@
                     </a>
                 @endif
 
-                <a href="{{ route('dashboard.pip.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.pip*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding-dollar"></i></span>
-                    <span class="nav-label">Usulan PIP</span>
-                </a>
+                @if ($can('menu_wali_kelas_pip') || $can('menu_wali_kelas') || $can('menu_pip'))
+                    <a href="{{ route('dashboard.pip.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.pip*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-hand-holding-dollar"></i></span>
+                        <span class="nav-label">Usulan PIP</span>
+                    </a>
+                @endif
             </div>
         </div>
     @endif

@@ -25,8 +25,17 @@ class PipController extends Controller
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $isAdmin = ($role === 'admin');
 
-        // Hanya Administrator dan Guru (Wali Kelas) yang berhak mengakses modul PIP
-        if (!$isAdmin && $role !== 'guru') {
+        // Hak akses: Admin memiliki akses penuh; Wali Kelas harus memiliki tugas tambahan Wali Kelas atau izin menu_wali_kelas_pip
+        $isWaliKelas = RolePermission::isWaliKelasOrAdmin($user);
+        $canAccessPip = $isAdmin || (
+            $isWaliKelas && (
+                RolePermission::canAccess($user, 'menu_wali_kelas_pip', 'read') ||
+                RolePermission::canAccess($user, 'menu_wali_kelas', 'read') ||
+                RolePermission::canAccess($user, 'menu_pip', 'read')
+            )
+        );
+
+        if (!$canAccessPip) {
             abort(403, 'Akses ditolak: Menu Usulan PIP khusus untuk Wali Kelas dan Administrator.');
         }
 
@@ -48,6 +57,9 @@ class PipController extends Controller
             }
         } else {
             $activeRombel = RolePermission::getWaliKelasRombelInfo($user);
+            if (!$activeRombel) {
+                abort(403, 'Akses ditolak: Anda tidak memiliki rombongan belajar binaan aktif sebagai Wali Kelas.');
+            }
         }
 
         $activeTahun = (string) $request->get('tahun', date('Y'));
@@ -56,6 +68,7 @@ class PipController extends Controller
             'user'         => $user,
             'role'         => $role,
             'isAdmin'      => $isAdmin,
+            'isWaliKelas'  => $isWaliKelas,
             'rombelList'   => $rombelList,
             'activeRombel' => $activeRombel,
             'activeTahun'  => $activeTahun,
@@ -477,6 +490,10 @@ class PipController extends Controller
         $activeRombel = $ctx['activeRombel'];
         $user = $ctx['user'];
 
+        if (!$isAdmin && !RolePermission::canAccess($user, 'menu_wali_kelas_pip', 'create') && !RolePermission::canAccess($user, 'menu_wali_kelas', 'create')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin menambah usulan PIP.'], 403);
+        }
+
         $data = $request->validate([
             'peserta_didik_id' => 'required|string|exists:peserta_didik,peserta_didik_id',
             'alasan_usulan'    => 'required|array|min:1',
@@ -552,6 +569,11 @@ class PipController extends Controller
      */
     public function updatePrioritas(Request $request): JsonResponse
     {
+        $ctx = $this->resolveContext($request);
+        if (!$ctx['isAdmin'] && !RolePermission::canAccess($ctx['user'], 'menu_wali_kelas_pip', 'update') && !RolePermission::canAccess($ctx['user'], 'menu_wali_kelas', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin mengubah prioritas usulan PIP.'], 403);
+        }
+
         $data = $request->validate([
             'id'        => 'required|integer|exists:pip_usulan,id',
             'direction' => 'nullable|in:up,down',
@@ -623,6 +645,11 @@ class PipController extends Controller
      */
     public function destroyUsulan(Request $request, int $id): JsonResponse
     {
+        $ctx = $this->resolveContext($request);
+        if (!$ctx['isAdmin'] && !RolePermission::canAccess($ctx['user'], 'menu_wali_kelas_pip', 'delete') && !RolePermission::canAccess($ctx['user'], 'menu_wali_kelas', 'delete')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin menghapus usulan PIP.'], 403);
+        }
+
         $item = PipUsulan::findOrFail($id);
         if ($deny = $this->authorizeUsulan($request, $item)) {
             return $deny;

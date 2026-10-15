@@ -524,7 +524,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/kartu-pelajar/cetak-pengambilan', [\App\Http\Controllers\KartuPelajarController::class, 'printPengambilan'])->name('kartu-pelajar.cetak-pengambilan');
 
     // Modul Pengelolaan Usulan & Riwayat PIP (Wali Kelas & Admin)
-    Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index');
+    Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index')->middleware('permission:menu_wali_kelas_pip|menu_pip,read');
     Route::get('/pip/cari-siswa', [\App\Http\Controllers\PipController::class, 'cariSiswa'])->name('pip.cari-siswa');
     Route::post('/pip/usulan', [\App\Http\Controllers\PipController::class, 'storeUsulan'])->name('pip.store-usulan');
     Route::post('/pip/usulan/prioritas', [\App\Http\Controllers\PipController::class, 'updatePrioritas'])->name('pip.update-prioritas');
@@ -557,6 +557,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
         // Input Jadwal KBM Manual Kelas Binaan
         Route::get('/jadwal', [\App\Http\Controllers\JadwalKbmManualController::class, 'index'])->name('jadwal.index')->middleware('permission:menu_wali_kelas_jadwal,read');
+
+        // Usulan & Riwayat PIP Kelas Binaan
+        Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index')->middleware('permission:menu_wali_kelas_pip,read');
     });
 
     // Realtime Server-Sent Events (SSE) & Polling Fallback
