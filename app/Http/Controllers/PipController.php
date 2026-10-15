@@ -191,7 +191,11 @@ class PipController extends Controller
         }
 
         // Total pagu kuota seluruh sekolah
-        $totalPaguSekolah = (int) DB::table('pip_kuota_rombel')->where('tahun', $activeTahun)->sum('kuota');
+        $targetPaguStored = PipKuotaRombel::getTargetTotalSekolah($activeTahun);
+        $totalPaguSekolah = $targetPaguStored ?? (int) DB::table('pip_kuota_rombel')
+            ->where('tahun', $activeTahun)
+            ->where('rombongan_belajar_id', '!=', '__TOTAL__')
+            ->sum('kuota');
         if ($totalPaguSekolah === 0 && $rombelList->isNotEmpty()) {
             $totalPaguSekolah = $rombelList->count() * 5;
         }
@@ -210,18 +214,24 @@ class PipController extends Controller
         // 2. Data Tab: Kuota per Rombel (Admin Only)
         $kuotaList = null;
         $kuotaStats = [
-            'total_kuota'     => 0,
-            'total_terpakai'  => 0,
-            'total_sisa'      => 0,
-            'total_rombel'    => 0,
-            'rombel_penuh'    => 0,
-            'rombel_tersedia' => 0,
+            'target_total'     => $totalPaguSekolah,
+            'total_teralokasi' => 0,
+            'selisih'          => 0,
+            'status_selisih'   => 'pas', // 'pas', 'kelebihan', 'kurang'
+            'selisih_label'    => 'Pas',
+            'selisih_text'     => 'Alokasi kuota sesuai 100% target sekolah',
+            'total_terpakai'   => 0,
+            'total_sisa'       => 0,
+            'total_rombel'     => 0,
+            'rombel_penuh'     => 0,
+            'rombel_tersedia'  => 0,
         ];
 
         if ($isAdmin && $tab === 'kuota') {
             $allRombelData = $rombelList;
             $existingKuota = DB::table('pip_kuota_rombel')
                 ->where('tahun', $activeTahun)
+                ->where('rombongan_belajar_id', '!=', '__TOTAL__')
                 ->pluck('kuota', 'rombongan_belajar_id')
                 ->all();
 
@@ -241,20 +251,62 @@ class PipController extends Controller
                 return $r;
             });
 
-            $kuotaStats['total_kuota'] = (int) $mapped->sum('kuota');
-            $kuotaStats['total_terpakai'] = (int) $mapped->sum('terpakai');
-            $kuotaStats['total_sisa'] = max(0, $kuotaStats['total_kuota'] - $kuotaStats['total_terpakai']);
-            $kuotaStats['total_rombel'] = $mapped->count();
-            $kuotaStats['rombel_penuh'] = $mapped->where('sisa', '<=', 0)->count();
-            $kuotaStats['rombel_tersedia'] = $mapped->where('sisa', '>', 0)->count();
+            $totalTeralokasi = (int) $mapped->sum('kuota');
+            $targetSekolah = $targetPaguStored ?? $totalTeralokasi;
+            $selisih = $totalTeralokasi - $targetSekolah;
+
+            $statusSelisih = 'pas';
+            $selisihLabel = '0 (Pas)';
+            $selisihText = 'Alokasi kuota pas sesuai target pagu sekolah (100%).';
+
+            if ($selisih > 0) {
+                $statusSelisih = 'kelebihan';
+                $selisihLabel = '+' . $selisih . ' Siswa';
+                $selisihText = "Kelebihan {$selisih} siswa dari target pagu sekolah ({$targetSekolah} siswa).";
+            } elseif ($selisih < 0) {
+                $statusSelisih = 'kurang';
+                $selisihLabel = $selisih . ' Siswa';
+                $selisihText = 'Kurang ' . abs($selisih) . " siswa untuk memenuhi target pagu sekolah ({$targetSekolah} siswa).";
+            }
+
+            $kuotaStats = [
+                'target_total'     => $targetSekolah,
+                'total_teralokasi' => $totalTeralokasi,
+                'selisih'          => $selisih,
+                'status_selisih'   => $statusSelisih,
+                'selisih_label'    => $selisihLabel,
+                'selisih_text'     => $selisihText,
+                'total_terpakai'   => (int) $mapped->sum('terpakai'),
+                'total_sisa'       => max(0, $targetSekolah - (int) $mapped->sum('terpakai')),
+                'total_rombel'     => $mapped->count(),
+                'rombel_penuh'     => $mapped->where('sisa', '<=', 0)->count(),
+                'rombel_tersedia'  => $mapped->where('sisa', '>', 0)->count(),
+            ];
 
             if ($q !== '') {
-                $kuotaList = $mapped->filter(function ($r) use ($q) {
+                $filtered = $mapped->filter(function ($r) use ($q) {
                     return stripos($r->nama, $q) !== false || stripos($r->tingkat_pendidikan_id_str, $q) !== false;
-                });
+                })->values();
             } else {
-                $kuotaList = $mapped;
+                $filtered = $mapped->values();
             }
+
+            // Datatable Global Pagination untuk Kuota per Kelas
+            $currentPage = max(1, (int) $request->get('kuota_page', 1));
+            $totalRows = $filtered->count();
+            $slice = $filtered->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+            $kuotaList = new \Illuminate\Pagination\LengthAwarePaginator(
+                $slice,
+                $totalRows,
+                $perPage,
+                $currentPage,
+                [
+                    'path'     => $request->url(),
+                    'pageName' => 'kuota_page',
+                    'query'    => $request->query(),
+                ]
+            );
         }
 
         // 3. Data Tab: Riwayat Penerima PIP (SiPintar / SK)
@@ -303,14 +355,16 @@ class PipController extends Controller
                 $riwayatQuery->where('r.tahap', $tahapFilter);
             }
 
-            // Hitung 4 statistik riwayat (genap)
+            $jenisSkFilter = trim((string) $request->get('jenis_sk', ''));
+            if ($jenisSkFilter !== '' && in_array($jenisSkFilter, ['pemberian', 'nominasi'], true)) {
+                $riwayatQuery->where('r.jenis_sk', $jenisSkFilter);
+            }
+
+            // Hitung 4 statistik riwayat (genap: Total Siswa, SK Pemberian, SK Nominasi, Total Dana)
             $statRiwayatQuery = clone $riwayatQuery;
             $riwayatStats['total_siswa'] = (clone $statRiwayatQuery)->count();
-            $riwayatStats['sudah_cair'] = (clone $statRiwayatQuery)->where(function ($sq) {
-                $sq->where('r.status_cair', 'LIKE', '%cair%')
-                    ->where('r.status_cair', 'NOT LIKE', '%belum%');
-            })->count();
-            $riwayatStats['belum_cair'] = max(0, $riwayatStats['total_siswa'] - $riwayatStats['sudah_cair']);
+            $riwayatStats['total_pemberian'] = (clone $statRiwayatQuery)->where('r.jenis_sk', 'pemberian')->count();
+            $riwayatStats['total_nominasi'] = (clone $statRiwayatQuery)->where('r.jenis_sk', 'nominasi')->count();
             $riwayatStats['total_nominal'] = (float) (clone $statRiwayatQuery)->sum('r.nominal');
 
             $riwayatTahapList = DB::table('pip_riwayat')
@@ -353,6 +407,7 @@ class PipController extends Controller
             'riwayatList',
             'riwayatTahapList',
             'riwayatStats',
+            'jenisSkFilter',
             'kriteriaAlasan',
             'statusVerifikasiList'
         ));
@@ -453,16 +508,16 @@ class PipController extends Controller
             return response()->json(['success' => false, 'message' => "Siswa {$pd->nama} sudah terdaftar dalam usulan PIP tahun {$tahun}."], 422);
         }
 
-        // Cek Kuota Usulan Kelas
+        // Cek Kuota Usulan Kelas (Pengisian tidak boleh melebihi kuota)
         $kuota = PipKuotaRombel::getKuotaForRombel($rombelId, $tahun);
         $currentCount = PipUsulan::where('rombongan_belajar_id', $rombelId)
             ->where('tahun', $tahun)
             ->count();
 
-        if ($currentCount >= $kuota && !$isAdmin) {
+        if ($currentCount >= $kuota) {
             return response()->json([
                 'success' => false,
-                'message' => "Kuota usulan PIP kelas ini sudah penuh (Maksimal {$kuota} peserta didik). Hubungi Administrator jika membutuhkan penambahan kuota.",
+                'message' => "Kuota usulan PIP kelas ini sudah penuh (Maksimal {$kuota} peserta didik). Pengusulan tidak boleh melebihi kuota. Hubungi Administrator jika memerlukan penyesuaian kuota.",
             ], 422);
         }
 
@@ -693,6 +748,8 @@ class PipController extends Controller
         // 1. Penentuan secara Jumlah Total Sekolah (membagi total pagu ke seluruh rombel aktif)
         if ($mode === 'distribute_total' || isset($data['total_kuota'])) {
             $totalTarget = max(0, (int) ($data['total_kuota'] ?? 0));
+            PipKuotaRombel::setTargetTotalSekolah($totalTarget, $tahun);
+
             $rombels = DB::table('rombongan_belajar')
                 ->where('jenis_rombel', '1')
                 ->orderBy('tingkat_pendidikan_id', 'asc')
@@ -717,7 +774,7 @@ class PipController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Total kuota {$totalTarget} siswa berhasil dibagikan ke {$count} kelas (rata-rata {$base}" . ($rem > 0 ? " hingga " . ($base + 1) : "") . " siswa/kelas).",
+                'message' => "Total pagu {$totalTarget} siswa disimpan dan berhasil dibagikan ke {$count} kelas (rata-rata {$base}" . ($rem > 0 ? " hingga " . ($base + 1) : "") . " siswa/kelas).",
             ]);
         }
 
@@ -732,18 +789,46 @@ class PipController extends Controller
                 );
             }
             $totalSemua = $rombels->count() * $kuotaVal;
+            PipKuotaRombel::setTargetTotalSekolah($totalSemua, $tahun);
+
             return response()->json([
                 'success' => true,
-                'message' => "Kuota seluruh ({$rombels->count()}) kelas berhasil disamakan menjadi {$kuotaVal} siswa/kelas (Total: {$totalSemua} siswa).",
+                'message' => "Kuota seluruh ({$rombels->count()}) kelas berhasil disamakan menjadi {$kuotaVal} siswa/kelas (Total pagu: {$totalSemua} siswa).",
             ]);
         }
 
-        // 3. Atur Kuota Per Kelas Spesifik
+        // 3. Atur Kuota Per Kelas Spesifik (Cegah melebihi total pagu sekolah jika target total telah ditetapkan)
         if (empty($data['rombongan_belajar_id'])) {
             return response()->json(['success' => false, 'message' => 'Rombel wajib dipilih.'], 422);
         }
 
         $kuotaVal = (int) ($data['kuota'] ?? 0);
+        $targetTotal = PipKuotaRombel::getTargetTotalSekolah($tahun);
+
+        if ($targetTotal !== null && $targetTotal > 0) {
+            $otherClassesTotal = (int) DB::table('pip_kuota_rombel')
+                ->where('tahun', $tahun)
+                ->where('rombongan_belajar_id', '!=', '__TOTAL__')
+                ->where('rombongan_belajar_id', '!=', $data['rombongan_belajar_id'])
+                ->sum('kuota');
+
+            $allRombelIds = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->pluck('rombongan_belajar_id');
+            $existingRombelIds = DB::table('pip_kuota_rombel')
+                ->where('tahun', $tahun)
+                ->where('rombongan_belajar_id', '!=', '__TOTAL__')
+                ->pluck('rombongan_belajar_id');
+            $unsetCount = $allRombelIds->diff($existingRombelIds)->reject(fn($id) => $id === $data['rombongan_belajar_id'])->count();
+            $otherClassesTotal += ($unsetCount * 5);
+
+            $maxAllowed = max(0, $targetTotal - $otherClassesTotal);
+            if ($kuotaVal > $maxAllowed) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Pengisian kuota kelas ini ({$kuotaVal} siswa) akan melebihi total pagu sekolah ({$targetTotal} siswa). Maksimal sisa kuota yang tersedia untuk kelas ini adalah {$maxAllowed} siswa.",
+                ], 422);
+            }
+        }
+
         PipKuotaRombel::updateOrCreate(
             ['rombongan_belajar_id' => $data['rombongan_belajar_id'], 'tahun' => $tahun],
             ['kuota' => $kuotaVal]
@@ -786,6 +871,12 @@ class PipController extends Controller
     /**
      * Import File Excel / CSV Hasil Unduhan SiPintar ke Tabel Riwayat PIP
      */
+    /**
+     * Import File Excel (.xlsx / .xls) / CSV Hasil Unduhan SiPintar ke Tabel Riwayat PIP
+     * Mendukung 2 Jenis SK:
+     * 1. SK Pemberian (Pencairan Dana)
+     * 2. SK Nominasi (Aktivasi Rekening) -> Validasi: otomatis abaikan/skip siswa yang sudah terdaftar di SK Pemberian
+     */
     public function importRiwayatExcel(Request $request): JsonResponse
     {
         if (!$this->isAdminUser()) {
@@ -793,13 +884,18 @@ class PipController extends Controller
         }
 
         $request->validate([
-            'file_excel' => 'required|file|max:20480', // Max 20MB
+            'file_excel' => 'required|file|max:30720', // Max 30MB
+            'jenis_sk'   => 'required|in:pemberian,nominasi',
+        ], [
+            'file_excel.required' => 'Berkas Excel wajib diunggah.',
+            'jenis_sk.required'   => 'Pilih jenis SK yang diunggah (SK Pemberian atau SK Nominasi).',
         ]);
 
+        $jenisSk = $request->get('jenis_sk', 'pemberian');
         $file = $request->file('file_excel');
         $ext = strtolower($file->getClientOriginalExtension());
-        if (!in_array($ext, ['xlsx', 'csv', 'txt'], true)) {
-            return response()->json(['success' => false, 'message' => 'Format file tidak didukung. Unggah berkas .xlsx atau .csv dari SiPintar (format .xls lama: simpan ulang sebagai .xlsx).'], 422);
+        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
+            return response()->json(['success' => false, 'message' => 'Format file tidak didukung. Unggah berkas .xlsx, .xls, atau .csv dari SiPintar.'], 422);
         }
 
         $path = $file->getRealPath();
@@ -820,6 +916,7 @@ class PipController extends Controller
 
         $imported = 0;
         $updated = 0;
+        $skippedPemberianCount = 0;
 
         foreach ($rows as $row) {
             $nama = trim((string) ($row['nama_pd'] ?? ($row['nama'] ?? '')));
@@ -837,6 +934,29 @@ class PipController extends Controller
             $tempatLahir = trim((string) ($row['tempat_lahir'] ?? ''));
             $jk = strtoupper(trim((string) ($row['jenis_kelamin'] ?? '')));
 
+            // VALIDASI KHUSUS SK NOMINASI: Jangan simpan jika siswa SUDAH ADA pada SK Pemberian!
+            if ($jenisSk === 'nominasi') {
+                $hasPemberian = PipRiwayat::where('jenis_sk', 'pemberian')
+                    ->where(function ($q) use ($pdId, $nisn, $nama, $rombel) {
+                        if ($pdId !== '') {
+                            $q->where('peserta_didik_id', $pdId);
+                        } elseif ($nisn !== '') {
+                            $q->where('nisn', $nisn);
+                        } else {
+                            $q->where('nama_pd', $nama);
+                            if ($rombel !== '') {
+                                $q->where('rombel', $rombel);
+                            }
+                        }
+                    })
+                    ->exists();
+
+                if ($hasPemberian) {
+                    $skippedPemberianCount++;
+                    continue; // Lewati! Siswa sudah menerima SK Pemberian
+                }
+            }
+
             $nominal = $this->parseNominal($row['nominal'] ?? '');
 
             $nomorSk = trim((string) ($row['nomor_sk'] ?? ''));
@@ -847,8 +967,17 @@ class PipController extends Controller
                 $tahun = substr($tahun, 0, 4);
             }
 
-            $statusCair = trim((string) ($row['status_cair'] ?? ''));
             $tglCair = $this->parseTanggal($row['tanggal_cair'] ?? '');
+            $tglAktivasi = $this->parseTanggal($row['tanggal_aktivasi'] ?? '');
+
+            if ($jenisSk === 'nominasi') {
+                $statusCair = !empty($row['status_cair'])
+                    ? trim((string) $row['status_cair'])
+                    : ($tglAktivasi !== '' ? 'Sudah Aktivasi Rekening' : 'Belum Aktivasi Rekening');
+            } else {
+                $statusCair = trim((string) ($row['status_cair'] ?? ''));
+            }
+
             $rekening = trim((string) ($row['no_rekening'] ?? ''));
             $noKip = trim((string) ($row['no_kip'] ?? ''));
             $noKks = trim((string) ($row['no_kks'] ?? ''));
@@ -864,7 +993,9 @@ class PipController extends Controller
                 $rombelId = $pdMapByNisn[$nisn];
             }
 
-            $criteria = [];
+            $criteria = [
+                'jenis_sk' => $jenisSk,
+            ];
             if ($pdId !== '') {
                 $criteria['peserta_didik_id'] = $pdId;
             } elseif ($nisn !== '') {
@@ -893,11 +1024,13 @@ class PipController extends Controller
                 'jenis_kelamin'        => $jk ?: null,
                 'nominal'              => $nominal,
                 'nomor_sk'             => $nomorSk ?: null,
+                'jenis_sk'             => $jenisSk,
                 'tanggal_sk'           => $tglSk ?: null,
                 'tahap'                => $tahap ?: null,
                 'tahun'                => $tahun ?: date('Y'),
                 'status_cair'          => $statusCair ?: null,
                 'tanggal_cair'         => $tglCair ?: null,
+                'tanggal_aktivasi'     => $tglAktivasi ?: null,
                 'no_rekening'          => $rekening ?: null,
                 'no_kip'               => $noKip ?: null,
                 'no_kks'               => $noKks ?: null,
@@ -917,9 +1050,15 @@ class PipController extends Controller
             }
         }
 
+        $labelSk = $jenisSk === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
+        $msg = "Import {$labelSk} selesai. Sebanyak {$imported} data baru berhasil ditambahkan, dan {$updated} data diperbarui.";
+        if ($skippedPemberianCount > 0) {
+            $msg .= " Sebanyak {$skippedPemberianCount} siswa dilewati karena sudah terdaftar di SK Pemberian.";
+        }
+
         return response()->json([
             'success' => true,
-            'message' => "Proses import selesai. Sebanyak {$imported} data baru berhasil ditambahkan, dan {$updated} data diperbarui.",
+            'message' => $msg,
         ]);
     }
 
@@ -939,10 +1078,34 @@ class PipController extends Controller
             'rombel'           => 'nullable|string|max:50',
             'nominal'          => 'nullable|numeric|min:0',
             'nomor_sk'         => 'nullable|string|max:100',
+            'jenis_sk'         => 'required|in:pemberian,nominasi',
             'tahap'            => 'nullable|string|max:100',
             'tahun'            => 'nullable|string|max:20',
             'status_cair'      => 'nullable|string|max:50',
+            'tanggal_aktivasi' => 'nullable|string|max:30',
         ]);
+
+        // Validasi: jika jenis_sk nominasi, jangan simpan jika sudah ada pada sk pemberian!
+        if ($data['jenis_sk'] === 'nominasi') {
+            $hasPemberian = PipRiwayat::where('jenis_sk', 'pemberian')
+                ->where(function ($q) use ($data) {
+                    if (!empty($data['peserta_didik_id'])) {
+                        $q->where('peserta_didik_id', $data['peserta_didik_id']);
+                    } elseif (!empty($data['nisn'])) {
+                        $q->where('nisn', $data['nisn']);
+                    } else {
+                        $q->where('nama_pd', $data['nama_pd']);
+                    }
+                })
+                ->exists();
+
+            if ($hasPemberian) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Siswa {$data['nama_pd']} sudah memiliki SK Pemberian. SK Nominasi tidak dapat disimpan untuk siswa yang telah berstatus penerima SK Pemberian.",
+                ], 422);
+            }
+        }
 
         $rombelId = null;
         if (!empty($data['peserta_didik_id'])) {
@@ -957,14 +1120,17 @@ class PipController extends Controller
             'rombongan_belajar_id' => $rombelId,
             'nominal'              => $data['nominal'] ?: null,
             'nomor_sk'             => $data['nomor_sk'] ?: null,
+            'jenis_sk'             => $data['jenis_sk'],
             'tahap'                => $data['tahap'] ?: null,
             'tahun'                => $data['tahun'] ?: date('Y'),
             'status_cair'          => $data['status_cair'] ?: null,
+            'tanggal_aktivasi'     => $data['tanggal_aktivasi'] ?: null,
         ]);
 
+        $label = $data['jenis_sk'] === 'nominasi' ? 'SK Nominasi' : 'SK Pemberian';
         return response()->json([
             'success' => true,
-            'message' => 'Catatan riwayat PIP berhasil ditambahkan.',
+            'message' => "Catatan riwayat PIP ({$label}) berhasil ditambahkan.",
         ]);
     }
 

@@ -7,6 +7,109 @@
     $kuotaPenuh = $stats['sisa_kuota_kelas'] <= 0;
 @endphp
 
+<style>
+    .pip-priority-stepper {
+        display: inline-flex;
+        align-items: center;
+        background: var(--bg-hover, rgba(0, 0, 0, 0.03));
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 3px;
+        gap: 3px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        vertical-align: middle;
+    }
+
+    .pip-stepper-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg, #fff);
+        color: var(--text-color);
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.15s ease;
+        touch-action: manipulation;
+        user-select: none;
+    }
+
+    .pip-stepper-btn:hover {
+        background: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+    }
+
+    .pip-stepper-btn:active {
+        transform: scale(0.92);
+    }
+
+    .pip-stepper-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 3px;
+    }
+
+    .pip-stepper-hash {
+        font-size: 0.76rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-right: 1px;
+    }
+
+    .pip-stepper-input {
+        width: 38px;
+        height: 30px;
+        border: 1px solid transparent;
+        background: transparent;
+        text-align: center;
+        font-weight: 800;
+        font-size: 0.92rem;
+        color: var(--text-color);
+        border-radius: 6px;
+        padding: 0;
+    }
+
+    .pip-stepper-input:focus {
+        background: var(--card-bg, #fff);
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    @media (max-width: 768px) {
+        .table-responsive-stack td[data-label="Prioritas"] {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 10px 14px !important;
+        }
+
+        .pip-priority-stepper {
+            padding: 4px;
+            gap: 6px;
+        }
+
+        .pip-stepper-btn {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            min-height: 38px;
+            font-size: 0.95rem;
+        }
+
+        .pip-stepper-input {
+            width: 44px;
+            height: 34px;
+            font-size: 1rem;
+        }
+    }
+</style>
+
 <div class="dash-stat-grid"
     style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
     <div class="dash-stat-card">
@@ -188,18 +291,23 @@
                             <input type="checkbox" class="check-pip-row" value="{{ $u->id }}">
                         </td>
                     @endif
-                    <td style="padding: 12px 14px; text-align: center;" data-label="Prioritas">
-                        <div style="display: inline-flex; align-items: center; gap: 4px;">
-                            <button type="button" class="btn-icon" title="Naikkan prioritas"
-                                onclick="pipMovePrioritas({{ $u->id }}, 'up')"><i
-                                    class="fas fa-arrow-up"></i></button>
-                            <input type="number" min="1" value="{{ $u->prioritas }}"
-                                class="form-control pip-rank-input" data-id="{{ $u->id }}"
-                                data-current="{{ $u->prioritas }}"
-                                style="width: 54px; height: 30px; padding: 0 6px; text-align: center; font-weight: 800;">
-                            <button type="button" class="btn-icon" title="Turunkan prioritas"
-                                onclick="pipMovePrioritas({{ $u->id }}, 'down')"><i
-                                    class="fas fa-arrow-down"></i></button>
+                    <td style="padding: 10px 14px; text-align: center;" data-label="Prioritas">
+                        <div class="pip-priority-stepper">
+                            <button type="button" class="pip-stepper-btn pip-btn-up" title="Naikkan prioritas (Urutan lebih awal)"
+                                onclick="pipMovePrioritas({{ $u->id }}, 'up')">
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                            <div class="pip-stepper-badge" title="Nomor Urut Prioritas">
+                                <span class="pip-stepper-hash">#</span>
+                                <input type="number" min="1" value="{{ $u->prioritas }}"
+                                    class="pip-stepper-input pip-rank-input" data-id="{{ $u->id }}"
+                                    data-current="{{ $u->prioritas }}"
+                                    title="Ketik angka urutan lalu tekan Enter / klik di luar">
+                            </div>
+                            <button type="button" class="pip-stepper-btn pip-btn-down" title="Turunkan prioritas (Urutan berikutnya)"
+                                onclick="pipMovePrioritas({{ $u->id }}, 'down')">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
                         </div>
                     </td>
                     <td style="padding: 12px 14px;" data-label="Peserta Didik">

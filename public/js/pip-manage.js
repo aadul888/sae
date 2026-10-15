@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const q = document.getElementById("searchPip");
         if (q && q.value.trim()) url.searchParams.set("q", q.value.trim()); else url.searchParams.delete("q");
         url.searchParams.delete("usulan_page");
+        url.searchParams.delete("kuota_page");
         url.searchParams.delete("riwayat_page");
         url.searchParams.delete("page");
         history.replaceState(null, "", url.toString());
@@ -82,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     document.addEventListener("change", function (e) {
-        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterTahap: "tahap" };
+        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterTahap: "tahap", filterJenisSk: "jenis_sk" };
         const key = map[e.target.id];
         if (key) { e.stopImmediatePropagation(); applyParams({ [key]: e.target.value }); }
     }, true);
@@ -276,6 +277,17 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.disabled = false;
     };
 
+    document.addEventListener("keydown", function (e) {
+        if (e.target.classList?.contains("pip-kuota-input") && e.key === "Enter") {
+            e.preventDefault();
+            const rombelId = e.target.dataset.rombel;
+            const btn = e.target.closest("tr")?.querySelector('button[onclick*="pipSimpanKuota"]');
+            if (rombelId && btn) {
+                pipSimpanKuota(rombelId, btn);
+            }
+        }
+    });
+
     window.pipSetTotalKuota = async function () {
         const r = await Swal.fire({
             title: "Tentukan Total Kuota Sekolah",
@@ -332,7 +344,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // ---------------------------------------------------------------------
     // Riwayat: import excel, tambah manual, hapus
     // ---------------------------------------------------------------------
-    window.openImportRiwayat = () => { document.getElementById("formImportRiwayat")?.reset(); openModal("modalImportRiwayat"); };
+    window.pipOnJenisSkChange = function (val) {
+        const hint = document.getElementById("pipJenisSkHint");
+        if (!hint) return;
+        if (val === "nominasi") {
+            hint.innerHTML = '<i class="fas fa-filter text-warning me-1"></i> SK Nominasi: Aktivasi rekening siswa baru/penerima baru. Siswa yang sudah ada pada SK Pemberian otomatis dilewati.';
+        } else {
+            hint.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i> SK Pemberian: Menyimpan data penerima resmi beserta status pencairan dana.';
+        }
+    };
+
+    window.openImportRiwayat = () => {
+        document.getElementById("formImportRiwayat")?.reset();
+        if (window.pipOnJenisSkChange) window.pipOnJenisSkChange("pemberian");
+        openModal("modalImportRiwayat");
+    };
     window.closeImportRiwayat = () => closeModal("modalImportRiwayat");
     window.openTambahRiwayat = () => { document.getElementById("formTambahRiwayat")?.reset(); document.getElementById("rwPdId").value = ""; openModal("modalTambahRiwayat"); };
     window.closeTambahRiwayat = () => closeModal("modalTambahRiwayat");

@@ -22,11 +22,13 @@ class PipRiwayat extends Model
         'jenis_kelamin',
         'nominal',
         'nomor_sk',
+        'jenis_sk', // 'pemberian', 'nominasi'
         'tanggal_sk',
         'tahap',
         'tahun',
         'status_cair',
         'tanggal_cair',
+        'tanggal_aktivasi',
         'no_rekening',
         'no_kip',
         'no_kks',
@@ -34,6 +36,11 @@ class PipRiwayat extends Model
         'virtual_acc',
         'keterangan_pencairan',
         'raw_data',
+    ];
+
+    public const JENIS_SK = [
+        'pemberian' => 'SK Pemberian (Pencairan Dana)',
+        'nominasi'  => 'SK Nominasi (Aktivasi Rekening)',
     ];
 
     protected $casts = [

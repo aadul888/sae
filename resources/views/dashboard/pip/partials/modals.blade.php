@@ -51,7 +51,7 @@
 </div>
 
 @if ($isAdmin)
-    <!-- MODAL: Import Excel SiPintar -->
+    <!-- MODAL: Import Excel SiPintar (SK Pemberian & SK Nominasi) -->
     <div id="modalImportRiwayat" class="modal-backdrop">
         <div class="card kp-modal-card">
             <div class="kp-modal-header">
@@ -65,15 +65,27 @@
                 @csrf
                 <div class="kp-modal-body">
                     <div class="kp-form-group">
-                        <label class="kp-form-label" for="pipFileExcel">Berkas Excel / CSV <span
+                        <label class="kp-form-label" for="pipJenisSk">Jenis SK SiPintar <span class="req">*</span></label>
+                        <select id="pipJenisSk" name="jenis_sk" class="form-control" required style="font-weight: 700;"
+                            onchange="pipOnJenisSkChange(this.value)">
+                            <option value="pemberian" selected>SK Pemberian (Pencairan Dana PIP)</option>
+                            <option value="nominasi">SK Nominasi (Aktivasi Rekening Siswa Baru/Penerima Baru)</option>
+                        </select>
+                        <div class="kp-form-hint" id="pipJenisSkHint" style="margin-top: 4px; font-weight: 600;">
+                            <i class="fas fa-check-circle text-success me-1"></i> SK Pemberian: Menyimpan data penerima resmi beserta status pencairan dana.
+                        </div>
+                    </div>
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="pipFileExcel">Berkas Excel (.xls / .xlsx) / CSV <span
                                 class="req">*</span></label>
-                        <input type="file" id="pipFileExcel" name="file_excel" accept=".xlsx,.csv,.txt"
+                        <input type="file" id="pipFileExcel" name="file_excel" accept=".xlsx,.xls,.csv,.txt"
                             class="form-control" required>
                         <div class="kp-form-hint">
-                            Gunakan file langsung dari SiPintar (.xlsx / .csv, maks. 20 MB). Kolom yang dibaca:
-                            peserta_didik_id, nama_pd, nisn, rombel, kelas, nominal, nomor_sk, tanggal_sk,
-                            tahap_keterangan, status_cair, tanggal_cair, no_rekening, nama_ibu_kandung, dan lainnya.
-                            Data yang sama (peserta + SK + tahap) akan diperbarui, bukan digandakan.
+                            Mendukung file unduhan langsung dari SiPintar (.xls, .xlsx, .csv, maks. 30 MB).<br>
+                            <span id="pipValidationRuleHint" style="color: var(--primary); font-weight: 600;">
+                                &bull; Pada SK Nominasi, sistem otomatis memvalidasi agar peserta didik yang sudah ada di SK Pemberian tidak tersimpan ganda.
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -100,6 +112,15 @@
                 @csrf
                 <input type="hidden" name="peserta_didik_id" id="rwPdId">
                 <div class="kp-modal-body">
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="rwJenisSk">Jenis SK <span class="req">*</span></label>
+                        <select id="rwJenisSk" name="jenis_sk" class="form-control" required style="font-weight: 700;">
+                            <option value="pemberian" selected>SK Pemberian (Pencairan Dana)</option>
+                            <option value="nominasi">SK Nominasi (Aktivasi Rekening)</option>
+                        </select>
+                        <div class="kp-form-hint">Khusus SK Nominasi: Siswa yang sudah ada pada SK Pemberian akan divalidasi dan ditolak.</div>
+                    </div>
+
                     <div class="kp-form-group">
                         <label class="kp-form-label" for="rwCari">Cari Peserta Didik (Opsional)</label>
                         <div class="kp-ac-wrap">
@@ -136,7 +157,7 @@
                         <div class="kp-form-group">
                             <label class="kp-form-label" for="rwTahap">Tahap</label>
                             <input type="text" id="rwTahap" name="tahap" class="form-control"
-                                maxlength="100">
+                                maxlength="100" placeholder="Misal: Tahap 1 / Tahap 2">
                         </div>
                         <div class="kp-form-group">
                             <label class="kp-form-label" for="rwSk">Nomor SK</label>
@@ -144,9 +165,14 @@
                                 maxlength="100">
                         </div>
                         <div class="kp-form-group">
-                            <label class="kp-form-label" for="rwCair">Status Cair</label>
+                            <label class="kp-form-label" for="rwCair">Status Pencairan</label>
                             <input type="text" id="rwCair" name="status_cair" class="form-control"
-                                maxlength="50" placeholder="Sudah Cair / Belum Cair">
+                                maxlength="50" placeholder="Sudah Cair / Belum Cair / dsb.">
+                        </div>
+                        <div class="kp-form-group" style="grid-column: span 2;">
+                            <label class="kp-form-label" for="rwAktivasi">Tanggal Aktivasi Rekening (Khusus Nominasi)</label>
+                            <input type="text" id="rwAktivasi" name="tanggal_aktivasi" class="form-control"
+                                maxlength="30" placeholder="YYYY-MM-DD atau sesuai dokumen bank">
                         </div>
                     </div>
                 </div>

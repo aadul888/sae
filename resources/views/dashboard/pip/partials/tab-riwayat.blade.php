@@ -9,7 +9,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
                 {{ number_format($riwayatStats['total_siswa'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Total Penerima PIP</div>
+            <div class="dash-stat-label">Total Data Riwayat</div>
         </div>
     </div>
 
@@ -19,21 +19,21 @@
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
-                {{ number_format($riwayatStats['sudah_cair'] ?? 0, 0, ',', '.') }}
+                {{ number_format($riwayatStats['total_pemberian'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Status Dana Cair</div>
+            <div class="dash-stat-label">SK Pemberian (Pencairan)</div>
         </div>
     </div>
 
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-file-signature"></i>
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
-                {{ number_format($riwayatStats['belum_cair'] ?? 0, 0, ',', '.') }}
+                {{ number_format($riwayatStats['total_nominasi'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Belum Cair / Diproses</div>
+            <div class="dash-stat-label">SK Nominasi (Aktivasi)</div>
         </div>
     </div>
 
@@ -64,6 +64,12 @@
                 <span>entri</span>
             </div>
 
+            <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select">
+                <option value="">Semua Jenis SK</option>
+                <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK Pemberian</option>
+                <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK Nominasi</option>
+            </select>
+
             @if ($isAdmin)
                 <select id="filterRombel" name="rombel_id" class="toolbar-filter-select">
                     <option value="">Semua Kelas</option>
@@ -85,7 +91,7 @@
                 @endforeach
             </select>
 
-            @if ($q || request('tahap') || ($isAdmin && $activeRombel))
+            @if ($q || request('tahap') || ($jenisSkFilter ?? '') || ($isAdmin && $activeRombel))
                 <a href="{{ route('dashboard.pip.index', ['tab' => 'riwayat']) }}" class="btn btn-outline"
                     style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
                     <i class="fas fa-undo"></i>
@@ -136,7 +142,10 @@
         </thead>
         <tbody>
             @forelse ($riwayatList as $r)
-                @php $cair = stripos((string) $r->status_cair, 'cair') !== false && stripos((string) $r->status_cair, 'belum') === false; @endphp
+                @php
+                    $isNominasi = ($r->jenis_sk ?? 'pemberian') === 'nominasi';
+                    $cair = stripos((string) $r->status_cair, 'cair') !== false && stripos((string) $r->status_cair, 'belum') === false;
+                @endphp
                 <tr style="border-bottom: 1px solid var(--border-color);">
                     <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;" data-label="No">
                         {{ $riwayatList->firstItem() + $loop->index }}</td>
@@ -161,6 +170,12 @@
                             style="font-size: 0.74rem; padding: 3px 8px;">{{ $r->rombel ?: ($r->kelas ?: '-') }}</span>
                     </td>
                     <td style="padding: 12px 14px;" data-label="SK / Tahap">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                            <span class="badge {{ $isNominasi ? 'badge-warning' : 'badge-success' }}"
+                                style="font-size: 0.68rem; padding: 1px 6px;">
+                                {{ $isNominasi ? 'SK Nominasi' : 'SK Pemberian' }}
+                            </span>
+                        </div>
                         <div style="font-size: 0.8rem; font-weight: 600;">{{ $r->nomor_sk ?: '-' }}</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">
                             {{ $r->tahap ?: '-' }}@if ($r->tanggal_sk)
@@ -172,14 +187,27 @@
                         data-label="Nominal">
                         {{ $r->nominal !== null ? 'Rp ' . number_format($r->nominal, 0, ',', '.') : '-' }}
                     </td>
-                    <td style="padding: 12px 14px;" data-label="Pencairan">
-                        <span class="badge {{ $cair ? 'badge-success' : 'badge-warning' }}"
-                            style="font-size: 0.72rem; padding: 3px 8px;">
-                            {{ $r->status_cair ?: 'Belum ada status' }}
-                        </span>
-                        @if ($r->tanggal_cair)
-                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
-                                {{ $r->tanggal_cair }}</div>
+                    <td style="padding: 12px 14px;" data-label="Status / Tanggal">
+                        @if ($isNominasi)
+                            <span class="badge {{ !empty($r->tanggal_aktivasi) ? 'badge-success' : 'badge-warning' }}"
+                                style="font-size: 0.72rem; padding: 3px 8px;">
+                                {{ !empty($r->tanggal_aktivasi) ? 'Sudah Aktivasi' : 'Belum Aktivasi' }}
+                            </span>
+                            @if ($r->tanggal_aktivasi)
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    Tgl: {{ $r->tanggal_aktivasi }}
+                                </div>
+                            @endif
+                        @else
+                            <span class="badge {{ $cair ? 'badge-success' : 'badge-warning' }}"
+                                style="font-size: 0.72rem; padding: 3px 8px;">
+                                {{ $r->status_cair ?: 'Belum ada status' }}
+                            </span>
+                            @if ($r->tanggal_cair)
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                    Tgl Cair: {{ $r->tanggal_cair }}
+                                </div>
+                            @endif
                         @endif
                     </td>
                     @if ($isAdmin)

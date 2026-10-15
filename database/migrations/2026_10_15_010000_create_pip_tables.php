@@ -60,11 +60,13 @@ return new class extends Migration
                 $table->string('jenis_kelamin', 5)->nullable();
                 $table->decimal('nominal', 12, 2)->unsigned()->nullable();
                 $table->string('nomor_sk', 100)->nullable()->index();
+                $table->string('jenis_sk', 30)->default('pemberian')->index(); // pemberian, nominasi
                 $table->string('tanggal_sk', 30)->nullable();
                 $table->string('tahap', 100)->nullable()->index();
                 $table->string('tahun', 20)->nullable()->index();
                 $table->string('status_cair', 50)->nullable()->index();
                 $table->string('tanggal_cair', 30)->nullable();
+                $table->string('tanggal_aktivasi', 30)->nullable();
                 $table->string('no_rekening', 50)->nullable();
                 $table->string('no_kip', 50)->nullable();
                 $table->string('no_kks', 50)->nullable();

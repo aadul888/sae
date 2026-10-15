@@ -31,13 +31,18 @@ class SimpleXlsxReader
     }
 
     /**
-     * Parse file OpenXML .xlsx
+     * Parse file OpenXML .xlsx / .xls
      */
     public static function readXlsx(string $filePath): array
     {
         $zip = new ZipArchive();
         if ($zip->open($filePath) !== true) {
-            // Coba fallback baca sebagai CSV jika ternyata berformat teks dengan ekstensi xlsx
+            // Cek apakah berkas .xls sebenarnya adalah HTML Table atau XML Spreadsheet 2003
+            $sample = @file_get_contents($filePath, false, null, 0, 4096) ?: '';
+            if (stripos($sample, '<table') !== false || stripos($sample, '<Workbook') !== false || stripos($sample, '<html') !== false) {
+                return self::readHtmlOrXmlTable($filePath);
+            }
+            // Coba fallback baca sebagai CSV
             return self::readCsv($filePath);
         }
 
@@ -150,6 +155,57 @@ class SimpleXlsxReader
         fclose($handle);
 
         return self::formatRowsWithHeader($rawRows);
+    }
+
+    /**
+     * Parse file HTML Table atau XML Spreadsheet 2003 yang disimpan berekstensi .xls
+     */
+    public static function readHtmlOrXmlTable(string $filePath): array
+    {
+        $content = @file_get_contents($filePath);
+        if (!$content) {
+            return [];
+        }
+
+        // XML Spreadsheet 2003 (<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet">)
+        if (stripos($content, '<Table') !== false && stripos($content, '<Row') !== false) {
+            $rawRows = [];
+            if (preg_match_all('/<Row[^>]*>(.*?)<\/Row>/is', $content, $rowMatches)) {
+                foreach ($rowMatches[1] as $rowXml) {
+                    $cells = [];
+                    if (preg_match_all('/<Cell[^>]*>.*?<Data[^>]*>(.*?)<\/Data>.*?<\/Cell>/is', $rowXml, $cellMatches)) {
+                        $cells = array_map(fn($v) => trim(strip_tags(html_entity_decode($v))), $cellMatches[1]);
+                    }
+                    if (!empty($cells)) {
+                        $rawRows[] = $cells;
+                    }
+                }
+            }
+            if (!empty($rawRows)) {
+                return self::formatRowsWithHeader($rawRows);
+            }
+        }
+
+        // HTML Table (<table><tr><td>...</td></tr></table>)
+        if (stripos($content, '<table') !== false) {
+            $rawRows = [];
+            if (preg_match_all('/<tr[^>]*>(.*?)<\/tr>/is', $content, $trMatches)) {
+                foreach ($trMatches[1] as $trHtml) {
+                    $cells = [];
+                    if (preg_match_all('/<t[dh][^>]*>(.*?)<\/t[dh]>/is', $trHtml, $tdMatches)) {
+                        $cells = array_map(fn($v) => trim(strip_tags(html_entity_decode($v))), $tdMatches[1]);
+                    }
+                    if (!empty($cells)) {
+                        $rawRows[] = $cells;
+                    }
+                }
+            }
+            if (!empty($rawRows)) {
+                return self::formatRowsWithHeader($rawRows);
+            }
+        }
+
+        return self::readCsv($filePath);
     }
 
     /**
