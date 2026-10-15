@@ -44,7 +44,7 @@
                     style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-plus"></i> Usulan
                 </button>
-            @elseif ($tab === 'riwayat' && $isAdmin)
+            @elseif (in_array($tab, ['riwayat', 'riwayat_alumni'], true) && $isAdmin)
                 <button type="button" class="btn btn-outline btn-sm" onclick="openTambahRiwayat()"
                     style="padding: 7px 12px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-plus"></i> Manual
@@ -87,14 +87,22 @@
         @endif
         <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'riwayat'])) }}"
             class="tab-btn btn {{ $tab === 'riwayat' ? 'btn-primary active' : 'btn-outline' }}">
-            <i class="fas fa-clock-rotate-left me-1"></i> Riwayat
+            <i class="fas fa-clock-rotate-left me-1"></i> Riwayat (Siswa Aktif)
         </a>
+        @if ($isAdmin)
+            <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'riwayat_alumni'])) }}"
+                class="tab-btn btn {{ $tab === 'riwayat_alumni' ? 'btn-primary active' : 'btn-outline' }}">
+                <i class="fas fa-user-graduate me-1"></i> Riwayat Kelas Lain &amp; Alumni
+            </a>
+        @endif
     </div>
 
     @if ($tab === 'usulan')
         @include('dashboard.pip.partials.tab-usulan')
     @elseif ($tab === 'kuota' && $isAdmin)
         @include('dashboard.pip.partials.tab-kuota')
+    @elseif ($tab === 'riwayat_alumni' && $isAdmin)
+        @include('dashboard.pip.partials.tab-riwayat-alumni')
     @else
         @include('dashboard.pip.partials.tab-riwayat')
     @endif

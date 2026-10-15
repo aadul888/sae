@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
         url.searchParams.delete("usulan_page");
         url.searchParams.delete("kuota_page");
         url.searchParams.delete("riwayat_page");
+        url.searchParams.delete("alumni_page");
         url.searchParams.delete("page");
         history.replaceState(null, "", url.toString());
         if (typeof window.refreshLiveTable === "function") window.refreshLiveTable(url.toString());
@@ -83,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     document.addEventListener("change", function (e) {
-        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterTahap: "tahap", filterJenisSk: "jenis_sk" };
+        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterTahap: "tahap", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar" };
         const key = map[e.target.id];
         if (key) { e.stopImmediatePropagation(); applyParams({ [key]: e.target.value }); }
     }, true);

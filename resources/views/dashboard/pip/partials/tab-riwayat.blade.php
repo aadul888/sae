@@ -9,7 +9,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
                 {{ number_format($riwayatStats['total_siswa'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Total Data Riwayat</div>
+            <div class="dash-stat-label">Total Siswa Aktif Penerima</div>
         </div>
     </div>
 
@@ -49,6 +49,22 @@
         </div>
     </div>
 </div>
+
+@if ($isAdmin)
+    <div
+        style="background: rgba(99,102,241,0.06); border: 1px dashed rgba(99,102,241,0.25); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.82rem; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-info-circle text-primary" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+            <span>Tab ini khusus menampilkan riwayat penerima PIP untuk <strong>Peserta Didik Aktif</strong> pada rombel
+                saat ini. Data riwayat dari kelas lain, siswa yang telah lulus, atau alumni telah dipisahkan ke tab
+                khusus.</span>
+        </div>
+        <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat_alumni', 'tahun' => $activeTahun])) }}"
+            class="btn btn-outline btn-sm" style="white-space: nowrap; font-size: 0.78rem; font-weight: 600;">
+            <i class="fas fa-user-graduate me-1"></i> Buka Riwayat Kelas Lain &amp; Alumni
+        </a>
+    </div>
+@endif
 
 <div class="card" style="padding: 16px; margin-bottom: 20px;">
     <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
@@ -94,8 +110,8 @@
             </select>
 
             @if ($q || request('tahap') || ($jenisSkFilter ?? '') || ($isAdmin && $activeRombel))
-                <a href="{{ route('dashboard.pip.index', ['tab' => 'riwayat']) }}" class="btn btn-outline"
-                    style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun])) }}"
+                    class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
                     <i class="fas fa-undo"></i>
                 </a>
             @endif
@@ -125,7 +141,7 @@
                     Peserta Didik</th>
                 <th
                     style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                    Kelas</th>
+                    Kelas Aktif</th>
                 <th
                     style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
                     SK / Tahap</th>
@@ -170,8 +186,18 @@
                         </div>
                     </td>
                     <td style="padding: 12px 14px;" data-label="Kelas">
+                        @php
+                            $kelasAktif =
+                                $r->nama_kelas_aktif ?: ($r->nama_rombel_aktif ?: ($r->rombel ?: ($r->kelas ?: '-')));
+                        @endphp
                         <span class="badge badge-outline"
-                            style="font-size: 0.74rem; padding: 3px 8px;">{{ $r->rombel ?: ($r->kelas ?: '-') }}</span>
+                            style="font-size: 0.74rem; padding: 3px 8px; font-weight: 600;">{{ $kelasAktif }}</span>
+                        @if (!empty($r->rombel) && $r->rombel !== ($r->nama_kelas_aktif ?? '') && $r->rombel !== ($r->nama_rombel_aktif ?? ''))
+                            <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 3px;"
+                                title="Rombel tercatat saat SK SiPintar">
+                                SK: {{ $r->rombel }}
+                            </div>
+                        @endif
                     </td>
                     <td style="padding: 12px 14px;" data-label="SK / Tahap">
                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
@@ -229,7 +255,7 @@
                             style="padding: 35px; text-align: center; color: var(--text-muted);">
                             <i class="fas fa-clock-rotate-left mb-2"
                                 style="font-size: 2rem; opacity: 0.4; display: block;"></i>
-                            Belum ada riwayat penerima PIP.
+                            Belum ada riwayat penerima PIP untuk peserta didik aktif saat ini.
                         </td>
                     </tr>
                 @endforelse
