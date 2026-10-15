@@ -40,18 +40,18 @@
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($tab === 'usulan')
-                <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-plus-circle"></i> Tambah Usulan
+                <button type="button" class="btn btn-primary btn-sm" onclick="openTambahUsulan()"
+                    style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-plus"></i> Usulan
                 </button>
             @elseif ($tab === 'riwayat' && $isAdmin)
-                <button type="button" class="btn btn-outline" onclick="openTambahRiwayat()"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-plus"></i> Tambah Manual
+                <button type="button" class="btn btn-outline btn-sm" onclick="openTambahRiwayat()"
+                    style="padding: 7px 12px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-plus"></i> Manual
                 </button>
-                <button type="button" class="btn btn-primary" onclick="openImportRiwayat()"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-file-excel"></i> Import Excel SiPintar
+                <button type="button" class="btn btn-primary btn-sm" onclick="openImportRiwayat()"
+                    style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-file-excel"></i> Import Excel
                 </button>
             @endif
         </div>
@@ -77,17 +77,17 @@
     <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
         <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'usulan'])) }}"
             class="tab-btn btn {{ $tab === 'usulan' ? 'btn-primary active' : 'btn-outline' }}">
-            <i class="fas fa-list-ol me-1"></i> Usulan &amp; Prioritas
+            <i class="fas fa-list-ol me-1"></i> Usulan
         </a>
         @if ($isAdmin)
             <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'kuota'])) }}"
                 class="tab-btn btn {{ $tab === 'kuota' ? 'btn-primary active' : 'btn-outline' }}">
-                <i class="fas fa-sliders me-1"></i> Kuota per Kelas
+                <i class="fas fa-sliders me-1"></i> Kuota Kelas
             </a>
         @endif
         <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'riwayat'])) }}"
             class="tab-btn btn {{ $tab === 'riwayat' ? 'btn-primary active' : 'btn-outline' }}">
-            <i class="fas fa-clock-rotate-left me-1"></i> Riwayat PIP
+            <i class="fas fa-clock-rotate-left me-1"></i> Riwayat
         </a>
     </div>
 

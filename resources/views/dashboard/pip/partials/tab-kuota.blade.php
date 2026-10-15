@@ -121,14 +121,16 @@
 
             <!-- Tombol Penentuan Kuota Total Sekolah -->
             <button type="button" class="btn btn-primary btn-sm" onclick="pipSetTotalKuota()"
-                style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-calculator"></i> Tentukan Total Kuota Sekolah
+                style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"
+                title="Tentukan dan bagikan total pagu kuota sekolah">
+                <i class="fas fa-calculator"></i> Total Pagu
             </button>
 
             <!-- Tombol Samakan Kuota Rata per Kelas -->
             <button type="button" class="btn btn-outline btn-sm" onclick="pipSetKuotaSemua()"
-                style="border-color: var(--primary); color: var(--primary); font-weight: 600;">
-                <i class="fas fa-layer-group me-1"></i> Samakan per Kelas
+                style="border-color: var(--primary); color: var(--primary); font-weight: 600;"
+                title="Samakan alokasi kuota setiap kelas">
+                <i class="fas fa-layer-group me-1"></i> Rata Kelas
             </button>
 
             @if ($q)

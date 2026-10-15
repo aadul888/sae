@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // ---------------------------------------------------------------------
-    // Prioritas / ranking
+    // Prioritas / ranking (Khusus Wali Kelas)
     // ---------------------------------------------------------------------
     window.pipMovePrioritas = async function (id, direction) {
         try {
@@ -196,6 +196,13 @@ document.addEventListener("DOMContentLoaded", function () {
             const { ok, data } = await post(CFG.routes.prioritas, { id: el.dataset.id, new_rank: newRank });
             if (ok) refresh(); else { el.value = el.dataset.current; Swal.fire("Gagal", data.message, "error"); }
         } catch (err) { el.value = el.dataset.current; Swal.fire("Error", "Gagal menghubungi server.", "error"); }
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.target.classList?.contains("pip-rank-input") && e.key === "Enter") {
+            e.preventDefault();
+            e.target.blur();
+        }
     });
 
     // ---------------------------------------------------------------------

@@ -712,11 +712,21 @@ class PipController extends Controller
 
     /**
      * Ubah Urutan Prioritas / Ranking Usulan PIP (Naik/Turun atau Input Langsung)
+     * Khusus Wali Kelas (Admin Readonly)
      */
     public function updatePrioritas(Request $request): JsonResponse
     {
         $ctx = $this->resolveContext($request);
-        if (!$ctx['isAdmin'] && !RolePermission::canAccess($ctx['user'], 'menu_wali_kelas_pip', 'update') && !RolePermission::canAccess($ctx['user'], 'menu_wali_kelas', 'update')) {
+
+        // Administrator mode: readonly, tidak bisa mengubah urutan prioritas
+        if ($ctx['isAdmin']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Urutan prioritas hanya dapat diatur oleh Wali Kelas binaan.',
+            ], 403);
+        }
+
+        if (!RolePermission::canAccess($ctx['user'], 'menu_wali_kelas_pip', 'update') && !RolePermission::canAccess($ctx['user'], 'menu_wali_kelas', 'update')) {
             return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin mengubah prioritas usulan PIP.'], 403);
         }
 
@@ -730,53 +740,48 @@ class PipController extends Controller
         if ($deny = $this->authorizeUsulan($request, $item)) {
             return $deny;
         }
+
         $rombelId = $item->rombongan_belajar_id;
         $tahun = $item->tahun;
-        $currentRank = (int) $item->prioritas;
 
-        // Ambil semua usulan di rombel yang sama diurutkan prioritas
-        $all = PipUsulan::where('rombongan_belajar_id', $rombelId)
+        // Ambil seluruh usulan rombel terurut
+        $list = PipUsulan::where('rombongan_belajar_id', $rombelId)
             ->where('tahun', $tahun)
             ->orderBy('prioritas', 'asc')
             ->orderBy('id', 'asc')
-            ->get();
+            ->get()
+            ->values();
 
-        if (isset($data['direction'])) {
-            if ($data['direction'] === 'up' && $currentRank > 1) {
-                // Tukar dengan item di atasnya
-                $target = $all->where('prioritas', '<', $currentRank)->last();
-                if ($target) {
-                    $item->prioritas = $target->prioritas;
-                    $target->prioritas = $currentRank;
-                    $target->save();
-                    $item->save();
-                }
-            } elseif ($data['direction'] === 'down') {
-                // Tukar dengan item di bawahnya
-                $target = $all->where('prioritas', '>', $currentRank)->first();
-                if ($target) {
-                    $item->prioritas = $target->prioritas;
-                    $target->prioritas = $currentRank;
-                    $target->save();
-                    $item->save();
-                }
+        $currentIndex = $list->search(fn($r) => (int) $r->id === (int) $item->id);
+        if ($currentIndex === false) {
+            return response()->json(['success' => false, 'message' => 'Data usulan tidak ditemukan.'], 404);
+        }
+
+        if (!empty($data['direction'])) {
+            $dir = $data['direction'];
+            if ($dir === 'up' && $currentIndex > 0) {
+                $other = $list[$currentIndex - 1];
+                $list[$currentIndex - 1] = $item;
+                $list[$currentIndex] = $other;
+            } elseif ($dir === 'down' && $currentIndex < $list->count() - 1) {
+                $other = $list[$currentIndex + 1];
+                $list[$currentIndex + 1] = $item;
+                $list[$currentIndex] = $other;
             }
-        } elseif (isset($data['new_rank'])) {
-            $newRank = max(1, (int) $data['new_rank']);
-            $item->prioritas = $newRank;
-            $item->save();
+        } elseif (!empty($data['new_rank'])) {
+            $targetRank = max(1, min((int) $data['new_rank'], $list->count()));
+            $targetIndex = $targetRank - 1;
+            if ($targetIndex !== $currentIndex) {
+                $itemToMove = $list->pull($currentIndex);
+                $list->splice($targetIndex, 0, [$itemToMove]);
+            }
+        }
 
-            // Re-sequence ranking agar urut tanpa bentrok
-            $reordered = PipUsulan::where('rombongan_belajar_id', $rombelId)
-                ->where('tahun', $tahun)
-                ->orderBy('prioritas', 'asc')
-                ->orderBy('updated_at', 'desc')
-                ->get();
-
-            $seq = 1;
-            foreach ($reordered as $row) {
-                $row->prioritas = $seq++;
-                $row->save();
+        // Terapkan nomor urut 1, 2, 3, ... secara sekuensial tanpa celah/bentrok
+        foreach ($list->values() as $idx => $row) {
+            $seq = $idx + 1;
+            if ((int) $row->prioritas !== $seq) {
+                PipUsulan::where('id', $row->id)->update(['prioritas' => $seq]);
             }
         }
 
