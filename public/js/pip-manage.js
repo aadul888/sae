@@ -322,27 +322,55 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     window.pipSetTotalKuotaProporsional = async function () {
-        const r = await Swal.fire({
+        const { value: formValues } = await Swal.fire({
             title: "Hitung Kuota Proporsional",
-            text: "Masukkan total pagu kuota PIP sekolah. Sistem akan membagikannya secara adil berdasarkan persentase jumlah peserta didik aktif di setiap kelas.",
-            input: "number",
-            inputValue: 120,
-            inputAttributes: { min: 1, max: 10000, step: 1 },
+            html: `
+                <div style="text-align: left; margin-bottom: 14px;">
+                    <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">
+                        Pilih Sasaran Tingkat Kelas:
+                    </label>
+                    <select id="swalTargetKategori" class="form-control" style="font-size: 0.88rem; font-weight: 600; padding: 8px 10px; width: 100%;">
+                        <option value="semua">Semua Tingkat (Kelas X, XI, XII)</option>
+                        <option value="kelas_awal">Kelas Awal (Khusus Kelas X Saja)</option>
+                        <option value="kelas_berjalan">Kelas Berjalan (Khusus Kelas XI & XII)</option>
+                    </select>
+                </div>
+                <div style="text-align: left;">
+                    <label style="font-weight: 700; font-size: 0.85rem; display: block; margin-bottom: 6px;">
+                        Jumlah Pagu Kuota (Siswa):
+                    </label>
+                    <input type="number" id="swalTotalPagu" class="form-control" value="80" min="1" max="10000" style="font-size: 1rem; font-weight: 800; padding: 8px 10px; width: 100%;">
+                    <div style="font-size: 0.74rem; color: #64748b; margin-top: 6px; line-height: 1.4;">
+                        * Kuota dibagikan adil & presisi berdasarkan persentase jumlah peserta didik aktif pada kategori kelas yang dipilih.
+                    </div>
+                </div>
+            `,
+            focusConfirm: false,
             showCancelButton: true,
-            confirmButtonText: "Bagikan Proporsional",
+            confirmButtonText: '<i class="fas fa-calculator me-1"></i> Bagikan Proporsional',
             cancelButtonText: "Batal",
             confirmButtonColor: "#4f46e5",
+            cancelButtonColor: "#64748b",
+            preConfirm: () => {
+                const elKat = document.getElementById("swalTargetKategori");
+                const elTot = document.getElementById("swalTotalPagu");
+                const kategori = elKat ? elKat.value : "semua";
+                const total = parseInt(elTot ? elTot.value : "0", 10);
+                if (!total || total <= 0) {
+                    Swal.showValidationMessage("Harap masukkan total pagu kuota yang valid.");
+                    return false;
+                }
+                return { kategori, total };
+            },
         });
-        if (!r.isConfirmed || !r.value) return;
-        const total = parseInt(r.value, 10);
-        if (isNaN(total) || total <= 0) {
-            Swal.fire("Peringatan", "Harap masukkan angka total kuota yang valid.", "warning");
-            return;
-        }
+
+        if (!formValues) return;
+
         try {
             const { ok, data } = await post(CFG.routes.kuota, {
                 mode: "distribute_proportional",
-                total_kuota: total,
+                kategori_tingkat: formValues.kategori,
+                total_kuota: formValues.total,
                 tahun: CFG.tahun,
             });
             if (ok) {
