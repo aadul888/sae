@@ -1,12 +1,97 @@
+<!-- 1. Stat Grid Baku SAE (6 Kartu Ringkasan Kuota - Jumlah Genap Rapi) -->
+<div class="dash-stat-grid"
+    style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
+            <i class="fas fa-bullseye"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
+                {{ number_format($kuotaStats['total_kuota'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Total Kuota Sekolah</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
+            <i class="fas fa-user-check"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #2563eb;">
+                {{ number_format($kuotaStats['total_terpakai'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Total Usulan Masuk</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <i class="fas fa-ticket"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
+                {{ number_format($kuotaStats['total_sisa'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Sisa Kuota Sekolah</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(14,165,233,0.12); color: #0ea5e9;">
+            <i class="fas fa-chalkboard-user"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #0ea5e9;">
+                {{ number_format($kuotaStats['total_rombel'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Total Kelas Binaan</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <i class="fas fa-circle-exclamation"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                {{ number_format($kuotaStats['rombel_penuh'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Kelas Kuota Terpenuhi</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <i class="fas fa-door-open"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
+                {{ number_format($kuotaStats['rombel_tersedia'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Kelas Masih Ada Kuota</div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Toolbar & Pengaturan Kuota Massal -->
 <div class="card" style="padding: 16px; margin-bottom: 20px;">
     <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
         <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
             <div style="font-size: 0.86rem; font-weight: 700; color: var(--text-color);">
                 <i class="fas fa-calendar me-1"></i> Tahun Usulan: {{ $activeTahun }}
             </div>
+
+            <!-- Tombol Penentuan Kuota Total Sekolah -->
+            <button type="button" class="btn btn-primary btn-sm" onclick="pipSetTotalKuota()"
+                style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-calculator"></i> Tentukan Total Kuota Sekolah
+            </button>
+
+            <!-- Tombol Samakan Kuota Rata per Kelas -->
             <button type="button" class="btn btn-outline btn-sm" onclick="pipSetKuotaSemua()"
                 style="border-color: var(--primary); color: var(--primary); font-weight: 600;">
-                <i class="fas fa-layer-group me-1"></i> Samakan Kuota Semua Kelas
+                <i class="fas fa-layer-group me-1"></i> Samakan per Kelas
             </button>
         </div>
 
@@ -56,7 +141,8 @@
                         {{ $loop->iteration }}</td>
                     <td style="padding: 12px 14px;" data-label="Kelas">
                         <div style="font-weight: 700; font-size: 0.88rem;">{{ $r->nama }}</div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $r->jurusan_id_str ?: '-' }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted);">{{ $r->jurusan_id_str ?: '-' }}
+                        </div>
                     </td>
                     <td style="padding: 12px 14px; font-size: 0.84rem;" data-label="Wali Kelas">
                         {{ $r->ptk_id_str ?: '-' }}</td>

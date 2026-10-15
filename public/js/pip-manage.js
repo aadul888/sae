@@ -276,10 +276,51 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.disabled = false;
     };
 
+    window.pipSetTotalKuota = async function () {
+        const r = await Swal.fire({
+            title: "Tentukan Total Kuota Sekolah",
+            text: "Masukkan total pagu kuota PIP sekolah. Kuota ini akan dibagikan secara proporsional dan merata ke seluruh kelas binaan aktif.",
+            input: "number",
+            inputValue: 120,
+            inputAttributes: { min: 1, max: 10000, step: 1 },
+            showCancelButton: true,
+            confirmButtonText: "Bagi Kuota Sekarang",
+            cancelButtonText: "Batal",
+            confirmButtonColor: "#4f46e5",
+        });
+        if (!r.isConfirmed || !r.value) return;
+        const total = parseInt(r.value, 10);
+        if (isNaN(total) || total <= 0) {
+            Swal.fire("Peringatan", "Harap masukkan angka total kuota yang valid.", "warning");
+            return;
+        }
+        try {
+            const { ok, data } = await post(CFG.routes.kuota, {
+                mode: "distribute_total",
+                total_kuota: total,
+                tahun: CFG.tahun,
+            });
+            if (ok) {
+                toast(data.message);
+                refresh();
+            } else {
+                Swal.fire("Gagal", data.message, "error");
+            }
+        } catch (e) {
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        }
+    };
+
     window.pipSetKuotaSemua = async function () {
         const r = await Swal.fire({
-            title: "Samakan Kuota Semua Kelas", input: "number", inputValue: 5, inputAttributes: { min: 0, max: 100 },
-            showCancelButton: true, confirmButtonText: "Terapkan", cancelButtonText: "Batal",
+            title: "Samakan Kuota per Kelas",
+            text: "Tentukan alokasi kuota yang sama persis untuk setiap kelas (misal: 5 siswa per kelas).",
+            input: "number",
+            inputValue: 5,
+            inputAttributes: { min: 0, max: 100 },
+            showCancelButton: true,
+            confirmButtonText: "Terapkan",
+            cancelButtonText: "Batal",
         });
         if (!r.isConfirmed) return;
         try {

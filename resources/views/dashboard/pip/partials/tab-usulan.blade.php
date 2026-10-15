@@ -53,6 +53,19 @@
                 <div class="dash-stat-label">Kuota Kelas {{ $activeRombel->nama }}</div>
             </div>
         </div>
+    @else
+        <div class="dash-stat-card">
+            <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
+                <i class="fas fa-ticket"></i>
+            </div>
+            <div class="dash-stat-info">
+                <div class="dash-stat-value" style="font-size: 1.35rem; color: #2563eb;">
+                    {{ number_format($stats['total_usulan'], 0, ',', '.') }} /
+                    {{ number_format($stats['total_pagu_sekolah'] ?? 0, 0, ',', '.') }}
+                </div>
+                <div class="dash-stat-label">Pagu Kuota Sekolah</div>
+            </div>
+        </div>
     @endif
 </div>
 

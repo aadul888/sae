@@ -177,7 +177,7 @@ class PipController extends Controller
         $totalSudahDiajukan = (clone $statScope)->where('status_verifikasi', 'sudah_diajukan')->count();
         $totalDitolak = (clone $statScope)->where('status_verifikasi', 'ditolak')->count();
 
-        // Kuota info untuk kelas yang aktif
+        // Kuota info untuk kelas yang aktif / sekolah
         $kuotaKelas = 5;
         $terpakaiKelas = 0;
         $sisaKuotaKelas = 5;
@@ -190,6 +190,12 @@ class PipController extends Controller
             $sisaKuotaKelas = max(0, $kuotaKelas - $terpakaiKelas);
         }
 
+        // Total pagu kuota seluruh sekolah
+        $totalPaguSekolah = (int) DB::table('pip_kuota_rombel')->where('tahun', $activeTahun)->sum('kuota');
+        if ($totalPaguSekolah === 0 && $rombelList->isNotEmpty()) {
+            $totalPaguSekolah = $rombelList->count() * 5;
+        }
+
         $stats = [
             'total_usulan'        => $totalUsulan,
             'belum_diajukan'      => $totalBelumDiajukan,
@@ -198,10 +204,20 @@ class PipController extends Controller
             'kuota_kelas'         => $kuotaKelas,
             'terpakai_kelas'      => $terpakaiKelas,
             'sisa_kuota_kelas'    => $sisaKuotaKelas,
+            'total_pagu_sekolah'  => $totalPaguSekolah,
         ];
 
         // 2. Data Tab: Kuota per Rombel (Admin Only)
         $kuotaList = null;
+        $kuotaStats = [
+            'total_kuota'     => 0,
+            'total_terpakai'  => 0,
+            'total_sisa'      => 0,
+            'total_rombel'    => 0,
+            'rombel_penuh'    => 0,
+            'rombel_tersedia' => 0,
+        ];
+
         if ($isAdmin && $tab === 'kuota') {
             $allRombelData = $rombelList;
             $existingKuota = DB::table('pip_kuota_rombel')
@@ -216,7 +232,7 @@ class PipController extends Controller
                 ->pluck('total', 'rombongan_belajar_id')
                 ->all();
 
-            $kuotaList = $allRombelData->map(function ($r) use ($existingKuota, $existingCount) {
+            $mapped = $allRombelData->map(function ($r) use ($existingKuota, $existingCount) {
                 $k = (int) ($existingKuota[$r->rombongan_belajar_id] ?? 5);
                 $used = (int) ($existingCount[$r->rombongan_belajar_id] ?? 0);
                 $r->kuota = $k;
@@ -225,16 +241,32 @@ class PipController extends Controller
                 return $r;
             });
 
+            $kuotaStats['total_kuota'] = (int) $mapped->sum('kuota');
+            $kuotaStats['total_terpakai'] = (int) $mapped->sum('terpakai');
+            $kuotaStats['total_sisa'] = max(0, $kuotaStats['total_kuota'] - $kuotaStats['total_terpakai']);
+            $kuotaStats['total_rombel'] = $mapped->count();
+            $kuotaStats['rombel_penuh'] = $mapped->where('sisa', '<=', 0)->count();
+            $kuotaStats['rombel_tersedia'] = $mapped->where('sisa', '>', 0)->count();
+
             if ($q !== '') {
-                $kuotaList = $kuotaList->filter(function ($r) use ($q) {
+                $kuotaList = $mapped->filter(function ($r) use ($q) {
                     return stripos($r->nama, $q) !== false || stripos($r->tingkat_pendidikan_id_str, $q) !== false;
                 });
+            } else {
+                $kuotaList = $mapped;
             }
         }
 
         // 3. Data Tab: Riwayat Penerima PIP (SiPintar / SK)
         $riwayatList = null;
         $riwayatTahapList = [];
+        $riwayatStats = [
+            'total_siswa'   => 0,
+            'sudah_cair'    => 0,
+            'belum_cair'    => 0,
+            'total_nominal' => 0,
+        ];
+
         if ($tab === 'riwayat') {
             $riwayatQuery = DB::table('pip_riwayat as r')
                 ->leftJoin('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id')
@@ -270,6 +302,16 @@ class PipController extends Controller
             if ($tahapFilter !== '') {
                 $riwayatQuery->where('r.tahap', $tahapFilter);
             }
+
+            // Hitung 4 statistik riwayat (genap)
+            $statRiwayatQuery = clone $riwayatQuery;
+            $riwayatStats['total_siswa'] = (clone $statRiwayatQuery)->count();
+            $riwayatStats['sudah_cair'] = (clone $statRiwayatQuery)->where(function ($sq) {
+                $sq->where('r.status_cair', 'LIKE', '%cair%')
+                    ->where('r.status_cair', 'NOT LIKE', '%belum%');
+            })->count();
+            $riwayatStats['belum_cair'] = max(0, $riwayatStats['total_siswa'] - $riwayatStats['sudah_cair']);
+            $riwayatStats['total_nominal'] = (float) (clone $statRiwayatQuery)->sum('r.nominal');
 
             $riwayatTahapList = DB::table('pip_riwayat')
                 ->whereNotNull('tahap')
@@ -307,8 +349,10 @@ class PipController extends Controller
             'usulanList',
             'stats',
             'kuotaList',
+            'kuotaStats',
             'riwayatList',
             'riwayatTahapList',
+            'riwayatStats',
             'kriteriaAlasan',
             'statusVerifikasiList'
         ));
@@ -623,6 +667,10 @@ class PipController extends Controller
 
     /**
      * Atur Kuota Usulan PIP per Rombel (Admin Only)
+     * Mendukung: 
+     * 1. Penentuan Kuota Berdasarkan Jumlah Total Sekolah (didistribusikan proporsional ke semua kelas)
+     * 2. Menyamakan Kuota per Kelas (misal 5 siswa/kelas)
+     * 3. Penyesuaian Kuota Per Kelas Spesifik
      */
     public function updateKuota(Request $request): JsonResponse
     {
@@ -632,39 +680,78 @@ class PipController extends Controller
 
         $data = $request->validate([
             'rombongan_belajar_id' => 'nullable|string',
-            'kuota'                => 'required|integer|min:0|max:100',
+            'kuota'                => 'nullable|integer|min:0|max:1000',
+            'total_kuota'          => 'nullable|integer|min:0|max:10000',
             'tahun'                => 'nullable|string|max:20',
+            'mode'                 => 'nullable|string|in:single,set_all,distribute_total',
             'set_all'              => 'nullable|boolean',
         ]);
 
         $tahun = ($data['tahun'] ?? null) ?: date('Y');
+        $mode = $data['mode'] ?? (!empty($data['set_all']) ? 'set_all' : (!empty($data['total_kuota']) ? 'distribute_total' : 'single'));
 
-        if (!empty($data['set_all'])) {
+        // 1. Penentuan secara Jumlah Total Sekolah (membagi total pagu ke seluruh rombel aktif)
+        if ($mode === 'distribute_total' || isset($data['total_kuota'])) {
+            $totalTarget = max(0, (int) ($data['total_kuota'] ?? 0));
+            $rombels = DB::table('rombongan_belajar')
+                ->where('jenis_rombel', '1')
+                ->orderBy('tingkat_pendidikan_id', 'asc')
+                ->orderBy('nama', 'asc')
+                ->pluck('rombongan_belajar_id');
+
+            $count = $rombels->count();
+            if ($count === 0) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada rombongan belajar aktif.'], 422);
+            }
+
+            $base = intdiv($totalTarget, $count);
+            $rem = $totalTarget % $count;
+
+            foreach ($rombels as $idx => $rId) {
+                $allocated = $base + ($idx < $rem ? 1 : 0);
+                PipKuotaRombel::updateOrCreate(
+                    ['rombongan_belajar_id' => $rId, 'tahun' => $tahun],
+                    ['kuota' => $allocated]
+                );
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "Total kuota {$totalTarget} siswa berhasil dibagikan ke {$count} kelas (rata-rata {$base}" . ($rem > 0 ? " hingga " . ($base + 1) : "") . " siswa/kelas).",
+            ]);
+        }
+
+        // 2. Samakan Kuota untuk Semua Kelas (misal 5 siswa/kelas)
+        if ($mode === 'set_all' || !empty($data['set_all'])) {
+            $kuotaVal = (int) ($data['kuota'] ?? 5);
             $rombels = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->pluck('rombongan_belajar_id');
             foreach ($rombels as $rId) {
                 PipKuotaRombel::updateOrCreate(
                     ['rombongan_belajar_id' => $rId, 'tahun' => $tahun],
-                    ['kuota' => (int) $data['kuota']]
+                    ['kuota' => $kuotaVal]
                 );
             }
+            $totalSemua = $rombels->count() * $kuotaVal;
             return response()->json([
                 'success' => true,
-                'message' => "Kuota untuk seluruh kelas berhasil diatur menjadi {$data['kuota']} siswa.",
+                'message' => "Kuota seluruh ({$rombels->count()}) kelas berhasil disamakan menjadi {$kuotaVal} siswa/kelas (Total: {$totalSemua} siswa).",
             ]);
         }
 
+        // 3. Atur Kuota Per Kelas Spesifik
         if (empty($data['rombongan_belajar_id'])) {
             return response()->json(['success' => false, 'message' => 'Rombel wajib dipilih.'], 422);
         }
 
+        $kuotaVal = (int) ($data['kuota'] ?? 0);
         PipKuotaRombel::updateOrCreate(
             ['rombongan_belajar_id' => $data['rombongan_belajar_id'], 'tahun' => $tahun],
-            ['kuota' => (int) $data['kuota']]
+            ['kuota' => $kuotaVal]
         );
 
         return response()->json([
             'success' => true,
-            'message' => "Kuota usulan kelas berhasil diperbarui menjadi {$data['kuota']} siswa.",
+            'message' => "Kuota usulan kelas berhasil diperbarui menjadi {$kuotaVal} siswa.",
         ]);
     }
 
