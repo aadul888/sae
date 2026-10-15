@@ -1795,7 +1795,7 @@
                 request()->routeIs('dashboard.wali-kelas.peserta-didik-tidak-aktif*') ||
                 request()->routeIs('dashboard.wali-kelas.*') ||
                 request()->routeIs('dashboard.wali-kelas') ||
-                (request()->routeIs('dashboard.pip*') && !($role === 'admin' && empty($activeRombel))) ||
+                (request()->routeIs('dashboard.pip*') && $role !== 'admin') ||
                 (request()->routeIs('dashboard.tugas-tambahan.show') && request()->route('kode') === 'wali-kelas');
         @endphp
         <div class="dash-nav-group {{ $isWaliKelasActive ? 'open active-group' : '' }}">

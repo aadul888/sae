@@ -56,6 +56,9 @@ class PipKuotaRombel extends Model
     public static function setTargetTotalSekolah(int $target, ?string $tahun = null): void
     {
         $tahun = $tahun ?: (string) (date('Y'));
+        if (!Schema::hasTable('pip_kuota_rombel')) {
+            return;
+        }
         self::updateOrCreate(
             ['rombongan_belajar_id' => '__TOTAL__', 'tahun' => $tahun],
             ['kuota' => max(0, $target)]
