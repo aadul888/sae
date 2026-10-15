@@ -421,8 +421,7 @@
 
         <!-- Toolbar & Filter Request Cetak (Pola Datatable Global SAE) -->
         <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div
-                style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
@@ -447,8 +446,7 @@
 
                     @if ($q || $reqStatus)
                         <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request']) }}"
-                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
-                            title="Reset filter">
+                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
