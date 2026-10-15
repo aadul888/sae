@@ -469,7 +469,11 @@ document.addEventListener("DOMContentLoaded", function () {
                             showConfirmButton: false,
                         }).then(() => {
                             window.open(data.wa_url, "_blank");
-                            window.location.reload();
+                            if (typeof window.refreshLiveTable === "function") {
+                                window.refreshLiveTable(window.location.href);
+                            } else {
+                                window.location.reload();
+                            }
                         });
                     } else {
                         Swal.fire({
@@ -479,7 +483,11 @@ document.addEventListener("DOMContentLoaded", function () {
                             timer: 1500,
                             showConfirmButton: false,
                         }).then(() => {
-                            window.location.reload();
+                            if (typeof window.refreshLiveTable === "function") {
+                                window.refreshLiveTable(window.location.href);
+                            } else {
+                                window.location.reload();
+                            }
                         });
                     }
                 } else {
@@ -1125,6 +1133,120 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.initKeuanganCharts();
     window.addEventListener("sae:tableRefreshed", window.initKeuanganCharts);
+
+    // =========================================================================
+    // 10. AJAX: Request Cetak Kartu Pelajar (store, status, delete) - refresh hanya tabel
+    // =========================================================================
+    const formTambahRequest = document.getElementById("formTambahRequest");
+    if (formTambahRequest) {
+        formTambahRequest.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById("rqSubmit");
+            const originalText = btnSubmit ? btnSubmit.innerHTML : "";
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Mengirim...';
+            }
+
+            const formData = new FormData(formTambahRequest);
+            try {
+                const res = await fetch(formTambahRequest.action, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "application/json",
+                    },
+                    body: new URLSearchParams(formData),
+                });
+                const data = await res.json();
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+
+                if (res.ok && data.success) {
+                    closeTambahRequest();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil!",
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        if (typeof window.refreshLiveTable === "function") {
+                            window.refreshLiveTable(window.location.href);
+                        }
+                    });
+                } else {
+                    Swal.fire("Gagal", data.message || "Terjadi kesalahan sistem.", "error");
+                }
+            } catch (err) {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
+        });
+    }
+
+    // Delegated handler: status select change -> AJAX submit
+    document.addEventListener("change", function (e) {
+        const sel = e.target;
+        if (sel && sel.matches('select[name="status"]') && !sel.hasAttribute("data-no-ajax") && sel.closest('form[action*="update-request"]')) {
+            const form = sel.closest("form");
+            if (!form) return;
+            e.preventDefault();
+            const formData = new FormData(form);
+            formData.append("_method", "PUT");
+            fetch(form.action, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                },
+                body: new URLSearchParams(formData),
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    if (typeof window.refreshLiveTable === "function") {
+                        window.refreshLiveTable(window.location.href);
+                    }
+                } else {
+                    Swal.fire("Gagal", data.message || "Gagal memperbarui status.", "error");
+                }
+            }).catch(() => Swal.fire("Error", "Gagal menghubungi server.", "error"));
+        }
+    });
+
+    // Delegated handler: delete request -> AJAX
+    document.addEventListener("submit", function (e) {
+        const form = e.target;
+        if (form && form.matches('form[action*="destroy-request"]')) {
+            e.preventDefault();
+            if (!confirm("Hapus request ini?")) return;
+            const formData = new FormData(form);
+            formData.append("_method", "DELETE");
+            fetch(form.action, {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": csrfToken,
+                    "X-Requested-With": "XMLHttpRequest",
+                    Accept: "application/json",
+                },
+                body: new URLSearchParams(formData),
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    if (typeof window.refreshLiveTable === "function") {
+                        window.refreshLiveTable(window.location.href);
+                    }
+                } else {
+                    Swal.fire("Gagal", data.message || "Gagal menghapus request.", "error");
+                }
+            }).catch(() => Swal.fire("Error", "Gagal menghubungi server.", "error"));
+        }
+    });
 
     // Close modals on escape key
     document.addEventListener("keydown", function (e) {

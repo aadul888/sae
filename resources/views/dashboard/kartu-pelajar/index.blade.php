@@ -476,7 +476,8 @@
                             No</th>
                         <th
                             style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 50px; text-align: center;">
-                            <img src="{{ asset('img/logo-dark.png') }}" alt="Foto" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
+                            <img src="{{ asset('img/logo-dark.png') }}" alt="Foto"
+                                style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
                         </th>
                         <th
                             style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
@@ -513,7 +514,9 @@
                             <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;" data-label="No">
                                 {{ $requestList->firstItem() + $ri }}</td>
                             <td style="padding: 12px 14px; text-align: center;" data-label="Foto">
-                                <img src="{{ $rq->foto_url ?: asset('img/logo-dark.png') }}" alt="Foto" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);" onerror="this.src='/img/logo-dark.png'">
+                                <img src="{{ $rq->foto_url ?: asset('img/logo-dark.png') }}" alt="Foto"
+                                    style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);"
+                                    onerror="this.src='/img/logo-dark.png'">
                             </td>
                             <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;"
                                 data-label="Tanggal">
@@ -558,8 +561,7 @@
                                     <form action="{{ route('dashboard.kartu-pelajar.update-request', $rq->id) }}"
                                         method="POST" style="margin: 0;">
                                         @csrf
-                                        <select name="status" class="form-control" onchange="this.form.submit()"
-                                            data-no-ajax
+                                        <select name="status" class="form-control"
                                             style="min-width: 110px; height: 32px; padding: 0 8px; font-size: 0.78rem;">
                                             @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
                                                 <option value="{{ $stKey }}"
@@ -569,10 +571,8 @@
                                         </select>
                                     </form>
                                     <form action="{{ route('dashboard.kartu-pelajar.destroy-request', $rq->id) }}"
-                                        method="POST" style="margin: 0;"
-                                        onsubmit="return confirm('Hapus request ini?')">
+                                        method="POST" class="delete-request-form" style="margin: 0;">
                                         @csrf
-                                        @method('DELETE')
                                         <button type="submit" class="btn-icon" style="color: #ef4444;"
                                             title="Hapus Request"><i class="fas fa-trash-alt"></i></button>
                                     </form>

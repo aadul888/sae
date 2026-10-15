@@ -515,7 +515,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/kartu-pelajar/cari-siswa', [\App\Http\Controllers\KartuPelajarController::class, 'cariSiswa'])->name('kartu-pelajar.cari-siswa');
     Route::post('/kartu-pelajar/request', [\App\Http\Controllers\KartuPelajarController::class, 'storeRequest'])->name('kartu-pelajar.store-request');
     Route::post('/kartu-pelajar/request/{id}/status', [\App\Http\Controllers\KartuPelajarController::class, 'updateStatusRequest'])->name('kartu-pelajar.update-request');
-    Route::delete('/kartu-pelajar/request/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyRequest'])->name('kartu-pelajar.destroy-request');
+    Route::post('/kartu-pelajar/request/{id}/delete', [\App\Http\Controllers\KartuPelajarController::class, 'destroyRequest'])->name('kartu-pelajar.destroy-request');
 
     // Kartu Pelajar Digital — Layanan Cetak
     Route::get('/kartu-pelajar/cetak/{nisn}', [\App\Http\Controllers\KartuPelajarController::class, 'printSingle'])->name('kartu-pelajar.cetak-single');

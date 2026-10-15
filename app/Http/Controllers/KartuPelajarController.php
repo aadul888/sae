@@ -1397,6 +1397,9 @@ class KartuPelajarController extends Controller
 
         KartuPelajarRequest::create($payload);
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => "Request cetak kartu untuk {$pd->nama} berhasil ditambahkan."]);
+        }
         return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
             ->with('success', "Request cetak kartu untuk {$pd->nama} berhasil ditambahkan.");
     }
@@ -1431,11 +1434,14 @@ class KartuPelajarController extends Controller
             $record->save();
         }
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Status request diperbarui menjadi ' . KartuPelajarRequest::STATUS[$data['status']] . '.']);
+        }
         return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
             ->with('success', 'Status request diperbarui menjadi ' . KartuPelajarRequest::STATUS[$data['status']] . '.');
     }
 
-    public function destroyRequest(int $id)
+    public function destroyRequest(Request $request, int $id)
     {
         if (!$this->canKartuPelajar('delete')) {
             abort(403, 'Akses ditolak.');
@@ -1443,6 +1449,9 @@ class KartuPelajarController extends Controller
 
         KartuPelajarRequest::findOrFail($id)->delete();
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Request cetak dihapus.']);
+        }
         return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'request'])
             ->with('success', 'Request cetak dihapus.');
     }
