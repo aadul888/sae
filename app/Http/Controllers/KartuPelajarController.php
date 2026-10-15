@@ -336,10 +336,12 @@ class KartuPelajarController extends Controller
             $rq = DB::table('kartu_pelajar_request as r')
                 ->join('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id')
                 ->leftJoin('kartu_pelajar_pembayaran as kp', 'r.peserta_didik_id', '=', 'kp.peserta_didik_id')
+                ->leftJoin('peserta_didik_meta as pdm', 'r.peserta_didik_id', '=', 'pdm.peserta_didik_id')
                 ->select(
                     'r.*',
                     'pd.nama',
                     'pd.nama_rombel',
+                    'pdm.foto_path',
                     DB::raw($requestHasMetodePembayaran ? "COALESCE(r.metode_pembayaran, kp.metode_pembayaran) as metode_pembayaran_aktif" : "kp.metode_pembayaran as metode_pembayaran_aktif"),
                     DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran_aktif")
                 );
@@ -366,6 +368,11 @@ class KartuPelajarController extends Controller
                 ->orderByDesc('r.created_at')
                 ->paginate($perPage, ['*'], 'request_page', $currentRequestPage)
                 ->withQueryString();
+
+            $requestList->getCollection()->transform(function ($item) {
+                $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
+                return $item;
+            });
         }
 
         return view('dashboard.kartu-pelajar.index', compact(

@@ -475,6 +475,10 @@
                             style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 50px; text-align: center;">
                             No</th>
                         <th
+                            style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 50px; text-align: center;">
+                            <img src="{{ asset('img/logo-dark.png') }}" alt="Foto" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">
+                        </th>
+                        <th
                             style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
                             Tanggal</th>
                         <th
@@ -508,6 +512,9 @@
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;" data-label="No">
                                 {{ $requestList->firstItem() + $ri }}</td>
+                            <td style="padding: 12px 14px; text-align: center;" data-label="Foto">
+                                <img src="{{ $rq->foto_url ?: asset('img/logo-dark.png') }}" alt="Foto" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);" onerror="this.src='/img/logo-dark.png'">
+                            </td>
                             <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;"
                                 data-label="Tanggal">
                                 {{ \Carbon\Carbon::parse($rq->created_at)->translatedFormat('d M Y H:i') }}
@@ -574,7 +581,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="padding: 35px; text-align: center; color: var(--text-muted);">
+                            <td colspan="8" style="padding: 35px; text-align: center; color: var(--text-muted);">
                                 <i class="fas fa-paper-plane mb-2"
                                     style="font-size: 2rem; opacity: 0.4; display: block;"></i>
                                 Belum ada request cetak kartu.
