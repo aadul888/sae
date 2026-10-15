@@ -271,39 +271,65 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     // ---------------------------------------------------------------------
-    // Kuota per kelas (admin)
+    // Kuota per kelas (admin) — 1 Tombol Simpan Tunggal & Distribusi Proporsional
     // ---------------------------------------------------------------------
-    window.pipSimpanKuota = async function (rombelId, btn) {
-        const input = document.querySelector(`.pip-kuota-input[data-rombel="${CSS.escape(rombelId)}"]`);
-        if (!input) return;
-        btn.disabled = true;
+    window.pipSimpanSemuaKuota = async function () {
+        const inputs = document.querySelectorAll(".pip-kuota-input");
+        if (!inputs.length) return;
+
+        const kuotaMap = {};
+        inputs.forEach((inp) => {
+            const rombelId = inp.dataset.rombel;
+            if (rombelId) {
+                kuotaMap[rombelId] = parseInt(inp.value, 10) || 0;
+            }
+        });
+
+        const btn = document.getElementById("btnSimpanSemuaKuota");
+        const oldHtml = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+        }
+
         try {
-            const { ok, data } = await post(CFG.routes.kuota, { rombongan_belajar_id: rombelId, kuota: parseInt(input.value, 10) || 0, tahun: CFG.tahun });
-            if (ok) { toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
-        } catch (e) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
-        btn.disabled = false;
+            const { ok, data } = await post(CFG.routes.kuota, {
+                mode: "batch",
+                kuota_map: kuotaMap,
+                tahun: CFG.tahun,
+            });
+            if (ok) {
+                toast(data.message);
+                refresh();
+            } else {
+                Swal.fire("Gagal", data.message, "error");
+            }
+        } catch (e) {
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        }
+
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = oldHtml;
+        }
     };
 
     document.addEventListener("keydown", function (e) {
         if (e.target.classList?.contains("pip-kuota-input") && e.key === "Enter") {
             e.preventDefault();
-            const rombelId = e.target.dataset.rombel;
-            const btn = e.target.closest("tr")?.querySelector('button[onclick*="pipSimpanKuota"]');
-            if (rombelId && btn) {
-                pipSimpanKuota(rombelId, btn);
-            }
+            pipSimpanSemuaKuota();
         }
     });
 
-    window.pipSetTotalKuota = async function () {
+    window.pipSetTotalKuotaProporsional = async function () {
         const r = await Swal.fire({
-            title: "Tentukan Total Kuota Sekolah",
-            text: "Masukkan total pagu kuota PIP sekolah. Kuota ini akan dibagikan secara proporsional dan merata ke seluruh kelas binaan aktif.",
+            title: "Hitung Kuota Proporsional",
+            text: "Masukkan total pagu kuota PIP sekolah. Sistem akan membagikannya secara adil berdasarkan persentase jumlah peserta didik aktif di setiap kelas.",
             input: "number",
             inputValue: 120,
             inputAttributes: { min: 1, max: 10000, step: 1 },
             showCancelButton: true,
-            confirmButtonText: "Bagi Kuota Sekarang",
+            confirmButtonText: "Bagikan Proporsional",
             cancelButtonText: "Batal",
             confirmButtonColor: "#4f46e5",
         });
@@ -315,7 +341,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         try {
             const { ok, data } = await post(CFG.routes.kuota, {
-                mode: "distribute_total",
+                mode: "distribute_proportional",
                 total_kuota: total,
                 tahun: CFG.tahun,
             });
@@ -329,6 +355,7 @@ document.addEventListener("DOMContentLoaded", function () {
             Swal.fire("Error", "Gagal menghubungi server.", "error");
         }
     };
+    window.pipSetTotalKuota = window.pipSetTotalKuotaProporsional;
 
     window.pipSetKuotaSemua = async function () {
         const r = await Swal.fire({

@@ -386,12 +386,30 @@ class PipController extends Controller
                     ->all();
             }
 
-            $mapped = $allRombelData->map(function ($r) use ($existingKuota, $existingCount) {
+            $studentCounts = [];
+            $totalSiswaSekolah = 0;
+            if (Schema::hasTable('peserta_didik')) {
+                $studentCounts = DB::table('peserta_didik')
+                    ->select('rombongan_belajar_id', DB::raw('count(*) as total'))
+                    ->groupBy('rombongan_belajar_id')
+                    ->pluck('total', 'rombongan_belajar_id')
+                    ->all();
+                foreach ($allRombelData as $r) {
+                    $totalSiswaSekolah += (int) ($studentCounts[$r->rombongan_belajar_id] ?? 0);
+                }
+            }
+
+            $mapped = $allRombelData->map(function ($r) use ($existingKuota, $existingCount, $studentCounts, $totalSiswaSekolah) {
                 $k = (int) ($existingKuota[$r->rombongan_belajar_id] ?? 5);
                 $used = (int) ($existingCount[$r->rombongan_belajar_id] ?? 0);
+                $jmlSiswa = (int) ($studentCounts[$r->rombongan_belajar_id] ?? 0);
+                $persen = $totalSiswaSekolah > 0 ? round(($jmlSiswa / $totalSiswaSekolah) * 100, 1) : 0;
+
                 $r->kuota = $k;
                 $r->terpakai = $used;
                 $r->sisa = max(0, $k - $used);
+                $r->jumlah_siswa = $jmlSiswa;
+                $r->persen_siswa = $persen;
                 return $r;
             });
 
@@ -899,11 +917,82 @@ class PipController extends Controller
     }
 
     /**
+     * Hitung alokasi kuota per rombel berdasarkan persentase jumlah peserta didik aktif.
+     * Menggunakan metode Hamilton / Largest Remainder Method agar distribusi 100% adil, proporsional, dan presisi tanpa sisa.
+     */
+    private function calculateProportionalQuota(int $totalTarget): array
+    {
+        $rombels = DB::table('rombongan_belajar')
+            ->where('jenis_rombel', '1')
+            ->orderBy('tingkat_pendidikan_id', 'asc')
+            ->orderBy('nama', 'asc')
+            ->get(['rombongan_belajar_id', 'nama']);
+
+        if ($rombels->isEmpty()) {
+            return [];
+        }
+
+        $studentCounts = [];
+        if (Schema::hasTable('peserta_didik')) {
+            $studentCounts = DB::table('peserta_didik')
+                ->select('rombongan_belajar_id', DB::raw('count(*) as total'))
+                ->groupBy('rombongan_belajar_id')
+                ->pluck('total', 'rombongan_belajar_id')
+                ->all();
+        }
+
+        $totalStudents = 0;
+        foreach ($rombels as $r) {
+            $totalStudents += (int) ($studentCounts[$r->rombongan_belajar_id] ?? 0);
+        }
+
+        // Fallback jika belum ada data siswa: bagi rata
+        if ($totalStudents === 0 || $totalTarget === 0) {
+            $count = $rombels->count();
+            $base = $count > 0 ? intdiv($totalTarget, $count) : 0;
+            $rem = $count > 0 ? $totalTarget % $count : 0;
+            $result = [];
+            foreach ($rombels as $idx => $r) {
+                $result[$r->rombongan_belajar_id] = $base + ($idx < $rem ? 1 : 0);
+            }
+            return $result;
+        }
+
+        // Largest Remainder Method (Hamilton Method)
+        $allocations = [];
+        $remainders = [];
+        $allocatedSum = 0;
+
+        foreach ($rombels as $r) {
+            $c = (int) ($studentCounts[$r->rombongan_belajar_id] ?? 0);
+            $exactQuota = ($c / $totalStudents) * $totalTarget;
+            $floorQuota = (int) floor($exactQuota);
+
+            $allocations[$r->rombongan_belajar_id] = $floorQuota;
+            $remainders[$r->rombongan_belajar_id] = $exactQuota - $floorQuota;
+            $allocatedSum += $floorQuota;
+        }
+
+        // Bagikan sisa kursi ke rombel dengan sisa desimal terbesar
+        $remainingSeats = $totalTarget - $allocatedSum;
+        if ($remainingSeats > 0) {
+            arsort($remainders);
+            foreach ($remainders as $rId => $rem) {
+                if ($remainingSeats <= 0) break;
+                $allocations[$rId]++;
+                $remainingSeats--;
+            }
+        }
+
+        return $allocations;
+    }
+
+    /**
      * Atur Kuota Usulan PIP per Rombel (Admin Only)
      * Mendukung: 
-     * 1. Penentuan Kuota Berdasarkan Jumlah Total Sekolah (didistribusikan proporsional ke semua kelas)
-     * 2. Menyamakan Kuota per Kelas (misal 5 siswa/kelas)
-     * 3. Penyesuaian Kuota Per Kelas Spesifik
+     * 1. Penentuan Kuota Berdasarkan Persentase Jumlah Siswa Aktif (Proporsional & Adil)
+     * 2. Simpan Semua Perubahan Kuota (1 Tombol Simpan Tunggal untuk Seluruh Kelas)
+     * 3. Menyamakan Kuota Rata per Kelas (misal 5 siswa/kelas)
      */
     public function updateKuota(Request $request): JsonResponse
     {
@@ -914,51 +1003,72 @@ class PipController extends Controller
         $this->ensurePipSchema();
 
         $data = $request->validate([
+            'kuota_map'            => 'nullable|array',
+            'kuota_map.*'          => 'integer|min:0|max:1000',
             'rombongan_belajar_id' => 'nullable|string',
             'kuota'                => 'nullable|integer|min:0|max:1000',
             'total_kuota'          => 'nullable|integer|min:0|max:10000',
             'tahun'                => 'nullable|string|max:20',
-            'mode'                 => 'nullable|string|in:single,set_all,distribute_total',
+            'mode'                 => 'nullable|string|in:single,batch,set_all,distribute_total,distribute_proportional',
             'set_all'              => 'nullable|boolean',
         ]);
 
         $tahun = ($data['tahun'] ?? null) ?: date('Y');
-        $mode = $data['mode'] ?? (!empty($data['set_all']) ? 'set_all' : (!empty($data['total_kuota']) ? 'distribute_total' : 'single'));
+        $mode = $data['mode'] ?? (!empty($data['kuota_map']) ? 'batch' : (!empty($data['set_all']) ? 'set_all' : (!empty($data['total_kuota']) ? 'distribute_proportional' : 'single')));
 
-        // 1. Penentuan secara Jumlah Total Sekolah (membagi total pagu ke seluruh rombel aktif)
-        if ($mode === 'distribute_total' || isset($data['total_kuota'])) {
+        // 1. Simpan Seluruh Perubahan Kuota Sekaligus (1 Tombol Simpan Tunggal)
+        if ($mode === 'batch' || !empty($data['kuota_map'])) {
+            $map = (array) ($data['kuota_map'] ?? []);
+            if (empty($map)) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada data kuota yang dikirim.'], 422);
+            }
+
+            $totalBatch = 0;
+            foreach ($map as $rId => $val) {
+                $kVal = max(0, (int) $val);
+                $totalBatch += $kVal;
+                PipKuotaRombel::updateOrCreate(
+                    ['rombongan_belajar_id' => (string) $rId, 'tahun' => $tahun],
+                    ['kuota' => $kVal]
+                );
+            }
+
+            // Perbarui pagu total sekolah
+            PipKuotaRombel::setTargetTotalSekolah($totalBatch, $tahun);
+
+            $countSaved = count($map);
+            return response()->json([
+                'success' => true,
+                'message' => "Semua perubahan kuota untuk {$countSaved} kelas berhasil disimpan (Total Pagu: {$totalBatch} siswa).",
+            ]);
+        }
+
+        // 2. Penentuan Kuota Berdasarkan Persentase Jumlah Peserta Didik (Adil & Proporsional)
+        if ($mode === 'distribute_proportional' || $mode === 'distribute_total' || isset($data['total_kuota'])) {
             $totalTarget = max(0, (int) ($data['total_kuota'] ?? 0));
             PipKuotaRombel::setTargetTotalSekolah($totalTarget, $tahun);
 
-            $rombels = DB::table('rombongan_belajar')
-                ->where('jenis_rombel', '1')
-                ->orderBy('tingkat_pendidikan_id', 'asc')
-                ->orderBy('nama', 'asc')
-                ->pluck('rombongan_belajar_id');
+            $proportionalAllocations = $this->calculateProportionalQuota($totalTarget);
+            $count = count($proportionalAllocations);
 
-            $count = $rombels->count();
             if ($count === 0) {
                 return response()->json(['success' => false, 'message' => 'Tidak ada rombongan belajar aktif.'], 422);
             }
 
-            $base = intdiv($totalTarget, $count);
-            $rem = $totalTarget % $count;
-
-            foreach ($rombels as $idx => $rId) {
-                $allocated = $base + ($idx < $rem ? 1 : 0);
+            foreach ($proportionalAllocations as $rId => $kVal) {
                 PipKuotaRombel::updateOrCreate(
                     ['rombongan_belajar_id' => $rId, 'tahun' => $tahun],
-                    ['kuota' => $allocated]
+                    ['kuota' => (int) $kVal]
                 );
             }
 
             return response()->json([
                 'success' => true,
-                'message' => "Total pagu {$totalTarget} siswa disimpan dan berhasil dibagikan ke {$count} kelas (rata-rata {$base}" . ($rem > 0 ? " hingga " . ($base + 1) : "") . " siswa/kelas).",
+                'message' => "Pagu {$totalTarget} siswa berhasil dibagikan secara adil ke {$count} kelas berdasarkan persentase jumlah peserta didik aktif.",
             ]);
         }
 
-        // 2. Samakan Kuota untuk Semua Kelas (misal 5 siswa/kelas)
+        // 3. Samakan Kuota untuk Semua Kelas (Bagi Rata, misal 5 siswa/kelas)
         if ($mode === 'set_all' || !empty($data['set_all'])) {
             $kuotaVal = (int) ($data['kuota'] ?? 5);
             $rombels = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->pluck('rombongan_belajar_id');
@@ -977,38 +1087,12 @@ class PipController extends Controller
             ]);
         }
 
-        // 3. Atur Kuota Per Kelas Spesifik (Cegah melebihi total pagu sekolah jika target total telah ditetapkan)
+        // 4. Atur Kuota Per Kelas Tunggal
         if (empty($data['rombongan_belajar_id'])) {
             return response()->json(['success' => false, 'message' => 'Rombel wajib dipilih.'], 422);
         }
 
         $kuotaVal = (int) ($data['kuota'] ?? 0);
-        $targetTotal = PipKuotaRombel::getTargetTotalSekolah($tahun);
-
-        if ($targetTotal !== null && $targetTotal > 0) {
-            $otherClassesTotal = (int) DB::table('pip_kuota_rombel')
-                ->where('tahun', $tahun)
-                ->where('rombongan_belajar_id', '!=', '__TOTAL__')
-                ->where('rombongan_belajar_id', '!=', $data['rombongan_belajar_id'])
-                ->sum('kuota');
-
-            $allRombelIds = DB::table('rombongan_belajar')->where('jenis_rombel', '1')->pluck('rombongan_belajar_id');
-            $existingRombelIds = DB::table('pip_kuota_rombel')
-                ->where('tahun', $tahun)
-                ->where('rombongan_belajar_id', '!=', '__TOTAL__')
-                ->pluck('rombongan_belajar_id');
-            $unsetCount = $allRombelIds->diff($existingRombelIds)->reject(fn($id) => $id === $data['rombongan_belajar_id'])->count();
-            $otherClassesTotal += ($unsetCount * 5);
-
-            $maxAllowed = max(0, $targetTotal - $otherClassesTotal);
-            if ($kuotaVal > $maxAllowed) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Pengisian kuota kelas ini ({$kuotaVal} siswa) akan melebihi total pagu sekolah ({$targetTotal} siswa). Maksimal sisa kuota yang tersedia untuk kelas ini adalah {$maxAllowed} siswa.",
-                ], 422);
-            }
-        }
-
         PipKuotaRombel::updateOrCreate(
             ['rombongan_belajar_id' => $data['rombongan_belajar_id'], 'tahun' => $tahun],
             ['kuota' => $kuotaVal]

@@ -119,18 +119,26 @@
                 <span>entri</span>
             </div>
 
-            <!-- Tombol Penentuan Kuota Total Sekolah -->
-            <button type="button" class="btn btn-primary btn-sm" onclick="pipSetTotalKuota()"
+            <!-- 1 Tombol Simpan Tunggal untuk Seluruh Kuota Kelas -->
+            <button type="button" class="btn btn-primary btn-sm" id="btnSimpanSemuaKuota"
+                onclick="pipSimpanSemuaKuota()"
                 style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;"
-                title="Tentukan dan bagikan total pagu kuota sekolah">
-                <i class="fas fa-calculator"></i> Total Pagu
+                title="Simpan seluruh perubahan angka kuota kelas di halaman ini">
+                <i class="fas fa-save"></i> Simpan Kuota
+            </button>
+
+            <!-- Tombol Penentuan Kuota Berdasarkan Persentase Jumlah Siswa (Proporsional & Adil) -->
+            <button type="button" class="btn btn-outline btn-sm" onclick="pipSetTotalKuotaProporsional()"
+                style="border-color: var(--primary); color: var(--primary); font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
+                title="Tentukan total pagu dan bagikan secara proporsional sesuai persentase jumlah siswa kelas">
+                <i class="fas fa-chart-pie"></i> Hitung Proporsional
             </button>
 
             <!-- Tombol Samakan Kuota Rata per Kelas -->
             <button type="button" class="btn btn-outline btn-sm" onclick="pipSetKuotaSemua()"
-                style="border-color: var(--primary); color: var(--primary); font-weight: 600;"
+                style="border-color: var(--border-color); color: var(--text-color); font-weight: 600;"
                 title="Samakan alokasi kuota setiap kelas">
-                <i class="fas fa-layer-group me-1"></i> Rata Kelas
+                <i class="fas fa-layer-group me-1"></i> Bagi Rata
             </button>
 
             @if ($q)
@@ -168,15 +176,18 @@
                     Wali Kelas</th>
                 <th
                     style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">
+                    Siswa (% Porsi)</th>
+                <th
+                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">
                     Terpakai</th>
                 <th
                     style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center;">
                     Sisa</th>
                 <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 160px;">
+                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 130px;">
                     Kuota</th>
                 <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 120px;">
+                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 70px;">
                     Aksi</th>
             </tr>
         </thead>
@@ -192,6 +203,11 @@
                     </td>
                     <td style="padding: 12px 14px; font-size: 0.84rem;" data-label="Wali Kelas">
                         {{ $r->ptk_id_str ?: '-' }}</td>
+                    <td style="padding: 12px 14px; text-align: center;" data-label="Siswa (% Porsi)">
+                        <span style="font-weight: 700; font-size: 0.84rem;">{{ $r->jumlah_siswa ?? 0 }}</span>
+                        <small
+                            style="color: var(--text-muted); font-size: 0.72rem;">({{ $r->persen_siswa ?? 0 }}%)</small>
+                    </td>
                     <td style="padding: 12px 14px; text-align: center;" data-label="Terpakai">
                         <span class="badge badge-primary">{{ $r->terpakai }}</span>
                     </td>
@@ -202,19 +218,14 @@
                     <td style="padding: 12px 14px; text-align: center;" data-label="Kuota">
                         <input type="number" min="0" max="1000" value="{{ $r->kuota }}"
                             class="form-control pip-kuota-input" data-rombel="{{ $r->rombongan_belajar_id }}"
-                            style="width: 80px; height: 32px; padding: 0 8px; text-align: center; font-weight: 800; margin: 0 auto;">
+                            style="width: 76px; height: 32px; padding: 0 6px; text-align: center; font-weight: 800; margin: 0 auto; border-radius: 6px;">
                     </td>
                     <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
-                        <div style="display: flex; gap: 6px; justify-content: center;">
-                            <button type="button" class="btn btn-primary btn-sm"
-                                onclick="pipSimpanKuota('{{ $r->rombongan_belajar_id }}', this)">
-                                <i class="fas fa-save"></i>
-                            </button>
-                            <a href="{{ route('dashboard.pip.index', ['tab' => 'usulan', 'rombel_id' => $r->rombongan_belajar_id, 'tahun' => $activeTahun]) }}"
-                                class="btn btn-outline btn-sm" title="Lihat usulan kelas ini">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                        </div>
+                        <a href="{{ route('dashboard.pip.index', ['tab' => 'usulan', 'rombel_id' => $r->rombongan_belajar_id, 'tahun' => $activeTahun]) }}"
+                            class="btn btn-outline btn-sm btn-icon" style="width: 32px; height: 32px;"
+                            title="Lihat Usulan Kelas">
+                            <i class="fas fa-eye"></i>
+                        </a>
                     </td>
                 </tr>
             @empty
