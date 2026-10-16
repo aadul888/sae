@@ -32,7 +32,10 @@ class KartuPelajarController extends Controller
             abort(403, 'Akses ditolak: Menu ini khusus untuk Administrator.');
         }
 
-        $tab = $request->get('tab', 'keuangan'); // 'keuangan', 'siswa', 'harga', 'whatsapp', 'garansi'
+        $tab = $request->get('tab', 'keuangan'); // 'keuangan', 'request', 'berhasil-cetak', 'harga', 'whatsapp', 'garansi'
+        if ($tab === 'siswa') {
+            $tab = 'berhasil-cetak';
+        }
         $settings = KartuPelajarPengaturan::getSettings();
 
         $q = trim($request->get('q', ''));
@@ -41,10 +44,10 @@ class KartuPelajarController extends Controller
         $statusCetak = trim($request->get('status_cetak', ''));
         $perPageVal = $request->get('perPage', '15');
         $perPage = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 15;
-        $sort = in_array($request->get('sort'), ['nama', 'nisn', 'nama_rombel', 'status_pembayaran', 'status_cetak', 'nominal', 'tanggal_bayar'], true) ? $request->get('sort') : 'nama';
+        $sort = in_array($request->get('sort'), ['nama', 'nisn', 'nama_rombel', 'status_pembayaran', 'status_cetak', 'nominal', 'tanggal_bayar', 'created_at', 'tanggal', 'status', 'jenis_request'], true) ? $request->get('sort') : 'nama';
         $sortDir = strtolower($request->get('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
-        // Base query dari peserta_didik
+        // Base query dari peserta_didik yang sudah berhasil dicetak (Tab Berhasil Cetak)
         $query = DB::table('peserta_didik as pd')
             ->leftJoin('kartu_pelajar_pembayaran as kp', 'pd.peserta_didik_id', '=', 'kp.peserta_didik_id')
             ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
@@ -72,6 +75,19 @@ class KartuPelajarController extends Controller
                 DB::raw("COALESCE(kp.klaim_stiker, 0) as klaim_stiker")
             );
 
+        // Filter tab Berhasil Cetak: HANYA menampilkan peserta didik yang sudah selesai cetak
+        $query->where(function ($sq) {
+            $sq->where('kp.status_cetak', 'sudah_cetak');
+            if (Schema::hasTable('kartu_pelajar_request')) {
+                $sq->orWhereExists(function ($sub) {
+                    $sub->select(DB::raw(1))
+                        ->from('kartu_pelajar_request as kpr')
+                        ->whereColumn('kpr.peserta_didik_id', 'pd.peserta_didik_id')
+                        ->where('kpr.status', 'selesai');
+                });
+            }
+        });
+
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
                 $sub->where('pd.nama', 'LIKE', "%{$q}%")
@@ -90,15 +106,6 @@ class KartuPelajarController extends Controller
             $query->where(function ($sq) {
                 $sq->whereNull('kp.status_pembayaran')
                     ->orWhere('kp.status_pembayaran', 'belum_bayar');
-            });
-        }
-
-        if ($statusCetak === 'sudah_cetak') {
-            $query->where('kp.status_cetak', 'sudah_cetak');
-        } elseif ($statusCetak === 'belum_cetak') {
-            $query->where(function ($sq) {
-                $sq->whereNull('kp.status_cetak')
-                    ->orWhere('kp.status_cetak', 'belum_cetak');
             });
         }
 
@@ -133,9 +140,21 @@ class KartuPelajarController extends Controller
             return $item;
         });
 
-        // Hitung statistik live sesuai filter yang aktif di datatable
+        // Hitung statistik live sesuai filter yang aktif di datatable Berhasil Cetak
         $statScope = DB::table('peserta_didik as pd')
             ->leftJoin('kartu_pelajar_pembayaran as kp', 'pd.peserta_didik_id', '=', 'kp.peserta_didik_id');
+
+        $statScope->where(function ($sq) {
+            $sq->where('kp.status_cetak', 'sudah_cetak');
+            if (Schema::hasTable('kartu_pelajar_request')) {
+                $sq->orWhereExists(function ($sub) {
+                    $sub->select(DB::raw(1))
+                        ->from('kartu_pelajar_request as kpr')
+                        ->whereColumn('kpr.peserta_didik_id', 'pd.peserta_didik_id')
+                        ->where('kpr.status', 'selesai');
+                });
+            }
+        });
 
         if ($q !== '') {
             $statScope->where(function ($sub) use ($q) {
@@ -158,15 +177,6 @@ class KartuPelajarController extends Controller
             });
         }
 
-        if ($statusCetak === 'sudah_cetak') {
-            $statScope->where('kp.status_cetak', 'sudah_cetak');
-        } elseif ($statusCetak === 'belum_cetak') {
-            $statScope->where(function ($sq) {
-                $sq->whereNull('kp.status_cetak')
-                    ->orWhere('kp.status_cetak', 'belum_cetak');
-            });
-        }
-
         $totalSiswa = (clone $statScope)->count();
         $totalLunas = (clone $statScope)->where('kp.status_pembayaran', 'lunas')->count();
         $totalBelumBayar = (clone $statScope)->where(function ($sq) {
@@ -174,12 +184,6 @@ class KartuPelajarController extends Controller
                 ->orWhere('kp.status_pembayaran', 'belum_bayar');
         })->count();
         $totalDanaTerkumpul = (clone $statScope)->where('kp.status_pembayaran', 'lunas')->sum('kp.nominal');
-
-        $totalSudahCetak = (clone $statScope)->where('kp.status_cetak', 'sudah_cetak')->count();
-        $totalBelumCetak = (clone $statScope)->where(function ($sq) {
-            $sq->whereNull('kp.status_cetak')
-                ->orWhere('kp.status_cetak', 'belum_cetak');
-        })->count();
 
         $totalKlaimKartu = Schema::hasTable('kartu_pelajar_garansi_log')
             ? DB::table('kartu_pelajar_garansi_log')->where('jenis_klaim', 'ganti_kartu_full')->count()
@@ -190,11 +194,12 @@ class KartuPelajarController extends Controller
 
         $stats = [
             'total_siswa' => $totalSiswa,
+            'total_selesai_cetak' => $totalSiswa,
             'total_lunas' => $totalLunas,
             'total_belum_bayar' => $totalBelumBayar,
             'total_dana' => $totalDanaTerkumpul,
-            'total_sudah_cetak' => $totalSudahCetak,
-            'total_belum_cetak' => $totalBelumCetak,
+            'total_sudah_cetak' => $totalSiswa,
+            'total_belum_cetak' => $totalBelumBayar,
             'total_klaim_kartu' => $totalKlaimKartu,
             'total_klaim_stiker' => $totalKlaimStiker,
         ];
@@ -329,7 +334,12 @@ class KartuPelajarController extends Controller
         $reqStatus = trim((string) $request->get('req_status', ''));
         if ($tab === 'request' && Schema::hasTable('kartu_pelajar_request')) {
             $requestHasMetodePembayaran = Schema::hasColumn('kartu_pelajar_request', 'metode_pembayaran');
-            foreach (DB::table('kartu_pelajar_request')->select('status', DB::raw('COUNT(*) as total'))->groupBy('status')->pluck('total', 'status') as $st => $n) {
+            $statQuery = DB::table('kartu_pelajar_request as r')
+                ->join('peserta_didik as pd', 'r.peserta_didik_id', '=', 'pd.peserta_didik_id');
+            if ($rombel !== '') {
+                $statQuery->where('pd.nama_rombel', $rombel);
+            }
+            foreach ($statQuery->select('r.status', DB::raw('COUNT(*) as total'))->groupBy('r.status')->pluck('total', 'r.status') as $st => $n) {
                 $requestStats[$st] = (int) $n;
             }
 
@@ -341,12 +351,25 @@ class KartuPelajarController extends Controller
                     'r.*',
                     'pd.nama',
                     'pd.nama_rombel',
+                    'pd.nipd',
+                    DB::raw("COALESCE(r.nisn, pd.nisn) as nisn"),
                     'pdm.foto_path',
                     DB::raw($requestHasMetodePembayaran ? "COALESCE(r.metode_pembayaran, kp.metode_pembayaran) as metode_pembayaran_aktif" : "kp.metode_pembayaran as metode_pembayaran_aktif"),
                     DB::raw("COALESCE(kp.status_pembayaran, 'belum_bayar') as status_pembayaran_aktif")
                 );
             if (isset(KartuPelajarRequest::STATUS[$reqStatus])) {
                 $rq->where('r.status', $reqStatus);
+            }
+            if ($rombel !== '') {
+                $rq->where('pd.nama_rombel', $rombel);
+            }
+            if ($statusBayar === 'lunas') {
+                $rq->where('kp.status_pembayaran', 'lunas');
+            } elseif ($statusBayar === 'belum_bayar') {
+                $rq->where(function ($sq) {
+                    $sq->whereNull('kp.status_pembayaran')
+                        ->orWhere('kp.status_pembayaran', 'belum_bayar');
+                });
             }
             if ($q !== '') {
                 $rq->where(function ($sub) use ($q) {
@@ -357,6 +380,28 @@ class KartuPelajarController extends Controller
                 });
             }
 
+            $reqSort = in_array($sort, ['nama', 'nisn', 'nama_rombel', 'created_at', 'tanggal', 'status', 'status_pembayaran', 'jenis_request'], true)
+                ? $sort
+                : null;
+
+            if ($reqSort) {
+                $rqCol = match ($reqSort) {
+                    'nama' => 'pd.nama',
+                    'nisn' => 'r.nisn',
+                    'nama_rombel' => 'pd.nama_rombel',
+                    'tanggal', 'created_at' => 'r.created_at',
+                    'status_pembayaran' => 'status_pembayaran_aktif',
+                    'status' => 'r.status',
+                    'jenis_request' => 'r.jenis_request',
+                    default => 'pd.nama',
+                };
+                $rq->orderBy($rqCol, $sortDir);
+            } else {
+                $rq->orderByRaw("FIELD(r.status, 'menunggu','diproses','selesai','ditolak')")
+                    ->orderByDesc('r.created_at');
+            }
+            $rq->orderBy('pd.nama', 'asc');
+
             $totalRequestFiltered = (clone $rq)->count();
             $lastRequestPage = max(1, (int) ceil($totalRequestFiltered / $perPage));
             $currentRequestPage = (int) $request->get('request_page', 1);
@@ -364,9 +409,7 @@ class KartuPelajarController extends Controller
                 $currentRequestPage = 1;
             }
 
-            $requestList = $rq->orderByRaw("FIELD(r.status, 'menunggu','diproses','selesai','ditolak')")
-                ->orderByDesc('r.created_at')
-                ->paginate($perPage, ['*'], 'request_page', $currentRequestPage)
+            $requestList = $rq->paginate($perPage, ['*'], 'request_page', $currentRequestPage)
                 ->withQueryString();
 
             $requestList->getCollection()->transform(function ($item) {
@@ -1512,8 +1555,20 @@ class KartuPelajarController extends Controller
             $record = KartuPelajarPembayaran::firstOrNew(['peserta_didik_id' => $item->peserta_didik_id]);
             $record->nisn = $item->nisn;
             $record->status_cetak = 'sudah_cetak';
-            $record->tanggal_cetak = now();
+            $record->tanggal_cetak = $record->tanggal_cetak ?: now();
             $record->save();
+        } else {
+            $hasOtherSelesai = KartuPelajarRequest::where('peserta_didik_id', $item->peserta_didik_id)
+                ->where('id', '!=', $item->id)
+                ->where('status', 'selesai')
+                ->exists();
+            if (!$hasOtherSelesai) {
+                $record = KartuPelajarPembayaran::where('peserta_didik_id', $item->peserta_didik_id)->first();
+                if ($record && $record->status_cetak === 'sudah_cetak') {
+                    $record->status_cetak = 'belum_cetak';
+                    $record->save();
+                }
+            }
         }
 
         if ($request->expectsJson()) {
@@ -1529,7 +1584,23 @@ class KartuPelajarController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        KartuPelajarRequest::findOrFail($id)->delete();
+        $item = KartuPelajarRequest::findOrFail($id);
+        $wasSelesai = ($item->status === 'selesai');
+        $pdId = $item->peserta_didik_id;
+        $item->delete();
+
+        if ($wasSelesai) {
+            $hasOtherSelesai = KartuPelajarRequest::where('peserta_didik_id', $pdId)
+                ->where('status', 'selesai')
+                ->exists();
+            if (!$hasOtherSelesai) {
+                $record = KartuPelajarPembayaran::where('peserta_didik_id', $pdId)->first();
+                if ($record && $record->status_cetak === 'sudah_cetak') {
+                    $record->status_cetak = 'belum_cetak';
+                    $record->save();
+                }
+            }
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Request cetak dihapus.']);

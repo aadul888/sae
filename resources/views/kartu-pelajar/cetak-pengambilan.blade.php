@@ -16,7 +16,7 @@
 
 <body>
     <div class="no-print-bar" style="white-space: nowrap; flex-wrap: nowrap; gap: 10px; max-width: 96vw;">
-        <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'siswa']) }}" class="btn-action btn-back">
+        <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'berhasil-cetak']) }}" class="btn-action btn-back">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
 

@@ -126,6 +126,38 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Delegated Sort Header Handler (AJAX Live Sort for Kartu Pelajar)
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th) return;
+
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
+
+        let newDir = "asc";
+        if (currentSort === sortField && currentDir === "asc") {
+            newDir = "desc";
+        }
+
+        url.searchParams.set("sort", sortField);
+        url.searchParams.set("sort_dir", newDir);
+        url.searchParams.delete("page");
+        url.searchParams.delete("request_page");
+
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }, true);
+
     // =========================================================================
     // 2. Multi-Select & Bulk Actions
     // =========================================================================
