@@ -63,7 +63,8 @@
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 20px;">
             <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null])) }}"
-                class="dash-stat-card" style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+                class="dash-stat-card"
+                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
                 <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                     <i class="fas fa-users"></i>
                 </div>
@@ -76,7 +77,8 @@
             </a>
 
             <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'sudah_konfirmasi'])) }}"
-                class="dash-stat-card" style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+                class="dash-stat-card"
+                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
                 <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
                     <i class="fas fa-user-check"></i>
                 </div>
@@ -94,7 +96,8 @@
             </a>
 
             <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'belum_konfirmasi'])) }}"
-                class="dash-stat-card" style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+                class="dash-stat-card"
+                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
                 <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
                     <i class="fas fa-user-clock"></i>
                 </div>
@@ -107,7 +110,8 @@
             </a>
 
             <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'berkas' => 'lengkap'])) }}"
-                class="dash-stat-card" style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+                class="dash-stat-card"
+                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
                 <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
                     <i class="fas fa-file-circle-check"></i>
                 </div>
@@ -120,7 +124,8 @@
             </a>
 
             <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'berkas' => 'menunggu'])) }}"
-                class="dash-stat-card" style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+                class="dash-stat-card"
+                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
                 <div class="dash-stat-icon" style="background: rgba(168,85,247,0.15); color: #a855f7;">
                     <i class="fas fa-hourglass-half"></i>
                 </div>
@@ -153,7 +158,8 @@
             <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'perlu_perbaikan', 'berkas' => $berkas])) }}"
                 class="btn btn-sm {{ $konfirmasi === 'perlu_perbaikan' ? 'btn-danger text-white' : 'btn-outline' }}"
                 style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-triangle-exclamation"></i> Usul Perbaikan ({{ number_format($summary['perlu_perbaikan']) }})
+                <i class="fas fa-triangle-exclamation"></i> Usul Perbaikan
+                ({{ number_format($summary['perlu_perbaikan']) }})
             </a>
             <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => $konfirmasi, 'berkas' => 'menunggu'])) }}"
                 class="btn btn-sm {{ $berkas === 'menunggu' ? 'btn-primary' : 'btn-outline' }}"
