@@ -115,146 +115,181 @@
     </div>
 </div>
 
-<div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-        <thead>
-            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 50px; text-align: center;">
-                    No</th>
-                <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                    Peserta Didik</th>
-                <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                    Status &amp; Rombel</th>
-                <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                    SK / Tahap</th>
-                <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: right;">
-                    Nominal</th>
-                <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted);">
-                    Pencairan</th>
-                <th
-                    style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 80px;">
-                    Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($riwayatAlumniList as $r)
-                @php
-                    $isNominasi = ($r->jenis_sk ?? 'pemberian') === 'nominasi';
-                    $cair =
-                        stripos((string) $r->status_cair, 'cair') !== false &&
-                        stripos((string) $r->status_cair, 'belum') === false;
-                    $rombelTeks = $r->nama_rombel_terakhir ?: ($r->rombel ?: ($r->kelas ?: '-'));
-                @endphp
-                <tr style="border-bottom: 1px solid var(--border-color);">
-                    <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;" data-label="No">
-                        {{ $riwayatAlumniList->firstItem() + $loop->index }}</td>
-                    <td style="padding: 12px 14px;" data-label="Peserta Didik">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <img src="{{ $r->foto_url ?: asset('img/logo-dark.png') }}" alt="{{ $r->nama_pd }}"
-                                style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
-                                onerror="this.src='/img/logo-dark.png'">
-                            <div>
-                                <div style="font-weight: 700; font-size: 0.86rem;">{{ $r->nama_pd }}</div>
-                                <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
-                                    NISN: {{ $r->nisn ?: '-' }}</div>
-                                @if ($r->nama_ibu_kandung)
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">Ibu:
-                                        {{ $r->nama_ibu_kandung }}</div>
-                                @endif
-                            </div>
-                        </div>
-                    </td>
-                    <td style="padding: 12px 14px;" data-label="Status &amp; Rombel">
-                        <div
-                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px;">
-                            @if ($r->status_keluar === 'Alumni')
-                                <span class="badge badge-success" style="font-size: 0.7rem; padding: 2px 7px;">
-                                    Alumni{{ $r->tahun_lulus ? ' (' . $r->tahun_lulus . ')' : '' }}
-                                </span>
-                            @elseif ($r->status_keluar === 'Mutasi')
-                                <span class="badge badge-warning" style="font-size: 0.7rem; padding: 2px 7px;">
-                                    Mutasi
-                                </span>
-                            @elseif (!empty($r->status_keluar))
-                                <span class="badge badge-outline" style="font-size: 0.7rem; padding: 2px 7px;">
-                                    {{ $r->status_keluar }}
-                                </span>
-                            @else
-                                <span class="badge badge-outline"
-                                    style="font-size: 0.7rem; padding: 2px 7px; opacity: 0.85;">
-                                    Kelas Non-Aktif / Arsip
-                                </span>
-                            @endif
-                        </div>
-                        <div style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">
-                            {{ $rombelTeks }}
-                        </div>
-                    </td>
-                    <td style="padding: 12px 14px;" data-label="SK / Tahap">
-                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-                            <span class="badge {{ $isNominasi ? 'badge-warning' : 'badge-success' }}"
-                                style="font-size: 0.68rem; padding: 1px 6px;">
-                                {{ $isNominasi ? 'SK Nominasi' : 'SK Pemberian' }}
-                            </span>
-                        </div>
-                        <div style="font-size: 0.8rem; font-weight: 600;">{{ $r->nomor_sk ?: '-' }}</div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">
-                            {{ $r->tahap ?: '-' }}@if ($r->tanggal_sk)
-                                &bull; {{ $r->tanggal_sk }}
-                            @endif
-                        </div>
-                    </td>
-                    <td style="padding: 12px 14px; text-align: right; font-weight: 700; white-space: nowrap;"
-                        data-label="Nominal">
-                        {{ $r->nominal !== null ? 'Rp ' . number_format($r->nominal, 0, ',', '.') : '-' }}
-                    </td>
-                    <td style="padding: 12px 14px;" data-label="Status / Tanggal">
-                        @if ($isNominasi)
-                            <span class="badge {{ !empty($r->tanggal_aktivasi) ? 'badge-success' : 'badge-warning' }}"
-                                style="font-size: 0.72rem; padding: 3px 8px;">
-                                {{ !empty($r->tanggal_aktivasi) ? 'Sudah Aktivasi' : 'Belum Aktivasi' }}
-                            </span>
-                            @if ($r->tanggal_aktivasi)
-                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
-                                    Tgl: {{ $r->tanggal_aktivasi }}
-                                </div>
-                            @endif
-                        @else
-                            <span class="badge {{ $cair ? 'badge-success' : 'badge-warning' }}"
-                                style="font-size: 0.72rem; padding: 3px 8px;">
-                                {{ $r->status_cair ?: 'Belum ada status' }}
-                            </span>
-                            @if ($r->tanggal_cair)
-                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
-                                    Tgl Cair: {{ $r->tanggal_cair }}
-                                </div>
-                            @endif
-                        @endif
-                    </td>
-                    <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
-                        <button type="button" class="btn-icon" style="color: #ef4444;" title="Hapus"
-                            onclick="pipHapusRiwayat({{ $r->id }}, @js($r->nama_pd))">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
+<div class="card table-responsive-stack" id="tableDataContainer"
+    style="padding: 0; margin-bottom: 24px; overflow: hidden;">
+    <div style="overflow-x: auto; width: 100%;">
+        <table class="table table-pd table-pip-riwayat"
+            style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                    <th class="th-no d-none-mobile"
+                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); width: 48px; text-align: center;">
+                        No</th>
+                    <th
+                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 220px;">
+                        Peserta Didik</th>
+                    <th
+                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 150px;">
+                        Status &amp; Rombel</th>
+                    <th
+                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 200px;">
+                        SK / Tahap</th>
+                    <th
+                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: right; min-width: 120px;">
+                        Nominal</th>
+                    <th
+                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); min-width: 140px;">
+                        Pencairan</th>
+                    <th
+                        style="padding: 12px 14px; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); text-align: center; width: 80px;">
+                        Aksi</th>
                 </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" style="padding: 35px; text-align: center; color: var(--text-muted);">
-                            <i class="fas fa-user-graduate mb-2"
-                                style="font-size: 2rem; opacity: 0.4; display: block;"></i>
-                            Belum ada data riwayat penerima PIP untuk kelas lain atau alumni.
+            </thead>
+            <tbody>
+                @forelse ($riwayatAlumniList as $r)
+                    @php
+                        $isNominasi = ($r->jenis_sk ?? 'pemberian') === 'nominasi';
+                        $cair =
+                            stripos((string) $r->status_cair, 'cair') !== false &&
+                            stripos((string) $r->status_cair, 'belum') === false;
+                        $rombelTeks = $r->nama_rombel_terakhir ?: ($r->rombel ?: ($r->kelas ?: '-'));
+                        $itemIndex = ($riwayatAlumniList->firstItem() ?: 1) + $loop->index;
+                    @endphp
+                    <tr class="pip-riwayat-row"
+                        style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                        <td class="cell-pd-no d-none-mobile"
+                            style="text-align: center; color: var(--text-muted); font-size: 0.84rem; font-weight: 700;"
+                            data-label="No">
+                            {{ $itemIndex }}</td>
+                        <td class="cell-pd-nama" style="padding: 12px 14px;" data-label="Peserta Didik">
+                            <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 10px;">
+                                <div class="user-avatar pd-foto-thumb"
+                                    style="width: 40px; height: 40px; border-radius: 10px; overflow: hidden; background: rgba(99,102,241,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                                    <img src="{{ $r->foto_url ?: asset('img/logo-dark.png') }}"
+                                        alt="{{ $r->nama_pd }}"
+                                        style="width: 100%; height: 100%; object-fit: cover;"
+                                        onerror="this.src='/img/logo-dark.png'">
+                                </div>
+                                <div class="pd-info" style="min-width: 0; flex: 1;">
+                                    <div class="pd-title-row"
+                                        style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                        <span class="badge badge-outline badge-row-no d-none-desktop d-block-mobile"
+                                            style="font-size: 0.68rem; padding: 1px 6px; font-weight: 700; color: var(--text-muted);">
+                                            #{{ $itemIndex }}
+                                        </span>
+                                        <div class="pd-nama"
+                                            style="font-weight: 800; font-size: 0.88rem; color: var(--text-color); line-height: 1.35; word-break: break-word;">
+                                            {{ $r->nama_pd }}
+                                        </div>
+                                    </div>
+                                    <div class="pd-meta-row"
+                                        style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                                        <span>NISN: <strong>{{ $r->nisn ?: '-' }}</strong></span>
+                                        @if ($r->nama_ibu_kandung)
+                                            &bull; <span style="font-family: inherit;">Ibu:
+                                                {{ $r->nama_ibu_kandung }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="cell-pd-kelas" style="padding: 12px 14px;" data-label="Status &amp; Rombel">
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <div
+                                    style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 2px;">
+                                    @if ($r->status_keluar === 'Alumni')
+                                        <span class="badge badge-success"
+                                            style="font-size: 0.7rem; padding: 2px 7px;">
+                                            Alumni{{ $r->tahun_lulus ? ' (' . $r->tahun_lulus . ')' : '' }}
+                                        </span>
+                                    @elseif ($r->status_keluar === 'Mutasi')
+                                        <span class="badge badge-warning"
+                                            style="font-size: 0.7rem; padding: 2px 7px;">
+                                            Mutasi
+                                        </span>
+                                    @elseif (!empty($r->status_keluar))
+                                        <span class="badge badge-outline"
+                                            style="font-size: 0.7rem; padding: 2px 7px;">
+                                            {{ $r->status_keluar }}
+                                        </span>
+                                    @else
+                                        <span class="badge badge-outline"
+                                            style="font-size: 0.7rem; padding: 2px 7px; opacity: 0.85;">
+                                            Kelas Non-Aktif / Arsip
+                                        </span>
+                                    @endif
+                                </div>
+                                <div style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">
+                                    {{ $rombelTeks }}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="cell-pd-status" style="padding: 12px 14px;" data-label="SK / Tahap">
+                            <div style="display: flex; flex-direction: column; gap: 2px;">
+                                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                    <span class="badge {{ $isNominasi ? 'badge-warning' : 'badge-success' }}"
+                                        style="font-size: 0.68rem; padding: 1px 6px;">
+                                        {{ $isNominasi ? 'SK Nominasi' : 'SK Pemberian' }}
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-color);">
+                                    {{ $r->nomor_sk ?: '-' }}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">
+                                    {{ $r->tahap ?: '-' }}@if ($r->tanggal_sk)
+                                        &bull; {{ $r->tanggal_sk }}
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td class="cell-pd-nominal"
+                            style="padding: 12px 14px; text-align: right; font-weight: 700; white-space: nowrap;"
+                            data-label="Nominal">
+                            {{ $r->nominal !== null ? 'Rp ' . number_format($r->nominal, 0, ',', '.') : '-' }}
+                        </td>
+                        <td class="cell-pd-cair" style="padding: 12px 14px;" data-label="Pencairan">
+                            @if ($isNominasi)
+                                <span
+                                    class="badge {{ !empty($r->tanggal_aktivasi) ? 'badge-success' : 'badge-warning' }}"
+                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    {{ !empty($r->tanggal_aktivasi) ? 'Sudah Aktivasi' : 'Belum Aktivasi' }}
+                                </span>
+                                @if ($r->tanggal_aktivasi)
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                        Tgl: {{ $r->tanggal_aktivasi }}
+                                    </div>
+                                @endif
+                            @else
+                                <span class="badge {{ $cair ? 'badge-success' : 'badge-warning' }}"
+                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    {{ $r->status_cair ?: 'Belum ada status' }}
+                                </span>
+                                @if ($r->tanggal_cair)
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                        Tgl Cair: {{ $r->tanggal_cair }}
+                                    </div>
+                                @endif
+                            @endif
+                        </td>
+                        <td class="cell-pd-aksi" style="padding: 12px 14px; text-align: center;" data-label="Aksi">
+                            <button type="button" class="btn-icon" style="color: #ef4444;" title="Hapus Riwayat"
+                                onclick="pipHapusRiwayat({{ $r->id }}, @js($r->nama_pd))">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </td>
                     </tr>
-                @endforelse
-            </tbody>
-        </table>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="cell-empty"
+                                style="padding: 35px; text-align: center; color: var(--text-muted);">
+                                <i class="fas fa-user-graduate mb-2"
+                                    style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                Belum ada data riwayat penerima PIP untuk kelas lain atau alumni.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 
     @include('dashboard.pip.partials.pagination', ['paginator' => $riwayatAlumniList])

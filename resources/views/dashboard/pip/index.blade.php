@@ -127,6 +127,190 @@
     @include('dashboard.pip.partials.modals')
 @endsection
 
+@push('styles')
+    <style>
+        /* -------------------------------------------------------------
+             * Tab Riwayat PIP — Desktop & Responsive Modern Table
+             * ------------------------------------------------------------- */
+        .table-pip-riwayat {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-pip-riwayat thead th {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .table-pip-riwayat tbody tr.pip-riwayat-row {
+            transition: background 0.18s ease;
+        }
+
+        .table-pip-riwayat tbody tr.pip-riwayat-row:hover {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        .table-pip-riwayat tbody td {
+            vertical-align: middle;
+            padding: 12px 14px;
+            box-sizing: border-box;
+        }
+
+        /* Responsive Mobile Card View (< 768px) */
+        @media (max-width: 768px) {
+            .table-responsive-stack tbody tr.pip-riwayat-row {
+                display: flex !important;
+                flex-direction: column !important;
+                padding: 14px 15px !important;
+                margin-bottom: 14px !important;
+                border-radius: 14px !important;
+                background: var(--bg-card) !important;
+                border: 1px solid var(--border-color) !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-no {
+                display: none !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-nama {
+                order: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                padding: 0 0 10px 0 !important;
+                margin-bottom: 6px !important;
+                border-bottom: 1px solid var(--border-color) !important;
+                width: 100% !important;
+                text-align: left !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-nama::before {
+                display: none !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-kelas {
+                order: 2 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 8px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                width: 100% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-kelas::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-status {
+                order: 3 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+                padding: 9px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                width: 100% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-status::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+                margin-top: 3px !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-status>* {
+                text-align: right !important;
+                align-items: flex-end !important;
+                max-width: 70% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-nominal {
+                order: 4 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 8px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                width: 100% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-nominal::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-cair {
+                order: 5 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 8px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                width: 100% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-cair::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-cair>* {
+                text-align: right !important;
+                align-items: flex-end !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-aksi {
+                order: 10 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                width: 100% !important;
+                padding: 10px 0 0 0 !important;
+                margin-top: 4px !important;
+                border-top: 1px solid var(--border-color) !important;
+                border-bottom: none !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-aksi::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+            }
+
+            .d-block-mobile {
+                display: inline-flex !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .d-block-mobile {
+                display: none !important;
+            }
+        }
+    </style>
+@endpush
+
 @push('scripts')
     <script>
         window.PIP_CONFIG = {

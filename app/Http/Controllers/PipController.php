@@ -637,7 +637,7 @@ class PipController extends Controller
                         'pd.nisn as nisn_pd_aktif',
                         'pd.nipd',
                         'pd.nipd as nipd_pd_aktif',
-                        'pd.nama_ibu_kandung',
+                        'pd.nama_ibu as nama_ibu_kandung',
                         'pd.nama_rombel as nama_rombel_aktif',
                         'pd.rombongan_belajar_id as rombel_id_aktif',
                         'rb.nama as nama_kelas_aktif',
@@ -667,7 +667,7 @@ class PipController extends Controller
                                 ->orWhere('pd.nipd', 'LIKE', "%{$q}%")
                                 ->orWhere('pd.nama_rombel', 'LIKE', "%{$q}%")
                                 ->orWhere('rb.nama', 'LIKE', "%{$q}%")
-                                ->orWhere('pd.nama_ibu_kandung', 'LIKE', "%{$q}%");
+                                ->orWhere('pd.nama_ibu', 'LIKE', "%{$q}%");
                         });
                     }
 
@@ -751,7 +751,7 @@ class PipController extends Controller
                         'pd.nisn as nisn_pd_aktif',
                         'pd.nipd',
                         'pd.nipd as nipd_pd_aktif',
-                        'pd.nama_ibu_kandung',
+                        'pd.nama_ibu as nama_ibu_kandung',
                         'pd.nama_rombel as nama_rombel_aktif',
                         'pd.rombongan_belajar_id as rombel_id_aktif',
                         'rb.nama as nama_kelas_aktif',
