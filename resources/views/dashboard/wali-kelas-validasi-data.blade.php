@@ -248,360 +248,307 @@
         </div>
 
         <!-- Datatable Validasi Data Siswa (Baku SAE: table-responsive-stack & table-pd) -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 44px; text-align: center;">
-                            No
-                        </th>
-                        <th class="sortable-th {{ $sort === 'nama' ? 'sorted' : '' }}"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"
-                            data-sort="nama">
-                            Peserta Didik
-                            <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'status_konfirmasi' || $sort === 'dikonfirmasi_pada' ? 'sorted' : '' }}"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;"
-                            data-sort="dikonfirmasi_pada">
-                            Status Konfirmasi Data
-                            <span class="sort-icon">{!! $sort === 'dikonfirmasi_pada' || $sort === 'status_konfirmasi'
-                                ? ($sortDir === 'asc'
-                                    ? '&#9650;'
-                                    : '&#9660;')
-                                : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Berkas Persyaratan (Akta &bull; KK &bull; Ijazah &bull; KTP)
-                        </th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Kelengkapan
-                        </th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                            Aksi
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($list as $index => $item)
-                        @php
-                            $rowNum = ($list->currentPage() - 1) * $list->perPage() + $index + 1;
-                            $stKonf = $item->status_konfirmasi ?? 'belum_konfirmasi';
+        <div class="card table-responsive-stack" id="tableDataContainer"
+            style="padding: 0; margin-bottom: 24px; overflow: hidden;">
+            <div style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd table-validasi-data"
+                    style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            <th class="th-no d-none-mobile"
+                                style="padding: 13px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 48px; text-align: center;">
+                                No
+                            </th>
+                            <th class="sortable-th th-pd {{ $sort === 'nama' ? 'sorted' : '' }}"
+                                style="padding: 13px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; min-width: 240px;"
+                                data-sort="nama">
+                                Peserta Didik
+                                <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th th-konfirm {{ $sort === 'status_konfirmasi' || $sort === 'dikonfirmasi_pada' ? 'sorted' : '' }}"
+                                style="padding: 13px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 180px;"
+                                data-sort="dikonfirmasi_pada">
+                                Status Konfirmasi Data
+                                <span class="sort-icon">{!! $sort === 'dikonfirmasi_pada' || $sort === 'status_konfirmasi'
+                                    ? ($sortDir === 'asc'
+                                        ? '&#9650;'
+                                        : '&#9660;')
+                                    : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="th-berkas"
+                                style="padding: 13px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 240px;">
+                                Berkas Persyaratan (Akta &bull; KK &bull; Ijazah &bull; KTP)
+                            </th>
+                            <th class="th-kelengkapan"
+                                style="padding: 13px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; min-width: 130px;">
+                                Kelengkapan
+                            </th>
+                            <th class="th-aksi"
+                                style="padding: 13px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 180px;">
+                                Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($list as $index => $item)
+                            @php
+                                $rowNum = ($list->currentPage() - 1) * $list->perPage() + $index + 1;
+                                $stKonf = $item->status_konfirmasi ?? 'belum_konfirmasi';
 
-                            $aktaF = $item->berkas_items->get('akta_kelahiran');
-                            $kkF = $item->berkas_items->get('kartu_keluarga');
-                            $ijzF = $item->berkas_items->get('ijazah_smp');
-                            $ktpF = $item->berkas_items->get('ktp_orang_tua');
+                                $aktaF = $item->berkas_items->get('akta_kelahiran');
+                                $kkF = $item->berkas_items->get('kartu_keluarga');
+                                $ijzF = $item->berkas_items->get('ijazah_smp');
+                                $ktpF = $item->berkas_items->get('ktp_orang_tua');
 
-                            $aktaVal = $aktaF?->status === 'valid' || !empty($item->fisik_verif?->akta_kelahiran);
-                            $kkVal = $kkF?->status === 'valid' || !empty($item->fisik_verif?->kartu_keluarga);
-                            $ijzVal = $ijzF?->status === 'valid' || !empty($item->fisik_verif?->ijazah_smp);
-                            $ktpVal = $ktpF?->status === 'valid' || !empty($item->fisik_verif?->ktp_orang_tua);
-                        @endphp
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <!-- No Urut -->
-                            <td
-                                style="padding: 14px; text-align: center; color: var(--text-muted); font-size: 0.82rem; font-weight: 600;">
-                                {{ $rowNum }}
-                            </td>
+                                $aktaVal = $aktaF?->status === 'valid' || !empty($item->fisik_verif?->akta_kelahiran);
+                                $kkVal = $kkF?->status === 'valid' || !empty($item->fisik_verif?->kartu_keluarga);
+                                $ijzVal = $ijzF?->status === 'valid' || !empty($item->fisik_verif?->ijazah_smp);
+                                $ktpVal = $ktpF?->status === 'valid' || !empty($item->fisik_verif?->ktp_orang_tua);
 
-                            <!-- Kolom Peserta Didik (Avatar & Identitas) -->
-                            <td class="cell-pd-nama" style="padding: 14px 18px;">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div class="user-avatar"
-                                        style="width: 42px; height: 42px; border-radius: 10px; overflow: hidden; background: rgba(99,102,241,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
-                                        @if ($item->foto_url)
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;"
-                                                onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-user-graduate text-primary\'></i>';">
-                                        @else
-                                            <i class="fas fa-user-graduate text-primary" style="font-size: 1.15rem;"></i>
-                                        @endif
-                                    </div>
-                                    <div style="min-width: 0;">
-                                        <div
-                                            style="font-weight: 800; font-size: 0.92rem; color: var(--text-color); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                            {{ $item->nama }}
-                                        </div>
-                                        <div
-                                            style="font-size: 0.77rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span>NISN: <strong>{{ $item->nisn ?: '-' }}</strong></span>
-                                            @if ($item->nipd)
-                                                &bull; <span>NIPD: {{ $item->nipd }}</span>
+                                $berkasSlots = [
+                                    [
+                                        'label' => 'Akta',
+                                        'title' => 'Akta Kelahiran',
+                                        'file' => $aktaF,
+                                        'isValid' => $aktaVal,
+                                    ],
+                                    [
+                                        'label' => 'KK',
+                                        'title' => 'Kartu Keluarga (KK)',
+                                        'file' => $kkF,
+                                        'isValid' => $kkVal,
+                                    ],
+                                    [
+                                        'label' => 'Ijazah',
+                                        'title' => 'Ijazah SMP / SKL',
+                                        'file' => $ijzF,
+                                        'isValid' => $ijzVal,
+                                    ],
+                                    [
+                                        'label' => 'KTP',
+                                        'title' => 'KTP Orang Tua / Wali',
+                                        'file' => $ktpF,
+                                        'isValid' => $ktpVal,
+                                    ],
+                                ];
+                            @endphp
+                            <tr class="validasi-row"
+                                style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <!-- No Urut (Desktop Only) -->
+                                <td class="cell-pd-no d-none-mobile" data-label="No"
+                                    style="padding: 14px; text-align: center; color: var(--text-muted); font-size: 0.82rem; font-weight: 700;">
+                                    {{ $rowNum }}
+                                </td>
+
+                                <!-- Kolom Peserta Didik (Avatar & Identitas) -->
+                                <td class="cell-pd-nama" data-label="Peserta Didik" style="padding: 14px 18px;">
+                                    <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
+                                        <div class="user-avatar pd-foto-thumb"
+                                            style="width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: rgba(99,102,241,0.12); flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color);">
+                                            @if ($item->foto_url)
+                                                <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover;"
+                                                    onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fas fa-user-graduate text-primary\'></i>';">
+                                            @else
+                                                <i class="fas fa-user-graduate text-primary"
+                                                    style="font-size: 1.15rem;"></i>
                                             @endif
-                                            <span
-                                                class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                                style="font-size: 0.65rem; padding: 1px 5px; font-weight: 700; border-radius: 4px;">
-                                                {{ $item->jenis_kelamin }}
-                                            </span>
+                                        </div>
+                                        <div class="pd-info" style="min-width: 0; flex: 1;">
+                                            <div class="pd-title-row"
+                                                style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <span
+                                                    class="badge badge-outline badge-row-no d-none-desktop d-block-mobile"
+                                                    style="font-size: 0.68rem; padding: 1px 6px; font-weight: 700; color: var(--text-muted);">
+                                                    #{{ $rowNum }}
+                                                </span>
+                                                <div class="pd-nama"
+                                                    style="font-weight: 800; font-size: 0.92rem; color: var(--text-color); line-height: 1.35; word-break: break-word;">
+                                                    {{ $item->nama }}
+                                                </div>
+                                                <span
+                                                    class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                                    style="font-size: 0.65rem; padding: 2px 6px; font-weight: 700; border-radius: 4px;">
+                                                    {{ $item->jenis_kelamin }}
+                                                </span>
+                                            </div>
+                                            <div class="pd-meta-row"
+                                                style="font-size: 0.77rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 3px;">
+                                                <span>NISN: <strong>{{ $item->nisn ?: '-' }}</strong></span>
+                                                @if ($item->nipd)
+                                                    &bull; <span>NIPD: {{ $item->nipd }}</span>
+                                                @endif
+                                                @if (!empty($item->nama_rombel))
+                                                    &bull; <span>{{ $item->nama_rombel }}</span>
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
+                                </td>
 
-                            <!-- Kolom Status Konfirmasi Data Siswa -->
-                            <td style="padding: 14px 18px; text-align: center;">
-                                @if (in_array($stKonf, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true))
-                                    <span class="badge badge-success"
-                                        style="font-size: 0.78rem; padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-circle-check"></i> Sesuai &bull; Terkonfirmasi
-                                    </span>
-                                @elseif ($stKonf === 'perlu_perbaikan')
-                                    <span class="badge badge-warning"
-                                        style="font-size: 0.78rem; padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"
-                                        title="{{ $item->catatan_siswa ? 'Catatan Siswa: ' . $item->catatan_siswa : 'Siswa mengajukan koreksi perbaikan data' }}">
-                                        <i class="fas fa-triangle-exclamation"></i> Perlu Perbaikan
-                                    </span>
-                                @else
-                                    <span class="badge badge-outline"
-                                        style="font-size: 0.78rem; padding: 4px 10px; font-weight: 700; background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.35); display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-clock"></i> Belum Konfirmasi
-                                    </span>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
-                                        Menunggu pemeriksaan siswa
-                                    </div>
-                                @endif
-
-                                @if (!empty($item->dikonfirmasi_pada))
-                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
-                                        <i class="fas fa-calendar-check me-1"></i>
-                                        {{ \Carbon\Carbon::parse($item->dikonfirmasi_pada)->translatedFormat('d M Y, H:i') }}
-                                    </div>
-                                @endif
-
-                                @if (!empty($item->catatan_siswa) && $stKonf === 'perlu_perbaikan')
-                                    <div style="font-size: 0.7rem; color: #d97706; max-width: 220px; margin: 3px auto 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
-                                        title="{{ $item->catatan_siswa }}">
-                                        <i class="fas fa-comment-dots me-1"></i> "{{ $item->catatan_siswa }}"
-                                    </div>
-                                @endif
-                            </td>
-
-                            <!-- Kolom Status 4 Berkas Wajib -->
-                            <td style="padding: 14px 18px; text-align: center;">
-                                <div
-                                    style="display: inline-flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;">
-                                    {{-- 1. Akta Kelahiran --}}
-                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                        @if ($aktaVal)
+                                <!-- Kolom Status Konfirmasi Data Siswa -->
+                                <td class="cell-pd-konfirmasi" data-label="Konfirmasi Data"
+                                    style="padding: 14px 18px; text-align: center;">
+                                    <div class="konfirmasi-wrapper"
+                                        style="display: inline-flex; flex-direction: column; align-items: center; gap: 3px;">
+                                        @if (in_array($stKonf, ['sesuai', 'diverifikasi', 'disinkronkan_dapodik'], true))
                                             <span class="badge badge-success"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Akta Kelahiran: Valid">
-                                                <i class="fas fa-certificate"></i> Akta
+                                                style="font-size: 0.76rem; padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+                                                <i class="fas fa-circle-check"></i> Sesuai &bull; Terkonfirmasi
                                             </span>
-                                        @elseif ($aktaF?->status === 'tidak_valid')
-                                            <span class="badge badge-danger" style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Akta Kelahiran: Ditolak / Tidak Valid">
-                                                <i class="fas fa-times-circle"></i> Akta
-                                            </span>
-                                        @elseif ($aktaF?->status === 'menunggu')
+                                        @elseif ($stKonf === 'perlu_perbaikan')
                                             <span class="badge badge-warning"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Akta Kelahiran: Menunggu Verifikasi">
-                                                <i class="fas fa-clock"></i> Akta
+                                                style="font-size: 0.76rem; padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;"
+                                                title="{{ $item->catatan_siswa ? 'Catatan Siswa: ' . $item->catatan_siswa : 'Siswa mengajukan koreksi perbaikan data' }}">
+                                                <i class="fas fa-triangle-exclamation"></i> Perlu Perbaikan
                                             </span>
                                         @else
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.68rem; padding: 3px 7px; opacity: 0.5;"
-                                                title="Akta Kelahiran: Belum Diunggah">
-                                                <i class="fas fa-minus"></i> Akta
+                                                style="font-size: 0.76rem; padding: 4px 10px; font-weight: 700; background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.35); display: inline-flex; align-items: center; gap: 5px;">
+                                                <i class="fas fa-clock"></i> Belum Konfirmasi
                                             </span>
                                         @endif
-                                        @if (!empty($aktaF?->file_path))
-                                            <a href="javascript:void(0)" class="btn-preview-pdf-inline"
-                                                data-url="{{ route('dashboard.berkas.preview', $aktaF->id) }}"
-                                                data-title="Akta Kelahiran - {{ $item->nama }}"
-                                                style="font-size: 0.65rem; color: var(--primary); text-decoration: none;"
-                                                title="Pratinjau PDF">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
+
+                                        @if (!empty($item->dikonfirmasi_pada))
+                                            <div class="konfirm-time"
+                                                style="font-size: 0.71rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; justify-content: center; margin-top: 2px;">
+                                                <i class="far fa-calendar-check" style="font-size: 0.72rem;"></i>
+                                                <span>{{ \Carbon\Carbon::parse($item->dikonfirmasi_pada)->translatedFormat('d M Y, H:i') }}</span>
+                                            </div>
+                                        @else
+                                            <div class="konfirm-hint"
+                                                style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                                Menunggu respon siswa
+                                            </div>
+                                        @endif
+
+                                        @if (!empty($item->catatan_siswa) && $stKonf === 'perlu_perbaikan')
+                                            <div class="catatan-siswa-preview"
+                                                style="font-size: 0.7rem; color: #d97706; max-width: 210px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-top: 2px;"
+                                                title="{{ $item->catatan_siswa }}">
+                                                <i class="fas fa-comment-dots me-1"></i> "{{ $item->catatan_siswa }}"
+                                            </div>
                                         @endif
                                     </div>
+                                </td>
 
-                                    {{-- 2. Kartu Keluarga (KK) --}}
-                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                        @if ($kkVal)
+                                <!-- Kolom Status 4 Berkas Wajib -->
+                                <td class="cell-pd-berkas" data-label="Berkas Dokumen"
+                                    style="padding: 14px 18px; text-align: center;">
+                                    <div class="berkas-pill-group">
+                                        @foreach ($berkasSlots as $slot)
+                                            @php
+                                                $bFile = $slot['file'];
+                                                $bVal = $slot['isValid'];
+                                                $bSt = $bVal ? 'valid' : $bFile?->status ?? 'belum';
+
+                                                $bClass = match ($bSt) {
+                                                    'valid' => 'valid',
+                                                    'tidak_valid' => 'tidak_valid',
+                                                    'menunggu' => 'menunggu',
+                                                    default => 'belum',
+                                                };
+                                                $bIcon = match ($bSt) {
+                                                    'valid' => 'fa-circle-check',
+                                                    'tidak_valid' => 'fa-circle-xmark',
+                                                    'menunggu' => 'fa-clock',
+                                                    default => 'fa-minus',
+                                                };
+                                                $bText = match ($bSt) {
+                                                    'valid' => 'Valid / Sesuai',
+                                                    'tidak_valid' => 'Ditolak / Tidak Sesuai',
+                                                    'menunggu' => 'Menunggu Verifikasi',
+                                                    default => 'Belum Diunggah',
+                                                };
+                                            @endphp
+                                            <div class="berkas-chip berkas-chip--{{ $bClass }}"
+                                                title="{{ $slot['title'] }}: {{ $bText }}">
+                                                <i class="fas {{ $bIcon }} berkas-chip-status-icon"></i>
+                                                <span class="berkas-chip-label">{{ $slot['label'] }}</span>
+                                                @if (!empty($bFile?->file_path))
+                                                    <button type="button" class="btn-preview-pdf-inline berkas-chip-eye"
+                                                        data-url="{{ route('dashboard.berkas.preview', $bFile->id) }}"
+                                                        data-title="{{ $slot['title'] }} - {{ $item->nama }}"
+                                                        title="Lihat Dokumen PDF {{ $slot['title'] }}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </td>
+
+                                <!-- Kolom Ringkasan Kelengkapan -->
+                                <td class="cell-pd-kelengkapan" data-label="Kelengkapan"
+                                    style="padding: 14px 18px; text-align: center;">
+                                    <div class="kelengkapan-wrapper"
+                                        style="display: inline-flex; flex-direction: column; align-items: center; gap: 3px;">
+                                        @if ($item->is_berkas_lengkap)
                                             <span class="badge badge-success"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Kartu Keluarga (KK): Valid">
-                                                <i class="fas fa-people-roof"></i> KK
+                                                style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-circle-check"></i> 4/4 Lengkap
                                             </span>
-                                        @elseif ($kkF?->status === 'tidak_valid')
-                                            <span class="badge badge-danger" style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Kartu Keluarga (KK): Ditolak / Tidak Valid">
-                                                <i class="fas fa-times-circle"></i> KK
-                                            </span>
-                                        @elseif ($kkF?->status === 'menunggu')
+                                        @elseif ($item->menunggu_count > 0)
                                             <span class="badge badge-warning"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Kartu Keluarga (KK): Menunggu Verifikasi">
-                                                <i class="fas fa-clock"></i> KK
+                                                style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-clock"></i> {{ $item->menunggu_count }} Menunggu
                                             </span>
+                                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                                {{ $item->valid_wajib_count }}/4 Valid
+                                            </div>
+                                        @elseif ($item->tidak_valid_count > 0)
+                                            <span class="badge badge-danger"
+                                                style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                                <i class="fas fa-circle-exclamation"></i> {{ $item->tidak_valid_count }}
+                                                Ditolak
+                                            </span>
+                                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                                {{ $item->valid_wajib_count }}/4 Valid
+                                            </div>
                                         @else
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.68rem; padding: 3px 7px; opacity: 0.5;"
-                                                title="Kartu Keluarga (KK): Belum Diunggah">
-                                                <i class="fas fa-minus"></i> KK
+                                                style="font-size: 0.75rem; padding: 4px 10px; font-weight: 600; opacity: 0.85;">
+                                                {{ $item->valid_wajib_count }}/4 Valid
                                             </span>
-                                        @endif
-                                        @if (!empty($kkF?->file_path))
-                                            <a href="javascript:void(0)" class="btn-preview-pdf-inline"
-                                                data-url="{{ route('dashboard.berkas.preview', $kkF->id) }}"
-                                                data-title="Kartu Keluarga - {{ $item->nama }}"
-                                                style="font-size: 0.65rem; color: var(--primary); text-decoration: none;"
-                                                title="Pratinjau PDF">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
                                         @endif
                                     </div>
+                                </td>
 
-                                    {{-- 3. Ijazah SMP / SKL --}}
-                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                        @if ($ijzVal)
-                                            <span class="badge badge-success"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Ijazah SMP / SKL: Valid">
-                                                <i class="fas fa-graduation-cap"></i> Ijazah
-                                            </span>
-                                        @elseif ($ijzF?->status === 'tidak_valid')
-                                            <span class="badge badge-danger" style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Ijazah SMP / SKL: Ditolak / Tidak Valid">
-                                                <i class="fas fa-times-circle"></i> Ijazah
-                                            </span>
-                                        @elseif ($ijzF?->status === 'menunggu')
-                                            <span class="badge badge-warning"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="Ijazah SMP / SKL: Menunggu Verifikasi">
-                                                <i class="fas fa-clock"></i> Ijazah
-                                            </span>
-                                        @else
-                                            <span class="badge badge-outline"
-                                                style="font-size: 0.68rem; padding: 3px 7px; opacity: 0.5;"
-                                                title="Ijazah SMP / SKL: Belum Diunggah">
-                                                <i class="fas fa-minus"></i> Ijazah
-                                            </span>
-                                        @endif
-                                        @if (!empty($ijzF?->file_path))
-                                            <a href="javascript:void(0)" class="btn-preview-pdf-inline"
-                                                data-url="{{ route('dashboard.berkas.preview', $ijzF->id) }}"
-                                                data-title="Ijazah SMP - {{ $item->nama }}"
-                                                style="font-size: 0.65rem; color: var(--primary); text-decoration: none;"
-                                                title="Pratinjau PDF">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        @endif
+                                <!-- Kolom Aksi -->
+                                <td class="cell-pd-aksi" data-label="Aksi"
+                                    style="padding: 14px 18px; text-align: right;">
+                                    <div class="validasi-actions">
+                                        <button type="button" class="btn btn-primary btn-sm btn-validasi-berkas-detail"
+                                            data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                            title="Validasi &amp; Kelola Dokumen Berkas Digital Siswa">
+                                            <i class="fas fa-check-double"></i> <span>Validasi Berkas</span>
+                                        </button>
+
+                                        <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $item->peserta_didik_id]) }}"
+                                            class="btn btn-outline btn-sm btn-link-identitas"
+                                            title="Periksa Formulir Identitas Lengkap Siswa">
+                                            <i class="fas fa-id-card text-muted"></i> <span>Identitas</span>
+                                        </a>
                                     </div>
-
-                                    {{-- 4. KTP Orang Tua --}}
-                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                                        @if ($ktpVal)
-                                            <span class="badge badge-success"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="KTP Orang Tua / Wali: Valid">
-                                                <i class="fas fa-id-card"></i> KTP
-                                            </span>
-                                        @elseif ($ktpF?->status === 'tidak_valid')
-                                            <span class="badge badge-danger" style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="KTP Orang Tua / Wali: Ditolak / Tidak Valid">
-                                                <i class="fas fa-times-circle"></i> KTP
-                                            </span>
-                                        @elseif ($ktpF?->status === 'menunggu')
-                                            <span class="badge badge-warning"
-                                                style="font-size: 0.68rem; padding: 3px 7px;"
-                                                title="KTP Orang Tua / Wali: Menunggu Verifikasi">
-                                                <i class="fas fa-clock"></i> KTP
-                                            </span>
-                                        @else
-                                            <span class="badge badge-outline"
-                                                style="font-size: 0.68rem; padding: 3px 7px; opacity: 0.5;"
-                                                title="KTP Orang Tua / Wali: Belum Diunggah">
-                                                <i class="fas fa-minus"></i> KTP
-                                            </span>
-                                        @endif
-                                        @if (!empty($ktpF?->file_path))
-                                            <a href="javascript:void(0)" class="btn-preview-pdf-inline"
-                                                data-url="{{ route('dashboard.berkas.preview', $ktpF->id) }}"
-                                                data-title="KTP Orang Tua - {{ $item->nama }}"
-                                                style="font-size: 0.65rem; color: var(--primary); text-decoration: none;"
-                                                title="Pratinjau PDF">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="cell-empty"
+                                    style="padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                    <div style="font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada
+                                        Data Peserta Didik</div>
+                                    <div style="font-size: 0.8rem; max-width: 480px; margin: 0 auto;">
+                                        Tidak ada data peserta didik yang cocok dengan kriteria filter konfirmasi dan berkas
+                                        yang dipilih pada rombel ini.
                                     </div>
-                                </div>
-                            </td>
-
-                            <!-- Kolom Ringkasan Kelengkapan -->
-                            <td style="padding: 14px 18px; text-align: center;">
-                                @if ($item->is_berkas_lengkap)
-                                    <span class="badge badge-success"
-                                        style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700;">
-                                        <i class="fas fa-check-circle me-1"></i> 4/4 Lengkap
-                                    </span>
-                                @elseif ($item->menunggu_count > 0)
-                                    <span class="badge badge-warning"
-                                        style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700;">
-                                        <i class="fas fa-clock me-1"></i> {{ $item->menunggu_count }} Menunggu
-                                    </span>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
-                                        {{ $item->valid_wajib_count }}/4 Valid
-                                    </div>
-                                @elseif ($item->tidak_valid_count > 0)
-                                    <span class="badge badge-danger"
-                                        style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700;">
-                                        <i class="fas fa-circle-exclamation me-1"></i> {{ $item->tidak_valid_count }}
-                                        Ditolak
-                                    </span>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
-                                        {{ $item->valid_wajib_count }}/4 Valid
-                                    </div>
-                                @else
-                                    <span class="badge badge-outline"
-                                        style="font-size: 0.75rem; padding: 4px 10px; font-weight: 600; opacity: 0.8;">
-                                        {{ $item->valid_wajib_count }}/4 Valid
-                                    </span>
-                                @endif
-                            </td>
-
-                            <!-- Kolom Aksi -->
-                            <td style="padding: 14px 18px; text-align: right;">
-                                <div
-                                    style="display: flex; gap: 8px; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
-                                    <button type="button" class="btn btn-primary btn-sm btn-validasi-berkas-detail"
-                                        data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
-                                        title="Validasi &amp; Kelola Dokumen Berkas Digital Siswa"
-                                        style="padding: 6px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                                        <i class="fas fa-check-double"></i> Validasi Berkas
-                                    </button>
-
-                                    <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $item->peserta_didik_id]) }}"
-                                        class="btn btn-outline btn-sm" title="Periksa Formulir Identitas Lengkap Siswa"
-                                        style="padding: 6px 12px; font-size: 0.78rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-id-card text-muted"></i> Identitas
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6"
-                                style="padding: 36px 20px; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
-                                <div style="font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada Data
-                                    Peserta Didik</div>
-                                <div style="font-size: 0.8rem; max-width: 480px; margin: 0 auto;">
-                                    Tidak ada data peserta didik yang cocok dengan kriteria filter konfirmasi dan berkas
-                                    yang dipilih pada rombel ini.
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
             <!-- Footer Keterangan Entri -->
             @if ($total > 0)
@@ -751,6 +698,304 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        /* -------------------------------------------------------------
+             * Datatable Validasi Data Wali Kelas — Desktop & Responsive Modern
+             * ------------------------------------------------------------- */
+        .table-validasi-data {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-validasi-data thead th {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .table-validasi-data tbody tr.validasi-row {
+            transition: background 0.18s ease;
+        }
+
+        .table-validasi-data tbody tr.validasi-row:hover {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        .table-validasi-data tbody td {
+            vertical-align: middle;
+            padding: 13px 14px;
+            box-sizing: border-box;
+        }
+
+        /* Berkas Chip Group: Modern pill badges */
+        .berkas-pill-group {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+
+        .berkas-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+            line-height: 1.4;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .berkas-chip-status-icon {
+            font-size: 0.72rem;
+        }
+
+        .berkas-chip-label {
+            letter-spacing: 0.02em;
+        }
+
+        .berkas-chip--valid {
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.32);
+        }
+
+        .berkas-chip--tidak_valid {
+            background: rgba(239, 68, 68, 0.12);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.32);
+        }
+
+        .berkas-chip--menunggu {
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+
+        .berkas-chip--belum {
+            background: rgba(148, 163, 184, 0.08);
+            color: var(--text-muted);
+            border-color: rgba(148, 163, 184, 0.28);
+            border-style: dashed;
+            opacity: 0.85;
+        }
+
+        .berkas-chip-eye {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            background: rgba(99, 102, 241, 0.14);
+            color: var(--primary);
+            font-size: 0.65rem;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin-left: 2px;
+            transition: all 0.15s ease;
+        }
+
+        .berkas-chip-eye:hover {
+            background: var(--primary);
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+        .validasi-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+
+        .validasi-actions .btn-validasi-berkas-detail {
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .validasi-actions .btn-link-identitas {
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        /* -------------------------------------------------------------
+             * Responsive Mobile Stack (< 768px)
+             * ------------------------------------------------------------- */
+        @media (max-width: 768px) {
+            .table-responsive-stack tbody tr.validasi-row {
+                display: flex !important;
+                flex-direction: column !important;
+                padding: 14px 15px !important;
+                margin-bottom: 14px !important;
+                border-radius: 14px !important;
+                background: var(--bg-card) !important;
+                border: 1px solid var(--border-color) !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-no {
+                display: none !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-nama {
+                order: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                padding: 0 0 10px 0 !important;
+                margin-bottom: 6px !important;
+                border-bottom: 1px solid var(--border-color) !important;
+                width: 100% !important;
+                text-align: left !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-nama::before {
+                display: none !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-konfirmasi {
+                order: 2 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 8px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                width: 100% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-konfirmasi::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-konfirmasi .konfirmasi-wrapper {
+                align-items: flex-end !important;
+                text-align: right !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-berkas {
+                order: 3 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+                padding: 9px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                width: 100% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-berkas::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+                margin-top: 4px !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-berkas .berkas-pill-group {
+                display: flex !important;
+                gap: 5px !important;
+                justify-content: flex-end !important;
+                flex-wrap: wrap !important;
+                max-width: 72% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-kelengkapan {
+                order: 4 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                padding: 8px 0 !important;
+                border-bottom: 1px dashed rgba(255, 255, 255, 0.08) !important;
+                width: 100% !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-kelengkapan::before {
+                content: attr(data-label) !important;
+                font-weight: 700 !important;
+                font-size: 0.74rem !important;
+                color: var(--text-muted) !important;
+                text-transform: uppercase !important;
+                text-align: left !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-kelengkapan .kelengkapan-wrapper {
+                align-items: flex-end !important;
+                text-align: right !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-aksi {
+                order: 10 !important;
+                display: block !important;
+                width: 100% !important;
+                padding: 12px 0 0 0 !important;
+                margin-top: 4px !important;
+                border-top: 1px solid var(--border-color) !important;
+                border-bottom: none !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-aksi::before {
+                display: none !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-aksi .validasi-actions {
+                display: flex !important;
+                width: 100% !important;
+                gap: 8px !important;
+                justify-content: stretch !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-aksi .validasi-actions .btn-validasi-berkas-detail {
+                flex: 1 1 auto !important;
+                justify-content: center !important;
+                height: 38px !important;
+                font-size: 0.82rem !important;
+            }
+
+            .table-responsive-stack tbody td.cell-pd-aksi .validasi-actions .btn-link-identitas {
+                flex: 0 0 auto !important;
+                justify-content: center !important;
+                height: 38px !important;
+                padding: 0 14px !important;
+                font-size: 0.82rem !important;
+            }
+
+            .d-block-mobile {
+                display: inline-flex !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .d-block-mobile {
+                display: none !important;
+            }
+        }
+    </style>
+@endpush
 
 @push('scripts')
     <script
