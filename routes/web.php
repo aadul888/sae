@@ -163,10 +163,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/peserta_didik', [DashboardController::class, 'pesertaDidik'])->name('peserta_didik');
     
     // Modul Identitas Lengkap Peserta Didik (Spesifikasi Formulir Dapodik 2026/2027)
-    Route::get('/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('identitas.index')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
+    Route::get('/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('identitas.index')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif|menu_wali_kelas_validasi|menu_wali_kelas,read');
     Route::post('/identitas/konfirmasi', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'konfirmasiSesuai'])->name('identitas.konfirmasi');
     Route::post('/identitas/update', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'update'])->name('identitas.update');
-    Route::get('/peserta-didik/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('peserta-didik.identitas')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif,read');
+    Route::get('/peserta-didik/identitas', [\App\Http\Controllers\IdentitasPesertaDidikController::class, 'show'])->name('peserta-didik.identitas')->middleware('permission:menu_identitas_siswa|menu_kesiswaan_peserta_didik|menu_peserta_didik_aktif|menu_wali_kelas_validasi|menu_wali_kelas,read');
 
     // API Wilayah Administrasi Indonesia (Hirarki: Provinsi -> Kab/Kota -> Kecamatan -> Desa/Kelurahan)
     Route::prefix('wilayah')->name('wilayah.')->group(function () {
@@ -345,9 +345,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
             Route::post('/usulan/{id}/verifikasi', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiUsulan'])->name('usulan.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik,update');
             Route::post('/usulan/{id}/dapodik', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'markDapodikUpdated'])->name('usulan.dapodik')->middleware('permission:menu_kesiswaan_peserta_didik,update');
             Route::post('/berkas/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'updateBerkas'])->name('berkas.update')->middleware('permission:menu_kesiswaan_peserta_didik,update');
-            Route::get('/berkas-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getBerkasDetail'])->name('berkas.detail')->middleware('permission:menu_kesiswaan_peserta_didik,read');
-            Route::post('/berkas-verifikasi/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiBerkasItem'])->name('berkas.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik,update');
-            Route::post('/berkas-upload/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'uploadBerkasTendik'])->name('berkas.upload-tendik')->middleware('permission:menu_kesiswaan_peserta_didik,update');
+            Route::get('/berkas-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getBerkasDetail'])->name('berkas.detail')->middleware('permission:menu_kesiswaan_peserta_didik|menu_wali_kelas_validasi|menu_wali_kelas,read');
+            Route::post('/berkas-verifikasi/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiBerkasItem'])->name('berkas.verifikasi')->middleware('permission:menu_kesiswaan_peserta_didik|menu_wali_kelas_validasi|menu_wali_kelas,update');
+            Route::post('/berkas-upload/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'uploadBerkasTendik'])->name('berkas.upload-tendik')->middleware('permission:menu_kesiswaan_peserta_didik|menu_wali_kelas_validasi|menu_wali_kelas,update');
             Route::get('/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'show'])->name('show')->middleware('permission:menu_kesiswaan_peserta_didik,read');
         });
 
@@ -560,6 +560,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
         // Usulan & Riwayat PIP Kelas Binaan
         Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index')->middleware('permission:menu_wali_kelas_pip,read');
+
+        // Validasi Data Peserta Didik (Konfirmasi & Status Berkas)
+        Route::get('/validasi-data', [\App\Http\Controllers\WaliKelasController::class, 'validasiData'])->name('validasi.index')->middleware('permission:menu_wali_kelas_validasi|menu_wali_kelas,read');
+        Route::get('/validasi-data/berkas-detail/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'getBerkasDetail'])->name('validasi.berkas-detail')->middleware('permission:menu_wali_kelas_validasi|menu_wali_kelas,read');
+        Route::post('/validasi-data/berkas-verifikasi/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'verifikasiBerkasItem'])->name('validasi.berkas-verifikasi')->middleware('permission:menu_wali_kelas_validasi|menu_wali_kelas,update');
+        Route::post('/validasi-data/berkas-upload/{id}', [\App\Http\Controllers\KesiswaanPesertaDidikController::class, 'uploadBerkasTendik'])->name('validasi.berkas-upload')->middleware('permission:menu_wali_kelas_validasi|menu_wali_kelas,update');
     });
 
     // Realtime Server-Sent Events (SSE) & Polling Fallback

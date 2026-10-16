@@ -39,7 +39,18 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            @if ($tab === 'usulan')
+            @if ($tab === 'dashboard')
+                <button type="button" class="btn btn-primary btn-sm" onclick="openTambahUsulan()"
+                    style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fas fa-plus"></i> Usulan
+                </button>
+                @if ($isAdmin)
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openImportRiwayat()"
+                        style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-file-excel"></i> Import SiPintar
+                    </button>
+                @endif
+            @elseif ($tab === 'usulan')
                 <button type="button" class="btn btn-primary btn-sm" onclick="openTambahUsulan()"
                     style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-plus"></i> Usulan
@@ -75,6 +86,10 @@
 
     <!-- 3. Segmented Navigation Tabs -->
     <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
+        <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'dashboard'])) }}"
+            class="tab-btn btn {{ $tab === 'dashboard' ? 'btn-primary active' : 'btn-outline' }}">
+            <i class="fas fa-chart-pie me-1"></i> Dashboard
+        </a>
         <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'usulan'])) }}"
             class="tab-btn btn {{ $tab === 'usulan' ? 'btn-primary active' : 'btn-outline' }}">
             <i class="fas fa-list-ol me-1"></i> Usulan
@@ -97,7 +112,9 @@
         @endif
     </div>
 
-    @if ($tab === 'usulan')
+    @if ($tab === 'dashboard')
+        @include('dashboard.pip.partials.tab-dashboard')
+    @elseif ($tab === 'usulan')
         @include('dashboard.pip.partials.tab-usulan')
     @elseif ($tab === 'kuota' && $isAdmin)
         @include('dashboard.pip.partials.tab-kuota')

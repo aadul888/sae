@@ -126,7 +126,8 @@
             $can('menu_wali_kelas_tidak_aktif') ||
             $can('menu_wali_kelas_presensi') ||
             $can('menu_wali_kelas_jadwal') ||
-            $can('menu_wali_kelas_pip'));
+            $can('menu_wali_kelas_pip') ||
+            $can('menu_wali_kelas_validasi'));
     $waliKelasRombelName = in_array($role, ['guru', 'peserta_didik'], true)
         ? \App\Models\RolePermission::getWaliKelasRombel($user)
         : null;
@@ -148,6 +149,7 @@
         'menu_wali_kelas_presensi',
         'menu_wali_kelas_jadwal',
         'menu_wali_kelas_pip',
+        'menu_wali_kelas_validasi',
         'menu_guru_aktif',
         'menu_guru_tidak_aktif',
         'menu_tendik_aktif',
@@ -1860,6 +1862,14 @@
                         <span class="nav-label">Usulan PIP</span>
                     </a>
                 @endif
+
+                @if ($can('menu_wali_kelas_validasi') || $can('menu_wali_kelas'))
+                    <a href="{{ route('dashboard.wali-kelas.validasi.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.validasi*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-check"></i></span>
+                        <span class="nav-label">Validasi Data</span>
+                    </a>
+                @endif
             </div>
         </div>
     @endif
@@ -2044,6 +2054,11 @@
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm.manual*') ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-plus"></i></span>
                     <span class="nav-label">Input Jadwal KBM</span>
+                </a>
+                <a href="{{ route('dashboard.wali-kelas.validasi.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.validasi*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-user-check"></i></span>
+                    <span class="nav-label">Validasi Data</span>
                 </a>
             </div>
         </div>

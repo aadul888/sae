@@ -222,23 +222,33 @@ class PipController extends Controller
             abort(403, 'Akses ditolak: Menu Usulan PIP khusus untuk Wali Kelas dan Administrator.');
         }
 
-        $tab = $request->get('tab', 'usulan'); // 'usulan', 'kuota' (admin only), 'riwayat', 'riwayat_alumni' (admin only)
+        $tab = $request->get('tab', 'dashboard'); // 'dashboard', 'usulan', 'kuota' (admin only), 'riwayat', 'riwayat_alumni' (admin only)
         if (!$isAdmin && in_array($tab, ['kuota', 'riwayat_alumni'], true)) {
             $tab = ($tab === 'riwayat_alumni') ? 'riwayat' : 'usulan';
         }
-        if (!in_array($tab, ['usulan', 'kuota', 'riwayat', 'riwayat_alumni'], true)) {
-            $tab = 'usulan';
+        if (!in_array($tab, ['dashboard', 'usulan', 'kuota', 'riwayat', 'riwayat_alumni'], true)) {
+            $tab = 'dashboard';
         }
 
         $q = trim((string) $request->get('q', ''));
         $statusVerif = trim((string) $request->get('status_verifikasi', ''));
         $jenisSkFilter = trim((string) $request->get('jenis_sk', ''));
+        $statusPipFilter = trim((string) $request->get('status_pip', 'penerima'));
+        if (!in_array($statusPipFilter, ['penerima', 'belum', 'semua'], true)) {
+            $statusPipFilter = 'penerima';
+        }
         $perPageVal = $request->get('perPage', '15');
         $perPage = in_array((int) $perPageVal, [10, 15, 25, 50, 100], true) ? (int) $perPageVal : 15;
 
         $hasUsulanTable = Schema::hasTable('pip_usulan');
         $hasKuotaTable = Schema::hasTable('pip_kuota_rombel');
         $hasRiwayatTable = Schema::hasTable('pip_riwayat');
+
+        // 0. Data Tab: Dashboard Overview PIP
+        $dashboardData = null;
+        if ($tab === 'dashboard') {
+            $dashboardData = $this->buildDashboardData($isAdmin, $activeRombel, $activeTahun, $rombelList, $hasUsulanTable, $hasKuotaTable, $hasRiwayatTable);
+        }
 
         // 1. Data Tab: Usulan PIP
         $usulanList = null;
@@ -508,7 +518,42 @@ class PipController extends Controller
 
         if ($tab === 'riwayat') {
             if ($hasRiwayatTable) {
-                $riwayatQuery = DB::table('pip_riwayat as r')
+                // Scope dasar seluruh siswa aktif di rombel terpilih / seluruh sekolah
+                $activeStudentsScope = DB::table('peserta_didik as pd')
+                    ->join('rombongan_belajar as rb', function ($j) {
+                        $j->on('pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                          ->where('rb.jenis_rombel', '=', '1');
+                    });
+
+                if (!$isAdmin && $activeRombel) {
+                    $activeStudentsScope->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+                } elseif ($isAdmin && $activeRombel) {
+                    $activeStudentsScope->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+                }
+
+                $totalSiswaAktif = (clone $activeStudentsScope)->count();
+
+                // Hitung siswa aktif yang pernah menerima PIP
+                $penerimaUnikCount = (clone $activeStudentsScope)
+                    ->whereExists(function ($sub) {
+                        $sub->select(DB::raw(1))
+                            ->from('pip_riwayat as r')
+                            ->where(function ($match) {
+                                $match->whereColumn('r.peserta_didik_id', 'pd.peserta_didik_id')
+                                      ->orWhere(function ($orMatch) {
+                                          $orMatch->whereNull('r.peserta_didik_id')
+                                                  ->whereNotNull('r.nisn')
+                                                  ->where('r.nisn', '!=', '')
+                                                  ->whereColumn('r.nisn', 'pd.nisn');
+                                      });
+                            });
+                    })
+                    ->count();
+
+                $totalBelumMenerima = max(0, $totalSiswaAktif - $penerimaUnikCount);
+
+                // Scope dasar data riwayat transaksi PIP
+                $baseRiwayatScope = DB::table('pip_riwayat as r')
                     ->join('peserta_didik as pd', function ($j) {
                         $j->on('r.peserta_didik_id', '=', 'pd.peserta_didik_id')
                           ->orWhere(function ($q) {
@@ -521,60 +566,33 @@ class PipController extends Controller
                     ->join('rombongan_belajar as rb', function ($j) {
                         $j->on('pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
                           ->where('rb.jenis_rombel', '=', '1');
-                    })
-                    ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
-                    ->select(
-                        'r.*',
-                        'pd.nama as nama_pd_aktif',
-                        'pd.nisn as nisn_pd_aktif',
-                        'pd.nipd as nipd_pd_aktif',
-                        'pd.nama_rombel as nama_rombel_aktif',
-                        'pd.rombongan_belajar_id as rombel_id_aktif',
-                        'rb.nama as nama_kelas_aktif',
-                        'pdm.foto_path'
-                    );
-
-                // Khusus Wali Kelas: hanya siswa aktif di kelas binaannya saat ini
-                if (!$isAdmin && $activeRombel) {
-                    $riwayatQuery->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
-                } elseif ($isAdmin && $activeRombel) {
-                    $riwayatQuery->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
-                }
-
-                if ($q !== '') {
-                    $riwayatQuery->where(function ($sub) use ($q) {
-                        $sub->where('r.nama_pd', 'LIKE', "%{$q}%")
-                            ->orWhere('r.nisn', 'LIKE', "%{$q}%")
-                            ->orWhere('r.nomor_sk', 'LIKE', "%{$q}%")
-                            ->orWhere('r.rombel', 'LIKE', "%{$q}%")
-                            ->orWhere('pd.nama', 'LIKE', "%{$q}%")
-                            ->orWhere('pd.nama_rombel', 'LIKE', "%{$q}%")
-                            ->orWhere('rb.nama', 'LIKE', "%{$q}%")
-                            ->orWhere('r.nama_ibu_kandung', 'LIKE', "%{$q}%");
                     });
-                }
 
-                $tahapFilter = trim((string) $request->get('tahap', ''));
-                if ($tahapFilter !== '') {
-                    $riwayatQuery->where('r.tahap', $tahapFilter);
+                if (!$isAdmin && $activeRombel) {
+                    $baseRiwayatScope->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+                } elseif ($isAdmin && $activeRombel) {
+                    $baseRiwayatScope->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
                 }
 
                 $hasJenisSk = Schema::hasColumn('pip_riwayat', 'jenis_sk');
-                $jenisSkFilter = trim((string) $request->get('jenis_sk', ''));
-                if ($hasJenisSk && $jenisSkFilter !== '' && in_array($jenisSkFilter, ['pemberian', 'nominasi'], true)) {
-                    $riwayatQuery->where('r.jenis_sk', $jenisSkFilter);
-                }
-
-                // 4 statistik riwayat siswa aktif
-                $statRiwayatQuery = clone $riwayatQuery;
-                $riwayatStats['total_siswa'] = (clone $statRiwayatQuery)->count();
-                $riwayatStats['total_pemberian'] = $hasJenisSk
-                    ? (clone $statRiwayatQuery)->where('r.jenis_sk', 'pemberian')->count()
-                    : $riwayatStats['total_siswa'];
-                $riwayatStats['total_nominasi'] = $hasJenisSk
-                    ? (clone $statRiwayatQuery)->where('r.jenis_sk', 'nominasi')->count()
+                $totalPemberian = $hasJenisSk
+                    ? (clone $baseRiwayatScope)->where('r.jenis_sk', 'pemberian')->count()
+                    : (clone $baseRiwayatScope)->count();
+                $totalNominasi = $hasJenisSk
+                    ? (clone $baseRiwayatScope)->where('r.jenis_sk', 'nominasi')->count()
                     : 0;
-                $riwayatStats['total_nominal'] = (float) (clone $statRiwayatQuery)->sum('r.nominal');
+                $totalNominal = (float) (clone $baseRiwayatScope)->sum('r.nominal');
+                $totalTransaksi = (clone $baseRiwayatScope)->count();
+
+                $riwayatStats = [
+                    'total_siswa_aktif'   => $totalSiswaAktif,
+                    'total_penerima_unik' => $penerimaUnikCount,
+                    'total_belum'         => $totalBelumMenerima,
+                    'total_siswa'         => $totalTransaksi,
+                    'total_pemberian'     => $totalPemberian,
+                    'total_nominasi'      => $totalNominasi,
+                    'total_nominal'       => $totalNominal,
+                ];
 
                 $riwayatTahapList = DB::table('pip_riwayat')
                     ->whereNotNull('tahap')
@@ -583,14 +601,259 @@ class PipController extends Controller
                     ->pluck('tahap')
                     ->all();
 
-                $riwayatList = $riwayatQuery
-                    ->orderByDesc('r.tahun')
-                    ->orderByDesc('r.id')
-                    ->paginate($perPage, ['*'], 'riwayat_page')
-                    ->withQueryString();
+                $hasUsulan = Schema::hasTable('pip_usulan');
+
+                if ($statusPipFilter === 'belum') {
+                    // Peserta Didik yang BELUM Menerima PIP
+                    $belumQuery = (clone $activeStudentsScope)
+                        ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id');
+
+                    if ($hasUsulan) {
+                        $belumQuery->leftJoin('pip_usulan as u', function ($j) use ($activeTahun) {
+                            $j->on('pd.peserta_didik_id', '=', 'u.peserta_didik_id')
+                              ->where('u.tahun', '=', $activeTahun);
+                        });
+                    }
+
+                    $belumQuery->whereNotExists(function ($sub) {
+                        $sub->select(DB::raw(1))
+                            ->from('pip_riwayat as r')
+                            ->where(function ($match) {
+                                $match->whereColumn('r.peserta_didik_id', 'pd.peserta_didik_id')
+                                      ->orWhere(function ($orMatch) {
+                                          $orMatch->whereNull('r.peserta_didik_id')
+                                                  ->whereNotNull('r.nisn')
+                                                  ->where('r.nisn', '!=', '')
+                                                  ->whereColumn('r.nisn', 'pd.nisn');
+                                      });
+                            });
+                    });
+
+                    $belumQuery->select(
+                        'pd.peserta_didik_id',
+                        'pd.nama as nama_pd',
+                        'pd.nama as nama_pd_aktif',
+                        'pd.nisn',
+                        'pd.nisn as nisn_pd_aktif',
+                        'pd.nipd',
+                        'pd.nipd as nipd_pd_aktif',
+                        'pd.nama_ibu_kandung',
+                        'pd.nama_rombel as nama_rombel_aktif',
+                        'pd.rombongan_belajar_id as rombel_id_aktif',
+                        'rb.nama as nama_kelas_aktif',
+                        'pdm.foto_path',
+                        $hasUsulan ? 'u.id as usulan_id' : DB::raw('NULL as usulan_id'),
+                        $hasUsulan ? 'u.status_verifikasi as status_usulan' : DB::raw('NULL as status_usulan'),
+                        $hasUsulan ? 'u.prioritas as prioritas_usulan' : DB::raw('NULL as prioritas_usulan'),
+                        $hasUsulan ? 'u.keterangan as keterangan_usulan' : DB::raw('NULL as keterangan_usulan'),
+                        DB::raw('NULL as id'),
+                        DB::raw('NULL as nomor_sk'),
+                        DB::raw('NULL as jenis_sk'),
+                        DB::raw('NULL as tahap'),
+                        DB::raw('NULL as tanggal_sk'),
+                        DB::raw('0 as nominal'),
+                        DB::raw('NULL as status_cair'),
+                        DB::raw('NULL as tanggal_cair'),
+                        DB::raw('NULL as tanggal_aktivasi'),
+                        DB::raw('NULL as rombel'),
+                        DB::raw('NULL as tahun'),
+                        DB::raw("'belum_menerima' as status_pip_record")
+                    );
+
+                    if ($q !== '') {
+                        $belumQuery->where(function ($sub) use ($q) {
+                            $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                                ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
+                                ->orWhere('pd.nipd', 'LIKE', "%{$q}%")
+                                ->orWhere('pd.nama_rombel', 'LIKE', "%{$q}%")
+                                ->orWhere('rb.nama', 'LIKE', "%{$q}%")
+                                ->orWhere('pd.nama_ibu_kandung', 'LIKE', "%{$q}%");
+                        });
+                    }
+
+                    $riwayatList = $belumQuery
+                        ->orderBy('rb.nama', 'asc')
+                        ->orderBy('pd.nama', 'asc')
+                        ->paginate($perPage, ['*'], 'riwayat_page')
+                        ->withQueryString();
+                } elseif ($statusPipFilter === 'semua') {
+                    // Semua Siswa: Union dari Riwayat Penerima + Siswa Belum Menerima
+                    $qPenerima = (clone $baseRiwayatScope)
+                        ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id');
+
+                    if ($hasUsulan) {
+                        $qPenerima->leftJoin('pip_usulan as u', function ($j) use ($activeTahun) {
+                            $j->on('pd.peserta_didik_id', '=', 'u.peserta_didik_id')
+                              ->where('u.tahun', '=', $activeTahun);
+                        });
+                    }
+
+                    $qPenerima->select(
+                        'pd.peserta_didik_id',
+                        'r.nama_pd',
+                        'pd.nama as nama_pd_aktif',
+                        'r.nisn',
+                        'pd.nisn as nisn_pd_aktif',
+                        'pd.nipd',
+                        'pd.nipd as nipd_pd_aktif',
+                        'r.nama_ibu_kandung',
+                        'pd.nama_rombel as nama_rombel_aktif',
+                        'pd.rombongan_belajar_id as rombel_id_aktif',
+                        'rb.nama as nama_kelas_aktif',
+                        'pdm.foto_path',
+                        $hasUsulan ? 'u.id as usulan_id' : DB::raw('NULL as usulan_id'),
+                        $hasUsulan ? 'u.status_verifikasi as status_usulan' : DB::raw('NULL as status_usulan'),
+                        $hasUsulan ? 'u.prioritas as prioritas_usulan' : DB::raw('NULL as prioritas_usulan'),
+                        $hasUsulan ? 'u.keterangan as keterangan_usulan' : DB::raw('NULL as keterangan_usulan'),
+                        'r.id',
+                        'r.nomor_sk',
+                        'r.jenis_sk',
+                        'r.tahap',
+                        'r.tanggal_sk',
+                        'r.nominal',
+                        'r.status_cair',
+                        'r.tanggal_cair',
+                        'r.tanggal_aktivasi',
+                        'r.rombel',
+                        'r.tahun',
+                        DB::raw("'penerima' as status_pip_record")
+                    );
+
+                    $qBelum = (clone $activeStudentsScope)
+                        ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id');
+
+                    if ($hasUsulan) {
+                        $qBelum->leftJoin('pip_usulan as u', function ($j) use ($activeTahun) {
+                            $j->on('pd.peserta_didik_id', '=', 'u.peserta_didik_id')
+                              ->where('u.tahun', '=', $activeTahun);
+                        });
+                    }
+
+                    $qBelum->whereNotExists(function ($sub) {
+                        $sub->select(DB::raw(1))
+                            ->from('pip_riwayat as r')
+                            ->where(function ($match) {
+                                $match->whereColumn('r.peserta_didik_id', 'pd.peserta_didik_id')
+                                      ->orWhere(function ($orMatch) {
+                                          $orMatch->whereNull('r.peserta_didik_id')
+                                                  ->whereNotNull('r.nisn')
+                                                  ->where('r.nisn', '!=', '')
+                                                  ->whereColumn('r.nisn', 'pd.nisn');
+                                      });
+                            });
+                    });
+
+                    $qBelum->select(
+                        'pd.peserta_didik_id',
+                        'pd.nama as nama_pd',
+                        'pd.nama as nama_pd_aktif',
+                        'pd.nisn',
+                        'pd.nisn as nisn_pd_aktif',
+                        'pd.nipd',
+                        'pd.nipd as nipd_pd_aktif',
+                        'pd.nama_ibu_kandung',
+                        'pd.nama_rombel as nama_rombel_aktif',
+                        'pd.rombongan_belajar_id as rombel_id_aktif',
+                        'rb.nama as nama_kelas_aktif',
+                        'pdm.foto_path',
+                        $hasUsulan ? 'u.id as usulan_id' : DB::raw('NULL as usulan_id'),
+                        $hasUsulan ? 'u.status_verifikasi as status_usulan' : DB::raw('NULL as status_usulan'),
+                        $hasUsulan ? 'u.prioritas as prioritas_usulan' : DB::raw('NULL as prioritas_usulan'),
+                        $hasUsulan ? 'u.keterangan as keterangan_usulan' : DB::raw('NULL as keterangan_usulan'),
+                        DB::raw('NULL as id'),
+                        DB::raw('NULL as nomor_sk'),
+                        DB::raw('NULL as jenis_sk'),
+                        DB::raw('NULL as tahap'),
+                        DB::raw('NULL as tanggal_sk'),
+                        DB::raw('0 as nominal'),
+                        DB::raw('NULL as status_cair'),
+                        DB::raw('NULL as tanggal_cair'),
+                        DB::raw('NULL as tanggal_aktivasi'),
+                        DB::raw('NULL as rombel'),
+                        DB::raw('NULL as tahun'),
+                        DB::raw("'belum_menerima' as status_pip_record")
+                    );
+
+                    $union = $qPenerima->unionAll($qBelum);
+                    $combinedQuery = DB::query()->fromSub($union, 'u_all');
+
+                    if ($q !== '') {
+                        $combinedQuery->where(function ($sub) use ($q) {
+                            $sub->where('u_all.nama_pd', 'LIKE', "%{$q}%")
+                                ->orWhere('u_all.nama_pd_aktif', 'LIKE', "%{$q}%")
+                                ->orWhere('u_all.nisn', 'LIKE', "%{$q}%")
+                                ->orWhere('u_all.nipd', 'LIKE', "%{$q}%")
+                                ->orWhere('u_all.nomor_sk', 'LIKE', "%{$q}%")
+                                ->orWhere('u_all.nama_kelas_aktif', 'LIKE', "%{$q}%")
+                                ->orWhere('u_all.nama_ibu_kandung', 'LIKE', "%{$q}%");
+                        });
+                    }
+
+                    $riwayatList = $combinedQuery
+                        ->orderBy('u_all.status_pip_record', 'asc')
+                        ->orderBy('u_all.nama_pd_aktif', 'asc')
+                        ->paginate($perPage, ['*'], 'riwayat_page')
+                        ->withQueryString();
+                } else {
+                    // Default: 'penerima'
+                    $riwayatQuery = (clone $baseRiwayatScope)
+                        ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id');
+
+                    if ($hasUsulan) {
+                        $riwayatQuery->leftJoin('pip_usulan as u', function ($j) use ($activeTahun) {
+                            $j->on('pd.peserta_didik_id', '=', 'u.peserta_didik_id')
+                              ->where('u.tahun', '=', $activeTahun);
+                        });
+                    }
+
+                    $riwayatQuery->select(
+                        'r.*',
+                        'pd.nama as nama_pd_aktif',
+                        'pd.nisn as nisn_pd_aktif',
+                        'pd.nipd as nipd_pd_aktif',
+                        'pd.nama_rombel as nama_rombel_aktif',
+                        'pd.rombongan_belajar_id as rombel_id_aktif',
+                        'rb.nama as nama_kelas_aktif',
+                        'pdm.foto_path',
+                        $hasUsulan ? 'u.id as usulan_id' : DB::raw('NULL as usulan_id'),
+                        $hasUsulan ? 'u.status_verifikasi as status_usulan' : DB::raw('NULL as status_usulan'),
+                        $hasUsulan ? 'u.prioritas as prioritas_usulan' : DB::raw('NULL as prioritas_usulan'),
+                        $hasUsulan ? 'u.keterangan as keterangan_usulan' : DB::raw('NULL as keterangan_usulan'),
+                        DB::raw("'penerima' as status_pip_record")
+                    );
+
+                    if ($q !== '') {
+                        $riwayatQuery->where(function ($sub) use ($q) {
+                            $sub->where('r.nama_pd', 'LIKE', "%{$q}%")
+                                ->orWhere('r.nisn', 'LIKE', "%{$q}%")
+                                ->orWhere('r.nomor_sk', 'LIKE', "%{$q}%")
+                                ->orWhere('r.rombel', 'LIKE', "%{$q}%")
+                                ->orWhere('pd.nama', 'LIKE', "%{$q}%")
+                                ->orWhere('pd.nama_rombel', 'LIKE', "%{$q}%")
+                                ->orWhere('rb.nama', 'LIKE', "%{$q}%")
+                                ->orWhere('r.nama_ibu_kandung', 'LIKE', "%{$q}%");
+                        });
+                    }
+
+                    $tahapFilter = trim((string) $request->get('tahap', ''));
+                    if ($tahapFilter !== '') {
+                        $riwayatQuery->where('r.tahap', $tahapFilter);
+                    }
+
+                    if ($hasJenisSk && $jenisSkFilter !== '' && in_array($jenisSkFilter, ['pemberian', 'nominasi'], true)) {
+                        $riwayatQuery->where('r.jenis_sk', $jenisSkFilter);
+                    }
+
+                    $riwayatList = $riwayatQuery
+                        ->orderByDesc('r.tahun')
+                        ->orderByDesc('r.id')
+                        ->paginate($perPage, ['*'], 'riwayat_page')
+                        ->withQueryString();
+                }
 
                 $riwayatList->getCollection()->transform(function ($item) {
                     $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
+                    $item->is_belum_menerima = (($item->status_pip_record ?? '') === 'belum_menerima');
                     return $item;
                 });
             } else {
@@ -780,9 +1043,323 @@ class PipController extends Controller
             'alumniStatusList',
             'statusKeluarFilter',
             'jenisSkFilter',
+            'statusPipFilter',
             'kriteriaAlasan',
-            'statusVerifikasiList'
+            'statusVerifikasiList',
+            'dashboardData'
         ));
+    }
+
+    /**
+     * Build aggregated data for the Dashboard Overview tab
+     */
+    private function buildDashboardData(
+        bool $isAdmin,
+        $activeRombel,
+        string $activeTahun,
+        $rombelList,
+        bool $hasUsulanTable,
+        bool $hasKuotaTable,
+        bool $hasRiwayatTable
+    ): array {
+        $hasPdTable = Schema::hasTable('peserta_didik');
+        $hasPdta    = Schema::hasTable('peserta_didik_tidak_aktif');
+        $hasJenisSk = $hasRiwayatTable && Schema::hasColumn('pip_riwayat', 'jenis_sk');
+
+        // ── Siswa aktif ──────────────────────────────────────────────
+        $totalSiswaAktif = 0;
+        $totalSiswaL = 0;
+        $totalSiswaP = 0;
+        $siswaPerTingkat = [];  // [tingkat => count]
+
+        if ($hasPdTable) {
+            $pdScope = DB::table('peserta_didik as pd')
+                ->join('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->where('rb.jenis_rombel', '1');
+
+            if (!$isAdmin && $activeRombel) {
+                $pdScope->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+            }
+
+            $totalSiswaAktif = (clone $pdScope)->count();
+            $totalSiswaL     = (clone $pdScope)->where('pd.jenis_kelamin', 'L')->count();
+            $totalSiswaP     = (clone $pdScope)->where('pd.jenis_kelamin', 'P')->count();
+
+            if ($isAdmin) {
+                $siswaPerTingkat = DB::table('peserta_didik as pd')
+                    ->join('rombongan_belajar as rb', 'pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                    ->where('rb.jenis_rombel', '1')
+                    ->select('rb.tingkat_pendidikan_id', DB::raw('count(pd.peserta_didik_id) as n'))
+                    ->groupBy('rb.tingkat_pendidikan_id')
+                    ->orderBy('rb.tingkat_pendidikan_id')
+                    ->pluck('n', 'tingkat_pendidikan_id')
+                    ->all();
+            }
+        }
+
+        // ── Usulan ───────────────────────────────────────────────────
+        $totalUsulan   = 0;
+        $belumDiajukan = 0;
+        $sudahDiajukan = 0;
+        $ditolak       = 0;
+        $usulanPerRombel = [];
+        $usulanPerTingkat = [];
+        $alasanDistribusi = [];
+        $usulanTerbaru = collect();
+
+        if ($hasUsulanTable) {
+            $uScope = DB::table('pip_usulan')->where('tahun', $activeTahun);
+            if (!$isAdmin && $activeRombel) {
+                $uScope->where('rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+            }
+
+            $totalUsulan   = (clone $uScope)->count();
+            $belumDiajukan = (clone $uScope)->where('status_verifikasi', 'belum_diajukan')->count();
+            $sudahDiajukan = (clone $uScope)->where('status_verifikasi', 'sudah_diajukan')->count();
+            $ditolak       = (clone $uScope)->where('status_verifikasi', 'ditolak')->count();
+
+            // Usulan terbaru (5 data)
+            $recentQuery = DB::table('pip_usulan as u')
+                ->join('peserta_didik as pd', 'u.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                ->leftJoin('rombongan_belajar as rb', 'u.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+                ->where('u.tahun', $activeTahun)
+                ->select(
+                    'u.*',
+                    'pd.nama as nama_pd',
+                    'pd.nisn',
+                    'rb.nama as nama_rombel',
+                    'pdm.foto_path'
+                );
+            if (!$isAdmin && $activeRombel) {
+                $recentQuery->where('u.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+            }
+            $usulanTerbaru = $recentQuery->orderByDesc('u.id')->limit(6)->get();
+            $usulanTerbaru->transform(function ($item) {
+                $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
+                $item->alasan_list = is_string($item->alasan_usulan) ? (json_decode($item->alasan_usulan, true) ?: []) : ($item->alasan_usulan ?: []);
+                return $item;
+            });
+
+            // Distribusi alasan diusulkan (untuk Admin & Wali Kelas)
+            $alasanScope = DB::table('pip_usulan')->where('tahun', $activeTahun)->whereNotNull('alasan_usulan');
+            if (!$isAdmin && $activeRombel) {
+                $alasanScope->where('rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+            }
+            $allAlasan = $alasanScope->pluck('alasan_usulan')->all();
+            foreach ($allAlasan as $raw) {
+                $list = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
+                foreach ($list as $a) {
+                    $a = trim((string) $a);
+                    if ($a !== '') {
+                        $alasanDistribusi[$a] = ($alasanDistribusi[$a] ?? 0) + 1;
+                    }
+                }
+            }
+            arsort($alasanDistribusi);
+
+            if ($isAdmin) {
+                // Usulan per rombel (top 15)
+                $usulanPerRombel = DB::table('pip_usulan as u')
+                    ->join('rombongan_belajar as rb', 'u.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                    ->where('u.tahun', $activeTahun)
+                    ->select('rb.nama as nama_rombel', DB::raw('count(u.id) as n'), 'u.rombongan_belajar_id')
+                    ->groupBy('u.rombongan_belajar_id', 'rb.nama')
+                    ->orderByDesc('n')
+                    ->limit(15)
+                    ->get()
+                    ->all();
+
+                // Usulan per tingkat (X, XI, XII)
+                $usulanPerTingkat = DB::table('pip_usulan as u')
+                    ->join('rombongan_belajar as rb', 'u.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                    ->where('u.tahun', $activeTahun)
+                    ->select('rb.tingkat_pendidikan_id', DB::raw('count(u.id) as n'))
+                    ->groupBy('rb.tingkat_pendidikan_id')
+                    ->orderBy('rb.tingkat_pendidikan_id')
+                    ->pluck('n', 'tingkat_pendidikan_id')
+                    ->all();
+            }
+        }
+
+        // ── Kuota ────────────────────────────────────────────────────
+        $paguSekolah   = $rombelList->count() * 5;
+        $totalKuota    = $paguSekolah;
+        $sisaKuota     = max(0, $paguSekolah - $totalUsulan);
+        $pctTerpakai   = $paguSekolah > 0 ? min(100, round($totalUsulan / $paguSekolah * 100, 1)) : 0;
+
+        if ($hasKuotaTable) {
+            $stored = PipKuotaRombel::getTargetTotalSekolah($activeTahun);
+            if ($stored !== null) {
+                $paguSekolah = $stored;
+                $totalKuota  = $stored;
+            } else {
+                $sumKuota = DB::table('pip_kuota_rombel')
+                    ->where('tahun', $activeTahun)
+                    ->where('rombongan_belajar_id', '!=', '__TOTAL__')
+                    ->sum('kuota');
+                if ($sumKuota > 0) {
+                    $paguSekolah = (int) $sumKuota;
+                    $totalKuota  = (int) $sumKuota;
+                }
+            }
+            $sisaKuota   = max(0, $paguSekolah - $totalUsulan);
+            $pctTerpakai = $paguSekolah > 0 ? min(100, round($totalUsulan / $paguSekolah * 100, 1)) : 0;
+        }
+
+        // Kuota kelas aktif (wali kelas)
+        $kuotaKelasBinaan   = 5;
+        $terpakaiKelasBinaan = 0;
+        if ($activeRombel) {
+            $kuotaKelasBinaan = PipKuotaRombel::getKuotaForRombel($activeRombel->rombongan_belajar_id, $activeTahun);
+            if ($hasUsulanTable) {
+                $terpakaiKelasBinaan = DB::table('pip_usulan')
+                    ->where('rombongan_belajar_id', $activeRombel->rombongan_belajar_id)
+                    ->where('tahun', $activeTahun)
+                    ->count();
+            }
+        }
+
+        // ── Riwayat ──────────────────────────────────────────────────
+        $totalRiwayatAktif    = 0;
+        $totalRiwayatPemberian = 0;
+        $totalRiwayatNominasi  = 0;
+        $totalNominalCair      = 0;
+        $riwayatPerTahun       = [];  // [tahun => count]
+
+        if ($hasRiwayatTable) {
+            // hanya siswa aktif
+            $rBase = DB::table('pip_riwayat as r')
+                ->join('peserta_didik as pd', function ($j) {
+                    $j->on('r.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                      ->orWhere(function ($q) {
+                          $q->whereNull('r.peserta_didik_id')
+                            ->whereNotNull('r.nisn')->where('r.nisn', '!=', '')
+                            ->whereColumn('r.nisn', 'pd.nisn');
+                      });
+                })
+                ->join('rombongan_belajar as rb', function ($j) {
+                    $j->on('pd.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+                      ->where('rb.jenis_rombel', '=', '1');
+                });
+
+            if (!$isAdmin && $activeRombel) {
+                $rBase->where('pd.rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+            }
+
+            $totalRiwayatAktif = (clone $rBase)->count();
+            $totalRiwayatPemberian = $hasJenisSk ? (clone $rBase)->where('r.jenis_sk', 'pemberian')->count() : $totalRiwayatAktif;
+            $totalRiwayatNominasi  = $hasJenisSk ? (clone $rBase)->where('r.jenis_sk', 'nominasi')->count()  : 0;
+            $totalNominalCair = (float) (clone $rBase)->sum('r.nominal');
+
+            if ($isAdmin) {
+                $riwayatPerTahun = DB::table('pip_riwayat')
+                    ->whereNotNull('tahun')
+                    ->where('tahun', '!=', '')
+                    ->select('tahun', DB::raw('count(*) as n'), DB::raw('sum(nominal) as total_nominal'))
+                    ->groupBy('tahun')
+                    ->orderBy('tahun')
+                    ->get()
+                    ->all();
+            }
+        }
+
+        // ── Wali Kelas: status penerima siswa kelas binaan ───────────
+        $waliSudahPip = 0;
+        $waliBelumPip = 0;
+        if (!$isAdmin && $activeRombel && $hasPdTable) {
+            $waliPdScope = DB::table('peserta_didik')
+                ->where('rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+            $totalWaliPd = (clone $waliPdScope)->count();
+            if ($hasRiwayatTable) {
+                $waliSudahPip = (clone $waliPdScope)
+                    ->whereExists(function ($sub) {
+                        $sub->select(DB::raw(1))
+                            ->from('pip_riwayat as r')
+                            ->where(function ($match) {
+                                $match->whereColumn('r.peserta_didik_id', 'peserta_didik.peserta_didik_id')
+                                      ->orWhere(function ($orMatch) {
+                                          $orMatch->whereNull('r.peserta_didik_id')
+                                                  ->whereNotNull('r.nisn')
+                                                  ->where('r.nisn', '!=', '')
+                                                  ->whereColumn('r.nisn', 'peserta_didik.nisn');
+                                      });
+                            });
+                    })
+                    ->count();
+            }
+            $waliBelumPip = max(0, $totalWaliPd - $waliSudahPip);
+        }
+
+        // ── Rombel summary (admin) ────────────────────────────────────
+        $rombelSummary = collect();
+        $rombelPenuhCount = 0;
+        $rombelBelumUsulCount = 0;
+        $rombelTersediaCount = 0;
+
+        if ($isAdmin && $hasUsulanTable) {
+            $existingKuota = $hasKuotaTable
+                ? DB::table('pip_kuota_rombel')->where('tahun', $activeTahun)->where('rombongan_belajar_id', '!=', '__TOTAL__')->pluck('kuota', 'rombongan_belajar_id')->all()
+                : [];
+            $existingCount = DB::table('pip_usulan')->where('tahun', $activeTahun)->select('rombongan_belajar_id', DB::raw('COUNT(*) as n'))->groupBy('rombongan_belajar_id')->pluck('n', 'rombongan_belajar_id')->all();
+            $studentCounts = $hasPdTable
+                ? DB::table('peserta_didik')->select('rombongan_belajar_id', DB::raw('count(*) as n'))->groupBy('rombongan_belajar_id')->pluck('n', 'rombongan_belajar_id')->all()
+                : [];
+
+            $rombelSummary = $rombelList->map(function ($r) use ($existingKuota, $existingCount, $studentCounts) {
+                $kuota  = (int) ($existingKuota[$r->rombongan_belajar_id] ?? 5);
+                $used   = (int) ($existingCount[$r->rombongan_belajar_id] ?? 0);
+                $siswa  = (int) ($studentCounts[$r->rombongan_belajar_id] ?? 0);
+                $r->kuota       = $kuota;
+                $r->terpakai    = $used;
+                $r->sisa        = max(0, $kuota - $used);
+                $r->jumlah_siswa = $siswa;
+                $r->pct         = $kuota > 0 ? min(100, round($used / $kuota * 100)) : 0;
+                return $r;
+            })->sortByDesc('terpakai')->values();
+
+            $rombelPenuhCount = $rombelSummary->where('sisa', '<=', 0)->where('terpakai', '>', 0)->count();
+            $rombelBelumUsulCount = $rombelSummary->where('terpakai', 0)->count();
+            $rombelTersediaCount = $rombelSummary->where('sisa', '>', 0)->count();
+        }
+
+        return [
+            // siswa
+            'total_siswa_aktif'       => $totalSiswaAktif,
+            'total_siswa_l'           => $totalSiswaL,
+            'total_siswa_p'           => $totalSiswaP,
+            'siswa_per_tingkat'       => $siswaPerTingkat,
+            'wali_sudah_pip'          => $waliSudahPip,
+            'wali_belum_pip'          => $waliBelumPip,
+            // usulan
+            'total_usulan'            => $totalUsulan,
+            'belum_diajukan'          => $belumDiajukan,
+            'sudah_diajukan'          => $sudahDiajukan,
+            'ditolak'                 => $ditolak,
+            'usulan_per_rombel'       => $usulanPerRombel,
+            'usulan_per_tingkat'      => $usulanPerTingkat,
+            'alasan_distribusi'       => $alasanDistribusi,
+            'usulan_terbaru'          => $usulanTerbaru,
+            // kuota
+            'pagu_sekolah'            => $paguSekolah,
+            'total_kuota'             => $totalKuota,
+            'sisa_kuota'              => $sisaKuota,
+            'pct_terpakai'            => $pctTerpakai,
+            'kuota_kelas'             => $kuotaKelasBinaan,
+            'terpakai_kelas'          => $terpakaiKelasBinaan,
+            'sisa_kuota_kelas'        => max(0, $kuotaKelasBinaan - $terpakaiKelasBinaan),
+            // riwayat
+            'total_riwayat_aktif'     => $totalRiwayatAktif,
+            'total_pemberian'         => $totalRiwayatPemberian,
+            'total_nominasi'          => $totalRiwayatNominasi,
+            'total_nominal_cair'      => $totalNominalCair,
+            'riwayat_per_tahun'       => $riwayatPerTahun,
+            // rombel table & stats
+            'rombel_summary'          => $rombelSummary,
+            'rombel_penuh_count'      => $rombelPenuhCount,
+            'rombel_belum_usul_count' => $rombelBelumUsulCount,
+            'rombel_tersedia_count'   => $rombelTersediaCount,
+        ];
     }
 
     /**

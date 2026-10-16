@@ -211,12 +211,13 @@ class PermissionController extends Controller
                         'menu_wali_kelas_presensi',
                         'menu_wali_kelas_jadwal',
                         'menu_wali_kelas_pip',
+                        'menu_wali_kelas_validasi',
                     ])
                     ->update([
                         'is_allowed' => $isAllowed,
                         'can_read' => $isAllowed,
                     ]);
-            } elseif (in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip'], true) && $isAllowed) {
+            } elseif (in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi'], true) && $isAllowed) {
                 RolePermission::where('role', $targetRole)
                     ->where('permission_key', 'menu_wali_kelas')
                     ->update(['is_allowed' => true, 'can_read' => true]);

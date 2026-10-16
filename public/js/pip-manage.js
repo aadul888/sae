@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     document.addEventListener("change", function (e) {
-        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterTahap: "tahap", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar" };
+        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterTahap: "tahap", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar", filterStatusPip: "status_pip" };
         const key = map[e.target.id];
         if (key) { e.stopImmediatePropagation(); applyParams({ [key]: e.target.value }); }
     }, true);
@@ -103,6 +103,18 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("pipCari")?.focus();
     };
     window.closeTambahUsulan = () => closeModal("modalTambahUsulan");
+
+    window.openTambahUsulanSiswa = function (pdId, nama, rombel, nisn) {
+        window.openTambahUsulan();
+        const idEl = document.getElementById("pipPdId");
+        const infoEl = document.getElementById("pipPilihInfo");
+        const submitBtn = document.getElementById("pipSubmitUsulan");
+        if (idEl) idEl.value = pdId;
+        if (infoEl) {
+            infoEl.innerHTML = `Terpilih: <strong>${esc(nama)}</strong> (${esc(rombel || "-")}) &bull; NISN: ${esc(nisn || "-")}`;
+        }
+        if (submitBtn) submitBtn.disabled = false;
+    };
 
     function bindAutocomplete({ input, list, onPick, extra }) {
         const inp = document.getElementById(input);
@@ -477,5 +489,271 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") ["modalTambahUsulan", "modalImportRiwayat", "modalTambahRiwayat"].forEach(closeModal);
+    });
+
+    // ---------------------------------------------------------------------
+    // Interactive Dashboard Analytics Charts (Chart.js)
+    // ---------------------------------------------------------------------
+    window._pipChartStatus = null;
+    window._pipChartAlasan = null;
+    window._pipChartTingkat = null;
+    window._pipChartRiwayatTahun = null;
+
+    function initPipDashboardCharts() {
+        const payloadEl = document.getElementById("pipChartPayload");
+        if (!payloadEl || typeof Chart === "undefined") return;
+
+        let payload = {};
+        try {
+            payload = JSON.parse(payloadEl.textContent || "{}");
+        } catch (e) {
+            console.error("Gagal parse pipChartPayload:", e);
+            return;
+        }
+
+        const computedStyle = getComputedStyle(document.documentElement);
+        const isLight = document.documentElement.getAttribute("data-theme") === "light";
+        const textColor = computedStyle.getPropertyValue("--text-color").trim() || (isLight ? "#0f172a" : "#f8fafc");
+        const textMuted = computedStyle.getPropertyValue("--text-muted").trim() || (isLight ? "#64748b" : "#94a3b8");
+        const borderColor = computedStyle.getPropertyValue("--border-color").trim() || "rgba(255,255,255,0.08)";
+
+        // Destroy previous instances
+        if (window._pipChartStatus) { window._pipChartStatus.destroy(); window._pipChartStatus = null; }
+        if (window._pipChartAlasan) { window._pipChartAlasan.destroy(); window._pipChartAlasan = null; }
+        if (window._pipChartTingkat) { window._pipChartTingkat.destroy(); window._pipChartTingkat = null; }
+        if (window._pipChartRiwayatTahun) { window._pipChartRiwayatTahun.destroy(); window._pipChartRiwayatTahun = null; }
+
+        // 1. Doughnut Status Usulan & Kuota
+        const ctxStatus = document.getElementById("chartPipStatus")?.getContext("2d");
+        if (ctxStatus && payload.status && payload.status.data) {
+            const hasData = payload.status.data.some(v => v > 0);
+            window._pipChartStatus = new Chart(ctxStatus, {
+                type: "doughnut",
+                data: {
+                    labels: hasData ? payload.status.labels : ["Belum ada data"],
+                    datasets: [{
+                        data: hasData ? payload.status.data : [1],
+                        backgroundColor: hasData ? payload.status.colors : ["#cbd5e1"],
+                        borderWidth: 2,
+                        borderColor: isLight ? "#ffffff" : "#1e293b",
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: "70%",
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => ` ${item.label}: ${item.raw} siswa`,
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+        // 2. Horizontal Bar: 8 Kriteria Alasan Usulan
+        const ctxAlasan = document.getElementById("chartPipAlasan")?.getContext("2d");
+        if (ctxAlasan && payload.alasan && payload.alasan.labels) {
+            const gradAlasan = ctxAlasan.createLinearGradient(0, 0, 300, 0);
+            gradAlasan.addColorStop(0, "#6366f1");
+            gradAlasan.addColorStop(1, "#818cf8");
+
+            window._pipChartAlasan = new Chart(ctxAlasan, {
+                type: "bar",
+                data: {
+                    labels: payload.alasan.labels.length ? payload.alasan.labels : ["Belum ada usulan"],
+                    datasets: [{
+                        label: "Jumlah Siswa Diusulkan",
+                        data: payload.alasan.data.length ? payload.alasan.data : [0],
+                        backgroundColor: gradAlasan,
+                        borderRadius: 6,
+                        maxBarThickness: 20,
+                    }],
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => ` ${item.raw} siswa diusulkan`,
+                            },
+                        },
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, color: textMuted },
+                            grid: { color: borderColor },
+                        },
+                        y: {
+                            ticks: {
+                                color: textColor,
+                                font: { size: 11, weight: 600 },
+                                callback: function (val, idx) {
+                                    const text = this.getLabelForValue(idx) || "";
+                                    return text.length > 25 ? text.substring(0, 23) + "..." : text;
+                                },
+                            },
+                            grid: { display: false },
+                        },
+                    },
+                },
+            });
+        }
+
+        // 3. Bar: Usulan per Tingkat Kelas (Admin Only)
+        const ctxTingkat = document.getElementById("chartPipTingkat")?.getContext("2d");
+        if (ctxTingkat && payload.tingkat && payload.tingkat.labels) {
+            window._pipChartTingkat = new Chart(ctxTingkat, {
+                type: "bar",
+                data: {
+                    labels: payload.tingkat.labels,
+                    datasets: [
+                        {
+                            label: "Total Peserta Didik",
+                            data: payload.tingkat.siswa,
+                            backgroundColor: "rgba(148, 163, 184, 0.75)",
+                            borderRadius: 6,
+                            maxBarThickness: 28,
+                        },
+                        {
+                            label: "Diusulkan PIP",
+                            data: payload.tingkat.usulan,
+                            backgroundColor: "#6366f1",
+                            borderRadius: 6,
+                            maxBarThickness: 28,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: "bottom",
+                            labels: { color: textMuted, font: { size: 11, weight: 600 } },
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: textMuted },
+                            grid: { color: borderColor },
+                        },
+                        x: {
+                            ticks: { color: textColor, font: { weight: 700 } },
+                            grid: { display: false },
+                        },
+                    },
+                },
+            });
+        }
+
+        // 4. Bar / Line: Tren Riwayat Penerimaan PIP per Tahun (Admin Only)
+        const ctxRiwayatTahun = document.getElementById("chartPipRiwayatTahun")?.getContext("2d");
+        if (ctxRiwayatTahun && payload.riwayat_tahun && payload.riwayat_tahun.labels) {
+            const hasRiwayat = payload.riwayat_tahun.labels.length > 0;
+            window._pipChartRiwayatTahun = new Chart(ctxRiwayatTahun, {
+                type: "bar",
+                data: {
+                    labels: hasRiwayat ? payload.riwayat_tahun.labels : ["Belum ada riwayat"],
+                    datasets: [{
+                        label: "Penerima PIP (Siswa)",
+                        data: hasRiwayat ? payload.riwayat_tahun.counts : [0],
+                        backgroundColor: "rgba(16, 185, 129, 0.85)",
+                        borderRadius: 6,
+                        maxBarThickness: 32,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => {
+                                    const count = item.raw || 0;
+                                    const nominal = payload.riwayat_tahun.nominals ? (payload.riwayat_tahun.nominals[item.dataIndex] || 0) : 0;
+                                    const nomStr = new Intl.NumberFormat("id-ID").format(nominal);
+                                    return ` ${count} siswa (Rp ${nomStr})`;
+                                },
+                            },
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, color: textMuted },
+                            grid: { color: borderColor },
+                        },
+                        x: {
+                            ticks: { color: textColor, font: { weight: 700 } },
+                            grid: { display: false },
+                        },
+                    },
+                },
+            });
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Filter & Live Search Rekap Rombel di Tab Dashboard
+    // ---------------------------------------------------------------------
+    function initPipRekapRombelFilter() {
+        const filterBtns = document.querySelectorAll(".btn-rekap-filter");
+        const searchInp = document.getElementById("filterRekapRombel");
+        if (!filterBtns.length && !searchInp) return;
+
+        let currentStatus = "all";
+        let searchQuery = "";
+
+        function applyRekapFilter() {
+            const rows = document.querySelectorAll(".rekap-rombel-row");
+            rows.forEach((row) => {
+                const status = row.getAttribute("data-status");
+                const name = row.getAttribute("data-name") || "";
+                const matchStatus = currentStatus === "all" || status === currentStatus;
+                const matchSearch = searchQuery === "" || name.includes(searchQuery);
+                row.style.display = matchStatus && matchSearch ? "" : "none";
+            });
+        }
+
+        filterBtns.forEach((btn) => {
+            btn.addEventListener("click", function () {
+                filterBtns.forEach((b) => {
+                    b.classList.remove("active");
+                    b.style.background = "transparent";
+                    b.style.color = "var(--text-muted)";
+                });
+                this.classList.add("active");
+                this.style.background = "var(--primary)";
+                this.style.color = "#fff";
+                currentStatus = this.getAttribute("data-status") || "all";
+                applyRekapFilter();
+            });
+        });
+
+        if (searchInp) {
+            searchInp.addEventListener("input", function () {
+                searchQuery = this.value.trim().toLowerCase();
+                applyRekapFilter();
+            });
+        }
+    }
+
+    // Panggil saat DOM ready dan saat live table di-refresh
+    initPipDashboardCharts();
+    initPipRekapRombelFilter();
+    window.addEventListener("sae:tableRefreshed", function () {
+        initPipDashboardCharts();
+        initPipRekapRombelFilter();
     });
 });

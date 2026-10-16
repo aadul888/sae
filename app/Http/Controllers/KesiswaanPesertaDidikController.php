@@ -993,10 +993,13 @@ class KesiswaanPesertaDidikController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        $canUpdate = in_array($role, ['admin', 'tendik'], true)
+        $canUpdate = in_array($role, ['admin', 'tendik', 'guru'], true)
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'update')
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')
-            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update');
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas_validasi', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas', 'update')
+            || RolePermission::isWaliKelasOrAdmin($user);
 
         if (!$canUpdate) {
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
@@ -1080,10 +1083,13 @@ class KesiswaanPesertaDidikController extends Controller
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        $canUpdate = in_array($role, ['admin', 'tendik'], true)
+        $canUpdate = in_array($role, ['admin', 'tendik', 'guru'], true)
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'update')
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'update')
-            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update');
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas_validasi', 'update')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas', 'update')
+            || RolePermission::isWaliKelasOrAdmin($user);
 
         if (!$canUpdate) {
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
