@@ -2145,6 +2145,43 @@ input[type="month"] {
     display: inline-flex;
 }
 
+/* ==========================================================================
+   Unified Global Datatable Card (Toolbar Header + Table Body + Pagination Footer)
+   ========================================================================== */
+.datatable-card-wrapper {
+    padding: 0 !important;
+    margin-bottom: 24px;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+.datatable-toolbar {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.datatable-footer {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.02);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+[data-theme="dark"] .datatable-footer {
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.datatable-footer .custom-pagination {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 /* Custom pagination */
 .custom-pagination {
     display: flex;
@@ -2995,6 +3032,13 @@ input[type="month"] {
     /* Override overflow-x wrapper on mobile so stack mode works */
     .table-responsive-stack > div[style*="overflow-x"] {
         overflow: visible !important;
+    }
+
+    .datatable-toolbar {
+        padding: 12px 14px !important;
+    }
+    .datatable-footer {
+        padding: 10px 14px !important;
     }
 
     /* Toolbar: per-page + search + filter tumpuk rapi di mobile */

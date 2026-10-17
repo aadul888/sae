@@ -562,6 +562,11 @@ window.refreshLiveTable = async function (url, options = {}) {
             document.activeElement.tagName === "SELECT");
     const activeEl = isInputActive ? document.activeElement : null;
     const focusedElId = activeEl ? activeEl.id : null;
+    const activeElVal = activeEl && activeEl.value !== undefined ? activeEl.value : null;
+    const activeCursorPos =
+        activeEl && activeEl.selectionStart !== undefined
+            ? activeEl.selectionStart
+            : null;
 
     try {
         const response = await fetch(targetUrl, {
@@ -653,7 +658,7 @@ window.refreshLiveTable = async function (url, options = {}) {
             curMobileTabs.innerHTML = newMobileTabs.innerHTML;
         }
 
-        // 3b. Swap pagination universally across ALL modules
+        // 3b. Swap pagination universally across ALL modules (hanya jika di luar #tableDataContainer)
         const curPagination = document.querySelector(
             ".custom-pagination, .dash-pagination, .pagination",
         );
@@ -661,11 +666,23 @@ window.refreshLiveTable = async function (url, options = {}) {
             ".custom-pagination, .dash-pagination, .pagination",
         );
 
-        if (curPagination && newPagination) {
+        if (
+            curPagination &&
+            newPagination &&
+            (!curDataContainer || !curDataContainer.contains(curPagination))
+        ) {
             curPagination.outerHTML = newPagination.outerHTML;
-        } else if (curPagination && !newPagination) {
+        } else if (
+            curPagination &&
+            !newPagination &&
+            (!curDataContainer || !curDataContainer.contains(curPagination))
+        ) {
             curPagination.remove();
-        } else if (!curPagination && newPagination) {
+        } else if (
+            !curPagination &&
+            newPagination &&
+            (!curDataContainer || !curDataContainer.contains(newPagination))
+        ) {
             const anchor = tableAnchor || container;
             if (anchor) anchor.insertAdjacentElement("afterend", newPagination);
         }
@@ -729,14 +746,20 @@ window.refreshLiveTable = async function (url, options = {}) {
         if (focusedElId) {
             const reFocusEl = document.getElementById(focusedElId);
             if (reFocusEl) {
+                if (activeElVal !== null && reFocusEl.value !== activeElVal) {
+                    reFocusEl.value = activeElVal;
+                }
                 // Hanya refocus jika fokus sempat terlepas (misal container input ter-render ulang)
                 if (document.activeElement !== reFocusEl) {
                     reFocusEl.focus();
-                    const curLen = reFocusEl.value ? reFocusEl.value.length : 0;
-                    try {
-                        reFocusEl.setSelectionRange(curLen, curLen);
-                    } catch (e) {}
                 }
+                const curPos =
+                    activeCursorPos !== null
+                        ? activeCursorPos
+                        : (reFocusEl.value ? reFocusEl.value.length : 0);
+                try {
+                    reFocusEl.setSelectionRange(curPos, curPos);
+                } catch (e) {}
                 // Jika reFocusEl SUDAH merupakan document.activeElement, kursor TIDAK diubah
                 // agar kursor tidak meloncat mundur ke belakang saat pengguna masih mengetik.
             }
