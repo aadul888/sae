@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $isAdmin = $isAdmin ?? (((session('user')['role'] ?? (session('user')->role ?? '')) === 'admin'));
+        $isAdmin = $isAdmin ?? (session('user')['role'] ?? (session('user')->role ?? '')) === 'admin';
     @endphp
     <div class="dash-banner">
         <div>
@@ -18,7 +18,8 @@
             </p>
         </div>
         <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;" title="Tarik Data Dapodik">
+            <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.9rem;"
+                title="Tarik Data Dapodik">
                 <i class="fas fa-cloud-arrow-down"></i>
             </a>
         </div>
@@ -75,256 +76,236 @@
         </div>
     </div>
 
-    <!-- Filter & Search Toolbar -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <!-- Per Page -->
-                <div class="toolbar-entries">
-                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
-                        @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
+    <!-- Unified Datatable Tendik (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+        <div class="datatable-toolbar">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <!-- Per Page -->
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                    {{ $n }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    <!-- Filter Status Kepegawaian -->
+                    <select id="filterStatus" class="toolbar-filter-select" style="height: 38px;">
+                        <option value="">Semua Status Kepegawaian</option>
+                        @foreach ($filterStatus as $st)
+                            <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>
+                                {{ $st }}
                             </option>
                         @endforeach
                     </select>
-                    <span>entri</span>
+
+                    <!-- Filter Gender -->
+                    <select id="filterGender" class="toolbar-filter-select" style="height: 38px; min-width: 120px;">
+                        <option value="">Semua Gender</option>
+                        <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
+                        <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
+                    </select>
+
+                    @if ($status || $gender || $q)
+                        <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            title="Reset filter">
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
 
-                <!-- Filter Status Kepegawaian -->
-                <select id="filterStatus" class="toolbar-filter-select">
-                    <option value="">Semua Status Kepegawaian</option>
-                    @foreach ($filterStatus as $st)
-                        <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>{{ $st }}
-                        </option>
-                    @endforeach
-                </select>
-
-                <!-- Filter Gender -->
-                <select id="filterGender" class="toolbar-filter-select" style="min-width: 120px;">
-                    <option value="">Semua Gender</option>
-                    <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
-                    <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
-                </select>
-
-                @if ($status || $gender || $q)
-                    <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
-                        style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                        <i class="fas fa-undo"></i>
-                    </a>
-                @endif
-            </div>
-
-            <div class="live-search-wrap">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari nama / NUPTK / NIP..." value="{{ $q }}"
-                    autocomplete="off">
-                <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
-                    title="Hapus pencarian">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" placeholder="Cari nama / NUPTK / NIP..."
+                        value="{{ $q }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
+                        title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Table Tendik -->
-    <div class="card table-responsive-stack" style="padding: 0; overflow: hidden; margin-bottom: 20px;">
-        <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-            <thead>
-                <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
-                    <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
-                        data-sort="nama" class="sortable-th">
-                        Nama Tendik
-                        @if ($sort === 'nama')
-                            <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
-                        @else
-                            <span style="opacity: 0.3;">▲▼</span>
-                        @endif
-                    </th>
-                    <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
-                        data-sort="nuptk" class="sortable-th">
-                        NUPTK / NIP
-                        @if ($sort === 'nuptk')
-                            <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
-                        @else
-                            <span style="opacity: 0.3;">▲▼</span>
-                        @endif
-                    </th>
-                    <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; cursor: pointer;"
-                        data-sort="jenis_kelamin" class="sortable-th">
-                        L/P
-                        @if ($sort === 'jenis_kelamin')
-                            <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
-                        @else
-                            <span style="opacity: 0.3;">▲▼</span>
-                        @endif
-                    </th>
-                    <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
-                        data-sort="jabatan_ptk_id_str" class="sortable-th">
-                        Tugas / Jabatan
-                        @if ($sort === 'jabatan_ptk_id_str')
-                            <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
-                        @else
-                            <span style="opacity: 0.3;">▲▼</span>
-                        @endif
-                    </th>
-                    <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
-                        data-sort="status_kepegawaian_id_str" class="sortable-th">
-                        Status
-                        @if ($sort === 'status_kepegawaian_id_str')
-                            <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
-                        @else
-                            <span style="opacity: 0.3;">▲▼</span>
-                        @endif
-                    </th>
-                    <th
-                        style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left;">
-                        Pendidikan
-                    </th>
-                    <th
-                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                        Aksi
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($list as $tendik)
-                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
-                        <td style="padding: 12px 16px; font-size: 0.85rem;" data-label="Nama">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div
-                                    style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
-                                    <i class="fas fa-user-gear"></i>
+        <!-- 2. Konten Datatable Responsive Stack -->
+        <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
+                            data-sort="nama" class="sortable-th">
+                            Nama Tendik
+                            @if ($sort === 'nama')
+                                <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                            @else
+                                <span style="opacity: 0.3;">▲▼</span>
+                            @endif
+                        </th>
+                        <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
+                            data-sort="nuptk" class="sortable-th">
+                            NUPTK / NIP
+                            @if ($sort === 'nuptk')
+                                <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                            @else
+                                <span style="opacity: 0.3;">▲▼</span>
+                            @endif
+                        </th>
+                        <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; cursor: pointer;"
+                            data-sort="jenis_kelamin" class="sortable-th">
+                            L/P
+                            @if ($sort === 'jenis_kelamin')
+                                <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                            @else
+                                <span style="opacity: 0.3;">▲▼</span>
+                            @endif
+                        </th>
+                        <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
+                            data-sort="jabatan_ptk_id_str" class="sortable-th">
+                            Tugas / Jabatan
+                            @if ($sort === 'jabatan_ptk_id_str')
+                                <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                            @else
+                                <span style="opacity: 0.3;">▲▼</span>
+                            @endif
+                        </th>
+                        <th style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; cursor: pointer;"
+                            data-sort="status_kepegawaian_id_str" class="sortable-th">
+                            Status
+                            @if ($sort === 'status_kepegawaian_id_str')
+                                <span style="color: var(--primary);">{{ $sortDir === 'asc' ? '▲' : '▼' }}</span>
+                            @else
+                                <span style="opacity: 0.3;">▲▼</span>
+                            @endif
+                        </th>
+                        <th
+                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left;">
+                            Pendidikan
+                        </th>
+                        <th
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                            Aksi
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($list as $tendik)
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                            <td style="padding: 12px 16px; font-size: 0.85rem;" data-label="Nama">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div
+                                        style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 0.82rem; flex-shrink: 0;">
+                                        <i class="fas fa-user-gear"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--text-color);">{{ $tendik->nama }}</div>
+                                        @if (!empty($tendik->nik))
+                                            <div
+                                                style="font-size: 0.72rem; font-family: monospace; color: var(--text-muted); margin-top: 1px;">
+                                                NIK: <span class="copyable" data-copy="{{ $tendik->nik }}"
+                                                    data-label="NIK"
+                                                    title="Klik untuk salin NIK">{{ $tendik->nik }}</span>
+                                            </div>
+                                        @endif
+                                        @if ($tendik->email)
+                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">
+                                                {{ $tendik->email }}
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div>
-                                    <div style="font-weight: 700; color: var(--text-color);">{{ $tendik->nama }}</div>
-                                    @if (!empty($tendik->nik))
-                                        <div style="font-size: 0.72rem; font-family: monospace; color: var(--text-muted); margin-top: 1px;">
-                                            NIK: <span class="copyable" data-copy="{{ $tendik->nik }}" data-label="NIK" title="Klik untuk salin NIK">{{ $tendik->nik }}</span>
+                            </td>
+                            <td style="padding: 12px 14px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                data-label="NUPTK/NIP">
+                                <div class="cell-col-right">
+                                    <div>
+                                        @if ($tendik->nuptk)
+                                            <span class="copyable" data-copy="{{ $tendik->nuptk }}" data-label="NUPTK"
+                                                title="Klik untuk salin NUPTK">{{ $tendik->nuptk }}</span>
+                                        @else
+                                            -
+                                        @endif
+                                    </div>
+                                    @if ($tendik->nip)
+                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                            <span class="copyable" data-copy="{{ $tendik->nip }}" data-label="NIP"
+                                                title="Klik untuk salin NIP">NIP: {{ $tendik->nip }}</span>
                                         </div>
                                     @endif
-                                    @if ($tendik->email)
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">
-                                            {{ $tendik->email }}
+                                </div>
+                            </td>
+                            <td style="padding: 12px 14px; font-size: 0.83rem; text-align: center;" data-label="L/P">
+                                <span
+                                    class="badge {{ $tendik->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                    style="font-size: 0.75rem; padding: 3px 8px;">
+                                    {{ $tendik->jenis_kelamin }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px 14px; font-size: 0.83rem;" data-label="Tugas">
+                                <span class="badge badge-info"
+                                    style="font-size: 0.72rem; padding: 4px 8px; font-weight: 600; white-space: normal; line-height: 1.25; display: inline-block;">
+                                    {{ $tendik->jabatan_ptk ?: ($tendik->jenis_ptk ?: 'Tenaga Kependidikan') }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px 14px; font-size: 0.83rem;" data-label="Status">
+                                <span
+                                    class="badge {{ str_contains(strtoupper($tendik->status_kepegawaian ?? ''), 'PNS') ? 'badge-primary' : 'badge-outline' }}"
+                                    style="font-size: 0.72rem; padding: 3px 8px;">
+                                    {{ $tendik->status_kepegawaian ?: '-' }}
+                                </span>
+                            </td>
+                            <td style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="Pendidikan">
+                                <div class="cell-col-right">
+                                    <div style="color: var(--text-color); font-weight: 500;">
+                                        {{ $tendik->pendidikan_terakhir ?: '-' }}</div>
+                                    @if ($tendik->bidang_studi_terakhir)
+                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                            {{ $tendik->bidang_studi_terakhir }}
                                         </div>
                                     @endif
                                 </div>
-                            </div>
-                        </td>
-                        <td style="padding: 12px 14px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
-                            data-label="NUPTK/NIP">
-                            <div class="cell-col-right">
-                                <div>
-                                    @if ($tendik->nuptk)
-                                        <span class="copyable" data-copy="{{ $tendik->nuptk }}" data-label="NUPTK" title="Klik untuk salin NUPTK">{{ $tendik->nuptk }}</span>
+                            </td>
+                            <td style="padding: 12px 16px; text-align: right;" data-label="Aksi">
+                                <div class="table-actions">
+                                    @if ($isAdmin)
+                                        <button type="button" class="btn-icon btn-detail-tendik"
+                                            data-id="{{ $tendik->ptk_id }}" title="Lihat Profil Lengkap">
+                                            <i class="fas fa-id-card"></i>
+                                        </button>
                                     @else
-                                        -
+                                        <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
                                     @endif
                                 </div>
-                                @if ($tendik->nip)
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
-                                        <span class="copyable" data-copy="{{ $tendik->nip }}" data-label="NIP" title="Klik untuk salin NIP">NIP: {{ $tendik->nip }}</span>
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td style="padding: 12px 14px; font-size: 0.83rem; text-align: center;" data-label="L/P">
-                            <span class="badge {{ $tendik->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                style="font-size: 0.75rem; padding: 3px 8px;">
-                                {{ $tendik->jenis_kelamin }}
-                            </span>
-                        </td>
-                        <td style="padding: 12px 14px; font-size: 0.83rem;" data-label="Tugas">
-                            <span class="badge badge-info"
-                                style="font-size: 0.72rem; padding: 4px 8px; font-weight: 600; white-space: normal; line-height: 1.25; display: inline-block;">
-                                {{ $tendik->jabatan_ptk ?: ($tendik->jenis_ptk ?: 'Tenaga Kependidikan') }}
-                            </span>
-                        </td>
-                        <td style="padding: 12px 14px; font-size: 0.83rem;" data-label="Status">
-                            <span
-                                class="badge {{ str_contains(strtoupper($tendik->status_kepegawaian ?? ''), 'PNS') ? 'badge-primary' : 'badge-outline' }}"
-                                style="font-size: 0.72rem; padding: 3px 8px;">
-                                {{ $tendik->status_kepegawaian ?: '-' }}
-                            </span>
-                        </td>
-                        <td style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-muted);"
-                            data-label="Pendidikan">
-                            <div class="cell-col-right">
-                                <div style="color: var(--text-color); font-weight: 500;">{{ $tendik->pendidikan_terakhir ?: '-' }}</div>
-                                @if ($tendik->bidang_studi_terakhir)
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
-                                        {{ $tendik->bidang_studi_terakhir }}
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td style="padding: 12px 16px; text-align: right;" data-label="Aksi">
-                            <div class="table-actions">
-                                @if ($isAdmin)
-                                <button type="button" class="btn-icon btn-detail-tendik"
-                                    data-id="{{ $tendik->ptk_id }}"
-                                    title="Lihat Profil Lengkap">
-                                    <i class="fas fa-id-card"></i>
-                                </button>
-                                @else
-                                <span style="color: var(--text-muted); font-size: 0.82rem;">-</span>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted);">
-                            <i class="fas fa-user-slash"
-                                style="font-size: 2.5rem; opacity: 0.4; margin-bottom: 12px;"></i>
-                            <p style="font-size: 0.9rem; margin: 0;">Tidak ada data Tenaga Kependidikan yang sesuai dengan
-                                kriteria pencarian.</p>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    {{-- Pagination --}}
-    @if ($list->hasPages())
-        <div class="custom-pagination">
-            @if ($list->onFirstPage())
-                <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-            @else
-                <a href="{{ $list->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                        class="fas fa-chevron-left"></i></a>
-            @endif
-            @php
-                $cur = $list->currentPage();
-                $last = $list->lastPage();
-                $from = max(1, $cur - 2);
-                $to = min($last, $cur + 2);
-            @endphp
-            @if ($from > 1)
-                <a href="{{ $list->url(1) }}" class="page-btn">1</a>
-                @if ($from > 2)
-                    <span class="page-info">&hellip;</span>
-                @endif
-            @endif
-            @for ($i = $from; $i <= $to; $i++)
-                <a href="{{ $list->url($i) }}"
-                    class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-            @endfor
-            @if ($to < $last)
-                @if ($to < $last - 1)
-                    <span class="page-info">&hellip;</span>
-                @endif
-                <a href="{{ $list->url($last) }}" class="page-btn">{{ $last }}</a>
-            @endif
-            @if ($list->hasMorePages())
-                <a href="{{ $list->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                        class="fas fa-chevron-right"></i></a>
-            @else
-                <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-            @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                                <i class="fas fa-user-slash"
+                                    style="font-size: 2.5rem; opacity: 0.4; margin-bottom: 12px;"></i>
+                                <p style="font-size: 0.9rem; margin: 0;">Tidak ada data Tenaga Kependidikan yang sesuai
+                                    dengan
+                                    kriteria pencarian.</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    @endif
+
+        <!-- 3. Footer Paginasi Terpadu Datatable -->
+        @if ($list->hasPages())
+            <div class="datatable-footer">
+                @include('partials.datatable-pagination', ['paginator' => $list])
+            </div>
+        @endif
+    </div>
 
     <!-- Detail Tendik Modal -->
     <div id="modalDetailTendik" class="modal-backdrop"
