@@ -2395,21 +2395,93 @@ input[type="month"] {
     }
     .table-responsive-stack tbody tr {
         border: 1px solid var(--border-color);
-        border-radius: 14px;
-        padding: 12px 14px;
-        margin-bottom: 12px;
+        border-radius: 12px;
+        padding: 8px 12px;
+        margin-bottom: 8px;
         background: var(--card-bg);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
         overflow: hidden;
         word-break: break-word;
         overflow-wrap: anywhere;
     }
+
+    /* Sembunyikan kolom urutan No/No. pada mode kartu mobile agar hemat ruang vertikal */
+    .table-responsive-stack tbody td[data-label="No"],
+    .table-responsive-stack tbody td[data-label="No."],
+    .table-responsive-stack tbody td[data-label="N0."],
+    .table-responsive-stack tbody td[data-label="No "],
+    .table-responsive-stack tbody td.cell-no,
+    .table-responsive-stack tbody td.cell-pd-no {
+        display: none !important;
+    }
+
+    /* Item Judul / Nama Utama Sebagai Header Kartu Mobile */
+    .table-responsive-stack tbody td.cell-pd-nama,
+    .table-responsive-stack tbody td[data-label="Nama Lengkap"],
+    .table-responsive-stack tbody td[data-label="Nama"],
+    .table-responsive-stack tbody td[data-label="Nama Data"],
+    .table-responsive-stack tbody td[data-label="Nama Pegawai"],
+    .table-responsive-stack tbody td[data-label="Sasaran"],
+    .table-responsive-stack tbody td[data-label="Judul"],
+    .table-responsive-stack tbody td[data-label="Nama Barang"],
+    .table-responsive-stack tbody td[data-label="Barang"],
+    .table-responsive-stack tbody td[data-label="Mata Pelajaran"],
+    .table-responsive-stack tbody td[data-label="Agenda"],
+    .table-responsive-stack tbody td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        color: var(--text-color) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 2px 0 6px 0 !important;
+        margin-bottom: 4px !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+    .table-responsive-stack tbody td.cell-pd-nama::before,
+    .table-responsive-stack tbody td[data-label="Nama Lengkap"]::before,
+    .table-responsive-stack tbody td[data-label="Nama"]::before,
+    .table-responsive-stack tbody td[data-label="Nama Data"]::before,
+    .table-responsive-stack tbody td[data-label="Nama Pegawai"]::before,
+    .table-responsive-stack tbody td[data-label="Sasaran"]::before,
+    .table-responsive-stack tbody td[data-label="Judul"]::before,
+    .table-responsive-stack tbody td[data-label="Nama Barang"]::before,
+    .table-responsive-stack tbody td[data-label="Barang"]::before,
+    .table-responsive-stack tbody td[data-label="Mata Pelajaran"]::before,
+    .table-responsive-stack tbody td[data-label="Agenda"]::before,
+    .table-responsive-stack tbody td:first-child:not([data-label*="No"]):not([data-label="Aksi"])::before {
+        display: none !important;
+    }
+    .table-responsive-stack tbody td.cell-pd-nama > *,
+    .table-responsive-stack tbody td[data-label="Nama Lengkap"] > *,
+    .table-responsive-stack tbody td[data-label="Nama"] > *,
+    .table-responsive-stack tbody td[data-label="Nama Data"] > *,
+    .table-responsive-stack tbody td[data-label="Nama Pegawai"] > *,
+    .table-responsive-stack tbody td[data-label="Sasaran"] > *,
+    .table-responsive-stack tbody td[data-label="Judul"] > *,
+    .table-responsive-stack tbody td[data-label="Nama Barang"] > *,
+    .table-responsive-stack tbody td[data-label="Barang"] > *,
+    .table-responsive-stack tbody td[data-label="Mata Pelajaran"] > *,
+    .table-responsive-stack tbody td[data-label="Agenda"] > *,
+    .table-responsive-stack tbody td:first-child:not([data-label*="No"]):not([data-label="Aksi"]) > * {
+        max-width: 100% !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+    }
+
+    /* Sel Baris Kartu Normal (Kompak & Rapi) */
     .table-responsive-stack tbody td {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
-        padding: 7px 0 !important;
+        gap: 8px;
+        padding: 3.5px 0 !important;
+        min-height: 22px;
         border: none;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.05) !important;
         text-align: right;
         width: 100%;
         max-width: 100%;
@@ -2417,53 +2489,46 @@ input[type="month"] {
         min-width: 0;
         word-break: break-word;
         overflow-wrap: anywhere;
+        font-size: 0.8rem;
+    }
+    [data-theme="light"] .table-responsive-stack tbody td {
+        border-bottom: 1px dashed rgba(0, 0, 0, 0.06) !important;
     }
     .table-responsive-stack tbody td::before {
         content: attr(data-label);
-        font-weight: 600;
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: var(--text-muted);
-        text-align: left;
-        flex-shrink: 0;
-        white-space: nowrap;
-        max-width: 40%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    .table-responsive-stack tbody td:first-child {
-        font-weight: 700;
+        font-weight: 600 !important;
+        font-size: 0.7rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.3px !important;
+        color: var(--text-muted) !important;
+        text-align: left !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        max-width: 42% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 
     /* Target content cell on the right side */
     .table-responsive-stack tbody td > *:not(style):not(script) {
         min-width: 0;
-        max-width: 60%;
+        max-width: 58%;
         word-break: break-word;
         overflow-wrap: anywhere;
         text-align: right;
-    }
-    @media (max-width: 767px) {
-        .table-responsive-stack tbody td > *:not(style):not(script) {
-            max-width: 100% !important;
-            text-align: left !important;
-        }
-        .table-responsive-stack tbody td {
-            padding: 8px 12px !important;
-        }
+        font-size: 0.8rem;
     }
 
-    /* Flex item inside td (avatar + name + email) */
+    /* Flex item inside td */
     .table-responsive-stack tbody td > div {
         min-width: 0;
-        max-width: 60%;
+        max-width: 58%;
     }
     .table-responsive-stack tbody td > div[style*="display: flex"],
     .table-responsive-stack tbody td > div.d-flex,
     .table-responsive-stack tbody td .d-flex {
         min-width: 0;
-        max-width: 60%;
+        max-width: 58%;
         justify-content: flex-end;
         text-align: right;
     }
@@ -2477,16 +2542,56 @@ input[type="month"] {
     .table-responsive-stack tbody td .cell-col-right {
         align-items: flex-end !important;
         text-align: right !important;
-        max-width: 68% !important;
+        max-width: 65% !important;
         width: auto !important;
     }
-    .table-responsive-stack
-        tbody
-        td
-        .cell-col-right
-        > div[style*="display: flex"],
+    .table-responsive-stack tbody td .cell-col-right > div[style*="display: flex"],
     .table-responsive-stack tbody td .cell-col-right > div.d-flex {
         justify-content: flex-end !important;
+    }
+
+    /* Footer Aksi Baris Tabel Mobile */
+    .table-responsive-stack tbody td[data-label="Aksi"],
+    .table-responsive-stack tbody td.cell-pd-aksi,
+    .table-responsive-stack tbody td.cell-aksi {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: center !important;
+        width: 100% !important;
+        border-top: 1px solid var(--border-color) !important;
+        border-bottom: none !important;
+        padding-top: 6px !important;
+        padding-bottom: 2px !important;
+        margin-top: 4px !important;
+    }
+    .table-responsive-stack tbody td[data-label="Aksi"]::before,
+    .table-responsive-stack tbody td.cell-pd-aksi::before,
+    .table-responsive-stack tbody td.cell-aksi::before {
+        display: none !important;
+    }
+    .table-responsive-stack tbody td[data-label="Aksi"] .table-actions,
+    .table-responsive-stack tbody td.cell-pd-aksi .table-actions,
+    .table-responsive-stack tbody td.cell-aksi .table-actions {
+        width: 100% !important;
+        max-width: 100% !important;
+        justify-content: flex-end !important;
+        gap: 5px !important;
+        flex-wrap: wrap !important;
+    }
+    .table-responsive-stack tbody td[data-label="Aksi"] .btn-icon,
+    .table-responsive-stack tbody td.cell-pd-aksi .btn-icon,
+    .table-responsive-stack tbody td.cell-aksi .btn-icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.82rem !important;
+        border-radius: 7px !important;
+    }
+
+    /* Thumbnail Pasfoto Kompak di Kartu Mobile */
+    .table-responsive-stack .pd-foto-thumb {
+        width: 36px !important;
+        height: 36px !important;
+        border-radius: 8px !important;
     }
 
     /* Prevent text blowout on badges, spans, links, emails, and usernames */
@@ -2505,6 +2610,32 @@ input[type="month"] {
         word-break: normal !important;
         overflow-wrap: normal !important;
         flex-shrink: 0 !important;
+        font-size: 0.68rem !important;
+        padding: 2px 6px !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Baris Empty State di Mobile */
+    .table-responsive-stack tbody td[colspan],
+    .table-responsive-stack tbody tr.empty-row td {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 24px 12px !important;
+        border-bottom: none !important;
+    }
+    .table-responsive-stack tbody td[colspan]::before,
+    .table-responsive-stack tbody tr.empty-row td::before {
+        display: none !important;
+    }
+    .table-responsive-stack tbody td[colspan] > *:not(style):not(script),
+    .table-responsive-stack tbody tr.empty-row td > *:not(style):not(script) {
+        max-width: 100% !important;
+        text-align: center !important;
     }
 
     /* Khusus Card Kompetensi Keahlian di Mobile: Tampilan Rapih & Proporsional */
@@ -2864,33 +2995,6 @@ input[type="month"] {
     /* Override overflow-x wrapper on mobile so stack mode works */
     .table-responsive-stack > div[style*="overflow-x"] {
         overflow: visible !important;
-    }
-
-    /* Toolbar: per-page + search + filter tumpuk rapi di mobile */
-    .toolbar-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-    }
-    .toolbar-row > div:not(.toolbar-entries) {
-        width: 100%;
-    }
-    .table-responsive-stack tbody td:first-child {
-        font-weight: 700;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        padding-bottom: 10px !important;
-        margin-bottom: 6px;
-    }
-    .table-responsive-stack tbody td:first-child::before {
-        display: none !important;
-    }
-    .table-responsive-stack tbody td:first-child > *:not(style):not(script),
-    .table-responsive-stack tbody td:first-child > div,
-    .table-responsive-stack tbody td:first-child > div[style*="display: flex"] {
-        max-width: 100% !important;
-        width: 100% !important;
-        justify-content: flex-start !important;
-        text-align: left !important;
     }
 
     /* Toolbar: per-page + search + filter tumpuk rapi di mobile */
@@ -4434,8 +4538,8 @@ input:disabled + .slider-toggle-crud {
     .mobile-label {display:inline;}
     .desktop-content {display:none;}
     .mobile-content {display:inline;}
-    /* Reduce padding in table cells for compact view */
-    .table-responsive-stack tbody td {padding:8px 12px !important;}
+    /* Compact padding in table cells for neat view */
+    .table-responsive-stack tbody td {padding: 3.5px 0 !important;}
 }
 
 /* Modul KBM & Presensi Responsive Form Grid */

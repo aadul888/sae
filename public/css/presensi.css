@@ -968,7 +968,7 @@ input[type="month"] {
     .table-responsive-stack tbody td.cell-pd-nama {
         order: 1 !important;
         border-bottom: 1px solid var(--border-color) !important;
-        padding-bottom: 10px !important;
+        padding-bottom: 6px !important;
         margin-bottom: 4px !important;
         text-align: left !important;
     }
@@ -997,7 +997,7 @@ input[type="month"] {
         order: 7 !important;
         border-top: 1px dashed rgba(255, 255, 255, 0.08) !important;
         border-bottom: none !important;
-        padding-top: 10px !important;
+        padding-top: 6px !important;
         margin-top: 4px !important;
         width: 100% !important;
         max-width: 100% !important;
