@@ -947,6 +947,7 @@ class WaliKelasController extends Controller
 
         $statusHari = KalenderPendidikan::getStatusHari($tanggal, 'pd');
         $pengaturan = PresensiPengaturan::getPengaturan();
+        $isLiburHari = ($statusHari['is_libur'] ?? false) || (class_exists(JadwalPengaturan::class) ? !JadwalPengaturan::isHariAktif(\Carbon\Carbon::parse($tanggal)) : false);
 
         if (!$activeRombel) {
             return view('dashboard.wali-kelas.presensi', [
@@ -957,6 +958,7 @@ class WaliKelasController extends Controller
                 'waliNama'         => $ctx['waliNama'],
                 'tanggal'          => $tanggal,
                 'statusHari'       => $statusHari,
+                'isLiburHari'      => $isLiburHari,
                 'pengaturan'       => $pengaturan,
                 'list'             => new \Illuminate\Pagination\LengthAwarePaginator([], 0, $perPage),
                 'total'            => 0,
@@ -1181,6 +1183,7 @@ class WaliKelasController extends Controller
             'waliNama'         => $ctx['waliNama'],
             'tanggal'          => $tanggal,
             'statusHari'       => $statusHari,
+            'isLiburHari'      => $isLiburHari,
             'pengaturan'       => $pengaturan,
             'list'             => $list,
             'allSiswa'         => $allSiswa,
@@ -1271,12 +1274,17 @@ class WaliKelasController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Peserta didik ini berada di luar rombel binaan Anda.'], 403);
         }
 
-        // Periksa Kalender Pendidikan
+        // Periksa Kalender Pendidikan & Skema Hari Sekolah
         $statusHari = KalenderPendidikan::getStatusHari($tanggal, 'pd');
-        if (($statusHari['mode'] ?? '') === 'libur') {
+        $isHariAktif = class_exists(JadwalPengaturan::class)
+            ? JadwalPengaturan::isHariAktif(\Carbon\Carbon::parse($tanggal))
+            : true;
+
+        if (($statusHari['mode'] ?? '') === 'libur' || ($statusHari['is_libur'] ?? false) || !$isHariAktif) {
+            $alasan = $statusHari['nama_agenda'] ?: 'Hari Libur Resmi / Libur Akhir Pekan';
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Hari ini adalah hari libur sekolah resmi (' . ($statusHari['agenda']?->nama_kegiatan ?? 'Kalender Pendidikan') . '). Presensi tidak dapat dilakukan.',
+                'message' => "Presensi tidak dapat dilakukan karena tanggal {$tanggal} adalah {$alasan}.",
             ], 422);
         }
 

@@ -180,8 +180,17 @@ class TendikTargetCapaianController extends Controller
 
         $range = $this->resolveDateRange($periodeTipe, $bulan, $tahun, $triwulan, $semester, $tahunAjaran, $tanggalPilihan);
 
-        // Filter Bidang: Kepala TAS dapat memilih semua atau per bidang; Tendik default bidang aktif atau sesuai pilihan bidang
-        $filterBidang = $request->input('bidang', ($isKepalaTas ? '' : $activeBidang));
+        // Resolusi Bidang Kerja (Khusus Per Bidang)
+        $currentBidang = $activeBidang ?: 'umum';
+        if ($isKepalaTas) {
+            $reqBidang = $request->input('bidang');
+            if ($reqBidang && $reqBidang !== 'all') {
+                $currentBidang = $reqBidang;
+            } elseif (!$currentBidang || $currentBidang === 'umum') {
+                $currentBidang = 'kepala_tas';
+            }
+        }
+        $filterBidang = $currentBidang;
 
         // 2. Data Master Tendik
         $tendikQuery = DB::table('gtk')
@@ -245,23 +254,19 @@ class TendikTargetCapaianController extends Controller
             $hariEfektif = max(1, Carbon::parse($range['start'])->diffInDaysFiltered(fn(Carbon $date) => !$date->isSunday(), Carbon::parse($range['end'])) + 1);
         }
 
-        $targetTotalPeriode = $totalTendik * $hariEfektif * $targetAktivitasPerHari;
+        // Query Aktivitas Pada Rentang Periode khusus per bidang
+        $actQuery = TendikAktivitas::whereBetween('tanggal', [$range['start'], $range['end']])
+            ->where('bidang', $currentBidang);
 
-        // Query Aktivitas Pada Rentang Periode
-        $actQuery = TendikAktivitas::whereBetween('tanggal', [$range['start'], $range['end']]);
-
-        // Jika bukan Kepala TAS/Admin, hanya aktivitas milik sendiri dan bidang yang bersesuaian
+        // Jika bukan Kepala TAS/Admin, hanya aktivitas milik sendiri
         if (!$isKepalaTas) {
             $actQuery->where(function ($sq) use ($userId, $ptkId) {
                 if ($userId) $sq->where('user_id', $userId);
                 if ($ptkId) $sq->orWhere('ptk_id', $ptkId);
             });
-            if ($filterBidang && $filterBidang !== 'all') {
-                $actQuery->where('bidang', $filterBidang);
-            }
             $targetTotalPeriode = $hariEfektif * $targetAktivitasPerHari;
-        } elseif ($filterBidang && $filterBidang !== 'all') {
-            $actQuery->where('bidang', $filterBidang);
+        } else {
+            $targetTotalPeriode = max(1, $totalTendik) * $hariEfektif * $targetAktivitasPerHari;
         }
 
         $allActivities = $actQuery->get();
@@ -320,14 +325,11 @@ class TendikTargetCapaianController extends Controller
             ];
         })->sortByDesc('persen')->values();
 
-        // 9. Matriks Sasaran & Indikator Kinerja per Bidang
+        // 9. Matriks Sasaran & Indikator Kinerja khusus per bidang
         $matriksIndikatorList = collect();
         if (Schema::hasTable('tendik_indikator_kinerja')) {
-            $indQuery = TendikIndikatorKinerja::where('is_active', true);
-            if ($filterBidang && $filterBidang !== 'all') {
-                $indQuery->where('bidang', $filterBidang);
-            }
-            $matriksIndikatorList = $indQuery->orderBy('bidang')->orderBy('urutan')->get()->map(function ($ind) use ($allActivities) {
+            $indQuery = TendikIndikatorKinerja::where('is_active', true)->where('bidang', $currentBidang);
+            $matriksIndikatorList = $indQuery->orderBy('urutan')->get()->map(function ($ind) use ($allActivities) {
                 $acts = $allActivities->filter(function ($a) use ($ind) {
                     return (!empty($a->indikator_id) && $a->indikator_id == $ind->id) ||
                            ($a->bidang === $ind->bidang && stripos($a->judul_aktivitas, substr($ind->sasaran, 0, 16)) !== false);
@@ -377,6 +379,7 @@ class TendikTargetCapaianController extends Controller
             'isKepegawaian',
             'canViewMonitoringPegawai',
             'activeBidang',
+            'currentBidang',
             'userName',
             'canCreate',
             'filterBidang',

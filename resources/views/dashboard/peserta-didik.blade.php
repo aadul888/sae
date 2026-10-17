@@ -106,8 +106,9 @@
         @if ($currentNisn)
             <div class="dash-banner-actions">
                 <button type="button" class="btn btn-outline" onclick="openKartuPelajarModal('{{ $currentNisn }}')"
-                    style="padding: 9px 16px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; border-color: #06b6d4; color: #06b6d4;">
-                    <i class="fas fa-id-card"></i> Kartu Digital (QR)
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #06b6d4; color: #06b6d4;"
+                    title="Lihat / Cetak Kartu Pelajar Digital">
+                    <i class="fas fa-id-card"></i>
                 </button>
             </div>
         @endif

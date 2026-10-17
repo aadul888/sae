@@ -18,8 +18,9 @@
         </div>
         <div class="dash-banner-actions">
             <a href="{{ route('dashboard.formulir.index') }}" class="btn btn-outline"
-                style="padding: 8px 16px; font-size: 0.85rem;">
-                <i class="fas fa-arrow-left me-1"></i> Kembali
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Kembali ke Daftar Formulir">
+                <i class="fas fa-arrow-left"></i>
             </a>
         </div>
     </div>

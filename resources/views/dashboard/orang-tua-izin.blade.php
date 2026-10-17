@@ -28,12 +28,16 @@
             </div>
         </div>
 
-        <div class="dash-banner-actions">
-            <a href="{{ route('dashboard.orang-tua') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; text-decoration: none;">
-                <i class="fas fa-house me-1"></i> Beranda
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a href="{{ route('dashboard.orang-tua') }}" class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Beranda Orang Tua">
+                <i class="fas fa-house"></i>
             </a>
-            <a href="{{ route('dashboard.orang-tua.kehadiran') }}" class="btn btn-outline" style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; text-decoration: none;">
-                <i class="fas fa-calendar-check me-1 text-success"></i> Kehadiran
+            <a href="{{ route('dashboard.orang-tua.kehadiran') }}" class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Kehadiran Siswa">
+                <i class="fas fa-calendar-check text-success"></i>
             </a>
         </div>
     </div>

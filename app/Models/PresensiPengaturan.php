@@ -76,6 +76,10 @@ class PresensiPengaturan extends Model
      */
     public function isHariAktif(?Carbon $date = null): bool
     {
+        if (class_exists(JadwalPengaturan::class)) {
+            return JadwalPengaturan::isHariAktif($date);
+        }
+
         $date = $date ?: Carbon::now();
         $namaHariIndo = match ($date->dayOfWeekIso) {
             1 => 'Senin',

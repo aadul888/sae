@@ -16,14 +16,16 @@
                 <i class="fas fa-pen-to-square text-primary me-2"></i> Edit: {{ $formulir->judul }}
             </h2>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ $formulir->public_url }}" target="_blank" class="btn btn-outline"
-                style="padding: 8px 14px; font-size: 0.85rem;">
-                <i class="fas fa-external-link-alt me-1"></i> Buka Tautan
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Buka Tautan Formulir Publik">
+                <i class="fas fa-external-link-alt text-primary"></i>
             </a>
             <a href="{{ route('dashboard.formulir.index') }}" class="btn btn-outline"
-                style="padding: 8px 16px; font-size: 0.85rem;">
-                <i class="fas fa-arrow-left me-1"></i> Kembali
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Kembali ke Daftar Formulir">
+                <i class="fas fa-arrow-left"></i>
             </a>
         </div>
     </div>

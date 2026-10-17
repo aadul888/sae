@@ -14,20 +14,23 @@
                 Permohonan surat izin tidak masuk sekolah serta e-Izin keluar-masuk / pulang cepat gerbang sekolah.
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.peserta-didik.presensi.index') }}" class="btn btn-outline"
-                style="padding: 8px 14px; font-size: 0.9rem;" title="Lihat Riwayat Presensi Lengkap">
-                <i class="fas fa-calendar-check"></i>
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Lihat Riwayat Presensi Lengkap">
+                <i class="fas fa-calendar-check text-primary"></i>
             </a>
             @if ($tab === 'surat' && $canCreate)
                 <button type="button" class="btn btn-primary" id="btnBukaModalIzin"
-                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 700;" title="Ajukan Surat Izin / Sakit Baru">
-                    <i class="fas fa-plus"></i> Ajukan Surat Izin
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Ajukan Surat Izin / Sakit Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @elseif ($tab === 'keluar')
                 <button type="button" class="btn btn-primary" onclick="openModalIzinKeluar()"
-                    style="padding: 8px 14px; font-size: 0.9rem; font-weight: 700;" title="Ajukan Izin Keluar Gerbang">
-                    <i class="fas fa-ticket-alt"></i> Ajukan Izin Keluar
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Ajukan Izin Keluar Gerbang">
+                    <i class="fas fa-ticket-alt"></i>
                 </button>
             @endif
         </div>

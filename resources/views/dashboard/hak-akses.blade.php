@@ -23,15 +23,16 @@
                     <strong>{{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}</strong>.
                 </p>
             </div>
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" id="btnSyncModules" class="btn btn-primary"
-                    style="padding: 8px 16px; font-size: 0.82rem;">
-                    <i class="fas fa-arrows-rotate me-1"></i> Sinkronkan Modul
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Sinkronkan Modul Sistem &amp; Database">
+                    <i class="fas fa-arrows-rotate"></i>
                 </button>
                 <button type="button" id="btnResetDefault" class="btn btn-outline"
-                    style="padding: 8px 16px; font-size: 0.82rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
-                    <i class="fas fa-rotate-left me-1"></i>
-                    Reset Default ({{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }})
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"
+                    title="Reset Default Matrix Izin ({{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }})">
+                    <i class="fas fa-rotate-left"></i>
                 </button>
             </div>
         </div>

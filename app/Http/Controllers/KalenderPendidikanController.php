@@ -150,6 +150,13 @@ class KalenderPendidikanController extends Controller
             $modePresensi
         );
 
+        $skemaHari = class_exists(\App\Models\JadwalPengaturan::class)
+            ? (\App\Models\JadwalPengaturan::getSettings()->skema_hari ?? '5_hari')
+            : '5_hari';
+        $hariAktifSekolah = class_exists(\App\Models\JadwalPengaturan::class)
+            ? \App\Models\JadwalPengaturan::getHariAktifList()
+            : ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
         return view('dashboard.kalender-pendidikan', compact(
             'list',
             'hariEfektif',
@@ -176,7 +183,9 @@ class KalenderPendidikanController extends Controller
             'sortDir',
             'view',
             'scope',
-            'calendarData'
+            'calendarData',
+            'skemaHari',
+            'hariAktifSekolah'
         ));
     }
 

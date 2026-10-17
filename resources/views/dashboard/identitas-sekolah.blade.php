@@ -40,14 +40,17 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if (\App\Models\RolePermission::canAccess(session('user'), 'menu_dapodik'))
                 <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline"
-                    style="padding: 8px 16px; font-size: 0.82rem;">
-                    <i class="fas fa-cloud-arrow-down me-1"></i> Sinkron Dapodik
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Tarik / Sinkron Data Dapodik">
+                    <i class="fas fa-cloud-arrow-down"></i>
                 </a>
             @endif
             @if ($canUpdate)
-                <button type="button" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.82rem;"
-                    onclick="openEditSekolahModal()">
-                    <i class="fas fa-pen-to-square me-1"></i> Edit Data
+                <button type="button" class="btn btn-primary"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    onclick="openEditSekolahModal()"
+                    title="Edit Data Identitas Sekolah">
+                    <i class="fas fa-pen-to-square"></i>
                 </button>
             @endif
         </div>

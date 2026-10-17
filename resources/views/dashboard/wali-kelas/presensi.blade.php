@@ -26,16 +26,19 @@
                 @endif
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($hasRombel && $activeRombel)
-                <button type="button" id="btnOpenModalPdf" class="btn btn-outline btn-responsive-icon" style="padding: 9px 16px; font-size: 0.85rem;" title="Cetak Laporan Presensi">
-                    <i class="fas fa-print me-1"></i> <span class="btn-responsive-text">Cetak Laporan</span>
+                <button type="button" id="btnOpenModalPdf" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Cetak Laporan Presensi">
+                    <i class="fas fa-print text-primary"></i>
                 </button>
-                <button type="button" id="btnResetPresensiWali" class="btn btn-outline btn-responsive-icon"
+                <button type="button" id="btnResetPresensiWali" class="btn btn-outline"
                     data-rombel="{{ $activeRombel->rombongan_belajar_id }}"
                     data-tanggal="{{ $tanggal }}"
-                    style="padding: 9px 16px; font-size: 0.85rem; font-weight: 700; color: #ef4444; border-color: rgba(239,68,68,0.4);" title="Reset Presensi Manual Kelas">
-                    <i class="fas fa-rotate-left me-1"></i> <span class="btn-responsive-text">Reset Presensi</span>
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; color: #ef4444; border-color: rgba(239,68,68,0.4);"
+                    title="Reset Presensi Manual Kelas">
+                    <i class="fas fa-rotate-left"></i>
                 </button>
             @endif
         </div>
@@ -114,18 +117,22 @@
             <!-- TAB 1: PRESENSI HARIAN KELAS BINAAN -->
             
             <!-- Banner Kalender / Status Hari -->
-            @if ($statusHari['mode'] === 'libur')
+            @if (!empty($isLiburHari) || ($statusHari['mode'] ?? '') === 'libur')
                 <div class="card" style="padding: 14px 18px; margin-bottom: 20px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(239, 68, 68, 0.18); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
-                            <i class="fas fa-calendar-xmark"></i>
+                            <i class="fas {{ ($statusHari['is_weekend'] ?? false) ? 'fa-bed' : 'fa-calendar-xmark' }}"></i>
                         </div>
                         <div>
-                            <div style="font-weight: 700; color: #ef4444; font-size: 0.92rem;">Hari Libur Sekolah Resmi: {{ $statusHari['agenda']?->nama_kegiatan ?? 'Libur' }}</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">Berdasarkan Kalender Pendidikan, presensi dinonaktifkan pada hari libur resmi.</div>
+                            <div style="font-weight: 700; color: #ef4444; font-size: 0.92rem;">
+                                {{ $statusHari['label'] ?? 'Hari Libur Sekolah' }}: {{ $statusHari['nama_agenda'] ?? ($statusHari['agenda']?->nama_kegiatan ?? 'Libur') }}
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">
+                                {{ $statusHari['keterangan'] ?? 'Berdasarkan Kalender Pendidikan & Skema Hari Sekolah, pencatatan presensi dinonaktifkan pada hari libur / non-aktif.' }}
+                            </div>
                         </div>
                     </div>
-                    <span class="badge badge-danger">LIBUR</span>
+                    <span class="badge badge-danger">{{ ($statusHari['is_weekend'] ?? false) ? 'LIBUR AKHIR PEKAN' : 'HARI LIBUR' }}</span>
                 </div>
             @elseif ($statusHari['mode'] === 'daring')
                 <div class="card" style="padding: 14px 18px; margin-bottom: 20px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
@@ -434,54 +441,60 @@
                                                 <i class="fas fa-id-card-clip me-1"></i> {{ strtoupper($item->metode_masuk) }}
                                             </span>
                                         @elseif ($canUpdate)
-                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'H' ? 'active-H' : '' }}"
-                                                data-id="{{ $item->peserta_didik_id }}"
-                                                data-nama="{{ $item->nama }}"
-                                                data-action="masuk"
-                                                data-status="H"
-                                                title="Catat Hadir">
-                                                H
-                                            </button>
-                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'T' ? 'active-T' : '' }}"
-                                                data-id="{{ $item->peserta_didik_id }}"
-                                                data-nama="{{ $item->nama }}"
-                                                data-action="terlambat"
-                                                data-status="T"
-                                                title="Catat Terlambat">
-                                                T
-                                            </button>
-                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'I' ? 'active-I' : '' }}"
-                                                data-id="{{ $item->peserta_didik_id }}"
-                                                data-nama="{{ $item->nama }}"
-                                                data-action="izin"
-                                                data-status="I"
-                                                title="Catat Izin">
-                                                I
-                                            </button>
-                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'S' ? 'active-S' : '' }}"
-                                                data-id="{{ $item->peserta_didik_id }}"
-                                                data-nama="{{ $item->nama }}"
-                                                data-action="sakit"
-                                                data-status="S"
-                                                title="Catat Sakit">
-                                                S
-                                            </button>
-                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'A' ? 'active-A' : '' }}"
-                                                data-id="{{ $item->peserta_didik_id }}"
-                                                data-nama="{{ $item->nama }}"
-                                                data-action="alpha"
-                                                data-status="A"
-                                                title="Catat Alpha">
-                                                A
-                                            </button>
-                                            <button type="button" class="btn-status-toggle btn-presensi-manual {{ !empty($item->jam_pulang) ? 'active-P active-D' : '' }}"
-                                                data-id="{{ $item->peserta_didik_id }}"
-                                                data-nama="{{ $item->nama }}"
-                                                data-action="pulang"
-                                                data-status="pulang"
-                                                title="{{ !empty($item->jam_pulang) ? 'Sudah Pulang (' . substr($item->jam_pulang, 0, 5) . ')' : 'Catat Pulang' }}">
-                                                P
-                                            </button>
+                                            @if (!empty($isLiburHari))
+                                                <span class="badge" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); font-size: 0.72rem; padding: 4px 8px;" title="Presensi dinonaktifkan pada hari libur / non-aktif belajar">
+                                                    <i class="fas fa-ban me-1"></i> Libur
+                                                </span>
+                                            @else
+                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'H' ? 'active-H' : '' }}"
+                                                    data-id="{{ $item->peserta_didik_id }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-action="masuk"
+                                                    data-status="H"
+                                                    title="Catat Hadir">
+                                                    H
+                                                </button>
+                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'T' ? 'active-T' : '' }}"
+                                                    data-id="{{ $item->peserta_didik_id }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-action="terlambat"
+                                                    data-status="T"
+                                                    title="Catat Terlambat">
+                                                    T
+                                                </button>
+                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'I' ? 'active-I' : '' }}"
+                                                    data-id="{{ $item->peserta_didik_id }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-action="izin"
+                                                    data-status="I"
+                                                    title="Catat Izin">
+                                                    I
+                                                </button>
+                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'S' ? 'active-S' : '' }}"
+                                                    data-id="{{ $item->peserta_didik_id }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-action="sakit"
+                                                    data-status="S"
+                                                    title="Catat Sakit">
+                                                    S
+                                                </button>
+                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ $st === 'A' ? 'active-A' : '' }}"
+                                                    data-id="{{ $item->peserta_didik_id }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-action="alpha"
+                                                    data-status="A"
+                                                    title="Catat Alpha">
+                                                    A
+                                                </button>
+                                                <button type="button" class="btn-status-toggle btn-presensi-manual {{ !empty($item->jam_pulang) ? 'active-P active-D' : '' }}"
+                                                    data-id="{{ $item->peserta_didik_id }}"
+                                                    data-nama="{{ $item->nama }}"
+                                                    data-action="pulang"
+                                                    data-status="pulang"
+                                                    title="{{ !empty($item->jam_pulang) ? 'Sudah Pulang (' . substr($item->jam_pulang, 0, 5) . ')' : 'Catat Pulang' }}">
+                                                    P
+                                                </button>
+                                            @endif
                                         @else
                                             <span class="badge badge-outline" style="font-size: 0.72rem; color: var(--text-muted);">
                                                 Read-Only
@@ -800,16 +813,15 @@
                                 <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi Validasi">
                                     <div class="table-actions" style="justify-content: flex-end;">
                                         @if ($canUpdate)
-                                            <button type="button" class="btn btn-sm btn-primary btn-open-verifikasi"
+                                            <button type="button" class="btn-icon btn-open-verifikasi"
                                                 data-id="{{ $iz->id }}"
                                                 data-nama="{{ $iz->siswa_nama }}"
                                                 data-jenis="{{ ucfirst($iz->jenis) }}"
                                                 data-status="{{ $iz->status }}"
                                                 data-catatan="{{ $iz->catatan_petugas }}"
                                                 data-rentang="{{ $sDate->format('d/m/Y') }} - {{ $eDate->format('d/m/Y') }}"
-                                                title="Verifikasi Surat Izin"
-                                                style="padding: 5px 10px; font-size: 0.76rem; border-radius: 6px; font-weight: 600;">
-                                                <i class="fas fa-signature me-1"></i> Verifikasi
+                                                title="Verifikasi Surat Izin">
+                                                <i class="fas fa-signature" style="color: var(--primary);"></i>
                                             </button>
                                         @else
                                             <span style="color: var(--text-muted); font-size: 0.8rem;">&mdash;</span>

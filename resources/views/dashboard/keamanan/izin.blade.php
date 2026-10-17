@@ -24,10 +24,9 @@
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary" onclick="openModalScan()"
-                    style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
-                    title="Scan / Input Tiket">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Scan / Input Tiket Izin Keluar">
                     <i class="fas fa-qrcode"></i>
-                    <span>Scan / Input Tiket</span>
                 </button>
             </div>
         </div>
@@ -219,23 +218,23 @@
                                     @if ($item->status === 'menunggu_satpam')
                                         <form action="{{ route('dashboard.keamanan.izin.checkout', $item->id) }}"
                                             method="POST" data-confirm-action="checkout"
-                                            data-name="{{ $item->nama_siswa }}">
+                                            data-name="{{ $item->nama_siswa }}" style="display: inline;">
                                             @csrf
-                                            <button type="submit" class="btn btn-warning btn-sm"
+                                            <button type="submit" class="btn-icon"
                                                 title="Verifikasi Keluar Gerbang"
-                                                style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; font-size: 0.78rem;">
-                                                <i class="fas fa-sign-out-alt"></i> Out
+                                                style="color: #f59e0b;">
+                                                <i class="fas fa-arrow-right-from-bracket"></i>
                                             </button>
                                         </form>
                                     @elseif ($item->status === 'di_luar' && $item->jenis_izin === 'keluar_sebentar')
                                         <form action="{{ route('dashboard.keamanan.izin.checkin', $item->id) }}"
                                             method="POST" data-confirm-action="checkin"
-                                            data-name="{{ $item->nama_siswa }}">
+                                            data-name="{{ $item->nama_siswa }}" style="display: inline;">
                                             @csrf
-                                            <button type="submit" class="btn btn-success btn-sm"
+                                            <button type="submit" class="btn-icon"
                                                 title="Verifikasi Kembali Masuk Gerbang"
-                                                style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; font-size: 0.78rem;">
-                                                <i class="fas fa-sign-in-alt"></i> In
+                                                style="color: #10b981;">
+                                                <i class="fas fa-arrow-right-to-bracket"></i>
                                             </button>
                                         </form>
                                     @else

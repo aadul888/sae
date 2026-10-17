@@ -30,25 +30,26 @@
                 @endif
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline btn-responsive-icon"
-                style="padding: 9px 14px; font-size: 0.85rem;" title="Presensi Mengajar Guru">
-                <i class="fas fa-calendar-check me-1"></i> <span class="btn-responsive-text">Presensi Guru</span>
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Presensi Mengajar Guru">
+                <i class="fas fa-calendar-check text-primary"></i>
             </a>
             @if ($selectedRombel && $siswaList->isNotEmpty())
-                <button type="button" class="btn btn-primary btn-responsive-icon" id="btnHadirSemua"
+                <button type="button" class="btn btn-primary" id="btnHadirSemua"
                     data-rombel="{{ $selectedRombelId }}" data-rombel-nama="{{ $selectedRombel->nama }}"
                     data-pembelajaran="{{ $selectedPembelajaranId }}" data-jam-ke="{{ $jamKe }}"
-                    style="padding: 9px 16px; font-size: 0.85rem; font-weight: 700;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                     title="Tandai Hadir Seluruh Peserta Didik">
-                    <i class="fas fa-check-double me-1"></i> <span class="btn-responsive-text">Hadir Semua</span>
+                    <i class="fas fa-check-double"></i>
                 </button>
-                <button type="button" class="btn btn-outline btn-responsive-icon" id="btnResetPresensiKelas"
+                <button type="button" class="btn btn-outline" id="btnResetPresensiKelas"
                     data-rombel="{{ $selectedRombelId }}" data-rombel-nama="{{ $selectedRombel->nama }}"
                     data-pembelajaran="{{ $selectedPembelajaranId }}"
-                    style="padding: 9px 16px; font-size: 0.85rem; font-weight: 700; color: #ef4444; border-color: rgba(239,68,68,0.4);"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; color: #ef4444; border-color: rgba(239,68,68,0.4);"
                     title="Reset / Kosongkan Presensi Mapel Kelas">
-                    <i class="fas fa-rotate-left me-1"></i> <span class="btn-responsive-text">Reset Presensi</span>
+                    <i class="fas fa-rotate-left"></i>
                 </button>
             @endif
         </div>

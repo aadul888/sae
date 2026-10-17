@@ -192,12 +192,21 @@ class TendikLaporanController extends Controller
 
         $range = $this->resolveDateRange($periodeTipe, $bulan, $tahun, $triwulan, $semester, $tahunAjaran);
 
-        // Ambil data aktivitas pada rentang periode
+        // Resolusi Bidang Kerja (Khusus Per Bidang)
+        $defaultBidang = $this->mapProfileToBidang($profile['bidang'] ?? '');
+        $isKepalaTas = str_contains(strtolower($profile['role']), 'admin') || str_contains(strtolower($profile['tugas_tambahan'] ?? ''), 'kepala');
+        $currentBidang = $request->get('bidang');
+        if (!$currentBidang || $currentBidang === 'all') {
+            $currentBidang = $defaultBidang ?: ($isKepalaTas ? 'kepala_tas' : 'persuratan');
+        }
+        $filterBidang = $currentBidang;
+
+        // Ambil data aktivitas pada rentang periode khusus per bidang
         $userId = $profile['user_id'];
         $ptkId = $profile['ptk_id'];
 
-        $filterBidang = $request->get('bidang');
-        $aktivitasQuery = TendikAktivitas::whereBetween('tanggal', [$range['start'], $range['end']]);
+        $aktivitasQuery = TendikAktivitas::whereBetween('tanggal', [$range['start'], $range['end']])
+            ->where('bidang', $currentBidang);
 
         if ($profile['role'] !== 'admin' && !str_contains(strtolower($profile['role']), 'admin')) {
             $aktivitasQuery->where(function ($q) use ($userId, $ptkId) {
@@ -208,10 +217,6 @@ class TendikLaporanController extends Controller
                     $q->orWhere('ptk_id', $ptkId);
                 }
             });
-        }
-
-        if ($filterBidang && $filterBidang !== 'all') {
-            $aktivitasQuery->where('bidang', $filterBidang);
         }
 
         $aktivitasList = $aktivitasQuery->orderBy('tanggal', 'desc')->orderBy('jam_mulai', 'desc')->get();
@@ -254,9 +259,10 @@ class TendikLaporanController extends Controller
         }
 
         $sekolah = DB::table('sekolah')->first();
+        $bidangLabels = TendikAktivitas::BIDANG_LABELS;
 
-        // Matriks Sasaran & Indikator Kinerja yang terelasi dengan aktivitas periode ini
-        $bidangTarget = $filterBidang && $filterBidang !== 'all' ? $filterBidang : $this->mapProfileToBidang($profile['bidang'] ?? '');
+        // Matriks Sasaran & Indikator Kinerja khusus per bidang ini
+        $bidangTarget = $currentBidang;
         $indikatorKinerjaList = $this->resolveIndikatorKinerjaWithCapaian($bidangTarget, $aktivitasList);
 
         // Riwayat & Log Cetak Laporan Kinerja
@@ -292,7 +298,11 @@ class TendikLaporanController extends Controller
             'rekapBulanan',
             'sekolah',
             'indikatorKinerjaList',
-            'cetakLogs'
+            'cetakLogs',
+            'currentBidang',
+            'filterBidang',
+            'isKepalaTas',
+            'bidangLabels'
         ));
     }
 
@@ -318,16 +328,26 @@ class TendikLaporanController extends Controller
         $userId = $profile['user_id'];
         $ptkId = $profile['ptk_id'];
 
-        $aktivitasList = TendikAktivitas::where(function ($q) use ($userId, $ptkId) {
-            if ($userId) {
-                $q->where('user_id', $userId);
-            }
-            if ($ptkId) {
-                $q->orWhere('ptk_id', $ptkId);
-            }
-        })
-            ->whereBetween('tanggal', [$range['start'], $range['end']])
-            ->orderBy('tanggal', 'asc')
+        // Resolusi Bidang Kerja (Khusus Per Bidang)
+        $defaultBidang = $this->mapProfileToBidang($profile['bidang'] ?? '');
+        $isKepalaTas = str_contains(strtolower($profile['role']), 'admin') || str_contains(strtolower($profile['tugas_tambahan'] ?? ''), 'kepala');
+        $currentBidang = $request->get('bidang');
+        if (!$currentBidang || $currentBidang === 'all') {
+            $currentBidang = $defaultBidang ?: ($isKepalaTas ? 'kepala_tas' : 'persuratan');
+        }
+        $bidangTarget = $currentBidang;
+
+        $aktQuery = TendikAktivitas::whereBetween('tanggal', [$range['start'], $range['end']])
+            ->where('bidang', $currentBidang);
+
+        if (!$isKepalaTas && !str_contains(strtolower($profile['role']), 'admin')) {
+            $aktQuery->where(function ($q) use ($userId, $ptkId) {
+                if ($userId) $q->where('user_id', $userId);
+                if ($ptkId) $q->orWhere('ptk_id', $ptkId);
+            });
+        }
+
+        $aktivitasList = $aktQuery->orderBy('tanggal', 'asc')
             ->orderBy('jam_mulai', 'asc')
             ->get();
 
@@ -457,7 +477,9 @@ class TendikLaporanController extends Controller
             'kepsek',
             'kepalaTas',
             'qrCodeBase64',
-            'indikatorKinerjaList'
+            'indikatorKinerjaList',
+            'currentBidang',
+            'bidangTarget'
         ));
     }
 

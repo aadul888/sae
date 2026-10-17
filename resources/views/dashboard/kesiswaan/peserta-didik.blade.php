@@ -1094,11 +1094,10 @@
                             <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right; order: 10 !important;"
                                 data-label="Aksi">
                                 <div class="table-actions" style="justify-content: flex-end;">
-                                    <button type="button" class="btn btn-outline btn-sm btn-validasi-berkas-detail"
+                                    <button type="button" class="btn-icon btn-validasi-berkas-detail"
                                         data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
-                                        title="Validasi Dokumen Siswa"
-                                        style="padding: 6px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                                        <i class="fas fa-check-double text-primary"></i> Validasi
+                                        title="Validasi Dokumen Siswa">
+                                        <i class="fas fa-check-double" style="color: var(--primary);"></i>
                                     </button>
                                 </div>
                             </td>

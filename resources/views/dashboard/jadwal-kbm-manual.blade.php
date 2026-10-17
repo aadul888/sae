@@ -113,8 +113,8 @@
                             data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
-                            style="padding: 6px 12px; font-size: 0.78rem; border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
-                            <i class="fas fa-pause me-1"></i> Jadikan Draft
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
+                            <i class="fas fa-pause"></i>
                         </button>
                     @elseif ($isOtomatisAktif)
                         <span class="badge"
@@ -125,8 +125,8 @@
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Otomatis)"
-                            style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
-                            <i class="fas fa-play me-1"></i> Berlakukan Jadwal Manual
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            <i class="fas fa-play"></i>
                         </button>
                     @else
                         <span class="badge"
@@ -137,8 +137,8 @@
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa"
-                            style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
-                            <i class="fas fa-play me-1"></i> Berlakukan Jadwal Manual
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            <i class="fas fa-play"></i>
                         </button>
                     @endif
                 </div>
@@ -163,24 +163,26 @@
             @endif
 
             @if ($activeRombel)
-                <div class="banner-action-buttons">
+                <div class="banner-action-buttons" style="display: flex; gap: 8px; align-items: center;">
                     <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel', ['rombel_id' => $activeRombel->rombongan_belajar_id]) }}"
-                        target="_blank" class="btn btn-outline" style="padding: 7px 14px; font-size: 0.84rem;"
+                        target="_blank" class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
                         title="Cetak Jadwal Kelas Ini (Format Siap Tempel)">
-                        <i class="fas fa-print me-1"></i> Cetak Jadwal
+                        <i class="fas fa-print text-primary"></i>
                     </a>
 
                     <button type="button" class="btn btn-outline" id="btnResetRombel"
                         data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
                         data-rombel-name="{{ $activeRombel->nama }}"
-                        style="padding: 7px 14px; font-size: 0.84rem; border-color: rgba(239,68,68,0.4); color: #ef4444;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(239,68,68,0.4); color: #ef4444;"
                         title="Kosongkan Seluruh Jadwal Kelas Ini">
-                        <i class="fas fa-rotate-left me-1"></i> Reset Kelas
+                        <i class="fas fa-rotate-left"></i>
                     </button>
 
                     <button type="button" class="btn btn-primary" id="btnTambahSlotManual"
-                        style="padding: 7px 16px; font-size: 0.84rem;" title="Tambah Slot Pelajaran Baru">
-                        <i class="fas fa-plus me-1"></i> Tambah Slot
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        title="Tambah Slot Pelajaran Baru">
+                        <i class="fas fa-plus"></i>
                     </button>
                 </div>
             @endif
@@ -249,7 +251,7 @@
                         <strong
                             style="color: #ef4444;">{{ $statusHariIni['keterangan'] ?? 'Hari Libur / Tidak Ada KBM' }}</strong>
                     @elseif (!empty($agendaHariIni))
-                        <strong style="color: var(--primary);">{{ $agendaHariIni->kegiatan }}</strong>
+                        <strong style="color: var(--primary);">{{ $agendaHariIni->nama_agenda ?: ($agendaHariIni->nama_kegiatan ?: ($agendaHariIni->kegiatan ?? 'Agenda Khusus')) }}</strong>
                     @else
                         KBM Berjalan Normal
                     @endif

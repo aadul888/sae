@@ -26,9 +26,10 @@
         </div>
         <div class="dash-banner-actions">
             @if ($isGuru || $isViewingGuru)
-                <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline btn-responsive-icon"
-                    style="padding: 9px 16px; font-size: 0.85rem;" title="Presensi Mengajar Guru">
-                    <i class="fas fa-calendar-check me-1"></i> <span class="btn-responsive-text">Presensi Mengajar</span>
+                <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Presensi Mengajar Guru">
+                    <i class="fas fa-calendar-check text-primary"></i>
                 </a>
             @endif
         </div>

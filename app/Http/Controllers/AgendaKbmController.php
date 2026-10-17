@@ -246,10 +246,10 @@ class AgendaKbmController extends Controller
             'status'        => 'success',
             'tanggal'       => $tanggal,
             'is_libur'      => (bool) ($status['is_libur'] ?? false),
-            'nama_agenda'   => $agenda->nama_agenda ?? null,
-            'tipe'          => $agenda->tipe ?? null,
-            'keterangan'    => $agenda->keterangan ?? ($status['keterangan'] ?? null),
-            'mode_presensi' => $status['mode_presensi'] ?? 'normal',
+            'nama_agenda'   => $status['nama_agenda'] ?? ($agenda->nama_agenda ?? null),
+            'tipe'          => $agenda->tipe ?? (($status['is_weekend'] ?? false) ? 'libur_weekend' : null),
+            'keterangan'    => $status['keterangan'] ?? ($agenda->keterangan ?? null),
+            'mode_presensi' => $status['mode'] ?? 'normal',
         ]);
     }
 
@@ -309,6 +309,21 @@ class AgendaKbmController extends Controller
         $finalPtkId = ($isGuru && $sessionPtkId) ? $sessionPtkId : ($validated['ptk_id'] ?? $sessionPtkId);
         if (!$finalPtkId) {
             return back()->with('error', 'PTK / Guru pengampu KBM tidak valid atau belum terikat.');
+        }
+
+        // Validasi hari libur / non-aktif belajar
+        $statusKalender = KalenderPendidikan::getStatusHari($validated['tanggal'], 'gtk');
+        $isHariAktif = class_exists(JadwalPengaturan::class)
+            ? JadwalPengaturan::isHariAktif(\Carbon\Carbon::parse($validated['tanggal']))
+            : true;
+
+        if (($statusKalender['mode'] ?? null) === 'libur' || ($statusKalender['is_libur'] ?? false) || !$isHariAktif) {
+            $namaAgenda = $statusKalender['nama_agenda'] ?? 'Hari Libur / Non-Aktif';
+            $msg = "Tanggal {$validated['tanggal']} adalah {$namaAgenda}. Agenda KBM tidak dapat dicatat pada hari libur / non-aktif.";
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'error', 'message' => $msg], 422);
+            }
+            return back()->with('error', $msg);
         }
 
         $hari = !empty($validated['hari']) ? $validated['hari'] : $this->getIndoDayName($validated['tanggal']);

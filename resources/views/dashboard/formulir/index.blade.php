@@ -16,11 +16,12 @@
                 &amp; guru SAE.
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canManage)
                 <a href="{{ route('dashboard.formulir.create') }}" class="btn btn-primary"
-                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-plus"></i> Buat Formulir Baru
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Buat Formulir Baru">
+                    <i class="fas fa-plus"></i>
                 </a>
             @endif
         </div>

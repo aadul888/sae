@@ -25,10 +25,9 @@
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary" id="btnBuatWorkOrder"
-                    style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
-                    title="Buat Work Order">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Buat Work Order Baru">
                     <i class="fas fa-plus"></i>
-                    <span>Buat Work Order</span>
                 </button>
             </div>
         </div>

@@ -24,8 +24,9 @@
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.presensi.kelas') }}" class="btn btn-outline"
-                style="font-size: 0.8rem; padding: 7px 14px; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-users-viewfinder"></i> Presensi Kelas
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Presensi Kelas">
+                <i class="fas fa-users-viewfinder"></i>
             </a>
             <div
                 style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.78rem; font-weight: 600; color: var(--text-color);">

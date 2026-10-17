@@ -49,6 +49,13 @@ class JadwalPengaturan extends Model
         'pembiasaan' => 'array',
     ];
 
+    protected static function booted()
+    {
+        static::saved(function ($model) {
+            static::syncToPresensiPengaturan();
+        });
+    }
+
     /**
      * Cek apakah Jadwal KBM saat ini resmi diberlakukan ke Guru & Siswa.
      * Jika $mode diberikan ('otomatis' atau 'manual'), cek apakah mode tersebut yang aktif.
@@ -284,6 +291,57 @@ class JadwalPengaturan extends Model
             return ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         }
         return ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    }
+
+    /**
+     * Dapatkan daftar hari aktif belajar sekolah secara resmi
+     */
+    public static function getHariAktifList(): array
+    {
+        $setting = self::getSettings();
+        if (!empty($setting->hari_aktif) && is_array($setting->hari_aktif)) {
+            return $setting->hari_aktif;
+        }
+        return self::getPresetHariAktif($setting->skema_hari ?? '5_hari');
+    }
+
+    /**
+     * Periksa apakah suatu tanggal merupakan hari aktif belajar sekolah (bukan akhir pekan/libur skema)
+     */
+    public static function isHariAktif(?Carbon $date = null): bool
+    {
+        $date = $date ?: Carbon::now();
+        $namaHariIndo = match ($date->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+            default => '',
+        };
+
+        $hariAktif = self::getHariAktifList();
+        return in_array($namaHariIndo, $hariAktif, true);
+    }
+
+    /**
+     * Sinkronkan konfigurasi hari aktif ke PresensiPengaturan
+     */
+    public static function syncToPresensiPengaturan(): void
+    {
+        try {
+            if (class_exists(PresensiPengaturan::class)) {
+                $hariAktif = self::getHariAktifList();
+                $pp = PresensiPengaturan::getPengaturan();
+                if ($pp && $pp->hari_aktif !== $hariAktif) {
+                    $pp->update(['hari_aktif' => $hariAktif]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // Abaikan jika tabel belum siap
+        }
     }
 
     /**

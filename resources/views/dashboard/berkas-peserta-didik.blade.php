@@ -113,15 +113,18 @@
                 </div>
             </div>
 
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <a href="{{ route('dashboard.identitas.index') }}" class="btn btn-outline"
-                    style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px;">
-                    <i class="fas fa-id-card-clip me-1"></i> Identitas Lengkap
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Identitas Lengkap Peserta Didik">
+                    <i class="fas fa-id-card-clip text-primary"></i>
                 </a>
                 @if (in_array($userRole, ['admin', 'tendik'], true))
                     <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'berkas']) }}"
-                        class="btn btn-primary" style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px;">
-                        <i class="fas fa-clipboard-check me-1"></i> Pengelolaan Kesiswaan
+                        class="btn btn-primary"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                        title="Pengelolaan Berkas Kesiswaan">
+                        <i class="fas fa-clipboard-check"></i>
                     </a>
                 @endif
             </div>

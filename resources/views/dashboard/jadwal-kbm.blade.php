@@ -158,8 +158,8 @@
                             data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
-                            style="padding: 6px 12px; font-size: 0.78rem; border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
-                            <i class="fas fa-pause me-1"></i> Jadikan Draft
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
+                            <i class="fas fa-pause"></i>
                         </button>
                     @elseif ($isManualAktif)
                         <span class="badge"
@@ -170,8 +170,8 @@
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Manual)"
-                            style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
-                            <i class="fas fa-play me-1"></i> Berlakukan Jadwal Otomatis
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            <i class="fas fa-play"></i>
                         </button>
                     @else
                         <span class="badge"
@@ -182,8 +182,8 @@
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa"
-                            style="padding: 6px 14px; font-size: 0.78rem; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
-                            <i class="fas fa-play me-1"></i> Berlakukan Jadwal Otomatis
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            <i class="fas fa-play"></i>
                         </button>
                     @endif
                 </div>

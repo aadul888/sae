@@ -420,9 +420,9 @@ class PresensiController extends Controller
         $pengaturan = PresensiPengaturan::getPengaturan();
         $today = now()->toDateString();
         $statusHari = KalenderPendidikan::getStatusHari($today, 'pd');
-        $isLibur = $statusHari['mode'] === 'libur';
-        $agendaLibur = $statusHari['agenda'];
         $isHariAktif = $pengaturan->isHariAktif(now());
+        $isLibur = ($statusHari['mode'] === 'libur') || ($statusHari['is_libur'] ?? false) || !$isHariAktif;
+        $agendaLibur = $statusHari['agenda'];
 
         // Recent Scans (6 scan terakhir)
         $recentScans = DB::table('presensi_harian as ph')
@@ -516,14 +516,17 @@ class PresensiController extends Controller
 
         $pengaturan = PresensiPengaturan::getPengaturan();
 
-        // 1. Cek Kalender Pendidikan (Kondisi Libur & Daring)
+        // 1. Cek Kalender Pendidikan & Skema Hari Sekolah (Kondisi Libur & Daring)
         $statusHari = KalenderPendidikan::getStatusHari($today, 'pd');
-        if ($statusHari['mode'] === 'libur') {
+        $isHariAktif = $pengaturan->isHariAktif($now);
+
+        if (($statusHari['mode'] === 'libur') || ($statusHari['is_libur'] ?? false) || !$isHariAktif) {
             $agenda = $statusHari['agenda'];
+            $alasan = $statusHari['nama_agenda'] ?: ($agenda ? $agenda->nama_kegiatan : 'Hari Libur / Non-Aktif Belajar');
             return response()->json([
                 'status' => 'warning',
-                'title' => 'Hari Libur Akademik',
-                'message' => 'Hari ini adalah hari libur sekolah: ' . ($agenda ? $agenda->nama_kegiatan : 'Libur Kalender Pendidikan') . '. Presensi dinonaktifkan.',
+                'title' => 'Hari Libur / Non-Aktif Belajar',
+                'message' => "Hari ini adalah {$alasan}. Presensi dinonaktifkan.",
                 'speech_text' => 'Hari libur sekolah.',
             ], 422);
         }
@@ -1233,6 +1236,20 @@ class PresensiController extends Controller
         $siswa = DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->first();
         if (!$siswa) {
             return response()->json(['status' => 'error', 'message' => 'Peserta didik tidak ditemukan.'], 404);
+        }
+
+        // Validasi hari libur / non-aktif belajar
+        $statusKalender = KalenderPendidikan::getStatusHari($tanggal, 'pd');
+        $isHariAktif = class_exists(JadwalPengaturan::class)
+            ? JadwalPengaturan::isHariAktif(\Carbon\Carbon::parse($tanggal))
+            : true;
+
+        if (!in_array($status, ['RESET', 'BATAL'], true) && (($statusKalender['mode'] ?? '') === 'libur' || ($statusKalender['is_libur'] ?? false) || !$isHariAktif)) {
+            $alasan = $statusKalender['nama_agenda'] ?: 'Hari Libur / Non-Aktif Belajar';
+            return response()->json([
+                'status'  => 'error',
+                'message' => "Presensi mapel tidak dapat dicatat karena tanggal {$tanggal} adalah {$alasan}.",
+            ], 422);
         }
 
         $targetRombelId = $rombelId ?: $siswa->rombongan_belajar_id;

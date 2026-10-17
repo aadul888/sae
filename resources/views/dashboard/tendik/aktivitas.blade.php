@@ -6,39 +6,65 @@
 @section('content')
     <!-- Top Welcome & Action Banner -->
     <div class="dash-banner"
-        style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-radius: 16px; padding: 20px 24px;">
+        style="margin-bottom: 16px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; border-radius: 16px; padding: 20px 24px;">
         <div style="flex: 1; min-width: 260px;">
             <h2
                 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                 <i class="fas fa-clipboard-check text-primary me-2"></i> Log Aktivitas &amp; Agenda Pekerjaan
+                <span class="badge badge-primary"
+                    style="font-size: 0.74rem; padding: 4px 10px; margin-left: 8px; vertical-align: middle; border-radius: 6px;">
+                    <i class="fas fa-briefcase me-1"></i>{{ $bidangOptions[$currentBidang] ?? 'Administrasi Umum' }}
+                </span>
             </h2>
             <div
                 style="display: flex; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 6px;">
                 <span title="Nama Pegawai"><i class="fas fa-user text-primary me-1"></i>
                     <strong>{{ $userName }}</strong></span>
-                <span title="Bidang Tugas"><i class="fas fa-briefcase text-info me-1"></i>
-                    <strong>{{ $bidangOptions[$activeBidang] ?? 'Administrasi Umum' }}</strong></span>
                 <span title="Bulan Aktif"><i class="fas fa-calendar-alt text-warning me-1"></i>
                     <strong>{{ \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->translatedFormat('F Y') }}</strong></span>
             </div>
             <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
-                Catat seluruh progres pekerjaan, agenda dinas, disposisi, dan hasil keluaran tugas harian secara
-                terstruktur.
+                Catat seluruh progres pekerjaan, agenda dinas, disposisi, dan hasil keluaran tugas harian khusus bidang
+                {{ $bidangOptions[$currentBidang] ?? 'Administrasi Umum' }}.
             </p>
         </div>
 
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
-                <button type="button" class="btn btn-primary" id="btnOpenModalTambah" title="Catat Aktivitas Baru"
-                    style="background: #10b981; border: none; padding: 8px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(16,185,129,0.3); display: inline-flex; align-items: center; gap: 6px;">
+                <button type="button" class="btn btn-primary" id="btnOpenModalTambah" title="Catat Aktivitas Harian Baru"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: #10b981; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); color: #fff; cursor: pointer;">
                     <i class="fas fa-plus"></i>
-                    <span>Catat Aktivitas Harian</span>
                 </button>
             @endif
-            <a href="{{ route('dashboard.tendik.laporan.index') }}" class="btn btn-outline" title="Laporan Kinerja"
-                style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-file-lines text-info"></i>
-                <span class="d-none d-sm-inline">Laporan Kinerja</span>
+            <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}"
+                class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Target &amp; Capaian Kinerja">
+                <i class="fas fa-bullseye text-primary"></i>
+            </a>
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
+                class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Laporan Kinerja Tendik">
+                <i class="fas fa-file-invoice text-info"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigasi Terpadu 3 Menu Utama Tendik (Target -> Aktivitas -> Laporan) -->
+    <div class="periode-nav-wrapper" style="margin-bottom: 22px;">
+        <div class="periode-nav-desktop">
+            <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}"
+                class="periode-nav-tab">
+                <i class="fas fa-bullseye"></i> 1. Target &amp; Capaian
+            </a>
+            <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}"
+                class="periode-nav-tab active">
+                <i class="fas fa-clipboard-check"></i> 2. Input Aktivitas Harian
+            </a>
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
+                class="periode-nav-tab">
+                <i class="fas fa-file-invoice"></i> 3. Laporan Kinerja
             </a>
         </div>
     </div>
@@ -157,23 +183,23 @@
                 </select>
 
                 @if ($isKepalaTas)
-                    <!-- Bidang Filter untuk Kepala TAS / Admin -->
-                    <select id="filterBidang" class="toolbar-filter-select">
-                        <option value="">Semua Bidang Kerja</option>
+                    <!-- Bidang Filter untuk Kepala TAS / Admin (Khusus Per Bidang) -->
+                    <select id="filterBidang" class="toolbar-filter-select" title="Pilih Bidang Tugas">
                         @foreach ($bidangOptions as $bKey => $bLabel)
-                            <option value="{{ $bKey }}" {{ ($filterBidang ?? '') === $bKey ? 'selected' : '' }}>
+                            <option value="{{ $bKey }}" {{ $currentBidang === $bKey ? 'selected' : '' }}>
                                 {{ $bLabel }}</option>
                         @endforeach
                     </select>
                 @endif
 
-                <!-- Filter Sasaran / Target Indikator Kinerja -->
-                <select id="filterIndikator" class="toolbar-filter-select" style="max-width: 220px;">
-                    <option value="">Semua Sasaran &amp; Target</option>
+                <!-- Filter Sasaran / Target Indikator Kinerja (Khusus Bidang Ini) -->
+                <select id="filterIndikator" class="toolbar-filter-select" style="max-width: 260px;">
+                    <option value="">Semua Sasaran {{ $bidangOptions[$currentBidang] ?? ucfirst($currentBidang) }}
+                    </option>
                     @foreach ($indikatorKinerjaList ?? [] as $ind)
                         <option value="{{ $ind->id }}"
                             {{ (string) ($filterIndikator ?? '') === (string) $ind->id ? 'selected' : '' }}>
-                            [{{ strtoupper($ind->bidang) }}] {{ \Illuminate\Support\Str::limit($ind->sasaran, 26) }}
+                            {{ \Illuminate\Support\Str::limit($ind->sasaran, 30) }}
                         </option>
                     @endforeach
                 </select>
@@ -508,20 +534,21 @@
                         </div>
                     </div>
 
-                    <!-- Pilihan Target & Indikator Kinerja -->
+                    <!-- Pilihan Target & Indikator Kinerja (Khusus Bidang Ini) -->
                     <div class="pm-field" style="margin-bottom: 10px;">
                         <label
                             style="font-size: 0.76rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                            <i class="fas fa-bullseye text-primary me-1"></i> Sasaran &amp; Indikator Kinerja
+                            <i class="fas fa-bullseye text-primary me-1"></i> Sasaran &amp; Indikator Kinerja Bidang
                         </label>
                         <select name="indikator_id" id="inputIndikatorId" class="form-control"
                             style="font-size: 0.82rem; height: 38px; border-radius: 8px;">
-                            <option value="">-- Hubungkan ke Indikator Kinerja (Opsional) --</option>
+                            <option value="">-- Hubungkan ke Sasaran Kinerja
+                                {{ $bidangOptions[$currentBidang] ?? ucfirst($currentBidang) }} (Opsional) --</option>
                             @foreach ($indikatorKinerjaList ?? [] as $ind)
                                 <option value="{{ $ind->id }}" data-bidang="{{ $ind->bidang }}"
                                     data-sasaran="{{ $ind->sasaran }}" data-target="{{ $ind->target_label }}">
-                                    [{{ strtoupper($ind->bidang) }}] {{ $ind->sasaran }} &bull;
-                                    {{ $ind->indikator_kinerja }} (Target: {{ $ind->target_label }})
+                                    {{ $ind->sasaran }} &bull; {{ $ind->indikator_kinerja }} (Target:
+                                    {{ $ind->target_label }})
                                 </option>
                             @endforeach
                         </select>

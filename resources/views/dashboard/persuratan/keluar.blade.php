@@ -47,19 +47,19 @@
                 @if ($canCreate)
                     @if (($tab ?? '') === 'spt')
                         <button type="button" class="btn btn-primary" id="btnOpenModalSpt"
-                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                             title="Terbitkan Surat Perintah Tugas (SPT)">
-                            <i class="fas fa-plus"></i> Buat SPT Baru
+                            <i class="fas fa-plus"></i>
                         </button>
                     @elseif (($tab ?? '') === 'template')
                         <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
-                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);"
                             title="Buat Surat Keluar dari Template Autocrat">
                             <i class="fas fa-wand-magic-sparkles"></i>
                         </button>
                     @else
                         <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
-                            style="padding: 7px 12px; border-radius: 8px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 5px; background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3);"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: rgba(99,102,241,0.15); color: var(--primary); border: 1px solid rgba(99,102,241,0.3);"
                             title="Buat Surat dari Template Autocrat">
                             <i class="fas fa-wand-magic-sparkles"></i>
                         </button>

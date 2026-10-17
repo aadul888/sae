@@ -126,15 +126,17 @@
                 </div>
             </div>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.jadwal-pelajaran.index') }}" class="btn btn-outline"
-                style="padding: 9px 14px; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fas fa-calendar-days text-primary"></i> Jadwal Mengajar
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Jadwal Mengajar">
+                <i class="fas fa-calendar-days text-primary"></i>
             </a>
             @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
                 <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary"
-                    style="padding: 9px 16px; font-size: 0.85rem; background: linear-gradient(135deg, #10b981, #059669); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-calendar-check"></i> Catat Presensi Mengajar
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: linear-gradient(135deg, #10b981, #059669); text-decoration: none;"
+                    title="Catat Presensi Mengajar">
+                    <i class="fas fa-calendar-check"></i>
                 </a>
             @endif
         </div>

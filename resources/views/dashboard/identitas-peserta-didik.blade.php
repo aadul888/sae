@@ -104,28 +104,33 @@
                 </div>
             </div>
 
-            <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($userRole === 'orang_tua')
                     <a href="{{ route('dashboard.orang-tua') }}" class="btn btn-outline"
-                        style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px;">
-                        <i class="fas fa-house me-1"></i> Beranda Orang Tua
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                        title="Beranda Orang Tua">
+                        <i class="fas fa-house"></i>
                     </a>
                 @elseif ($userRole === 'peserta_didik')
                     <a href="{{ route('dashboard.peserta-didik') }}" class="btn btn-outline"
-                        style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px;">
-                        <i class="fas fa-house me-1"></i> Beranda Siswa
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                        title="Beranda Siswa">
+                        <i class="fas fa-house"></i>
                     </a>
                 @else
                     <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => 'usulan']) }}"
-                        class="btn btn-outline" style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px;">
-                        <i class="fas fa-file-pen me-1"></i> Review Kesiswaan
+                        class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                        title="Review Kesiswaan">
+                        <i class="fas fa-file-pen text-primary"></i>
                     </a>
                 @endif
 
                 @if (!empty($pd->nisn))
                     <button type="button" class="btn btn-primary" onclick="openKartuPelajarModal('{{ $pd->nisn }}')"
-                        style="padding: 8px 16px; font-size: 0.85rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-qrcode"></i> Kartu Pelajar Digital
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        title="Kartu Pelajar Digital">
+                        <i class="fas fa-qrcode"></i>
                     </button>
                 @endif
             </div>

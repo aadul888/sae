@@ -146,19 +146,24 @@
             <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
                 <i class="fas fa-calendar-days text-primary me-2"></i> Master Data — Kalender Pendidikan
             </h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem;">
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 6px;">
                 Manajemen agenda akademik, hari libur, dan jadwal KBM (Luring, Daring, Libur) yang terintegrasi langsung
                 dengan sistem presensi
                 peserta didik, guru, serta tendik.
             </p>
+            <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="badge"
+                style="background: rgba(99,102,241,0.12); color: var(--primary); text-decoration: none; border: 1px solid rgba(99,102,241,0.25); font-size: 0.76rem; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;"
+                title="Atur Skema Hari Sekolah di Master Jadwal KBM">
+                <i class="fas fa-sliders"></i> Skema: {{ ($skemaHari ?? '5_hari') === '6_hari' ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)' }}
+            </a>
         </div>
         <div class="dash-banner-actions">
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnTambahAgenda"
                     onclick="if(typeof openAddModal === 'function') openAddModal();"
-                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;"
-                    title="Tambah Agenda">
-                    <i class="fas fa-plus"></i> <span>Tambah Agenda</span>
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Tambah Agenda Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>
@@ -480,7 +485,7 @@
                                     <th style="padding: 4px 2px; width: 14.28%;">Rab</th>
                                     <th style="padding: 4px 2px; width: 14.28%;">Kam</th>
                                     <th style="padding: 4px 2px; width: 14.28%;">Jum</th>
-                                    <th style="padding: 4px 2px; width: 14.28%; color: #3b82f6;">Sab</th>
+                                    <th style="padding: 4px 2px; width: 14.28%; color: {{ ($skemaHari ?? '5_hari') === '5_hari' ? '#ef4444' : '#3b82f6' }};">Sab</th>
                                     <th style="padding: 4px 2px; width: 14.28%; color: #ef4444;">Min</th>
                                 </tr>
                             </thead>
@@ -494,6 +499,7 @@
                                                 @php
                                                     $isSun = $dInfo['is_sunday'];
                                                     $isSat = $dInfo['is_saturday'];
+                                                    $isWeekend = $dInfo['is_weekend'] ?? ($isSun || ($isSat && ($skemaHari ?? '5_hari') === '5_hari'));
                                                     $isToday = $dInfo['is_today'];
                                                     $evCount = count($dInfo['events']);
                                                     $pEv = $dInfo['primary_event'];
@@ -505,7 +511,12 @@
                                                     if ($isSun) {
                                                         $textColor = '#ef4444';
                                                     } elseif ($isSat) {
-                                                        $textColor = '#3b82f6';
+                                                        $textColor = ($skemaHari ?? '5_hari') === '5_hari' ? '#ef4444' : '#3b82f6';
+                                                    }
+
+                                                    if ($isWeekend && !$pEv) {
+                                                        $bgColor = 'rgba(239, 68, 68, 0.04)';
+                                                        $borderColor = 'rgba(239, 68, 68, 0.15)';
                                                     }
 
                                                     if ($pEv) {

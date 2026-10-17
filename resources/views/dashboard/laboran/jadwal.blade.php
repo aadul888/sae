@@ -25,8 +25,9 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalJadwal"
-                        style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;">
-                        <i class="fas fa-plus"></i> Jadwalkan Praktik
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        title="Jadwalkan Praktik Baru">
+                        <i class="fas fa-plus"></i>
                     </button>
                 @endif
             </div>
@@ -198,11 +199,11 @@
                             <td data-label="Aksi" style="padding: 14px 18px; text-align: right;">
                                 <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
                                     @if ($canUpdate)
-                                        <button type="button" class="btn btn-sm btn-outline btn-status-lab"
+                                        <button type="button" class="btn-icon btn-status-lab"
                                             data-id="{{ $item->id }}" data-mapel="{{ $item->mata_pelajaran }}"
                                             data-status="{{ $item->status }}"
                                             data-laporan="{{ $item->laporan_kerusakan }}" title="Update Status Sesi">
-                                            <i class="fas fa-sliders me-1"></i> Status
+                                            <i class="fas fa-sliders" style="color: var(--primary);"></i>
                                         </button>
                                     @endif
                                     @if ($canDelete)

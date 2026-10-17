@@ -14,15 +14,19 @@
                 Catatan kehadiran, ketepatan waktu, bukti snapshot terminal, dan cetak laporan resmi.
             </p>
         </div>
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.peserta-didik.presensi.cetak', request()->all()) }}" target="_blank"
-                class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;" title="Cetak Rekapitulasi Presensi Resmi">
-                <i class="fas fa-print me-1"></i> Cetak Laporan
+                class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Cetak Rekapitulasi Presensi Resmi">
+                <i class="fas fa-print"></i>
             </a>
             @if ($canCreate)
                 <a href="{{ route('dashboard.peserta-didik.izin.index') }}"
-                    class="btn btn-primary" style="padding: 9px 16px; font-size: 0.85rem; font-weight: 700;" title="Buka Modul Surat Izin & Sakit">
-                    <i class="fas fa-envelope-open-text me-1"></i> Ajukan Surat Izin
+                    class="btn btn-primary"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Ajukan Surat Izin / Sakit">
+                    <i class="fas fa-envelope-open-text"></i>
                 </a>
             @endif
         </div>

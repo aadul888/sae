@@ -548,6 +548,11 @@ class KalenderPendidikanSeeder extends Seeder
         ];
 
         foreach ($events as $event) {
+            if (!isset($event['mode_presensi'])) {
+                $isLibur = !empty($event['libur_pd']) || str_contains($event['tipe'] ?? '', 'libur');
+                $isDaring = ($event['tipe'] ?? '') === 'pembelajaran_daring';
+                $event['mode_presensi'] = $isLibur ? 'libur' : ($isDaring ? 'daring' : 'luring');
+            }
             KalenderPendidikan::create($event);
         }
     }

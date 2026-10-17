@@ -66,11 +66,22 @@ class TendikAktivitasController extends Controller
             }
         }
 
+        // Resolusi Bidang Kerja (Khusus Per Bidang)
+        $currentBidang = $activeBidang ?: 'umum';
+        if ($isKepalaTas) {
+            $reqBidang = $request->input('bidang');
+            if ($reqBidang && $reqBidang !== 'all') {
+                $currentBidang = $reqBidang;
+            } elseif (!$currentBidang || $currentBidang === 'umum') {
+                $currentBidang = 'persuratan';
+            }
+        }
+        $filterBidang = $currentBidang;
+
         // Filter Parameter
         $bulan = $request->input('bulan', date('m'));
         $tahun = $request->input('tahun', date('Y'));
         $filterStatus = $request->input('status');
-        $filterBidang = $request->input('bidang');
         $q = trim((string) $request->input('q', ''));
 
         $query = TendikAktivitas::query()->with('indikator');
@@ -83,6 +94,9 @@ class TendikAktivitasController extends Controller
                ->where('judul_aktivitas', 'not like', '%modul %')
                ->where('judul_aktivitas', 'not like', '%data baru pada%');
         });
+
+        // Filter wajib: khusus per bidang tugas (tidak mencampur aduk semua bidang)
+        $query->where('bidang', $currentBidang);
 
         // Hak akses data: jika bukan admin/kepala_tas, hanya melihat miliknya sendiri
         if (!$isKepalaTas && !str_contains(strtolower($role), 'admin')) {
@@ -99,10 +113,6 @@ class TendikAktivitasController extends Controller
 
         if ($filterStatus) {
             $query->where('status', $filterStatus);
-        }
-
-        if ($filterBidang) {
-            $query->where('bidang', $filterBidang);
         }
 
         $filterIndikator = $request->input('indikator_id');
@@ -171,7 +181,11 @@ class TendikAktivitasController extends Controller
         }
 
         $tupoksiTemplates = TendikAktivitas::TUPOKSI_TEMPLATES;
-        $indikatorKinerjaList = TendikIndikatorKinerja::where('is_active', true)->orderBy('urutan')->get();
+        // Sasaran & Indikator Kinerja khusus per bidang aktif (tidak lagi mencampur semua bidang)
+        $indikatorKinerjaList = TendikIndikatorKinerja::where('is_active', true)
+            ->where('bidang', $currentBidang)
+            ->orderBy('urutan')
+            ->get();
 
         return view('dashboard.tendik.aktivitas', compact(
             'aktivitasList',
@@ -183,6 +197,7 @@ class TendikAktivitasController extends Controller
             'tahun',
             'filterStatus',
             'filterBidang',
+            'currentBidang',
             'q',
             'perPage',
             'sort',

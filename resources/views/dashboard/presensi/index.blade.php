@@ -20,10 +20,11 @@
                 kamera live terminal.
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.presensi.scan') }}" target="_blank" class="btn btn-primary"
-                style="padding: 9px 18px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fas fa-desktop"></i> Buka Terminal Kiosk Pemindai
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Buka Terminal Kiosk Pemindai">
+                <i class="fas fa-desktop"></i>
             </a>
         </div>
     </div>

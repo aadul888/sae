@@ -72,6 +72,11 @@
                     <span class="info-label">Jabatan / Bagian:</span>
                     <span class="info-val">{{ $profile['jabatan'] }}</span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">Bidang Tugas:</span>
+                    <span
+                        class="info-val"><strong>{{ \App\Models\TendikAktivitas::BIDANG_LABELS[$currentBidang ?? ''] ?? ucfirst($currentBidang ?? 'Umum') }}</strong></span>
+                </div>
             </div>
             <div>
                 <div class="info-item">
@@ -196,11 +201,12 @@
             </div>
         </div>
 
-        <!-- 4c. Matriks Sasaran & Indikator Kinerja -->
+        <!-- 4c. Matriks Sasaran & Indikator Kinerja Khusus Bidang -->
         <div style="margin-top: 14px; margin-bottom: 16px; position: relative; z-index: 1;">
             <div
                 style="text-align: center; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; text-transform: uppercase; color: #111827;">
-                MATRIKS SASARAN &amp; INDIKATOR CAPAIAN KINERJA PEGAWAI
+                MATRIKS SASARAN &amp; INDIKATOR CAPAIAN KINERJA BIDANG
+                {{ strtoupper(\App\Models\TendikAktivitas::BIDANG_LABELS[$currentBidang ?? ''] ?? ($currentBidang ?? 'UMUM')) }}
             </div>
             <table class="table-data" style="margin-bottom: 14px;">
                 <thead>

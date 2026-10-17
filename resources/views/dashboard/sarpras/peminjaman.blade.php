@@ -25,8 +25,9 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenModalPinjam"
-                        style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;">
-                        <i class="fas fa-plus"></i> Catat Peminjaman
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        title="Catat Peminjaman Sarpras">
+                        <i class="fas fa-plus"></i>
                     </button>
                 @endif
             </div>
@@ -183,10 +184,10 @@
                             <td data-label="Aksi" style="padding: 14px 18px; text-align: right;">
                                 <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
                                     @if ($item->status === 'dipinjam' && $canUpdate)
-                                        <button type="button" class="btn btn-sm btn-outline btn-kembalikan"
+                                        <button type="button" class="btn-icon btn-kembalikan"
                                             data-id="{{ $item->id }}" data-nomor="{{ $item->nomor_pinjam }}"
                                             data-barang="{{ $item->nama_barang }}" title="Catat Pengembalian">
-                                            <i class="fas fa-box-archive me-1"></i> Kembali
+                                            <i class="fas fa-box-archive" style="color: #10b981;"></i>
                                         </button>
                                     @endif
                                     @if ($canDelete)

@@ -15,8 +15,10 @@
             </p>
         </div>
         <div class="dash-banner-actions">
-            <button type="button" id="btnCheckUpdate" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
-                <i class="fas fa-sync-alt me-1" id="checkIcon"></i> Periksa Pembaruan
+            <button type="button" id="btnCheckUpdate" class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                title="Periksa Pembaruan Sistem">
+                <i class="fas fa-sync-alt" id="checkIcon"></i>
             </button>
         </div>
     </div>

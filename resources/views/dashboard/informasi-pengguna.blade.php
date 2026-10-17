@@ -16,20 +16,22 @@
                     style="color: var(--primary); text-transform: capitalize;">{{ str_replace('_', ' ', $role) }}</strong>.
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canManage)
                 <a href="{{ route('dashboard.pengumuman.index') }}" class="btn btn-outline"
-                    style="padding: 9px 16px; font-size: 0.85rem;">
-                    <i class="fas fa-sliders me-1"></i> Kelola Pengumuman
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Kelola Pengumuman">
+                    <i class="fas fa-sliders text-muted"></i>
                 </a>
             @endif
             <form action="{{ route('dashboard.informasi.mark-all-read') }}" method="POST" id="formMarkAllRead"
                 style="margin: 0; display: inline;">
                 @csrf
                 <button type="submit" class="btn btn-primary" id="btnMarkAllRead"
-                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Tandai Semua Pengumuman Sudah Dibaca"
                     {{ $unreadCount === 0 ? 'disabled' : '' }}>
-                    <i class="fas fa-check-double me-1"></i> Tandai Semua Dibaca
+                    <i class="fas fa-check-double"></i>
                 </button>
             </form>
         </div>

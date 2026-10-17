@@ -112,8 +112,7 @@
                     @csrf
                     <input type="hidden" name="tab" value="referensi">
                     <input type="hidden" name="hdd_path" value="{{ $setting->hdd_path ?? '' }}">
-                    <input type="hidden" name="auto_subfolder"
-                        value="{{ $setting->auto_subfolder ?? true ? '1' : '0' }}">
+                    <input type="hidden" name="auto_subfolder" value="{{ $setting->auto_subfolder ?? true ? '1' : '0' }}">
 
                     <div
                         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 16px;">
@@ -262,8 +261,9 @@
 
                     @if ($canUpdate)
                         <button type="button" class="btn btn-primary" id="btnOpenCreateIndeks"
-                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">
-                            <i class="fas fa-plus me-1"></i> Tambah Kode Indeks
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                            title="Tambah Kode Indeks Klasifikasi Surat">
+                            <i class="fas fa-plus"></i>
                         </button>
                     @endif
                 </div>

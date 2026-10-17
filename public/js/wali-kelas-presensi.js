@@ -258,6 +258,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const btn = e.target.closest('.btn-presensi-manual, .btn-action-absen');
         if (!btn) return;
 
+        if (btn.disabled || btn.hasAttribute('disabled')) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Presensi Dinonaktifkan',
+                    text: 'Pencatatan presensi dinonaktifkan pada hari libur / non-aktif belajar.',
+                    timer: 2500,
+                    showConfirmButton: false
+                });
+            }
+            return;
+        }
+
         const pdId    = btn.getAttribute('data-id');
         const nama    = btn.getAttribute('data-nama');
         const action  = (btn.getAttribute('data-action') || btn.getAttribute('data-status') || '').toLowerCase();

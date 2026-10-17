@@ -502,8 +502,14 @@ class JadwalKbmController extends Controller
         // Sinkronkan otomatis kegiatan rutin ke jadwal seluruh rombel reguler
         JadwalPengaturan::syncRoutineActivities();
 
+        // Sinkronkan otomatis ke presensi_pengaturan agar seluruh operasi presensi harian mengikuti skema hari sekolah
+        JadwalPengaturan::syncToPresensiPengaturan();
+
         RealtimeService::trigger('jadwal.changed', [
             'action' => 'pengaturan_updated',
+        ]);
+        RealtimeService::trigger('kalender.changed', [
+            'action' => 'skema_updated',
         ]);
 
         return response()->json([

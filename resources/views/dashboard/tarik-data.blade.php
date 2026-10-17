@@ -14,15 +14,18 @@
                 Integrasi dan sinkronisasi data satuan pendidikan langsung dari server Dapodik Lokal via Feeder Agent.
             </p>
         </div>
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($feederDownload)
                 <a href="{{ $feederDownload['url'] }}" class="btn btn-primary" download
-                    style="padding: 9px 16px; font-size: 0.85rem;">
-                    <i class="fas fa-download"></i> Unduh SAE-Feeder
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Unduh SAE-Feeder">
+                    <i class="fas fa-download"></i>
                 </a>
             @endif
-            <a href="#feeder-guide" class="btn btn-outline" style="padding: 9px 16px; font-size: 0.85rem;">
-                <i class="fas fa-book-open"></i> Panduan Feeder
+            <a href="#feeder-guide" class="btn btn-outline"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Panduan Penggunaan Feeder">
+                <i class="fas fa-book-open text-primary"></i>
             </a>
         </div>
     </div>

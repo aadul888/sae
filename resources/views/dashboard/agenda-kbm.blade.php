@@ -25,13 +25,13 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.agenda-kbm.cetak', request()->all()) }}" target="_blank" class="btn btn-outline"
                 title="Cetak Jurnal KBM"
-                style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; text-decoration: none; border-color: var(--border-color); color: var(--text-color);">
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;">
                 <i class="fas fa-print text-primary"></i>
             </a>
 
             @if ($canCreate)
                 <button type="button" class="btn btn-primary"
-                    style="padding: 8px 14px; font-size: 0.9rem; border-radius: 8px; font-weight: 600;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                     id="btnOpenCreateAgenda" title="Tambah Agenda KBM">
                     <i class="fas fa-plus"></i>
                 </button>

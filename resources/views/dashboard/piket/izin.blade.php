@@ -25,10 +25,9 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" onclick="openModalIzin()"
-                        style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                         title="Terbitkan Izin Baru">
                         <i class="fas fa-plus"></i>
-                        <span>Terbitkan Izin Baru</span>
                     </button>
                 @endif
             </div>
@@ -230,9 +229,8 @@
                             <td style="padding: 12px 18px; text-align: center;">
                                 <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                     <a href="{{ route('dashboard.piket.izin.cetak', $item->id) }}" target="_blank"
-                                        class="btn btn-secondary btn-sm" title="Cetak Slip Izin"
-                                        style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 0.78rem;">
-                                        <i class="fas fa-print"></i> Slip
+                                        class="btn-icon" title="Cetak Slip Izin">
+                                        <i class="fas fa-print" style="color: #2563eb;"></i>
                                     </a>
                                     @if ($canUpdate)
                                         <button type="button" class="btn-icon" title="Edit"

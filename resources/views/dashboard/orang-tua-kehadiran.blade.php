@@ -40,14 +40,16 @@
             </div>
         </div>
 
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.orang-tua') }}" class="btn btn-outline"
-                style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; text-decoration: none;">
-                <i class="fas fa-house me-1"></i> Beranda
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Beranda Orang Tua">
+                <i class="fas fa-house"></i>
             </a>
             <a href="{{ route('dashboard.orang-tua.izin') }}" class="btn btn-outline"
-                style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; text-decoration: none;">
-                <i class="fas fa-ticket-alt me-1 text-warning"></i> e-Izin Keluar
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="e-Izin Keluar Sekolah">
+                <i class="fas fa-ticket-alt text-warning"></i>
             </a>
         </div>
     </div>

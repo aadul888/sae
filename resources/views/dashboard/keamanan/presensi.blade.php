@@ -21,9 +21,10 @@
         </div>
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('dashboard.keamanan.presensi.index') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;" title="Refresh Data">
+            <a href="{{ route('dashboard.keamanan.presensi.index') }}" class="btn btn-secondary"
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Refresh Data Presensi Satpam">
                 <i class="fas fa-sync"></i>
-                <span>Refresh Data</span>
             </a>
         </div>
     </div>

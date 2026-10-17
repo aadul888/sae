@@ -25,10 +25,9 @@
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" onclick="openModalTamu()"
-                        style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                         title="Catat Tamu Masuk">
                         <i class="fas fa-plus"></i>
-                        <span>Catat Tamu Masuk</span>
                     </button>
                 @endif
             </div>
@@ -182,12 +181,12 @@
                                 <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                     @if ($item->status === 'berada_di_lokasi')
                                         <form action="{{ route('dashboard.keamanan.buku-tamu.checkout', $item->id) }}"
-                                            method="POST">
+                                            method="POST" style="display: inline;">
                                             @csrf
-                                            <button type="submit" class="btn btn-warning btn-sm"
+                                            <button type="submit" class="btn-icon"
                                                 title="Checkout Tamu Keluar"
-                                                style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 0.78rem;">
-                                                <i class="fas fa-sign-out-alt"></i> Out
+                                                style="color: #f59e0b;">
+                                                <i class="fas fa-arrow-right-from-bracket"></i>
                                             </button>
                                         </form>
                                     @endif

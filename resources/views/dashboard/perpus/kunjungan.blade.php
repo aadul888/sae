@@ -24,10 +24,9 @@
 
             <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary" id="btnTambahKunjungan" onclick="openModalKunjungan()"
-                    style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
-                    title="Catat Pengunjung">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Catat Pengunjung Perpustakaan">
                     <i class="fas fa-pen-fancy"></i>
-                    <span>Catat Pengunjung</span>
                 </button>
             </div>
         </div>

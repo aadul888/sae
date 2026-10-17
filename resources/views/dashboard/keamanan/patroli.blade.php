@@ -26,17 +26,15 @@
                 @if ($canCreate)
                     @if ($tab === 'patroli')
                         <button type="button" class="btn btn-primary" onclick="openModalPatroli()"
-                            style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                             title="Tambah Log Patroli">
                             <i class="fas fa-plus"></i>
-                            <span>Tambah Log Patroli</span>
                         </button>
                     @else
                         <button type="button" class="btn btn-danger" onclick="openModalInsiden()"
-                            style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-weight: 600;"
-                            title="Laporkan Insiden">
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                            title="Laporkan Insiden Khusus Keamanan">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <span>Laporkan Insiden</span>
                         </button>
                     @endif
                 @endif

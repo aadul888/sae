@@ -14,15 +14,17 @@
                 Kelola informasi teks berjalan portal publik dan notifikasi lonceng pengguna dashboard secara terpusat.
             </p>
         </div>
-        <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <a href="{{ route('dashboard.informasi.index') }}" class="btn btn-outline"
-                style="padding: 9px 16px; font-size: 0.85rem;">
-                <i class="fas fa-newspaper me-1"></i> Tampilan Feed Pengguna
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Tampilan Feed Pengguna">
+                <i class="fas fa-newspaper text-primary"></i>
             </a>
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnOpenCreateModal"
-                    style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600;">
-                    <i class="fas fa-plus me-1"></i> Buat Pengumuman
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Buat Pengumuman Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>

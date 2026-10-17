@@ -476,10 +476,10 @@ class DashboardController extends Controller
         };
 
         $pengaturanJadwal = \App\Models\JadwalPengaturan::getSettings();
-        $hariAktifSekolah = $pengaturanJadwal->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $hariAktifSekolah = \App\Models\JadwalPengaturan::getHariAktifList();
         $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
         $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
-        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || !in_array($hariIni, $hariAktifSekolah);
+        $isLiburHariIni = ($statusHariIni['is_libur'] ?? false) || !\App\Models\JadwalPengaturan::isHariAktif(now());
         $jadwal_hari_ini = [];
 
         if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && $gtk && !empty($gtk->ptk_id) && Schema::hasTable('jadwal_kbm')) {
@@ -1797,7 +1797,8 @@ class DashboardController extends Controller
             6 => 'Sabtu',
             default => 'Minggu',
         };
-        $isLiburHariIni = !in_array($hariIni, $hariAktifSekolah);
+        $statusHariPd = \App\Models\KalenderPendidikan::getStatusHari(now()->toDateString(), 'pd');
+        $isLiburHariIni = ($statusHariPd['is_libur'] ?? false) || !\App\Models\JadwalPengaturan::isHariAktif(now());
 
         if ($isJadwalDiberlakukan && $modeAktif && !$isLiburHariIni && !empty($pd->rombongan_belajar_id) && Schema::hasTable('jadwal_kbm')) {
             $jadwalSiswa = DB::table('jadwal_kbm as j')

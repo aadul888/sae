@@ -80,7 +80,11 @@ class PresensiMengajarController extends Controller
             $jadwalHariIniQuery->where('ptk_id', $ptkId);
         }
 
-        $jadwalHariIni = (($statusHariIni['mode'] ?? null) === 'libur' || !$isJadwalDiberlakukan || !$modeAktif)
+        $isHariAktifHariIni = class_exists(\App\Models\JadwalPengaturan::class)
+            ? \App\Models\JadwalPengaturan::isHariAktif(Carbon::today())
+            : true;
+
+        $jadwalHariIni = (($statusHariIni['mode'] ?? null) === 'libur' || ($statusHariIni['is_libur'] ?? false) || !$isHariAktifHariIni || !$isJadwalDiberlakukan || !$modeAktif)
             ? collect()
             : $jadwalHariIniQuery->orderBy('jam_ke_mulai', 'asc')->get();
 
@@ -313,10 +317,10 @@ class PresensiMengajarController extends Controller
             'status'        => 'success',
             'tanggal'       => $tanggal,
             'is_libur'      => (bool) ($status['is_libur'] ?? false),
-            'nama_agenda'   => $agenda->nama_agenda ?? null,
-            'tipe'          => $agenda->tipe ?? null,
-            'keterangan'    => $agenda->keterangan ?? ($status['keterangan'] ?? null),
-            'mode_presensi' => $status['mode_presensi'] ?? 'normal',
+            'nama_agenda'   => $status['nama_agenda'] ?? ($agenda->nama_agenda ?? null),
+            'tipe'          => $agenda->tipe ?? (($status['is_weekend'] ?? false) ? 'libur_weekend' : null),
+            'keterangan'    => $status['keterangan'] ?? ($agenda->keterangan ?? null),
+            'mode_presensi' => $status['mode'] ?? 'normal',
         ]);
     }
 
@@ -368,9 +372,13 @@ class PresensiMengajarController extends Controller
             }
 
             $statusKalender = KalenderPendidikan::getStatusHari($validated['tanggal'], 'gtk');
-            if (($statusKalender['mode'] ?? null) === 'libur') {
-                $namaAgenda = $statusKalender['nama_agenda'] ?? ($statusKalender['agenda']?->nama_kegiatan ?? 'Kalender Pendidikan');
-                $msg = "Hari ini libur guru ({$namaAgenda}). Presensi mengajar tidak dapat dicatat.";
+            $isHariAktif = class_exists(JadwalPengaturan::class)
+                ? JadwalPengaturan::isHariAktif(\Carbon\Carbon::parse($validated['tanggal']))
+                : true;
+
+            if (($statusKalender['mode'] ?? null) === 'libur' || ($statusKalender['is_libur'] ?? false) || !$isHariAktif) {
+                $namaAgenda = $statusKalender['nama_agenda'] ?? ($statusKalender['agenda']?->nama_kegiatan ?? 'Hari Libur / Non-Aktif Sekolah');
+                $msg = "Tanggal {$validated['tanggal']} adalah {$namaAgenda}. Presensi mengajar tidak dapat dicatat.";
                 if ($request->expectsJson()) {
                     return response()->json(['status' => 'error', 'message' => $msg], 422);
                 }

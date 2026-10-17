@@ -40,29 +40,34 @@
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($tab === 'dashboard')
-                <button type="button" class="btn btn-primary btn-sm" onclick="openTambahUsulan()"
-                    style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-plus"></i> Usulan
+                <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Tambah Usulan Siswa PIP Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
                 @if ($isAdmin)
-                    <button type="button" class="btn btn-outline btn-sm" onclick="openImportRiwayat()"
-                        style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-file-excel"></i> Import SiPintar
+                    <button type="button" class="btn btn-outline" onclick="openImportRiwayat()"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                        title="Import Excel SK SiPintar Kemdikbud">
+                        <i class="fas fa-file-excel text-success"></i>
                     </button>
                 @endif
             @elseif ($tab === 'usulan')
-                <button type="button" class="btn btn-primary btn-sm" onclick="openTambahUsulan()"
-                    style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-plus"></i> Usulan
+                <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Tambah Usulan Siswa PIP Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @elseif (in_array($tab, ['riwayat', 'riwayat_alumni'], true) && $isAdmin)
-                <button type="button" class="btn btn-outline btn-sm" onclick="openTambahRiwayat()"
-                    style="padding: 7px 12px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-plus"></i> Manual
+                <button type="button" class="btn btn-outline" onclick="openTambahRiwayat()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Tambah Data Riwayat Manual">
+                    <i class="fas fa-plus"></i>
                 </button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="openImportRiwayat()"
-                    style="padding: 7px 14px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-file-excel"></i> Import Excel
+                <button type="button" class="btn btn-primary" onclick="openImportRiwayat()"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Import Excel SK SiPintar Kemdikbud">
+                    <i class="fas fa-file-excel"></i>
                 </button>
             @endif
         </div>

@@ -25,12 +25,14 @@
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <button type="button" class="btn btn-primary" onclick="openCetakRombelModal('{{ $rombel }}')"
-                style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-print"></i> Cetak Masal per Rombel
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                title="Cetak Masal per Rombel">
+                <i class="fas fa-print"></i>
             </button>
             <button type="button" class="btn btn-outline" onclick="openModalCetakPengambilan()"
-                style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-color: var(--primary); color: var(--primary); background: var(--card-bg);">
-                <i class="fas fa-clipboard-check"></i> List Siap Diambil (Per Tgl Cetak)
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: var(--primary); color: var(--primary); background: var(--card-bg);"
+                title="List Siap Diambil (Per Tgl Cetak)">
+                <i class="fas fa-clipboard-check"></i>
             </button>
         </div>
     </div>

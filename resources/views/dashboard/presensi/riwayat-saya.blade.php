@@ -20,8 +20,9 @@
         </div>
         <div class="dash-banner-actions">
             <button type="button" class="btn btn-primary" id="btnBukaModalIzin"
-                style="padding: 9px 18px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="fas fa-file-signature"></i> Ajukan Surat Izin / Sakit
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                title="Ajukan Surat Izin / Sakit">
+                <i class="fas fa-file-signature"></i>
             </button>
         </div>
     </div>

@@ -33,6 +33,19 @@ class KalenderPendidikan extends Model
         'libur_tendik'    => 'boolean',
     ];
 
+    protected static function booted()
+    {
+        static::saving(function ($event) {
+            if (empty($event->mode_presensi)) {
+                $isLibur = $event->libur_pd || str_contains((string) $event->tipe, 'libur');
+                $isDaring = $event->tipe === 'pembelajaran_daring';
+                $event->mode_presensi = $isLibur ? 'libur' : ($isDaring ? 'daring' : 'luring');
+            } elseif ($event->libur_pd && $event->mode_presensi !== 'libur') {
+                $event->mode_presensi = 'libur';
+            }
+        });
+    }
+
     public const TIPE_LABELS = [
         'hari_efektif'         => 'Hari Efektif Belajar',
         'pembelajaran_daring'  => 'Pembelajaran Daring (PJJ)',
@@ -81,22 +94,54 @@ class KalenderPendidikan extends Model
     }
 
     /**
+     * Helper nama hari Indonesia dari Carbon instance
+     */
+    public static function getNamaHariIndo(\Carbon\Carbon $date): string
+    {
+        return match ($date->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+            default => '',
+        };
+    }
+
+    /**
      * Cek apakah suatu tanggal adalah hari libur untuk role tertentu (pd, guru, tendik, all)
+     * Mengintegrasikan Skema Hari Sekolah (JadwalPengaturan) dan tabel kalender_pendidikan.
      */
     public static function isLibur(string $date, string $role = 'pd'): bool
     {
+        $dCarbon = \Carbon\Carbon::parse($date);
+
+        // 1. Cek apakah hari ini bukan hari aktif belajar sesuai Skema Hari Sekolah (5 Hari vs 6 Hari)
+        if (class_exists(JadwalPengaturan::class) && !JadwalPengaturan::isHariAktif($dCarbon)) {
+            return true;
+        }
+
+        // 2. Cek agenda libur resmi di tabel kalender_pendidikan
         $column = match (strtolower($role)) {
-            'guru', 'gtk' => 'libur_guru',
+            'guru' => 'libur_guru',
             'tendik' => 'libur_tendik',
+            'gtk' => null,
             'all', 'semua' => null,
             default => 'libur_pd',
         };
 
         return static::where('tanggal_mulai', '<=', $date)
             ->where('tanggal_selesai', '>=', $date)
-            ->where(function ($q) use ($column) {
+            ->where(function ($q) use ($column, $role) {
                 if ($column) {
                     $q->where($column, true)
+                      ->orWhere('mode_presensi', 'libur')
+                      ->orWhere('tipe', 'like', '%libur%');
+                } elseif (strtolower($role) === 'gtk') {
+                    $q->where('libur_guru', true)
+                      ->orWhere('libur_tendik', true)
                       ->orWhere('mode_presensi', 'libur')
                       ->orWhere('tipe', 'like', '%libur%');
                 } else {
@@ -126,21 +171,35 @@ class KalenderPendidikan extends Model
 
     /**
      * Evaluasi kondisi presensi pada tanggal tertentu (luring, daring, libur)
+     * Mengintegrasikan Skema Hari Sekolah (JadwalPengaturan) dan Kalender Pendidikan.
      */
     public static function getStatusHari(string $date, string $role = 'pd'): array
     {
-        // 1. Cek apakah ada agenda libur pada tanggal tersebut
+        $dCarbon = \Carbon\Carbon::parse($date);
+        $namaHari = self::getNamaHariIndo($dCarbon);
+        $isHariAktifSekolah = class_exists(JadwalPengaturan::class)
+            ? JadwalPengaturan::isHariAktif($dCarbon)
+            : !in_array($dCarbon->dayOfWeekIso, [6, 7], true);
+
+        // 1. Cek apakah ada agenda libur pada tanggal tersebut dari database kalender
+        $column = match (strtolower($role)) {
+            'guru' => 'libur_guru',
+            'tendik' => 'libur_tendik',
+            'gtk' => null,
+            'all', 'semua' => null,
+            default => 'libur_pd',
+        };
+
         $liburAgenda = static::where('tanggal_mulai', '<=', $date)
             ->where('tanggal_selesai', '>=', $date)
-            ->where(function ($q) use ($role) {
-                $column = match (strtolower($role)) {
-                    'guru', 'gtk' => 'libur_guru',
-                    'tendik' => 'libur_tendik',
-                    'all', 'semua' => null,
-                    default => 'libur_pd',
-                };
+            ->where(function ($q) use ($column, $role) {
                 if ($column) {
                     $q->where($column, true)
+                      ->orWhere('mode_presensi', 'libur')
+                      ->orWhere('tipe', 'like', '%libur%');
+                } elseif (strtolower($role) === 'gtk') {
+                    $q->where('libur_guru', true)
+                      ->orWhere('libur_tendik', true)
                       ->orWhere('mode_presensi', 'libur')
                       ->orWhere('tipe', 'like', '%libur%');
                 } else {
@@ -159,6 +218,7 @@ class KalenderPendidikan extends Model
             return [
                 'mode'        => 'libur',
                 'is_libur'    => true,
+                'is_weekend'  => !$isHariAktifSekolah,
                 'label'       => 'Hari Libur Sekolah',
                 'badge'       => self::MODE_PRESENSI_BADGES['libur'] ?? '<span class="badge badge-danger"><i class="fas fa-umbrella-beach me-1"></i> Libur</span>',
                 'agenda'      => $liburAgenda,
@@ -167,16 +227,49 @@ class KalenderPendidikan extends Model
             ];
         }
 
-        // 2. Ambil agenda umum lainnya jika ada
+        // 2. Ambil agenda umum lainnya jika ada (misal: kegiatan sekolah, asesmen, daring)
         $agenda = static::where('tanggal_mulai', '<=', $date)
             ->where('tanggal_selesai', '>=', $date)
             ->orderBy('id', 'desc')
             ->first();
 
+        // 3. Jika bukan hari aktif sesuai skema hari sekolah dan tidak ada agenda sekolah khusus
+        if (!$isHariAktifSekolah) {
+            // Jika ada agenda sekolah yang berlangsung di akhir pekan (misal Lomba / Upacara Hari Besar)
+            if ($agenda && ($agenda->mode_presensi === 'daring' || $agenda->tipe === 'pembelajaran_daring')) {
+                return [
+                    'mode'        => 'daring',
+                    'is_libur'    => false,
+                    'is_weekend'  => true,
+                    'label'       => 'Pembelajaran Daring (PJJ)',
+                    'badge'       => self::MODE_PRESENSI_BADGES['daring'] ?? '<span class="badge badge-info"><i class="fas fa-laptop-code me-1"></i> Daring</span>',
+                    'agenda'      => $agenda,
+                    'nama_agenda' => $agenda->nama_kegiatan ?: ($agenda->nama_agenda ?: ''),
+                    'keterangan'  => $agenda->keterangan ?? null,
+                ];
+            }
+
+            $skema = class_exists(JadwalPengaturan::class) ? (JadwalPengaturan::getSettings()->skema_hari ?? '5_hari') : '5_hari';
+            $skemaLabel = ($skema === '6_hari') ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)';
+
+            return [
+                'mode'        => 'libur',
+                'is_libur'    => true,
+                'is_weekend'  => true,
+                'label'       => "Libur Akhir Pekan ({$namaHari})",
+                'badge'       => '<span class="badge badge-secondary" style="background: rgba(148,163,184,0.18); color: #64748b; border: 1px solid rgba(148,163,184,0.3);"><i class="fas fa-bed me-1"></i> Libur Akhir Pekan</span>',
+                'agenda'      => $agenda,
+                'nama_agenda' => $agenda ? ($agenda->nama_kegiatan ?: "Libur Akhir Pekan ({$namaHari})") : "Libur Akhir Pekan ({$namaHari})",
+                'keterangan'  => $agenda ? ($agenda->keterangan ?: "Kegiatan pada akhir pekan: {$agenda->nama_kegiatan}") : "Bukan hari operasional sekolah ({$skemaLabel})",
+            ];
+        }
+
+        // 4. Hari aktif sekolah tanpa agenda: Efektif Luring Normal
         if (!$agenda) {
             return [
                 'mode'        => 'luring',
                 'is_libur'    => false,
+                'is_weekend'  => false,
                 'label'       => 'Hari Efektif (Luring)',
                 'badge'       => self::MODE_PRESENSI_BADGES['luring'] ?? '<span class="badge badge-success"><i class="fas fa-school me-1"></i> Luring</span>',
                 'agenda'      => null,
@@ -185,11 +278,12 @@ class KalenderPendidikan extends Model
             ];
         }
 
-        // 3. Evaluasi apakah daring
+        // 5. Hari aktif sekolah dengan agenda daring
         if ($agenda->mode_presensi === 'daring' || $agenda->tipe === 'pembelajaran_daring') {
             return [
                 'mode'        => 'daring',
                 'is_libur'    => false,
+                'is_weekend'  => false,
                 'label'       => 'Pembelajaran Daring (PJJ)',
                 'badge'       => self::MODE_PRESENSI_BADGES['daring'] ?? '<span class="badge badge-info"><i class="fas fa-laptop-code me-1"></i> Daring (PJJ)</span>',
                 'agenda'      => $agenda,
@@ -198,10 +292,11 @@ class KalenderPendidikan extends Model
             ];
         }
 
-        // 4. Default: Luring dengan Agenda Khusus
+        // 6. Default hari aktif dengan agenda sekolah khusus
         return [
             'mode'        => 'luring',
             'is_libur'    => false,
+            'is_weekend'  => false,
             'label'       => 'Hari Efektif (Luring)',
             'badge'       => self::MODE_PRESENSI_BADGES['luring'] ?? '<span class="badge badge-success"><i class="fas fa-school me-1"></i> Luring</span>',
             'agenda'      => $agenda,
@@ -227,27 +322,41 @@ class KalenderPendidikan extends Model
 
     /**
      * Hitung jumlah Hari Efektif Belajar dalam rentang tanggal tertentu,
-     * memperhitungkan konfigurasi hari kerja mingguan (PresensiPengaturan) dan libur kalender.
+     * memperhitungkan konfigurasi skema hari aktif sekolah (JadwalPengaturan) dan libur kalender.
      */
     public static function hitungHariEfektif(string $startDate, string $endDate, string $role = 'pd'): int
     {
         if ($startDate > $endDate) return 0;
 
-        $pengaturan = PresensiPengaturan::getPengaturan();
         $start = \Carbon\Carbon::parse($startDate);
         $end = \Carbon\Carbon::parse($endDate);
 
         $column = match (strtolower($role)) {
             'guru' => 'libur_guru',
             'tendik' => 'libur_tendik',
+            'gtk' => null,
             default => 'libur_pd',
         };
 
         // Ambil seluruh agenda libur dalam rentang ini dalam 1 query
         $liburAgendas = static::betweenDates($startDate, $endDate)
-            ->where(function ($q) use ($column) {
-                $q->where($column, true)
-                    ->orWhere('mode_presensi', 'libur');
+            ->where(function ($q) use ($column, $role) {
+                if ($column) {
+                    $q->where($column, true)
+                        ->orWhere('mode_presensi', 'libur')
+                        ->orWhere('tipe', 'like', '%libur%');
+                } elseif (strtolower($role) === 'gtk') {
+                    $q->where('libur_guru', true)
+                        ->orWhere('libur_tendik', true)
+                        ->orWhere('mode_presensi', 'libur')
+                        ->orWhere('tipe', 'like', '%libur%');
+                } else {
+                    $q->where('libur_pd', true)
+                        ->orWhere('libur_guru', true)
+                        ->orWhere('libur_tendik', true)
+                        ->orWhere('mode_presensi', 'libur')
+                        ->orWhere('tipe', 'like', '%libur%');
+                }
             })
             ->select('tanggal_mulai', 'tanggal_selesai')
             ->get();
@@ -256,8 +365,12 @@ class KalenderPendidikan extends Model
         $curr = $start->copy();
 
         while ($curr->lte($end)) {
-            // 1. Cek apakah hari kerja mingguan aktif (Senin - Jumat / Sabtu)
-            if ($pengaturan->isHariAktif($curr)) {
+            // 1. Cek apakah hari kerja mingguan aktif (Senin - Jumat / Sabtu) sesuai Skema Hari Sekolah
+            $isAktif = class_exists(JadwalPengaturan::class)
+                ? JadwalPengaturan::isHariAktif($curr)
+                : (class_exists(PresensiPengaturan::class) ? PresensiPengaturan::getPengaturan()->isHariAktif($curr) : !in_array($curr->dayOfWeekIso, [6, 7], true));
+
+            if ($isAktif) {
                 $dateStr = $curr->format('Y-m-d');
                 $isLibur = false;
                 foreach ($liburAgendas as $ag) {
@@ -479,12 +592,18 @@ class KalenderPendidikan extends Model
                     })->first();
                 }
 
+                $isSunday = ($dayOfWeek === 7);
+                $isSaturday = ($dayOfWeek === 6);
+                $isHariAktif = class_exists(JadwalPengaturan::class) ? JadwalPengaturan::isHariAktif($dCarbon) : (!$isSunday && !$isSaturday);
+
                 $curWeek[] = [
                     'day'           => $d,
                     'date'          => $dateStr,
                     'is_today'      => ($dateStr === $todayStr),
-                    'is_sunday'     => ($dayOfWeek === 7),
-                    'is_saturday'   => ($dayOfWeek === 6),
+                    'is_sunday'     => $isSunday,
+                    'is_saturday'   => $isSaturday,
+                    'is_weekend'    => !$isHariAktif,
+                    'is_hari_aktif' => $isHariAktif,
                     'day_of_week'   => $dayOfWeek,
                     'events'        => $dayEvs,
                     'primary_event' => $primaryEvent,

@@ -5,17 +5,15 @@
 
 @section('content')
     <!-- 1. Header Banner Baku SAE -->
-    <div class="dash-banner">
+    <div class="dash-banner" style="margin-bottom: 16px;">
         <div style="flex: 1; min-width: 260px;">
             <h2
                 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
-                <i class="fas fa-bullseye text-primary me-2"></i> Target &amp; Capaian Pekerjaan Tendik
-                @if ($filterBidang && $filterBidang !== 'all' && isset($bidangLabels[$filterBidang]))
-                    <span class="badge badge-primary"
-                        style="font-size: 0.72rem; padding: 4px 10px; margin-left: 8px; vertical-align: middle; border-radius: 6px;">
-                        <i class="fas fa-tag me-1"></i>{{ $bidangLabels[$filterBidang] }}
-                    </span>
-                @endif
+                <i class="fas fa-bullseye text-primary me-2"></i> Target &amp; Capaian Kinerja Tendik
+                <span class="badge badge-primary"
+                    style="font-size: 0.74rem; padding: 4px 10px; margin-left: 8px; vertical-align: middle; border-radius: 6px;">
+                    <i class="fas fa-briefcase me-1"></i>{{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}
+                </span>
             </h2>
             <div
                 style="display: flex; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 6px;">
@@ -27,29 +25,48 @@
                         Tendik</strong></span>
             </div>
             <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
-                Indikator kepatuhan input harian pegawai, monitoring capaian target operasional, dan analitik produktivitas.
+                Indikator sasaran kerja dan monitoring capaian target operasional khusus bidang
+                {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}.
             </p>
         </div>
 
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnOpenModalTarget"
-                    style="background: #6366f1; border: none; padding: 8px 16px; font-size: 0.85rem; border-radius: 8px; font-weight: 700; box-shadow: 0 4px 12px rgba(99,102,241,0.3); display: inline-flex; align-items: center; gap: 6px; color: #fff; cursor: pointer;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: #6366f1; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.3); color: #fff; cursor: pointer;"
+                    title="Tambah Sasaran &amp; Target Kinerja">
                     <i class="fas fa-plus"></i>
-                    <span>Tambah Sasaran &amp; Target</span>
                 </button>
-                <a href="{{ route('dashboard.tendik.aktivitas.index', $filterBidang && $filterBidang !== 'all' ? ['bidang' => $filterBidang] : []) }}"
+                <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}"
                     class="btn btn-outline"
-                    style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Catat Aktivitas Harian">
                     <i class="fas fa-pen-to-square text-success"></i>
-                    <span>Catat Aktivitas</span>
                 </a>
             @endif
-            <a href="{{ route('dashboard.tendik.laporan.index', $filterBidang && $filterBidang !== 'all' ? ['bidang' => $filterBidang] : []) }}"
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
                 class="btn btn-outline"
-                style="padding: 8px 14px; font-size: 0.85rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                title="Laporan Kinerja Tendik">
                 <i class="fas fa-file-invoice text-info"></i>
-                <span>Laporan Kinerja</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigasi Terpadu 3 Menu Utama Tendik (Target -> Aktivitas -> Laporan) -->
+    <div class="periode-nav-wrapper" style="margin-bottom: 22px;">
+        <div class="periode-nav-desktop">
+            <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}"
+                class="periode-nav-tab active">
+                <i class="fas fa-bullseye"></i> 1. Target &amp; Capaian
+            </a>
+            <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}"
+                class="periode-nav-tab">
+                <i class="fas fa-clipboard-check"></i> 2. Input Aktivitas Harian
+            </a>
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
+                class="periode-nav-tab">
+                <i class="fas fa-file-invoice"></i> 3. Laporan Kinerja
             </a>
         </div>
     </div>
@@ -165,7 +182,8 @@
 
                     <select name="tahun" class="toolbar-filter-select">
                         @for ($y = date('Y') + 1; $y >= date('Y') - 3; $y--)
-                            <option value="{{ $y }}" {{ $tahun === $y ? 'selected' : '' }}>{{ $y }}
+                            <option value="{{ $y }}" {{ $tahun === $y ? 'selected' : '' }}>
+                                {{ $y }}
                             </option>
                         @endfor
                     </select>
@@ -301,10 +319,12 @@
             <div>
                 <h3
                     style="font-size: 1.05rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-bullseye text-primary"></i> Matriks Sasaran &amp; Target Kinerja
+                    <i class="fas fa-bullseye text-primary"></i> Matriks Sasaran &amp; Target Kinerja Bidang
+                    {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}
                 </h3>
                 <p style="font-size: 0.78rem; color: var(--text-muted); margin: 3px 0 0 0;">
-                    Sasaran strategis, indikator kinerja, serta target kuantitatif yang terintegrasi dengan pengisian log
+                    Sasaran strategis, indikator kinerja, dan target kuantitatif khusus bidang
+                    {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }} yang terintegrasi dengan pengisian log
                     aktivitas harian.
                 </p>
             </div>
@@ -317,26 +337,28 @@
                         <input type="hidden" name="periode" value="{{ $periodeTipe }}">
                         <input type="hidden" name="bulan" value="{{ $bulan }}">
                         <input type="hidden" name="tahun" value="{{ $tahun }}">
+                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
+                            Bidang:</label>
                         <select name="bidang" class="toolbar-filter-select" onchange="this.form.submit()"
-                            style="font-size: 0.82rem; height: 36px; border-radius: 8px;">
-                            <option value="">Semua Bidang Kerja</option>
+                            style="font-size: 0.82rem; height: 36px; border-radius: 8px; font-weight: 700;">
                             @foreach ($bidangLabels as $bK => $bL)
-                                <option value="{{ $bK }}" {{ $filterBidang === $bK ? 'selected' : '' }}>
+                                <option value="{{ $bK }}" {{ $currentBidang === $bK ? 'selected' : '' }}>
                                     {{ $bL }}</option>
                             @endforeach
                         </select>
                     </form>
                 @else
                     <span class="badge badge-info" style="font-size: 0.78rem; padding: 5px 10px;">
-                        <i class="fas fa-briefcase me-1"></i> Bidang:
-                        {{ $bidangLabels[$activeBidang] ?? ucfirst($activeBidang) }}
+                        <i class="fas fa-briefcase me-1"></i> Bidang Tugas:
+                        {{ $bidangLabels[$currentBidang] ?? ucfirst($currentBidang) }}
                     </span>
                 @endif
 
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary btn-sm btn-tambah-target-modal"
-                        style="padding: 6px 14px; font-size: 0.8rem; border-radius: 8px; font-weight: 700; background: #6366f1; border: none; color: #fff; cursor: pointer;">
-                        <i class="fas fa-plus me-1"></i> Tambah Target
+                        style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem; background: #6366f1; border: none; color: #fff; cursor: pointer;"
+                        title="Tambah Target Kinerja">
+                        <i class="fas fa-plus"></i>
                     </button>
                 @endif
             </div>
@@ -348,79 +370,79 @@
                     <tr
                         style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02); text-align: left;">
                         <th
-                            style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
-                            N0.</th>
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 45px; text-align: center;">
+                            NO.</th>
                         @if ($isKepalaTas)
                             <th
-                                style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
                                 Bidang</th>
                         @endif
                         <th
-                            style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 220px;">
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 220px;">
                             Sasaran</th>
                         <th
-                            style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Indikator Kinerja</th>
                         <th
-                            style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                             Target</th>
                         <th
-                            style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                             Realisasi Capaian</th>
                         <th
-                            style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                             Status</th>
                         <th
-                            style="padding: 10px 14px; font-size: 0.76rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 95px;">
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 95px;">
                             Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($matriksIndikatorList as $idx => $ind)
-                        <tr style="border-bottom: 1px solid var(--border-color);">
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
                             <td data-label="No."
-                                style="padding: 10px 14px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;">
+                                style="padding: 14px 16px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;">
                                 {{ $idx + 1 }}
                             </td>
                             @if ($isKepalaTas)
-                                <td data-label="Bidang" style="padding: 10px 14px;">
+                                <td data-label="Bidang" style="padding: 14px 16px;">
                                     <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">
                                         {{ $bidangLabels[$ind->bidang] ?? ucfirst($ind->bidang) }}
                                     </span>
                                 </td>
                             @endif
                             <td data-label="Sasaran"
-                                style="padding: 10px 14px; font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
+                                style="padding: 14px 16px; font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
                                 {{ $ind->sasaran }}
                             </td>
                             <td data-label="Indikator Kinerja"
-                                style="padding: 10px 14px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45;">
+                                style="padding: 14px 16px; font-size: 0.82rem; color: var(--text-muted); line-height: 1.45;">
                                 {{ $ind->indikator_kinerja }}
                             </td>
                             <td data-label="Target"
-                                style="padding: 10px 14px; text-align: center; font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
+                                style="padding: 14px 16px; text-align: center; font-size: 0.84rem; font-weight: 700; color: var(--text-color);">
                                 {{ $ind->target_label }}
                             </td>
                             <td data-label="Realisasi"
-                                style="padding: 10px 14px; text-align: center; font-size: 0.84rem; font-weight: 700; color: #10b981;">
+                                style="padding: 14px 16px; text-align: center; font-size: 0.84rem; font-weight: 700; color: #10b981;">
                                 {{ $ind->realisasi_label }} ({{ $ind->capaian_persen }}%)
                             </td>
-                            <td data-label="Status" style="padding: 10px 14px; text-align: center;">
+                            <td data-label="Status" style="padding: 14px 16px; text-align: center;">
                                 <span
                                     class="badge {{ $ind->status_kpi === 'Tercapai' ? 'badge-success' : 'badge-warning' }}"
                                     style="font-size: 0.72rem; padding: 3px 8px;">
                                     {{ $ind->status_kpi }}
                                 </span>
                             </td>
-                            <td data-label="Aksi" style="padding: 10px 14px; text-align: center;">
-                                <div class="table-actions" style="justify-content: center; gap: 4px;">
+                            <td data-label="Aksi" style="padding: 14px 16px; text-align: center;">
+                                <div class="table-actions" style="justify-content: center; gap: 6px;">
                                     <button type="button" class="btn-icon btn-edit-target"
                                         data-id="{{ $ind->id }}" data-bidang="{{ $ind->bidang }}"
                                         data-sasaran="{{ $ind->sasaran }}"
                                         data-indikator="{{ $ind->indikator_kinerja }}"
                                         data-kuantitas="{{ $ind->target_kuantitas }}" data-satuan="{{ $ind->satuan }}"
-                                        title="Edit Sasaran & Target"
-                                        style="border: 1px solid var(--border-color); background: transparent; padding: 5px; border-radius: 6px; cursor: pointer; color: #3b82f6;">
+                                        title="Edit Sasaran &amp; Target"
+                                        style="color: var(--primary);">
                                         <i class="fas fa-pen-to-square"></i>
                                     </button>
                                     <form action="{{ route('dashboard.tendik.target.destroy', $ind->id) }}"
@@ -428,8 +450,8 @@
                                         style="display: inline;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn-icon" title="Hapus Sasaran & Target"
-                                            style="border: 1px solid var(--border-color); background: transparent; padding: 5px; border-radius: 6px; cursor: pointer; color: #ef4444;">
+                                        <button type="submit" class="btn-icon" title="Hapus Sasaran &amp; Target"
+                                            style="color: #ef4444;">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </form>

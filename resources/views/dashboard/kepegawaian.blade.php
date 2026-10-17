@@ -24,21 +24,21 @@
 
             @if ($tab === 'pegawai' || $tab === 'berkas' || $tab === 'guru' || $tab === 'tendik')
                 <button type="button" class="btn btn-primary" id="btnOpenModalUploadBerkas"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                     title="Unggah Berkas Digital GTK">
-                    <i class="fas fa-upload"></i> Unggah Berkas
+                    <i class="fas fa-upload"></i>
                 </button>
             @elseif($tab === 'kgb')
                 <button type="button" class="btn btn-primary" id="btnOpenModalKgb"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                     title="Catat Usulan KGB Baru">
-                    <i class="fas fa-plus"></i> Catat KGB
+                    <i class="fas fa-plus"></i>
                 </button>
             @elseif($tab === 'cuti')
                 <button type="button" class="btn btn-primary" id="btnOpenModalCuti"
-                    style="padding: 8px 16px; border-radius: 8px; font-size: 0.86rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                     title="Buat Pengajuan Cuti / Izin">
-                    <i class="fas fa-plus"></i> Ajukan Cuti
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>
