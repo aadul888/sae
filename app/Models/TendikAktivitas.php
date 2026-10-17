@@ -137,10 +137,14 @@ class TendikAktivitas extends Model
 
     /**
      * Catat atau perbarui log aktivitas harian tendik secara ringkas per bidang pekerjaan per hari.
+     * Menggunakan bahasa formal administrasi perkantoran kedinasan dan menampilkan total output dokumen.
      * Tidak mencatat login atau presensi harian.
-     * Contoh: "Input surat masuk 10 dokumen" atau "Membuat surat keluar 20 dokumen".
+     *
+     * Contoh:
+     * - Judul: "Pembuatan dan Penerbitan Surat Keluar Dinas"
+     * - Output: "Total 20 Dokumen Selesai Dikerjakan"
      */
-    public static function recordAggregatedActivity($userOrId, string $baseAction, string $bidang = 'umum', string $unit = 'dokumen', int $increment = 1, ?string $uraianTemplate = null, ?int $indikatorId = null): ?self
+    public static function recordAggregatedActivity($userOrId, string $baseAction, string $bidang = 'umum', string $unit = 'dokumen', int $increment = 1, ?string $uraianTemplate = null, ?int $indikatorId = null, ?string $outputTemplate = null): ?self
     {
         // Tolak aktivitas login atau presensi harian
         if (preg_match('/login|autentikasi|presensi|kehadiran/i', $baseAction) ||
@@ -173,7 +177,7 @@ class TendikAktivitas extends Model
             } else {
                 $sessionUser = session('user');
                 if ($sessionUser) {
-                    return self::recordAggregatedActivity($sessionUser, $baseAction, $bidang, $unit, $increment, $uraianTemplate, $indikatorId);
+                    return self::recordAggregatedActivity($sessionUser, $baseAction, $bidang, $unit, $increment, $uraianTemplate, $indikatorId, $outputTemplate);
                 }
             }
 
@@ -185,6 +189,10 @@ class TendikAktivitas extends Model
             $jam = $now->format('H:i:s');
             $tanggal = $now->toDateString();
 
+            // Format output resmi: menampilkan jumlah total dokumen/pekerjaan yang telah dikerjakan
+            $defaultOutputFmt = 'Total %d ' . ucfirst($unit) . ' Selesai Dikerjakan';
+            $outputFmt = $outputTemplate ?: $defaultOutputFmt;
+
             // Cari aktivitas dengan jenis pekerjaan yang sama pada hari ini untuk pegawai bersangkutan
             $existing = self::where(function ($q) use ($userId, $ptkId) {
                     if ($userId) $q->where('user_id', $userId);
@@ -193,29 +201,27 @@ class TendikAktivitas extends Model
                 ->whereDate('tanggal', $tanggal)
                 ->where('bidang', $bidang)
                 ->where(function ($q) use ($baseAction) {
-                    $q->where('judul_aktivitas', 'LIKE', "{$baseAction}%")
+                    $q->where('judul_aktivitas', $baseAction)
+                      ->orWhere('judul_aktivitas', 'LIKE', "{$baseAction}%")
                       ->orWhere('judul_aktivitas', 'LIKE', "%{$baseAction}%");
                 })
                 ->first();
 
             if ($existing) {
-                // Ekstrak jumlah pekerjaan yang sudah tercatat hari ini
+                // Ekstrak jumlah total pekerjaan yang sudah tercatat hari ini
                 $currentCount = 1;
-                if (preg_match('/(\d+)\s*' . preg_quote($unit, '/') . '/i', $existing->judul_aktivitas, $m)) {
-                    $currentCount = (int) $m[1];
-                } elseif (preg_match('/(\d+)/', $existing->output_hasil, $m)) {
+                if (preg_match('/(\d+)/', $existing->output_hasil ?: $existing->judul_aktivitas, $m)) {
                     $currentCount = (int) $m[1];
                 }
 
                 $newCount = $currentCount + $increment;
-                $newJudul = "{$baseAction} {$newCount} {$unit}";
-                $newOutput = "{$newCount} {$unit}";
+                $newOutput = sprintf($outputFmt, $newCount);
                 $newUraian = $uraianTemplate
                     ? sprintf($uraianTemplate, $newCount)
-                    : "Melaksanakan {$baseAction} sebanyak {$newCount} {$unit} pada sistem sekolah.";
+                    : "Melaksanakan {$baseAction} sebanyak total {$newCount} {$unit} pada agenda kerja harian sekolah.";
 
                 $existing->update([
-                    'judul_aktivitas'  => $newJudul,
+                    'judul_aktivitas'  => $baseAction,
                     'output_hasil'     => $newOutput,
                     'uraian_pekerjaan' => $newUraian,
                     'jam_selesai'      => $jam,
@@ -227,11 +233,10 @@ class TendikAktivitas extends Model
 
             // Jika belum ada pada hari ini, buat entri awal
             $count = $increment;
-            $judul = "{$baseAction} {$count} {$unit}";
-            $output = "{$count} {$unit}";
+            $output = sprintf($outputFmt, $count);
             $uraian = $uraianTemplate
                 ? sprintf($uraianTemplate, $count)
-                : "Melaksanakan {$baseAction} sebanyak {$count} {$unit} pada sistem sekolah.";
+                : "Melaksanakan {$baseAction} sebanyak total {$count} {$unit} pada agenda kerja harian sekolah.";
 
             if (!$indikatorId && \Illuminate\Support\Facades\Schema::hasTable('tendik_indikator_kinerja')) {
                 $indikatorId = TendikIndikatorKinerja::where('bidang', $bidang)
@@ -249,7 +254,7 @@ class TendikAktivitas extends Model
                 'tanggal'          => $tanggal,
                 'jam_mulai'        => $jam,
                 'jam_selesai'      => $jam,
-                'judul_aktivitas'  => $judul,
+                'judul_aktivitas'  => $baseAction,
                 'uraian_pekerjaan' => $uraian,
                 'output_hasil'     => $output,
                 'status'           => 'selesai',

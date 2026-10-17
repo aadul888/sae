@@ -77,209 +77,239 @@ class BroadcastDataChanges
                         $unit = 'dokumen';
                         $template = null;
 
-                        // 1. Modul Persuratan
+                        // 1. Modul Persuratan Dinas
                         if (str_contains($path, 'persuratan/masuk')) {
                             $bidang = 'persuratan';
                             $unit = 'dokumen';
                             if (str_contains($path, 'disposisi')) {
-                                $baseAction = 'Disposisi surat masuk';
-                                $template = 'Memproses lembar disposisi untuk %d dokumen surat masuk.';
+                                $baseAction = 'Pengelolaan Disposisi Surat Masuk Dinas';
+                                $template = 'Memproses lembar disposisi pimpinan dan arahan tindak lanjut untuk total %d dokumen surat masuk dinas.';
                             } elseif ($method === 'POST') {
-                                $baseAction = 'Input surat masuk';
-                                $template = 'Melaksanakan input dan pencatatan %d dokumen surat masuk ke dalam buku agenda persuratan sekolah.';
+                                $baseAction = 'Pencatatan dan Pengagendaan Surat Masuk Dinas';
+                                $template = 'Menerima, mencatat pada buku agenda persuratan, dan menyiapkan lembar disposisi untuk total %d dokumen surat masuk dinas.';
                             } else {
-                                $baseAction = 'Pembaruan arsip surat masuk';
-                                $template = 'Memperbarui kelengkapan dan berkas %d dokumen surat masuk.';
+                                $baseAction = 'Pembaruan Arsip Surat Masuk Dinas';
+                                $template = 'Memperbarui data dan kelengkapan fisik/digital untuk total %d dokumen surat masuk dinas.';
                             }
                         } elseif (str_contains($path, 'persuratan/keluar')) {
                             $bidang = 'persuratan';
                             $unit = 'dokumen';
                             if (str_contains($path, 'keterangan')) {
-                                $baseAction = 'Membuat surat keterangan';
-                                $template = 'Menerbitkan dan mengesahkan %d dokumen surat keterangan siswa.';
+                                $baseAction = 'Penerbitan Surat Keterangan Peserta Didik';
+                                $template = 'Memeriksa data pemohon, menyusun draft, dan menerbitkan total %d dokumen surat keterangan resmi peserta didik.';
                             } elseif (str_contains($path, 'spt')) {
-                                $baseAction = 'Penerbitan surat tugas (SPT)';
-                                $template = 'Menerbitkan %d dokumen Surat Perintah Tugas (SPT) kedinasan.';
+                                $baseAction = 'Penerbitan Surat Perintah Tugas (SPT) Dinas';
+                                $template = 'Menyusun dan menerbitkan total %d dokumen Surat Perintah Tugas (SPT) kedinasan sekolah.';
                             } elseif (str_contains($path, 'template')) {
-                                $baseAction = 'Pengelolaan template surat';
+                                $baseAction = 'Pengelolaan Format Template Naskah Dinas';
                                 $unit = 'template';
-                                $template = 'Mengatur format dan tata naskah %d template surat dinas sekolah.';
+                                $template = 'Memutakhirkan tata naskah dan format baku untuk total %d template surat resmi dinas sekolah.';
                             } elseif ($method === 'POST') {
-                                $baseAction = 'Membuat surat keluar';
-                                $template = 'Membuat dan menerbitkan nomor dinas untuk %d dokumen surat keluar.';
+                                $baseAction = 'Pembuatan dan Penerbitan Surat Keluar Dinas';
+                                $template = 'Menyusun naskah dinas, menerbitkan nomor surat resmi, dan mendistribusikan total %d dokumen surat keluar pada agenda persuratan sekolah.';
                             } else {
-                                $baseAction = 'Pembaruan arsip surat keluar';
-                                $template = 'Memperbarui arsip dan status pengiriman %d dokumen surat keluar.';
+                                $baseAction = 'Pembaruan Arsip Surat Keluar Dinas';
+                                $template = 'Memperbarui arsip dan status pengiriman untuk total %d dokumen surat keluar dinas.';
                             }
                         }
-                        // 2. Modul Kesiswaan
+                        // 2. Modul Kesiswaan Terpadu
                         elseif (str_contains($path, 'kesiswaan')) {
                             $bidang = 'kesiswaan';
                             if (str_contains($path, 'usulan')) {
-                                $baseAction = 'Pengusulan data siswa';
-                                $unit = 'siswa';
-                                $template = 'Memproses pengusulan pembaruan data untuk %d peserta didik.';
+                                $baseAction = 'Pengusulan dan Pemutakhiran Data Peserta Didik';
+                                $unit = 'dokumen';
+                                $template = 'Memeriksa berkas permohonan dan memproses usulan pembaruan data untuk total %d dokumen peserta didik.';
                             } elseif (str_contains($path, 'berkas')) {
-                                $baseAction = 'Verifikasi berkas siswa';
-                                $unit = 'dokumen';
-                                $template = 'Melakukan validasi dan verifikasi berkas digital %d dokumen siswa.';
-                            } elseif (str_contains($path, 'mutasi')) {
-                                $baseAction = 'Pemrosesan mutasi siswa';
+                                $baseAction = 'Verifikasi dan Validasi Berkas Peserta Didik';
                                 $unit = 'berkas';
-                                $template = 'Memproses kelengkapan berkas mutasi untuk %d berkas siswa.';
+                                $template = 'Melakukan pemeriksaan kelengkapan fisik dan validasi berkas digital untuk total %d berkas peserta didik.';
+                            } elseif (str_contains($path, 'mutasi')) {
+                                $baseAction = 'Pemrosesan Administrasi Mutasi Peserta Didik';
+                                $unit = 'berkas';
+                                $template = 'Memeriksa kelengkapan syarat dan memproses surat keterangan mutasi untuk total %d berkas peserta didik.';
                             } elseif (str_contains($path, 'klaper')) {
-                                $baseAction = 'Pembaruan buku klaper siswa';
+                                $baseAction = 'Pemutakhiran Buku Klaper Peserta Didik';
                                 $unit = 'data siswa';
-                                $template = 'Melakukan pemutakhiran buku klaper untuk %d data siswa.';
+                                $template = 'Mencatat nomor induk, biodata, dan pembaruan buku klaper untuk total %d data siswa.';
                             } elseif (str_contains($path, 'kelulusan')) {
-                                $baseAction = 'Pemrosesan kelulusan dan SKL';
+                                $baseAction = 'Pemrosesan Kelulusan dan Penerbitan SKL';
                                 $unit = 'dokumen';
-                                $template = 'Menerbitkan dan memvalidasi %d dokumen SKL kesiswaan.';
+                                $template = 'Memvalidasi kelengkapan berkas akhir dan menerbitkan Surat Keterangan Lulus (SKL) untuk total %d dokumen peserta didik.';
                             } elseif (str_contains($path, 'pelanggaran')) {
-                                $baseAction = 'Pencatatan pelanggaran siswa';
+                                $baseAction = 'Pencatatan Pelanggaran Tata Tertib Peserta Didik';
                                 $unit = 'kasus';
-                                $template = 'Mencatat dan memproses tindak lanjut %d kasus pelanggaran tata tertib.';
+                                $template = 'Mendokumentasikan laporan pelanggaran tata tertib dan poin kedisiplinan sebanyak total %d kasus peserta didik.';
                             } elseif (str_contains($path, 'pembinaan')) {
-                                $baseAction = 'Pencatatan pembinaan siswa';
+                                $baseAction = 'Pencatatan Bimbingan dan Pembinaan Peserta Didik';
                                 $unit = 'kasus';
-                                $template = 'Mendokumentasikan hasil pembinaan kedisiplinan terhadap %d kasus siswa.';
+                                $template = 'Menyusun berita acara dan rekam pembinaan kedisiplinan sebanyak total %d kasus peserta didik.';
                             } elseif (str_contains($path, 'panggilan-wali')) {
-                                $baseAction = 'Penerbitan surat panggilan wali';
+                                $baseAction = 'Penerbitan Surat Panggilan Orang Tua / Wali Murid';
                                 $unit = 'dokumen';
-                                $template = 'Menerbitkan %d dokumen surat panggilan orang tua / wali murid.';
+                                $template = 'Menerbitkan dan mendistribusikan surat panggilan kedinasan orang tua/wali sebanyak total %d dokumen.';
                             } elseif (str_contains($path, 'organisasi') || str_contains($path, 'ekskul') || str_contains($path, 'agenda')) {
-                                $baseAction = 'Pengelolaan kegiatan kesiswaan';
+                                $baseAction = 'Pengelolaan Administrasi Kegiatan & Ekstrakurikuler Siswa';
                                 $unit = 'kegiatan';
-                                $template = 'Mengelola administrasi dan agenda %d kegiatan kesiswaan.';
+                                $template = 'Mengelola administrasi dan agenda operasional untuk total %d kegiatan ekstrakurikuler/organisasi kesiswaan.';
                             } elseif (str_contains($path, 'prestasi')) {
-                                $baseAction = 'Pencatatan prestasi siswa';
-                                $unit = 'prestasi';
-                                $template = 'Mendata dan memvalidasi sertifikat %d prestasi siswa.';
+                                $baseAction = 'Pendataan dan Validasi Prestasi Peserta Didik';
+                                $unit = 'sertifikat';
+                                $template = 'Memverifikasi keabsahan piagam penghargaan dan mencatat data prestasi untuk total %d sertifikat peserta didik.';
+                            } else {
+                                $baseAction = 'Pelayanan Administrasi Kesiswaan';
+                                $unit = 'dokumen';
+                                $template = 'Melaksanakan input dan pengelolaan dokumen kesiswaan sebanyak total %d dokumen.';
                             }
                         }
                         // 3. Modul Kepegawaian GTK
                         elseif (str_contains($path, 'kepegawaian')) {
                             $bidang = 'kepegawaian';
                             if (str_contains($path, 'berkas')) {
-                                $baseAction = 'Pengarsipan berkas pegawai';
-                                $unit = 'dokumen';
-                                $template = 'Mengarsipkan dan memvalidasi berkas digital %d dokumen GTK.';
+                                $baseAction = 'Pengarsipan dan Verifikasi Berkas Kepegawaian GTK';
+                                $unit = 'berkas';
+                                $template = 'Memeriksa kelengkapan dokumen kedinasan dan mengarsipkan secara digital total %d berkas pegawai GTK.';
                             } elseif (str_contains($path, 'kgb')) {
-                                $baseAction = 'Pemrosesan usulan KGB pegawai';
+                                $baseAction = 'Pemrosesan Usulan Kenaikan Gaji Berkala (KGB)';
                                 $unit = 'usulan';
-                                $template = 'Memproses usulan kenaikan gaji berkala (KGB) untuk %d berkas GTK.';
+                                $template = 'Menyiapkan berkas masa kerja dan draft surat pengantar kenaikan gaji berkala untuk total %d usulan pegawai.';
                             } elseif (str_contains($path, 'cuti')) {
-                                $baseAction = 'Pengelolaan cuti pegawai';
+                                $baseAction = 'Pelayanan Administrasi Cuti Pegawai GTK';
                                 $unit = 'dokumen';
-                                $template = 'Memproses dan menerbitkan surat izin cuti untuk %d berkas pegawai.';
+                                $template = 'Memproses permohonan, verifikasi sisa hak cuti, dan penerbitan izin cuti dinas untuk total %d dokumen pegawai.';
+                            } else {
+                                $baseAction = 'Pelayanan Administrasi Kepegawaian GTK';
+                                $unit = 'dokumen';
+                                $template = 'Melaksanakan pemrosesan dokumen administrasi kepegawaian sebanyak total %d dokumen.';
                             }
                         }
                         // 4. Modul Sarpras & Aset
                         elseif (str_contains($path, 'sarpras')) {
                             $bidang = 'sarpras';
                             if (str_contains($path, 'ruang')) {
-                                $baseAction = 'Pendataan ruang dan bangunan';
+                                $baseAction = 'Pendataan dan Pemeriksaan Kondisi Ruang Sarpras';
                                 $unit = 'ruangan';
-                                $template = 'Memutakhirkan kondisi sarana pada %d unit ruangan sekolah.';
+                                $template = 'Melakukan inspeksi fisik, pembaruan data inventaris ruangan (KIR), dan mencatat kondisi %d ruangan fasilitas sekolah.';
                             } elseif (str_contains($path, 'peminjaman')) {
-                                $baseAction = 'Peminjaman sarana prasarana';
+                                $baseAction = 'Pelayanan Administrasi Peminjaman Sarpras';
                                 $unit = 'transaksi';
-                                $template = 'Melayani dan memproses %d transaksi peminjaman sarpras sekolah.';
+                                $template = 'Melayani permohonan peminjaman, pencatatan keluar-masuk, dan pemeriksaan kondisi fisik untuk total %d transaksi sarpras.';
                             } else {
-                                $baseAction = 'Inventarisasi sarana dan aset';
+                                $baseAction = 'Inventarisasi dan Pencatatan Aset Sarana Sekolah';
                                 $unit = 'barang';
-                                $template = 'Mencatat dan memperbarui kondisi %d unit barang/aset sekolah.';
+                                $template = 'Mencatat pengadaan, pelabelan kode aset, dan pembukuan inventaris sarana prasarana sebanyak total %d barang/aset.';
                             }
                         }
                         // 5. Modul Laboratorium
                         elseif (str_contains($path, 'laboran')) {
                             $bidang = 'laboran';
                             if (str_contains($path, 'jadwal')) {
-                                $baseAction = 'Penjadwalan laboratorium';
+                                $baseAction = 'Penjadwalan dan Pengelolaan Ruang Laboratorium';
                                 $unit = 'jadwal';
-                                $template = 'Mengatur alokasi waktu dan jadwal untuk %d sesi praktikum lab.';
+                                $template = 'Mengatur alokasi waktu pemakaian laboratorium dan kesiapan alat praktikum untuk total %d jadwal KBM.';
                             } else {
-                                $baseAction = 'Inventarisasi peralatan lab';
+                                $baseAction = 'Inventarisasi Peralatan dan Bahan Praktikum Lab';
                                 $unit = 'item';
-                                $template = 'Memeriksa dan memperbarui stok %d item peralatan laboratorium.';
+                                $template = 'Memeriksa ketersediaan bahan, kalibrasi alat, dan mencatat buku inventaris lab sebanyak total %d item peralatan.';
                             }
                         }
                         // 6. Modul Perpustakaan
                         elseif (str_contains($path, 'perpustakaan')) {
                             $bidang = 'perpustakaan';
                             if (str_contains($path, 'sirkulasi')) {
-                                $baseAction = 'Layanan sirkulasi perpustakaan';
+                                $baseAction = 'Pelayanan Sirkulasi Peminjaman Buku Perpustakaan';
                                 $unit = 'transaksi';
-                                $template = 'Memproses transaksi sirkulasi untuk %d transaksi buku perpustakaan.';
+                                $template = 'Melayani transaksi peminjaman, pengembalian, dan pencatatan sirkulasi bahan pustaka sebanyak total %d transaksi pemustaka.';
                             } elseif (str_contains($path, 'kunjungan')) {
-                                $baseAction = 'Pencatatan kunjungan perpustakaan';
+                                $baseAction = 'Pencatatan dan Rekapitulasi Kunjungan Perpustakaan';
                                 $unit = 'pengunjung';
-                                $template = 'Merekap kehadiran pemustaka sebanyak %d pengunjung perpustakaan.';
+                                $template = 'Mencatat presensi kehadiran pemustaka dan menyusun statistik kunjungan perpustakaan sebanyak total %d pengunjung.';
                             } else {
-                                $baseAction = 'Katalogisasi buku perpustakaan';
+                                $baseAction = 'Katalogisasi dan Pengolahan Bahan Pustaka';
                                 $unit = 'buku';
-                                $template = 'Menginput dan memberi label untuk %d judul buku perpustakaan.';
+                                $template = 'Melakukan klasifikasi DDC, pencatatan barcode, dan pelabelan punggung buku untuk total %d judul buku koleksi pustaka.';
                             }
                         }
                         // 7. Modul Teknisi
                         elseif (str_contains($path, 'teknisi')) {
                             $bidang = 'teknisi';
                             if (str_contains($path, 'work-order')) {
-                                $baseAction = 'Penanganan tiket teknisi';
+                                $baseAction = 'Penanganan Work Order dan Perbaikan Sarana IT';
                                 $unit = 'tiket';
-                                $template = 'Menindaklanjuti dan menyelesaikan %d tiket perbaikan teknis.';
+                                $template = 'Menindaklanjuti laporan kendala teknis, perbaikan hardware/software, dan menyelesaikan total %d tiket work order.';
                             } else {
-                                $baseAction = 'Pemeliharaan perangkat IT';
+                                $baseAction = 'Pemeliharaan Rutin Perangkat Komputer dan Jaringan';
                                 $unit = 'perangkat';
-                                $template = 'Melaksanakan pengecekan rutin pada %d unit perangkat IT sekolah.';
+                                $template = 'Melakukan pemeriksaan preventif berkala pada perangkat komputer, router, dan akses poin sebanyak total %d perangkat IT.';
                             }
                         }
                         // 8. Modul Keamanan Pos Gerbang
                         elseif (str_contains($path, 'keamanan')) {
                             $bidang = 'keamanan';
                             if (str_contains($path, 'buku-tamu')) {
-                                $baseAction = 'Pencatatan buku tamu';
+                                $baseAction = 'Pencatatan Tamu Kedinasan Pos Keamanan';
                                 $unit = 'tamu';
-                                $template = 'Mencatat identitas dan keperluan %d kunjungan tamu pos keamanan.';
+                                $template = 'Menerima tamu kedinasan, verifikasi identitas, dan mengisi buku agenda tamu sebanyak total %d kunjungan tamu.';
                             } elseif (str_contains($path, 'patroli')) {
-                                $baseAction = 'Patroli keamanan lingkungan';
+                                $baseAction = 'Pelaksanaan Patroli Keamanan Lingkungan Sekolah';
                                 $unit = 'putaran';
-                                $template = 'Melaksanakan patroli kontrol lingkungan sekolah sebanyak %d putaran.';
+                                $template = 'Melaksanakan patroli kontrol situasi lingkungan, gerbang, dan batas area sekolah sebanyak total %d putaran patroli.';
                             } elseif (str_contains($path, 'insiden')) {
-                                $baseAction = 'Penanganan insiden keamanan';
+                                $baseAction = 'Penanganan dan Dokumentasi Insiden Keamanan';
                                 $unit = 'laporan';
-                                $template = 'Mendokumentasikan penanganan terhadap %d laporan insiden keamanan.';
+                                $template = 'Mendokumentasikan penanganan dan penyelesaian insiden ketertiban lingkungan sebanyak total %d laporan kejadian.';
                             } elseif (str_contains($path, 'izin')) {
-                                $baseAction = 'Pemeriksaan tiket izin gerbang';
+                                $baseAction = 'Pemeriksaan Izin Keluar-Masuk Gerbang Siswa';
                                 $unit = 'siswa';
-                                $template = 'Memeriksa tiket izin gerbang untuk %d peserta didik.';
+                                $template = 'Memeriksa barcode tiket izin meninggalkan sekolah dan mencatat keluar-masuk gerbang untuk total %d peserta didik.';
                             }
                         }
                         // 9. Modul Penjaga & Fasilitas
                         elseif (str_contains($path, 'penjaga')) {
                             $bidang = 'penjaga';
                             if (str_contains($path, 'ronda')) {
-                                $baseAction = 'Ronda malam dan penguncian gedung';
+                                $baseAction = 'Pengawasan Keamanan Gedung dan Penguncian Pintu';
                                 $unit = 'putaran';
-                                $template = 'Melaksanakan kontrol keamanan gedung dan penguncian pintu sebanyak %d putaran.';
+                                $template = 'Memeriksa seluruh pintu, jendela, saklar listrik ruang kelas dan kantor sebanyak total %d putaran pengawasan.';
                             } else {
-                                $baseAction = 'Pembersihan fasilitas sekolah';
+                                $baseAction = 'Pemeliharaan Kebersihan dan Kenyamanan Lingkungan Sekolah';
                                 $unit = 'area';
-                                $template = 'Membersihkan dan merapikan sarana pada %d area fasilitas sekolah.';
+                                $template = 'Melaksanakan pembersihan ruang kelas, selasar, toilet, dan penataan taman sekolah pada total %d area fasilitas.';
                             }
                         }
                         // 10. Modul Piket Sekolah
                         elseif (str_contains($path, 'piket')) {
                             $bidang = 'umum';
                             if (str_contains($path, 'izin')) {
-                                $baseAction = 'Penerbitan surat izin piket';
+                                $baseAction = 'Penerbitan Surat Izin Keluar-Masuk Siswa Piket';
                                 $unit = 'dokumen';
-                                $template = 'Menerbitkan %d lembar surat izin meninggalkan kelas bagi siswa.';
+                                $template = 'Menerbitkan dan mengesahkan lembar izin keluar kelas dinas piket untuk total %d dokumen siswa.';
                             } else {
-                                $baseAction = 'Pengisian jurnal piket';
+                                $baseAction = 'Pengisian Buku Jurnal Piket Harian Sekolah';
                                 $unit = 'kegiatan';
-                                $template = 'Mencatat %d kejadian operasional harian pada buku jurnal piket.';
+                                $template = 'Mencatat rekapitulasi keterlambatan siswa dan dinamika operasional KBM pada total %d catatan jurnal piket.';
                             }
+                        }
+                        // 11. Modul Kartu Pelajar & Berkas
+                        elseif (str_contains($path, 'kartu-pelajar')) {
+                            $bidang = 'kesiswaan';
+                            $unit = 'dokumen';
+                            if (str_contains($path, 'klaim-garansi')) {
+                                $baseAction = 'Pelayanan Klaim Penggantian Kartu Pelajar';
+                                $template = 'Memverifikasi data dan memproses administrasi permohonan klaim kartu pelajar untuk total %d dokumen peserta didik.';
+                            } else {
+                                $baseAction = 'Pengelolaan dan Distribusi Kartu Pelajar';
+                                $template = 'Mencatat pembukuan dan memproses distribusi kartu pelajar untuk total %d dokumen peserta didik.';
+                            }
+                        } elseif (str_contains($path, 'berkas')) {
+                            $bidang = 'kesiswaan';
+                            $unit = 'berkas';
+                            $baseAction = 'Pengarsipan Berkas Digital Peserta Didik';
+                            $template = 'Mengunggah dan mengarsipkan dokumen berkas persyaratan peserta didik ke dalam sistem arsip digital sebanyak total %d berkas.';
+                        } elseif (str_contains($path, 'identitas')) {
+                            $bidang = 'kesiswaan';
+                            $unit = 'dokumen';
+                            $baseAction = 'Konfirmasi dan Validasi Identitas Peserta Didik';
+                            $template = 'Memeriksa dan mengonfirmasi keabsahan data identitas pokok peserta didik sebanyak total %d dokumen.';
                         }
 
                         // Hanya catat jika merupakan pekerjaan operasional tendik yang valid
