@@ -36,12 +36,16 @@
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 @if (isset($allPdList) && $allPdList->isNotEmpty())
-                    <form method="GET" action="{{ route('dashboard.peserta-didik') }}" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <label for="selectPdPreview" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Pilih Siswa:</label>
-                        <select id="selectPdPreview" name="peserta_didik_id" onchange="this.form.submit()" class="per-page-select"
+                    <form method="GET" action="{{ route('dashboard.peserta-didik') }}"
+                        style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <label for="selectPdPreview" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Pilih
+                            Siswa:</label>
+                        <select id="selectPdPreview" name="peserta_didik_id" onchange="this.form.submit()"
+                            class="per-page-select"
                             style="font-size: 0.8rem; min-width: 220px; padding: 5px 10px; border-radius: 8px; background: var(--card-bg, #1e293b); color: var(--text-color); border: 1px solid var(--border-color);">
                             @foreach ($allPdList as $s)
-                                <option value="{{ $s->peserta_didik_id }}" {{ ($pd->peserta_didik_id ?? null) === $s->peserta_didik_id ? 'selected' : '' }}>
+                                <option value="{{ $s->peserta_didik_id }}"
+                                    {{ ($pd->peserta_didik_id ?? null) === $s->peserta_didik_id ? 'selected' : '' }}>
                                     {{ $s->nama }} ({{ $s->nama_rombel ?: $s->nisn }})
                                 </option>
                             @endforeach
@@ -57,19 +61,22 @@
     @endif
 
     <!-- Welcome Banner -->
-    <div class="dash-banner" style="background: linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+    <div class="dash-banner"
+        style="background: linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(99,102,241,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
             @if ($fotoUrl)
                 <!-- Pasfoto Peserta Didik (Tanpa Bingkai & Tanpa Latar Belakang) -->
-                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
-                    <img src="{{ $fotoUrl }}" alt="{{ $displayPdName }}" 
-                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
-                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                <div class="dash-banner-foto"
+                    style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ $displayPdName }}"
+                        style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                        onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
             @endif
 
             <div style="flex: 1; min-width: 0;">
-                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                <h2
+                    style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                     <span
                         style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
                     {{ $displayPdName }}! 🎓
@@ -77,7 +84,8 @@
                 @php
                     $currentNisn = $pd->nisn ?? session('user.nisn');
                 @endphp
-                <div style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
+                <div
+                    style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
                     <button type="button" class="btn-copy-nisn" data-nisn="{{ $currentNisn }}"
                         title="Nomor Induk Siswa Nasional (NISN) — Sentuh untuk salin"
                         style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; background: rgba(6,182,212,0.12); border: 1px dashed rgba(6,182,212,0.45); border-radius: 6px; color: #38bdf8; font-family: monospace; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">
@@ -187,8 +195,10 @@
                                     <td style="padding: 10px; font-weight: 600; color: var(--text-color);">
                                         {{ $p['tanggal'] }}
                                     </td>
-                                    <td style="padding: 10px; color: #10b981; font-family: monospace; font-weight: 600;">{{ $p['jam_masuk'] }}</td>
-                                    <td style="padding: 10px; color: var(--text-muted); font-family: monospace;">{{ $p['jam_pulang'] }}</td>
+                                    <td style="padding: 10px; color: #10b981; font-family: monospace; font-weight: 600;">
+                                        {{ $p['jam_masuk'] }}</td>
+                                    <td style="padding: 10px; color: var(--text-muted); font-family: monospace;">
+                                        {{ $p['jam_pulang'] }}</td>
                                     <td style="padding: 10px;">
                                         <span
                                             style="background: {{ $p['badge_bg'] ?? 'rgba(16,185,129,0.15)' }}; color: {{ $p['badge_color'] ?? '#10b981' }}; padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
@@ -198,8 +208,10 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 0.82rem;">
-                                        <i class="fas fa-id-card mb-2" style="font-size: 1.4rem; opacity: 0.35; display: block;"></i>
+                                    <td colspan="4"
+                                        style="text-align: center; padding: 24px 10px; color: var(--text-muted); font-size: 0.82rem;">
+                                        <i class="fas fa-id-card mb-2"
+                                            style="font-size: 1.4rem; opacity: 0.35; display: block;"></i>
                                         Belum ada riwayat tap presensi tercatat.
                                     </td>
                                 </tr>
@@ -221,19 +233,26 @@
                 </div>
 
                 @if (empty($isJadwalDiberlakukan))
-                    <div style="text-align: center; padding: 24px 14px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: 12px;">
-                        <i class="fas fa-clock" style="font-size: 2rem; color: #f59e0b; margin-bottom: 6px; display: block; opacity: 0.85;"></i>
-                        <h4 style="font-size: 0.9rem; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal Pelajaran Masih Draft</h4>
+                    <div
+                        style="text-align: center; padding: 24px 14px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: 12px;">
+                        <i class="fas fa-clock"
+                            style="font-size: 2rem; color: #f59e0b; margin-bottom: 6px; display: block; opacity: 0.85;"></i>
+                        <h4 style="font-size: 0.9rem; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal
+                            Pelajaran Masih Draft</h4>
                         <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">
                             Jadwal KBM semester ini sedang disiapkan oleh pihak sekolah dan akan segera aktif.
                         </p>
                     </div>
                 @elseif (empty($jadwal_pelajaran) || count($jadwal_pelajaran) === 0)
-                    <div style="text-align: center; padding: 26px 14px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 12px;">
-                        <i class="fas fa-calendar-check" style="font-size: 2rem; color: var(--primary); margin-bottom: 6px; display: block; opacity: 0.85;"></i>
-                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada KBM Hari Ini</h4>
+                    <div
+                        style="text-align: center; padding: 26px 14px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 12px;">
+                        <i class="fas fa-calendar-check"
+                            style="font-size: 2rem; color: var(--primary); margin-bottom: 6px; display: block; opacity: 0.85;"></i>
+                        <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">
+                            Tidak Ada KBM Hari Ini</h4>
                         <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">
-                            Tidak ada jadwal pelajaran tatap muka untuk kelas {{ $pd->nama_rombel ?? '' }} pada hari {{ $hariIni ?? 'ini' }}.
+                            Tidak ada jadwal pelajaran tatap muka untuk kelas {{ $pd->nama_rombel ?? '' }} pada hari
+                            {{ $hariIni ?? 'ini' }}.
                         </p>
                     </div>
                 @else
@@ -266,10 +285,13 @@
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/kartu-pelajar.css') }}?v={{ filemtime(public_path('css/kartu-pelajar.css')) }}">
+    <link rel="stylesheet"
+        href="{{ asset('css/kartu-pelajar.css') }}?v={{ filemtime(public_path('css/kartu-pelajar.css')) }}">
 @endpush
 
 @push('scripts')
     <script src="{{ asset('js/html2canvas.min.js') }}"></script>
-    <script src="{{ asset('js/peserta-didik.js') }}?v={{ file_exists(public_path('js/peserta-didik.js')) ? filemtime(public_path('js/peserta-didik.js')) : time() }}"></script>
+    <script
+        src="{{ asset('js/peserta-didik.js') }}?v={{ file_exists(public_path('js/peserta-didik.js')) ? filemtime(public_path('js/peserta-didik.js')) : time() }}">
+    </script>
 @endpush

@@ -636,6 +636,14 @@
                 </button>
                 <div class="dash-nav-submenu">
 
+                    @if ($can('menu_jadwal_pelajaran_guru') || $can('menu_jadwal_kbm') || $role === 'guru')
+                        <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}"
+                            class="dash-nav-sublink {{ $isJadwalGuruActive ? 'active' : '' }}">
+                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                            <span class="nav-label">Jadwal Mengajar</span>
+                        </a>
+                    @endif
+
                     @if ($can('menu_presensi_mengajar'))
                         <a href="{{ route('dashboard.presensi-mengajar.index') }}"
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') ? 'active' : '' }}">
@@ -657,14 +665,6 @@
                             class="dash-nav-sublink {{ request()->routeIs('dashboard.agenda-kbm*') ? 'active' : '' }}">
                             <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
                             <span class="nav-label">Jurnal &amp; Agenda KBM</span>
-                        </a>
-                    @endif
-
-                    @if ($can('menu_jadwal_pelajaran_guru') || $can('menu_jadwal_kbm') || $role === 'guru')
-                        <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}"
-                            class="dash-nav-sublink {{ $isJadwalGuruActive ? 'active' : '' }}">
-                            <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
-                            <span class="nav-label">Jadwal Mengajar</span>
                         </a>
                     @endif
 
@@ -1990,6 +1990,11 @@
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-gauge-high"></i></span>
                     <span class="nav-label">Dashboard Guru</span>
                 </a>
+                <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') && request('view') === 'guru' ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
+                    <span class="nav-label">Jadwal Mengajar</span>
+                </a>
                 <a href="{{ route('dashboard.presensi-mengajar.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.presensi-mengajar*') ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-check"></i></span>
@@ -2004,11 +2009,6 @@
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.agenda-kbm*') ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
                     <span class="nav-label">Jurnal &amp; Agenda KBM</span>
-                </a>
-                <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-pelajaran*') && request('view') === 'guru' ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-days"></i></span>
-                    <span class="nav-label">Jadwal Mengajar</span>
                 </a>
             </div>
         </div>

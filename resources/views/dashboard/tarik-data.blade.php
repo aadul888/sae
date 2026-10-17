@@ -244,7 +244,8 @@
                         <div style="color: var(--text-muted); font-size: 0.8rem; line-height: 1.4;">
                             <ul style="margin: 4px 0 0 16px; padding: 0;">
                                 <li>Pada <b>DAPODIK WEB SERVICE</b>: Masukkan NPSN dan Token Web Service Dapodik, lalu klik
-                                    <b>Simpan</b>.</li>
+                                    <b>Simpan</b>.
+                                </li>
                                 <li>Pada <b>APLIKASI SAE TARGET</b>: Masukkan <b>URL Target SAE</b> dan <b>API Key</b> di
                                     samping ini, lalu klik <b>Simpan</b>.</li>
                             </ul>

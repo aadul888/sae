@@ -220,8 +220,7 @@
                                             method="POST" data-confirm-action="checkout"
                                             data-name="{{ $item->nama_siswa }}" style="display: inline;">
                                             @csrf
-                                            <button type="submit" class="btn-icon"
-                                                title="Verifikasi Keluar Gerbang"
+                                            <button type="submit" class="btn-icon" title="Verifikasi Keluar Gerbang"
                                                 style="color: #f59e0b;">
                                                 <i class="fas fa-arrow-right-from-bracket"></i>
                                             </button>
@@ -232,8 +231,7 @@
                                             data-name="{{ $item->nama_siswa }}" style="display: inline;">
                                             @csrf
                                             <button type="submit" class="btn-icon"
-                                                title="Verifikasi Kembali Masuk Gerbang"
-                                                style="color: #10b981;">
+                                                title="Verifikasi Kembali Masuk Gerbang" style="color: #10b981;">
                                                 <i class="fas fa-arrow-right-to-bracket"></i>
                                             </button>
                                         </form>

@@ -37,9 +37,9 @@
                 <i class="fas fa-calendar-check text-primary"></i>
             </a>
             @if ($selectedRombel && $siswaList->isNotEmpty())
-                <button type="button" class="btn btn-primary" id="btnHadirSemua"
-                    data-rombel="{{ $selectedRombelId }}" data-rombel-nama="{{ $selectedRombel->nama }}"
-                    data-pembelajaran="{{ $selectedPembelajaranId }}" data-jam-ke="{{ $jamKe }}"
+                <button type="button" class="btn btn-primary" id="btnHadirSemua" data-rombel="{{ $selectedRombelId }}"
+                    data-rombel-nama="{{ $selectedRombel->nama }}" data-pembelajaran="{{ $selectedPembelajaranId }}"
+                    data-jam-ke="{{ $jamKe }}"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
                     title="Tandai Hadir Seluruh Peserta Didik">
                     <i class="fas fa-check-double"></i>

@@ -144,8 +144,8 @@
                 </div>
             @endif
 
-            <!-- Selector Rombel Khusus Admin -->
-            @if ($isAdmin && $rombelList->isNotEmpty())
+            <!-- Selector Rombel (Admin, Wali Kelas, & Guru Mapel) -->
+            @if (($isAdmin || !$isLockedRombel || $rombelList->count() > 1) && $rombelList->isNotEmpty())
                 <div style="display: flex; align-items: center; gap: 6px;">
                     <label for="adminSelectRombel"
                         style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin: 0;">Pilih
@@ -171,13 +171,15 @@
                         <i class="fas fa-print text-primary"></i>
                     </a>
 
-                    <button type="button" class="btn btn-outline" id="btnResetRombel"
-                        data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
-                        data-rombel-name="{{ $activeRombel->nama }}"
-                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(239,68,68,0.4); color: #ef4444;"
-                        title="Kosongkan Seluruh Jadwal Kelas Ini">
-                        <i class="fas fa-rotate-left"></i>
-                    </button>
+                    @if ($isAdmin || !empty($isWaliKelas))
+                        <button type="button" class="btn btn-outline" id="btnResetRombel"
+                            data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
+                            data-rombel-name="{{ $activeRombel->nama }}"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: rgba(239,68,68,0.4); color: #ef4444;"
+                            title="Kosongkan Seluruh Jadwal Kelas Ini">
+                            <i class="fas fa-rotate-left"></i>
+                        </button>
+                    @endif
 
                     <button type="button" class="btn btn-primary" id="btnTambahSlotManual"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
@@ -189,12 +191,19 @@
         </div>
     </div>
 
-    <!-- Sub-Menu Navigasi Jadwal KBM (Generate vs Manual) -->
+    <!-- Sub-Menu Navigasi Jadwal KBM (Generate vs Manual vs Jadwal Mengajar) -->
     <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
         <div class="jadwal-subnav-desktop">
-            <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab">
-                <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
-            </a>
+            @if ($role === 'guru' || $isAdmin)
+                <a href="{{ route('dashboard.jadwal-pelajaran.index', ['view' => 'guru']) }}" class="periode-nav-tab">
+                    <i class="fas fa-calendar-days me-1"></i> Jadwal Mengajar Saya
+                </a>
+            @endif
+            @if ($isAdmin || \App\Models\RolePermission::canAccess(session('user'), 'menu_jadwal_kbm', 'read'))
+                <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="periode-nav-tab">
+                    <i class="fas fa-wand-magic-sparkles me-1"></i> Generate Jadwal (Otomatis)
+                </a>
+            @endif
             <a href="{{ route('dashboard.jadwal-kbm.manual.index', $activeRombel ? ['rombel_id' => $activeRombel->rombongan_belajar_id] : []) }}"
                 class="periode-nav-tab active">
                 <i class="fas fa-pen-to-square me-1"></i> Jadwal Manual (Per Kelas)
@@ -251,7 +260,8 @@
                         <strong
                             style="color: #ef4444;">{{ $statusHariIni['keterangan'] ?? 'Hari Libur / Tidak Ada KBM' }}</strong>
                     @elseif (!empty($agendaHariIni))
-                        <strong style="color: var(--primary);">{{ $agendaHariIni->nama_agenda ?: ($agendaHariIni->nama_kegiatan ?: ($agendaHariIni->kegiatan ?? 'Agenda Khusus')) }}</strong>
+                        <strong
+                            style="color: var(--primary);">{{ $agendaHariIni->nama_agenda ?: ($agendaHariIni->nama_kegiatan ?: $agendaHariIni->kegiatan ?? 'Agenda Khusus') }}</strong>
                     @else
                         KBM Berjalan Normal
                     @endif
@@ -987,9 +997,13 @@
                         <option value="">-- Pilih Mata Pelajaran --</option>
                         @if ($activeRombel)
                             @foreach ($pembelajaranData as $p)
+                                @php
+                                    $isMine = !empty($currentPtkId) && $p->ptk_id === $currentPtkId;
+                                @endphp
                                 <option value="{{ $p->pembelajaran_id }}" data-ptk-id="{{ $p->ptk_id }}"
                                     data-target-jp="{{ $p->target_jp }}" data-remaining-jp="{{ $p->remaining_jp }}">
-                                    {{ $p->nama_mata_pelajaran }} — {{ $p->nama_guru ?: 'Tanpa Guru' }} (Sisa:
+                                    {{ $isMine ? '★ [Mapel Saya] ' : '' }}{{ $p->nama_mata_pelajaran }} —
+                                    {{ $p->nama_guru ?: 'Tanpa Guru' }} (Sisa:
                                     {{ $p->remaining_jp }} JP)
                                 </option>
                             @endforeach

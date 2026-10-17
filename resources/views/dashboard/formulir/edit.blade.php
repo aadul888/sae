@@ -66,7 +66,8 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Deskripsi / Petunjuk Pengisian</label>
+                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Deskripsi / Petunjuk
+                        Pengisian</label>
                     <textarea name="deskripsi" class="form-control" rows="3"
                         placeholder="Jelaskan tujuan dan instruksi pengisian formulir...">{{ old('deskripsi', $formulir->deskripsi) }}</textarea>
                 </div>
@@ -81,18 +82,24 @@
                 <div class="mb-3">
                     <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Target Peran</label>
                     <select name="target_peran" id="targetPeranSelect" class="form-select" onchange="toggleRombelTarget()">
-                        <option value="semua" {{ $formulir->target_peran === 'semua' ? 'selected' : '' }}>Semua Pengguna SAE (Login)</option>
-                        <option value="peserta_didik" {{ $formulir->target_peran === 'peserta_didik' ? 'selected' : '' }}>Khusus Peserta Didik</option>
-                        <option value="guru" {{ $formulir->target_peran === 'guru' ? 'selected' : '' }}>Khusus Guru / Pendidik</option>
-                        <option value="tendik" {{ $formulir->target_peran === 'tendik' ? 'selected' : '' }}>Khusus Tenaga Kependidikan</option>
-                        <option value="publik" {{ $formulir->target_peran === 'publik' ? 'selected' : '' }}>Publik Terbuka (Siapa saja tanpa login)</option>
+                        <option value="semua" {{ $formulir->target_peran === 'semua' ? 'selected' : '' }}>Semua Pengguna
+                            SAE (Login)</option>
+                        <option value="peserta_didik" {{ $formulir->target_peran === 'peserta_didik' ? 'selected' : '' }}>
+                            Khusus Peserta Didik</option>
+                        <option value="guru" {{ $formulir->target_peran === 'guru' ? 'selected' : '' }}>Khusus Guru /
+                            Pendidik</option>
+                        <option value="tendik" {{ $formulir->target_peran === 'tendik' ? 'selected' : '' }}>Khusus Tenaga
+                            Kependidikan</option>
+                        <option value="publik" {{ $formulir->target_peran === 'publik' ? 'selected' : '' }}>Publik Terbuka
+                            (Siapa saja tanpa login)</option>
                     </select>
                     <div id="targetRoleHint" class="form-text mt-1" style="font-size: 0.76rem;"></div>
                 </div>
 
                 <div class="mb-3" id="targetRombelBox"
                     style="display: {{ $formulir->target_peran === 'peserta_didik' ? 'block' : 'none' }};">
-                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Batasi Khusus Rombel (Kelas)</label>
+                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Batasi Khusus Rombel
+                        (Kelas)</label>
                     <select name="target_rombel_id" class="form-select">
                         <option value="">-- Semua Rombel / Kelas --</option>
                         @foreach ($rombels as $r)
@@ -101,7 +108,8 @@
                                 {{ $r->nama }}</option>
                         @endforeach
                     </select>
-                    <small class="text-muted" style="font-size: 0.75rem;">Hanya peserta didik di kelas tersebut yang diizinkan mengisi.</small>
+                    <small class="text-muted" style="font-size: 0.75rem;">Hanya peserta didik di kelas tersebut yang
+                        diizinkan mengisi.</small>
                 </div>
 
                 <div class="form-check mb-3">
@@ -124,7 +132,8 @@
 
                 <!-- Waktu & Status -->
                 <div class="mb-3">
-                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Batas Waktu Pengisian (Opsional)</label>
+                    <label class="form-label" style="font-size: 0.85rem; font-weight: 600;">Batas Waktu Pengisian
+                        (Opsional)</label>
                     <input type="datetime-local" name="tanggal_selesai" class="form-control" style="font-size: 0.85rem;"
                         value="{{ $formulir->tanggal_selesai ? $formulir->tanggal_selesai->format('Y-m-d\TH:i') : '' }}">
                 </div>
@@ -198,8 +207,7 @@
                         onclick="addField('sae_nama', 'Nama Lengkap Peserta Didik')">
                         <i class="fas fa-user-check text-warning"></i> Nama Peserta Didik (Auto)
                     </button>
-                    <button type="button" class="btn-preset-field sae-field"
-                        onclick="addField('sae_nisn', 'NISN')">
+                    <button type="button" class="btn-preset-field sae-field" onclick="addField('sae_nisn', 'NISN')">
                         <i class="fas fa-fingerprint text-warning"></i> NISN (Auto)
                     </button>
                     <button type="button" class="btn-preset-field sae-field"
@@ -213,7 +221,8 @@
 
                 <div id="emptyQuestionsPlaceholder"
                     style="text-align: center; padding: 40px 20px; border: 2px dashed var(--border-color); border-radius: 12px; color: var(--text-muted); display: none;">
-                    <i class="fas fa-arrow-up" style="font-size: 1.6rem; color: var(--text-muted); margin-bottom: 10px;"></i>
+                    <i class="fas fa-arrow-up"
+                        style="font-size: 1.6rem; color: var(--text-muted); margin-bottom: 10px;"></i>
                     <p style="margin: 0; font-size: 0.88rem; font-weight: 600;">Belum ada pertanyaan.</p>
                 </div>
             </div>

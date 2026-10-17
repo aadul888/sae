@@ -43,8 +43,7 @@
                     title="Cetak Dokumen Resmi Laporan Kinerja">
                     <i class="fas fa-print"></i>
                 </a>
-                <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}"
-                    class="btn btn-outline"
+                <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
                     title="Target &amp; Capaian Kinerja">
                     <i class="fas fa-bullseye text-primary"></i>

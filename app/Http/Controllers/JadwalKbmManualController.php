@@ -45,10 +45,50 @@ class JadwalKbmManualController extends Controller
             ];
         }
 
-        // Pengguna Wali Kelas (Guru) atau Koordinator Kelas (Peserta Didik)
-        $activeRombel = RolePermission::getWaliKelasRombelInfo($user);
+        // Pengguna Wali Kelas (Guru)
+        $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
 
-        // Fallback untuk Peserta Didik jika penunjukan koordinator aktif tapi relasi rombel belum terikat sempurna
+        // Jika Pengguna adalah Guru (Wali Kelas maupun Guru Mapel)
+        if ($role === 'guru') {
+            $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+            $allRombels = $rombelQuery->get();
+
+            // Rombel di mana guru mengampu mata pelajaran (pembelajaran)
+            $guruRombelIds = [];
+            if ($ptkId && Schema::hasTable('pembelajaran')) {
+                $guruRombelIds = DB::table('pembelajaran')
+                    ->where('ptk_id', $ptkId)
+                    ->whereNotNull('rombongan_belajar_id')
+                    ->distinct()
+                    ->pluck('rombongan_belajar_id')
+                    ->toArray();
+            }
+
+            if ($waliRombel && !in_array($waliRombel->rombongan_belajar_id, $guruRombelIds, true)) {
+                $guruRombelIds[] = $waliRombel->rombongan_belajar_id;
+            }
+
+            // Prioritaskan kelas ampu / binaan guru, atau seluruh kelas jika belum ada pembelajaran
+            $rombelList = !empty($guruRombelIds)
+                ? $allRombels->whereIn('rombongan_belajar_id', $guruRombelIds)->values()
+                : $allRombels;
+
+            $selectedId = $request->get('rombel_id')
+                ?: ($waliRombel?->rombongan_belajar_id ?: ($rombelList->first()?->rombongan_belajar_id ?? null));
+
+            $activeRombel = $rombelList->firstWhere('rombongan_belajar_id', $selectedId)
+                ?: ($allRombels->firstWhere('rombongan_belajar_id', $selectedId) ?: $rombelList->first());
+
+            return [
+                'isAdmin'        => false,
+                'isLockedRombel' => false,
+                'rombelList'     => $rombelList,
+                'activeRombel'   => $activeRombel,
+            ];
+        }
+
+        // Pengguna Koordinator Kelas (Peserta Didik)
+        $activeRombel = $waliRombel;
         if (!$activeRombel && $role === 'peserta_didik') {
             $pdId = is_array($user) ? ($user['peserta_didik_id'] ?? null) : ($user->peserta_didik_id ?? null);
             if ($pdId && Schema::hasTable('peserta_didik')) {
@@ -56,14 +96,6 @@ class JadwalKbmManualController extends Controller
                 if ($pd && !empty($pd->rombongan_belajar_id)) {
                     $activeRombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $pd->rombongan_belajar_id)->first();
                 }
-            }
-        }
-
-        // Fallback untuk Guru yang terdaftar di rombongan_belajar.ptk_id
-        if (!$activeRombel && $role === 'guru') {
-            $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
-            if ($ptkId) {
-                $activeRombel = DB::table('rombongan_belajar')->where('ptk_id', $ptkId)->first();
             }
         }
 
@@ -84,13 +116,15 @@ class JadwalKbmManualController extends Controller
         if (!$user) return redirect()->route('login');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
 
-        // Hak akses: Admin, Wali Kelas, atau Siswa Koordinator
+        // Hak akses: Admin, Guru (termasuk Guru Mapel), Wali Kelas, atau Siswa Koordinator
         $isAdmin = ($role === 'admin');
+        $isGuru = ($role === 'guru');
         $isKoordinator = RolePermission::isKoordinator($user);
         $canAccessJadwal = RolePermission::canAccess($user ?: $role, 'menu_jadwal_kbm', 'read');
         $canAccessWaliJadwal = RolePermission::canAccess($user ?: $role, 'menu_wali_kelas_jadwal', 'read');
+        $canAccessJadwalGuru = RolePermission::canAccess($user ?: $role, 'menu_jadwal_pelajaran_guru', 'read');
 
-        $hasAccess = $isAdmin || $canAccessJadwal || $canAccessWaliJadwal || ($isKoordinator && $canAccessWaliJadwal);
+        $hasAccess = $isAdmin || $isGuru || $canAccessJadwal || $canAccessWaliJadwal || $canAccessJadwalGuru || ($isKoordinator && $canAccessWaliJadwal);
         if (!$hasAccess) {
             return redirect()->route('dashboard.' . ($role ?: 'peserta_didik'))
                 ->with('error', 'Anda tidak memiliki wewenang untuk mengakses modul input Jadwal KBM Manual.');
@@ -321,11 +355,19 @@ class JadwalKbmManualController extends Controller
         $isDiberlakukan  = $isManualAktif;
         $statusJadwal    = $isManualAktif ? 'aktif' : 'draft';
 
+        $currentPtkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+        $isGuru = ($role === 'guru');
+        $isWaliKelas = RolePermission::getWaliKelasRombelInfo($user)?->rombongan_belajar_id === ($activeRombel?->rombongan_belajar_id ?? null);
+
         return view('dashboard.jadwal-kbm-manual', compact(
             'activeRombel',
             'rombelList',
             'isLockedRombel',
             'isAdmin',
+            'isGuru',
+            'isWaliKelas',
+            'currentPtkId',
+            'role',
             'pembelajaranData',
             'summary',
             'hariAktif',
@@ -368,19 +410,6 @@ class JadwalKbmManualController extends Controller
             'keterangan'           => 'nullable|string|max:255',
         ]);
 
-        // Proteksi Otoritas: Koordinator & Wali Kelas hanya boleh input untuk kelas binaannya
-        if ($role !== 'admin') {
-            $context = $this->resolveUserContext($request, $user);
-            $userRombelId = $context['activeRombel']?->rombongan_belajar_id;
-
-            if (!$userRombelId || $userRombelId !== $validated['rombongan_belajar_id']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda hanya memiliki wewenang mengelola jadwal untuk kelas binaan Anda sendiri.',
-                ], 403);
-            }
-        }
-
         // Ambil Data Pembelajaran
         $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $validated['pembelajaran_id'])->first();
         if (!$pembelajaran) {
@@ -390,6 +419,79 @@ class JadwalKbmManualController extends Controller
         $ptkId = $pembelajaran->ptk_id;
         $mapelId = $pembelajaran->mata_pelajaran_id;
         $namaMapel = $pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str;
+
+        // Proteksi Otoritas: Admin, Wali Kelas, Guru Pengampu Mapel, atau Koordinator Kelas
+        if ($role === 'peserta_didik') {
+            $context = $this->resolveUserContext($request, $user);
+            $userRombelId = $context['activeRombel']?->rombongan_belajar_id;
+
+            if (!$userRombelId || $userRombelId !== $validated['rombongan_belajar_id']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Koordinator kelas hanya memiliki wewenang mengelola jadwal untuk kelas sendiri.',
+                ], 403);
+            }
+        } elseif ($role === 'guru') {
+            $sessionPtkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+            $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
+            $isWali = $waliRombel && ($waliRombel->rombongan_belajar_id === $validated['rombongan_belajar_id']);
+            $canManageAll = RolePermission::canAccess($user, 'menu_jadwal_kbm', 'create') || RolePermission::canAccess($user, 'menu_jadwal_kbm', 'update');
+            $isOwnMapel = $sessionPtkId && ($pembelajaran->ptk_id === $sessionPtkId);
+
+            if (!$isWali && !$canManageAll && !$isOwnMapel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda hanya berhak menginput slot untuk mata pelajaran yang Anda ampu atau kelas binaan Anda.',
+                ], 403);
+            }
+        }
+
+        $setting = JadwalPengaturan::getSettings();
+
+        // 1. Validasi Hari Aktif Belajar (Sesuai Skema Hari Sekolah: 5 Hari vs 6 Hari)
+        $hariAktif = JadwalPengaturan::getHariAktifList();
+        if (!in_array($validated['hari'], $hariAktif, true)) {
+            $skema = ($setting->skema_hari === '6_hari') ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)';
+            return response()->json([
+                'success' => false,
+                'message' => "Hari {$validated['hari']} bukan hari operasional KBM sesuai Skema Jadwal Induk ({$skema}).",
+            ], 422);
+        }
+
+        // 2. Validasi Batas Kuota JP Harian dari Jadwal Pengaturan
+        $dailyCounts = JadwalPengaturan::getDailySlotCounts();
+        $maxJpHari = $dailyCounts[$validated['hari']] ?? (int) $setting->total_slot_jp;
+        if ((int) $validated['jam_ke_selesai'] > $maxJpHari) {
+            return response()->json([
+                'success' => false,
+                'message' => "Jam ke-{$validated['jam_ke_selesai']} melebihi batas kuota JP hari {$validated['hari']} ({$maxJpHari} JP) pada Pengaturan Jadwal Induk.",
+            ], 422);
+        }
+
+        // 3. Validasi Batas Maksimal JP per Sesi Mengajar
+        $durasiSesi = (int) $validated['jam_ke_selesai'] - (int) $validated['jam_ke_mulai'] + 1;
+        $maxJpPerSesi = max(2, (int) ($setting->max_jp_per_sesi ?? 3));
+        if ($durasiSesi > $maxJpPerSesi) {
+            return response()->json([
+                'success' => false,
+                'message' => "Durasi sesi mengajar ({$durasiSesi} JP) melebihi batas maksimal ({$maxJpPerSesi} JP per sesi) pada Pengaturan Jadwal Induk.",
+            ], 422);
+        }
+
+        // 4. Proteksi Kegiatan Rutin Sekolah (Upacara, Istirahat, Pembiasaan)
+        $routineConflict = JadwalKbm::where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
+            ->where('hari', $validated['hari'])
+            ->whereIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
+            ->where('jam_ke_mulai', '<=', (int) $validated['jam_ke_selesai'])
+            ->where('jam_ke_selesai', '>=', (int) $validated['jam_ke_mulai'])
+            ->first();
+
+        if ($routineConflict) {
+            return response()->json([
+                'success' => false,
+                'message' => "Slot waktu tersebut bertepatan dengan kegiatan rutin sekolah '{$routineConflict->nama_mata_pelajaran}' (Jam ke-{$routineConflict->jam_ke_mulai}) pada Pengaturan Jadwal Induk.",
+            ], 422);
+        }
 
         // Hitung jam mulai dan selesai berdasarkan pengaturan slot
         $slots = JadwalPengaturan::getSlots($validated['hari']);
@@ -418,11 +520,12 @@ class JadwalKbmManualController extends Controller
         if ($conflict['has_conflict']) {
             if ($conflict['type'] === 'rombel') {
                 if ($overwrite) {
-                    // Timpa / Hapus jadwal manual lama di kelas ini yang bertabrakan pada jam tersebut
+                    // Timpa / Hapus jadwal manual lama di kelas ini yang bertabrakan pada jam tersebut (kecualikan kegiatan rutin)
                     JadwalKbm::where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
                         ->where('hari', $validated['hari'])
                         ->where('sumber', 'manual')
                         ->where('is_active', true)
+                        ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
                         ->where(function ($q) use ($jamMulai, $jamSelesai) {
                             $q->where('jam_mulai', '<', $jamSelesai)
                               ->where('jam_selesai', '>', $jamMulai);
@@ -462,7 +565,7 @@ class JadwalKbmManualController extends Controller
             'jam_ke_selesai'       => $validated['jam_ke_selesai'],
             'jam_mulai'            => $jamMulai,
             'jam_selesai'          => $jamSelesai,
-            'ruangan'              => $validated['ruangan'] ?: ($rombel->nama ?? null),
+            'ruangan'              => !empty($validated['ruangan']) ? $validated['ruangan'] : ($rombel->nama ?? null),
             'semester_id'          => $rombel->semester_id ?? null,
             'sumber'               => 'manual',
             'is_active'            => true,
@@ -510,19 +613,6 @@ class JadwalKbmManualController extends Controller
             ], 422);
         }
 
-        // Proteksi Otoritas
-        if ($role !== 'admin') {
-            $context = $this->resolveUserContext($request, $user);
-            $userRombelId = $context['activeRombel']?->rombongan_belajar_id;
-
-            if (!$userRombelId || $userRombelId !== $jadwal->rombongan_belajar_id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Anda tidak memiliki wewenang mengubah jadwal kelas lain.',
-                ], 403);
-            }
-        }
-
         $validated = $request->validate([
             'pembelajaran_id' => 'required|string|max:50',
             'hari'            => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
@@ -540,6 +630,80 @@ class JadwalKbmManualController extends Controller
         $ptkId = $pembelajaran->ptk_id;
         $mapelId = $pembelajaran->mata_pelajaran_id;
         $namaMapel = $pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str;
+
+        // Proteksi Otoritas: Admin, Wali Kelas, Guru Pengampu Mapel, atau Koordinator Kelas
+        if ($role === 'peserta_didik') {
+            $context = $this->resolveUserContext($request, $user);
+            $userRombelId = $context['activeRombel']?->rombongan_belajar_id;
+
+            if (!$userRombelId || $userRombelId !== $jadwal->rombongan_belajar_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki wewenang mengubah jadwal kelas lain.',
+                ], 403);
+            }
+        } elseif ($role === 'guru') {
+            $sessionPtkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+            $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
+            $isWali = $waliRombel && ($waliRombel->rombongan_belajar_id === $jadwal->rombongan_belajar_id);
+            $canManageAll = RolePermission::canAccess($user, 'menu_jadwal_kbm', 'update');
+            $isOwnMapel = $sessionPtkId && ($jadwal->ptk_id === $sessionPtkId || $pembelajaran->ptk_id === $sessionPtkId);
+
+            if (!$isWali && !$canManageAll && !$isOwnMapel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda hanya berhak mengubah slot untuk mata pelajaran yang Anda ampu atau kelas binaan Anda.',
+                ], 403);
+            }
+        }
+
+        $setting = JadwalPengaturan::getSettings();
+
+        // 1. Validasi Hari Aktif Belajar (Sesuai Skema Hari Sekolah: 5 Hari vs 6 Hari)
+        $hariAktif = JadwalPengaturan::getHariAktifList();
+        if (!in_array($validated['hari'], $hariAktif, true)) {
+            $skema = ($setting->skema_hari === '6_hari') ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)';
+            return response()->json([
+                'success' => false,
+                'message' => "Hari {$validated['hari']} bukan hari operasional KBM sesuai Skema Jadwal Induk ({$skema}).",
+            ], 422);
+        }
+
+        // 2. Validasi Batas Kuota JP Harian dari Jadwal Pengaturan
+        $dailyCounts = JadwalPengaturan::getDailySlotCounts();
+        $maxJpHari = $dailyCounts[$validated['hari']] ?? (int) $setting->total_slot_jp;
+        if ((int) $validated['jam_ke_selesai'] > $maxJpHari) {
+            return response()->json([
+                'success' => false,
+                'message' => "Jam ke-{$validated['jam_ke_selesai']} melebihi batas kuota JP hari {$validated['hari']} ({$maxJpHari} JP) pada Pengaturan Jadwal Induk.",
+            ], 422);
+        }
+
+        // 3. Validasi Batas Maksimal JP per Sesi Mengajar
+        $durasiSesi = (int) $validated['jam_ke_selesai'] - (int) $validated['jam_ke_mulai'] + 1;
+        $maxJpPerSesi = max(2, (int) ($setting->max_jp_per_sesi ?? 3));
+        if ($durasiSesi > $maxJpPerSesi) {
+            return response()->json([
+                'success' => false,
+                'message' => "Durasi sesi mengajar ({$durasiSesi} JP) melebihi batas maksimal ({$maxJpPerSesi} JP per sesi) pada Pengaturan Jadwal Induk.",
+            ], 422);
+        }
+
+        // 4. Proteksi Kegiatan Rutin Sekolah (Upacara, Istirahat, Pembiasaan)
+        $routineConflict = JadwalKbm::where('rombongan_belajar_id', $jadwal->rombongan_belajar_id)
+            ->where('id', '!=', $id)
+            ->where('hari', $validated['hari'])
+            ->whereIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
+            ->where('jam_ke_mulai', '<=', (int) $validated['jam_ke_selesai'])
+            ->where('jam_ke_selesai', '>=', (int) $validated['jam_ke_mulai'])
+            ->first();
+
+        if ($routineConflict) {
+            return response()->json([
+                'success' => false,
+                'message' => "Slot waktu tersebut bertepatan dengan kegiatan rutin sekolah '{$routineConflict->nama_mata_pelajaran}' (Jam ke-{$routineConflict->jam_ke_mulai}) pada Pengaturan Jadwal Induk.",
+            ], 422);
+        }
 
         $slots = JadwalPengaturan::getSlots($validated['hari']);
         $startSlot = $slots[(int) $validated['jam_ke_mulai']] ?? null;
@@ -566,12 +730,13 @@ class JadwalKbmManualController extends Controller
         if ($conflict['has_conflict']) {
             if ($conflict['type'] === 'rombel') {
                 if ($overwrite) {
-                    // Hapus slot kelas lain (selain $id) yang tertimpa khusus manual
+                    // Hapus slot kelas lain (selain $id) yang tertimpa khusus manual (jangan hapus kegiatan rutin)
                     JadwalKbm::where('rombongan_belajar_id', $jadwal->rombongan_belajar_id)
                         ->where('id', '!=', $id)
                         ->where('hari', $validated['hari'])
                         ->where('sumber', 'manual')
                         ->where('is_active', true)
+                        ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
                         ->where(function ($q) use ($jamMulai, $jamSelesai) {
                             $q->where('jam_mulai', '<', $jamSelesai)
                               ->where('jam_selesai', '>', $jamMulai);
@@ -650,7 +815,7 @@ class JadwalKbmManualController extends Controller
             ], 422);
         }
 
-        if ($role !== 'admin') {
+        if ($role === 'peserta_didik') {
             $context = $this->resolveUserContext($request, $user);
             $userRombelId = $context['activeRombel']?->rombongan_belajar_id;
 
@@ -658,6 +823,19 @@ class JadwalKbmManualController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki wewenang menghapus jadwal kelas lain.',
+                ], 403);
+            }
+        } elseif ($role === 'guru') {
+            $sessionPtkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+            $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
+            $isWali = $waliRombel && ($waliRombel->rombongan_belajar_id === $jadwal->rombongan_belajar_id);
+            $canManageAll = RolePermission::canAccess($user, 'menu_jadwal_kbm', 'delete');
+            $isOwnMapel = $sessionPtkId && ($jadwal->ptk_id === $sessionPtkId);
+
+            if (!$isWali && !$canManageAll && !$isOwnMapel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda hanya berhak menghapus slot untuk mata pelajaran yang Anda ampu atau kelas binaan Anda.',
                 ], 403);
             }
         }
@@ -696,13 +874,14 @@ class JadwalKbmManualController extends Controller
         }
 
         if ($role !== 'admin') {
-            $context = $this->resolveUserContext($request, $user);
-            $userRombelId = $context['activeRombel']?->rombongan_belajar_id;
+            $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
+            $isWali = $waliRombel && ($waliRombel->rombongan_belajar_id === $rombelId);
+            $canManageAll = RolePermission::canAccess($user, 'menu_jadwal_kbm', 'delete');
 
-            if (!$userRombelId || $userRombelId !== $rombelId) {
+            if (!$isWali && !$canManageAll) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda tidak memiliki wewenang mereset jadwal kelas ini.',
+                    'message' => 'Hanya Administrator atau Wali Kelas yang dapat mengosongkan seluruh jadwal kelas ini.',
                 ], 403);
             }
         }

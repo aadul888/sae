@@ -85,7 +85,8 @@
                         <option value="publik">Publik Terbuka (Siapa saja tanpa login)</option>
                     </select>
                     <div id="targetRoleHint" class="form-text mt-1" style="font-size: 0.76rem;">
-                        <i class="fas fa-users text-primary me-1"></i> Semua akun pengguna SAE (Peserta Didik, Guru, Tendik, Admin) wajib login.
+                        <i class="fas fa-users text-primary me-1"></i> Semua akun pengguna SAE (Peserta Didik, Guru, Tendik,
+                        Admin) wajib login.
                     </div>
                 </div>
 
@@ -98,7 +99,8 @@
                             <option value="{{ $r->rombongan_belajar_id }}">{{ $r->nama }}</option>
                         @endforeach
                     </select>
-                    <small class="text-muted" style="font-size: 0.75rem;">Hanya peserta didik di kelas tersebut yang diizinkan
+                    <small class="text-muted" style="font-size: 0.75rem;">Hanya peserta didik di kelas tersebut yang
+                        diizinkan
                         mengisi.</small>
                 </div>
 
@@ -198,8 +200,7 @@
                         onclick="addField('sae_nama', 'Nama Lengkap Peserta Didik')">
                         <i class="fas fa-user-check text-warning"></i> Nama Peserta Didik (Auto)
                     </button>
-                    <button type="button" class="btn-preset-field sae-field"
-                        onclick="addField('sae_nisn', 'NISN')">
+                    <button type="button" class="btn-preset-field sae-field" onclick="addField('sae_nisn', 'NISN')">
                         <i class="fas fa-fingerprint text-warning"></i> NISN (Auto)
                     </button>
                     <button type="button" class="btn-preset-field sae-field"
@@ -213,7 +214,8 @@
 
                 <div id="emptyQuestionsPlaceholder"
                     style="text-align: center; padding: 40px 20px; border: 2px dashed var(--border-color); border-radius: 12px; color: var(--text-muted);">
-                    <i class="fas fa-arrow-up" style="font-size: 1.6rem; color: var(--text-muted); margin-bottom: 10px;"></i>
+                    <i class="fas fa-arrow-up"
+                        style="font-size: 1.6rem; color: var(--text-muted); margin-bottom: 10px;"></i>
                     <p style="margin: 0; font-size: 0.88rem; font-weight: 600;">Belum ada pertanyaan yang ditambahkan.</p>
                     <p style="margin: 4px 0 0; font-size: 0.8rem;">Klik salah satu tombol elemen di atas untuk mulai
                         menyusun pertanyaan formulir.</p>

@@ -16,10 +16,15 @@
                         : 'Selamat Malam,'));
 
         $sessionUser = session('user');
-        $userName = is_array($sessionUser) ? ($sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Guru')) : ($sessionUser->name ?? ($sessionUser->nama ?? 'Guru'));
-        $fotoUrl = $fotoUrl ?? (is_array($sessionUser) ? ($sessionUser['foto_url'] ?? null) : ($sessionUser->foto_url ?? null));
+        $userName = is_array($sessionUser)
+            ? $sessionUser['name'] ?? ($sessionUser['nama'] ?? 'Guru')
+            : $sessionUser->name ?? ($sessionUser->nama ?? 'Guru');
+        $fotoUrl =
+            $fotoUrl ?? (is_array($sessionUser) ? $sessionUser['foto_url'] ?? null : $sessionUser->foto_url ?? null);
         if (!$fotoUrl) {
-            $uId = is_array($sessionUser) ? ($sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)) : ($sessionUser->pengguna_id ?? ($sessionUser->id ?? null));
+            $uId = is_array($sessionUser)
+                ? $sessionUser['pengguna_id'] ?? ($sessionUser['id'] ?? null)
+                : $sessionUser->pengguna_id ?? ($sessionUser->id ?? null);
             if ($uId) {
                 $fotoUrl = \App\Models\User::where('pengguna_id', $uId)->first()?->foto_url;
             }
@@ -39,7 +44,7 @@
                     ->first();
                 $mapelUtama = $topM?->nama_mata_pelajaran;
             }
-            $mapelUtama = $mapelUtama ?: ($gtk?->bidang_studi_terakhir ?? session('user.mapel', 'Mata Pelajaran'));
+            $mapelUtama = $mapelUtama ?: $gtk?->bidang_studi_terakhir ?? session('user.mapel', 'Mata Pelajaran');
         }
     @endphp
 
@@ -53,7 +58,8 @@
             style="margin-bottom: 16px; padding: 12px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(16, 185, 129, 0.08) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span class="badge badge-primary" style="font-size: 0.75rem; padding: 4px 10px; font-weight: 700;">
-                    <i class="fas {{ ($userRole ?? session('user.role')) === 'admin' ? 'fa-crown' : 'fa-id-badge' }} me-1"></i>
+                    <i
+                        class="fas {{ ($userRole ?? session('user.role')) === 'admin' ? 'fa-crown' : 'fa-id-badge' }} me-1"></i>
                     Mode {{ ($userRole ?? session('user.role')) === 'admin' ? 'Superadmin' : 'Tendik' }}
                 </span>
                 <span style="font-size: 0.84rem; color: var(--text-color); font-weight: 600;">
@@ -62,8 +68,10 @@
             </div>
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 @if (isset($allGtkList) && $allGtkList->isNotEmpty())
-                    <form method="GET" action="{{ route('dashboard.guru') }}" style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                        <label for="selectGtkPreview" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Pilih Guru:</label>
+                    <form method="GET" action="{{ route('dashboard.guru') }}"
+                        style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <label for="selectGtkPreview" style="font-size: 0.78rem; color: var(--text-muted); margin: 0;">Pilih
+                            Guru:</label>
                         <select id="selectGtkPreview" name="ptk_id" onchange="this.form.submit()" class="per-page-select"
                             style="font-size: 0.8rem; min-width: 220px; padding: 5px 10px; border-radius: 8px; background: var(--card-bg, #1e293b); color: var(--text-color); border: 1px solid var(--border-color);">
                             @foreach ($allGtkList as $g)
@@ -76,31 +84,36 @@
                 @endif
                 <a href="{{ route('dashboard.' . ($userRole ?? session('user.role', 'admin'))) }}" class="btn btn-outline"
                     style="padding: 6px 14px; font-size: 0.78rem; border-radius: 8px;">
-                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Dashboard {{ ucfirst($userRole ?? session('user.role', 'admin')) }}
+                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Dashboard
+                    {{ ucfirst($userRole ?? session('user.role', 'admin')) }}
                 </a>
             </div>
         </div>
     @endif
 
     <!-- Welcome Banner -->
-    <div class="dash-banner" style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(6,182,212,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
+    <div class="dash-banner"
+        style="background: linear-gradient(135deg, rgba(16,185,129,0.15) 0%, rgba(6,182,212,0.1) 100%); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 16px; flex: 1; min-width: 0;">
             @if ($fotoUrl)
                 <!-- Pasfoto Guru / Pendidik -->
-                <div class="dash-banner-foto" style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
-                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}" 
-                         style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
-                         onerror="this.style.display='none'; this.parentElement.style.display='none';">
+                <div class="dash-banner-foto"
+                    style="flex-shrink: 0; width: 88px; height: 118px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; box-shadow: none;">
+                    <img src="{{ $fotoUrl }}" alt="{{ $userName }}"
+                        style="max-width: 100%; max-height: 100%; width: auto; height: 100%; object-fit: contain; border-radius: 10px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));"
+                        onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
             @endif
 
             <div style="flex: 1; min-width: 0;">
-                <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
+                <h2
+                    style="font-size: 1.35rem; font-weight: 800; color: var(--text-color); margin-bottom: 4px; line-height: 1.25;">
                     <span
                         style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 3px;">{{ $greeting }}</span>
                     {{ $userName }}! 📚
                 </h2>
-                <div style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
+                <div
+                    style="display: flex; align-items: center; gap: 14px; font-size: 0.82rem; color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
                     @if (!empty($mapelUtama) && $mapelUtama !== '-')
                         <span title="Mata Pelajaran Utama">
                             <i class="fas fa-book-open text-primary me-1"></i>
@@ -113,10 +126,11 @@
                             <strong style="color: var(--text-color);">{{ session('user.nip', $gtk?->nip) }}</strong>
                         </span>
                     @endif
-                    @if(!empty($gtk?->status_kepegawaian_id_str))
+                    @if (!empty($gtk?->status_kepegawaian_id_str))
                         <span title="Status Kepegawaian">
                             <i class="fas fa-id-card-clip text-info me-1"></i>
-                            <span class="badge badge-info" style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk?->status_kepegawaian_id_str }}</span>
+                            <span class="badge badge-info"
+                                style="font-size: 0.72rem; padding: 2px 7px;">{{ $gtk?->status_kepegawaian_id_str }}</span>
                         </span>
                     @endif
                 </div>
@@ -194,23 +208,30 @@
     @endphp
     @if ($isLiburHariIni || !empty($agendaHariIni))
         <!-- Banner Peringatan / Info Kalender Pendidikan Hari Ini -->
-        <div class="card" style="padding: 12px 18px; margin-bottom: 20px; border-radius: 12px; border: 1px solid {{ $isLiburHariIni ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isLiburHariIni ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div class="card"
+            style="padding: 12px 18px; margin-bottom: 20px; border-radius: 12px; border: 1px solid {{ $isLiburHariIni ? 'rgba(239,68,68,0.3)' : 'rgba(99,102,241,0.3)' }}; background: {{ $isLiburHariIni ? 'rgba(239,68,68,0.06)' : 'rgba(99,102,241,0.06)' }}; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 38px; height: 38px; border-radius: 10px; background: {{ $isLiburHariIni ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isLiburHariIni ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                <div
+                    style="width: 38px; height: 38px; border-radius: 10px; background: {{ $isLiburHariIni ? 'rgba(239,68,68,0.15)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isLiburHariIni ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
                     <i class="fas {{ $isLiburHariIni ? 'fa-umbrella-beach' : 'fa-calendar-star' }}"></i>
                 </div>
                 <div>
                     <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-color);">
                         @if ($isLiburHariIni)
                             <span style="color: #ef4444;">Perhatian: Hari Ini Libur Sekolah</span>
-                            <span class="badge" style="background: #ef4444; color: #fff; font-size: 0.7rem; padding: 2px 7px; margin-left: 6px;">KBM Off</span>
+                            <span class="badge"
+                                style="background: #ef4444; color: #fff; font-size: 0.7rem; padding: 2px 7px; margin-left: 6px;">KBM
+                                Off</span>
                         @else
                             <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
                         @endif
                     </div>
                     <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 2px;">
                         @if (!empty($agendaHariIni))
-                            <strong>{{ $agendaHariIni->nama_agenda }}</strong> @if($agendaHariIni->keterangan) &mdash; {{ $agendaHariIni->keterangan }} @endif
+                            <strong>{{ $agendaHariIni->nama_agenda }}</strong>
+                            @if ($agendaHariIni->keterangan)
+                                &mdash; {{ $agendaHariIni->keterangan }}
+                            @endif
                         @else
                             {{ $statusHariIni['keterangan'] ?? 'Kegiatan KBM reguler disesuaikan dengan kalender pendidikan.' }}
                         @endif
@@ -218,7 +239,8 @@
                 </div>
             </div>
             <div>
-                <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.78rem;">
+                <a href="{{ route('dashboard.kalender-pendidikan.index') }}" class="btn btn-outline"
+                    style="padding: 6px 12px; font-size: 0.78rem;">
                     <i class="fas fa-calendar-alt me-1"></i> Detail Kalender
                 </a>
             </div>
@@ -243,140 +265,154 @@
         </div>
 
         @if (empty($isJadwalDiberlakukan))
-            <div style="text-align: center; padding: 26px 16px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: 12px; margin-bottom: 12px;">
-                <i class="fas fa-clock" style="font-size: 2.2rem; color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
-                <h4 style="font-size: 0.95rem; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal KBM Masih Berstatus Draft</h4>
-                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0; max-width: 520px; display: inline-block;">
-                    Jadwal KBM semester ini sedang dalam tahap penyusunan dan finalisasi oleh Tim Kurikulum. Jadwal mengajar harian Anda akan tampil otomatis di sini setelah resmi diberlakukan.
+            <div
+                style="text-align: center; padding: 26px 16px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: 12px; margin-bottom: 12px;">
+                <i class="fas fa-clock"
+                    style="font-size: 2.2rem; color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal KBM Masih
+                    Berstatus Draft</h4>
+                <p
+                    style="color: var(--text-muted); font-size: 0.82rem; margin: 0; max-width: 520px; display: inline-block;">
+                    Jadwal KBM semester ini sedang dalam tahap penyusunan dan finalisasi oleh Tim Kurikulum. Jadwal mengajar
+                    harian Anda akan tampil otomatis di sini setelah resmi diberlakukan.
                 </p>
             </div>
         @elseif (empty($jadwal_hari_ini) || count($jadwal_hari_ini) === 0)
-            <div style="text-align: center; padding: 30px 16px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 12px; margin-bottom: 12px;">
-                <i class="fas fa-mug-hot" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px; display: block; opacity: 0.85;"></i>
-                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada Jadwal Mengajar Hari Ini</h4>
-                <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0; max-width: 540px; display: inline-block;">
-                    Anda tidak memiliki jadwal tatap muka/mengajar di kelas pada hari {{ $hariIni ?? 'ini' }}. Manfaatkan waktu untuk evaluasi pembelajaran, pembuatan perangkat ajar, atau kegiatan tugas tambahan.
+            <div
+                style="text-align: center; padding: 30px 16px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); border-radius: 12px; margin-bottom: 12px;">
+                <i class="fas fa-mug-hot"
+                    style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">Tidak Ada
+                    Jadwal Mengajar Hari Ini</h4>
+                <p
+                    style="color: var(--text-muted); font-size: 0.82rem; margin: 0; max-width: 540px; display: inline-block;">
+                    Anda tidak memiliki jadwal tatap muka/mengajar di kelas pada hari {{ $hariIni ?? 'ini' }}. Manfaatkan
+                    waktu untuk evaluasi pembelajaran, pembuatan perangkat ajar, atau kegiatan tugas tambahan.
                 </p>
             </div>
         @else
-        <!-- Desktop Table View -->
-        <div class="d-none d-md-block" style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
-                        <th style="padding: 12px 14px;">Waktu</th>
-                        <th style="padding: 12px 14px;">Rombel / Kelas</th>
-                        <th style="padding: 12px 14px;">Materi / Mapel</th>
-                        <th style="padding: 12px 14px;">Ruangan</th>
-                        <th style="padding: 12px 14px;">Status</th>
-                        <th style="padding: 12px 14px; text-align: right;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($jadwal_hari_ini as $j)
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
-                            <td style="padding: 14px; font-weight: 700; color: var(--text-color); white-space: nowrap;">
-                                {{ $j['jam'] }}</td>
-                            <td style="padding: 14px;"><span
-                                    style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-weight: 600;">{{ $j['kelas'] }}</span>
-                            </td>
-                            <td style="padding: 14px; color: var(--text-color);">{{ $j['mapel'] }}</td>
-                            <td style="padding: 14px; color: var(--text-muted);"><i class="fas fa-location-dot"></i>
-                                {{ $j['ruang'] }}</td>
-                            <td style="padding: 14px;">
-                                @if ($j['status'] === 'Berlangsung')
-                                    <span
-                                        style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.78rem;">
-                                        <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
-                                    </span>
-                                @elseif ($j['status'] === 'Selesai')
-                                    <span
-                                        style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
-                                        <i class="fas fa-check"></i> {{ $j['status'] }}
-                                    </span>
-                                @else
-                                    <span
-                                        style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
-                                        {{ $j['status'] }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td style="padding: 14px; text-align: right; white-space: nowrap;">
-                                <div style="display: inline-flex; gap: 6px;">
-                                    @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
-                                        <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary" style="padding: 6px 10px; font-size: 0.76rem;" title="Presensi Mengajar">
-                                            <i class="fas fa-clipboard-user"></i> Presensi
-                                        </a>
-                                    @endif
-                                    @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
-                                        <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.76rem;" title="Jurnal KBM">
-                                            <i class="fas fa-pen-to-square"></i> Jurnal
-                                        </a>
-                                    @endif
-                                </div>
-                            </td>
+            <!-- Desktop Table View -->
+            <div class="d-none d-md-block" style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-muted);">
+                            <th style="padding: 12px 14px;">Waktu</th>
+                            <th style="padding: 12px 14px;">Rombel / Kelas</th>
+                            <th style="padding: 12px 14px;">Materi / Mapel</th>
+                            <th style="padding: 12px 14px;">Ruangan</th>
+                            <th style="padding: 12px 14px;">Status</th>
+                            <th style="padding: 12px 14px; text-align: right;">Aksi</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        @foreach ($jadwal_hari_ini as $j)
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                                <td
+                                    style="padding: 14px; font-weight: 700; color: var(--text-color); white-space: nowrap;">
+                                    {{ $j['jam'] }}</td>
+                                <td style="padding: 14px;"><span
+                                        style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 4px 10px; border-radius: 6px; font-weight: 600;">{{ $j['kelas'] }}</span>
+                                </td>
+                                <td style="padding: 14px; color: var(--text-color);">{{ $j['mapel'] }}</td>
+                                <td style="padding: 14px; color: var(--text-muted);"><i class="fas fa-location-dot"></i>
+                                    {{ $j['ruang'] }}</td>
+                                <td style="padding: 14px;">
+                                    @if ($j['status'] === 'Berlangsung')
+                                        <span
+                                            style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.78rem;">
+                                            <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
+                                        </span>
+                                    @elseif ($j['status'] === 'Selesai')
+                                        <span
+                                            style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                            <i class="fas fa-check"></i> {{ $j['status'] }}
+                                        </span>
+                                    @else
+                                        <span
+                                            style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 4px 10px; border-radius: 6px; font-size: 0.78rem;">
+                                            {{ $j['status'] }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td style="padding: 14px; text-align: right; white-space: nowrap;">
+                                    <div style="display: inline-flex; gap: 6px;">
+                                        @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
+                                            <a href="{{ route('dashboard.presensi-mengajar.index') }}"
+                                                class="btn btn-primary" style="padding: 6px 10px; font-size: 0.76rem;"
+                                                title="Presensi Mengajar">
+                                                <i class="fas fa-clipboard-user"></i> Presensi
+                                            </a>
+                                        @endif
+                                        @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
+                                            <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline"
+                                                style="padding: 6px 10px; font-size: 0.76rem;" title="Jurnal KBM">
+                                                <i class="fas fa-pen-to-square"></i> Jurnal
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
-        <!-- Mobile Card List View -->
-        <div class="d-md-none" style="display: flex; flex-direction: column; gap: 12px;">
-            @foreach ($jadwal_hari_ini as $j)
-                <div
-                    style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
-                            <i class="fas fa-clock text-primary"></i> {{ $j['jam'] }}
-                        </span>
-                        @if ($j['status'] === 'Berlangsung')
-                            <span
-                                style="background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.72rem;">
-                                <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
+            <!-- Mobile Card List View -->
+            <div class="d-md-none" style="display: flex; flex-direction: column; gap: 12px;">
+                @foreach ($jadwal_hari_ini as $j)
+                    <div
+                        style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                <i class="fas fa-clock text-primary"></i> {{ $j['jam'] }}
                             </span>
-                        @elseif ($j['status'] === 'Selesai')
-                            <span
-                                style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem;">
-                                <i class="fas fa-check"></i> {{ $j['status'] }}
-                            </span>
-                        @else
-                            <span
-                                style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px; font-size: 0.72rem;">
-                                {{ $j['status'] }}
-                            </span>
-                        @endif
-                    </div>
-
-                    <div>
-                        <div style="font-weight: 700; color: var(--text-color); font-size: 0.95rem;">
-                            {{ $j['mapel'] }}
+                            @if ($j['status'] === 'Berlangsung')
+                                <span
+                                    style="background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 0.72rem;">
+                                    <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
+                                </span>
+                            @elseif ($j['status'] === 'Selesai')
+                                <span
+                                    style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem;">
+                                    <i class="fas fa-check"></i> {{ $j['status'] }}
+                                </span>
+                            @else
+                                <span
+                                    style="background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 3px 8px; border-radius: 6px; font-size: 0.72rem;">
+                                    {{ $j['status'] }}
+                                </span>
+                            @endif
                         </div>
-                        <div
-                            style="display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 0.78rem; color: var(--text-muted);">
-                            <span
-                                style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ $j['kelas'] }}</span>
-                            <span><i class="fas fa-location-dot"></i> {{ $j['ruang'] }}</span>
+
+                        <div>
+                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.95rem;">
+                                {{ $j['mapel'] }}
+                            </div>
+                            <div
+                                style="display: flex; align-items: center; gap: 10px; margin-top: 4px; font-size: 0.78rem; color: var(--text-muted);">
+                                <span
+                                    style="background: rgba(99,102,241,0.1); color: var(--primary); padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ $j['kelas'] }}</span>
+                                <span><i class="fas fa-location-dot"></i> {{ $j['ruang'] }}</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; margin-top: 2px;">
+                            @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
+                                <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary"
+                                    style="flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.78rem;">
+                                    <i class="fas fa-clipboard-user"></i> Presensi
+                                </a>
+                            @endif
+                            @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
+                                <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline"
+                                    style="flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.78rem;">
+                                    <i class="fas fa-pen-to-square"></i> Jurnal KBM
+                                </a>
+                            @endif
                         </div>
                     </div>
-
-                    <div style="display: flex; gap: 8px; margin-top: 2px;">
-                        @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
-                            <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary"
-                                style="flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.78rem;">
-                                <i class="fas fa-clipboard-user"></i> Presensi
-                            </a>
-                        @endif
-                        @if (\App\Models\RolePermission::canAccess('guru', 'menu_agenda_kbm'))
-                            <a href="{{ route('dashboard.agenda-kbm.index') }}" class="btn btn-outline"
-                                style="flex: 1; justify-content: center; padding: 8px 10px; font-size: 0.78rem;">
-                                <i class="fas fa-pen-to-square"></i> Jurnal KBM
-                            </a>
-                        @endif
-                    </div>
-                </div>
-            @endforeach
-        </div>
+                @endforeach
+            </div>
         @endif
     </div>
 @endsection

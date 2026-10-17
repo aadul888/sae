@@ -86,7 +86,8 @@
             <span>entri</span>
 
             <select id="filterTargetSelect" class="toolbar-filter-select" onchange="window.location.href=this.value">
-                <option value="{{ request()->fullUrlWithQuery(['target' => '', 'page' => 1]) }}">Semua Target Tampilan</option>
+                <option value="{{ request()->fullUrlWithQuery(['target' => '', 'page' => 1]) }}">Semua Target Tampilan
+                </option>
                 <option value="{{ request()->fullUrlWithQuery(['target' => 'publik', 'page' => 1]) }}"
                     {{ $targetFilter === 'publik' ? 'selected' : '' }}>🌐 Teks Berjalan Publik</option>
                 <option value="{{ request()->fullUrlWithQuery(['target' => 'pengguna', 'page' => 1]) }}"
@@ -96,7 +97,8 @@
             </select>
 
             <select id="filterTargetPeranSelect" class="toolbar-filter-select" onchange="window.location.href=this.value">
-                <option value="{{ request()->fullUrlWithQuery(['target_peran' => '', 'page' => 1]) }}">Semua Sasaran Peran</option>
+                <option value="{{ request()->fullUrlWithQuery(['target_peran' => '', 'page' => 1]) }}">Semua Sasaran Peran
+                </option>
                 <option value="{{ request()->fullUrlWithQuery(['target_peran' => 'semua', 'page' => 1]) }}"
                     {{ $targetPeranFilter === 'semua' ? 'selected' : '' }}>👥 Semua Pengguna</option>
                 <option value="{{ request()->fullUrlWithQuery(['target_peran' => 'guru', 'page' => 1]) }}"
@@ -134,8 +136,8 @@
                     <input type="hidden" name="perPage" value="{{ $perPage }}">
                 @endif
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" name="q" placeholder="Cari judul / isi / penulis..." value="{{ $q }}"
-                    autocomplete="off">
+                <input type="text" name="q" placeholder="Cari judul / isi / penulis..."
+                    value="{{ $q }}" autocomplete="off">
                 @if ($q)
                     <a href="{{ request()->fullUrlWithQuery(['q' => null]) }}" class="clear-search visible"
                         title="Hapus pencarian">
@@ -151,41 +153,39 @@
         <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead class="sticky-table-header">
                 <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                    <th
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                         No</th>
-                    <th class="sortable-th {{ $sort === 'judul' ? 'sorted' : '' }}"
-                        data-sort="judul"
+                    <th class="sortable-th {{ $sort === 'judul' ? 'sorted' : '' }}" data-sort="judul"
                         style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
                         Judul &amp; Pesan Pengumuman
                         <span class="sort-icon">{!! $sort === 'judul' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                     </th>
-                    <th class="sortable-th {{ $sort === 'target' ? 'sorted' : '' }}"
-                        data-sort="target"
+                    <th class="sortable-th {{ $sort === 'target' ? 'sorted' : '' }}" data-sort="target"
                         style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px; cursor: pointer;">
                         Target Tampilan
                         <span class="sort-icon">{!! $sort === 'target' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                     </th>
-                    <th class="sortable-th {{ $sort === 'target_peran' ? 'sorted' : '' }}"
-                        data-sort="target_peran"
+                    <th class="sortable-th {{ $sort === 'target_peran' ? 'sorted' : '' }}" data-sort="target_peran"
                         style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; cursor: pointer;">
                         Ditujukan Kepada
                         <span class="sort-icon">{!! $sort === 'target_peran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                     </th>
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                    <th
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                         Pembaca</th>
-                    <th class="sortable-th {{ $sort === 'is_active' ? 'sorted' : '' }}"
-                        data-sort="is_active"
+                    <th class="sortable-th {{ $sort === 'is_active' ? 'sorted' : '' }}" data-sort="is_active"
                         style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px; cursor: pointer;">
                         Status
                         <span class="sort-icon">{!! $sort === 'is_active' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                     </th>
-                    <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}"
-                        data-sort="created_at"
+                    <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}" data-sort="created_at"
                         style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 150px; cursor: pointer;">
                         Tanggal
                         <span class="sort-icon">{!! $sort === 'created_at' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                     </th>
-                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
+                    <th
+                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 110px;">
                         Aksi</th>
                 </tr>
             </thead>
@@ -305,7 +305,8 @@
                         <td colspan="8"
                             style="padding: 36px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                             <i class="fas fa-bullhorn mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
-                            <div>Belum ada data pengumuman yang sesuai. Klik <strong>"Buat Pengumuman"</strong> untuk memulai.</div>
+                            <div>Belum ada data pengumuman yang sesuai. Klik <strong>"Buat Pengumuman"</strong> untuk
+                                memulai.</div>
                         </td>
                     </tr>
                 @endforelse
@@ -360,7 +361,8 @@
 
     <!-- Modal Form Create/Edit Pengumuman -->
     <div id="pengumumanModal" class="modal-backdrop">
-        <div class="card" style="max-width: 560px; width: 92%; margin: auto; padding: 22px; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
+        <div class="card"
+            style="max-width: 560px; width: 92%; margin: auto; padding: 22px; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <h3 id="modalTitle" style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
@@ -388,7 +390,8 @@
                         placeholder="Contoh: Humas Sekolah / Kurikulum (Kosongkan untuk nama Anda)" maxlength="100">
                 </div>
 
-                <div class="modal-form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div class="modal-form-grid"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group-compact">
                         <label>Target Tampilan <span style="color: #ef4444;">*</span></label>
                         <select name="target" id="inputTarget" required>
@@ -443,12 +446,18 @@
 
     <!-- Modal Preview Pengumuman (Detail Admin) -->
     <div id="previewPengumumanModal" class="modal-backdrop">
-        <div class="card" style="max-width: 580px; width: 92%; margin: auto; padding: 24px; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <div class="card"
+            style="max-width: 580px; width: 92%; margin: auto; padding: 24px; border-radius: 14px; box-shadow: 0 16px 40px rgba(0,0,0,0.4);">
+            <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <div>
-                    <span id="previewTargetBadge" class="badge badge-primary" style="font-size: 0.72rem; margin-bottom: 6px;"></span>
-                    <span id="previewPeranBadge" class="badge badge-outline" style="font-size: 0.72rem; margin-bottom: 6px;"></span>
-                    <h3 id="previewJudul" style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 6px 0 0 0; line-height: 1.3;"></h3>
+                    <span id="previewTargetBadge" class="badge badge-primary"
+                        style="font-size: 0.72rem; margin-bottom: 6px;"></span>
+                    <span id="previewPeranBadge" class="badge badge-outline"
+                        style="font-size: 0.72rem; margin-bottom: 6px;"></span>
+                    <h3 id="previewJudul"
+                        style="font-size: 1.15rem; font-weight: 800; color: var(--text-color); margin: 6px 0 0 0; line-height: 1.3;">
+                    </h3>
                 </div>
                 <button type="button" id="btnClosePreviewModal"
                     style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; padding: 4px;">
@@ -456,7 +465,8 @@
                 </button>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 12px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px;">
+            <div
+                style="display: flex; align-items: center; gap: 12px; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 16px;">
                 <div><i class="fas fa-user-pen me-1 text-primary"></i> <span id="previewPenulis"></span></div>
                 <span>&bull;</span>
                 <div><i class="fas fa-clock me-1"></i> <span id="previewTanggal"></span></div>
@@ -469,7 +479,8 @@
             </div>
 
             <div style="display: flex; justify-content: flex-end;">
-                <button type="button" id="btnClosePreviewBtn" class="btn btn-outline" style="padding: 8px 18px; font-size: 0.85rem;">Tutup</button>
+                <button type="button" id="btnClosePreviewBtn" class="btn btn-outline"
+                    style="padding: 8px 18px; font-size: 0.85rem;">Tutup</button>
             </div>
         </div>
     </div>
@@ -478,4 +489,3 @@
         <script src="{{ asset('js/pengumuman.js') }}"></script>
     @endpush
 @endsection
-

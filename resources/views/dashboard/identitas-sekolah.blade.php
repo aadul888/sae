@@ -48,8 +48,7 @@
             @if ($canUpdate)
                 <button type="button" class="btn btn-primary"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
-                    onclick="openEditSekolahModal()"
-                    title="Edit Data Identitas Sekolah">
+                    onclick="openEditSekolahModal()" title="Edit Data Identitas Sekolah">
                     <i class="fas fa-pen-to-square"></i>
                 </button>
             @endif

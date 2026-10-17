@@ -36,14 +36,12 @@
                     <i class="fas fa-plus"></i>
                 </button>
             @endif
-            <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}"
-                class="btn btn-outline"
+            <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"
                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
                 title="Target &amp; Capaian Kinerja">
                 <i class="fas fa-bullseye text-primary"></i>
             </a>
-            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
-                class="btn btn-outline"
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"
                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
                 title="Laporan Kinerja Tendik">
                 <i class="fas fa-file-invoice text-info"></i>
@@ -54,16 +52,14 @@
     <!-- Navigasi Terpadu 3 Menu Utama Tendik (Target -> Aktivitas -> Laporan) -->
     <div class="periode-nav-wrapper" style="margin-bottom: 22px;">
         <div class="periode-nav-desktop">
-            <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}"
-                class="periode-nav-tab">
+            <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}" class="periode-nav-tab">
                 <i class="fas fa-bullseye"></i> 1. Target &amp; Capaian
             </a>
             <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}"
                 class="periode-nav-tab active">
                 <i class="fas fa-clipboard-check"></i> 2. Input Aktivitas Harian
             </a>
-            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
-                class="periode-nav-tab">
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}" class="periode-nav-tab">
                 <i class="fas fa-file-invoice"></i> 3. Laporan Kinerja
             </a>
         </div>
@@ -179,7 +175,8 @@
                     <option value="selesai" {{ ($filterStatus ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
                     <option value="proses" {{ ($filterStatus ?? '') === 'proses' ? 'selected' : '' }}>Sedang Proses
                     </option>
-                    <option value="tertunda" {{ ($filterStatus ?? '') === 'tertunda' ? 'selected' : '' }}>Tertunda</option>
+                    <option value="tertunda" {{ ($filterStatus ?? '') === 'tertunda' ? 'selected' : '' }}>Tertunda
+                    </option>
                 </select>
 
                 @if ($isKepalaTas)

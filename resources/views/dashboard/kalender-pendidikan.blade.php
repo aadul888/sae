@@ -154,7 +154,8 @@
             <a href="{{ route('dashboard.jadwal-kbm.index') }}" class="badge"
                 style="background: rgba(99,102,241,0.12); color: var(--primary); text-decoration: none; border: 1px solid rgba(99,102,241,0.25); font-size: 0.76rem; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;"
                 title="Atur Skema Hari Sekolah di Master Jadwal KBM">
-                <i class="fas fa-sliders"></i> Skema: {{ ($skemaHari ?? '5_hari') === '6_hari' ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)' }}
+                <i class="fas fa-sliders"></i> Skema:
+                {{ ($skemaHari ?? '5_hari') === '6_hari' ? '6 Hari Sekolah (Senin - Sabtu)' : '5 Hari Sekolah (Senin - Jumat)' }}
             </a>
         </div>
         <div class="dash-banner-actions">
@@ -485,7 +486,9 @@
                                     <th style="padding: 4px 2px; width: 14.28%;">Rab</th>
                                     <th style="padding: 4px 2px; width: 14.28%;">Kam</th>
                                     <th style="padding: 4px 2px; width: 14.28%;">Jum</th>
-                                    <th style="padding: 4px 2px; width: 14.28%; color: {{ ($skemaHari ?? '5_hari') === '5_hari' ? '#ef4444' : '#3b82f6' }};">Sab</th>
+                                    <th
+                                        style="padding: 4px 2px; width: 14.28%; color: {{ ($skemaHari ?? '5_hari') === '5_hari' ? '#ef4444' : '#3b82f6' }};">
+                                        Sab</th>
                                     <th style="padding: 4px 2px; width: 14.28%; color: #ef4444;">Min</th>
                                 </tr>
                             </thead>
@@ -499,7 +502,9 @@
                                                 @php
                                                     $isSun = $dInfo['is_sunday'];
                                                     $isSat = $dInfo['is_saturday'];
-                                                    $isWeekend = $dInfo['is_weekend'] ?? ($isSun || ($isSat && ($skemaHari ?? '5_hari') === '5_hari'));
+                                                    $isWeekend =
+                                                        $dInfo['is_weekend'] ??
+                                                        $isSun || ($isSat && ($skemaHari ?? '5_hari') === '5_hari');
                                                     $isToday = $dInfo['is_today'];
                                                     $evCount = count($dInfo['events']);
                                                     $pEv = $dInfo['primary_event'];
@@ -511,7 +516,10 @@
                                                     if ($isSun) {
                                                         $textColor = '#ef4444';
                                                     } elseif ($isSat) {
-                                                        $textColor = ($skemaHari ?? '5_hari') === '5_hari' ? '#ef4444' : '#3b82f6';
+                                                        $textColor =
+                                                            ($skemaHari ?? '5_hari') === '5_hari'
+                                                                ? '#ef4444'
+                                                                : '#3b82f6';
                                                     }
 
                                                     if ($isWeekend && !$pEv) {

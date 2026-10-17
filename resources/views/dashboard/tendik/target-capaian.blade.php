@@ -44,8 +44,7 @@
                     <i class="fas fa-pen-to-square text-success"></i>
                 </a>
             @endif
-            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
-                class="btn btn-outline"
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"
                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
                 title="Laporan Kinerja Tendik">
                 <i class="fas fa-file-invoice text-info"></i>
@@ -60,12 +59,10 @@
                 class="periode-nav-tab active">
                 <i class="fas fa-bullseye"></i> 1. Target &amp; Capaian
             </a>
-            <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}"
-                class="periode-nav-tab">
+            <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}" class="periode-nav-tab">
                 <i class="fas fa-clipboard-check"></i> 2. Input Aktivitas Harian
             </a>
-            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}"
-                class="periode-nav-tab">
+            <a href="{{ route('dashboard.tendik.laporan.index', ['bidang' => $currentBidang]) }}" class="periode-nav-tab">
                 <i class="fas fa-file-invoice"></i> 3. Laporan Kinerja
             </a>
         </div>
@@ -173,10 +170,12 @@
                     @if ($periodeTipe === 'triwulan')
                         <select name="triwulan" class="toolbar-filter-select">
                             <option value="1" {{ $triwulan === 1 ? 'selected' : '' }}>Triwulan I (Jan - Mar)</option>
-                            <option value="2" {{ $triwulan === 2 ? 'selected' : '' }}>Triwulan II (Apr - Jun)</option>
+                            <option value="2" {{ $triwulan === 2 ? 'selected' : '' }}>Triwulan II (Apr - Jun)
+                            </option>
                             <option value="3" {{ $triwulan === 3 ? 'selected' : '' }}>Triwulan III (Jul - Sep)
                             </option>
-                            <option value="4" {{ $triwulan === 4 ? 'selected' : '' }}>Triwulan IV (Okt - Des)</option>
+                            <option value="4" {{ $triwulan === 4 ? 'selected' : '' }}>Triwulan IV (Okt - Des)
+                            </option>
                         </select>
                     @endif
 
@@ -441,8 +440,7 @@
                                         data-sasaran="{{ $ind->sasaran }}"
                                         data-indikator="{{ $ind->indikator_kinerja }}"
                                         data-kuantitas="{{ $ind->target_kuantitas }}" data-satuan="{{ $ind->satuan }}"
-                                        title="Edit Sasaran &amp; Target"
-                                        style="color: var(--primary);">
+                                        title="Edit Sasaran &amp; Target" style="color: var(--primary);">
                                         <i class="fas fa-pen-to-square"></i>
                                     </button>
                                     <form action="{{ route('dashboard.tendik.target.destroy', $ind->id) }}"

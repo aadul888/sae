@@ -29,8 +29,7 @@
                 @csrf
                 <button type="submit" class="btn btn-primary" id="btnMarkAllRead"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
-                    title="Tandai Semua Pengumuman Sudah Dibaca"
-                    {{ $unreadCount === 0 ? 'disabled' : '' }}>
+                    title="Tandai Semua Pengumuman Sudah Dibaca" {{ $unreadCount === 0 ? 'disabled' : '' }}>
                     <i class="fas fa-check-double"></i>
                 </button>
             </form>

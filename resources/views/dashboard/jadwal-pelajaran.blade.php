@@ -24,8 +24,14 @@
                 @endif
             </p>
         </div>
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center;">
             @if ($isGuru || $isViewingGuru)
+                <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}" class="btn btn-primary"
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; text-decoration: none;"
+                    title="Input & Kelola Jadwal KBM Manual">
+                    <i class="fas fa-calendar-plus"></i>
+                    <span>Input Jadwal Manual</span>
+                </a>
                 <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-outline"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
                     title="Presensi Mengajar Guru">

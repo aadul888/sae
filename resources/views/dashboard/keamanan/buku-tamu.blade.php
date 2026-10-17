@@ -183,8 +183,7 @@
                                         <form action="{{ route('dashboard.keamanan.buku-tamu.checkout', $item->id) }}"
                                             method="POST" style="display: inline;">
                                             @csrf
-                                            <button type="submit" class="btn-icon"
-                                                title="Checkout Tamu Keluar"
+                                            <button type="submit" class="btn-icon" title="Checkout Tamu Keluar"
                                                 style="color: #f59e0b;">
                                                 <i class="fas fa-arrow-right-from-bracket"></i>
                                             </button>
