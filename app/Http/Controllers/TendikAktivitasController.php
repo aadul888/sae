@@ -75,6 +75,13 @@ class TendikAktivitasController extends Controller
 
         $query = TendikAktivitas::query()->with('indikator');
 
+        // Filter aktivitas: hanya tugas pekerjaan riil, tidak menampilkan login atau presensi harian
+        $query->where(function ($sq) {
+            $sq->where('judul_aktivitas', 'not like', '%Pelaksanaan Presensi%')
+               ->where('judul_aktivitas', 'not like', '%Autentikasi%')
+               ->where('judul_aktivitas', 'not like', '%Login%');
+        });
+
         // Hak akses data: jika bukan admin/kepala_tas, hanya melihat miliknya sendiri
         if (!$isKepalaTas && !str_contains(strtolower($role), 'admin')) {
             $query->where(function ($sq) use ($userId, $ptkId) {

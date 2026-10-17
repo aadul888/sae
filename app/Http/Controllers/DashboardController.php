@@ -811,19 +811,6 @@ class DashboardController extends Controller
         $aktivitasSayaList = collect();
 
         if (Schema::hasTable('tendik_aktivitas')) {
-            // Catat otomatis kehadiran login hari ini jika belum tercatat
-            try {
-                \App\Models\TendikAktivitas::recordActivity(
-                    $user,
-                    'Autentikasi Masuk Sistem (Login)',
-                    'umum',
-                    'Sesi pengguna aktif di Portal SAE melalui perangkat klien web (IP: ' . request()->ip() . ')',
-                    'selesai',
-                    'Sesi Login Terverifikasi'
-                );
-            } catch (\Throwable) {
-            }
-
             $userBaseQuery = DB::table('tendik_aktivitas')->where(function ($q) use ($userId, $ptkId) {
                 if ($userId) $q->where('user_id', $userId);
                 if ($ptkId) $q->orWhere('ptk_id', $ptkId);

@@ -129,18 +129,6 @@ class AuthController extends Controller
 
             session(['user' => $userData]);
 
-            try {
-                \App\Models\TendikAktivitas::recordActivity(
-                    $userData,
-                    'Autentikasi Masuk Portal Orang Tua',
-                    'umum',
-                    "Orang tua/wali dari {$student->nama} (NISN: {$student->nisn}) berhasil masuk ke portal pemantauan",
-                    'selesai',
-                    'Sesi Orang Tua Aktif'
-                );
-            } catch (\Throwable $e) {
-            }
-
             return redirect()->route('dashboard.orang-tua')
                 ->with('success', "Selamat datang di Portal Pemantauan Orang Tua / Wali Murid.");
         }
@@ -356,27 +344,18 @@ class AuthController extends Controller
 
         session(['user' => $userData]);
 
-        // Auto-record aktivitas login ke log aktivitas sistem
+        // Auto-record aktivitas login ke log aktivitas sistem (admin_aktivitas saja, bukan tendik_aktivitas)
         try {
-            if (($user->role === 'peserta_didik' || !empty($user->peserta_didik_id)) && \Illuminate\Support\Facades\Schema::hasTable('admin_aktivitas')) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('admin_aktivitas')) {
                 \App\Models\AdminAktivitas::create([
                     'admin_name'     => $userData['name'],
                     'admin_username' => $userData['username'] ?? ($userData['nisn'] ?? null),
-                    'modul'          => 'Siswa',
-                    'aktivitas'      => 'Login Portal Siswa',
-                    'keterangan'     => 'Autentikasi akun siswa berhasil via Portal SAE (IP: ' . $request->ip() . ')',
+                    'modul'          => ($user->role === 'peserta_didik' || !empty($user->peserta_didik_id)) ? 'Siswa' : 'Autentikasi',
+                    'aktivitas'      => 'Login Portal',
+                    'keterangan'     => 'Autentikasi akun berhasil via Portal SAE (IP: ' . $request->ip() . ')',
                     'ip_address'     => $request->ip(),
                     'tipe'           => 'info',
                 ]);
-            } else {
-                \App\Models\TendikAktivitas::recordActivity(
-                    $userData,
-                    'Autentikasi Masuk Sistem (Login)',
-                    'umum',
-                    'Berhasil masuk ke portal SAE melalui sesi web autentikasi (IP: ' . $request->ip() . ')',
-                    'selesai',
-                    'Sesi Login Aktif'
-                );
             }
         } catch (\Throwable) {
         }

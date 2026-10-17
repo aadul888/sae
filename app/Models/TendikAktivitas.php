@@ -136,10 +136,141 @@ class TendikAktivitas extends Model
     }
 
     /**
-     * Catat aktivitas sistem tendik secara otomatis (Login, CRUD, dsb).
+     * Catat atau perbarui log aktivitas harian tendik secara ringkas per bidang pekerjaan per hari.
+     * Tidak mencatat login atau presensi harian.
+     * Contoh: "Input surat masuk 10 dokumen" atau "Membuat surat keluar 20 dokumen".
+     */
+    public static function recordAggregatedActivity($userOrId, string $baseAction, string $bidang = 'umum', string $unit = 'dokumen', int $increment = 1, ?string $uraianTemplate = null, ?int $indikatorId = null): ?self
+    {
+        // Tolak aktivitas login atau presensi harian
+        if (preg_match('/login|autentikasi|presensi|kehadiran/i', $baseAction) ||
+            preg_match('/login|presensi/i', $bidang)) {
+            return null;
+        }
+
+        try {
+            $user = null;
+            $userId = null;
+            $ptkId = null;
+            $nama = 'Tenaga Kependidikan';
+
+            if ($userOrId instanceof User) {
+                $user = $userOrId;
+                $userId = $user->pengguna_id;
+                $ptkId = $user->ptk_id;
+                $nama = $user->nama ?: $user->name;
+            } elseif (is_array($userOrId)) {
+                $userId = $userOrId['pengguna_id'] ?? ($userOrId['id'] ?? null);
+                $ptkId = $userOrId['ptk_id'] ?? null;
+                $nama = $userOrId['nama'] ?? ($userOrId['name'] ?? 'Tenaga Kependidikan');
+            } elseif (is_string($userOrId)) {
+                $userId = $userOrId;
+                $user = User::where('pengguna_id', $userId)->first();
+                if ($user) {
+                    $ptkId = $user->ptk_id;
+                    $nama = $user->nama ?: $user->name;
+                }
+            } else {
+                $sessionUser = session('user');
+                if ($sessionUser) {
+                    return self::recordAggregatedActivity($sessionUser, $baseAction, $bidang, $unit, $increment, $uraianTemplate, $indikatorId);
+                }
+            }
+
+            if (!$userId && !$ptkId) {
+                return null;
+            }
+
+            $now = now();
+            $jam = $now->format('H:i:s');
+            $tanggal = $now->toDateString();
+
+            // Cari aktivitas dengan jenis pekerjaan yang sama pada hari ini untuk pegawai bersangkutan
+            $existing = self::where(function ($q) use ($userId, $ptkId) {
+                    if ($userId) $q->where('user_id', $userId);
+                    if ($ptkId) $q->orWhere('ptk_id', $ptkId);
+                })
+                ->whereDate('tanggal', $tanggal)
+                ->where('bidang', $bidang)
+                ->where(function ($q) use ($baseAction) {
+                    $q->where('judul_aktivitas', 'LIKE', "{$baseAction}%")
+                      ->orWhere('judul_aktivitas', 'LIKE', "%{$baseAction}%");
+                })
+                ->first();
+
+            if ($existing) {
+                // Ekstrak jumlah pekerjaan yang sudah tercatat hari ini
+                $currentCount = 1;
+                if (preg_match('/(\d+)\s*' . preg_quote($unit, '/') . '/i', $existing->judul_aktivitas, $m)) {
+                    $currentCount = (int) $m[1];
+                } elseif (preg_match('/(\d+)/', $existing->output_hasil, $m)) {
+                    $currentCount = (int) $m[1];
+                }
+
+                $newCount = $currentCount + $increment;
+                $newJudul = "{$baseAction} {$newCount} {$unit}";
+                $newOutput = "{$newCount} {$unit}";
+                $newUraian = $uraianTemplate
+                    ? sprintf($uraianTemplate, $newCount)
+                    : "Melaksanakan {$baseAction} sebanyak {$newCount} {$unit} pada sistem sekolah.";
+
+                $existing->update([
+                    'judul_aktivitas'  => $newJudul,
+                    'output_hasil'     => $newOutput,
+                    'uraian_pekerjaan' => $newUraian,
+                    'jam_selesai'      => $jam,
+                    'status'           => 'selesai',
+                ]);
+
+                return $existing;
+            }
+
+            // Jika belum ada pada hari ini, buat entri awal
+            $count = $increment;
+            $judul = "{$baseAction} {$count} {$unit}";
+            $output = "{$count} {$unit}";
+            $uraian = $uraianTemplate
+                ? sprintf($uraianTemplate, $count)
+                : "Melaksanakan {$baseAction} sebanyak {$count} {$unit} pada sistem sekolah.";
+
+            if (!$indikatorId && \Illuminate\Support\Facades\Schema::hasTable('tendik_indikator_kinerja')) {
+                $indikatorId = TendikIndikatorKinerja::where('bidang', $bidang)
+                    ->where('is_active', true)
+                    ->orderBy('urutan')
+                    ->value('id');
+            }
+
+            return self::create([
+                'user_id'          => $userId,
+                'ptk_id'           => $ptkId,
+                'nama_pegawai'     => $nama,
+                'bidang'           => $bidang ?: 'umum',
+                'indikator_id'     => $indikatorId,
+                'tanggal'          => $tanggal,
+                'jam_mulai'        => $jam,
+                'jam_selesai'      => $jam,
+                'judul_aktivitas'  => $judul,
+                'uraian_pekerjaan' => $uraian,
+                'output_hasil'     => $output,
+                'status'           => 'selesai',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Gagal mencatat aktivitas ringkas tendik: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Catat aktivitas sistem tendik secara otomatis (khusus pekerjaan riil, tolak login/presensi).
      */
     public static function recordActivity($userOrId, string $judul, string $bidang = 'umum', ?string $uraian = null, string $status = 'selesai', ?string $output = null, ?int $indikatorId = null): ?self
     {
+        // Tolak aktivitas login atau presensi harian
+        if (preg_match('/login|autentikasi|presensi|kehadiran/i', $judul) ||
+            preg_match('/login|presensi/i', $bidang)) {
+            return null;
+        }
+
         try {
             $user = null;
             $userId = null;
@@ -176,13 +307,6 @@ class TendikAktivitas extends Model
             $now = now();
             $jam = $now->format('H:i:s');
             $tanggal = $now->toDateString();
-
-            // Format aktivitas otomatis agar bernuansa formal kedinasan
-            if (stripos($judul, 'Login') !== false || stripos($judul, 'Autentikasi') !== false) {
-                $judul = 'Pelaksanaan Presensi dan Pelaporan Kehadiran Mandiri';
-                $uraian = 'Melaksanakan pelaporan kehadiran dinas serta verifikasi otentikasi akun kerja harian pada portal administrasi kepegawaian sekolah.';
-                $output = '1 Sesi Pelaporan Tervalidasi';
-            }
 
             // Cegah duplikasi log identik dalam interval 5 menit
             $existing = self::where(function ($q) use ($userId, $ptkId) {
