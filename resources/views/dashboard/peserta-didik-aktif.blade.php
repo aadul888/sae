@@ -16,10 +16,11 @@
                 Direktori data peserta didik aktif bersumber langsung dari tabel <strong>Peserta Didik</strong> (Dapodik).
             </p>
         </div>
-        <div class="dash-banner-actions">
+        <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if (\App\Models\RolePermission::canAccess($user ?? session('user'), 'menu_dapodik'))
                 <a href="{{ route('dashboard.dapodik') }}" class="btn btn-outline"
-                    style="padding: 8px 14px; font-size: 0.9rem;" title="Tarik Data Dapodik">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
+                    title="Tarik Data Dapodik">
                     <i class="fas fa-cloud-arrow-down"></i>
                 </a>
             @endif
@@ -109,20 +110,21 @@
 
                 @if ($q || $rombel || $gender)
                     <a href="{{ route('dashboard.peserta-didik-aktif.index') }}" class="btn btn-outline"
-                        style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                        title="Reset filter">
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif
 
                 @if ($isAdmin)
                     <button type="button" class="btn btn-primary" onclick="openBulkUploadFotoModal('{{ $rombel }}')"
-                        style="padding: 7px 12px; font-size: 0.84rem; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; box-shadow: 0 2px 8px rgba(99,102,241,0.3);"
                         title="Unggah Foto Masal Kelas">
                         <i class="fas fa-images"></i>
                     </button>
 
                     <button type="button" class="btn btn-outline" onclick="openCetakRombelModal('{{ $rombel }}')"
-                        style="padding: 7px 12px; font-size: 0.84rem; border-color: #0284c7; color: #0284c7;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #0284c7; color: #0284c7;"
                         title="Cetak Kartu Pelajar Masal">
                         <i class="fas fa-id-card"></i>
                     </button>
@@ -131,7 +133,7 @@
                 @if ($isAdmin || $isWaliOrAdmin || $canRead)
                     <button type="button" class="btn btn-outline"
                         onclick="openCetakDataRombelModal('{{ $rombel }}')"
-                        style="padding: 7px 12px; font-size: 0.84rem; border-color: #10b981; color: #10b981;"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #10b981; color: #10b981;"
                         title="Cetak Data Peserta Didik per Kelas">
                         <i class="fas fa-print"></i>
                     </button>

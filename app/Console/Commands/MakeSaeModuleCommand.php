@@ -308,8 +308,10 @@ PHP;
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if (\$canCreate)
-                <button type="button" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.84rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;" id="btnOpenCreateModal">
-                    <i class="fas fa-plus"></i> Tambah Data
+                <button type="button" class="btn btn-primary" id="btnOpenCreateModal"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Tambah Data {$title} Baru">
+                    <i class="fas fa-plus"></i>
                 </button>
             @endif
         </div>
@@ -329,8 +331,8 @@ PHP;
         </div>
     @endif
 
-    <!-- 3. Stat Grid Baku SAE -->
-    <div class="dash-stat-grid" style="margin-bottom: 20px;">
+    <!-- 3. Stat Grid Baku SAE (Tepat 4 Card Genap) -->
+    <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
             <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
                 <i class="fas fa-list"></i>
@@ -369,85 +371,130 @@ PHP;
         </div>
     </div>
 
-    <!-- 4. Main Data Card & Table -->
-    <div class="card" style="padding: 20px; border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-        <!-- Toolbar: Pencarian, Filter & Dropdown Baris -->
-        <div class="dash-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-                <div class="live-search-wrap" style="width: 100%;">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearchInput" placeholder="Cari data {$title}..." autocomplete="off">
-                    <button type="button" class="clear-search" title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <!-- 4. Toolbar & Filter Baku SAE -->
+    <div class="card" style="padding: 16px; margin-bottom: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                        @foreach ([10, 15, 25, 50, 100] as \$n)
+                            <option value="{{ \$n }}" {{ (\$perPage ?? 25) == \$n ? 'selected' : '' }}>{{ \$n }}</option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
                 </div>
 
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                <select id="filterStatus" style="height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
+                <select id="filterStatus" class="toolbar-filter-select" style="height: 38px;">
                     <option value="">Semua Status</option>
                     <option value="aktif">Aktif</option>
                     <option value="nonaktif">Nonaktif</option>
                 </select>
 
-                <select id="perPageSelect" style="height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
-                    <option value="10">10 Baris</option>
-                    <option value="25" selected>25 Baris</option>
-                    <option value="50">50 Baris</option>
-                    <option value="all">Semua</option>
-                </select>
+                <a href="{{ route('{$slug}.index') }}" class="btn btn-outline"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                    title="Reset Filter">
+                    <i class="fas fa-undo"></i>
+                </a>
+            </div>
+
+            <div class="live-search-wrap" style="height: 38px;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="liveSearch" placeholder="Cari data {$title}..." value="{{ \$q ?? '' }}" autocomplete="off">
+                <button type="button" id="clearSearch" class="clear-search {{ !empty(\$q) ? 'visible' : '' }}" title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- Tabel Responsif Baku SAE -->
-        <div style="overflow-x: auto;">
-            <table class="dash-table" style="width: 100%; border-collapse: collapse; font-size: 0.86rem;" id="mainDataTable">
-                <thead>
-                    <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
-                        <th style="padding: 10px 14px; width: 50px;">No</th>
-                        <th style="padding: 10px 14px;">Nama Data</th>
-                        <th style="padding: 10px 14px;">Keterangan</th>
-                        <th style="padding: 10px 14px; width: 120px;">Status</th>
-                        <th style="padding: 10px 14px; width: 140px; text-align: center;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBodyContent">
-                    @forelse (\$items as \$index => \$item)
-                        <tr class="data-row" style="border-bottom: 1px solid var(--border-color);" data-nama="{{ \$item->nama ?? '' }}">
-                            <td style="padding: 10px 14px;">{{ \$index + 1 }}</td>
-                            <td style="padding: 10px 14px; font-weight: 600;">{{ \$item->nama ?? '-' }}</td>
-                            <td style="padding: 10px 14px; color: var(--text-muted);">{{ \$item->keterangan ?? '-' }}</td>
-                            <td style="padding: 10px 14px;">
-                                <span class="badge badge-success" style="font-size: 0.72rem; padding: 3px 8px;">Aktif</span>
-                            </td>
-                            <td style="padding: 10px 14px; text-align: center;">
-                                <div style="display: inline-flex; gap: 6px;">
-                                    @if (\$canUpdate)
-                                        <button type="button" class="btn btn-outline btn-sm btn-edit-row" data-id="{{ \$item->id ?? 0 }}" title="Edit Data" style="padding: 4px 8px; font-size: 0.78rem;">
-                                            <i class="fas fa-pen-to-square"></i>
-                                        </button>
-                                    @endif
-                                    @if (\$canDelete)
-                                        <button type="button" class="btn btn-outline btn-sm btn-delete-row" data-id="{{ \$item->id ?? 0 }}" data-name="{{ \$item->nama ?? 'Data' }}" title="Hapus Data" style="padding: 4px 8px; font-size: 0.78rem; color: #ef4444; border-color: rgba(239,68,68,0.3);">
+    <!-- 5. Datatable Container Baku SAE -->
+    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden;">
+        <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02); text-align: left;">
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">No</th>
+                    <th class="sortable-th {{ (\$sort ?? '') === 'nama' ? 'sorted' : '' }}" data-sort="nama" style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                        Nama Data
+                        <span class="sort-icon">{!! (\$sort ?? '') === 'nama' ? ((\$sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                    </th>
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Keterangan</th>
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">Status</th>
+                    <th style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 100px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse (\$items as \$index => \$item)
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                        <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;" data-label="No">{{ \$index + 1 }}</td>
+                        <td style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;" data-label="Nama Data">{{ \$item->nama ?? '-' }}</td>
+                        <td style="padding: 14px 18px; font-size: 0.84rem; color: var(--text-muted);" data-label="Keterangan">{{ \$item->keterangan ?? '-' }}</td>
+                        <td style="padding: 14px 18px; text-align: center;" data-label="Status">
+                            <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;">Aktif</span>
+                        </td>
+                        <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
+                            <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
+                                @if (\$canUpdate)
+                                    <button type="button" class="btn-icon btn-edit-row" data-id="{{ \$item->id ?? 0 }}" title="Edit Data" style="color: var(--primary);">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                @endif
+                                @if (\$canDelete)
+                                    <form action="{{ route('{$slug}.destroy', \$item->id ?? 0) }}" method="POST" data-confirm="delete" data-name="{{ \$item->nama ?? 'Data' }}" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-icon" title="Hapus Data" style="color: #ef4444;">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr id="emptyTableRow">
-                            <td colspan="5" style="text-align: center; padding: 36px 14px; color: var(--text-muted);">
-                                <i class="fas fa-inbox" style="font-size: 2.2rem; margin-bottom: 10px; display: block; opacity: 0.4;"></i>
-                                <span>Belum ada data {$title} yang tercatat di sistem.</span>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                                    </form>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: 0.86rem;">
+                            <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                            <div>Belum ada data {$title} yang tercatat di sistem.</div>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
 
-        <!-- Footer Pagination -->
-        <div id="tablePaginationWrap" class="custom-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); flex-wrap: wrap; gap: 8px;">
-            <div id="paginationInfo">Menampilkan 0 data</div>
+    <!-- 6. Footer Pagination Baku SAE -->
+    @if (\$items instanceof \Illuminate\Pagination\LengthAwarePaginator && \$items->hasPages())
+        <div class="custom-pagination">
+            @if (\$items->onFirstPage())
+                <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
+            @else
+                <a href="{{ \$items->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
+            @endif
+            @php
+                \$cur = \$items->currentPage();
+                \$last = \$items->lastPage();
+                \$from = max(1, \$cur - 2);
+                \$to = min(\$last, \$cur + 2);
+            @endphp
+            @if (\$from > 1)
+                <a href="{{ \$items->url(1) }}" class="page-btn">1</a>
+                @if (\$from > 2) <span class="page-info">&hellip;</span> @endif
+            @endif
+            @for (\$i = \$from; \$i <= \$to; \$i++)
+                <a href="{{ \$items->url(\$i) }}" class="page-btn {{ \$i === \$cur ? 'current' : '' }}">{{ \$i }}</a>
+            @endfor
+            @if (\$to < \$last)
+                @if (\$to < \$last - 1) <span class="page-info">&hellip;</span> @endif
+                <a href="{{ \$items->url(\$last) }}" class="page-btn">{{ \$last }}</a>
+            @endif
+            @if (\$items->hasMorePages())
+                <a href="{{ \$items->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
+            @else
+                <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
+            @endif
+        </div>
+    @endif
             <div id="paginationButtons" style="display: flex; gap: 4px;"></div>
         </div>
     </div>
