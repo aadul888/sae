@@ -356,80 +356,138 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Refresh Live Table Asinkron Baku SAE
-    window.refreshLiveTable = (url = null) => {
-        if (!tableDataContainer) return;
+    // 1. Inisialisasi Tab Switching (Jadwal Hari Ini vs Riwayat Presensi Mengajar)
+    const tabButtons = document.querySelectorAll(".pm-tab-btn");
+    const tabPanes = document.querySelectorAll(".pm-tab-pane");
+    const mobileTrigger = document.getElementById("pmMobileDropdownTrigger");
+    const mobileMenu = document.getElementById("pmMobileDropdownMenu");
+    const mobileLabel = document.getElementById("pmMobileDropdownLabel");
 
-        let targetUrl = url;
-        if (!targetUrl) {
-            const params = new URLSearchParams();
-            if (liveSearchInput?.value)
-                params.set("q", liveSearchInput.value.trim());
-            if (filterTanggalMulai?.value)
-                params.set("tanggal_mulai", filterTanggalMulai.value);
-            if (filterTanggalSelesai?.value)
-                params.set("tanggal_selesai", filterTanggalSelesai.value);
-            if (filterRombel?.value)
-                params.set("rombongan_belajar_id", filterRombel.value);
-            if (filterStatus?.value) params.set("status", filterStatus.value);
-            if (filterPtk?.value) params.set("filter_ptk_id", filterPtk.value);
-            if (perPageSelect?.value)
-                params.set("per_page", perPageSelect.value);
-            params.set("sort", currentSort);
-            params.set("sort_dir", currentSortDir);
-            params.set("ajax_table", "1");
-            targetUrl = `${window.location.pathname}?${params.toString()}`;
-        } else {
-            const separator = targetUrl.includes("?") ? "&" : "?";
-            targetUrl = `${targetUrl}${separator}ajax_table=1`;
+    const switchTab = (tabName) => {
+        tabButtons.forEach((btn) => {
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add("btn-primary");
+                btn.classList.remove("btn-outline");
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("btn-primary");
+                btn.classList.add("btn-outline");
+                btn.classList.remove("active");
+            }
+        });
+
+        tabPanes.forEach((pane) => {
+            pane.style.display = "none";
+        });
+
+        const targetPane = document.getElementById(
+            tabName === "riwayat" ? "tabPaneRiwayat" : "tabPaneJadwal",
+        );
+        if (targetPane) {
+            targetPane.style.display = "block";
         }
 
-        tableDataContainer.style.opacity = "0.5";
+        if (mobileLabel) {
+            mobileLabel.textContent =
+                tabName === "riwayat"
+                    ? "Riwayat Presensi Mengajar"
+                    : "Jadwal Hari Ini";
+        }
 
-        fetch(targetUrl, {
-            headers: {
-                "X-Requested-With": "XMLHttpRequest",
-                Accept: "text/html",
-            },
-        })
-            .then((res) => res.text())
-            .then((html) => {
-                tableDataContainer.innerHTML = html;
-                tableDataContainer.style.opacity = "1";
-                bindTableEvents();
-            })
-            .catch((err) => {
-                console.error("Error refreshing table:", err);
-                tableDataContainer.style.opacity = "1";
-            });
+        if (mobileMenu) {
+            mobileMenu.classList.remove("show");
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", tabName);
+        window.history.replaceState({}, "", url.toString());
     };
 
-    // Binding event ke elemen datatable (Sorting & Pagination)
-    const bindTableEvents = () => {
-        // Sortable Headers
-        document.querySelectorAll(".sortable-th").forEach((th) => {
-            th.addEventListener("click", () => {
-                const sortKey = th.dataset.sort;
-                if (currentSort === sortKey) {
-                    currentSortDir = currentSortDir === "asc" ? "desc" : "asc";
-                } else {
-                    currentSort = sortKey;
-                    currentSortDir = "asc";
-                }
-                window.refreshLiveTable();
-            });
+    tabButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const tabName = btn.dataset.tab;
+            if (tabName) switchTab(tabName);
+        });
+    });
+
+    if (mobileTrigger && mobileMenu) {
+        mobileTrigger.addEventListener("click", (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle("show");
+        });
+        document.addEventListener("click", (e) => {
+            if (
+                !mobileTrigger.contains(e.target) &&
+                !mobileMenu.contains(e.target)
+            ) {
+                mobileMenu.classList.remove("show");
+            }
+        });
+    }
+
+    // 2. Filter & Live Search Mengacu ke Datatable Global SAE
+    function applyPresensiMengajarFilter(overrideParams = {}) {
+        const url = new URL(window.location.href);
+
+        const qVal = liveSearchInput?.value?.trim() || "";
+        if (qVal) url.searchParams.set("q", qVal);
+        else url.searchParams.delete("q");
+
+        if (filterTanggalMulai?.value)
+            url.searchParams.set("tanggal_mulai", filterTanggalMulai.value);
+        else url.searchParams.delete("tanggal_mulai");
+
+        if (filterTanggalSelesai?.value)
+            url.searchParams.set("tanggal_selesai", filterTanggalSelesai.value);
+        else url.searchParams.delete("tanggal_selesai");
+
+        if (filterRombel?.value) {
+            url.searchParams.set("rombongan_belajar_id", filterRombel.value);
+            url.searchParams.set("rombel", filterRombel.value);
+        } else {
+            url.searchParams.delete("rombongan_belajar_id");
+            url.searchParams.delete("rombel");
+        }
+
+        if (filterStatus?.value) url.searchParams.set("status", filterStatus.value);
+        else url.searchParams.delete("status");
+
+        if (filterPtk?.value) {
+            url.searchParams.set("filter_ptk_id", filterPtk.value);
+            url.searchParams.set("ptk_id", filterPtk.value);
+        } else {
+            url.searchParams.delete("filter_ptk_id");
+            url.searchParams.delete("ptk_id");
+        }
+
+        const curPp = perPageSelect?.value || "15";
+        url.searchParams.set("per_page", curPp);
+        url.searchParams.set("perPage", curPp);
+
+        url.searchParams.set("tab", "riwayat");
+
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") {
+                url.searchParams.set(k, v);
+            } else {
+                url.searchParams.delete(k);
+            }
         });
 
-        // Ajax pagination links
-        document.querySelectorAll(".ajax-page-link").forEach((link) => {
-            link.addEventListener("click", (e) => {
-                e.preventDefault();
-                window.refreshLiveTable(link.getAttribute("href"));
-            });
-        });
-    };
+        if (!("page" in overrideParams)) {
+            url.searchParams.set("page", "1");
+        }
 
-    bindTableEvents();
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    // Sambungkan ke handler sortable-th bawaan dashboard.js
+    window.applyDatatableFilter = applyPresensiMengajarFilter;
 
     // Live Search with Debounce
     let searchTimeout = null;
@@ -437,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
         liveSearchInput.addEventListener("input", () => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
-                window.refreshLiveTable();
+                applyPresensiMengajarFilter();
             }, 350);
         });
     }
@@ -445,7 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (clearSearchBtn) {
         clearSearchBtn.addEventListener("click", () => {
             if (liveSearchInput) liveSearchInput.value = "";
-            window.refreshLiveTable();
+            applyPresensiMengajarFilter();
         });
     }
 
@@ -460,13 +518,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ].forEach((el) => {
         if (el) {
             el.addEventListener("change", () => {
-                window.refreshLiveTable();
+                applyPresensiMengajarFilter();
             });
         }
     });
 
     if (btnResetFilter) {
-        btnResetFilter.addEventListener("click", () => {
+        btnResetFilter.addEventListener("click", (e) => {
+            e.preventDefault();
             if (liveSearchInput) liveSearchInput.value = "";
             if (filterTanggalMulai) filterTanggalMulai.value = "";
             if (filterTanggalSelesai) filterTanggalSelesai.value = "";
@@ -474,9 +533,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (filterStatus) filterStatus.value = "";
             if (filterPtk) filterPtk.value = "";
             if (perPageSelect) perPageSelect.value = "15";
-            currentSort = "tanggal";
-            currentSortDir = "desc";
-            window.refreshLiveTable();
+            applyPresensiMengajarFilter({
+                sort: "tanggal",
+                sort_dir: "desc",
+            });
         });
     }
 

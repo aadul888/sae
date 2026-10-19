@@ -905,6 +905,8 @@ class PresensiController extends Controller
         $userId = is_array($user) ? ($user['id'] ?? ($user['pengguna_id'] ?? null)) : ($user->id ?? ($user->pengguna_id ?? null));
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
         $isAdmin = in_array($role, ['admin', 'kepala_sekolah', 'waka_kurikulum', 'waka_kesiswaan'], true);
+        $isPiket = $isAdmin || RolePermission::canAccess($user, 'menu_piket') || RolePermission::canAccess($user, 'menu_piket_presensi_kelas');
+        $canViewAllClasses = $isAdmin || $isPiket;
 
         // Ambil daftar rombel yang diampu sebagai Wali Kelas jika ada
         $waliRombel = null;
@@ -977,10 +979,10 @@ class PresensiController extends Controller
             }
         }
 
-        // Daftar Rombel: HANYA menampilkan kelas yang diajar oleh guru tersebut
+        // Daftar Rombel: Jika Admin / Guru Piket, tampilkan seluruh kelas reguler
         $rombelQuery = DB::table('rombongan_belajar');
 
-        if (!$isAdmin && $ptkId) {
+        if (!$canViewAllClasses && $ptkId) {
             $pembelajaranRombelIds = DB::table('pembelajaran')
                 ->where('ptk_id', $ptkId)
                 ->pluck('rombongan_belajar_id')
@@ -1034,13 +1036,13 @@ class PresensiController extends Controller
         }
         $jamKe = $request->has('jam_ke') ? $request->input('jam_ke', '') : $defaultJamKe;
 
-        // Daftar Pembelajaran / Mata Pelajaran di Rombel Terpilih (TIDAK menampilkan guru lain)
+        // Daftar Pembelajaran / Mata Pelajaran di Rombel Terpilih
         $pembelajaranList = collect();
         if ($selectedRombelId) {
             $pQuery = DB::table('pembelajaran as p')
                 ->where('p.rombongan_belajar_id', $selectedRombelId);
 
-            if (!$isAdmin && $ptkId) {
+            if (!$canViewAllClasses && $ptkId) {
                 $pQuery->where('p.ptk_id', $ptkId);
             }
 
@@ -1188,6 +1190,179 @@ class PresensiController extends Controller
             });
         }
 
+        // =========================================================================
+        // DATA MONITORING PRESENSI SELURUH KELAS (UNTUK GURU PIKET & ADMIN)
+        // =========================================================================
+        $allRegularRombel = DB::table('rombongan_belajar')
+            ->where('jenis_rombel', '1')
+            ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id', 'ptk_id_str', 'jurusan_id_str')
+            ->orderBy('tingkat_pendidikan_id', 'asc')
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        $studentCounts = DB::table('peserta_didik')
+            ->select('rombongan_belajar_id', DB::raw('COUNT(*) as total_siswa'))
+            ->groupBy('rombongan_belajar_id')
+            ->pluck('total_siswa', 'rombongan_belajar_id');
+
+        $harianStats = DB::table('presensi_harian')
+            ->where('tanggal', $tanggal)
+            ->select(
+                'rombongan_belajar_id',
+                DB::raw('COUNT(*) as total_record'),
+                DB::raw("SUM(CASE WHEN status IN ('H', 'T') THEN 1 ELSE 0 END) as total_hadir"),
+                DB::raw("SUM(CASE WHEN status = 'T' THEN 1 ELSE 0 END) as total_terlambat"),
+                DB::raw("SUM(CASE WHEN status = 'I' THEN 1 ELSE 0 END) as total_izin"),
+                DB::raw("SUM(CASE WHEN status = 'S' THEN 1 ELSE 0 END) as total_sakit"),
+                DB::raw("SUM(CASE WHEN status = 'A' THEN 1 ELSE 0 END) as total_alpha"),
+                DB::raw("SUM(CASE WHEN status = 'D' THEN 1 ELSE 0 END) as total_dispen"),
+                DB::raw("SUM(CASE WHEN metode_masuk IN ('rfid', 'qr', 'kiosk', 'kamera') THEN 1 ELSE 0 END) as total_otomatis"),
+                DB::raw("SUM(CASE WHEN metode_masuk = 'manual' THEN 1 ELSE 0 END) as total_manual"),
+                DB::raw("MIN(jam_masuk) as scan_pertama"),
+                DB::raw("MAX(jam_masuk) as scan_terakhir")
+            )
+            ->groupBy('rombongan_belajar_id')
+            ->get()
+            ->keyBy('rombongan_belajar_id');
+
+        $mapelStats = DB::table('presensi_mapel')
+            ->where('tanggal', $tanggal)
+            ->select(
+                'rombongan_belajar_id',
+                DB::raw('COUNT(*) as total_record'),
+                DB::raw('COUNT(DISTINCT pembelajaran_id) as total_mapel_tercatat'),
+                DB::raw("SUM(CASE WHEN status IN ('H', 'T') THEN 1 ELSE 0 END) as total_hadir"),
+                DB::raw("SUM(CASE WHEN status = 'I' THEN 1 ELSE 0 END) as total_izin"),
+                DB::raw("SUM(CASE WHEN status = 'S' THEN 1 ELSE 0 END) as total_sakit"),
+                DB::raw("SUM(CASE WHEN status = 'A' THEN 1 ELSE 0 END) as total_alpha"),
+                DB::raw("MAX(updated_at) as mapel_terakhir")
+            )
+            ->groupBy('rombongan_belajar_id')
+            ->get()
+            ->keyBy('rombongan_belajar_id');
+
+        $monitoringList = $allRegularRombel->map(function ($r) use ($studentCounts, $harianStats, $mapelStats) {
+            $rId = $r->rombongan_belajar_id;
+            $totSiswa = (int) ($studentCounts[$rId] ?? 0);
+            $hs = $harianStats->get($rId);
+            $ms = $mapelStats->get($rId);
+
+            $hasHarian = $hs && $hs->total_record > 0;
+            $hasMapel = $ms && $ms->total_record > 0;
+            $sudahPresensi = $hasHarian || $hasMapel;
+
+            $hasOtomatis = $hs && $hs->total_otomatis > 0;
+            $hasManual = ($hs && $hs->total_manual > 0) || $hasMapel;
+
+            if ($hasOtomatis && $hasManual) {
+                $metode = 'kombinasi';
+                $metodeLabel = 'Otomatis & Manual';
+            } elseif ($hasOtomatis) {
+                $metode = 'otomatis';
+                $metodeLabel = 'Otomatis (RFID/QR)';
+            } elseif ($hasManual) {
+                $metode = 'manual';
+                $metodeLabel = $hasHarian ? 'Manual (Wali Kelas)' : 'Manual (Guru Mapel)';
+            } else {
+                $metode = 'belum';
+                $metodeLabel = 'Belum Ada';
+            }
+
+            if ($hasHarian) {
+                $hadir = (int) $hs->total_hadir;
+                $terlambat = (int) $hs->total_terlambat;
+                $izin = (int) $hs->total_izin;
+                $sakit = (int) $hs->total_sakit;
+                $alpha = (int) $hs->total_alpha;
+                $recorded = (int) $hs->total_record;
+            } elseif ($hasMapel) {
+                $hadir = (int) $ms->total_hadir;
+                $terlambat = 0;
+                $izin = (int) $ms->total_izin;
+                $sakit = (int) $ms->total_sakit;
+                $alpha = (int) $ms->total_alpha;
+                $recorded = (int) $ms->total_record;
+            } else {
+                $hadir = 0;
+                $terlambat = 0;
+                $izin = 0;
+                $sakit = 0;
+                $alpha = 0;
+                $recorded = 0;
+            }
+
+            $belum = max(0, $totSiswa - $recorded);
+            $persen = $totSiswa > 0 ? round(($hadir / $totSiswa) * 100, 1) : 0;
+
+            return (object) [
+                'rombongan_belajar_id' => $rId,
+                'nama'                 => $r->nama,
+                'tingkat_pendidikan_id'=> $r->tingkat_pendidikan_id,
+                'wali_kelas'           => $r->ptk_id_str ?: '-',
+                'jurusan'              => $r->jurusan_id_str ?: '-',
+                'total_siswa'          => $totSiswa,
+                'sudah_presensi'       => $sudahPresensi,
+                'metode'               => $metode,
+                'metode_label'         => $metodeLabel,
+                'total_otomatis'       => (int) ($hs?->total_otomatis ?? 0),
+                'total_manual'         => (int) (($hs?->total_manual ?? 0) + ($ms?->total_record ?? 0)),
+                'hadir'                => $hadir,
+                'terlambat'            => $terlambat,
+                'izin'                 => $izin,
+                'sakit'                => $sakit,
+                'alpha'                => $alpha,
+                'belum'                => $belum,
+                'persen'               => $persen,
+                'waktu_pertama'        => $hs?->scan_pertama ? substr($hs->scan_pertama, 0, 5) : null,
+                'waktu_terakhir'       => $hs?->scan_terakhir ? substr($hs->scan_terakhir, 0, 5) : null,
+                'total_mapel_tercatat' => (int) ($ms?->total_mapel_tercatat ?? 0),
+            ];
+        });
+
+        // Filter monitoring
+        $filteredMonitoring = $monitoringList;
+        if ($request->filled('monitor_tingkat')) {
+            $filteredMonitoring = $filteredMonitoring->where('tingkat_pendidikan_id', $request->monitor_tingkat);
+        }
+        if ($request->filled('monitor_status')) {
+            $mStatus = $request->monitor_status;
+            if ($mStatus === 'sudah') {
+                $filteredMonitoring = $filteredMonitoring->where('sudah_presensi', true);
+            } elseif ($mStatus === 'belum') {
+                $filteredMonitoring = $filteredMonitoring->where('sudah_presensi', false);
+            }
+        }
+        if ($request->filled('monitor_metode')) {
+            $mMetode = $request->monitor_metode;
+            $filteredMonitoring = $filteredMonitoring->where('metode', $mMetode);
+        }
+        if ($request->filled('monitor_q')) {
+            $mq = strtolower(trim($request->monitor_q));
+            $filteredMonitoring = $filteredMonitoring->filter(function ($item) use ($mq) {
+                return str_contains(strtolower($item->nama), $mq) || str_contains(strtolower($item->wali_kelas), $mq);
+            });
+        }
+
+        // Monitoring Summary Stats
+        $monitoringStats = [
+            'total_rombel'        => $monitoringList->count(),
+            'sudah_presensi'      => $monitoringList->where('sudah_presensi', true)->count(),
+            'belum_presensi'      => $monitoringList->where('sudah_presensi', false)->count(),
+            'total_otomatis'      => $monitoringList->whereIn('metode', ['otomatis', 'kombinasi'])->count(),
+            'total_manual'        => $monitoringList->whereIn('metode', ['manual', 'kombinasi'])->count(),
+            'total_siswa_sekolah' => $monitoringList->sum('total_siswa'),
+            'total_hadir_sekolah' => $monitoringList->sum('hadir'),
+            'total_izin_sekolah'  => $monitoringList->sum('izin'),
+            'total_sakit_sekolah' => $monitoringList->sum('sakit'),
+            'total_alpha_sekolah' => $monitoringList->sum('alpha'),
+        ];
+
+        // Active tab: 'monitoring' atau 'detail'
+        $activeTab = $request->input('tab');
+        if (!$activeTab) {
+            $activeTab = ($isPiket || $isAdmin) ? 'monitoring' : 'detail';
+        }
+
         return view('dashboard.presensi.kelas', compact(
             'rombelList',
             'selectedRombelId',
@@ -1202,7 +1377,14 @@ class PresensiController extends Controller
             'waliRombel',
             'sort',
             'sortDir',
-            'perPage'
+            'perPage',
+            'monitoringList',
+            'filteredMonitoring',
+            'monitoringStats',
+            'activeTab',
+            'isPiket',
+            'canViewAllClasses',
+            'isAdmin'
         ));
     }
 

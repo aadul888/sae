@@ -606,17 +606,22 @@ window.refreshLiveTable = async function (url, options = {}) {
             const curTableStack = curDataContainer.querySelector(".table-responsive-stack, table");
             const newTableStack = newDataContainer.querySelector(".table-responsive-stack, table");
 
-            if (curToolbar && newToolbar && curTableStack && newTableStack) {
-                // Swap tabel
+            // Apakah pengguna sedang aktif mengetik di input pencarian datatable?
+            const isTypingSearch =
+                document.activeElement &&
+                document.activeElement.tagName === "INPUT" &&
+                isDatatableSearchInput(document.activeElement);
+
+            if (curToolbar && newToolbar && curTableStack && newTableStack && isTypingSearch) {
+                // Pengguna sedang aktif mengetik: Hanya perbarui tabel & paginasi agar input & kursor tidak terganggu
                 curTableStack.innerHTML = newTableStack.innerHTML;
                 tableAnchor = curTableStack;
 
-                // Swap pagination di dalam kontainer jika ada
                 const curPagination = curDataContainer.querySelector(
-                    ".custom-pagination, .dash-pagination, .pagination",
+                    ".custom-pagination, .dash-pagination, .pagination, .datatable-footer",
                 );
                 const newPagination = newDataContainer.querySelector(
-                    ".custom-pagination, .dash-pagination, .pagination",
+                    ".custom-pagination, .dash-pagination, .pagination, .datatable-footer",
                 );
                 if (curPagination && newPagination) {
                     curPagination.outerHTML = newPagination.outerHTML;
@@ -626,35 +631,21 @@ window.refreshLiveTable = async function (url, options = {}) {
                     curTableStack.insertAdjacentElement("afterend", newPagination);
                 }
 
-                // Cek apakah pengguna sedang aktif mengetik/memilih di dalam toolbar
-                const isUserActiveInToolbar =
-                    document.activeElement && curToolbar.contains(document.activeElement);
-
-                if (!isUserActiveInToolbar) {
-                    curToolbar.innerHTML = newToolbar.innerHTML;
-                } else {
-                    // Jangan hancurkan toolbar agar input aktif tidak kehilangan fokus, kursor, atau input buffer!
-                    // Sinkronkan tombol reset filter jika status query/filter berubah
-                    const curResetWrap = curToolbar.querySelector(".toolbar-filter-select, .toolbar-entries")?.parentElement;
-                    const newResetBtn = newToolbar.querySelector('a[title*="Reset"], [data-live-reset], .btn-outline[href*="peserta-didik"]');
-                    const curResetBtn = curToolbar.querySelector('a[title*="Reset"], [data-live-reset], .btn-outline[href*="peserta-didik"]');
-
-                    if (newResetBtn && !curResetBtn && curResetWrap) {
-                        curResetWrap.insertAdjacentHTML("beforeend", newResetBtn.outerHTML);
-                    } else if (!newResetBtn && curResetBtn) {
-                        curResetBtn.remove();
-                    } else if (newResetBtn && curResetBtn) {
-                        curResetBtn.outerHTML = newResetBtn.outerHTML;
-                    }
-
-                    // Sinkronkan class visible pada clearSearch sesuai input saat ini
-                    const curSearchInput = curToolbar.querySelector("input");
-                    const curClearBtn = curToolbar.querySelector(".clear-search");
-                    if (curSearchInput && curClearBtn) {
-                        curClearBtn.classList.toggle("visible", curSearchInput.value.trim().length > 0);
-                    }
+                // Sinkronkan tombol reset jika ada
+                const curResetBtn = curToolbar.querySelector("[data-live-reset], .btn-reset-filter, #btnResetFilter, a[title*='Reset']");
+                const newResetBtn = newToolbar.querySelector("[data-live-reset], .btn-reset-filter, #btnResetFilter, a[title*='Reset']");
+                if (!curResetBtn && newResetBtn) {
+                    const insertTarget = curToolbar.querySelector(".toolbar-filter-select, .toolbar-entries")?.parentElement;
+                    if (insertTarget) insertTarget.insertAdjacentHTML("beforeend", newResetBtn.outerHTML);
+                } else if (curResetBtn && !newResetBtn) {
+                    curResetBtn.remove();
+                } else if (curResetBtn && newResetBtn) {
+                    curResetBtn.outerHTML = newResetBtn.outerHTML;
                 }
             } else {
+                // Pengguna TIDAK sedang mengetik (mengubah dropdown filter, klik reset, sort, paginasi, dll):
+                // Perbarui seluruh container agar toolbar (dropdown options, selected state, reset button, action buttons)
+                // dan tabel serta paginasi 100% selaras dengan response server!
                 curDataContainer.innerHTML = newDataContainer.innerHTML;
                 tableAnchor = curDataContainer;
             }
@@ -951,6 +942,118 @@ function executeDatatableSearch(input) {
 
     // 1. Jika berada di dalam form GET, submit form secara asinkron
     const form = input.closest("form");
+// Universal Helper: Collect all search & filter parameters for the active datatable
+window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("perPageSelect");
+    url.searchParams.delete("_token");
+
+    // 1. Temukan kontainer datatable atau toolbar terdekat
+    const cardContainer =
+        sourceEl?.closest("#tableDataContainer, .datatable-card-wrapper, .dash-table-card, .card.table-responsive-stack, .table-responsive-stack") ||
+        document.querySelector("#tableDataContainer, .datatable-card-wrapper, .card.table-responsive-stack");
+
+    const toolbarContainer =
+        sourceEl?.closest(".datatable-toolbar, .dash-table-toolbar, .toolbar-entries") ||
+        (cardContainer ? cardContainer.querySelector(".datatable-toolbar, .dash-table-toolbar, .toolbar-entries") : null) ||
+        document.querySelector(".datatable-toolbar, .dash-table-toolbar");
+
+    // 2. Ambil nilai query pencarian
+    const searchInput =
+        (toolbarContainer ? toolbarContainer.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, .live-search-wrap input") : null) ||
+        (cardContainer ? cardContainer.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, .live-search-wrap input") : null) ||
+        document.getElementById("liveSearch") ||
+        document.getElementById("liveSearchInput");
+
+    if (searchInput && isDatatableSearchInput(searchInput)) {
+        const qParam = searchInput.name || "q";
+        const qVal = searchInput.value.trim();
+        if (qVal) url.searchParams.set(qParam, qVal);
+        else url.searchParams.delete(qParam);
+    }
+
+    // 3. Kumpulkan seluruh dropdown filter yang ada di toolbar / card
+    const scopes = [];
+    if (toolbarContainer) scopes.push(toolbarContainer);
+    if (cardContainer && cardContainer !== toolbarContainer) scopes.push(cardContainer);
+    if (scopes.length === 0) scopes.push(document);
+
+    const processedSelects = new Set();
+    scopes.forEach((scope) => {
+        const selects = scope.querySelectorAll(
+            "select.per-page-select, select.toolbar-filter-select, select[data-live-filter], select#perPageSelect, select#perPageSelectAdmin, select#filterRombel, select#filterGender, select#filterStatus, select#filterJenis, select#filterTingkat, select#filterJurusan, select#filterTahun, select#filterTahunAjaran, select#filterSemester, select#filterBulan, select#filterModulAdmin, select#filterModul, select#filterStatusKbm, select#filterPtk, select#adminRombelSelect"
+        );
+        selects.forEach((sel) => {
+            if (processedSelects.has(sel)) return;
+            processedSelects.add(sel);
+
+            let pName = sel.name;
+            if (!pName) {
+                if (sel.classList.contains("per-page-select") || sel.id === "perPageSelect" || sel.id === "perPageSelectAdmin") {
+                    pName = "perPage";
+                } else if (sel.id === "filterRombel" || sel.id === "adminRombelSelect") {
+                    pName = url.searchParams.has("rombongan_belajar_id") ? "rombongan_belajar_id" : (url.searchParams.has("rombel_id") ? "rombel_id" : "rombel");
+                } else if (sel.id === "filterGender") {
+                    pName = "gender";
+                } else if (sel.id === "filterStatus") {
+                    pName = "status";
+                } else if (sel.id === "filterJenis") {
+                    pName = "jenis";
+                } else if (sel.id === "filterTingkat") {
+                    pName = "tingkat";
+                } else if (sel.id === "filterJurusan") {
+                    pName = "jurusan";
+                } else if (sel.id === "filterTahun") {
+                    pName = "tahun";
+                } else if (sel.id === "filterStatusKbm") {
+                    pName = "status_kbm";
+                } else if (sel.id === "filterPtk") {
+                    pName = "filter_ptk_id";
+                } else if (sel.id === "filterModulAdmin" || sel.id === "filterModul") {
+                    pName = "modul";
+                } else {
+                    pName = sel.id;
+                }
+            }
+
+            if (pName) {
+                if (sel.value) url.searchParams.set(pName, sel.value);
+                else url.searchParams.delete(pName);
+            }
+        });
+
+        // 4. Input tanggal inline (seperti agenda-kbm)
+        const dateInputs = scope.querySelectorAll("input[type='date']#filterTanggalMulai, input[type='date']#filterTanggalSelesai, input[type='date']#filterTanggal");
+        dateInputs.forEach((dInput) => {
+            const dName = dInput.name || (dInput.id === "filterTanggalMulai" ? "tanggal_mulai" : (dInput.id === "filterTanggalSelesai" ? "tanggal_selesai" : "tanggal"));
+            if (dInput.value) url.searchParams.set(dName, dInput.value);
+            else url.searchParams.delete(dName);
+        });
+    });
+
+    // 5. Terapkan override parameter khusus (misal { page: 1, sort: 'nama', sort_dir: 'asc' })
+    Object.keys(overrideParams).forEach((k) => {
+        const v = overrideParams[k];
+        if (v !== null && v !== undefined && v !== "") {
+            url.searchParams.set(k, v);
+        } else {
+            url.searchParams.delete(k);
+        }
+    });
+
+    if (!("page" in overrideParams)) {
+        url.searchParams.set("page", "1");
+    }
+
+    return url.toString();
+};
+
+// Universal Helper: Execute Datatable search (works for forms and standalone toolbars)
+function executeDatatableSearch(input) {
+    if (!input) return;
+
+    // 1. Jika berada di dalam form GET, submit form secara asinkron
+    const form = input.closest("form");
     if (form && !form.hasAttribute("data-manual-search") && (form.method || "get").toLowerCase() === "get") {
         const formData = new FormData(form);
         const url = new URL(form.action || window.location.href, window.location.origin);
@@ -964,45 +1067,8 @@ function executeDatatableSearch(input) {
     }
 
     // 2. Standalone datatable toolbar (tanpa form GET)
-    const url = new URL(window.location.href);
-    url.searchParams.delete("perPageSelect");
-    url.searchParams.delete("_token");
-
-    const paramName = input.name || "q";
-    const queryVal = input.value.trim();
-
-    if (queryVal) {
-        url.searchParams.set(paramName, queryVal);
-    } else {
-        url.searchParams.delete(paramName);
-    }
-    url.searchParams.set("page", "1");
-
-    // Sinkronkan nilai filter aktif di toolbar jika ada
-    const container = input.closest("#tableDataContainer, .datatable-card-wrapper, .dash-table-card, .card, body");
-    if (container) {
-        const selects = container.querySelectorAll(
-            ".per-page-select, .toolbar-filter-select, #perPageSelect, #perPageSelectAdmin, #filterRombel, #filterGender, #filterStatus, #filterJenis, #filterTahun, #filterTahunAjaran, #filterSemester, #filterBulan, #filterModulAdmin, #filterModul"
-        );
-        selects.forEach((sel) => {
-            let pName = sel.name;
-            if (!pName) {
-                if (sel.classList.contains("per-page-select") || sel.id === "perPageSelect" || sel.id === "perPageSelectAdmin") pName = "perPage";
-                else if (sel.id === "filterRombel") pName = "rombel";
-                else if (sel.id === "filterGender") pName = "gender";
-                else if (sel.id === "filterStatus") pName = "status";
-                else if (sel.id === "filterJenis") pName = "jenis";
-                else if (sel.id === "filterTahun") pName = "tahun";
-                else if (sel.id === "filterModulAdmin" || sel.id === "filterModul") pName = "modul";
-            }
-            if (pName) {
-                if (sel.value) url.searchParams.set(pName, sel.value);
-                else url.searchParams.delete(pName);
-            }
-        });
-    }
-
-    window.refreshLiveTable(url.toString());
+    const targetUrl = window.collectDatatableUrl(input, { [input.name || "q"]: input.value.trim() });
+    window.refreshLiveTable(targetUrl);
 }
 
 // Global Delegated Handler for Clear Search Buttons (.clear-search, #clearSearch, dsb)
@@ -1093,52 +1159,45 @@ document.addEventListener("submit", function (e) {
     }
 });
 
-// Universal Delegated Change Handler for Dropdown Filters across ALL modules
+// Universal Delegated Change Handler for Dropdown & Date Filters across ALL modules
 document.addEventListener("change", function (e) {
-    const select = e.target;
-    if (!select || select.tagName !== "SELECT") return;
+    const el = e.target;
+    if (!el) return;
 
     if (
         e.defaultPrevented ||
-        select.hasAttribute("data-no-ajax") ||
-        select.hasAttribute("data-manual-filter") ||
-        select.closest("[data-manual-filter]") ||
-        select.closest(".modal, .swal2-container, #actionModal, .modal-backdrop")
+        el.hasAttribute("data-no-ajax") ||
+        el.hasAttribute("data-manual-filter") ||
+        el.closest("[data-manual-filter]") ||
+        el.closest(".modal, .swal2-container, #actionModal, .modal-backdrop")
     ) {
         return;
     }
 
-    const isFilterDropdown =
-        select.classList.contains("per-page-select") ||
-        select.classList.contains("toolbar-filter-select") ||
-        select.hasAttribute("data-live-filter") ||
-        select.id === "perPageSelectAdmin" ||
-        select.id === "perPageSelect" ||
-        select.id === "filterModulAdmin" ||
-        select.id === "filterRombel" ||
-        select.id === "filterGender" ||
-        select.id === "filterStatus" ||
-        select.id === "filterJenis" ||
-        select.name === "perPage" ||
-        select.name === "per_page" ||
-        select.name === "modul" ||
-        select.name === "status" ||
-        select.name === "kategori" ||
-        select.name === "filter_status" ||
-        select.name === "filter_kategori" ||
-        select.name === "rombel" ||
-        select.name === "rombel_id" ||
-        select.name === "gender" ||
-        select.name === "jenis" ||
-        select.name === "tingkat" ||
-        select.closest(".toolbar-entries") ||
-        select.closest(".dash-table-toolbar") ||
-        select.closest(".datatable-toolbar");
+    const isFilter =
+        (el.tagName === "SELECT" && (
+            el.classList.contains("per-page-select") ||
+            el.classList.contains("toolbar-filter-select") ||
+            el.hasAttribute("data-live-filter") ||
+            el.id.startsWith("filter") ||
+            el.id.startsWith("perPage") ||
+            el.name === "perPage" ||
+            el.name === "per_page" ||
+            el.name === "rombel" ||
+            el.name === "gender" ||
+            el.name === "status" ||
+            el.name === "jenis" ||
+            el.name === "tingkat" ||
+            el.name === "jurusan" ||
+            el.name === "modul" ||
+            el.closest(".toolbar-entries, .dash-table-toolbar, .datatable-toolbar")
+        )) ||
+        (el.tagName === "INPUT" && el.type === "date" && (el.id.startsWith("filter") || el.name.startsWith("tanggal")));
 
-    if (!isFilterDropdown) return;
+    if (!isFilter) return;
 
     // If inside a GET form, submit via AJAX
-    const form = select.closest("form");
+    const form = el.closest("form");
     if (form && (form.method || "get").toLowerCase() === "get" && !form.hasAttribute("data-manual-filter")) {
         const formData = new FormData(form);
         const url = new URL(form.action || window.location.href, window.location.origin);
@@ -1151,42 +1210,10 @@ document.addEventListener("change", function (e) {
         return;
     }
 
-    // If not in a GET form, check if inside or near a table/toolbar container
-    const container = select.closest("#tableDataContainer, .table-responsive-stack, .dash-table-card, .card, .toolbar-entries, .datatable-toolbar");
-    if (container) {
-        const url = new URL(window.location.href);
-        let paramName = select.name;
-        if (!paramName) {
-            if (select.classList.contains("per-page-select") || select.id === "perPageSelect" || select.id === "perPageSelectAdmin") {
-                paramName = "perPage";
-            } else if (select.id === "filterModulAdmin" || select.id === "filterModul") {
-                paramName = "modul";
-            } else if (select.id === "filterRombel") {
-                paramName = "rombel";
-            } else if (select.id === "filterGender") {
-                paramName = "gender";
-            } else if (select.id === "filterStatus") {
-                paramName = "status";
-            } else if (select.id === "filterJenis") {
-                paramName = "jenis";
-            } else if (select.id === "filterTahun") {
-                paramName = "tahun";
-            } else {
-                paramName = select.id;
-            }
-        }
-        if (paramName === "perPage") {
-            url.searchParams.delete("perPageSelect");
-        }
-        if (select.value) {
-            url.searchParams.set(paramName, select.value);
-        } else {
-            url.searchParams.delete(paramName);
-        }
-
-        // Pertahankan query pencarian aktif saat filter dropdown berubah
-        const sInput = container.querySelector ? container.querySelector("input#liveSearch, input.live-search-input, .live-search-wrap input") : null;
-        if (sInput && sInput.value.trim()) {
+    // Standalone datatable toolbar
+    const targetUrl = window.collectDatatableUrl(el);
+    window.refreshLiveTable(targetUrl);
+});
             url.searchParams.set(sInput.name || "q", sInput.value.trim());
         }
 

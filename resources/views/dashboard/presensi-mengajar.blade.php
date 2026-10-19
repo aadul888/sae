@@ -156,266 +156,378 @@
         </div>
     @endif
 
-    <!-- 4. Quick Action Widget: Jadwal Mengajar Hari Ini -->
-    <div class="card card-widget-kbm"
-        style="border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px; background: var(--bg-card); padding: 16px 18px;">
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div
-                    style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
-                    <i class="fas fa-calendar-day"></i>
-                </div>
-                <div>
-                    <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0;">
-                        Jadwal Hari Ini ({{ $hariIni }})
-                    </h3>
-                </div>
-            </div>
-            <span class="badge"
-                style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.75rem; padding: 3px 8px; font-weight: 700;">
-                {{ count($jadwalHariIni) }} Sesi Mapel
-            </span>
-        </div>
-
-        @if ($isHariLibur)
-            <div
-                style="text-align: center; padding: 22px 14px; background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.25); border-radius: 10px; color: var(--text-muted); font-size: 0.84rem;">
-                <i class="fas fa-umbrella-beach"
-                    style="font-size: 2rem; color: #ef4444; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
-                <strong style="color: #ef4444; font-size: 0.92rem; display: block; margin-bottom: 2px;">Hari Ini Libur
-                    Sekolah — KBM Reguler Ditiadakan</strong>
-                <span>Sesuai Kalender Pendidikan, Anda tidak memiliki jadwal mengajar aktif untuk hari ini.</span>
-            </div>
-        @elseif (!empty($isGuru) && empty($isJadwalDiberlakukan))
-            <div
-                style="text-align: center; padding: 22px 14px; background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.3); border-radius: 10px; color: var(--text-muted); font-size: 0.84rem;">
-                <i class="fas fa-clock"
-                    style="font-size: 2rem; color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
-                <strong style="color: #f59e0b; font-size: 0.92rem; display: block; margin-bottom: 2px;">Jadwal KBM Masih
-                    Berstatus Draft</strong>
-                <span>Jadwal KBM semester ini sedang dalam proses penyusunan/finalisasi oleh Tim Kurikulum dan belum resmi
-                    diberlakukan.</span>
-            </div>
-        @elseif (count($jadwalHariIni) > 0)
-            <div class="card-kbm-today-grid">
-                @foreach ($jadwalHariIni as $j)
-                    @php
-                        $key = 'jadwal_' . $j->id;
-                        $presensiToday = $presensiHariIniKeyed[$key] ?? null;
-                        $rombelNama =
-                            \Illuminate\Support\Facades\DB::table('rombongan_belajar')
-                                ->where('rombongan_belajar_id', $j->rombongan_belajar_id)
-                                ->value('nama') ?? $j->rombongan_belajar_id;
-
-                        // Periksa apakah waktu saat ini belum mencapai jam_mulai jadwal KBM
-                        $nowTime = \Carbon\Carbon::now()->format('H:i');
-                        $jamMulai = !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : null;
-                        $isBelumSaatnya = $jamMulai && $nowTime < $jamMulai;
-                    @endphp
-                    <div class="today-kbm-item {{ $presensiToday ? 'done' : '' }}">
-                        <div>
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 6px; width: 100%;">
-                                <span class="badge badge-primary"
-                                    style="font-size: 0.74rem; font-weight: 700; padding: 2px 7px; flex-shrink: 0;">
-                                    <i class="fas fa-chalkboard me-1"></i>{{ $rombelNama }}
-                                </span>
-                                <span class="badge-jam">
-                                    <i class="far fa-clock me-1"></i>Jam {{ $j->jam_ke_mulai }}-{{ $j->jam_ke_selesai }}
-                                    ({{ $j->durasi_jp }} JP)
-                                </span>
-                            </div>
-
-                            <div class="mapel-title" title="{{ $j->nama_mata_pelajaran }}">
-                                {{ $j->nama_mata_pelajaran }}
-                            </div>
-
-                            @php
-                                $guruNama = $j->gtk?->nama ?? null;
-                            @endphp
-                            @if (!empty($guruNama))
-                                <div style="font-size: 0.76rem; color: var(--text-color); font-weight: 600; margin-top: 3px; display: flex; align-items: center; gap: 6px;"
-                                    title="Guru Mapel: {{ $guruNama }}">
-                                    <i class="fas fa-user-tie text-primary"
-                                        style="font-size: 0.72rem; flex-shrink: 0;"></i>
-                                    <span
-                                        style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $guruNama }}</span>
-                                </div>
-                            @endif
-
-                            <div
-                                style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                                <span><i class="far fa-clock me-1"></i>{{ $j->jam_waktu_range }}</span>
-                                @if ($j->ruangan)
-                                    <span><i class="fas fa-location-dot me-1"></i>{{ $j->ruangan }}</span>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div
-                            style="border-top: 1px solid var(--border-color); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;">
-                            @if ($presensiToday)
-                                <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
-                                    {!! $presensiToday->status_badge !!}
-                                    <span style="font-size: 0.72rem; color: var(--text-muted); white-space: nowrap;">
-                                        {{ substr($presensiToday->jam_masuk, 0, 5) }}
-                                    </span>
-                                </div>
-                                <button type="button" class="btn btn-outline btn-sm btn-edit-row"
-                                    data-id="{{ $presensiToday->id }}" title="Edit Presensi"
-                                    style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px; flex-shrink: 0;">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                            @elseif ($isBelumSaatnya)
-                                <span
-                                    style="font-size: 0.74rem; color: var(--text-muted); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;"
-                                    title="Sesi KBM belum dimulai (dimulai pukul {{ $jamMulai }})">
-                                    <i class="fas fa-hourglass-start text-muted"></i> Belum Saatnya
-                                </span>
-                            @else
-                                <span
-                                    style="font-size: 0.74rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
-                                    <i class="fas fa-clock"></i> Belum
-                                </span>
-                                @if ($canCreate)
-                                    <button type="button" class="btn btn-primary btn-sm btn-quick-checkin"
-                                        data-jadwal-id="{{ $j->id }}"
-                                        data-rombel-id="{{ $j->rombongan_belajar_id }}"
-                                        data-rombel-nama="{{ $rombelNama }}"
-                                        data-mapel="{{ $j->nama_mata_pelajaran }}"
-                                        data-pembelajaran-id="{{ $j->pembelajaran_id }}"
-                                        data-mapel-id="{{ $j->mata_pelajaran_id }}"
-                                        data-jam-mulai="{{ $j->jam_ke_mulai }}"
-                                        data-jam-selesai="{{ $j->jam_ke_selesai }}"
-                                        data-jam-masuk="{{ !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '' }}"
-                                        data-jam-keluar="{{ !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '' }}"
-                                        data-jam-waktu="{{ $j->jam_waktu_range }}" data-durasi-jp="{{ $j->durasi_jp }}"
-                                        data-hari="{{ $j->hari }}" data-ptk-id="{{ $j->ptk_id }}"
-                                        data-guru-nama="{{ $guruNama ?? '' }}" title="Presensi Sekarang"
-                                        style="font-size: 0.8rem; padding: 5px 10px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </button>
-                                @endif
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div
-                style="text-align: center; padding: 18px 12px; background: var(--bg-hover); border-radius: 8px; color: var(--text-muted); font-size: 0.82rem;">
-                <i class="fas fa-calendar-xmark"
-                    style="font-size: 1.5rem; margin-bottom: 6px; display: block; opacity: 0.5;"></i>
-                Tidak ada jadwal KBM aktif {{ $isGuru ? 'untuk Anda' : 'dengan guru mata pelajaran' }} pada hari
-                {{ $hariIni }}.
-            </div>
-        @endif
+    <!-- 4. Navigasi 2 Tab Presensi Mengajar (Jadwal Hari Ini & Riwayat Presensi) -->
+    <div class="dash-tabs-nav dash-desktop-tabs" style="margin-bottom: 20px;">
+        <button type="button"
+            class="btn {{ ($activeTab ?? 'jadwal') === 'jadwal' ? 'btn-primary' : 'btn-outline' }} pm-tab-btn"
+            data-tab="jadwal">
+            <i class="fas fa-calendar-day me-1"></i> Jadwal Hari Ini ({{ count($jadwalHariIni) }})
+        </button>
+        <button type="button"
+            class="btn {{ ($activeTab ?? 'jadwal') === 'riwayat' ? 'btn-primary' : 'btn-outline' }} pm-tab-btn"
+            data-tab="riwayat">
+            <i class="fas fa-list-check me-1"></i> Riwayat Presensi Mengajar ({{ $items->total() }})
+        </button>
     </div>
 
-    <!-- Unified Datatable Presensi Mengajar (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
-    <div class="card datatable-card-wrapper" id="tableDataContainer">
-        <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
-        <div class="datatable-toolbar">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
-                            @foreach ([10, 15, 25, 50, 100] as $n)
-                                <option value="{{ $n }}"
-                                    {{ request('per_page', 15) == $n ? 'selected' : '' }}>
-                                    {{ $n }}</option>
-                            @endforeach
-                        </select>
-                        <span>entri</span>
-                    </div>
+    <!-- Mobile Custom Dropdown Selector Baku SAE -->
+    <div class="dash-mobile-tab-select-wrap" style="margin-bottom: 20px;">
+        <div class="dash-custom-dropdown">
+            <button type="button" class="custom-dropdown-trigger" id="pmMobileDropdownTrigger">
+                <div class="custom-dropdown-trigger-label">
+                    <i
+                        class="fas {{ ($activeTab ?? 'jadwal') === 'jadwal' ? 'fa-calendar-day' : 'fa-list-check' }} text-primary me-2"></i>
+                    <span
+                        id="pmMobileDropdownLabel">{{ ($activeTab ?? 'jadwal') === 'jadwal' ? 'Jadwal Hari Ini' : 'Riwayat Presensi Mengajar' }}</span>
+                </div>
+                <i class="fas fa-chevron-down custom-dropdown-arrow"></i>
+            </button>
+            <div class="custom-dropdown-menu" id="pmMobileDropdownMenu">
+                <button type="button"
+                    class="custom-dropdown-item pm-tab-btn {{ ($activeTab ?? 'jadwal') === 'jadwal' ? 'active' : '' }}"
+                    data-tab="jadwal">
+                    <i class="fas fa-calendar-day text-primary me-2"></i> Jadwal Hari Ini
+                </button>
+                <button type="button"
+                    class="custom-dropdown-item pm-tab-btn {{ ($activeTab ?? 'jadwal') === 'riwayat' ? 'active' : '' }}"
+                    data-tab="riwayat">
+                    <i class="fas fa-list-check text-primary me-2"></i> Riwayat Presensi Mengajar
+                </button>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Filter Rentang Tanggal Inline Baku SAE -->
-                    <div
-                        style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
-                        <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;"
-                            title="Rentang Tanggal"></i>
-                        <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}"
-                            title="Tanggal Mulai"
-                            style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
-                        <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
-                        <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}"
-                            title="Tanggal Selesai"
-                            style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
-                    </div>
+    <!-- TAB PANE 1: JADWAL HARI INI -->
+    <div id="tabPaneJadwal" class="pm-tab-pane"
+        style="{{ ($activeTab ?? 'jadwal') === 'jadwal' ? 'display: block;' : 'display: none;' }}">
 
-                    <!-- Filter Rombel -->
-                    <select id="filterRombel" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
-                        <option value="">Semua Kelas</option>
-                        @foreach ($rombelList as $r)
-                            <option value="{{ $r->rombongan_belajar_id }}"
-                                {{ request('rombongan_belajar_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
-                                {{ $r->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <!-- Filter Status -->
-                    <select id="filterStatus" class="toolbar-filter-select" style="min-width: 130px; height: 38px;">
-                        <option value="">Semua Status</option>
-                        <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir</option>
-                        <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
-                        <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>Sakit</option>
-                        <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>Tugas</option>
-                        <option value="D" {{ request('status') === 'D' ? 'selected' : '' }}>Inval</option>
-                    </select>
-
-                    @if (!$isGuru && count($guruList) > 0)
-                        <select id="filterPtk" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
-                            <option value="">Semua Guru</option>
-                            @foreach ($guruList as $g)
-                                <option value="{{ $g->ptk_id }}"
-                                    {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
-                                    {{ $g->nama }}
+        @if (!empty($isPiket))
+            <!-- Filter Jadwal Hari Ini Khusus Guru Piket / Admin -->
+            <div class="card"
+                style="padding: 12px 16px; margin-bottom: 16px; border-radius: 12px; background: var(--bg-card); border: 1px solid var(--border-color);">
+                <form action="{{ route('dashboard.presensi-mengajar.index') }}" method="GET"
+                    style="margin: 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;">
+                    <input type="hidden" name="tab" value="jadwal">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <span
+                            style="font-size: 0.82rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-filter text-primary"></i> Filter Jadwal Guru:
+                        </span>
+                        @if (!empty($guruList) && count($guruList) > 0)
+                            <select name="filter_ptk_id" class="toolbar-filter-select"
+                                style="min-width: 170px; height: 36px; font-size: 0.82rem;" onchange="this.form.submit()">
+                                <option value="">Semua Guru Mapel</option>
+                                @foreach ($guruList as $g)
+                                    <option value="{{ $g->ptk_id }}"
+                                        {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
+                                        {{ $g->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @endif
+                        <select name="rombongan_belajar_id" class="toolbar-filter-select"
+                            style="min-width: 140px; height: 36px; font-size: 0.82rem;" onchange="this.form.submit()">
+                            <option value="">Semua Kelas</option>
+                            @foreach ($rombelList as $r)
+                                <option value="{{ $r->rombongan_belajar_id }}"
+                                    {{ request('rombongan_belajar_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                    {{ $r->nama }}
                                 </option>
                             @endforeach
                         </select>
-                    @endif
-
-                    @if (request('q') ||
-                            request('tanggal_mulai') ||
-                            request('tanggal_selesai') ||
-                            request('rombongan_belajar_id') ||
-                            request('status') ||
-                            request('filter_ptk_id'))
-                        <button type="button" id="btnResetFilter" class="btn btn-outline"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                            title="Reset filter">
-                            <i class="fas fa-undo"></i>
-                        </button>
-                    @endif
-                </div>
-
-                <!-- Live Search Box Baku SAE -->
-                <div class="live-search-wrap" style="height: 38px;">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearchInput" placeholder="Cari mapel, kelas, catatan..."
-                        value="{{ request('q') }}" autocomplete="off">
-                    <button type="button" class="clear-search {{ request('q') ? 'visible' : '' }}"
-                        title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 2. Konten Datatable Container Baku SAE -->
-        <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
-            @include('dashboard.presensi-mengajar-table')
-        </div>
-
-        <!-- 3. Footer Paginasi Terpadu Datatable -->
-        @if ($items->hasPages())
-            <div class="datatable-footer">
-                @include('partials.datatable-pagination', ['paginator' => $items])
+                        @if (request('filter_ptk_id') || request('rombongan_belajar_id'))
+                            <a href="{{ route('dashboard.presensi-mengajar.index', ['tab' => 'jadwal']) }}"
+                                class="btn btn-outline"
+                                style="height: 36px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-undo"></i> Reset
+                            </a>
+                        @endif
+                    </div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">
+                        Menampilkan jadwal KBM aktif hari {{ $hariIni }}
+                    </div>
+                </form>
             </div>
         @endif
+
+        <!-- Quick Action Widget: Jadwal Mengajar Hari Ini -->
+        <div class="card card-widget-kbm"
+            style="border-radius: 14px; border: 1px solid var(--border-color); margin-bottom: 20px; background: var(--bg-card); padding: 16px 18px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div
+                        style="width: 32px; height: 32px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                            Jadwal Hari Ini ({{ $hariIni }})
+                        </h3>
+                    </div>
+                </div>
+                <span class="badge"
+                    style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.75rem; padding: 3px 8px; font-weight: 700;">
+                    {{ count($jadwalHariIni) }} Sesi Mapel
+                </span>
+            </div>
+
+            @if ($isHariLibur)
+                <div
+                    style="text-align: center; padding: 22px 14px; background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.25); border-radius: 10px; color: var(--text-muted); font-size: 0.84rem;">
+                    <i class="fas fa-umbrella-beach"
+                        style="font-size: 2rem; color: #ef4444; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                    <strong style="color: #ef4444; font-size: 0.92rem; display: block; margin-bottom: 2px;">Hari Ini Libur
+                        Sekolah — KBM Reguler Ditiadakan</strong>
+                    <span>Sesuai Kalender Pendidikan, tidak ada jadwal mengajar aktif untuk hari ini.</span>
+                </div>
+            @elseif (!empty($isGuruViewOnly) && empty($isJadwalDiberlakukan))
+                <div
+                    style="text-align: center; padding: 22px 14px; background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.3); border-radius: 10px; color: var(--text-muted); font-size: 0.84rem;">
+                    <i class="fas fa-clock"
+                        style="font-size: 2rem; color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                    <strong style="color: #f59e0b; font-size: 0.92rem; display: block; margin-bottom: 2px;">Jadwal KBM
+                        Masih
+                        Berstatus Draft</strong>
+                    <span>Jadwal KBM semester ini sedang dalam proses penyusunan/finalisasi oleh Tim Kurikulum dan belum
+                        resmi
+                        diberlakukan.</span>
+                </div>
+            @elseif (count($jadwalHariIni) > 0)
+                <div class="card-kbm-today-grid">
+                    @foreach ($jadwalHariIni as $j)
+                        @php
+                            $key = 'jadwal_' . $j->id;
+                            $presensiToday = $presensiHariIniKeyed[$key] ?? null;
+                            $rombelNama =
+                                \Illuminate\Support\Facades\DB::table('rombongan_belajar')
+                                    ->where('rombongan_belajar_id', $j->rombongan_belajar_id)
+                                    ->value('nama') ?? $j->rombongan_belajar_id;
+
+                            // Periksa apakah waktu saat ini belum mencapai jam_mulai jadwal KBM
+                            $nowTime = \Carbon\Carbon::now()->format('H:i');
+                            $jamMulai = !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : null;
+                            $isBelumSaatnya = $jamMulai && $nowTime < $jamMulai;
+                        @endphp
+                        <div class="today-kbm-item {{ $presensiToday ? 'done' : '' }}">
+                            <div>
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 6px; width: 100%;">
+                                    <span class="badge badge-primary"
+                                        style="font-size: 0.74rem; font-weight: 700; padding: 2px 7px; flex-shrink: 0;">
+                                        <i class="fas fa-chalkboard me-1"></i>{{ $rombelNama }}
+                                    </span>
+                                    <span class="badge-jam">
+                                        <i class="far fa-clock me-1"></i>Jam
+                                        {{ $j->jam_ke_mulai }}-{{ $j->jam_ke_selesai }}
+                                        ({{ $j->durasi_jp }} JP)
+                                    </span>
+                                </div>
+
+                                <div class="mapel-title" title="{{ $j->nama_mata_pelajaran }}">
+                                    {{ $j->nama_mata_pelajaran }}
+                                </div>
+
+                                @php
+                                    $guruNama = $j->gtk?->nama ?? null;
+                                @endphp
+                                @if (!empty($guruNama))
+                                    <div style="font-size: 0.76rem; color: var(--text-color); font-weight: 600; margin-top: 3px; display: flex; align-items: center; gap: 6px;"
+                                        title="Guru Mapel: {{ $guruNama }}">
+                                        <i class="fas fa-user-tie text-primary"
+                                            style="font-size: 0.72rem; flex-shrink: 0;"></i>
+                                        <span
+                                            style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $guruNama }}</span>
+                                    </div>
+                                @endif
+
+                                <div
+                                    style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                                    <span><i class="far fa-clock me-1"></i>{{ $j->jam_waktu_range }}</span>
+                                    @if ($j->ruangan)
+                                        <span><i class="fas fa-location-dot me-1"></i>{{ $j->ruangan }}</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div
+                                style="border-top: 1px solid var(--border-color); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%;">
+                                @if ($presensiToday)
+                                    <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+                                        {!! $presensiToday->status_badge !!}
+                                        <span style="font-size: 0.72rem; color: var(--text-muted); white-space: nowrap;">
+                                            {{ substr($presensiToday->jam_masuk, 0, 5) }}
+                                        </span>
+                                    </div>
+                                    <button type="button" class="btn btn-outline btn-sm btn-edit-row"
+                                        data-id="{{ $presensiToday->id }}" title="Edit Presensi"
+                                        style="font-size: 0.74rem; padding: 3px 8px; border-radius: 6px; flex-shrink: 0;">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                @elseif ($isBelumSaatnya)
+                                    <span
+                                        style="font-size: 0.74rem; color: var(--text-muted); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;"
+                                        title="Sesi KBM belum dimulai (dimulai pukul {{ $jamMulai }})">
+                                        <i class="fas fa-hourglass-start text-muted"></i> Belum Saatnya
+                                    </span>
+                                @else
+                                    <span
+                                        style="font-size: 0.74rem; color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                                        <i class="fas fa-clock"></i> Belum
+                                    </span>
+                                    @if ($canCreate)
+                                        <button type="button" class="btn btn-primary btn-sm btn-quick-checkin"
+                                            data-jadwal-id="{{ $j->id }}"
+                                            data-rombel-id="{{ $j->rombongan_belajar_id }}"
+                                            data-rombel-nama="{{ $rombelNama }}"
+                                            data-mapel="{{ $j->nama_mata_pelajaran }}"
+                                            data-pembelajaran-id="{{ $j->pembelajaran_id }}"
+                                            data-mapel-id="{{ $j->mata_pelajaran_id }}"
+                                            data-jam-mulai="{{ $j->jam_ke_mulai }}"
+                                            data-jam-selesai="{{ $j->jam_ke_selesai }}"
+                                            data-jam-masuk="{{ !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '' }}"
+                                            data-jam-keluar="{{ !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '' }}"
+                                            data-jam-waktu="{{ $j->jam_waktu_range }}"
+                                            data-durasi-jp="{{ $j->durasi_jp }}" data-hari="{{ $j->hari }}"
+                                            data-ptk-id="{{ $j->ptk_id }}" data-guru-nama="{{ $guruNama ?? '' }}"
+                                            title="Presensi Sekarang"
+                                            style="font-size: 0.8rem; padding: 5px 10px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
+                                            <i class="fas fa-calendar-check"></i>
+                                        </button>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div
+                    style="text-align: center; padding: 18px 12px; background: var(--bg-hover); border-radius: 8px; color: var(--text-muted); font-size: 0.82rem;">
+                    <i class="fas fa-calendar-xmark"
+                        style="font-size: 1.5rem; margin-bottom: 6px; display: block; opacity: 0.5;"></i>
+                    Tidak ada jadwal KBM aktif {{ $isGuruViewOnly ? 'untuk Anda' : 'dengan guru mata pelajaran' }} pada
+                    hari
+                    {{ $hariIni }}.
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- TAB PANE 2: RIWAYAT PRESENSI MENGAJAR (TABEL DI BAWAH JADWAL HARI INI) -->
+    <div id="tabPaneRiwayat" class="pm-tab-pane"
+        style="{{ ($activeTab ?? 'jadwal') === 'riwayat' ? 'display: block;' : 'display: none;' }}">
+
+        <!-- Unified Datatable Presensi Mengajar (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="per_page" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}"
+                                        {{ request('per_page', 15) == $n ? 'selected' : '' }}>
+                                        {{ $n }}</option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <!-- Filter Rentang Tanggal Inline Baku SAE -->
+                        <div
+                            style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
+                            <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;"
+                                title="Rentang Tanggal"></i>
+                            <input type="date" id="filterTanggalMulai" name="tanggal_mulai"
+                                value="{{ request('tanggal_mulai') }}" title="Tanggal Mulai"
+                                style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
+                            <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
+                            <input type="date" id="filterTanggalSelesai" name="tanggal_selesai"
+                                value="{{ request('tanggal_selesai') }}" title="Tanggal Selesai"
+                                style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
+                        </div>
+
+                        <!-- Filter Rombel -->
+                        <select id="filterRombel" name="rombongan_belajar_id" class="toolbar-filter-select"
+                            style="min-width: 140px; height: 38px;">
+                            <option value="">Semua Kelas</option>
+                            @foreach ($rombelList as $r)
+                                <option value="{{ $r->rombongan_belajar_id }}"
+                                    {{ request('rombongan_belajar_id') === $r->rombongan_belajar_id || request('rombel') === $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                    {{ $r->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <!-- Filter Status -->
+                        <select id="filterStatus" name="status" class="toolbar-filter-select"
+                            style="min-width: 130px; height: 38px;">
+                            <option value="">Semua Status</option>
+                            <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir</option>
+                            <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
+                            <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>Sakit</option>
+                            <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>Tugas</option>
+                            <option value="D" {{ request('status') === 'D' ? 'selected' : '' }}>Inval</option>
+                        </select>
+
+                        @if (!$isGuruViewOnly && count($guruList) > 0)
+                            <select id="filterPtk" name="filter_ptk_id" class="toolbar-filter-select"
+                                style="min-width: 140px; height: 38px;">
+                                <option value="">Semua Guru</option>
+                                @foreach ($guruList as $g)
+                                    <option value="{{ $g->ptk_id }}"
+                                        {{ request('filter_ptk_id') === $g->ptk_id || request('ptk_id') === $g->ptk_id ? 'selected' : '' }}>
+                                        {{ $g->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @endif
+
+                        @if (request('q') ||
+                                request('tanggal_mulai') ||
+                                request('tanggal_selesai') ||
+                                request('rombongan_belajar_id') ||
+                                request('rombel') ||
+                                request('status') ||
+                                request('filter_ptk_id') ||
+                                request('ptk_id'))
+                            <a href="{{ route('dashboard.presensi-mengajar.index', ['tab' => 'riwayat']) }}"
+                                id="btnResetFilter" class="btn btn-outline"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter" data-live-reset="true">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- Live Search Box Baku SAE -->
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="liveSearchInput" name="q"
+                            placeholder="Cari mapel, kelas, catatan..." value="{{ request('q') }}" autocomplete="off">
+                        <button type="button" class="clear-search {{ request('q') ? 'visible' : '' }}"
+                            title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Konten Datatable Container Baku SAE -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                @include('dashboard.presensi-mengajar-table')
+            </div>
+
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if ($items->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $items])
+                </div>
+            @endif
+        </div>
     </div>
 
     <!-- 6. Modal Form Catat Presensi Mengajar (z-index: 99999 !important) -->
@@ -469,14 +581,15 @@
                                     data-jam-keluar="{{ !empty($j['jam_selesai']) ? substr($j['jam_selesai'], 0, 5) : '' }}"
                                     data-jam-waktu="{{ $j['jam_waktu_range'] ?? '' }}"
                                     data-durasi-jp="{{ $j['durasi_jp'] }}" data-ptk-id="{{ $j['ptk_id'] }}">
-                                    [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam
+                                    [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }}
+                                    (Jam
                                     {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }}){{ !$isGuru && !empty($j['guru_nama']) && $j['guru_nama'] !== '-' ? ' • ' . $j['guru_nama'] : '' }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    @if (!$isGuru && count($guruList) > 0)
+                    @if (!$isGuruViewOnly && count($guruList) > 0)
                         <!-- Pilihan Guru Pengampu (Khusus Guru Piket / Tendik / Admin) -->
                         <div class="pm-field" style="margin-bottom: 12px;" id="wrapPtkSelector">
                             <label

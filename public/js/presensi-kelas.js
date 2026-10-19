@@ -356,4 +356,108 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // 6. Tab Switching: Monitoring Seluruh Kelas vs Presensi Per Kelas & Mapel
+    const pkTabButtons = document.querySelectorAll('.pk-tab-btn');
+    const pkTabPanes = document.querySelectorAll('.pk-tab-pane');
+    const pkMobileTrigger = document.getElementById('pkMobileDropdownTrigger');
+    const pkMobileMenu = document.getElementById('pkMobileDropdownMenu');
+    const pkMobileLabel = document.getElementById('pkMobileDropdownLabel');
+    const tab2Actions = document.querySelectorAll('.btn-tab2-action');
+
+    const switchPkTab = (tabName) => {
+        pkTabButtons.forEach(btn => {
+            if (btn.dataset.tab === tabName) {
+                btn.classList.add('btn-primary');
+                btn.classList.remove('btn-outline');
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline');
+                btn.classList.remove('active');
+            }
+        });
+
+        pkTabPanes.forEach(pane => {
+            pane.style.display = 'none';
+        });
+
+        const targetPane = document.getElementById(
+            tabName === 'detail' ? 'tabPaneDetail' : 'tabPaneMonitoring'
+        );
+        if (targetPane) {
+            targetPane.style.display = 'block';
+        }
+
+        // Tampilkan aksi presensi massal hanya di Tab Detail
+        tab2Actions.forEach(btn => {
+            btn.style.display = (tabName === 'detail') ? 'inline-flex' : 'none';
+        });
+
+        if (pkMobileLabel) {
+            pkMobileLabel.textContent = (tabName === 'detail')
+                ? 'Presensi Per Kelas & Mapel'
+                : 'Monitoring Seluruh Kelas';
+        }
+
+        if (pkMobileMenu) {
+            pkMobileMenu.classList.remove('show');
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tabName);
+        window.history.replaceState({}, '', url.toString());
+    };
+
+    pkTabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.dataset.tab;
+            if (tabName) switchPkTab(tabName);
+        });
+    });
+
+    if (pkMobileTrigger && pkMobileMenu) {
+        pkMobileTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            pkMobileMenu.classList.toggle('show');
+        });
+        document.addEventListener('click', (e) => {
+            if (!pkMobileTrigger.contains(e.target) && !pkMobileMenu.contains(e.target)) {
+                pkMobileMenu.classList.remove('show');
+            }
+        });
+    }
+
+    // 7. Live Search Instant di Tabel Monitoring Kelas
+    const liveSearchMonitorInput = document.getElementById('liveSearchMonitorInput');
+    const clearSearchMonitorBtn = document.getElementById('clearSearchMonitorBtn');
+
+    if (liveSearchMonitorInput) {
+        liveSearchMonitorInput.addEventListener('input', function () {
+            const q = this.value.trim().toLowerCase();
+            if (clearSearchMonitorBtn) {
+                clearSearchMonitorBtn.classList.toggle('visible', !!q);
+            }
+
+            document.querySelectorAll('.row-monitoring-item').forEach(row => {
+                const nama = row.getAttribute('data-nama') || '';
+                const wali = row.getAttribute('data-wali') || '';
+                if (!q || nama.includes(q) || wali.includes(q)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    if (clearSearchMonitorBtn) {
+        clearSearchMonitorBtn.addEventListener('click', function () {
+            if (liveSearchMonitorInput) {
+                liveSearchMonitorInput.value = '';
+                liveSearchMonitorInput.dispatchEvent(new Event('input'));
+                liveSearchMonitorInput.focus();
+            }
+        });
+    }
 });

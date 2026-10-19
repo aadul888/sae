@@ -53,6 +53,9 @@ class PresensiMengajarController extends Controller
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         $isGuru = ($role === 'guru');
         $ptkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+        $isAdmin = ($role === 'admin');
+        $isPiket = $isAdmin || RolePermission::canAccess($user, 'menu_piket') || RolePermission::canAccess($user, 'menu_piket_presensi_guru');
+        $isGuruViewOnly = $isGuru && !$isPiket;
 
         // Evaluasi granular CRUD
         $canCreate = RolePermission::canAccess($user ?: $role, 'menu_presensi_mengajar', 'create');
@@ -63,6 +66,12 @@ class PresensiMengajarController extends Controller
         $hariIni = $this->getIndoDayName();
         $tanggalHariIni = Carbon::today()->toDateString();
         $statusHariIni = KalenderPendidikan::getStatusHari($tanggalHariIni, 'gtk');
+
+        // Parameter filter yang dinormalisasi (mendukung format standar & datatable global)
+        $filterPtkId = $request->input('filter_ptk_id', $request->input('ptk_id'));
+        $filterRombelId = $request->input('rombongan_belajar_id', $request->input('rombel'));
+        $perPage = (int) $request->input('per_page', $request->input('perPage', 15));
+        $perPage = in_array($perPage, [10, 15, 25, 50, 100]) ? $perPage : 15;
 
         // 1. Ambil Jadwal Mengajar Hari Ini untuk Widget Cepat Guru / Guru Piket (Hanya mapel dengan guru, tanpa upacara, istirahat, pembiasaan)
         $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
@@ -78,14 +87,14 @@ class PresensiMengajarController extends Controller
             $jadwalHariIniQuery->where('sumber', $modeAktif);
         }
 
-        if ($isGuru && $ptkId) {
+        if ($isGuruViewOnly && $ptkId) {
             $jadwalHariIniQuery->where('ptk_id', $ptkId);
-        } elseif ($request->filled('filter_ptk_id')) {
-            $jadwalHariIniQuery->where('ptk_id', $request->filter_ptk_id);
+        } elseif (!empty($filterPtkId)) {
+            $jadwalHariIniQuery->where('ptk_id', $filterPtkId);
         }
 
-        if ($request->filled('rombongan_belajar_id')) {
-            $jadwalHariIniQuery->where('rombongan_belajar_id', $request->rombongan_belajar_id);
+        if (!empty($filterRombelId)) {
+            $jadwalHariIniQuery->where('rombongan_belajar_id', $filterRombelId);
         }
 
         $isHariAktifHariIni = class_exists(\App\Models\JadwalPengaturan::class)
@@ -98,7 +107,7 @@ class PresensiMengajarController extends Controller
 
         // Cari presensi yang sudah dicatat hari ini
         $presensiHariIniKeyed = PresensiMengajar::where('tanggal', $tanggalHariIni)
-            ->when($isGuru && $ptkId, fn($q) => $q->where('ptk_id', $ptkId))
+            ->when($isGuruViewOnly && $ptkId, fn($q) => $q->where('ptk_id', $ptkId))
             ->get()
             ->keyBy(function ($item) {
                 return $item->jadwal_kbm_id ? 'jadwal_' . $item->jadwal_kbm_id : 'rombel_' . $item->rombongan_belajar_id . '_' . $item->jam_ke_mulai;
@@ -107,10 +116,10 @@ class PresensiMengajarController extends Controller
         // 2. Query Riwayat Presensi Mengajar dengan Filter & Sort
         $query = PresensiMengajar::query()->with('jadwal');
 
-        if ($isGuru && $ptkId) {
+        if ($isGuruViewOnly && $ptkId) {
             $query->where('ptk_id', $ptkId);
-        } elseif ($request->filled('filter_ptk_id')) {
-            $query->where('ptk_id', $request->filter_ptk_id);
+        } elseif (!empty($filterPtkId)) {
+            $query->where('ptk_id', $filterPtkId);
         }
 
         // Filter tanggal
@@ -122,8 +131,8 @@ class PresensiMengajarController extends Controller
         }
 
         // Filter Rombel
-        if ($request->filled('rombongan_belajar_id')) {
-            $query->where('rombongan_belajar_id', $request->rombongan_belajar_id);
+        if (!empty($filterRombelId)) {
+            $query->where('rombongan_belajar_id', $filterRombelId);
         }
 
         // Filter Status
@@ -236,7 +245,7 @@ class PresensiMengajarController extends Controller
                 ->hanyaMapelGuru()
                 ->with('gtk');
 
-            if ($isGuru && $ptkId) {
+            if ($isGuruViewOnly && $ptkId) {
                 $jadwalQuery->where('ptk_id', $ptkId);
             }
             $jadwalList = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get()->map(function ($j) {
@@ -270,22 +279,27 @@ class PresensiMengajarController extends Controller
             ->get();
 
         $guruList = [];
-        if (!$isGuru) {
+        if (!$isGuruViewOnly) {
             $guruList = DB::table('gtk')
                 ->select('ptk_id', 'nama', 'nip')
                 ->orderBy('nama')
                 ->get();
         }
 
-        // Jika request asinkron AJAX (Live Search / Filter / Sorting Table)
-        if ($request->ajax() && $request->has('ajax_table')) {
-            return view('dashboard.presensi-mengajar-table', compact(
-                'items',
-                'canUpdate',
-                'canDelete',
-                'sort',
-                'sortDir'
-            ));
+        // Penentuan Tab Aktif: 'jadwal' (Jadwal Hari Ini) atau 'riwayat' (Riwayat Presensi Mengajar)
+        $activeTab = $request->input('tab');
+        if (!$activeTab) {
+            $hasFilter = $request->filled('q') ||
+                $request->filled('tanggal_mulai') ||
+                $request->filled('tanggal_selesai') ||
+                $request->filled('rombongan_belajar_id') ||
+                $request->filled('rombel') ||
+                $request->filled('status') ||
+                $request->filled('filter_ptk_id') ||
+                $request->filled('ptk_id') ||
+                $request->filled('sort') ||
+                $request->filled('page');
+            $activeTab = $hasFilter ? 'riwayat' : 'jadwal';
         }
 
         return view('dashboard.presensi-mengajar', compact(
@@ -297,6 +311,8 @@ class PresensiMengajarController extends Controller
             'rombelList',
             'guruList',
             'isGuru',
+            'isGuruViewOnly',
+            'isPiket',
             'ptkId',
             'hariIni',
             'tanggalHariIni',
@@ -309,7 +325,8 @@ class PresensiMengajarController extends Controller
             'sort',
             'sortDir',
             'isJadwalDiberlakukan',
-            'modeAktif'
+            'modeAktif',
+            'activeTab'
         ));
     }
 
