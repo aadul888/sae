@@ -484,6 +484,11 @@ class RolePermission extends Model
                     'icon' => 'fa-user-check',
                     'roles' => ['tugas_tambahan'],
                 ],
+                'menu_wali_kelas_agenda' => [
+                    'label' => 'Agenda Kelas (Wali Kelas / Koordinator)',
+                    'icon' => 'fa-book-open-reader',
+                    'roles' => ['tugas_tambahan'],
+                ],
             ],
 
             'Tendik: Kepala TAS' => [
@@ -1465,7 +1470,7 @@ class RolePermission extends Model
         if (!$row && in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true)) {
             $row = self::$runtimeRolePermissionsCache[$role]->get('menu_kesiswaan');
         }
-        if (!$row && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi'], true)) {
+        if (!$row && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda'], true)) {
             $row = self::$runtimeRolePermissionsCache[$role]->get('menu_wali_kelas');
         }
         if (!$row && $permissionKey === 'menu_kesiswaan') {
@@ -1487,7 +1492,7 @@ class RolePermission extends Model
             }
         }
         if (!$row && $permissionKey === 'menu_wali_kelas') {
-            foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi'] as $sk) {
+            foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda'] as $sk) {
                 $sr = self::$runtimeRolePermissionsCache[$role]->get($sk);
                 if ($sr && $sr->is_allowed && $sr->can_read) {
                     $row = $sr;
@@ -1565,7 +1570,7 @@ class RolePermission extends Model
             self::$runtimeRolePermissionsCache['tugas_tambahan'] = self::where('role', 'tugas_tambahan')->get()->keyBy('permission_key');
         }
         $dutyRow = self::$runtimeRolePermissionsCache['tugas_tambahan']->get($permissionKey);
-        if (!$dutyRow && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi'], true)) {
+        if (!$dutyRow && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda'], true)) {
             $dutyRow = self::$runtimeRolePermissionsCache['tugas_tambahan']->get('menu_wali_kelas');
         }
         if ($dutyRow && $dutyRow->is_allowed && $dutyRow->can_read) {
@@ -1641,7 +1646,7 @@ class RolePermission extends Model
         if (!$row && in_array($permissionKey, ['menu_kesiswaan_peserta_didik', 'menu_kesiswaan_administrasi', 'menu_kesiswaan_kedisiplinan', 'menu_kesiswaan_kegiatan', 'menu_kesiswaan_prestasi'], true)) {
             $row = self::$runtimeRolePermissionsCache[$role]->get('menu_kesiswaan');
         }
-        if (!$row && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi'], true)) {
+        if (!$row && in_array($permissionKey, ['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda'], true)) {
             $row = self::$runtimeRolePermissionsCache[$role]->get('menu_wali_kelas');
         }
         if (!$row && $permissionKey === 'menu_kesiswaan') {
@@ -1663,7 +1668,7 @@ class RolePermission extends Model
             }
         }
         if (!$row && $permissionKey === 'menu_wali_kelas') {
-            foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi'] as $sk) {
+            foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda'] as $sk) {
                 $sr = self::$runtimeRolePermissionsCache[$role]->get($sk);
                 if ($sr && $sr->is_allowed && $sr->can_read) {
                     $row = $sr;
@@ -1780,7 +1785,7 @@ class RolePermission extends Model
                     // 2. Pemetaan bawaan berdasarkan kode tugas tambahan
                     $kode = $rec->kode;
                     if ($kode === 'WALI_KELAS') {
-                        foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'] as $k) {
+                        foreach (['menu_wali_kelas_aktif', 'menu_wali_kelas_tidak_aktif', 'menu_wali_kelas_presensi', 'menu_wali_kelas_jadwal', 'menu_wali_kelas_pip', 'menu_wali_kelas_validasi', 'menu_wali_kelas_agenda', 'menu_peserta_didik_aktif', 'menu_presensi_peserta_didik', 'menu_agenda_kbm', 'menu_berkas_peserta_didik'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     } elseif (in_array($kode, ['KEPALA_SEKOLAH', 'WAKA_KURIKULUM'], true)) {
@@ -1868,7 +1873,7 @@ class RolePermission extends Model
                             $allowedKeys[$k] = true;
                         }
                     } elseif ($kode === 'KOORDINATOR_KELAS') {
-                        foreach (['menu_wali_kelas_aktif', 'menu_peserta_didik_aktif', 'menu_wali_kelas_presensi', 'menu_presensi_peserta_didik'] as $k) {
+                        foreach (['menu_wali_kelas_aktif', 'menu_peserta_didik_aktif', 'menu_wali_kelas_presensi', 'menu_presensi_peserta_didik', 'menu_wali_kelas_agenda', 'menu_agenda_kbm'] as $k) {
                             $allowedKeys[$k] = true;
                         }
                     }
@@ -2062,6 +2067,7 @@ class RolePermission extends Model
                 'menu_wali_kelas_jadwal',
                 'menu_wali_kelas_pip',
                 'menu_wali_kelas_validasi',
+                'menu_wali_kelas_agenda',
                 'menu_peserta_didik_aktif',
                 'menu_presensi_peserta_didik',
                 'menu_agenda_kbm',
@@ -2492,6 +2498,7 @@ class RolePermission extends Model
             'menu_wali_kelas_jadwal',
             'menu_wali_kelas_pip',
             'menu_wali_kelas_validasi',
+            'menu_wali_kelas_agenda',
             'menu_peserta_didik_aktif',
             'menu_presensi_peserta_didik',
             'menu_agenda_kbm',

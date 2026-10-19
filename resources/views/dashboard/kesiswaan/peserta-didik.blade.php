@@ -1167,13 +1167,10 @@
                             Rombel</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Kolom Data</th>
+                            Usulan Perubahan Data</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                             Perbandingan (Lama vs Baru)</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Alasan Perubahan</th>
                         <th
                             style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
                             Berkas Pendukung</th>
@@ -1238,24 +1235,43 @@
                                     {{ $item->siswa?->nama_rombel ?: '-' }}
                                 </span>
                             </td>
-                            <td style="padding: 14px 18px;" data-label="Kolom Data">
-                                <span class="badge badge-outline"
-                                    style="font-family: monospace; font-size: 0.76rem; text-transform: uppercase;">
-                                    {{ str_replace('_', ' ', $item->kolom_perubahan) }}
-                                </span>
+                            <td style="padding: 14px 18px;" data-label="Usulan Perubahan">
+                                <div style="display: flex; flex-direction: column; gap: 5px;">
+                                    <span class="badge badge-primary" style="font-size: 0.72rem; padding: 3px 8px; width: fit-content;">
+                                        <i class="fas fa-list-check me-1"></i> {{ $item->total_usulan }} Perubahan
+                                    </span>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 240px;">
+                                        @foreach (array_slice($item->kolom_list ?? [], 0, 3) as $kItem)
+                                            <span class="badge badge-outline" style="font-size: 0.68rem; padding: 2px 6px;">
+                                                {{ $kItem['label'] }}
+                                            </span>
+                                        @endforeach
+                                        @if (count($item->kolom_list ?? []) > 3)
+                                            <span class="badge badge-outline" style="font-size: 0.68rem; padding: 2px 6px; opacity: 0.7;">
+                                                +{{ count($item->kolom_list) - 3 }} lainnya
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
                             <td style="padding: 14px 18px;" data-label="Perbandingan Nilai">
-                                <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 3px;">
-                                    Lama: <span
-                                        style="text-decoration: line-through; opacity: 0.85;">{{ $item->nilai_lama ?: '(Kosong)' }}</span>
+                                <div style="display: flex; flex-direction: column; gap: 6px; max-width: 260px;">
+                                    @foreach (array_slice($item->kolom_list ?? [], 0, 2) as $kItem)
+                                        <div style="font-size: 0.74rem; background: rgba(0,0,0,0.04); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">{{ $kItem['label'] }}:</div>
+                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <span style="text-decoration: line-through; opacity: 0.75; font-size: 0.72rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_lama'], 14) }}</span>
+                                                <i class="fas fa-arrow-right" style="font-size: 0.62rem; color: var(--text-muted);"></i>
+                                                <span style="font-weight: 700; color: #10b981; font-size: 0.74rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_baru'], 16) }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                    @if (count($item->kolom_list ?? []) > 2)
+                                        <div style="font-size: 0.7rem; color: var(--text-muted); font-style: italic;">
+                                            +{{ count($item->kolom_list) - 2 }} data lainnya (buka formulir)
+                                        </div>
+                                    @endif
                                 </div>
-                                <div style="font-size: 0.84rem; font-weight: 700; color: #10b981;">
-                                    Baru: {{ $item->nilai_baru }}
-                                </div>
-                            </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                                data-label="Alasan">
-                                {{ $item->alasan }}
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Berkas Pendukung">
                                 <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
@@ -1272,7 +1288,7 @@
                                     @if (!empty($item->berkas_bukti_path))
                                         <button type="button" class="btn btn-outline btn-sm btn-preview-pdf-inline"
                                             data-url="{{ asset('storage/' . ltrim($item->berkas_bukti_path, '/')) }}"
-                                            data-title="Bukti Usulan: {{ $item->kolom_perubahan }} - {{ $item->siswa?->nama }}"
+                                            data-title="Bukti Usulan - {{ $item->siswa?->nama }}"
                                             style="padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; margin-top: 2px;">
                                             <i class="fas fa-file-pdf text-danger me-1"></i> Bukti PDF
                                         </button>
@@ -1288,10 +1304,10 @@
                                         default => 'badge-warning',
                                     };
                                     $bLabel = match ($item->status) {
-                                        'disetujui' => 'Disetujui (Siap Dapodik)',
+                                        'disetujui' => 'Disetujui (' . ($item->disetujui_count ?? 1) . ')',
                                         'sudah_ke_dapodik' => 'Selesai di Dapodik',
                                         'ditolak' => 'Ditolak Kesiswaan',
-                                        default => 'Menunggu Review',
+                                        default => 'Menunggu Review (' . ($item->menunggu_count ?? 1) . ')',
                                     };
                                 @endphp
                                 <span class="badge {{ $bColor }}"
@@ -1300,16 +1316,15 @@
                             <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
                                 <div class="table-actions"
                                     style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                    <button type="button" class="btn-icon btn-kelola-usulan-modal"
-                                        data-id="{{ $item->id }}" data-nama="{{ $item->siswa?->nama }}"
-                                        title="Kelola &amp; Verifikasi Usulan Data"
-                                        style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(99,102,241,0.12); color: var(--primary); border: 1px solid rgba(99,102,241,0.25); cursor: pointer;">
-                                        <i class="fas fa-file-pen"></i>
+                                    <button type="button" class="btn btn-primary btn-sm btn-kelola-usulan-modal"
+                                        data-id="{{ $usulanPdId }}" data-nama="{{ $item->siswa?->nama }}"
+                                        title="Buka Formulir Usulan Perubahan Data Siswa"
+                                        style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                                        <i class="fas fa-file-pen"></i> Formulir Usulan
                                     </button>
-                                    @if ($item->status === 'disetujui' && $canUpdate)
+                                    @if ($item->disetujui_count > 0 && $canUpdate)
                                         <button type="button" class="btn-icon btn-mark-dapodik"
-                                            data-id="{{ $item->id }}" data-nama="{{ $item->siswa?->nama }}"
-                                            data-kolom="{{ $item->kolom_perubahan }}"
+                                            data-id="{{ $usulanPdId }}" data-nama="{{ $item->siswa?->nama }}"
                                             title="Tandai Selesai Di-update ke Dapodik"
                                             style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); cursor: pointer;">
                                             <i class="fas fa-cloud-arrow-up"></i>
@@ -1918,12 +1933,39 @@
                 <iframe id="pdfViewerFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
 
-            <div
-                style="display: flex; justify-content: flex-end; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color);">
-                <button type="button" class="btn btn-outline close-pdf-viewer"
-                    style="border-radius: 8px; padding: 7px 18px; font-size: 0.82rem;">
-                    Tutup Pratinjau
-                </button>
+            <!-- Action Bar Validasi Terpadu Langsung di Pratinjau PDF -->
+            <div id="pdfViewerActionBar"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
+                <div id="pdfViewerVerifControls"
+                    style="display: none; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-color);">
+                        <i class="fas fa-clipboard-check text-primary me-1"></i> Validasi:
+                    </span>
+                    <label
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: #10b981; cursor: pointer; margin: 0;">
+                        <input type="radio" name="pdf_viewer_status" value="valid" id="pdfViewerRadioValid"
+                            class="pdf-viewer-radio">
+                        <i class="fas fa-circle-check"></i> Valid / Sesuai
+                    </label>
+                    <label
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: #ef4444; cursor: pointer; margin: 0;">
+                        <input type="radio" name="pdf_viewer_status" value="tidak_valid"
+                            id="pdfViewerRadioTidakValid" class="pdf-viewer-radio">
+                        <i class="fas fa-circle-xmark"></i> Tidak Valid / Tidak Sesuai
+                    </label>
+                    <input type="text" id="pdfViewerCatatan" placeholder="Catatan penolakan jika tidak valid..."
+                        style="display: none; font-size: 0.78rem; height: 32px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); width: 260px;">
+                    <button type="button" id="btnPdfViewerSimpan" class="btn btn-primary"
+                        style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-save"></i> Simpan Status
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                    <button type="button" class="btn btn-outline close-pdf-viewer"
+                        style="border-radius: 8px; padding: 7px 18px; font-size: 0.82rem;">
+                        Tutup Pratinjau
+                    </button>
+                </div>
             </div>
         </div>
     </div>

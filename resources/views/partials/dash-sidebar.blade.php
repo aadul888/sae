@@ -124,8 +124,9 @@
         ($can('menu_wali_kelas') ||
             $can('menu_wali_kelas_aktif') ||
             $can('menu_wali_kelas_tidak_aktif') ||
-            $can('menu_wali_kelas_presensi') ||
             $can('menu_wali_kelas_jadwal') ||
+            $can('menu_wali_kelas_presensi') ||
+            $can('menu_wali_kelas_agenda') ||
             $can('menu_wali_kelas_pip') ||
             $can('menu_wali_kelas_validasi'));
     $waliKelasRombelName = in_array($role, ['guru', 'peserta_didik'], true)
@@ -146,8 +147,9 @@
         'menu_wali_kelas',
         'menu_wali_kelas_aktif',
         'menu_wali_kelas_tidak_aktif',
-        'menu_wali_kelas_presensi',
         'menu_wali_kelas_jadwal',
+        'menu_wali_kelas_presensi',
+        'menu_wali_kelas_agenda',
         'menu_wali_kelas_pip',
         'menu_wali_kelas_validasi',
         'menu_guru_aktif',
@@ -1839,6 +1841,14 @@
                     </a>
                 @endif
 
+                @if ($can('menu_wali_kelas_jadwal'))
+                    <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm.manual*') || request()->routeIs('dashboard.wali-kelas.jadwal*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-plus"></i></span>
+                        <span class="nav-label">Input Jadwal KBM</span>
+                    </a>
+                @endif
+
                 @if ($can('menu_wali_kelas_presensi'))
                     <a href="{{ route('dashboard.wali-kelas.presensi.index') }}"
                         class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.presensi*') ? 'active' : '' }}">
@@ -1847,11 +1857,11 @@
                     </a>
                 @endif
 
-                @if ($can('menu_wali_kelas_jadwal'))
-                    <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
-                        class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm.manual*') || request()->routeIs('dashboard.wali-kelas.jadwal*') ? 'active' : '' }}">
-                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-plus"></i></span>
-                        <span class="nav-label">Input Jadwal KBM</span>
+                @if ($can('menu_wali_kelas_agenda') || $can('menu_wali_kelas'))
+                    <a href="{{ route('dashboard.wali-kelas.agenda.index') }}"
+                        class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.agenda*') ? 'active' : '' }}">
+                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
+                        <span class="nav-label">Agenda Kelas</span>
                     </a>
                 @endif
 
@@ -2045,15 +2055,20 @@
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-circle-xmark"></i></span>
                     <span class="nav-label">Peserta Didik Tidak Aktif</span>
                 </a>
+                <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm.manual*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-plus"></i></span>
+                    <span class="nav-label">Input Jadwal KBM</span>
+                </a>
                 <a href="{{ route('dashboard.wali-kelas.presensi.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.presensi*') ? 'active' : '' }}">
                     <span class="nav-icon sub-icon"><i class="fas fa-fw fa-clipboard-user"></i></span>
                     <span class="nav-label">Presensi Kelas</span>
                 </a>
-                <a href="{{ route('dashboard.jadwal-kbm.manual.index') }}"
-                    class="dash-nav-sublink {{ request()->routeIs('dashboard.jadwal-kbm.manual*') ? 'active' : '' }}">
-                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-plus"></i></span>
-                    <span class="nav-label">Input Jadwal KBM</span>
+                <a href="{{ route('dashboard.wali-kelas.agenda.index') }}"
+                    class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.agenda*') ? 'active' : '' }}">
+                    <span class="nav-icon sub-icon"><i class="fas fa-fw fa-book-open-reader"></i></span>
+                    <span class="nav-label">Agenda Kelas</span>
                 </a>
                 <a href="{{ route('dashboard.wali-kelas.validasi.index') }}"
                     class="dash-nav-sublink {{ request()->routeIs('dashboard.wali-kelas.validasi*') ? 'active' : '' }}">

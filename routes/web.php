@@ -555,6 +555,15 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/presensi/pdf/{tipe}', [\App\Http\Controllers\WaliKelasController::class, 'downloadPdf'])->name('presensi.pdf')->middleware('permission:menu_wali_kelas_presensi,read');
         Route::post('/presensi/izin/{id}/verifikasi', [\App\Http\Controllers\WaliKelasController::class, 'verifikasiIzin'])->name('presensi.izin.verifikasi')->middleware('permission:menu_wali_kelas_presensi,update');
 
+        // Agenda Kelas Binaan (Monitoring Jurnal Guru Mapel & Input Pendampingan Wali/Koordinator)
+        Route::get('/agenda', [\App\Http\Controllers\WaliKelasController::class, 'agendaKelas'])->name('agenda.index')->middleware('permission:menu_wali_kelas_agenda|menu_wali_kelas,read');
+        Route::post('/agenda', [\App\Http\Controllers\WaliKelasController::class, 'storeAgendaKelas'])->name('agenda.store')->middleware('permission:menu_wali_kelas_agenda|menu_wali_kelas,create');
+        Route::get('/agenda/next-pertemuan', [\App\Http\Controllers\WaliKelasController::class, 'nextPertemuanAgendaKelas'])->name('agenda.next-pertemuan')->middleware('permission:menu_wali_kelas_agenda|menu_wali_kelas,read');
+        Route::get('/agenda/detail/{id}', [\App\Http\Controllers\WaliKelasController::class, 'showAgendaKelas'])->name('agenda.show')->middleware('permission:menu_wali_kelas_agenda|menu_wali_kelas,read');
+        Route::put('/agenda/{id}', [\App\Http\Controllers\WaliKelasController::class, 'updateAgendaKelas'])->name('agenda.update')->middleware('permission:menu_wali_kelas_agenda|menu_wali_kelas,update');
+        Route::delete('/agenda/{id}', [\App\Http\Controllers\WaliKelasController::class, 'destroyAgendaKelas'])->name('agenda.destroy')->middleware('permission:menu_wali_kelas_agenda|menu_wali_kelas,delete');
+        Route::get('/agenda/cetak', [\App\Http\Controllers\WaliKelasController::class, 'cetakAgendaKelas'])->name('agenda.cetak')->middleware('permission:menu_wali_kelas_agenda|menu_wali_kelas,read');
+
         // Input Jadwal KBM Manual Kelas Binaan
         Route::get('/jadwal', [\App\Http\Controllers\JadwalKbmManualController::class, 'index'])->name('jadwal.index')->middleware('permission:menu_wali_kelas_jadwal,read');
 

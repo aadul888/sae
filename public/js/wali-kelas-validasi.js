@@ -152,16 +152,44 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Delegated close listener for modalVerifikasiBerkasDigital & backdrop/ESC sync
+    function handleModalVbClose() {
+        const modal = document.getElementById("modalVerifikasiBerkasDigital");
+        if (modal) {
+            modal.style.display = "none";
+            document.body.style.overflow = "";
+        }
+        if (berkasStatusChanged) {
+            location.reload();
+        }
+    }
+
     document.addEventListener("click", function (e) {
         const closeBtn = e.target.closest('.close-modal[data-target="#modalVerifikasiBerkasDigital"]');
         if (closeBtn) {
             e.preventDefault();
-            const modal = document.getElementById("modalVerifikasiBerkasDigital");
-            if (modal) {
-                modal.style.display = "none";
-                document.body.style.overflow = "";
+            handleModalVbClose();
+        }
+    });
+
+    const modalVbEl = document.getElementById("modalVerifikasiBerkasDigital");
+    if (modalVbEl) {
+        modalVbEl.addEventListener("click", function (e) {
+            if (e.target === modalVbEl) {
+                handleModalVbClose();
             }
-            if (berkasStatusChanged) {
+        });
+    }
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            const modalVb = document.getElementById("modalVerifikasiBerkasDigital");
+            const modalPdf = document.getElementById("modalPdfViewer");
+            if (modalPdf && modalPdf.style.display !== "none") {
+                window.closePdfViewer();
+                return;
+            }
+            if (modalVb && modalVb.style.display !== "none" && berkasStatusChanged) {
                 location.reload();
             }
         }
@@ -221,7 +249,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             : `<span class="badge badge-outline" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-minus me-1"></i> Belum Diunggah Siswa</span>`;
 
                 html += `
-                    <div class="card card-berkas-item" id="cardBerkas_${item.jenis_berkas}" style="padding: 16px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--bg-hover);">
+                    <div class="card card-berkas-item" id="cardBerkas_${item.jenis_berkas}" data-key="${item.jenis_berkas}" data-selected-status="${item.status || ''}" style="padding: 16px; border-radius: 12px; border: 1.5px solid var(--border-color); background: var(--bg-hover);">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 38px; height: 38px; border-radius: 8px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0;">
@@ -249,7 +277,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <div style="font-size: 0.72rem; color: var(--text-muted);">Ukuran: ${item.file_size} &bull; Diunggah: ${item.uploaded_at || "-"}</div>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${item.file_url}" data-title="${escapeHtml(item.label)} - ${escapeHtml(siswa.nama)}" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; cursor: pointer;">
+                            <button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${item.file_url}" data-title="${escapeHtml(item.label)} - ${escapeHtml(siswa.nama)}" data-pd-id="${id}" data-key="${item.jenis_berkas}" data-label="${escapeHtml(item.label)}" data-status="${item.status || ''}" data-catatan="${escapeHtml(item.catatan_penolakan || '')}" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; cursor: pointer;">
                                 <i class="fas fa-eye me-1"></i> Lihat Dokumen PDF
                             </button>
                         </div>
@@ -320,13 +348,17 @@ document.addEventListener("DOMContentLoaded", function () {
             html += `</div>`;
             content.innerHTML = html;
 
-            // Wire up radio toggle show/hide rejection box
+            // Wire up radio toggle show/hide rejection box & card state sync
             content.querySelectorAll(".radio-status-berkas").forEach((radio) => {
                 radio.addEventListener("change", function () {
                     const key = this.getAttribute("data-key");
                     const box = document.getElementById(`boxPenolakan_${key}`);
                     if (box) {
                         box.style.display = this.value === "tidak_valid" ? "block" : "none";
+                    }
+                    const card = document.getElementById(`cardBerkas_${key}`);
+                    if (card) {
+                        card.setAttribute("data-selected-status", this.value);
                     }
                 });
             });
@@ -350,14 +382,17 @@ document.addEventListener("DOMContentLoaded", function () {
                     const pdId = this.getAttribute("data-pd-id");
                     const key = this.getAttribute("data-key");
                     const label = this.getAttribute("data-label");
-                    const selectedRadio = content.querySelector(`input[name="status_${key}"]:checked`);
+                    const card = document.getElementById(`cardBerkas_${key}`) || this.closest(".card-berkas-item");
+                    const selectedRadio = card
+                        ? card.querySelector(`input[name="status_${key}"]:checked`)
+                        : content.querySelector(`input[name="status_${key}"]:checked`);
+                    const status = selectedRadio ? selectedRadio.value : (card ? card.getAttribute("data-selected-status") : "");
 
-                    if (!selectedRadio) {
+                    if (!status || (status !== "valid" && status !== "tidak_valid")) {
                         Swal.fire("Peringatan", "Silakan pilih status validasi (Valid atau Tidak Valid).", "warning");
                         return;
                     }
 
-                    const status = selectedRadio.value;
                     const textarea = document.getElementById(`textarea_${key}`);
                     const catatan = textarea ? textarea.value.trim() : "";
 
@@ -413,8 +448,25 @@ document.addEventListener("DOMContentLoaded", function () {
                                 timer: 1500,
                                 showConfirmButton: false,
                             });
-                            // Refresh modal detail to show updated badge
-                            window.openModalVerifikasiBerkas(pdId, siswa.nama);
+
+                            // Update status badge & radio state on card langsung tanpa reload modal
+                            if (card) {
+                                const badgeContainer = card.querySelector(".status-badge-container");
+                                if (badgeContainer) {
+                                    badgeContainer.innerHTML =
+                                        status === "valid"
+                                            ? `<span class="badge badge-success" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-check me-1"></i> Valid / Sesuai</span>`
+                                            : `<span class="badge badge-danger" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-xmark me-1"></i> Tidak Valid / Tidak Sesuai</span>`;
+                                }
+                                card.setAttribute("data-selected-status", status);
+                                const currentRadio = card.querySelector(`input[name="status_${key}"][value="${status}"]`);
+                                if (currentRadio) currentRadio.checked = true;
+                                const prevBtn = card.querySelector(".btn-preview-pdf-inline");
+                                if (prevBtn) {
+                                    prevBtn.setAttribute("data-status", status);
+                                    prevBtn.setAttribute("data-catatan", catatan);
+                                }
+                            }
                         } else {
                             Swal.fire("Gagal Validasi", postJson.message || "Terjadi kesalahan sistem.", "error");
                         }
@@ -436,7 +488,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // ==========================================
     // 3. PRATINJAU DOKUMEN PDF TERPADU
     // ==========================================
-    window.openPdfViewer = function (url, title) {
+    let activePdfViewerData = null;
+
+    window.openPdfViewer = function (url, title, pdId = null, key = null, label = null, currentStatus = null, catatan = null) {
         const modal = document.getElementById("modalPdfViewer");
         const frame = document.getElementById("pdfViewerFrame");
         const titleEl = document.getElementById("pdfViewerTitle");
@@ -444,6 +498,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (titleEl) titleEl.textContent = title || "Pratinjau Dokumen PDF";
         frame.src = url;
+
+        activePdfViewerData = pdId && key ? { pdId, key, label, currentStatus, catatan } : null;
+
+        const controls = document.getElementById("pdfViewerVerifControls");
+        const radioValid = document.getElementById("pdfViewerRadioValid");
+        const radioTidakValid = document.getElementById("pdfViewerRadioTidakValid");
+        const catatanInput = document.getElementById("pdfViewerCatatan");
+
+        if (controls) {
+            if (activePdfViewerData) {
+                controls.style.display = "flex";
+                const card = document.getElementById(`cardBerkas_${key}`);
+                const effectiveStatus = card ? (card.getAttribute("data-selected-status") || currentStatus) : currentStatus;
+
+                if (radioValid) radioValid.checked = (effectiveStatus === "valid");
+                if (radioTidakValid) radioTidakValid.checked = (effectiveStatus === "tidak_valid");
+
+                if (catatanInput) {
+                    const existingCatatan = document.getElementById(`textarea_${key}`)?.value?.trim() || catatan || "";
+                    catatanInput.value = existingCatatan;
+                    catatanInput.style.display = (effectiveStatus === "tidak_valid") ? "inline-block" : "none";
+                }
+            } else {
+                controls.style.display = "none";
+            }
+        }
+
         modal.style.display = "flex";
         document.body.style.overflow = "hidden";
     };
@@ -454,12 +535,142 @@ document.addEventListener("DOMContentLoaded", function () {
         if (modal) modal.style.display = "none";
         if (frame) frame.src = "";
 
+        const closedKey = activePdfViewerData?.key;
+        activePdfViewerData = null;
+
+        // Restore active window focus immediately so parent clicks don't get swallowed
+        window.focus();
+
         // Jika modal verifikasi masih aktif, pertahankan overflow hidden
         const modalVb = document.getElementById("modalVerifikasiBerkasDigital");
         if (!modalVb || modalVb.style.display === "none") {
             document.body.style.overflow = "";
+        } else if (closedKey) {
+            const card = document.getElementById(`cardBerkas_${closedKey}`);
+            if (card) {
+                card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
         }
     };
+
+    // Listener interaksi radio & simpan langsung di viewer PDF untuk wali kelas
+    document.addEventListener("change", function (e) {
+        if (e.target && e.target.classList.contains("pdf-viewer-radio")) {
+            const catatanInput = document.getElementById("pdfViewerCatatan");
+            if (catatanInput) {
+                catatanInput.style.display = e.target.value === "tidak_valid" ? "inline-block" : "none";
+                if (e.target.value === "tidak_valid") catatanInput.focus();
+            }
+            if (activePdfViewerData?.key) {
+                const card = document.getElementById(`cardBerkas_${activePdfViewerData.key}`);
+                if (card) {
+                    card.setAttribute("data-selected-status", e.target.value);
+                    const cardRadio = card.querySelector(`input[name="status_${activePdfViewerData.key}"][value="${e.target.value}"]`);
+                    if (cardRadio) {
+                        cardRadio.checked = true;
+                        cardRadio.dispatchEvent(new Event("change", { bubbles: true }));
+                    }
+                }
+            }
+        }
+    });
+
+    document.addEventListener("click", async function (e) {
+        const btnSimpan = e.target.closest("#btnPdfViewerSimpan");
+        if (btnSimpan && activePdfViewerData) {
+            e.preventDefault();
+            const { pdId, key, label } = activePdfViewerData;
+            const selectedRadio = document.querySelector('input[name="pdf_viewer_status"]:checked');
+            if (!selectedRadio) {
+                Swal.fire("Peringatan", "Silakan pilih status validasi (Valid atau Tidak Valid).", "warning");
+                return;
+            }
+
+            const status = selectedRadio.value;
+            const catatanInput = document.getElementById("pdfViewerCatatan");
+            const catatan = catatanInput ? catatanInput.value.trim() : "";
+
+            if (status === "tidak_valid" && !catatan) {
+                Swal.fire("Wajib Catatan", "Untuk status Tidak Valid / Tidak Sesuai, Anda wajib mengisi catatan penolakan.", "warning");
+                if (catatanInput) catatanInput.focus();
+                return;
+            }
+
+            const origText = btnSimpan.innerHTML;
+            btnSimpan.disabled = true;
+            btnSimpan.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+            const csrfToken =
+                document.querySelector('meta[name="csrf-token"]')?.content ||
+                document.querySelector('input[name="_token"]')?.value ||
+                "";
+
+            try {
+                const postRes = await fetch(
+                    `/dashboard/wali-kelas/validasi-data/berkas-verifikasi/${encodeURIComponent(pdId)}`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": csrfToken,
+                            "Content-Type": "application/json",
+                            Accept: "application/json",
+                            "X-Requested-With": "XMLHttpRequest",
+                        },
+                        body: JSON.stringify({
+                            jenis_berkas: key,
+                            status: status,
+                            catatan_penolakan: catatan,
+                            rekomendasi_penolakan: catatan,
+                        }),
+                    },
+                );
+
+                const postJson = await postRes.json();
+                btnSimpan.disabled = false;
+                btnSimpan.innerHTML = origText;
+
+                if (postRes.ok && postJson.status === "success") {
+                    berkasStatusChanged = true;
+                    const card = document.getElementById(`cardBerkas_${key}`);
+                    if (card) {
+                        const badgeContainer = card.querySelector(".status-badge-container");
+                        if (badgeContainer) {
+                            badgeContainer.innerHTML =
+                                status === "valid"
+                                    ? `<span class="badge badge-success" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-check me-1"></i> Valid / Sesuai</span>`
+                                    : `<span class="badge badge-danger" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-circle-xmark me-1"></i> Tidak Valid / Tidak Sesuai</span>`;
+                        }
+                        card.setAttribute("data-selected-status", status);
+                        const cardRadio = card.querySelector(`input[name="status_${key}"][value="${status}"]`);
+                        if (cardRadio) {
+                            cardRadio.checked = true;
+                            cardRadio.dispatchEvent(new Event("change", { bubbles: true }));
+                        }
+                        const cardTextarea = document.getElementById(`textarea_${key}`);
+                        if (cardTextarea && catatan) {
+                            cardTextarea.value = catatan;
+                        }
+                    }
+
+                    window.closePdfViewer();
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "Status Disimpan!",
+                        text: postJson.message,
+                        timer: 1500,
+                        showConfirmButton: false,
+                    });
+                } else {
+                    Swal.fire("Gagal Validasi", postJson.message || "Terjadi kesalahan sistem.", "error");
+                }
+            } catch (err) {
+                btnSimpan.disabled = false;
+                btnSimpan.innerHTML = origText;
+                Swal.fire("Kesalahan Jaringan", "Tidak dapat terhubung ke server.", "error");
+            }
+        }
+    });
 
     document.addEventListener("click", function (e) {
         const btn = e.target.closest(".btn-preview-pdf-inline");
@@ -468,7 +679,12 @@ document.addEventListener("DOMContentLoaded", function () {
             e.stopPropagation();
             const url = btn.getAttribute("data-url");
             const title = btn.getAttribute("data-title");
-            if (url) window.openPdfViewer(url, title);
+            const pdId = btn.getAttribute("data-pd-id");
+            const key = btn.getAttribute("data-key");
+            const label = btn.getAttribute("data-label");
+            const status = btn.getAttribute("data-status");
+            const catatan = btn.getAttribute("data-catatan");
+            if (url) window.openPdfViewer(url, title, pdId, key, label, status, catatan);
         }
 
         const closeBtn = e.target.closest(".close-pdf-viewer");

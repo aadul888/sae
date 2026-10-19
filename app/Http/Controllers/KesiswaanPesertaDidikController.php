@@ -93,11 +93,11 @@ class KesiswaanPesertaDidikController extends Controller
             : 0;
         $berkasBelumLengkap = max(0, $totalAktif - $totalBerkasLengkap);
 
-        $totalUsulan = SiswaUsulanPerubahan::count();
-        $usulanMenunggu = SiswaUsulanPerubahan::where('status', 'menunggu')->count();
-        $usulanDisetujui = SiswaUsulanPerubahan::where('status', 'disetujui')->count();
-        $usulanDapodik = SiswaUsulanPerubahan::where('status', 'sudah_ke_dapodik')->count();
-        $usulanDitolak = SiswaUsulanPerubahan::where('status', 'ditolak')->count();
+        $totalUsulan = SiswaUsulanPerubahan::distinct()->count('peserta_didik_id');
+        $usulanMenunggu = SiswaUsulanPerubahan::where('status', 'menunggu')->distinct()->count('peserta_didik_id');
+        $usulanDisetujui = SiswaUsulanPerubahan::where('status', 'disetujui')->distinct()->count('peserta_didik_id');
+        $usulanDapodik = SiswaUsulanPerubahan::where('status', 'sudah_ke_dapodik')->distinct()->count('peserta_didik_id');
+        $usulanDitolak = SiswaUsulanPerubahan::where('status', 'ditolak')->distinct()->count('peserta_didik_id');
 
         $stats = [
             // Tab Aktif
@@ -456,10 +456,23 @@ class KesiswaanPesertaDidikController extends Controller
             $item->menunggu_count = $studentFiles->where('status', 'menunggu')->count();
         }
 
-        // 6. Tab: Usulan Perubahan Data Siswa (Dengan Filter Rombel & Status)
-        $usulanQuery = SiswaUsulanPerubahan::with('siswa');
+        // 6. Tab: Usulan Perubahan Data Siswa (Khusus 1 Baris per Peserta Didik)
+        $usulanPdQuery = SiswaUsulanPerubahan::query()
+            ->select(
+                'peserta_didik_id',
+                DB::raw('MAX(created_at) as latest_created_at'),
+                DB::raw("MIN(CASE status
+                    WHEN 'menunggu' THEN 1
+                    WHEN 'disetujui' THEN 2
+                    WHEN 'ditolak' THEN 3
+                    WHEN 'sudah_ke_dapodik' THEN 4
+                    ELSE 5
+                END) as priority_rank")
+            )
+            ->groupBy('peserta_didik_id');
+
         if ($q !== '' && $activeTab === 'usulan') {
-            $usulanQuery->where(function ($sub) use ($q) {
+            $usulanPdQuery->where(function ($sub) use ($q) {
                 $sub->whereHas('siswa', function ($b) use ($q) {
                     $b->where('nama', 'like', "%{$q}%")
                       ->orWhere('nisn', 'like', "%{$q}%")
@@ -470,50 +483,164 @@ class KesiswaanPesertaDidikController extends Controller
             });
         }
         if ($rombel !== '' && $activeTab === 'usulan') {
-            $usulanQuery->whereHas('siswa', function ($sq) use ($rombel) {
+            $usulanPdQuery->whereHas('siswa', function ($sq) use ($rombel) {
                 $sq->where('nama_rombel', $rombel);
             });
         }
         if ($status !== '' && $activeTab === 'usulan') {
-            $usulanQuery->where('status', $status);
+            $usulanPdQuery->where('status', $status);
         }
 
-        // Default Usulan Perubahan:
-        // 1. Prioritas Status: Menunggu Review (1) -> Ditolak (2) -> Disetujui (3) -> Selesai Dapodik (4)
-        // 2. Terlama terlebih dahulu (FIFO: antrean pengajuan awal diverifikasi duluan)
+        // Urutan: Prioritas yang menunggu review terlebih dahulu
         $hasCustomSortUsulan = ($activeTab === 'usulan' && $request->has('sort'));
         if ($hasCustomSortUsulan) {
-            $usulanList = $usulanQuery->orderBy('created_at', $sortDir)->paginate($perPage, ['*'], 'usulan_page')->withQueryString();
+            $usulanList = $usulanPdQuery->orderBy('latest_created_at', $sortDir)
+                ->paginate($perPage, ['*'], 'usulan_page')
+                ->withQueryString();
         } else {
-            $usulanList = $usulanQuery->orderByRaw("CASE status
-                WHEN 'menunggu' THEN 1
-                WHEN 'ditolak' THEN 2
-                WHEN 'disetujui' THEN 3
-                WHEN 'sudah_ke_dapodik' THEN 4
-                ELSE 5
-            END ASC")
-            ->orderBy('created_at', 'asc')
-            ->paginate($perPage, ['*'], 'usulan_page')
-            ->withQueryString();
+            $usulanList = $usulanPdQuery->orderBy('priority_rank', 'asc')
+                ->orderBy('latest_created_at', 'desc')
+                ->paginate($perPage, ['*'], 'usulan_page')
+                ->withQueryString();
         }
+
         $usulanPdIds = $usulanList->pluck('peserta_didik_id')->filter()->values()->all();
-        $metaMapUsulan = collect();
-        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_meta')) {
-            $metaMapUsulan = \App\Models\PesertaDidikMeta::whereIn('peserta_didik_id', $usulanPdIds)->get()->keyBy('peserta_didik_id');
+        $siswaMapUsulan = collect();
+        if (!empty($usulanPdIds)) {
+            $siswaMapUsulan = PesertaDidik::whereIn('peserta_didik_id', $usulanPdIds)->get()->keyBy('peserta_didik_id');
+            if (Schema::hasTable('peserta_didik_tidak_aktif')) {
+                $missingIds = array_diff($usulanPdIds, $siswaMapUsulan->keys()->all());
+                if (!empty($missingIds)) {
+                    $taSiswa = DB::table('peserta_didik_tidak_aktif')->whereIn('peserta_didik_id', $missingIds)->get()->keyBy('peserta_didik_id');
+                    $siswaMapUsulan = $siswaMapUsulan->merge($taSiswa);
+                }
+            }
         }
-        $prereqMapUsulan = collect();
-        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_berkas')) {
-            $prereqMapUsulan = PesertaDidikBerkas::whereIn('peserta_didik_id', $usulanPdIds)
-                ->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp'])
+
+        $allProposalsMap = collect();
+        if (!empty($usulanPdIds)) {
+            $allProposalsMap = SiswaUsulanPerubahan::whereIn('peserta_didik_id', $usulanPdIds)
+                ->orderBy('created_at', 'asc')
                 ->get()
                 ->groupBy('peserta_didik_id');
         }
-        foreach ($usulanList as $item) {
-            $item->foto_url = $metaMapUsulan[$item->peserta_didik_id]?->foto_url ?? null;
-            $bList = $prereqMapUsulan[$item->peserta_didik_id] ?? collect();
+
+        $metaMapUsulan = collect();
+        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_meta')) {
+            $metaMapUsulan = PesertaDidikMeta::whereIn('peserta_didik_id', $usulanPdIds)->get()->keyBy('peserta_didik_id');
+        }
+
+        $prereqMapUsulan = collect();
+        if (!empty($usulanPdIds) && Schema::hasTable('peserta_didik_berkas')) {
+            $prereqMapUsulan = PesertaDidikBerkas::whereIn('peserta_didik_id', $usulanPdIds)
+                ->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp', 'akta_kelahiran'])
+                ->get()
+                ->groupBy('peserta_didik_id');
+        }
+
+        $kolomLabelsMap = [
+            'nama' => 'Nama Lengkap',
+            'jenis_kelamin' => 'Jenis Kelamin',
+            'nik' => 'NIK',
+            'no_kk' => 'No. KK',
+            'no_registrasi_akta_lahir' => 'No. Akta Lahir',
+            'kewarganegaraan' => 'Kewarganegaraan',
+            'tempat_lahir' => 'Tempat Lahir',
+            'tanggal_lahir' => 'Tanggal Lahir',
+            'agama_id' => 'Agama',
+            'alamat_jalan' => 'Alamat Jalan',
+            'rt' => 'RT',
+            'rw' => 'RW',
+            'desa_kelurahan' => 'Desa / Kelurahan',
+            'kecamatan' => 'Kecamatan',
+            'kabupaten_kota' => 'Kabupaten / Kota',
+            'provinsi' => 'Provinsi',
+            'kode_pos' => 'Kode Pos',
+            'tempat_tinggal_id' => 'Tempat Tinggal',
+            'transportasi_id' => 'Moda Transportasi',
+            'anak_keberapa' => 'Anak Keberapa',
+            'nama_ayah' => 'Nama Ayah Kandung',
+            'nik_ayah' => 'NIK Ayah',
+            'tahun_lahir_ayah' => 'Tahun Lahir Ayah',
+            'pendidikan_ayah_id' => 'Pendidikan Ayah',
+            'pekerjaan_ayah_id' => 'Pekerjaan Ayah',
+            'penghasilan_ayah_id' => 'Penghasilan Ayah',
+            'nama_ibu' => 'Nama Ibu Kandung',
+            'nik_ibu' => 'NIK Ibu',
+            'tahun_lahir_ibu' => 'Tahun Lahir Ibu',
+            'pendidikan_ibu_id' => 'Pendidikan Ibu',
+            'pekerjaan_ibu_id' => 'Pekerjaan Ibu',
+            'penghasilan_ibu_id' => 'Penghasilan Ibu',
+            'nama_wali' => 'Nama Wali',
+            'nik_wali' => 'NIK Wali',
+            'nomor_telepon_rumah' => 'Telepon Rumah',
+            'nomor_telepon_seluler' => 'No. HP / WA',
+            'email' => 'Email',
+            'sekolah_asal' => 'Sekolah Asal',
+            'tinggi_badan' => 'Tinggi Badan',
+            'berat_badan' => 'Berat Badan',
+            'lingkar_kepala' => 'Lingkar Kepala',
+            'jarak_rumah_sekolah' => 'Jarak ke Sekolah',
+            'jarak_rumah_sekolah_km' => 'Jarak (km)',
+            'waktu_tempuh_jam' => 'Waktu Tempuh (Jam)',
+            'waktu_tempuh_menit' => 'Waktu Tempuh (Menit)',
+            'jumlah_saudara_kandung' => 'Saudara Kandung',
+        ];
+
+        $usulanList->getCollection()->transform(function ($item) use ($siswaMapUsulan, $allProposalsMap, $metaMapUsulan, $prereqMapUsulan, $kolomLabelsMap) {
+            $pdId = $item->peserta_didik_id;
+            $siswa = $siswaMapUsulan->get($pdId);
+            $items = $allProposalsMap->get($pdId, collect());
+            $bList = $prereqMapUsulan->get($pdId, collect());
+
+            $total = $items->count();
+            $menungguCount = $items->where('status', 'menunggu')->count();
+            $disetujuiCount = $items->where('status', 'disetujui')->count();
+            $dapodikCount = $items->where('status', 'sudah_ke_dapodik')->count();
+            $ditolakCount = $items->where('status', 'ditolak')->count();
+
+            $statusAgregat = 'menunggu';
+            if ($menungguCount > 0) {
+                $statusAgregat = 'menunggu';
+            } elseif ($disetujuiCount > 0) {
+                $statusAgregat = 'disetujui';
+            } elseif ($ditolakCount === $total && $total > 0) {
+                $statusAgregat = 'ditolak';
+            } elseif ($dapodikCount === $total && $total > 0) {
+                $statusAgregat = 'sudah_ke_dapodik';
+            }
+
+            $kolomList = $items->map(function ($u) use ($kolomLabelsMap) {
+                return [
+                    'id' => $u->id,
+                    'kolom' => $u->kolom_perubahan,
+                    'label' => $kolomLabelsMap[$u->kolom_perubahan] ?? ucwords(str_replace('_', ' ', $u->kolom_perubahan)),
+                    'nilai_lama' => $u->nilai_lama ?: '(Kosong)',
+                    'nilai_baru' => $u->nilai_baru,
+                    'alasan' => $u->alasan,
+                    'status' => $u->status,
+                    'berkas_bukti' => $u->berkas_bukti,
+                ];
+            })->all();
+
+            $item->siswa = $siswa;
+            $item->foto_url = $metaMapUsulan->get($pdId)?->foto_url ?? null;
+            $item->items = $items;
+            $item->kolom_list = $kolomList;
+            $item->total_usulan = $total;
+            $item->menunggu_count = $menungguCount;
+            $item->disetujui_count = $disetujuiCount;
+            $item->dapodik_count = $dapodikCount;
+            $item->ditolak_count = $ditolakCount;
+            $item->status = $statusAgregat;
+            $item->alasan = $items->first()?->alasan ?: 'Penyesuaian formulir identitas mandiri.';
             $item->kk_status = $bList->firstWhere('jenis_berkas', 'kartu_keluarga')?->status ?? 'belum_unggah';
             $item->ijazah_status = $bList->firstWhere('jenis_berkas', 'ijazah_smp')?->status ?? 'belum_unggah';
-        }
+            $item->akta_status = $bList->firstWhere('jenis_berkas', 'akta_kelahiran')?->status ?? 'belum_unggah';
+            $item->berkas_bukti_path = $items->first(fn($u) => !empty($u->berkas_bukti))?->berkas_bukti;
+
+            return $item;
+        });
 
         return view('dashboard.kesiswaan.peserta-didik', compact(
             'stats',
@@ -586,7 +713,8 @@ class KesiswaanPesertaDidikController extends Controller
     }
 
     /**
-     * Ambil data detail lengkap satu usulan perubahan (JSON) untuk Modal Pengelolaan Usulan
+     * Ambil data detail lengkap usulan perubahan siswa (JSON) untuk Modal Formulir Pengelolaan Usulan
+     * Mendukung pemanggilan berdasarkan peserta_didik_id atau id usulan tunggal
      */
     public function getUsulanDetail($id)
     {
@@ -598,25 +726,48 @@ class KesiswaanPesertaDidikController extends Controller
         $canAccess = in_array($role, ['admin', 'tendik', 'guru'], true)
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'read')
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read')
-            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'read');
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas_validasi', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas', 'read')
+            || RolePermission::isWaliKelasOrAdmin($user);
 
         if (!$canAccess) {
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
         }
 
-        $usulan = SiswaUsulanPerubahan::with('siswa')->findOrFail($id);
-        $pd = $usulan->siswa;
+        // Cari siswa dan daftar usulannya
+        $pd = PesertaDidik::where('peserta_didik_id', $id)->first();
+        if (!$pd && Schema::hasTable('peserta_didik_tidak_aktif')) {
+            $pd = DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->first();
+        }
+
+        if ($pd) {
+            $pdId = $pd->peserta_didik_id;
+            $usulanList = SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)
+                ->orderBy('created_at', 'asc')
+                ->get();
+        } else {
+            $single = SiswaUsulanPerubahan::with('siswa')->find($id);
+            if (!$single) {
+                return response()->json(['status' => 'error', 'message' => 'Data usulan atau peserta didik tidak ditemukan.'], 404);
+            }
+            $pd = $single->siswa;
+            $pdId = $single->peserta_didik_id;
+            $usulanList = SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)
+                ->orderBy('created_at', 'asc')
+                ->get();
+        }
 
         // Foto siswa
         $meta = null;
         if (Schema::hasTable('peserta_didik_meta') && $pd) {
-            $meta = PesertaDidikMeta::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+            $meta = PesertaDidikMeta::where('peserta_didik_id', $pdId)->first();
         }
 
-        // Berkas wajib KK & Ijazah siswa
+        // Berkas wajib KK, Ijazah, dan Akta siswa
         $berkas = collect();
         if (Schema::hasTable('peserta_didik_berkas') && $pd) {
-            $berkas = PesertaDidikBerkas::where('peserta_didik_id', $pd->peserta_didik_id)
+            $berkas = PesertaDidikBerkas::where('peserta_didik_id', $pdId)
                 ->whereIn('jenis_berkas', ['kartu_keluarga', 'ijazah_smp', 'akta_kelahiran'])
                 ->get()
                 ->keyBy('jenis_berkas');
@@ -686,27 +837,68 @@ class KesiswaanPesertaDidikController extends Controller
             'Pengajuan usulan dibatalkan atas permintaan siswa atau orang tua.',
         ];
 
+        $itemsData = [];
+        foreach ($usulanList as $u) {
+            $itemsData[] = [
+                'id' => $u->id,
+                'kolom_perubahan' => $u->kolom_perubahan,
+                'kolom_label' => $kolomLabels[$u->kolom_perubahan] ?? ucwords(str_replace('_', ' ', $u->kolom_perubahan)),
+                'nilai_lama' => $u->nilai_lama ?: '(Belum Terisi / Kosong)',
+                'nilai_baru' => $u->nilai_baru,
+                'alasan' => $u->alasan ?: 'Penyesuaian formulir identitas mandiri.',
+                'status' => $u->status,
+                'catatan_verifikasi' => $u->catatan_verifikasi,
+                'verified_by' => $u->verified_by,
+                'verified_at' => $u->verified_at ? $u->verified_at->translatedFormat('d F Y, H:i') : null,
+                'created_at' => $u->created_at ? $u->created_at->translatedFormat('d F Y, H:i') : null,
+                'berkas_bukti_url' => !empty($u->berkas_bukti) ? asset('storage/' . ltrim($u->berkas_bukti, '/')) : null,
+            ];
+        }
+
+        $menungguCount = $usulanList->where('status', 'menunggu')->count();
+        $disetujuiCount = $usulanList->where('status', 'disetujui')->count();
+        $ditolakCount = $usulanList->where('status', 'ditolak')->count();
+        $dapodikCount = $usulanList->where('status', 'sudah_ke_dapodik')->count();
+
+        $statusAgregat = 'menunggu';
+        if ($menungguCount > 0) {
+            $statusAgregat = 'menunggu';
+        } elseif ($disetujuiCount > 0) {
+            $statusAgregat = 'disetujui';
+        } elseif ($ditolakCount === count($itemsData) && count($itemsData) > 0) {
+            $statusAgregat = 'ditolak';
+        } elseif ($dapodikCount === count($itemsData) && count($itemsData) > 0) {
+            $statusAgregat = 'sudah_ke_dapodik';
+        }
+
         return response()->json([
             'status' => 'success',
             'data' => [
-                'id' => $usulan->id,
-                'peserta_didik_id' => $usulan->peserta_didik_id,
-                'nama_siswa' => $pd?->nama ?: 'Siswa #' . $usulan->peserta_didik_id,
+                'id' => $usulanList->first()?->id,
+                'peserta_didik_id' => $pdId,
+                'nama_siswa' => $pd?->nama ?: 'Siswa #' . $pdId,
                 'nisn' => $pd?->nisn ?: '-',
                 'nipd' => $pd?->nipd ?: '-',
                 'rombel' => $pd?->nama_rombel ?: '-',
                 'foto_url' => $meta?->foto_url ?? null,
-                'kolom_perubahan' => $usulan->kolom_perubahan,
-                'kolom_label' => $kolomLabels[$usulan->kolom_perubahan] ?? ucwords(str_replace('_', ' ', $usulan->kolom_perubahan)),
-                'nilai_lama' => $usulan->nilai_lama ?: '(Belum Terisi / Kosong)',
-                'nilai_baru' => $usulan->nilai_baru,
-                'alasan' => $usulan->alasan ?: 'Penyesuaian formulir identitas mandiri.',
-                'status' => $usulan->status,
-                'catatan_verifikasi' => $usulan->catatan_verifikasi,
-                'verified_by' => $usulan->verified_by,
-                'verified_at' => $usulan->verified_at ? $usulan->verified_at->translatedFormat('d F Y, H:i') : null,
-                'created_at' => $usulan->created_at ? $usulan->created_at->translatedFormat('d F Y, H:i') : null,
-                'berkas_bukti_url' => !empty($usulan->berkas_bukti) ? asset('storage/' . ltrim($usulan->berkas_bukti, '/')) : null,
+                'total_usulan' => count($itemsData),
+                'menunggu_count' => $menungguCount,
+                'disetujui_count' => $disetujuiCount,
+                'ditolak_count' => $ditolakCount,
+                'dapodik_count' => $dapodikCount,
+                'status' => $statusAgregat,
+                'items' => $itemsData,
+                // Kompatibilitas atribut tunggal
+                'kolom_perubahan' => $usulanList->first()?->kolom_perubahan,
+                'kolom_label' => $kolomLabels[$usulanList->first()?->kolom_perubahan ?? ''] ?? '',
+                'nilai_lama' => $usulanList->first()?->nilai_lama ?: '(Belum Terisi / Kosong)',
+                'nilai_baru' => $usulanList->first()?->nilai_baru,
+                'alasan' => $usulanList->first()?->alasan ?: 'Penyesuaian formulir identitas mandiri.',
+                'catatan_verifikasi' => $usulanList->first()?->catatan_verifikasi,
+                'verified_by' => $usulanList->first()?->verified_by,
+                'verified_at' => $usulanList->first()?->verified_at ? $usulanList->first()->verified_at->translatedFormat('d F Y, H:i') : null,
+                'created_at' => $usulanList->first()?->created_at ? $usulanList->first()->created_at->translatedFormat('d F Y, H:i') : null,
+                'berkas_bukti_url' => !empty($usulanList->first()?->berkas_bukti) ? asset('storage/' . ltrim($usulanList->first()->berkas_bukti, '/')) : null,
                 'kk' => [
                     'exists' => !empty($kk),
                     'status' => $kk?->status ?? 'belum_unggah',
@@ -731,8 +923,8 @@ class KesiswaanPesertaDidikController extends Controller
     }
 
     /**
-     * Verifikasi Usulan Perubahan Data (Setujui / Tolak).
-     * Jika ditolak, wajib menyertakan alasan penolakan.
+     * Verifikasi Usulan Perubahan Data Siswa (Setujui / Tolak).
+     * Mendukung verifikasi per siswa (seluruh usulan) atau per ID usulan.
      */
     public function verifikasiUsulan(Request $request, $id)
     {
@@ -751,6 +943,8 @@ class KesiswaanPesertaDidikController extends Controller
         $validated = $request->validate([
             'status'             => 'required|string|in:disetujui,ditolak',
             'catatan_verifikasi' => 'nullable|string',
+            'usulan_ids'         => 'nullable|array',
+            'usulan_ids.*'       => 'integer',
         ]);
 
         $status = $validated['status'];
@@ -763,63 +957,82 @@ class KesiswaanPesertaDidikController extends Controller
             ], 422);
         }
 
-        $usulan = SiswaUsulanPerubahan::findOrFail($id);
         $userName = is_array($user) ? ($user['nama'] ?? 'Verifikator') : ($user->nama ?? 'Verifikator');
 
-        $usulan->status = $status;
-        $usulan->catatan_verifikasi = $catatan ?: null;
-        $usulan->verified_by = $userName;
-        $usulan->verified_at = now();
-        $usulan->save();
+        // Cek apakah $id adalah peserta_didik_id atau ID usulan tunggal
+        $isPd = PesertaDidik::where('peserta_didik_id', $id)->exists()
+            || (Schema::hasTable('peserta_didik_tidak_aktif') && DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->exists());
 
-        // Jika disetujui, update data peserta didik secara otomatis
-        if ($status === 'disetujui' && Schema::hasColumn('peserta_didik', $usulan->kolom_perubahan)) {
-            DB::table('peserta_didik')
-                ->where('peserta_didik_id', $usulan->peserta_didik_id)
-                ->update([$usulan->kolom_perubahan => $usulan->nilai_baru]);
+        if ($isPd) {
+            $query = SiswaUsulanPerubahan::where('peserta_didik_id', $id);
+            if (!empty($validated['usulan_ids'])) {
+                $query->whereIn('id', $validated['usulan_ids']);
+            }
+            $usulanList = $query->get();
+            $pdId = $id;
+        } else {
+            $single = SiswaUsulanPerubahan::findOrFail($id);
+            $usulanList = collect([$single]);
+            $pdId = $single->peserta_didik_id;
         }
 
-        // Sinkronisasi status dan nilai ke tabel aman peserta_didik_identitas
-        if (Schema::hasTable('peserta_didik_identitas')) {
-            $identitasUpdate = [];
-            if ($status === 'disetujui' && Schema::hasColumn('peserta_didik_identitas', $usulan->kolom_perubahan)) {
-                $identitasUpdate[$usulan->kolom_perubahan] = $usulan->nilai_baru;
-            }
+        $pdUpdates = [];
+        $identitasUpdates = [];
 
-            $remainingPending = SiswaUsulanPerubahan::where('peserta_didik_id', $usulan->peserta_didik_id)
+        foreach ($usulanList as $usulan) {
+            $usulan->status = $status;
+            $usulan->catatan_verifikasi = $catatan ?: null;
+            $usulan->verified_by = $userName;
+            $usulan->verified_at = now();
+            $usulan->save();
+
+            if ($status === 'disetujui') {
+                if (Schema::hasColumn('peserta_didik', $usulan->kolom_perubahan)) {
+                    $pdUpdates[$usulan->kolom_perubahan] = $usulan->nilai_baru;
+                }
+                if (Schema::hasTable('peserta_didik_identitas') && Schema::hasColumn('peserta_didik_identitas', $usulan->kolom_perubahan)) {
+                    $identitasUpdates[$usulan->kolom_perubahan] = $usulan->nilai_baru;
+                }
+            }
+        }
+
+        if (!empty($pdUpdates)) {
+            DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->update($pdUpdates);
+        }
+
+        if (Schema::hasTable('peserta_didik_identitas')) {
+            $remainingPending = SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)
                 ->where('status', 'menunggu')
-                ->where('id', '!=', $usulan->id)
                 ->count();
 
             if ($remainingPending === 0 && $status === 'disetujui') {
-                $identitasUpdate['status_konfirmasi'] = 'diverifikasi';
-                $identitasUpdate['catatan_kesiswaan'] = 'Seluruh usulan perubahan data siswa telah disetujui & diverifikasi oleh Tim Kesiswaan.';
+                $identitasUpdates['status_konfirmasi'] = 'diverifikasi';
+                $identitasUpdates['catatan_kesiswaan'] = 'Seluruh usulan perubahan data siswa telah disetujui & diverifikasi oleh Tim Kesiswaan.';
             } elseif ($status === 'ditolak') {
-                $identitasUpdate['catatan_kesiswaan'] = "Usulan perubahan kolom {$usulan->kolom_perubahan} ditolak: " . ($catatan ?: 'Dokumen pendukung tidak sesuai.');
+                $identitasUpdates['catatan_kesiswaan'] = "Usulan perubahan data ditolak: " . ($catatan ?: 'Dokumen pendukung tidak sesuai.');
             }
 
-            if (!empty($identitasUpdate)) {
-                DB::table('peserta_didik_identitas')
-                    ->where('peserta_didik_id', $usulan->peserta_didik_id)
-                    ->update($identitasUpdate);
+            if (!empty($identitasUpdates)) {
+                DB::table('peserta_didik_identitas')->where('peserta_didik_id', $pdId)->update($identitasUpdates);
             }
         }
 
         if (class_exists(AdminAktivitas::class)) {
-            $pd = PesertaDidik::where('peserta_didik_id', $usulan->peserta_didik_id)->first();
+            $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
             $labelStatus = $status === 'disetujui' ? 'Disetujui' : 'Ditolak';
+            $count = count($usulanList);
             AdminAktivitas::record(
-                "Verifikasi Usulan Data Siswa: {$pd?->nama} ({$usulan->kolom_perubahan}) [{$labelStatus}]",
+                "Verifikasi Usulan Data Siswa: {$pd?->nama} ({$count} butir usulan) [{$labelStatus}]",
                 'Kesiswaan',
-                $status === 'ditolak' ? "Alasan Penolakan: {$catatan}" : "Usulan disetujui dan data siswa diperbarui.",
+                $status === 'ditolak' ? "Alasan Penolakan: {$catatan}" : "Usulan perubahan data disetujui dan data siswa diperbarui.",
                 $status === 'disetujui' ? 'success' : 'warning'
             );
         }
 
         return response()->json([
             'status' => 'success',
-            'message' => "Usulan perubahan data berhasil " . ($status === 'disetujui' ? 'disetujui' : 'ditolak') . ".",
-            'data' => $usulan,
+            'message' => "Usulan perubahan data (" . count($usulanList) . " butir) berhasil " . ($status === 'disetujui' ? 'disetujui' : 'ditolak') . ".",
+            'data' => $usulanList,
         ]);
     }
 
@@ -842,21 +1055,36 @@ class KesiswaanPesertaDidikController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
         }
 
-        $usulan = SiswaUsulanPerubahan::findOrFail($id);
         $userName = is_array($user) ? ($user['nama'] ?? 'Operator Dapodik') : ($user->nama ?? 'Operator Dapodik');
 
-        $usulan->status = 'sudah_ke_dapodik';
-        $usulan->catatan_verifikasi = ($usulan->catatan_verifikasi ? $usulan->catatan_verifikasi . ' | ' : '') . "Telah di-update ke Aplikasi Dapodik oleh {$userName} pada " . now()->translatedFormat('d M Y, H:i');
-        $usulan->save();
+        $isPd = PesertaDidik::where('peserta_didik_id', $id)->exists()
+            || (Schema::hasTable('peserta_didik_tidak_aktif') && DB::table('peserta_didik_tidak_aktif')->where('peserta_didik_id', $id)->exists());
+
+        if ($isPd) {
+            $usulanList = SiswaUsulanPerubahan::where('peserta_didik_id', $id)
+                ->where('status', 'disetujui')
+                ->get();
+            $pdId = $id;
+        } else {
+            $single = SiswaUsulanPerubahan::findOrFail($id);
+            $usulanList = collect([$single]);
+            $pdId = $single->peserta_didik_id;
+        }
+
+        foreach ($usulanList as $usulan) {
+            $usulan->status = 'sudah_ke_dapodik';
+            $usulan->catatan_verifikasi = ($usulan->catatan_verifikasi ? $usulan->catatan_verifikasi . ' | ' : '') . "Telah di-update ke Aplikasi Dapodik oleh {$userName} pada " . now()->translatedFormat('d M Y, H:i');
+            $usulan->save();
+        }
 
         if (Schema::hasTable('peserta_didik_identitas')) {
-            $remaining = SiswaUsulanPerubahan::where('peserta_didik_id', $usulan->peserta_didik_id)
+            $remaining = SiswaUsulanPerubahan::where('peserta_didik_id', $pdId)
                 ->whereIn('status', ['menunggu', 'disetujui'])
                 ->count();
 
             if ($remaining === 0) {
                 DB::table('peserta_didik_identitas')
-                    ->where('peserta_didik_id', $usulan->peserta_didik_id)
+                    ->where('peserta_didik_id', $pdId)
                     ->update([
                         'status_konfirmasi' => 'disinkronkan_dapodik',
                         'catatan_kesiswaan' => 'Seluruh usulan perubahan data siswa telah selesai di-input ke aplikasi Dapodik.',
@@ -865,11 +1093,11 @@ class KesiswaanPesertaDidikController extends Controller
         }
 
         if (class_exists(AdminAktivitas::class)) {
-            $pd = PesertaDidik::where('peserta_didik_id', $usulan->peserta_didik_id)->first();
+            $pd = PesertaDidik::where('peserta_didik_id', $pdId)->first();
             AdminAktivitas::record(
-                "Update Dapodik Selesai: {$pd?->nama} (Kolom {$usulan->kolom_perubahan})",
+                "Update Dapodik Selesai: {$pd?->nama}",
                 'Kesiswaan',
-                "Perubahan data {$usulan->kolom_perubahan} berhasil ditandai selesai di-input ke Dapodik.",
+                "Perubahan data siswa berhasil ditandai selesai di-input ke Dapodik.",
                 'success'
             );
         }
@@ -877,7 +1105,6 @@ class KesiswaanPesertaDidikController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Berhasil! Data perubahan ditandai telah selesai di-update ke aplikasi Dapodik.',
-            'data' => $usulan,
         ]);
     }
 
@@ -926,7 +1153,10 @@ class KesiswaanPesertaDidikController extends Controller
         $canAccess = in_array($role, ['admin', 'tendik', 'guru'], true)
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan_peserta_didik', 'read')
             || RolePermission::canAccess($user ?: $role, 'menu_kesiswaan', 'read')
-            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'read');
+            || RolePermission::canAccess($user ?: $role, 'menu_peserta_didik_aktif', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas_validasi', 'read')
+            || RolePermission::canAccess($user ?: $role, 'menu_wali_kelas', 'read')
+            || RolePermission::isWaliKelasOrAdmin($user);
 
         if (!$canAccess) {
             return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);

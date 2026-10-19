@@ -609,12 +609,38 @@
                 <iframe id="pdfViewerFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
 
-            <div
-                style="display: flex; justify-content: flex-end; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color);">
-                <button type="button" class="btn btn-outline close-pdf-viewer"
-                    style="border-radius: 8px; padding: 7px 18px; font-size: 0.82rem;">
-                    Tutup Pratinjau
-                </button>
+            <!-- Action Bar Validasi Terpadu Langsung di Pratinjau PDF -->
+            <div id="pdfViewerActionBar"
+                style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;">
+                <div id="pdfViewerVerifControls" style="display: none; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-color);">
+                        <i class="fas fa-clipboard-check text-primary me-1"></i> Validasi:
+                    </span>
+                    <label
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: #10b981; cursor: pointer; margin: 0;">
+                        <input type="radio" name="pdf_viewer_status" value="valid" id="pdfViewerRadioValid"
+                            class="pdf-viewer-radio">
+                        <i class="fas fa-circle-check"></i> Valid / Sesuai
+                    </label>
+                    <label
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: #ef4444; cursor: pointer; margin: 0;">
+                        <input type="radio" name="pdf_viewer_status" value="tidak_valid" id="pdfViewerRadioTidakValid"
+                            class="pdf-viewer-radio">
+                        <i class="fas fa-circle-xmark"></i> Tidak Valid / Tidak Sesuai
+                    </label>
+                    <input type="text" id="pdfViewerCatatan" placeholder="Catatan penolakan jika tidak valid..."
+                        style="display: none; font-size: 0.78rem; height: 32px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-color); width: 260px;">
+                    <button type="button" id="btnPdfViewerSimpan" class="btn btn-primary"
+                        style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-save"></i> Simpan Status
+                    </button>
+                </div>
+                <div style="display: flex; gap: 8px; margin-left: auto;">
+                    <button type="button" class="btn btn-outline close-pdf-viewer"
+                        style="border-radius: 8px; padding: 7px 18px; font-size: 0.82rem;">
+                        Tutup Pratinjau
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -623,8 +649,8 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-                 * Datatable Validasi Data Wali Kelas — Desktop & Responsive Modern
-                 * ------------------------------------------------------------- */
+                     * Datatable Validasi Data Wali Kelas — Desktop & Responsive Modern
+                     * ------------------------------------------------------------- */
         .table-validasi-data {
             width: 100%;
             border-collapse: collapse;
@@ -759,8 +785,8 @@
         }
 
         /* -------------------------------------------------------------
-                 * Responsive Mobile Stack (< 768px)
-                 * ------------------------------------------------------------- */
+                     * Responsive Mobile Stack (< 768px)
+                     * ------------------------------------------------------------- */
         @media (max-width: 768px) {
             .table-responsive-stack tbody tr.validasi-row {
                 display: flex !important;

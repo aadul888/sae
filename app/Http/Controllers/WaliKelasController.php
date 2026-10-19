@@ -14,12 +14,30 @@ use App\Models\PresensiIzin;
 use App\Models\NotifikasiTransaksi;
 use App\Models\PesertaDidikBerkas;
 use App\Models\PesertaDidikIdentitas;
+use App\Models\AgendaKbm;
+use App\Models\JadwalKbm;
+use App\Models\JadwalPengaturan;
+use App\Models\PresensiMengajar;
 use Carbon\Carbon;
 
 class WaliKelasController extends Controller
 {
     private const SORTABLE_AKTIF = ['nama', 'nisn', 'nipd', 'jenis_kelamin', 'nama_rombel', 'tingkat_pendidikan_id'];
     private const SORTABLE_TIDAK_AKTIF = ['nama', 'nisn', 'nipd', 'jenis_kelamin', 'nama_rombel_terakhir', 'tingkat_pendidikan_terakhir', 'tahun_lulus', 'status_keluar'];
+
+    private function getIndoDayName($date = null): string
+    {
+        $c = $date ? Carbon::parse($date) : Carbon::now();
+        return match ($c->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        };
+    }
 
     /**
      * Resolusi konteks Rombel Binaan Wali Kelas
@@ -600,6 +618,561 @@ class WaliKelasController extends Controller
             'sort'         => $sort,
             'sortDir'      => $sortDir,
             'canUpdate'    => $canUpdate,
+        ]);
+    }
+
+    /**
+     * Tampilan Agenda Kelas Binaan (Data Input Guru Mapel & Fasilitas Input Bantuan Wali/Koordinator)
+     */
+    public function agendaKelas(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return redirect()->route('login');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::isWaliKelasOrAdmin($user) || (!RolePermission::canAccess($user, 'menu_wali_kelas_agenda') && !RolePermission::canAccess($user, 'menu_wali_kelas'))) {
+            return redirect()->route('dashboard.' . ($role ?: 'guru'))->with('error', 'Akses ke modul Agenda Kelas tidak diizinkan.');
+        }
+
+        $canCreate = RolePermission::canAccess($user, 'menu_wali_kelas_agenda', 'create')
+            || RolePermission::canAccess($user, 'menu_wali_kelas', 'create')
+            || in_array($role, ['admin', 'guru'], true)
+            || ($role === 'peserta_didik' && RolePermission::isKoordinator($user));
+
+        $canUpdate = RolePermission::canAccess($user, 'menu_wali_kelas_agenda', 'update')
+            || RolePermission::canAccess($user, 'menu_wali_kelas', 'update')
+            || in_array($role, ['admin', 'guru'], true)
+            || ($role === 'peserta_didik' && RolePermission::isKoordinator($user));
+
+        $canDelete = RolePermission::canAccess($user, 'menu_wali_kelas_agenda', 'delete')
+            || RolePermission::canAccess($user, 'menu_wali_kelas', 'delete')
+            || in_array($role, ['admin'], true);
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        $activeRombel = $ctx['activeRombel'];
+
+        $q              = trim($request->get('q', ''));
+        $filterPtk      = trim($request->get('ptk_id', ''));
+        $filterMapel    = trim($request->get('nama_mata_pelajaran', ''));
+        $filterStatus   = trim($request->get('status_kbm', ''));
+        $tanggalMulai   = $request->get('tanggal_mulai', '');
+        $tanggalSelesai = $request->get('tanggal_selesai', '');
+        $perPage        = (int) $request->get('perPage', 15);
+        $perPage        = in_array($perPage, [10, 15, 25, 50, 100], true) ? $perPage : 15;
+        $sort           = $request->get('sort', 'tanggal');
+        $sortDir        = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if (!$activeRombel) {
+            return view('dashboard.wali-kelas-agenda', [
+                'hasRombel'        => false,
+                'isAdmin'          => $ctx['isAdmin'],
+                'rombelList'       => $ctx['rombelList'],
+                'activeRombel'     => null,
+                'waliNama'         => $ctx['waliNama'],
+                'waliNip'          => $ctx['waliNip'],
+                'list'             => collect(),
+                'total'            => 0,
+                'summary'          => [
+                    'total'      => 0,
+                    'terlaksana' => 0,
+                    'sebagian'   => 0,
+                    'tertunda'   => 0,
+                    'persen'     => 0,
+                ],
+                'jadwalList'       => collect(),
+                'pembelajaranList' => collect(),
+                'guruMapelList'    => collect(),
+                'mapelList'        => collect(),
+                'q'                => $q,
+                'filterPtk'        => $filterPtk,
+                'filterMapel'      => $filterMapel,
+                'filterStatus'     => $filterStatus,
+                'tanggalMulai'     => $tanggalMulai,
+                'tanggalSelesai'   => $tanggalSelesai,
+                'perPage'          => $perPage,
+                'sort'             => $sort,
+                'sortDir'          => $sortDir,
+                'canCreate'        => $canCreate,
+                'canUpdate'        => $canUpdate,
+                'canDelete'        => $canDelete,
+            ]);
+        }
+
+        $targetRombelId = $activeRombel->rombongan_belajar_id;
+
+        // Query Utama Agenda KBM untuk Rombel Ini
+        $baseQuery = AgendaKbm::query()
+            ->where('agenda_kbm.rombongan_belajar_id', $targetRombelId)
+            ->leftJoin('gtk as g', 'agenda_kbm.ptk_id', '=', 'g.ptk_id')
+            ->select(
+                'agenda_kbm.*',
+                'g.nama as nama_guru',
+                'g.nip as nip_guru',
+                'g.nuptk as nuptk_guru'
+            );
+
+        // Statistik Kelas Binaan
+        $statScope = clone $baseQuery;
+        $totalAgenda = (clone $statScope)->count();
+        $totalTerlaksana = (clone $statScope)->where('agenda_kbm.status_kbm', 'Terlaksana')->count();
+        $totalSebagian = (clone $statScope)->where('agenda_kbm.status_kbm', 'Sebagian')->count();
+        $totalTertunda = (clone $statScope)->whereIn('agenda_kbm.status_kbm', ['Tertunda', 'Digantikan'])->count();
+        $persenTerlaksana = $totalAgenda > 0 ? round(($totalTerlaksana / $totalAgenda) * 100, 1) : 0;
+
+        $summary = [
+            'total'      => $totalAgenda,
+            'terlaksana' => $totalTerlaksana,
+            'sebagian'   => $totalSebagian,
+            'tertunda'   => $totalTertunda,
+            'persen'     => $persenTerlaksana,
+        ];
+
+        // Filter
+        if ($q !== '') {
+            $baseQuery->where(function ($w) use ($q) {
+                $w->where('agenda_kbm.materi_pokok', 'like', "%{$q}%")
+                  ->orWhere('agenda_kbm.nama_mata_pelajaran', 'like', "%{$q}%")
+                  ->orWhere('agenda_kbm.uraian_kegiatan', 'like', "%{$q}%")
+                  ->orWhere('agenda_kbm.penugasan', 'like', "%{$q}%")
+                  ->orWhere('agenda_kbm.hambatan_catatan', 'like', "%{$q}%")
+                  ->orWhere('agenda_kbm.created_by', 'like', "%{$q}%")
+                  ->orWhere('g.nama', 'like', "%{$q}%");
+            });
+        }
+
+        if ($filterPtk !== '') {
+            $baseQuery->where('agenda_kbm.ptk_id', $filterPtk);
+        }
+
+        if ($filterMapel !== '') {
+            $baseQuery->where('agenda_kbm.nama_mata_pelajaran', $filterMapel);
+        }
+
+        if ($filterStatus !== '') {
+            $baseQuery->where('agenda_kbm.status_kbm', $filterStatus);
+        }
+
+        if ($tanggalMulai !== '') {
+            $baseQuery->whereDate('agenda_kbm.tanggal', '>=', $tanggalMulai);
+        }
+
+        if ($tanggalSelesai !== '') {
+            $baseQuery->whereDate('agenda_kbm.tanggal', '<=', $tanggalSelesai);
+        }
+
+        // Sorting
+        if (in_array($sort, ['tanggal', 'pertemuan_ke', 'nama_mata_pelajaran', 'status_kbm'], true)) {
+            $baseQuery->orderBy('agenda_kbm.' . $sort, $sortDir);
+            if ($sort === 'tanggal') {
+                $baseQuery->orderBy('agenda_kbm.jam_ke_mulai', 'asc');
+            }
+        } else {
+            $baseQuery->orderBy('agenda_kbm.tanggal', 'desc')->orderBy('agenda_kbm.jam_ke_mulai', 'asc');
+        }
+
+        $list = $baseQuery->paginate($perPage)->withQueryString();
+
+        // Ambil Daftar Jadwal KBM Rombel untuk Auto-fill Modal Input
+        $modeAktif = class_exists(JadwalPengaturan::class) ? JadwalPengaturan::getModeAktif() : null;
+        $jadwalQuery = JadwalKbm::where('rombongan_belajar_id', $targetRombelId)
+            ->where('is_active', true);
+        if ($modeAktif) {
+            $jadwalQuery->where('sumber', $modeAktif);
+        }
+        $jadwalRaw = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get();
+
+        $allPtkIds = $jadwalRaw->pluck('ptk_id')->filter()->unique()->all();
+        $gtkMap = !empty($allPtkIds)
+            ? DB::table('gtk')->whereIn('ptk_id', $allPtkIds)->pluck('nama', 'ptk_id')->all()
+            : [];
+
+        $jadwalList = $jadwalRaw->map(function ($j) use ($gtkMap) {
+            $jamMulaiWaktu = !empty($j->jam_mulai) ? substr($j->jam_mulai, 0, 5) : '';
+            $jamSelesaiWaktu = !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '';
+            $jamWaktuRange = ($jamMulaiWaktu && $jamSelesaiWaktu) ? "{$jamMulaiWaktu} - {$jamSelesaiWaktu}" : '';
+            $durasiJp = max(1, ((int) ($j->jam_ke_selesai ?? 1)) - ((int) ($j->jam_ke_mulai ?? 1)) + 1);
+
+            return [
+                'id'                   => $j->id,
+                'hari'                 => $j->hari,
+                'jam_ke_mulai'         => (int) $j->jam_ke_mulai,
+                'jam_ke_selesai'       => (int) $j->jam_ke_selesai,
+                'jam_mulai'            => $jamMulaiWaktu,
+                'jam_selesai'          => $jamSelesaiWaktu,
+                'jam_waktu_range'      => $jamWaktuRange,
+                'durasi_jp'            => $durasiJp,
+                'nama_mata_pelajaran'  => $j->nama_mata_pelajaran,
+                'pembelajaran_id'      => $j->pembelajaran_id,
+                'mata_pelajaran_id'    => $j->mata_pelajaran_id,
+                'ptk_id'               => $j->ptk_id,
+                'nama_guru'            => $gtkMap[$j->ptk_id] ?? ($j->nama_ptk ?? '-'),
+            ];
+        });
+
+        // Ambil Daftar Guru Mapel dan Mata Pelajaran untuk Filter & Opsi Manual
+        $pembelajaranList = collect();
+        if (Schema::hasTable('pembelajaran')) {
+            $pembelajaranList = DB::table('pembelajaran')
+                ->leftJoin('gtk', 'pembelajaran.ptk_id', '=', 'gtk.ptk_id')
+                ->where('pembelajaran.rombongan_belajar_id', $targetRombelId)
+                ->select(
+                    'pembelajaran.pembelajaran_id',
+                    'pembelajaran.ptk_id',
+                    'pembelajaran.nama_mata_pelajaran',
+                    'pembelajaran.mata_pelajaran_id',
+                    'gtk.nama as nama_guru'
+                )
+                ->orderBy('pembelajaran.nama_mata_pelajaran')
+                ->get();
+        }
+
+        $guruMapelList = $pembelajaranList->unique('ptk_id')->values();
+        if ($guruMapelList->isEmpty()) {
+            $guruMapelList = $jadwalList->unique('ptk_id')->map(fn($j) => (object)[
+                'ptk_id' => $j['ptk_id'],
+                'nama_guru' => $j['nama_guru'],
+            ])->values();
+        }
+
+        $mapelList = $pembelajaranList->pluck('nama_mata_pelajaran')->filter()->unique()->values();
+        if ($mapelList->isEmpty()) {
+            $mapelList = $jadwalList->pluck('nama_mata_pelajaran')->filter()->unique()->values();
+        }
+
+        return view('dashboard.wali-kelas-agenda', [
+            'hasRombel'        => true,
+            'isAdmin'          => $ctx['isAdmin'],
+            'rombelList'       => $ctx['rombelList'],
+            'activeRombel'     => $activeRombel,
+            'waliNama'         => $ctx['waliNama'],
+            'waliNip'          => $ctx['waliNip'],
+            'list'             => $list,
+            'total'            => $list->total(),
+            'summary'          => $summary,
+            'jadwalList'       => $jadwalList,
+            'pembelajaranList' => $pembelajaranList,
+            'guruMapelList'    => $guruMapelList,
+            'mapelList'        => $mapelList,
+            'q'                => $q,
+            'filterPtk'        => $filterPtk,
+            'filterMapel'      => $filterMapel,
+            'filterStatus'     => $filterStatus,
+            'tanggalMulai'     => $tanggalMulai,
+            'tanggalSelesai'   => $tanggalSelesai,
+            'perPage'          => $perPage,
+            'sort'             => $sort,
+            'sortDir'          => $sortDir,
+            'canCreate'        => $canCreate,
+            'canUpdate'        => $canUpdate,
+            'canDelete'        => $canDelete,
+        ]);
+    }
+
+    /**
+     * Simpan data Agenda Kelas Binaan Baru (Wali Kelas / Koordinator membantu input).
+     */
+    public function storeAgendaKelas(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::isWaliKelasOrAdmin($user) || (!RolePermission::canAccess($user, 'menu_wali_kelas_agenda', 'create') && !RolePermission::canAccess($user, 'menu_wali_kelas', 'create'))) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk menambah agenda kelas.'], 403);
+        }
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        $activeRombel = $ctx['activeRombel'];
+        if (!$activeRombel) {
+            return response()->json(['status' => 'error', 'message' => 'Rombel binaan tidak ditemukan.'], 422);
+        }
+
+        $validated = $request->validate([
+            'jadwal_kbm_id'         => 'nullable|integer',
+            'ptk_id'                => 'required|string|max:50',
+            'nama_mata_pelajaran'   => 'required|string|max:150',
+            'pembelajaran_id'       => 'nullable|string|max:50',
+            'mata_pelajaran_id'     => 'nullable|string|max:50',
+            'tanggal'               => 'required|date',
+            'hari'                  => 'nullable|string|max:20',
+            'jam_ke_mulai'          => 'required|integer|min:0|max:20',
+            'jam_ke_selesai'        => 'required|integer|min:0|max:20',
+            'pertemuan_ke'          => 'required|integer|min:1|max:100',
+            'materi_pokok'          => 'required|string|max:255',
+            'uraian_kegiatan'       => 'required|string',
+            'penugasan'             => 'nullable|string',
+            'status_kbm'            => 'required|string|in:Terlaksana,Sebagian,Tertunda,Digantikan',
+            'hambatan_catatan'      => 'nullable|string',
+        ]);
+
+        $hari = !empty($validated['hari']) ? $validated['hari'] : $this->getIndoDayName($validated['tanggal']);
+
+        $creatorName = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Pengguna')) : ($user->nama ?? ($user->name ?? 'Pengguna'));
+        $prefix = ($role === 'peserta_didik') ? 'Koordinator' : (($role === 'guru') ? 'Wali Kelas' : 'Admin');
+        $createdBy = "{$prefix}: {$creatorName}";
+
+        // Cari presensi_mengajar jika ada
+        $presensiId = PresensiMengajar::where('ptk_id', $validated['ptk_id'])
+            ->where('rombongan_belajar_id', $activeRombel->rombongan_belajar_id)
+            ->where('tanggal', $validated['tanggal'])
+            ->value('id');
+
+        $agenda = AgendaKbm::create([
+            'presensi_mengajar_id' => $presensiId,
+            'jadwal_kbm_id'        => $validated['jadwal_kbm_id'] ?? null,
+            'ptk_id'               => $validated['ptk_id'],
+            'rombongan_belajar_id' => $activeRombel->rombongan_belajar_id,
+            'pembelajaran_id'      => $validated['pembelajaran_id'] ?? null,
+            'mata_pelajaran_id'    => $validated['mata_pelajaran_id'] ?? null,
+            'nama_mata_pelajaran'  => $validated['nama_mata_pelajaran'],
+            'tanggal'              => $validated['tanggal'],
+            'hari'                 => $hari,
+            'jam_ke_mulai'         => $validated['jam_ke_mulai'],
+            'jam_ke_selesai'       => $validated['jam_ke_selesai'],
+            'pertemuan_ke'         => $validated['pertemuan_ke'],
+            'materi_pokok'         => $validated['materi_pokok'],
+            'uraian_kegiatan'      => $validated['uraian_kegiatan'],
+            'penugasan'            => $validated['penugasan'] ?? null,
+            'status_kbm'           => $validated['status_kbm'],
+            'hambatan_catatan'     => $validated['hambatan_catatan'] ?? null,
+            'created_by'           => $createdBy,
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Agenda kelas berhasil dicatat dan disinkronkan dengan jurnal guru mapel.',
+            'data'    => $agenda,
+        ]);
+    }
+
+    /**
+     * Detail Agenda Kelas (Read).
+     */
+    public function showAgendaKelas(string $id)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+
+        $agenda = AgendaKbm::leftJoin('gtk as g', 'agenda_kbm.ptk_id', '=', 'g.ptk_id')
+            ->leftJoin('rombongan_belajar as rb', 'agenda_kbm.rombongan_belajar_id', '=', 'rb.rombongan_belajar_id')
+            ->where('agenda_kbm.id', $id)
+            ->select(
+                'agenda_kbm.*',
+                'g.nama as nama_guru',
+                'g.nip as nip_guru',
+                'rb.nama as nama_rombel'
+            )
+            ->first();
+
+        if (!$agenda) {
+            return response()->json(['status' => 'error', 'message' => 'Data agenda kelas tidak ditemukan.'], 404);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => [
+                'id'                   => $agenda->id,
+                'jadwal_kbm_id'        => $agenda->jadwal_kbm_id,
+                'ptk_id'               => $agenda->ptk_id,
+                'nama_guru'            => $agenda->nama_guru ?: '-',
+                'nip_guru'             => $agenda->nip_guru ?: '-',
+                'rombongan_belajar_id' => $agenda->rombongan_belajar_id,
+                'nama_rombel'          => $agenda->nama_rombel ?: '-',
+                'pembelajaran_id'      => $agenda->pembelajaran_id,
+                'mata_pelajaran_id'    => $agenda->mata_pelajaran_id,
+                'nama_mata_pelajaran'  => $agenda->nama_mata_pelajaran,
+                'tanggal'              => $agenda->tanggal ? $agenda->tanggal->format('Y-m-d') : null,
+                'tanggal_formatted'    => $agenda->tanggal ? $agenda->tanggal->translatedFormat('d F Y') : '-',
+                'hari'                 => $agenda->hari,
+                'jam_ke_mulai'         => (int) $agenda->jam_ke_mulai,
+                'jam_ke_selesai'       => (int) $agenda->jam_ke_selesai,
+                'pertemuan_ke'         => (int) $agenda->pertemuan_ke,
+                'materi_pokok'         => $agenda->materi_pokok,
+                'uraian_kegiatan'      => $agenda->uraian_kegiatan,
+                'penugasan'            => $agenda->penugasan,
+                'status_kbm'           => $agenda->status_kbm,
+                'status_badge'         => $agenda->status_badge,
+                'hambatan_catatan'     => $agenda->hambatan_catatan,
+                'created_by'           => $agenda->created_by ?: 'Guru Pengampu',
+            ],
+        ]);
+    }
+
+    /**
+     * Update data Agenda Kelas Binaan.
+     */
+    public function updateAgendaKelas(Request $request, string $id)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        if (!RolePermission::isWaliKelasOrAdmin($user) || (!RolePermission::canAccess($user, 'menu_wali_kelas_agenda', 'update') && !RolePermission::canAccess($user, 'menu_wali_kelas', 'update'))) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        $activeRombel = $ctx['activeRombel'];
+
+        $agenda = AgendaKbm::findOrFail($id);
+
+        if (!$ctx['isAdmin'] && $activeRombel && $agenda->rombongan_belajar_id !== $activeRombel->rombongan_belajar_id) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak berhak mengubah agenda di luar kelas binaan Anda.'], 403);
+        }
+
+        $validated = $request->validate([
+            'jadwal_kbm_id'         => 'nullable|integer',
+            'ptk_id'                => 'required|string|max:50',
+            'nama_mata_pelajaran'   => 'required|string|max:150',
+            'pembelajaran_id'       => 'nullable|string|max:50',
+            'mata_pelajaran_id'     => 'nullable|string|max:50',
+            'tanggal'               => 'required|date',
+            'hari'                  => 'nullable|string|max:20',
+            'jam_ke_mulai'          => 'required|integer|min:0|max:20',
+            'jam_ke_selesai'        => 'required|integer|min:0|max:20',
+            'pertemuan_ke'          => 'required|integer|min:1|max:100',
+            'materi_pokok'          => 'required|string|max:255',
+            'uraian_kegiatan'       => 'required|string',
+            'penugasan'             => 'nullable|string',
+            'status_kbm'            => 'required|string|in:Terlaksana,Sebagian,Tertunda,Digantikan',
+            'hambatan_catatan'      => 'nullable|string',
+        ]);
+
+        $hari = !empty($validated['hari']) ? $validated['hari'] : $this->getIndoDayName($validated['tanggal']);
+
+        $agenda->update([
+            'jadwal_kbm_id'        => $validated['jadwal_kbm_id'] ?? $agenda->jadwal_kbm_id,
+            'ptk_id'               => $validated['ptk_id'],
+            'nama_mata_pelajaran'  => $validated['nama_mata_pelajaran'],
+            'pembelajaran_id'      => $validated['pembelajaran_id'] ?? $agenda->pembelajaran_id,
+            'mata_pelajaran_id'    => $validated['mata_pelajaran_id'] ?? $agenda->mata_pelajaran_id,
+            'tanggal'              => $validated['tanggal'],
+            'hari'                 => $hari,
+            'jam_ke_mulai'         => $validated['jam_ke_mulai'],
+            'jam_ke_selesai'       => $validated['jam_ke_selesai'],
+            'pertemuan_ke'         => $validated['pertemuan_ke'],
+            'materi_pokok'         => $validated['materi_pokok'],
+            'uraian_kegiatan'      => $validated['uraian_kegiatan'],
+            'penugasan'            => $validated['penugasan'] ?? null,
+            'status_kbm'           => $validated['status_kbm'],
+            'hambatan_catatan'     => $validated['hambatan_catatan'] ?? null,
+        ]);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Agenda kelas berhasil diperbarui.',
+            'data'    => $agenda,
+        ]);
+    }
+
+    /**
+     * Hapus data Agenda Kelas.
+     */
+    public function destroyAgendaKelas(Request $request, string $id)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        $activeRombel = $ctx['activeRombel'];
+
+        $agenda = AgendaKbm::findOrFail($id);
+        if (!$ctx['isAdmin'] && $activeRombel && $agenda->rombongan_belajar_id !== $activeRombel->rombongan_belajar_id) {
+            return response()->json(['status' => 'error', 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $agenda->delete();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Agenda kelas berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Hitung Pertemuan Ke Berikutnya untuk Mapel Kelas Binaan via AJAX.
+     */
+    public function nextPertemuanAgendaKelas(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error'], 401);
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        $activeRombel = $ctx['activeRombel'];
+        if (!$activeRombel) return response()->json(['status' => 'error', 'next_pertemuan' => 1]);
+
+        $pembelajaranId = $request->input('pembelajaran_id');
+        $namaMapel = $request->input('nama_mata_pelajaran');
+
+        $query = AgendaKbm::where('rombongan_belajar_id', $activeRombel->rombongan_belajar_id);
+        if ($pembelajaranId) {
+            $query->where('pembelajaran_id', $pembelajaranId);
+        } elseif ($namaMapel) {
+            $query->where('nama_mata_pelajaran', $namaMapel);
+        }
+        $max = $query->max('pertemuan_ke');
+        $next = ($max ? (int) $max : 0) + 1;
+
+        return response()->json(['status' => 'success', 'next_pertemuan' => $next]);
+    }
+
+    /**
+     * Cetak Jurnal & Agenda Kelas Binaan
+     */
+    public function cetakAgendaKelas(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return redirect()->route('login');
+
+        $ctx = $this->resolveWaliKelasContext($request, $user);
+        $activeRombel = $ctx['activeRombel'];
+        if (!$activeRombel) {
+            return back()->with('error', 'Rombel binaan tidak ditemukan.');
+        }
+
+        $query = AgendaKbm::where('agenda_kbm.rombongan_belajar_id', $activeRombel->rombongan_belajar_id)
+            ->leftJoin('gtk as g', 'agenda_kbm.ptk_id', '=', 'g.ptk_id')
+            ->select(
+                'agenda_kbm.*',
+                'g.nama as nama_guru',
+                'g.nip as nip_guru'
+            );
+
+        if ($request->filled('ptk_id')) {
+            $query->where('agenda_kbm.ptk_id', $request->ptk_id);
+        }
+        if ($request->filled('nama_mata_pelajaran')) {
+            $query->where('agenda_kbm.nama_mata_pelajaran', $request->nama_mata_pelajaran);
+        }
+        if ($request->filled('status_kbm')) {
+            $query->where('agenda_kbm.status_kbm', $request->status_kbm);
+        }
+        if ($request->filled('tanggal_mulai')) {
+            $query->whereDate('agenda_kbm.tanggal', '>=', $request->tanggal_mulai);
+        }
+        if ($request->filled('tanggal_selesai')) {
+            $query->whereDate('agenda_kbm.tanggal', '<=', $request->tanggal_selesai);
+        }
+
+        $items = $query->orderBy('agenda_kbm.tanggal', 'asc')
+            ->orderBy('agenda_kbm.jam_ke_mulai', 'asc')
+            ->get();
+
+        $sekolah = DB::table('sekolah')->first();
+        $kepsek = DB::table('gtk')
+            ->where(function ($w) {
+                $w->where('jenis_ptk_id_str', 'like', '%Kepala Sekolah%')
+                  ->orWhere('jabatan_ptk_id_str', 'like', '%Kepala Sekolah%');
+            })
+            ->first();
+
+        return view('dashboard.wali-kelas-agenda-cetak', [
+            'items'        => $items,
+            'activeRombel' => $activeRombel,
+            'waliNama'     => $ctx['waliNama'],
+            'waliNip'      => $ctx['waliNip'],
+            'sekolah'      => $sekolah,
+            'kepsek'       => $kepsek,
         ]);
     }
 
