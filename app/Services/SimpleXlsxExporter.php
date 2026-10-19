@@ -30,7 +30,13 @@ class SimpleXlsxExporter
         $sheetName = $options['sheetName'] ?? 'Data Respon';
         // Sanitize sheet name (max 31 chars, no invalid chars : \ / ? * [ ])
         $sheetName = mb_substr(preg_replace('/[\\\\\/\?\*\[\]\:]/', ' ', $sheetName), 0, 31);
+
         $headerBgHex = $options['headerBg'] ?? 'FF1E3A8A'; // Deep Navy / SAE Blue
+        if (strlen($headerBgHex) === 6) {
+            $headerBgHex = 'FF' . strtoupper($headerBgHex);
+        } elseif (strlen($headerBgHex) === 7 && str_starts_with($headerBgHex, '#')) {
+            $headerBgHex = 'FF' . strtoupper(substr($headerBgHex, 1));
+        }
 
         $xmlEscape = function ($str) {
             if ($str === null || $str === false) {
@@ -102,17 +108,17 @@ class SimpleXlsxExporter
         $styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <fonts count="5">
-    <font><sz val="10"/><color rgb="FF0F172A"/><name val="Calibri"/></font>
-    <font><b/><sz val="15"/><color rgb="FF1E3A8A"/><name val="Calibri"/></font>
-    <font><b/><sz val="11"/><color rgb="FF334155"/><name val="Calibri"/></font>
-    <font><b/><sz val="10"/><color rgb="FF1E293B"/><name val="Calibri"/></font>
-    <font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+    <font><sz val="10"/><color rgb="FF0F172A"/><name val="Calibri"/><family val="2"/></font>
+    <font><b/><sz val="14"/><color rgb="FF0F172A"/><name val="Calibri"/><family val="2"/></font>
+    <font><b/><sz val="11"/><color rgb="FF334155"/><name val="Calibri"/><family val="2"/></font>
+    <font><b/><sz val="10"/><color rgb="FF1E293B"/><name val="Calibri"/><family val="2"/></font>
+    <font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>
   </fonts>
   <fills count="4">
     <fill><patternFill patternType="none"/></fill>
     <fill><patternFill patternType="gray125"/></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="' . $headerBgHex . '"/></fill></fill>
-    <fill><patternFill patternType="solid"><fgColor rgb="FFF8FAFC"/></fill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="' . $headerBgHex . '"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFF8FAFC"/><bgColor indexed="64"/></patternFill></fill>
   </fills>
   <borders count="2">
     <border><left/><right/><top/><bottom/><diagonal/></border>
@@ -128,16 +134,19 @@ class SimpleXlsxExporter
   </cellStyleXfs>
   <cellXfs count="10">
     <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-    <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
-    <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>
-    <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+    <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="center"/></xf>
     <xf numFmtId="0" fontId="4" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
-    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
-    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
-    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>
   </cellXfs>
+  <cellStyles count="1">
+    <cellStyle name="Normal" xfId="0" builtinId="0"/>
+  </cellStyles>
 </styleSheet>';
 
         // 6. xl/worksheets/sheet1.xml
@@ -146,7 +155,13 @@ class SimpleXlsxExporter
 
         // Determine table header row position
         $metaFields = $meta['fields'] ?? [];
-        $headerRowNum = 3 + count($metaFields) + 2; // Row after title, subtitle, meta items, and 1 blank separator
+        $headerRowNum = 1; // Row 1 is Title
+        if (!empty($meta['subtitle'])) {
+            $headerRowNum++; // Subtitle row
+        }
+        $headerRowNum += count($metaFields); // Meta key-value rows
+        $headerRowNum++; // 1 Blank separator row
+        $headerRowNum++; // Header row itself
 
         // Freeze pane below table header
         $sheetXml .= '  <sheetViews>' . "\n";
@@ -154,6 +169,7 @@ class SimpleXlsxExporter
         $sheetXml .= '      <pane ySplit="' . $headerRowNum . '" topLeftCell="A' . ($headerRowNum + 1) . '" activePane="bottomLeft" state="frozen"/>' . "\n";
         $sheetXml .= '    </sheetView>' . "\n";
         $sheetXml .= '  </sheetViews>' . "\n";
+        $sheetXml .= '  <sheetFormatPr defaultRowHeight="15"/>' . "\n";
 
         // Column widths
         $sheetXml .= '  <cols>' . "\n";
@@ -167,14 +183,14 @@ class SimpleXlsxExporter
 
         $curRow = 1;
         // Row 1: Document Main Title
-        $sheetXml .= '    <row r="' . $curRow . '" ht="26" customHeight="1">' . "\n";
+        $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
         $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="1"><is><t>' . $xmlEscape($meta['title'] ?? 'DATA REKAPITULASI') . '</t></is></c>' . "\n";
         $sheetXml .= '    </row>' . "\n";
         $curRow++;
 
         // Row 2: Subtitle (Form Title & School Unit)
         if (!empty($meta['subtitle'])) {
-            $sheetXml .= '    <row r="' . $curRow . '" ht="20" customHeight="1">' . "\n";
+            $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
             $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="2"><is><t>' . $xmlEscape($meta['subtitle']) . '</t></is></c>' . "\n";
             $sheetXml .= '    </row>' . "\n";
             $curRow++;
@@ -182,7 +198,7 @@ class SimpleXlsxExporter
 
         // Metadata Key-Value List
         foreach ($metaFields as $mLabel => $mVal) {
-            $sheetXml .= '    <row r="' . $curRow . '" ht="18" customHeight="1">' . "\n";
+            $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
             $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="3"><is><t>' . $xmlEscape($mLabel) . '</t></is></c>' . "\n";
             $sheetXml .= '      <c r="B' . $curRow . '" t="inlineStr" s="4"><is><t>' . $xmlEscape($mVal) . '</t></is></c>' . "\n";
             $sheetXml .= '    </row>' . "\n";
@@ -193,7 +209,7 @@ class SimpleXlsxExporter
         $curRow++;
 
         // Table Header Row
-        $sheetXml .= '    <row r="' . $headerRowNum . '" ht="28" customHeight="1">' . "\n";
+        $sheetXml .= '    <row r="' . $headerRowNum . '">' . "\n";
         foreach ($headers as $cIdx => $hdr) {
             $cellRef = $colLetter($cIdx + 1) . $headerRowNum;
             $sheetXml .= '      <c r="' . $cellRef . '" t="inlineStr" s="5"><is><t>' . $xmlEscape($hdr) . '</t></is></c>' . "\n";
@@ -204,8 +220,9 @@ class SimpleXlsxExporter
         // Table Data Rows
         $centerCols = $options['centerCols'] ?? [0, 1, 4, 5];
         foreach ($rows as $rIdx => $row) {
+            $row = array_values($row);
             $isZebra = ($rIdx % 2 === 1);
-            $sheetXml .= '    <row r="' . $curRow . '" ht="20" customHeight="1">' . "\n";
+            $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
             foreach ($headers as $cIdx => $hdr) {
                 $val = $row[$cIdx] ?? '';
                 $cellRef = $colLetter($cIdx + 1) . $curRow;

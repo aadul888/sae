@@ -511,7 +511,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/kartu-pelajar/pengaturan', [\App\Http\Controllers\KartuPelajarController::class, 'updatePengaturan'])->name('kartu-pelajar.pengaturan');
     Route::post('/kartu-pelajar/klaim-garansi', [\App\Http\Controllers\KartuPelajarController::class, 'klaimGaransi'])->name('kartu-pelajar.klaim-garansi');
     Route::post('/kartu-pelajar/pengeluaran', [\App\Http\Controllers\KartuPelajarController::class, 'storePengeluaran'])->name('kartu-pelajar.store-pengeluaran');
-    Route::match(['post', 'delete'], '/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran'])->name('kartu-pelajar.destroy-pengeluaran');
+    Route::delete('/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran'])->name('kartu-pelajar.destroy-pengeluaran');
     Route::get('/kartu-pelajar/cari-siswa', [\App\Http\Controllers\KartuPelajarController::class, 'cariSiswa'])->name('kartu-pelajar.cari-siswa');
     Route::post('/kartu-pelajar/request', [\App\Http\Controllers\KartuPelajarController::class, 'storeRequest'])->name('kartu-pelajar.store-request');
     Route::match(['post', 'put', 'patch'], '/kartu-pelajar/request/{id}/status', [\App\Http\Controllers\KartuPelajarController::class, 'updateStatusRequest'])->name('kartu-pelajar.update-request');
@@ -526,7 +526,6 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Modul Pengelolaan Usulan & Riwayat PIP (Wali Kelas & Admin)
     Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index')->middleware('permission:menu_wali_kelas_pip|menu_pip,read');
     Route::get('/pip/cari-siswa', [\App\Http\Controllers\PipController::class, 'cariSiswa'])->name('pip.cari-siswa');
-    Route::get('/pip/usulan/export', [\App\Http\Controllers\PipController::class, 'exportUsulan'])->name('pip.export-usulan')->middleware('permission:menu_wali_kelas_pip|menu_pip,read');
     Route::post('/pip/usulan', [\App\Http\Controllers\PipController::class, 'storeUsulan'])->name('pip.store-usulan');
     Route::post('/pip/usulan/prioritas', [\App\Http\Controllers\PipController::class, 'updatePrioritas'])->name('pip.update-prioritas');
     Route::match(['post', 'delete'], '/pip/usulan/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyUsulan'])->name('pip.destroy-usulan');
@@ -570,7 +569,6 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
         // Usulan & Riwayat PIP Kelas Binaan
         Route::get('/pip', [\App\Http\Controllers\PipController::class, 'index'])->name('pip.index')->middleware('permission:menu_wali_kelas_pip,read');
-        Route::get('/pip/export', [\App\Http\Controllers\PipController::class, 'exportUsulan'])->name('pip.export-usulan')->middleware('permission:menu_wali_kelas_pip,read');
 
         // Validasi Data Peserta Didik (Konfirmasi & Status Berkas)
         Route::get('/validasi-data', [\App\Http\Controllers\WaliKelasController::class, 'validasiData'])->name('validasi.index')->middleware('permission:menu_wali_kelas_validasi|menu_wali_kelas,read');

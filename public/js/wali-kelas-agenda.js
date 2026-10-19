@@ -86,6 +86,21 @@ document.addEventListener("DOMContentLoaded", function () {
     if (filterStatus) filterStatus.addEventListener("change", () => applyFilter());
     if (adminRombelSelect) adminRombelSelect.addEventListener("change", () => applyFilter());
 
+    // Date picker & Quick date buttons untuk Jadwal Harian
+    const inputJadwalTanggal = document.getElementById("inputJadwalTanggal");
+    if (inputJadwalTanggal) {
+        inputJadwalTanggal.addEventListener("change", function () {
+            applyFilter({ tanggal: this.value, tab: "jadwal" });
+        });
+    }
+
+    document.addEventListener("click", function (e) {
+        const qBtn = e.target.closest(".btn-quick-date");
+        if (qBtn && qBtn.getAttribute("data-date")) {
+            applyFilter({ tanggal: qBtn.getAttribute("data-date"), tab: "jadwal" });
+        }
+    });
+
     if (btnResetFilter) {
         btnResetFilter.addEventListener("click", function () {
             const url = new URL(window.location.href);
@@ -195,6 +210,11 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("inputPtkId").value = "";
             document.getElementById("inputHari").value = "";
 
+            const banner = document.getElementById("slotJadwalBanner");
+            if (banner) banner.style.display = "none";
+            const wrapSelect = document.getElementById("wrapSelectJadwalKelas");
+            if (wrapSelect) wrapSelect.style.display = "block";
+
             const titleEl = document.getElementById("modalAgendaKelasTitle");
             if (titleEl) {
                 titleEl.innerHTML = '<i class="fas fa-book-open-reader text-primary"></i> Input Agenda Kegiatan Kelas';
@@ -205,7 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const yyyy = now.getFullYear();
             const mm = String(now.getMonth() + 1).padStart(2, "0");
             const dd = String(now.getDate()).padStart(2, "0");
-            document.getElementById("inputTanggal").value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById("inputTanggal").value = CFG.currentTanggal || `${yyyy}-${mm}-${dd}`;
             document.getElementById("inputPertemuanKe").value = 1;
             document.getElementById("inputJamKeMulai").value = 1;
             document.getElementById("inputJamKeSelesai").value = 2;
@@ -214,6 +234,62 @@ document.addEventListener("DOMContentLoaded", function () {
             openModalForm();
         });
     }
+
+    // Klik "Isi Agenda" langsung dari baris slot mata pelajaran terjadwal
+    document.addEventListener("click", function (e) {
+        const btn = e.target.closest(".btn-bantu-isi-slot");
+        if (!btn) return;
+
+        if (!formAgenda) return;
+        formAgenda.reset();
+
+        const jadwalId = btn.getAttribute("data-jadwal-id") || "";
+        const ptkId = btn.getAttribute("data-ptk-id") || "";
+        const guru = btn.getAttribute("data-guru") || "-";
+        const mapel = btn.getAttribute("data-mapel") || "";
+        const pembelajaranId = btn.getAttribute("data-pembelajaran-id") || "";
+        const mapelId = btn.getAttribute("data-mapel-id") || "";
+        const hari = btn.getAttribute("data-hari") || "";
+        const jamMulai = btn.getAttribute("data-jam-mulai") || "1";
+        const jamSelesai = btn.getAttribute("data-jam-selesai") || "2";
+        const pertemuan = btn.getAttribute("data-pertemuan") || "1";
+
+        document.getElementById("agendaKelasId").value = "";
+        document.getElementById("inputJadwalKbmId").value = jadwalId;
+        document.getElementById("inputPembelajaranId").value = pembelajaranId;
+        document.getElementById("inputMataPelajaranId").value = mapelId;
+        document.getElementById("inputPtkId").value = ptkId;
+        document.getElementById("inputHari").value = hari;
+
+        if (inputMapel) inputMapel.value = mapel;
+        if (selectGuru) selectGuru.value = ptkId;
+        if (selectJadwal) selectJadwal.value = jadwalId;
+
+        document.getElementById("inputTanggal").value = CFG.currentTanggal || new Date().toISOString().split("T")[0];
+        document.getElementById("inputPertemuanKe").value = pertemuan;
+        document.getElementById("inputJamKeMulai").value = jamMulai;
+        document.getElementById("inputJamKeSelesai").value = jamSelesai;
+        document.getElementById("inputStatusKbm").value = "Terlaksana";
+
+        // Tampilkan banner slot terpilih
+        const banner = document.getElementById("slotJadwalBanner");
+        if (banner) {
+            document.getElementById("bannerSlotMapel").textContent = mapel;
+            document.getElementById("bannerSlotGuru").textContent = guru;
+            document.getElementById("bannerSlotWaktu").textContent = `${hari} • Jam ${jamMulai} s.d. ${jamSelesai}`;
+            banner.style.display = "block";
+        }
+        const wrapSelect = document.getElementById("wrapSelectJadwalKelas");
+        if (wrapSelect) wrapSelect.style.display = "none";
+
+        const titleEl = document.getElementById("modalAgendaKelasTitle");
+        if (titleEl) {
+            titleEl.innerHTML = '<i class="fas fa-plus-circle text-primary"></i> Isi Agenda Mata Pelajaran Terjadwal';
+        }
+
+        openModalForm();
+        setTimeout(() => document.getElementById("inputMateriPokok")?.focus(), 250);
+    });
 
     // Auto-fill dari Jadwal Pelajaran Kelas
     if (selectJadwal) {
@@ -487,6 +563,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("inputPenugasan").value = d.penugasan || "";
                 document.getElementById("inputStatusKbm").value = d.status_kbm || "Terlaksana";
                 document.getElementById("inputHambatanCatatan").value = d.hambatan_catatan || "";
+
+                const banner = document.getElementById("slotJadwalBanner");
+                if (banner) banner.style.display = "none";
+                const wrapSelect = document.getElementById("wrapSelectJadwalKelas");
+                if (wrapSelect) wrapSelect.style.display = "block";
 
                 const titleEl = document.getElementById("modalAgendaKelasTitle");
                 if (titleEl) {
