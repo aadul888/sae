@@ -202,6 +202,7 @@ class SimpleXlsxExporter
         $curRow = $headerRowNum + 1;
 
         // Table Data Rows
+        $centerCols = $options['centerCols'] ?? [0, 1, 4, 5];
         foreach ($rows as $rIdx => $row) {
             $isZebra = ($rIdx % 2 === 1);
             $sheetXml .= '    <row r="' . $curRow . '" ht="20" customHeight="1">' . "\n";
@@ -209,8 +210,7 @@ class SimpleXlsxExporter
                 $val = $row[$cIdx] ?? '';
                 $cellRef = $colLetter($cIdx + 1) . $curRow;
 
-                // Center columns: No, Waktu, Identitas, Tipe Akun, IP Address
-                $isCenter = in_array($cIdx, [0, 1, 4, 5]);
+                $isCenter = in_array($cIdx, $centerCols, true);
                 $styleId = $isZebra ? ($isCenter ? 9 : 8) : ($isCenter ? 7 : 6);
 
                 $sheetXml .= '      <c r="' . $cellRef . '" t="inlineStr" s="' . $styleId . '"><is><t>' . $xmlEscape($val) . '</t></is></c>' . "\n";

@@ -1237,17 +1237,20 @@
                             </td>
                             <td style="padding: 14px 18px;" data-label="Usulan Perubahan">
                                 <div style="display: flex; flex-direction: column; gap: 5px;">
-                                    <span class="badge badge-primary" style="font-size: 0.72rem; padding: 3px 8px; width: fit-content;">
+                                    <span class="badge badge-primary"
+                                        style="font-size: 0.72rem; padding: 3px 8px; width: fit-content;">
                                         <i class="fas fa-list-check me-1"></i> {{ $item->total_usulan }} Perubahan
                                     </span>
                                     <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 240px;">
                                         @foreach (array_slice($item->kolom_list ?? [], 0, 3) as $kItem)
-                                            <span class="badge badge-outline" style="font-size: 0.68rem; padding: 2px 6px;">
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.68rem; padding: 2px 6px;">
                                                 {{ $kItem['label'] }}
                                             </span>
                                         @endforeach
                                         @if (count($item->kolom_list ?? []) > 3)
-                                            <span class="badge badge-outline" style="font-size: 0.68rem; padding: 2px 6px; opacity: 0.7;">
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.68rem; padding: 2px 6px; opacity: 0.7;">
                                                 +{{ count($item->kolom_list) - 3 }} lainnya
                                             </span>
                                         @endif
@@ -1257,12 +1260,17 @@
                             <td style="padding: 14px 18px;" data-label="Perbandingan Nilai">
                                 <div style="display: flex; flex-direction: column; gap: 6px; max-width: 260px;">
                                     @foreach (array_slice($item->kolom_list ?? [], 0, 2) as $kItem)
-                                        <div style="font-size: 0.74rem; background: rgba(0,0,0,0.04); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
-                                            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">{{ $kItem['label'] }}:</div>
+                                        <div
+                                            style="font-size: 0.74rem; background: rgba(0,0,0,0.04); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">
+                                                {{ $kItem['label'] }}:</div>
                                             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                                <span style="text-decoration: line-through; opacity: 0.75; font-size: 0.72rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_lama'], 14) }}</span>
-                                                <i class="fas fa-arrow-right" style="font-size: 0.62rem; color: var(--text-muted);"></i>
-                                                <span style="font-weight: 700; color: #10b981; font-size: 0.74rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_baru'], 16) }}</span>
+                                                <span
+                                                    style="text-decoration: line-through; opacity: 0.75; font-size: 0.72rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_lama'], 14) }}</span>
+                                                <i class="fas fa-arrow-right"
+                                                    style="font-size: 0.62rem; color: var(--text-muted);"></i>
+                                                <span
+                                                    style="font-weight: 700; color: #10b981; font-size: 0.74rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_baru'], 16) }}</span>
                                             </div>
                                         </div>
                                     @endforeach

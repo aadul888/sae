@@ -733,63 +733,112 @@ document.addEventListener('DOMContentLoaded', function () {
                         : `<span class="badge badge-warning" style="font-size: 0.74rem; padding: 4px 10px;"><i class="fas fa-clock me-1"></i> Menunggu Review</span>`));
 
             const rekomendasiList = json.rekomendasi_penolakan || [];
+            const items = d.items || [];
 
             let html = `
                 <div style="display: flex; flex-direction: column; gap: 16px;">
-                    <!-- 1. Header Ringkasan Siswa & Status Usulan -->
+                    <!-- 1. Header Identitas Siswa & Status Usulan -->
                     <div style="background: var(--bg-hover); border-radius: 12px; padding: 14px 18px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 44px; height: 44px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; overflow: hidden;">
+                            <div style="width: 46px; height: 46px; border-radius: 10px; background: rgba(99,102,241,0.12); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; overflow: hidden; border: 1.5px solid var(--border-color);">
                                 ${d.foto_url ? `<img src="${d.foto_url}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fas fa-user-graduate"></i>`}
                             </div>
                             <div>
-                                <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-color);">${escapeHtml(d.nama_siswa)}</div>
-                                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                                <div style="font-weight: 800; font-size: 1rem; color: var(--text-color);">${escapeHtml(d.nama_siswa)}</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
                                     NISN: <strong>${escapeHtml(d.nisn)}</strong> &bull; NIPD: <strong>${escapeHtml(d.nipd)}</strong> &bull; Rombel: <strong>${escapeHtml(d.rombel)}</strong>
                                 </div>
                             </div>
                         </div>
                         <div style="text-align: right;">
-                            <div>${statusBadge}</div>
+                            <div style="display: flex; gap: 6px; align-items: center; justify-content: flex-end;">
+                                <span class="badge badge-primary" style="font-size: 0.74rem; padding: 4px 8px;">
+                                    <i class="fas fa-list-check me-1"></i> ${d.total_usulan} Butir Usulan
+                                </span>
+                                ${statusBadge}
+                            </div>
                             <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Diajukan: ${escapeHtml(d.created_at || '-')}</div>
                         </div>
                     </div>
 
-                    <!-- 2. KARTU PERBANDINGAN FIELD ASAL VS USULAN PENYESUAIAN -->
+                    <!-- 2. FORMULIR PERBANDINGAN DATA LAMA VS DATA BARU SESUAI USULAN -->
                     <div style="background: var(--card-bg); border-radius: 12px; padding: 16px 18px; border: 1.5px solid var(--border-color);">
-                        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
-                            <i class="fas fa-columns me-1 text-primary"></i> Perbandingan Kolom Data: <strong style="color: var(--text-color);">${escapeHtml(d.kolom_label)}</strong>
-                        </div>
-
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 12px;">
-                            <!-- Field Asal (Nilai Sebelumnya) -->
-                            <div style="background: var(--bg-hover); border-radius: 10px; padding: 14px; border: 1px dashed var(--border-color);">
-                                <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-database text-warning"></i> Data Asal (Sebelumnya di Sistem)
-                                </div>
-                                <div style="font-size: 0.92rem; font-weight: 600; color: var(--text-color); word-break: break-word;">
-                                    <span style="text-decoration: line-through; opacity: 0.85;">${escapeHtml(d.nilai_lama)}</span>
-                                </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div style="font-size: 0.84rem; font-weight: 800; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fas fa-pen-to-square me-1 text-primary"></i> Formulir Perbandingan Data Lama vs Data Baru Sesuai Usulan
                             </div>
-
-                            <!-- Field Usulan Baru (Penyesuaian Siswa) -->
-                            <div style="background: rgba(16, 185, 129, 0.08); border-radius: 10px; padding: 14px; border: 1.5px solid rgba(16, 185, 129, 0.35);">
-                                <div style="font-size: 0.72rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-pen-nib"></i> Usulan Penyesuaian Siswa (Nilai Baru)
-                                </div>
-                                <div style="font-size: 0.98rem; font-weight: 800; color: #10b981; word-break: break-word;">
-                                    ${escapeHtml(d.nilai_baru)}
-                                </div>
+                            <div style="font-size: 0.74rem; color: var(--text-muted);">
+                                ${items.length} kolom data diajukan perubahan oleh peserta didik
                             </div>
                         </div>
 
-                        <div style="background: rgba(99,102,241,0.06); border-radius: 8px; padding: 10px 12px; border: 1px solid rgba(99,102,241,0.18);">
-                            <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 3px;">
-                                <i class="fas fa-comment-dots me-1"></i> Alasan Pengajuan oleh Siswa / Orang Tua:
-                            </div>
-                            <div style="font-size: 0.82rem; color: var(--text-color); font-style: italic;">
-                                "${escapeHtml(d.alasan)}"
-                            </div>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            ${items.map((item, idx) => {
+                                const itmBadge = item.status === 'disetujui'
+                                    ? `<span class="badge badge-success" style="font-size: 0.68rem; padding: 3px 8px;"><i class="fas fa-check me-1"></i> Disetujui</span>`
+                                    : (item.status === 'sudah_ke_dapodik'
+                                        ? `<span class="badge badge-primary" style="font-size: 0.68rem; padding: 3px 8px;"><i class="fas fa-cloud-arrow-up me-1"></i> Selesai Dapodik</span>`
+                                        : (item.status === 'ditolak'
+                                            ? `<span class="badge badge-danger" style="font-size: 0.68rem; padding: 3px 8px;"><i class="fas fa-circle-xmark me-1"></i> Ditolak</span>`
+                                            : `<span class="badge badge-warning" style="font-size: 0.68rem; padding: 3px 8px;"><i class="fas fa-clock me-1"></i> Menunggu</span>`));
+
+                                return `
+                                    <div class="usulan-form-card" style="background: var(--bg-hover); border-radius: 10px; padding: 14px; border: 1px solid var(--border-color);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span class="badge" style="background: rgba(99,102,241,0.12); color: var(--primary); font-size: 0.74rem; font-weight: 700; padding: 3px 7px;">
+                                                    #${idx + 1}
+                                                </span>
+                                                <strong style="font-size: 0.92rem; color: var(--text-color);">${escapeHtml(item.kolom_label)}</strong>
+                                            </div>
+                                            <div>${itmBadge}</div>
+                                        </div>
+
+                                        <!-- Grid Perbandingan 2 Kolom Formulir: Data Lama vs Data Baru -->
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 8px;">
+                                            <!-- Data Lama (Data Asal) -->
+                                            <div style="background: var(--card-bg); border-radius: 8px; padding: 10px 12px; border: 1px dashed var(--border-color);">
+                                                <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
+                                                    <i class="fas fa-history text-muted"></i> Data Lama (Data Asal Sebelumnya)
+                                                </div>
+                                                <div style="font-size: 0.88rem; color: var(--text-color); word-break: break-word;">
+                                                    <span style="text-decoration: line-through; opacity: 0.8;">${escapeHtml(item.nilai_lama)}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Data Baru (Sesuai Usulan) -->
+                                            <div style="background: rgba(16, 185, 129, 0.08); border-radius: 8px; padding: 10px 12px; border: 1.5px solid rgba(16, 185, 129, 0.35);">
+                                                <div style="font-size: 0.7rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
+                                                    <i class="fas fa-check-circle"></i> Data Baru (Sesuai Usulan Siswa)
+                                                </div>
+                                                <div style="font-size: 0.94rem; font-weight: 800; color: #10b981; word-break: break-word;">
+                                                    ${escapeHtml(item.nilai_baru)}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        ${item.alasan ? `
+                                            <div style="font-size: 0.76rem; color: var(--text-muted); font-style: italic; margin-top: 4px;">
+                                                <i class="fas fa-comment-dots me-1 text-primary"></i> Alasan: "${escapeHtml(item.alasan)}"
+                                            </div>
+                                        ` : ''}
+
+                                        ${item.berkas_bukti_url ? `
+                                            <div style="margin-top: 6px;">
+                                                <button type="button" class="btn btn-outline btn-sm btn-preview-pdf-inline" data-url="${item.berkas_bukti_url}" data-title="Bukti Usulan: ${escapeHtml(item.kolom_label)} - ${escapeHtml(d.nama_siswa)}" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 6px;">
+                                                    <i class="fas fa-paperclip text-danger me-1"></i> Lihat Berkas Bukti Khusus PDF
+                                                </button>
+                                            </div>
+                                        ` : ''}
+
+                                        ${item.catatan_verifikasi ? `
+                                            <div style="font-size: 0.72rem; background: rgba(0,0,0,0.06); padding: 5px 8px; border-radius: 6px; color: var(--text-muted); margin-top: 6px;">
+                                                Catatan Verifikasi: ${escapeHtml(item.catatan_verifikasi)} ${item.verified_by ? ' &bull; Oleh: ' + escapeHtml(item.verified_by) : ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
 
@@ -823,18 +872,16 @@ document.addEventListener('DOMContentLoaded', function () {
                                 ${d.ijazah.file_url ? `<button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${d.ijazah.file_url}" data-title="Ijazah SMP - ${escapeHtml(d.nama_siswa)}" style="padding: 4px 8px; font-size: 0.72rem; border-radius: 6px;"><i class="fas fa-eye me-1"></i> Lihat</button>` : `<span style="font-size:0.72rem; color:var(--text-muted);">-</span>`}
                             </div>
 
-                            <!-- Bukti Tambahan Usulan -->
-                            ${d.berkas_bukti_url ? `
-                                <div style="background: var(--card-bg); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                    <div>
-                                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-color);">Bukti Khusus Usulan</div>
-                                        <div style="font-size: 0.7rem; color: var(--text-muted);">Lampiran Tambahan</div>
+                            <!-- Akta Kelahiran -->
+                            <div style="background: var(--card-bg); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                <div>
+                                    <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-color);">Akta Kelahiran</div>
+                                    <div style="font-size: 0.7rem;">
+                                        ${d.akta && d.akta.status === 'valid' ? '<span class="badge badge-success" style="padding:2px 6px;">Valid / Sesuai</span>' : '<span class="badge badge-outline" style="padding:2px 6px;">' + escapeHtml(d.akta?.status || '-') + '</span>'}
                                     </div>
-                                    <button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${d.berkas_bukti_url}" data-title="Bukti Usulan - ${escapeHtml(d.nama_siswa)}" style="padding: 4px 8px; font-size: 0.72rem; border-radius: 6px;">
-                                        <i class="fas fa-eye me-1"></i> Lihat
-                                    </button>
                                 </div>
-                            ` : ''}
+                                ${d.akta && d.akta.file_url ? `<button type="button" class="btn btn-outline btn-preview-pdf-inline" data-url="${d.akta.file_url}" data-title="Akta Kelahiran - ${escapeHtml(d.nama_siswa)}" style="padding: 4px 8px; font-size: 0.72rem; border-radius: 6px;"><i class="fas fa-eye me-1"></i> Lihat</button>` : `<span style="font-size:0.72rem; color:var(--text-muted);">-</span>`}
+                            </div>
                         </div>
                     </div>
 
@@ -847,15 +894,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
                             <label style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 700; color: #10b981; cursor: pointer;">
                                 <input type="radio" name="usulan_status_decision" value="disetujui" ${d.status === 'disetujui' || d.status === 'sudah_ke_dapodik' ? 'checked' : ''} class="radio-usulan-decision">
-                                <i class="fas fa-circle-check"></i> Disetujui (Sesuai &amp; Siap Di-input Dapodik)
+                                <i class="fas fa-circle-check"></i> Setujui Seluruh Usulan (Data Otomatis Diperbarui)
                             </label>
                             <label style="display: flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 700; color: #ef4444; cursor: pointer;">
                                 <input type="radio" name="usulan_status_decision" value="ditolak" ${d.status === 'ditolak' ? 'checked' : ''} class="radio-usulan-decision">
-                                <i class="fas fa-circle-xmark"></i> Ditolak (Tidak Sesuai / Berkas Tidak Sah)
+                                <i class="fas fa-circle-xmark"></i> Tolak Usulan (Tidak Sesuai / Berkas Tidak Sah)
                             </label>
                         </div>
 
-                        <!-- Box Alasan Penolakan (Otomatis muncul jika Ditolak) -->
+                        <!-- Box Alasan Penolakan -->
                         <div id="boxPenolakanUsulan" style="display: ${d.status === 'ditolak' ? 'block' : 'none'}; border-top: 1px dashed var(--border-color); padding-top: 12px; margin-top: 10px;">
                             <div style="font-size: 0.76rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">
                                 Pilih Rekomendasi Alasan Penolakan Cepat:
@@ -871,7 +918,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); display: block; margin-bottom: 4px;">
                                     Alasan Penolakan untuk Disampaikan ke Siswa <span class="text-danger">*</span>:
                                 </label>
-                                <textarea id="textareaCatatanUsulan" class="form-control" rows="2" placeholder="Tuliskan alasan penolakan secara jelas..." style="font-size: 0.82rem;">${escapeHtml(d.catatan_verifikasi || '')}</textarea>
+                                <textarea id="textareaCatatanUsulan" class="form-control" rows="2" placeholder="Tuliskan alasan penolakan secara jelas..." style="font-size: 0.82rem;"></textarea>
                             </div>
                         </div>
 
@@ -884,13 +931,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 10px; flex-wrap: wrap;">
                             <div>
-                                ${d.status === 'disetujui' ? `
-                                    <button type="button" class="btn btn-primary btn-sm btn-mark-dapodik" data-id="${d.id}" data-nama="${escapeHtml(d.nama_siswa)}" data-kolom="${escapeHtml(d.kolom_label)}" style="font-weight: 700; border-radius: 8px;">
+                                ${d.disetujui_count > 0 ? `
+                                    <button type="button" class="btn btn-primary btn-sm btn-mark-dapodik" data-id="${d.peserta_didik_id}" data-nama="${escapeHtml(d.nama_siswa)}" style="font-weight: 700; border-radius: 8px;">
                                         <i class="fas fa-cloud-arrow-up me-1"></i> Tandai Sudah Di-update ke Dapodik
                                     </button>
                                 ` : ''}
                             </div>
-                            <button type="button" class="btn btn-primary" id="btnSimpanKeputusanUsulan" data-id="${d.id}" style="padding: 8px 18px; font-size: 0.84rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
+                            <button type="button" class="btn btn-primary" id="btnSimpanKeputusanUsulan" data-id="${d.peserta_didik_id}" style="padding: 8px 18px; font-size: 0.84rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
                                 <i class="fas fa-check"></i> Simpan Keputusan Verifikasi
                             </button>
                         </div>
@@ -953,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
                     try {
-                        const postRes = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${id}/verifikasi`, {
+                        const postRes = await fetch(`/dashboard/kesiswaan/peserta-didik/usulan/${encodeURIComponent(d.peserta_didik_id)}/verifikasi`, {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': csrfToken,
@@ -1009,11 +1056,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const nama = btn.getAttribute('data-nama');
             const kolom = btn.getAttribute('data-kolom');
 
+            const confirmMsg = kolom
+                ? `Apakah perubahan kolom <strong>${escapeHtml(kolom)}</strong> untuk siswa <strong>${escapeHtml(nama)}</strong> sudah selesai Anda input / sinkronkan ke aplikasi Dapodik pusat?`
+                : `Apakah seluruh usulan perubahan data siswa <strong>${escapeHtml(nama)}</strong> yang telah disetujui sudah selesai Anda input / sinkronkan ke aplikasi Dapodik pusat?`;
+
             Swal.fire({
                 title: 'Tandai Diupdate ke Dapodik?',
                 html: `
                     <div style="text-align: left; font-size: 0.88rem; line-height: 1.5;">
-                        <p>Apakah perubahan kolom <strong>${escapeHtml(kolom)}</strong> untuk siswa <strong>${escapeHtml(nama)}</strong> sudah selesai Anda input / sinkronkan ke aplikasi Dapodik pusat?</p>
+                        <p>${confirmMsg}</p>
                         <div style="margin-top: 10px;">
                             <label style="display:block; font-weight:700; margin-bottom:4px; font-size: 0.8rem;">Catatan Operator Dapodik (Opsional):</label>
                             <input id="swalCatatanDapodik" class="swal2-input" placeholder="Contoh: Selesai di-input pada Dapodik 2027 patch A" style="width: 100%; margin: 0; box-sizing: border-box; font-size: 0.85rem;">
