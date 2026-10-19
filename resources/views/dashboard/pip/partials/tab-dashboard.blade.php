@@ -343,28 +343,45 @@
             </div>
 
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <!-- Filter Sasaran Tingkat: Semua, Kelas Awal, Kelas Berjalan -->
+                <div class="dash-rekap-tingkat-filters"
+                    style="display: inline-flex; gap: 3px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px;">
+                    <button type="button" class="btn-rekap-tingkat-filter active" data-tingkat="all"
+                        style="padding: 4px 9px; font-size: 0.74rem; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; background: var(--primary); color: #fff; transition: all 0.2s ease;">
+                        Semua Tingkat ({{ $rombelSummary->count() }})
+                    </button>
+                    <button type="button" class="btn-rekap-tingkat-filter" data-tingkat="kelas_awal"
+                        style="padding: 4px 9px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
+                        Kelas Awal ({{ $d['rombel_awal_count'] ?? 0 }})
+                    </button>
+                    <button type="button" class="btn-rekap-tingkat-filter" data-tingkat="kelas_berjalan"
+                        style="padding: 4px 9px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
+                        Kelas Berjalan ({{ $d['rombel_berjalan_count'] ?? 0 }})
+                    </button>
+                </div>
+
                 <!-- Filter status keterisian kuota -->
                 <div class="dash-rekap-filters"
-                    style="display: inline-flex; gap: 4px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px;">
+                    style="display: inline-flex; gap: 3px; background: rgba(0,0,0,0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 2px;">
                     <button type="button" class="btn-rekap-filter active" data-status="all"
-                        style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; background: var(--primary); color: #fff; transition: all 0.2s ease;">
-                        Semua ({{ $rombelSummary->count() }})
+                        style="padding: 4px 9px; font-size: 0.74rem; font-weight: 700; border: none; border-radius: 6px; cursor: pointer; background: var(--primary); color: #fff; transition: all 0.2s ease;">
+                        Semua Status
                     </button>
                     <button type="button" class="btn-rekap-filter" data-status="tersedia"
-                        style="padding: 4px 10px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
+                        style="padding: 4px 9px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
                         Ada Sisa ({{ $d['rombel_tersedia_count'] ?? 0 }})
                     </button>
                     <button type="button" class="btn-rekap-filter" data-status="penuh"
-                        style="padding: 4px 10px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
+                        style="padding: 4px 9px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
                         Penuh ({{ $d['rombel_penuh_count'] ?? 0 }})
                     </button>
                     <button type="button" class="btn-rekap-filter" data-status="kosong"
-                        style="padding: 4px 10px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
+                        style="padding: 4px 9px; font-size: 0.74rem; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s ease;">
                         Belum Usul ({{ $d['rombel_belum_usul_count'] ?? 0 }})
                     </button>
                 </div>
 
-                <div class="live-search-wrap" style="max-width: 200px;">
+                <div class="live-search-wrap" style="max-width: 180px;">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="filterRekapRombel" placeholder="Cari rombel..." autocomplete="off"
                         style="padding: 6px 12px 6px 32px; font-size: 0.78rem; height: 32px; border-radius: 8px;">
@@ -418,12 +435,13 @@
                             $isPenuh = $r->sisa <= 0 && $r->terpakai > 0;
                             $isKosong = $r->terpakai == 0;
                             $statusType = $isPenuh ? 'penuh' : ($isKosong ? 'kosong' : 'tersedia');
+                            $kategoriTingkat = $r->kategori_tingkat ?? 'kelas_berjalan';
                         @endphp
                         <tr class="rekap-rombel-row" data-status="{{ $statusType }}"
-                            data-name="{{ strtolower($r->nama) }}"
+                            data-tingkat="{{ $kategoriTingkat }}" data-name="{{ strtolower($r->nama) }}"
                             style="border-bottom: 1px solid var(--border-color);">
                             <td style="text-align: center; color: var(--text-muted); font-size: 0.8rem;"
-                                data-label="No">{{ $loop->iteration }}</td>
+                                data-label="No"><span class="rekap-row-no">{{ $loop->iteration }}</span></td>
                             <td style="padding: 10px 14px;" data-label="Rombongan Belajar">
                                 <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
                                     {{ $r->nama }}</div>
@@ -435,9 +453,16 @@
                             </td>
                             <td style="padding: 10px 14px; font-size: 0.78rem; color: var(--text-muted);"
                                 data-label="Tingkat &amp; Jurusan">
-                                <span class="badge badge-outline"
-                                    style="font-size: 0.7rem; padding: 2px 6px;">{{ $r->tingkat_pendidikan_id_str ?: '-' }}</span>
-                                <div style="font-size: 0.72rem; margin-top: 2px;">{{ $r->jurusan_id_str ?: '-' }}
+                                <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                                    <span class="badge badge-outline"
+                                        style="font-size: 0.7rem; padding: 2px 6px;">{{ $r->tingkat_pendidikan_id_str ?: '-' }}</span>
+                                    <span
+                                        class="badge {{ $kategoriTingkat === 'kelas_awal' ? 'badge-primary' : 'badge-outline' }}"
+                                        style="font-size: 0.66rem; padding: 1px 5px; opacity: 0.9;">
+                                        {{ $kategoriTingkat === 'kelas_awal' ? 'Kelas Awal' : 'Kelas Berjalan' }}
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.72rem; margin-top: 3px;">{{ $r->jurusan_id_str ?: '-' }}
                                 </div>
                             </td>
                             <td style="padding: 10px 14px; text-align: center; font-size: 0.84rem; font-weight: 600;"
@@ -644,6 +669,9 @@
                 (int) ($isAdmin ? $sisaKuota : $sisaKuotaKelas),
             ],
             'colors' => ['#10b981', '#f59e0b', '#ef4444', '#94a3b8'],
+            'total_target' => (int) ($isAdmin ? $paguSekolah : $kuotaKelas),
+            'total_usulan' => (int) $totalUsulan,
+            'is_admin' => (bool) $isAdmin,
         ],
         'alasan' => [
             'labels' => array_slice($alasanKeys, 0, 8),

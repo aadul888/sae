@@ -156,6 +156,126 @@
         </div>
     </div>
 
+    @if (!empty($waliInfo) && !empty($pipCountdownWali))
+        <!-- Banner Hitungan Mundur Batas Waktu Pengusulan PIP Kelas Binaan -->
+        @php
+            $infoPipWali = $pipCountdownWali;
+            $isClosedPip = $infoPipWali['is_closed'] ?? false;
+            $isManualPip = $infoPipWali['is_locked'] ?? false;
+            $isExpPip = $infoPipWali['is_expired'] ?? false;
+            $cdWali = $infoPipWali['countdown'] ?? ['days' => 0, 'hours' => 0, 'minutes' => 0, 'seconds' => 0];
+            $judulWali =
+                $infoPipWali['judul_usulan'] ??
+                'Usulan PIP Kelas ' . $waliInfo->nama . ' — ' . ($infoPipWali['fase_label'] ?? 'Fase 1');
+        @endphp
+        <div class="card pip-countdown-card" id="pipWaliDashboardCountdown"
+            data-deadline="{{ $infoPipWali['deadline_iso'] ?? '' }}" data-locked="{{ $isManualPip ? '1' : '0' }}"
+            data-autolock="{{ $infoPipWali['kunci_otomatis'] ?? true ? '1' : '0' }}"
+            data-closed="{{ $isClosedPip ? '1' : '0' }}"
+            style="margin-bottom: 22px; padding: 16px 20px; border-radius: 14px; border: 1.5px solid {{ $isClosedPip ? 'rgba(239,68,68,0.35)' : 'rgba(99,102,241,0.35)' }}; background: {{ $isClosedPip ? 'linear-gradient(135deg, rgba(239,68,68,0.06) 0%, rgba(245,158,11,0.04) 100%)' : 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(16,185,129,0.05) 100%)' }};">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 12px; flex: 1; min-width: 260px;">
+                    <div
+                        style="width: 44px; height: 44px; border-radius: 12px; background: {{ $isClosedPip ? 'rgba(239,68,68,0.14)' : 'rgba(99,102,241,0.14)' }}; color: {{ $isClosedPip ? '#ef4444' : 'var(--primary)' }}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+                        <i class="fas {{ $isClosedPip ? 'fa-lock' : 'fa-hourglass-half fa-spin-pulse' }}"></i>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                            <span style="font-size: 0.95rem; font-weight: 800; color: var(--text-color);">
+                                {{ $judulWali }} &bull; Kelas {{ $waliInfo->nama }}
+                            </span>
+                            <span class="badge badge-primary"
+                                style="font-size: 0.7rem; padding: 2px 8px; font-weight: 700; border-radius: 20px;">
+                                <i class="fas fa-layer-group me-1"></i> {{ $infoPipWali['fase_label'] ?? 'Fase 1' }}
+                            </span>
+                            @if (!empty($infoPipWali['tahun_pelajaran']))
+                                <span class="badge badge-outline" style="font-size: 0.7rem; padding: 2px 7px;">
+                                    <i class="fas fa-graduation-cap me-1"></i> TP {{ $infoPipWali['tahun_pelajaran'] }}
+                                </span>
+                            @endif
+                            <span id="pipWaliCdBadge" class="badge {{ $isClosedPip ? 'badge-danger' : 'badge-success' }}"
+                                style="font-size: 0.7rem; padding: 2px 8px; font-weight: 700; border-radius: 20px;">
+                                @if ($isManualPip)
+                                    <i class="fas fa-lock me-1"></i> Terkunci Manual
+                                @elseif ($isExpPip)
+                                    <i class="fas fa-clock-rotate-left me-1"></i> Batas Waktu Berakhir
+                                @else
+                                    <i class="fas fa-lock-open me-1"></i> Pengusulan Dibuka
+                                @endif
+                            </span>
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">
+                            Batas Akhir: <strong>{{ $infoPipWali['deadline_formatted'] }}</strong>
+                            @if (!empty($infoPipWali['pesan_pengumuman']))
+                                &bull; <span style="font-style: italic;">"{{ $infoPipWali['pesan_pengumuman'] }}"</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    @if ($isClosedPip)
+                        <div
+                            style="padding: 6px 14px; border-radius: 8px; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; font-weight: 800; font-size: 0.82rem;">
+                            <i class="fas fa-lock me-1"></i> PENGUSULAN DITUTUP
+                        </div>
+                    @else
+                        <div class="pip-countdown-boxes" style="display: flex; align-items: center; gap: 5px;">
+                            <div
+                                style="text-align: center; min-width: 48px; padding: 5px 6px; border-radius: 8px; background: var(--card-bg, #1e293b); border: 1px solid rgba(99,102,241,0.25);">
+                                <div id="pipWaliCdDays"
+                                    style="font-size: 1.15rem; font-weight: 800; color: var(--primary); font-family: monospace; line-height: 1;">
+                                    {{ sprintf('%02d', $cdWali['days'] ?? 0) }}
+                                </div>
+                                <div
+                                    style="font-size: 0.62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Hari</div>
+                            </div>
+                            <span style="font-weight: 800; color: var(--primary); opacity: 0.6;">:</span>
+                            <div
+                                style="text-align: center; min-width: 48px; padding: 5px 6px; border-radius: 8px; background: var(--card-bg, #1e293b); border: 1px solid rgba(99,102,241,0.25);">
+                                <div id="pipWaliCdHours"
+                                    style="font-size: 1.15rem; font-weight: 800; color: var(--primary); font-family: monospace; line-height: 1;">
+                                    {{ sprintf('%02d', $cdWali['hours'] ?? 0) }}
+                                </div>
+                                <div
+                                    style="font-size: 0.62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Jam</div>
+                            </div>
+                            <span style="font-weight: 800; color: var(--primary); opacity: 0.6;">:</span>
+                            <div
+                                style="text-align: center; min-width: 48px; padding: 5px 6px; border-radius: 8px; background: var(--card-bg, #1e293b); border: 1px solid rgba(99,102,241,0.25);">
+                                <div id="pipWaliCdMinutes"
+                                    style="font-size: 1.15rem; font-weight: 800; color: var(--primary); font-family: monospace; line-height: 1;">
+                                    {{ sprintf('%02d', $cdWali['minutes'] ?? 0) }}
+                                </div>
+                                <div
+                                    style="font-size: 0.62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Menit</div>
+                            </div>
+                            <span style="font-weight: 800; color: var(--primary); opacity: 0.6;">:</span>
+                            <div
+                                style="text-align: center; min-width: 48px; padding: 5px 6px; border-radius: 8px; background: var(--card-bg, #1e293b); border: 1px solid rgba(16,185,129,0.3);">
+                                <div id="pipWaliCdSeconds"
+                                    style="font-size: 1.15rem; font-weight: 800; color: #10b981; font-family: monospace; line-height: 1;">
+                                    {{ sprintf('%02d', $cdWali['seconds'] ?? 0) }}
+                                </div>
+                                <div
+                                    style="font-size: 0.62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Detik</div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <a href="{{ route('dashboard.pip.index', ['tab' => 'usulan']) }}" class="btn btn-primary btn-sm"
+                        style="padding: 7px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; text-decoration: none;">
+                        <i class="fas fa-hand-holding-dollar me-1"></i> Buka Usulan PIP
+                    </a>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Stats Counter -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
         <div class="dash-stat-card">
@@ -163,7 +283,8 @@
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $stats['hari_efektif_bulan_ini'] ?? 0 }} Hari</div>
+                <div class="dash-stat-value" style="color: #10b981;">{{ $stats['hari_efektif_bulan_ini'] ?? 0 }} Hari
+                </div>
                 <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
         </div>
@@ -416,3 +537,44 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+    @if (!empty($waliInfo) && !empty($pipCountdownWali) && !empty($pipCountdownWali['deadline_iso']))
+        <script>
+            (function() {
+                var deadlineIso = @json($pipCountdownWali['deadline_iso']);
+                var isLocked = {{ $pipCountdownWali['is_locked'] ?? false ? 'true' : 'false' }};
+                if (!deadlineIso || isLocked) return;
+
+                var target = new Date(deadlineIso).getTime();
+                var dEl = document.getElementById('pipWaliCdDays');
+                var hEl = document.getElementById('pipWaliCdHours');
+                var mEl = document.getElementById('pipWaliCdMinutes');
+                var sEl = document.getElementById('pipWaliCdSeconds');
+
+                function tickWali() {
+                    var now = new Date().getTime();
+                    var diff = target - now;
+                    if (diff <= 0) {
+                        if (dEl) dEl.textContent = '00';
+                        if (hEl) hEl.textContent = '00';
+                        if (mEl) mEl.textContent = '00';
+                        if (sEl) sEl.textContent = '00';
+                        return;
+                    }
+                    var tot = Math.floor(diff / 1000);
+                    var d = Math.floor(tot / 86400);
+                    var h = Math.floor((tot % 86400) / 3600);
+                    var m = Math.floor((tot % 3600) / 60);
+                    var s = tot % 60;
+                    if (dEl) dEl.textContent = String(d).padStart(2, '0');
+                    if (hEl) hEl.textContent = String(h).padStart(2, '0');
+                    if (mEl) mEl.textContent = String(m).padStart(2, '0');
+                    if (sEl) sEl.textContent = String(s).padStart(2, '0');
+                }
+                setInterval(tickWali, 1000);
+                tickWali();
+            })();
+        </script>
+    @endif
+@endpush

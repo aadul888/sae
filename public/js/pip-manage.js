@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
     document.addEventListener("change", function (e) {
-        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterTahap: "tahap", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar", filterStatusPip: "status_pip" };
+        const map = { perPageSelect: "perPage", filterRombel: "rombel_id", filterStatusVerif: "status_verifikasi", filterFase: "fase", filterTahap: "tahap", filterJenisSk: "jenis_sk", filterStatusKeluar: "status_keluar", filterStatusPip: "status_pip" };
         const key = map[e.target.id];
         if (key) { e.stopImmediatePropagation(); applyParams({ [key]: e.target.value }); }
     }, true);
@@ -494,7 +494,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const curUrl = new URL(window.location.href);
         const exportBase = (CFG.routes && CFG.routes.exportUsulan) ? CFG.routes.exportUsulan : "/dashboard/pip/usulan/export";
         const exportUrl = new URL(exportBase, window.location.origin);
-        ["tahun", "rombel_id", "status_verifikasi", "q"].forEach(k => {
+        ["tahun", "fase", "rombel_id", "status_verifikasi", "q"].forEach(k => {
             const val = curUrl.searchParams.get(k);
             if (val) exportUrl.searchParams.set(k, val);
         });
@@ -505,6 +505,141 @@ document.addEventListener("DOMContentLoaded", function () {
         toast("Mengunduh data usulan PIP lengkap...", "info");
         window.location.href = exportUrl.toString();
     };
+
+    // ---------------------------------------------------------------------
+    // Pengaturan Kunci & Batas Waktu PIP (Admin Only)
+    // ---------------------------------------------------------------------
+    window.pipSetPresetDeadline = function (days) {
+        const inp = document.getElementById("pipBatasWaktu");
+        if (!inp) return;
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        inp.value = `${yyyy}-${mm}-${dd}T23:59`;
+    };
+
+    window.pipSetPresetDeadlineEOM = function () {
+        const inp = document.getElementById("pipBatasWaktu");
+        if (!inp) return;
+        const now = new Date();
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const yyyy = lastDay.getFullYear();
+        const mm = String(lastDay.getMonth() + 1).padStart(2, "0");
+        const dd = String(lastDay.getDate()).padStart(2, "0");
+        inp.value = `${yyyy}-${mm}-${dd}T23:59`;
+    };
+
+    window.pipClearDeadline = function () {
+        const inp = document.getElementById("pipBatasWaktu");
+        if (inp) inp.value = "";
+    };
+
+    window.pipOnFaseSelect = function (fase, label) {
+        const judulInp = document.getElementById("pipJudulUsulan");
+        if (judulInp && (!judulInp.value || judulInp.value.includes("Usulan PIP"))) {
+            const thn = CFG.tahun || new Date().getFullYear();
+            judulInp.value = `Usulan PIP Tahun ${thn} — ${label}`;
+        }
+    };
+
+    document.getElementById("formPengaturanPip")?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const btn = document.getElementById("btnSimpanPengaturanPip");
+        const oldHtml = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+        }
+
+        const formData = new FormData(this);
+        const payload = Object.fromEntries(formData.entries());
+        payload.kunci_otomatis = this.querySelector('input[name="kunci_otomatis"]')?.checked ? 1 : 0;
+
+        try {
+            const url = (CFG.routes && CFG.routes.updatePengaturan) ? CFG.routes.updatePengaturan : "/dashboard/pip/pengaturan";
+            const { ok, data } = await post(url, payload);
+            if (ok) {
+                toast(data.message);
+                refresh();
+            } else {
+                Swal.fire("Gagal", data.message || "Terjadi kesalahan.", "error");
+            }
+        } catch (err) {
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
+        }
+    });
+
+    // ---------------------------------------------------------------------
+    // Realtime Countdown Timer
+    // ---------------------------------------------------------------------
+    window._pipCdInterval = null;
+
+    function initPipCountdown() {
+        const wrap = document.getElementById("pipCountdownWrap");
+        if (!wrap) return;
+
+        if (window._pipCdInterval) {
+            clearInterval(window._pipCdInterval);
+            window._pipCdInterval = null;
+        }
+
+        const deadlineIso = wrap.getAttribute("data-deadline");
+        const isLocked = wrap.getAttribute("data-locked") === "1";
+
+        const daysEl = document.getElementById("pipCdDays");
+        const hoursEl = document.getElementById("pipCdHours");
+        const minsEl = document.getElementById("pipCdMinutes");
+        const secsEl = document.getElementById("pipCdSeconds");
+        const badgeEl = document.getElementById("pipCdBadge");
+
+        if (isLocked) {
+            return;
+        }
+
+        if (!deadlineIso) {
+            return;
+        }
+
+        const targetTime = new Date(deadlineIso).getTime();
+
+        function tick() {
+            const now = new Date().getTime();
+            const diff = targetTime - now;
+
+            if (diff <= 0) {
+                if (daysEl) daysEl.textContent = "00";
+                if (hoursEl) hoursEl.textContent = "00";
+                if (minsEl) minsEl.textContent = "00";
+                if (secsEl) secsEl.textContent = "00";
+                if (badgeEl) {
+                    badgeEl.className = "badge badge-danger";
+                    badgeEl.innerHTML = '<i class="fas fa-clock-rotate-left me-1"></i> Batas Waktu Berakhir';
+                }
+                return;
+            }
+
+            const totalSec = Math.floor(diff / 1000);
+            const d = Math.floor(totalSec / 86400);
+            const h = Math.floor((totalSec % 86400) / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+
+            if (daysEl) daysEl.textContent = String(d).padStart(2, "0");
+            if (hoursEl) hoursEl.textContent = String(h).padStart(2, "0");
+            if (minsEl) minsEl.textContent = String(m).padStart(2, "0");
+            if (secsEl) secsEl.textContent = String(s).padStart(2, "0");
+        }
+
+        tick();
+        window._pipCdInterval = setInterval(tick, 1000);
+    }
 
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") ["modalTambahUsulan", "modalImportRiwayat", "modalTambahRiwayat"].forEach(closeModal);
@@ -542,6 +677,67 @@ document.addEventListener("DOMContentLoaded", function () {
         if (window._pipChartTingkat) { window._pipChartTingkat.destroy(); window._pipChartTingkat = null; }
         if (window._pipChartRiwayatTahun) { window._pipChartRiwayatTahun.destroy(); window._pipChartRiwayatTahun = null; }
 
+        // Custom Plugin 1: Angka langsung di segmen donat & angka total di tengah donat
+        const pipDoughnutDataLabelsPlugin = {
+            id: "pipDoughnutDataLabels",
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                const meta = chart.getDatasetMeta(0);
+                if (!meta || !meta.data || !meta.data.length) return;
+
+                const dataset = data.datasets[0];
+                const total = dataset.data.reduce((a, b) => a + Number(b || 0), 0);
+                if (total <= 0) return;
+
+                ctx.save();
+                meta.data.forEach((element, index) => {
+                    const val = dataset.data[index];
+                    if (!val || val <= 0) return;
+
+                    const pos = element.tooltipPosition();
+                    const pct = Math.round((val / total) * 100);
+
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "bold 12px 'Plus Jakarta Sans', sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+                    ctx.shadowBlur = 4;
+
+                    if (pct >= 8) {
+                        ctx.fillText(Number(val).toLocaleString("id-ID"), pos.x, pos.y - 5);
+                        ctx.font = "600 9px 'Plus Jakarta Sans', sans-serif";
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+                        ctx.fillText(pct + "%", pos.x, pos.y + 7);
+                    } else {
+                        ctx.fillText(Number(val).toLocaleString("id-ID"), pos.x, pos.y);
+                    }
+                });
+
+                // Teks & Angka Total di Tengah Donat
+                if (meta.data[0]) {
+                    const centerX = (chart.chartArea.left + chart.chartArea.right) / 2;
+                    const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2;
+
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = textMuted;
+                    ctx.font = "700 9px 'Plus Jakarta Sans', sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    const labelCenter = payload.status?.is_admin ? "TOTAL USULAN" : "USULAN KELAS";
+                    ctx.fillText(labelCenter, centerX, centerY - 10);
+
+                    ctx.fillStyle = textColor;
+                    ctx.font = "800 18px 'Plus Jakarta Sans', sans-serif";
+                    const centerVal = payload.status?.total_usulan !== undefined
+                        ? payload.status.total_usulan
+                        : ((dataset.data[0] || 0) + (dataset.data[1] || 0) + (dataset.data[2] || 0));
+                    ctx.fillText(Number(centerVal).toLocaleString("id-ID"), centerX, centerY + 8);
+                }
+                ctx.restore();
+            },
+        };
+
         // 1. Doughnut Status Usulan & Kuota
         const ctxStatus = document.getElementById("chartPipStatus")?.getContext("2d");
         if (ctxStatus && payload.status && payload.status.data) {
@@ -570,8 +766,33 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                     },
                 },
+                plugins: hasData ? [pipDoughnutDataLabelsPlugin] : [],
             });
         }
+
+        // Custom Plugin 2: Angka langsung di samping kanan batang diagram alasan
+        const pipHorizontalBarLabelsPlugin = {
+            id: "pipHorizontalBarLabels",
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                const meta = chart.getDatasetMeta(0);
+                if (!meta || !meta.data) return;
+
+                ctx.save();
+                meta.data.forEach((bar, index) => {
+                    const val = data.datasets[0].data[index];
+                    if (val !== undefined && val !== null && val > 0) {
+                        const text = Number(val).toLocaleString("id-ID") + " Siswa";
+                        ctx.fillStyle = textColor;
+                        ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
+                        ctx.textAlign = "left";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText(text, bar.x + 8, bar.y);
+                    }
+                });
+                ctx.restore();
+            },
+        };
 
         // 2. Horizontal Bar: 8 Kriteria Alasan Usulan
         const ctxAlasan = document.getElementById("chartPipAlasan")?.getContext("2d");
@@ -579,6 +800,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const gradAlasan = ctxAlasan.createLinearGradient(0, 0, 300, 0);
             gradAlasan.addColorStop(0, "#6366f1");
             gradAlasan.addColorStop(1, "#818cf8");
+
+            const hasAlasanData = payload.alasan.data && payload.alasan.data.some(v => v > 0);
 
             window._pipChartAlasan = new Chart(ctxAlasan, {
                 type: "bar",
@@ -596,6 +819,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     indexAxis: "y",
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: { right: 65, top: 4, bottom: 4 },
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -607,6 +833,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     scales: {
                         x: {
                             beginAtZero: true,
+                            grace: "15%",
                             ticks: { precision: 0, color: textMuted },
                             grid: { color: borderColor },
                         },
@@ -623,8 +850,34 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                     },
                 },
+                plugins: hasAlasanData ? [pipHorizontalBarLabelsPlugin] : [],
             });
         }
+
+        // Custom Plugin 3: Angka langsung di atas batang diagram tingkat kelas
+        const pipGroupedBarLabelsPlugin = {
+            id: "pipGroupedBarLabels",
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                ctx.save();
+                data.datasets.forEach((dataset, dIdx) => {
+                    const meta = chart.getDatasetMeta(dIdx);
+                    if (!meta || meta.hidden) return;
+
+                    meta.data.forEach((bar, index) => {
+                        const val = dataset.data[index];
+                        if (val !== undefined && val !== null && val > 0) {
+                            ctx.fillStyle = dIdx === 1 ? "#6366f1" : (isLight ? "#334155" : "#e2e8f0");
+                            ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "bottom";
+                            ctx.fillText(Number(val).toLocaleString("id-ID"), bar.x, bar.y - 3);
+                        }
+                    });
+                });
+                ctx.restore();
+            },
+        };
 
         // 3. Bar: Usulan per Tingkat Kelas (Admin Only)
         const ctxTingkat = document.getElementById("chartPipTingkat")?.getContext("2d");
@@ -653,6 +906,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 18 },
+                    },
                     plugins: {
                         legend: {
                             display: true,
@@ -663,7 +919,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     scales: {
                         y: {
                             beginAtZero: true,
-                            ticks: { color: textMuted },
+                            grace: "15%",
+                            ticks: { precision: 0, color: textMuted },
                             grid: { color: borderColor },
                         },
                         x: {
@@ -672,8 +929,33 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                     },
                 },
+                plugins: [pipGroupedBarLabelsPlugin],
             });
         }
+
+        // Custom Plugin 4: Angka langsung di atas batang tren riwayat tahun
+        const pipRiwayatBarLabelsPlugin = {
+            id: "pipRiwayatBarLabels",
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                const meta = chart.getDatasetMeta(0);
+                if (!meta || !meta.data) return;
+
+                ctx.save();
+                meta.data.forEach((bar, index) => {
+                    const val = data.datasets[0].data[index];
+                    if (val !== undefined && val !== null && val > 0) {
+                        const text = Number(val).toLocaleString("id-ID") + " Siswa";
+                        ctx.fillStyle = isLight ? "#059669" : "#34d399";
+                        ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "bottom";
+                        ctx.fillText(text, bar.x, bar.y - 4);
+                    }
+                });
+                ctx.restore();
+            },
+        };
 
         // 4. Bar / Line: Tren Riwayat Penerimaan PIP per Tahun (Admin Only)
         const ctxRiwayatTahun = document.getElementById("chartPipRiwayatTahun")?.getContext("2d");
@@ -694,6 +976,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: { top: 18 },
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -710,6 +995,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     scales: {
                         y: {
                             beginAtZero: true,
+                            grace: "15%",
                             ticks: { precision: 0, color: textMuted },
                             grid: { color: borderColor },
                         },
@@ -719,35 +1005,46 @@ document.addEventListener("DOMContentLoaded", function () {
                         },
                     },
                 },
+                plugins: hasRiwayat ? [pipRiwayatBarLabelsPlugin] : [],
             });
         }
     }
 
     // ---------------------------------------------------------------------
-    // Filter & Live Search Rekap Rombel di Tab Dashboard
+    // Filter & Live Search Rekap Rombel di Tab Dashboard (Status, Tingkat, & Search)
     // ---------------------------------------------------------------------
     function initPipRekapRombelFilter() {
-        const filterBtns = document.querySelectorAll(".btn-rekap-filter");
+        const filterStatusBtns = document.querySelectorAll(".btn-rekap-filter");
+        const filterTingkatBtns = document.querySelectorAll(".btn-rekap-tingkat-filter");
         const searchInp = document.getElementById("filterRekapRombel");
-        if (!filterBtns.length && !searchInp) return;
+        if (!filterStatusBtns.length && !filterTingkatBtns.length && !searchInp) return;
 
         let currentStatus = "all";
+        let currentTingkat = "all";
         let searchQuery = "";
 
         function applyRekapFilter() {
             const rows = document.querySelectorAll(".rekap-rombel-row");
+            let visIndex = 1;
             rows.forEach((row) => {
                 const status = row.getAttribute("data-status");
+                const tingkat = row.getAttribute("data-tingkat");
                 const name = row.getAttribute("data-name") || "";
                 const matchStatus = currentStatus === "all" || status === currentStatus;
+                const matchTingkat = currentTingkat === "all" || tingkat === currentTingkat;
                 const matchSearch = searchQuery === "" || name.includes(searchQuery);
-                row.style.display = matchStatus && matchSearch ? "" : "none";
+                const isVisible = matchStatus && matchTingkat && matchSearch;
+                row.style.display = isVisible ? "" : "none";
+                if (isVisible) {
+                    const noCell = row.querySelector(".rekap-row-no");
+                    if (noCell) noCell.textContent = visIndex++;
+                }
             });
         }
 
-        filterBtns.forEach((btn) => {
+        filterStatusBtns.forEach((btn) => {
             btn.addEventListener("click", function () {
-                filterBtns.forEach((b) => {
+                filterStatusBtns.forEach((b) => {
                     b.classList.remove("active");
                     b.style.background = "transparent";
                     b.style.color = "var(--text-muted)";
@@ -756,6 +1053,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 this.style.background = "var(--primary)";
                 this.style.color = "#fff";
                 currentStatus = this.getAttribute("data-status") || "all";
+                applyRekapFilter();
+            });
+        });
+
+        filterTingkatBtns.forEach((btn) => {
+            btn.addEventListener("click", function () {
+                filterTingkatBtns.forEach((b) => {
+                    b.classList.remove("active");
+                    b.style.background = "transparent";
+                    b.style.color = "var(--text-muted)";
+                });
+                this.classList.add("active");
+                this.style.background = "var(--primary)";
+                this.style.color = "#fff";
+                currentTingkat = this.getAttribute("data-tingkat") || "all";
                 applyRekapFilter();
             });
         });
@@ -771,8 +1083,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Panggil saat DOM ready dan saat live table di-refresh
     initPipDashboardCharts();
     initPipRekapRombelFilter();
+    initPipCountdown();
     window.addEventListener("sae:tableRefreshed", function () {
         initPipDashboardCharts();
         initPipRekapRombelFilter();
+        initPipCountdown();
     });
 });

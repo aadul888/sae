@@ -12,6 +12,9 @@ class PipUsulan extends Model
         'peserta_didik_id',
         'rombongan_belajar_id',
         'tahun',
+        'fase',
+        'tahun_pelajaran',
+        'judul_usulan',
         'prioritas',
         'alasan_usulan',
         'keterangan',
@@ -27,6 +30,22 @@ class PipUsulan extends Model
         'verifikasi_admin_at' => 'datetime',
         'prioritas'           => 'integer',
     ];
+
+    /**
+     * 2 Fase Pengusulan PIP Resmi (Fase 1: Jan-Jun, Fase 2: Jul-Des)
+     */
+    public const FASE_LIST = [
+        'fase_1' => 'Fase 1 (Januari - Juni)',
+        'fase_2' => 'Fase 2 (Juli - Desember)',
+    ];
+
+    public static function getFaseLabel(?string $fase): string
+    {
+        if (empty($fase)) {
+            return 'Fase 1 (Januari - Juni)';
+        }
+        return self::FASE_LIST[$fase] ?? (ucfirst(str_replace('_', ' ', (string) $fase)) ?: 'Fase 1 (Januari - Juni)');
+    }
 
     /**
      * 8 Kriteria Alasan Diusulkan Resmi (Sesuai Aplikasi PIP / SiPintar)

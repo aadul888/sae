@@ -119,6 +119,30 @@
     }
 </style>
 
+@if (!$isAdmin && !empty($isWaliLocked))
+    <!-- Notice Usulan Terkunci untuk Wali Kelas -->
+    <div
+        style="margin-bottom: 18px; padding: 14px 18px; border-radius: 12px; background: rgba(239,68,68,0.08); border: 1.5px solid rgba(239,68,68,0.3); color: #ef4444; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div
+                style="width: 38px; height: 38px; border-radius: 10px; background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div>
+                <strong style="font-size: 0.92rem; color: #ef4444;">Pengusulan PIP Sedang Ditutup / Terkunci</strong>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                    Pengusulan oleh Wali Kelas saat ini dikunci oleh Administrator atau telah melewati batas waktu
+                    pengisian.
+                    Data usulan hanya dapat dipantau dan tidak dapat ditambah atau diubah urutan prioritasnya.
+                </div>
+            </div>
+        </div>
+        <span class="badge badge-danger" style="font-size: 0.78rem; padding: 4px 10px;">
+            <i class="fas fa-ban me-1"></i> Mode Readonly
+        </span>
+    </div>
+@endif
+
 <div class="dash-stat-grid"
     style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
     <div class="dash-stat-card">
@@ -220,7 +244,16 @@
                     @endforeach
                 </select>
 
-                @if ($q || $statusVerif || ($isAdmin && $activeRombel))
+                <select id="filterFase" name="fase" class="toolbar-filter-select" style="height: 38px;">
+                    <option value="">Semua Fase</option>
+                    @foreach (\App\Models\PipUsulan::FASE_LIST as $fKey => $fLabel)
+                        <option value="{{ $fKey }}" {{ ($faseFilter ?? '') === $fKey ? 'selected' : '' }}>
+                            {{ $fLabel }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @if ($q || $statusVerif || ($faseFilter ?? '') || ($isAdmin && $activeRombel))
                     <a href="{{ route('dashboard.pip.index', ['tab' => 'usulan', 'tahun' => $activeTahun]) }}"
                         class="btn btn-outline btn-reset-filter"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
@@ -325,6 +358,12 @@
                                     title="Prioritas #{{ $u->prioritas }} (Hanya dapat diatur oleh Wali Kelas)">
                                     #{{ $u->prioritas }}
                                 </span>
+                            @elseif (!empty($isWaliLocked))
+                                <span class="badge badge-primary"
+                                    style="font-size: 0.84rem; font-weight: 800; padding: 3px 10px; border-radius: 8px; letter-spacing: 0.5px;"
+                                    title="Prioritas #{{ $u->prioritas }} (Pengusulan saat ini terkunci)">
+                                    #{{ $u->prioritas }}
+                                </span>
                             @else
                                 <div class="pip-priority-stepper">
                                     <button type="button" class="pip-stepper-btn pip-btn-up"
@@ -357,6 +396,19 @@
                                     <div style="font-weight: 700; font-size: 0.88rem;">{{ $u->nama_pd }}</div>
                                     <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
                                         NISN: {{ $u->nisn ?: '-' }} &bull; {{ $u->nipd ?: '-' }}
+                                    </div>
+                                    <div
+                                        style="display: flex; align-items: center; gap: 4px; margin-top: 3px; flex-wrap: wrap;">
+                                        <span class="badge badge-primary"
+                                            style="font-size: 0.66rem; padding: 1px 6px;">
+                                            {{ \App\Models\PipUsulan::getFaseLabel($u->fase ?? null) }}
+                                        </span>
+                                        @if (!empty($u->tahun_pelajaran))
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.66rem; padding: 1px 5px;">
+                                                TP {{ $u->tahun_pelajaran }}
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -417,12 +469,24 @@
                                             {{ $u->status_verifikasi === 'ditolak' ? 'selected' : '' }}>✕ Ditolak
                                         </option>
                                     </select>
+                                    <button type="button" class="btn-icon"
+                                        style="color: #ef4444; width: 30px; height: 30px;" title="Hapus Usulan"
+                                        onclick="pipHapusUsulan({{ $u->id }}, @js($u->nama_pd))">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                @elseif (!empty($isWaliLocked))
+                                    <span class="badge badge-outline"
+                                        style="font-size: 0.7rem; padding: 3px 8px; color: var(--text-muted);"
+                                        title="Pengusulan PIP saat ini terkunci">
+                                        <i class="fas fa-lock me-1"></i> Terkunci
+                                    </span>
+                                @else
+                                    <button type="button" class="btn-icon"
+                                        style="color: #ef4444; width: 30px; height: 30px;" title="Hapus Usulan"
+                                        onclick="pipHapusUsulan({{ $u->id }}, @js($u->nama_pd))">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 @endif
-                                <button type="button" class="btn-icon"
-                                    style="color: #ef4444; width: 30px; height: 30px;" title="Hapus Usulan"
-                                    onclick="pipHapusUsulan({{ $u->id }}, @js($u->nama_pd))">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
                             </div>
                         </td>
                     </tr>

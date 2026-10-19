@@ -10,7 +10,31 @@
             @csrf
             <input type="hidden" name="peserta_didik_id" id="pipPdId">
             <input type="hidden" name="tahun" value="{{ $activeTahun }}">
+            <input type="hidden" name="fase" value="{{ $pipStatusInfo['fase'] ?? 'fase_1' }}">
+            <input type="hidden" name="tahun_pelajaran" value="{{ $pipStatusInfo['tahun_pelajaran'] ?? '' }}">
+            <input type="hidden" name="judul_usulan"
+                value="{{ $pipStatusInfo['judul_usulan'] ?? 'Usulan PIP ' . $activeTahun }}">
+
             <div class="kp-modal-body">
+                @php
+                    $activeJudul = $pipStatusInfo['judul_usulan'] ?? 'Usulan PIP Tahun ' . ($activeTahun ?? date('Y'));
+                    $activeFase = $pipStatusInfo['fase_label'] ?? 'Fase 1 (Januari - Juni)';
+                    $activeTp = $pipStatusInfo['tahun_pelajaran'] ?? null;
+                @endphp
+                <div
+                    style="margin-bottom: 14px; padding: 10px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                    <div>
+                        <div style="font-weight: 800; color: var(--primary);">{{ $activeJudul }}</div>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">
+                            {{ $activeFase }}@if ($activeTp)
+                                &bull; TP {{ $activeTp }}
+                            @endif
+                        </div>
+                    </div>
+                    <span class="badge badge-primary" style="font-size: 0.68rem; padding: 2px 7px;">Tahun
+                        {{ $activeTahun }}</span>
+                </div>
+
                 <div class="kp-form-group">
                     <label class="kp-form-label" for="pipCari">Cari Peserta Didik <span class="req">*</span></label>
                     <div class="kp-ac-wrap">

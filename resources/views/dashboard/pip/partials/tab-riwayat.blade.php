@@ -284,6 +284,12 @@
                                                 style="font-size: 0.66rem; padding: 1px 5px;">
                                                 {{ ucwords(str_replace('_', ' ', $r->status_usulan)) }}
                                             </span>
+                                            @if (!empty($r->fase_usulan))
+                                                <span class="badge badge-primary"
+                                                    style="font-size: 0.64rem; padding: 1px 5px;">
+                                                    {{ \App\Models\PipUsulan::getFaseLabel($r->fase_usulan) }}
+                                                </span>
+                                            @endif
                                         </div>
                                     @else
                                         <div style="font-size: 0.7rem; color: var(--text-muted);">
@@ -293,15 +299,28 @@
                                 </div>
                             @else
                                 <div style="display: flex; flex-direction: column; gap: 2px;">
-                                    <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap;">
                                         <span class="badge {{ $isNominasi ? 'badge-warning' : 'badge-success' }}"
                                             style="font-size: 0.68rem; padding: 1px 6px;">
                                             {{ $isNominasi ? 'SK Nominasi' : 'SK Pemberian' }}
                                         </span>
+                                        @if (!empty($r->fase))
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.66rem; padding: 1px 5px;">
+                                                {{ \App\Models\PipUsulan::getFaseLabel($r->fase) }}
+                                            </span>
+                                        @endif
                                     </div>
                                     <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-color);">
-                                        {{ $r->nomor_sk ?: '-' }}</div>
+                                        {{ $r->nomor_sk ?: '-' }}
+                                    </div>
                                     <div style="font-size: 0.7rem; color: var(--text-muted);">
+                                        @if (!empty($r->tahun_pelajaran))
+                                            <span style="font-weight: 700;">TP {{ $r->tahun_pelajaran }}</span> &bull;
+                                        @elseif (!empty($r->tahun))
+                                            <span style="font-weight: 700;">Th {{ $r->tahun }}</span> &bull;
+                                        @endif
                                         {{ $r->tahap ?: '-' }}@if ($r->tanggal_sk)
                                             &bull; {{ $r->tanggal_sk }}
                                         @endif

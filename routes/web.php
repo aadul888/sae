@@ -539,6 +539,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/pip/riwayat/import', [\App\Http\Controllers\PipController::class, 'importRiwayatExcel'])->name('pip.import-riwayat');
     Route::post('/pip/riwayat', [\App\Http\Controllers\PipController::class, 'storeRiwayatManual'])->name('pip.store-riwayat');
     Route::match(['post', 'delete'], '/pip/riwayat/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyRiwayat'])->name('pip.destroy-riwayat');
+    Route::post('/pip/pengaturan', [\App\Http\Controllers\PipController::class, 'updatePengaturan'])->name('pip.update-pengaturan')->middleware('permission:menu_pip,update');
 
     // Arsip & Maintenance (Hanya Admin)
     Route::get('/maintenance', [\App\Http\Controllers\MaintenanceController::class, 'index'])->name('maintenance.index')->middleware('permission:menu_maintenance,read');

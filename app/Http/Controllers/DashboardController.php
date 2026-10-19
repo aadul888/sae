@@ -586,6 +586,12 @@ class DashboardController extends Controller
             }
         }
 
+        // Status dan hitungan mundur PIP untuk Wali Kelas
+        $pipCountdownWali = null;
+        if ($waliInfo && class_exists(\App\Models\PipPengaturan::class)) {
+            $pipCountdownWali = \App\Models\PipPengaturan::getStatusInfo();
+        }
+
         return view('dashboard.guru', compact(
             'stats',
             'jadwal_hari_ini',
@@ -600,7 +606,9 @@ class DashboardController extends Controller
             'ptkId',
             'userName',
             'waliStats',
-            'isJadwalDiberlakukan'
+            'isJadwalDiberlakukan',
+            'waliInfo',
+            'pipCountdownWali'
         ));
     }
 

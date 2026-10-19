@@ -58,11 +58,19 @@
                     title="Export Seluruh Data Usulan PIP ke Format Excel (.xlsx) Lengkap">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </button>
-                <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
-                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700;"
-                    title="Tambah Usulan Siswa PIP Baru">
-                    <i class="fas fa-plus"></i> Usulan
-                </button>
+                @if (!$isAdmin && !empty($isWaliLocked))
+                    <button type="button" class="btn btn-outline" disabled
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; opacity: 0.6; cursor: not-allowed;"
+                        title="Pengusulan PIP saat ini terkunci / telah melewati batas waktu pengisian">
+                        <i class="fas fa-lock"></i> Usulan Ditutup
+                    </button>
+                @else
+                    <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
+                        style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700;"
+                        title="Tambah Usulan Siswa PIP Baru">
+                        <i class="fas fa-plus"></i> Usulan
+                    </button>
+                @endif
             @elseif (in_array($tab, ['riwayat', 'riwayat_alumni'], true) && $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openTambahRiwayat()"
                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
@@ -94,7 +102,10 @@
         </div>
     @endif
 
-    <!-- 3. Segmented Navigation Tabs -->
+    <!-- 3. Banner Hitung Mundur Realtime & Status Batas Waktu PIP -->
+    @include('dashboard.pip.partials.countdown-banner')
+
+    <!-- 4. Segmented Navigation Tabs -->
     <div class="dash-segmented-tabs" style="margin-bottom: 20px;">
         <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'dashboard'])) }}"
             class="tab-btn btn {{ $tab === 'dashboard' ? 'btn-primary active' : 'btn-outline' }}">
@@ -119,6 +130,10 @@
                 class="tab-btn btn {{ $tab === 'riwayat_alumni' ? 'btn-primary active' : 'btn-outline' }}">
                 <i class="fas fa-user-graduate me-1"></i> Riwayat Kelas Lain &amp; Alumni
             </a>
+            <a href="{{ route('dashboard.pip.index', $routeParams(['tab' => 'pengaturan'])) }}"
+                class="tab-btn btn {{ $tab === 'pengaturan' ? 'btn-primary active' : 'btn-outline' }}">
+                <i class="fas fa-gear me-1"></i> Pengaturan
+            </a>
         @endif
     </div>
 
@@ -130,6 +145,8 @@
         @include('dashboard.pip.partials.tab-kuota')
     @elseif ($tab === 'riwayat_alumni' && $isAdmin)
         @include('dashboard.pip.partials.tab-riwayat-alumni')
+    @elseif ($tab === 'pengaturan' && $isAdmin)
+        @include('dashboard.pip.partials.tab-pengaturan')
     @else
         @include('dashboard.pip.partials.tab-riwayat')
     @endif
@@ -140,8 +157,8 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-                         * Tab Riwayat PIP — Desktop & Responsive Modern Table
-                         * ------------------------------------------------------------- */
+                             * Tab Riwayat PIP — Desktop & Responsive Modern Table
+                             * ------------------------------------------------------------- */
         .table-pip-riwayat {
             width: 100%;
             border-collapse: collapse;
@@ -344,6 +361,9 @@
                         ? route('dashboard.pip.import-riwayat')
                         : url('/dashboard/pip/riwayat/import')),
                 storeRiwayat: @json(Route::has('dashboard.pip.store-riwayat') ? route('dashboard.pip.store-riwayat') : url('/dashboard/pip/riwayat')),
+                updatePengaturan: @json(Route::has('dashboard.pip.update-pengaturan')
+                        ? route('dashboard.pip.update-pengaturan')
+                        : url('/dashboard/pip/pengaturan')),
             },
             urlTemplates: {
                 destroyUsulan: @json(Route::has('dashboard.pip.destroy-usulan')

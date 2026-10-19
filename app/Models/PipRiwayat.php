@@ -25,7 +25,10 @@ class PipRiwayat extends Model
         'jenis_sk', // 'pemberian', 'nominasi'
         'tanggal_sk',
         'tahap',
+        'fase',
         'tahun',
+        'tahun_pelajaran',
+        'judul_usulan',
         'status_cair',
         'tanggal_cair',
         'tanggal_aktivasi',

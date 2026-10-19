@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PipKuotaRombel;
+use App\Models\PipPengaturan;
 use App\Models\PipRiwayat;
 use App\Models\PipUsulan;
 use App\Models\PesertaDidik;
@@ -99,6 +100,72 @@ class PipController extends Controller
                 });
             }
 
+            if (!Schema::hasTable('pip_pengaturan')) {
+                Schema::create('pip_pengaturan', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->id();
+                    $table->string('tahun', 20)->default('2026')->unique();
+                    $table->string('fase', 50)->default('fase_1');
+                    $table->string('tahun_pelajaran', 30)->nullable();
+                    $table->string('judul_usulan', 150)->nullable();
+                    $table->boolean('is_locked')->default(false);
+                    $table->dateTime('batas_waktu')->nullable();
+                    $table->boolean('kunci_otomatis')->default(true);
+                    $table->text('pesan_pengumuman')->nullable();
+                    $table->string('updated_by', 100)->nullable();
+                    $table->timestamps();
+                });
+            } else {
+                Schema::table('pip_pengaturan', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    if (!Schema::hasColumn('pip_pengaturan', 'fase')) {
+                        $table->string('fase', 50)->default('fase_1')->after('tahun');
+                    }
+                    if (!Schema::hasColumn('pip_pengaturan', 'tahun_pelajaran')) {
+                        $table->string('tahun_pelajaran', 30)->nullable()->after('fase');
+                    }
+                    if (!Schema::hasColumn('pip_pengaturan', 'judul_usulan')) {
+                        $table->string('judul_usulan', 150)->nullable()->after('tahun_pelajaran');
+                    }
+                });
+            }
+
+            if (Schema::hasTable('pip_usulan')) {
+                Schema::table('pip_usulan', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    if (!Schema::hasColumn('pip_usulan', 'fase')) {
+                        $table->string('fase', 50)->default('fase_1')->after('tahun')->index();
+                    }
+                    if (!Schema::hasColumn('pip_usulan', 'tahun_pelajaran')) {
+                        $table->string('tahun_pelajaran', 30)->nullable()->after('fase');
+                    }
+                    if (!Schema::hasColumn('pip_usulan', 'judul_usulan')) {
+                        $table->string('judul_usulan', 150)->nullable()->after('tahun_pelajaran');
+                    }
+                });
+
+                try {
+                    $indexes = collect(DB::select("SHOW INDEX FROM pip_usulan"))->pluck('Key_name')->all();
+                    if (in_array('uq_pip_usulan_pd_tahun', $indexes, true)) {
+                        DB::statement("ALTER TABLE pip_usulan DROP INDEX uq_pip_usulan_pd_tahun");
+                    }
+                    if (!in_array('uq_pip_usulan_pd_th_fase', $indexes, true)) {
+                        DB::statement("ALTER TABLE pip_usulan ADD UNIQUE KEY uq_pip_usulan_pd_th_fase (peserta_didik_id, tahun, fase)");
+                    }
+                } catch (\Throwable) {}
+            }
+
+            if (Schema::hasTable('pip_riwayat')) {
+                Schema::table('pip_riwayat', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    if (!Schema::hasColumn('pip_riwayat', 'fase')) {
+                        $table->string('fase', 50)->nullable()->after('tahap')->index();
+                    }
+                    if (!Schema::hasColumn('pip_riwayat', 'tahun_pelajaran')) {
+                        $table->string('tahun_pelajaran', 30)->nullable()->after('tahun');
+                    }
+                    if (!Schema::hasColumn('pip_riwayat', 'judul_usulan')) {
+                        $table->string('judul_usulan', 150)->nullable()->after('tahun_pelajaran');
+                    }
+                });
+            }
+
             // Sinkronkan peserta_didik_id dari NISN jika masih kosong
             if (Schema::hasTable('pip_riwayat') && Schema::hasTable('peserta_didik')) {
                 $hasMissing = DB::table('pip_riwayat')
@@ -154,7 +221,7 @@ class PipController extends Controller
                 ->where('jenis_rombel', '1')
                 ->orderBy('tingkat_pendidikan_id', 'asc')
                 ->orderBy('nama', 'asc')
-                ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id_str', 'jurusan_id_str', 'ptk_id_str')
+                ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id', 'tingkat_pendidikan_id_str', 'jurusan_id_str', 'ptk_id_str')
                 ->get();
         }
 
@@ -234,16 +301,21 @@ class PipController extends Controller
             abort(403, 'Akses ditolak: Menu Usulan PIP khusus untuk Wali Kelas dan Administrator.');
         }
 
-        $tab = $request->get('tab', 'dashboard'); // 'dashboard', 'usulan', 'kuota' (admin only), 'riwayat', 'riwayat_alumni' (admin only)
-        if (!$isAdmin && in_array($tab, ['kuota', 'riwayat_alumni'], true)) {
-            $tab = ($tab === 'riwayat_alumni') ? 'riwayat' : 'usulan';
+        $tab = $request->get('tab', 'dashboard'); // 'dashboard', 'usulan', 'kuota' (admin only), 'riwayat', 'riwayat_alumni' (admin only), 'pengaturan' (admin only)
+        if (!$isAdmin && in_array($tab, ['kuota', 'riwayat_alumni', 'pengaturan'], true)) {
+            $tab = ($tab === 'riwayat_alumni') ? 'riwayat' : 'dashboard';
         }
-        if (!in_array($tab, ['dashboard', 'usulan', 'kuota', 'riwayat', 'riwayat_alumni'], true)) {
+        if (!in_array($tab, ['dashboard', 'usulan', 'kuota', 'riwayat', 'riwayat_alumni', 'pengaturan'], true)) {
             $tab = 'dashboard';
         }
 
+        $pipPengaturan = PipPengaturan::getSettings($activeTahun);
+        $pipStatusInfo = PipPengaturan::getStatusInfo($activeTahun);
+        $isWaliLocked  = !$isAdmin && $pipStatusInfo['is_closed'];
+
         $q = trim((string) $request->get('q', ''));
         $statusVerif = trim((string) $request->get('status_verifikasi', ''));
+        $faseFilter = trim((string) $request->get('fase', ''));
         $jenisSkFilter = trim((string) $request->get('jenis_sk', ''));
         $statusPipFilter = trim((string) $request->get('status_pip', 'penerima'));
         if (!in_array($statusPipFilter, ['penerima', 'belum', 'semua'], true)) {
@@ -288,6 +360,10 @@ class PipController extends Controller
 
             if ($statusVerif !== '' && isset(PipUsulan::STATUS_VERIFIKASI[$statusVerif])) {
                 $usulanQuery->where('u.status_verifikasi', $statusVerif);
+            }
+
+            if ($faseFilter !== '' && in_array($faseFilter, ['fase_1', 'fase_2'], true)) {
+                $usulanQuery->where('u.fase', $faseFilter);
             }
 
             if ($q !== '') {
@@ -1041,6 +1117,7 @@ class PipController extends Controller
             'tab',
             'q',
             'statusVerif',
+            'faseFilter',
             'perPage',
             'usulanList',
             'stats',
@@ -1058,7 +1135,10 @@ class PipController extends Controller
             'statusPipFilter',
             'kriteriaAlasan',
             'statusVerifikasiList',
-            'dashboardData'
+            'dashboardData',
+            'pipPengaturan',
+            'pipStatusInfo',
+            'isWaliLocked'
         ));
     }
 
@@ -1322,17 +1402,23 @@ class PipController extends Controller
                 $kuota  = (int) ($existingKuota[$r->rombongan_belajar_id] ?? 5);
                 $used   = (int) ($existingCount[$r->rombongan_belajar_id] ?? 0);
                 $siswa  = (int) ($studentCounts[$r->rombongan_belajar_id] ?? 0);
-                $r->kuota       = $kuota;
-                $r->terpakai    = $used;
-                $r->sisa        = max(0, $kuota - $used);
-                $r->jumlah_siswa = $siswa;
-                $r->pct         = $kuota > 0 ? min(100, round($used / $kuota * 100)) : 0;
+                $isAwal = in_array((string) ($r->tingkat_pendidikan_id ?? ''), ['10', '10.0', 'X'], true) || str_starts_with(strtoupper($r->nama), 'X ');
+
+                $r->kuota                  = $kuota;
+                $r->terpakai               = $used;
+                $r->sisa                   = max(0, $kuota - $used);
+                $r->jumlah_siswa           = $siswa;
+                $r->pct                    = $kuota > 0 ? min(100, round($used / $kuota * 100)) : 0;
+                $r->kategori_tingkat       = $isAwal ? 'kelas_awal' : 'kelas_berjalan';
+                $r->kategori_tingkat_label = $isAwal ? 'Kelas Awal (X)' : 'Kelas Berjalan (' . ($r->tingkat_pendidikan_id_str ?: 'XI/XII') . ')';
                 return $r;
             })->sortByDesc('terpakai')->values();
 
             $rombelPenuhCount = $rombelSummary->where('sisa', '<=', 0)->where('terpakai', '>', 0)->count();
             $rombelBelumUsulCount = $rombelSummary->where('terpakai', 0)->count();
             $rombelTersediaCount = $rombelSummary->where('sisa', '>', 0)->count();
+            $rombelAwalCount = $rombelSummary->where('kategori_tingkat', 'kelas_awal')->count();
+            $rombelBerjalanCount = $rombelSummary->where('kategori_tingkat', 'kelas_berjalan')->count();
         }
 
         return [
@@ -1371,6 +1457,8 @@ class PipController extends Controller
             'rombel_penuh_count'      => $rombelPenuhCount,
             'rombel_belum_usul_count' => $rombelBelumUsulCount,
             'rombel_tersedia_count'   => $rombelTersediaCount,
+            'rombel_awal_count'       => $rombelAwalCount ?? 0,
+            'rombel_berjalan_count'   => $rombelBerjalanCount ?? 0,
         ];
     }
 
@@ -1537,7 +1625,10 @@ class PipController extends Controller
         $headers = [
             'No',
             'Prioritas',
+            'Judul Usulan',
+            'Fase Usulan',
             'Tahun Usulan',
+            'Tahun Pelajaran',
             'Status Verifikasi Web PIP',
             'Kelas / Rombel',
             'Tingkat',
@@ -1586,11 +1677,16 @@ class PipController extends Controller
             $tglVerif = !empty($r->verifikasi_admin_at) ? date('d/m/Y H:i', strtotime($r->verifikasi_admin_at)) : '-';
 
             $riwayatTeks = $riwayatMap[$r->peserta_didik_id] ?? ($riwayatMap[$r->nisn] ?? 'Belum ada riwayat');
+            $faseLabel = PipUsulan::getFaseLabel($r->fase ?? null);
+            $judulUsulan = $r->judul_usulan ?: ("Usulan PIP {$r->tahun} — {$faseLabel}");
 
             $rows[] = [
                 $no++,
                 '#' . $r->prioritas,
+                $judulUsulan,
+                $faseLabel,
                 $r->tahun ?: $activeTahun,
+                $r->tahun_pelajaran ?: '-',
                 $statusLabel,
                 $r->nama_rombel ?: '-',
                 $r->tingkat_rombel ?: '-',
@@ -1629,12 +1725,16 @@ class PipController extends Controller
         $npsn = $sekolah?->npsn ?: '';
 
         $userName = is_array($user) ? ($user['name'] ?? ($user['nama'] ?? 'User')) : ($user->name ?? ($user->nama ?? 'User'));
+        $settings = PipPengaturan::getSettings($activeTahun);
 
         $meta = [
-            'title'    => 'DATA REKAPITULASI USULAN PROGRAM INDONESIA PINTAR (PIP)',
-            'subtitle' => $namaSekolah . ($npsn ? ' (NPSN: ' . $npsn . ')' : '') . ' — TAHUN ANGGARAN ' . $activeTahun,
+            'title'    => 'DATA REKAPITULASI ' . mb_strtoupper($settings->judul_usulan ?: 'USULAN PROGRAM INDONESIA PINTAR (PIP)'),
+            'subtitle' => $namaSekolah . ($npsn ? ' (NPSN: ' . $npsn . ')' : '') . ' — ' . ($settings->tahun_pelajaran ? 'TP ' . $settings->tahun_pelajaran . ' ' : '') . 'TAHUN ' . $activeTahun,
             'fields'   => [
+                'Judul Usulan'      => $settings->judul_usulan ?: "Usulan PIP Tahun {$activeTahun}",
+                'Fase Pengusulan'   => PipUsulan::getFaseLabel($settings->fase),
                 'Tahun Anggaran'    => $activeTahun,
+                'Tahun Pelajaran'   => $settings->tahun_pelajaran ?: '-',
                 'Rombongan Belajar' => $activeRombel ? $activeRombel->nama : 'Semua Rombongan Belajar',
                 'Status Verifikasi' => $statusVerif !== '' ? (PipUsulan::STATUS_VERIFIKASI[$statusVerif] ?? $statusVerif) : 'Semua Status (Belum / Sudah / Ditolak)',
                 'Total Usulan'      => count($rows) . ' Peserta Didik',
@@ -1661,7 +1761,7 @@ class PipController extends Controller
             [
                 'sheetName'  => $sheetName,
                 'headerBg'   => 'FF0F766E', // Emerald / Teal tema resmi PIP SAE
-                'centerCols' => [0, 1, 2, 3, 5, 9, 10, 11, 12, 14, 28, 30],
+                'centerCols' => [0, 1, 3, 4, 5, 6, 8, 12, 13, 14, 15, 17, 31, 33],
             ]
         );
 
@@ -1697,6 +1797,15 @@ class PipController extends Controller
         ]);
 
         $tahun = $data['tahun'] ?? ($ctx['activeTahun'] ?: date('Y'));
+
+        // Cek penguncian untuk Wali Kelas
+        if (!$isAdmin && PipPengaturan::isLockedForWaliKelas($tahun)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Pengisian usulan PIP saat ini dikunci oleh Administrator atau telah melewati batas waktu pengisian.',
+            ], 403);
+        }
+
         $pd = DB::table('peserta_didik')->where('peserta_didik_id', $data['peserta_didik_id'])->first();
         if (!$pd) {
             return response()->json(['success' => false, 'message' => 'Peserta didik tidak ditemukan.'], 404);
@@ -1707,30 +1816,39 @@ class PipController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda hanya berhak mengusulkan peserta didik dari kelas binaan Anda.'], 403);
         }
 
-        // Cek apakah siswa sudah diusulkan di tahun yang sama
+        // Cek apakah siswa sudah diusulkan di tahun dan fase yang sama
+        $settings = PipPengaturan::getSettings($tahun);
+        $fase = $data['fase'] ?? ($settings->fase ?: (date('n') <= 6 ? 'fase_1' : 'fase_2'));
+        $faseLabel = PipUsulan::getFaseLabel($fase);
+        $tp = $data['tahun_pelajaran'] ?? ($settings->tahun_pelajaran ?: (class_exists(\App\Support\SemesterHelper::class) ? \App\Support\SemesterHelper::getActiveSemesterLabel() : null));
+        $judul = $data['judul_usulan'] ?? ($settings->judul_usulan ?: ("Usulan PIP Tahun {$tahun} — {$faseLabel}"));
+
         $exists = PipUsulan::where('peserta_didik_id', $pd->peserta_didik_id)
             ->where('tahun', $tahun)
+            ->where('fase', $fase)
             ->exists();
         if ($exists) {
-            return response()->json(['success' => false, 'message' => "Siswa {$pd->nama} sudah terdaftar dalam usulan PIP tahun {$tahun}."], 422);
+            return response()->json(['success' => false, 'message' => "Siswa {$pd->nama} sudah terdaftar dalam usulan PIP tahun {$tahun} ({$faseLabel})."], 422);
         }
 
         // Cek Kuota Usulan Kelas (Pengisian tidak boleh melebihi kuota)
         $kuota = PipKuotaRombel::getKuotaForRombel($rombelId, $tahun);
         $currentCount = PipUsulan::where('rombongan_belajar_id', $rombelId)
             ->where('tahun', $tahun)
+            ->where('fase', $fase)
             ->count();
 
         if ($currentCount >= $kuota) {
             return response()->json([
                 'success' => false,
-                'message' => "Kuota usulan PIP kelas ini sudah penuh (Maksimal {$kuota} peserta didik). Pengusulan tidak boleh melebihi kuota. Hubungi Administrator jika memerlukan penyesuaian kuota.",
+                'message' => "Kuota usulan PIP kelas ini sudah penuh (Maksimal {$kuota} peserta didik untuk {$faseLabel}). Pengusulan tidak boleh melebihi kuota. Hubungi Administrator jika memerlukan penyesuaian kuota.",
             ], 422);
         }
 
         // Hitung Prioritas Otomatis: Ranking terakhir + 1
         $maxPrioritas = (int) PipUsulan::where('rombongan_belajar_id', $rombelId)
             ->where('tahun', $tahun)
+            ->where('fase', $fase)
             ->max('prioritas');
         $prioritasBaru = $maxPrioritas + 1;
 
@@ -1740,6 +1858,9 @@ class PipController extends Controller
             'peserta_didik_id'     => $pd->peserta_didik_id,
             'rombongan_belajar_id' => $rombelId,
             'tahun'                => $tahun,
+            'fase'                 => $fase,
+            'tahun_pelajaran'      => $tp,
+            'judul_usulan'         => $judul,
             'prioritas'            => $prioritasBaru,
             'alasan_usulan'        => array_values($data['alasan_usulan']),
             'keterangan'           => trim((string) ($data['keterangan'] ?? '')),
@@ -1787,6 +1908,13 @@ class PipController extends Controller
 
         $rombelId = $item->rombongan_belajar_id;
         $tahun = $item->tahun;
+
+        if (PipPengaturan::isLockedForWaliKelas($tahun)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Pengusulan PIP telah dikunci atau telah melewati batas waktu pengisian.',
+            ], 403);
+        }
 
         // Ambil seluruh usulan rombel terurut
         $list = PipUsulan::where('rombongan_belajar_id', $rombelId)
@@ -1851,6 +1979,13 @@ class PipController extends Controller
         }
         $rombelId = $item->rombongan_belajar_id;
         $tahun = $item->tahun;
+
+        if (!$ctx['isAdmin'] && PipPengaturan::isLockedForWaliKelas($tahun)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Pengusulan PIP telah dikunci atau telah melewati batas waktu pengisian.',
+            ], 403);
+        }
 
         $item->delete();
 
@@ -2485,6 +2620,71 @@ class PipController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Catatan riwayat PIP berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Simpan Pengaturan Kunci & Batas Waktu Usulan PIP (Admin Only)
+     */
+    public function updatePengaturan(Request $request): JsonResponse
+    {
+        $this->ensurePipSchema();
+
+        if (!$this->isAdminUser()) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak: Khusus Administrator.'], 403);
+        }
+
+        $data = $request->validate([
+            'tahun'            => 'required|string|max:20',
+            'fase'             => 'nullable|in:fase_1,fase_2',
+            'tahun_pelajaran'  => 'nullable|string|max:30',
+            'judul_usulan'     => 'nullable|string|max:150',
+            'is_locked'        => 'nullable',
+            'kunci_otomatis'   => 'nullable',
+            'batas_waktu'      => 'nullable|string',
+            'pesan_pengumuman' => 'nullable|string|max:1000',
+        ]);
+
+        $settings = PipPengaturan::getSettings($data['tahun']);
+
+        $user = session('user');
+        $updater = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Admin')) : ($user->nama ?? ($user->name ?? 'Admin'));
+
+        $isLocked = filter_var($request->input('is_locked'), FILTER_VALIDATE_BOOLEAN);
+        $kunciOtomatis = filter_var($request->input('kunci_otomatis', true), FILTER_VALIDATE_BOOLEAN);
+
+        $batasWaktu = null;
+        if (!empty($data['batas_waktu'])) {
+            try {
+                $batasWaktu = \Carbon\Carbon::parse($data['batas_waktu']);
+            } catch (\Throwable) {}
+        }
+
+        $fase = $data['fase'] ?? ($settings->fase ?: (date('n') <= 6 ? 'fase_1' : 'fase_2'));
+        $faseLabel = PipUsulan::getFaseLabel($fase);
+        $judul = trim((string) ($data['judul_usulan'] ?? ''));
+        if ($judul === '') {
+            $judul = "Usulan PIP Tahun {$data['tahun']} — {$faseLabel}";
+        }
+
+        $settings->fase = $fase;
+        $settings->tahun_pelajaran = !empty($data['tahun_pelajaran']) ? trim($data['tahun_pelajaran']) : $settings->tahun_pelajaran;
+        $settings->judul_usulan = $judul;
+        $settings->is_locked = $isLocked;
+        $settings->kunci_otomatis = $kunciOtomatis;
+        $settings->batas_waktu = $batasWaktu;
+        $settings->pesan_pengumuman = $data['pesan_pengumuman'] ?? null;
+        $settings->updated_by = $updater;
+        $settings->save();
+
+        $info = PipPengaturan::getStatusInfo($data['tahun']);
+
+        $statusDesc = $info['is_closed'] ? 'Pengusulan saat ini TERKUNCI untuk Wali Kelas.' : 'Pengusulan saat ini DIBUKA untuk Wali Kelas.';
+
+        return response()->json([
+            'success'     => true,
+            'message'     => "Pengaturan {$judul} berhasil disimpan. {$statusDesc}",
+            'status_info' => $info,
         ]);
     }
 }
