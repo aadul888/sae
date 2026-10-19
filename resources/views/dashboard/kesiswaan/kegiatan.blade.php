@@ -144,8 +144,9 @@
 
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" name="q" placeholder="Cari kegiatan / organisasi / ekskul..."
-                        value="{{ $q ?? '' }}" autocomplete="off">
+                    <input type="text" id="liveSearch" name="q"
+                        placeholder="Cari kegiatan / organisasi / ekskul..." value="{{ $q ?? '' }}"
+                        autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
                         title="Hapus pencarian">
                         <i class="fas fa-times"></i>
@@ -162,75 +163,82 @@
                     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
                         <div class="card" style="padding: 24px; text-align: center;">
                             <div
-                        style="width: 80px; height: 80px; border-radius: 50%; background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 14px;">
-                        <i class="fas fa-id-badge"></i>
+                                style="width: 80px; height: 80px; border-radius: 50%; background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 14px;">
+                                <i class="fas fa-id-badge"></i>
+                            </div>
+                            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-color);">
+                                {{ $osis->nama_organisasi }}</h3>
+                            <div style="font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-top: 4px;">Masa
+                                Bakti:
+                                {{ $osis->masa_bakti }}</div>
+                            <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+                            <div style="text-align: left; font-size: 0.88rem; line-height: 1.8;">
+                                <div><strong>Ketua:</strong> {{ $osis->ketua?->nama ?: '-' }}</div>
+                                <div><strong>Pembina:</strong> {{ $osis->pembina?->nama ?: '-' }}</div>
+                            </div>
+                        </div>
+                        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 20px;">
+                            <h4 style="margin: 0 0 14px 0; font-size: 1rem; font-weight: 800; color: var(--text-color);">
+                                Struktur
+                                Pengurus OSIS</h4>
+                            <table class="table table-pd"
+                                style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                                <thead>
+                                    <tr
+                                        style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                                        <th
+                                            style="padding: 10px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                            Jabatan</th>
+                                        <th
+                                            style="padding: 10px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                            Nama Pengurus</th>
+                                        <th
+                                            style="padding: 10px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                            NISN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse ($osis->anggota as $ag)
+                                        <tr style="border-bottom: 1px solid var(--border-color);">
+                                            <td style="padding: 10px 14px; font-weight: 700; color: var(--primary);">
+                                                {{ $ag->jabatan }}</td>
+                                            <td style="padding: 10px 14px; font-weight: 700; color: var(--text-color);">
+                                                {{ $ag->siswa?->nama ?: '-' }}</td>
+                                            <td style="padding: 10px 14px; font-family: monospace; font-size: 0.82rem;">
+                                                {{ $ag->siswa?->nisn ?: '-' }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3"
+                                                style="text-align: center; padding: 30px 16px; color: var(--text-muted);">
+                                                <i class="fas fa-folder-open"
+                                                    style="font-size: 2rem; opacity: 0.3; margin-bottom: 8px; display: block;"></i>
+                                                Belum ada data anggota pengurus terdaftar.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--text-color);">
-                        {{ $osis->nama_organisasi }}</h3>
-                    <div style="font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-top: 4px;">Masa Bakti:
-                        {{ $osis->masa_bakti }}</div>
-                    <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
-                    <div style="text-align: left; font-size: 0.88rem; line-height: 1.8;">
-                        <div><strong>Ketua:</strong> {{ $osis->ketua?->nama ?: '-' }}</div>
-                        <div><strong>Pembina:</strong> {{ $osis->pembina?->nama ?: '-' }}</div>
+                @else
+                    <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                        <i class="fas fa-id-badge mb-2" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                        <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            Belum Ada
+                            Data Kepengurusan OSIS</div>
+                        <p style="margin: 0 0 16px 0; font-size: 0.88rem;">Silakan buat data OSIS periode aktif untuk
+                            memetakan
+                            pengurus dan program kerja.</p>
+                        @if ($canCreate)
+                            <button type="button" class="btn btn-primary"
+                                onclick="document.getElementById('btnOpenOrganisasiModal').click()"
+                                style="border-radius: 8px;">
+                                <i class="fas fa-plus"></i> Buat Data OSIS
+                            </button>
+                        @endif
                     </div>
-                </div>
-                <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 20px;">
-                    <h4 style="margin: 0 0 14px 0; font-size: 1rem; font-weight: 800; color: var(--text-color);">Struktur
-                        Pengurus OSIS</h4>
-                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                        <thead>
-                            <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
-                                <th
-                                    style="padding: 10px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Jabatan</th>
-                                <th
-                                    style="padding: 10px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Nama Pengurus</th>
-                                <th
-                                    style="padding: 10px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    NISN</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($osis->anggota as $ag)
-                                <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td style="padding: 10px 14px; font-weight: 700; color: var(--primary);">
-                                        {{ $ag->jabatan }}</td>
-                                    <td style="padding: 10px 14px; font-weight: 700; color: var(--text-color);">
-                                        {{ $ag->siswa?->nama ?: '-' }}</td>
-                                    <td style="padding: 10px 14px; font-family: monospace; font-size: 0.82rem;">
-                                        {{ $ag->siswa?->nisn ?: '-' }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="3"
-                                        style="text-align: center; padding: 30px 16px; color: var(--text-muted);">
-                                        <i class="fas fa-folder-open"
-                                            style="font-size: 2rem; opacity: 0.3; margin-bottom: 8px; display: block;"></i>
-                                        Belum ada data anggota pengurus terdaftar.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        @else
-                <div style="padding: 40px; text-align: center; color: var(--text-muted);">
-                    <i class="fas fa-id-badge mb-2" style="font-size: 2.5rem; opacity: 0.5;"></i>
-                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Belum Ada
-                        Data Kepengurusan OSIS</div>
-                    <p style="margin: 0 0 16px 0; font-size: 0.88rem;">Silakan buat data OSIS periode aktif untuk memetakan
-                        pengurus dan program kerja.</p>
-                    @if ($canCreate)
-                        <button type="button" class="btn btn-primary"
-                            onclick="document.getElementById('btnOpenOrganisasiModal').click()" style="border-radius: 8px;">
-                            <i class="fas fa-plus"></i> Buat Data OSIS
-                        </button>
-                    @endif
-                </div>
-            @endif
+                @endif
             </div>
         @elseif ($activeTab === 'organisasi')
             <!-- TAB 2: ORGANISASI LAIN -->
@@ -266,19 +274,20 @@
                                 <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $org->ketua?->nama ?: '-' }}</td>
                                 <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
                                     {{ $org->pembina?->nama ?: '-' }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                <i class="fas fa-folder-open"
-                                    style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                                Belum ada organisasi kesiswaan lain yang cocok dengan pencarian.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5"
+                                    style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                    <i class="fas fa-folder-open"
+                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                    Belum ada organisasi kesiswaan lain yang cocok dengan pencarian.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         @elseif ($activeTab === 'ekskul')
             <!-- TAB 3: EKSTRAKURIKULER -->
             <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
@@ -323,7 +332,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                <td colspan="6"
+                                    style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
                                         style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Belum ada data ekstrakurikuler yang cocok dengan pencarian.
@@ -385,7 +395,8 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                <td colspan="6"
+                                    style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
                                     <i class="fas fa-folder-open"
                                         style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
                                     Belum ada agenda kegiatan kesiswaan yang cocok dengan pencarian.

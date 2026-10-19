@@ -105,7 +105,8 @@
         <div class="card datatable-card-wrapper" id="tableDataContainer">
             <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
             <div class="datatable-toolbar">
-                <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <div class="toolbar-entries">
                             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
@@ -122,11 +123,13 @@
                             <option value="">Semua Tingkat</option>
                             <option value="sekolah" {{ $tingkat === 'sekolah' ? 'selected' : '' }}>Sekolah</option>
                             <option value="kecamatan" {{ $tingkat === 'kecamatan' ? 'selected' : '' }}>Kecamatan</option>
-                            <option value="kabupaten_kota" {{ $tingkat === 'kabupaten_kota' ? 'selected' : '' }}>Kabupaten /
+                            <option value="kabupaten_kota" {{ $tingkat === 'kabupaten_kota' ? 'selected' : '' }}>Kabupaten
+                                /
                                 Kota</option>
                             <option value="provinsi" {{ $tingkat === 'provinsi' ? 'selected' : '' }}>Provinsi</option>
                             <option value="nasional" {{ $tingkat === 'nasional' ? 'selected' : '' }}>Nasional</option>
-                            <option value="internasional" {{ $tingkat === 'internasional' ? 'selected' : '' }}>Internasional
+                            <option value="internasional" {{ $tingkat === 'internasional' ? 'selected' : '' }}>
+                                Internasional
                             </option>
                         </select>
 
@@ -155,108 +158,111 @@
             <!-- 2. Konten Datatable Responsive Stack -->
             <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                            Peringkat</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Nama Siswa</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Bidang Lomba / Event</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                            Tingkat</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
-                            Tanggal</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
-                            Pembimbing</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 80px;">
-                            Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($currentList as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px;">
-                                @php
-                                    $pColor = match ($item->peringkat) {
-                                        'juara_1'
-                                            => 'background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4);',
-                                        'juara_2'
-                                            => 'background: rgba(148,163,184,0.15); color: #64748b; border: 1px solid rgba(148,163,184,0.4);',
-                                        'juara_3'
-                                            => 'background: rgba(180,83,9,0.15); color: #b45309; border: 1px solid rgba(180,83,9,0.4);',
-                                        default => 'background: rgba(59,130,246,0.1); color: #2563eb;',
-                                    };
-                                @endphp
-                                <span class="badge"
-                                    style="{{ $pColor }} font-weight: 800;">{{ strtoupper(str_replace('_', ' ', $item->peringkat)) }}</span>
-                            </td>
-                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
-                                {{ $item->siswa?->nama ?: '-' }}
-                                <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">NISN:
-                                    {{ $item->siswa?->nisn ?: '-' }}</div>
-                            </td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">
-                                <strong>{{ $item->bidang_lomba }}</strong>
-                                <div style="font-size: 0.78rem; color: var(--text-muted);">{{ $item->nama_event }}</div>
-                            </td>
-                            <td style="padding: 12px 16px;">
-                                <span
-                                    class="badge badge-outline">{{ strtoupper(str_replace('_', ' ', $item->tingkat)) }}</span>
-                            </td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">
-                                {{ date('d/m/Y', strtotime($item->tanggal_prestasi)) }}
-                            </td>
-                            <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-muted);">
-                                {{ $item->pembimbing?->nama ?: ($item->pembimbing_nama ?: '-') }}
-                            </td>
-                            <td style="padding: 12px 16px; text-align: right;">
-                                <div class="table-actions">
-                                    @if ($item->sertifikat_file)
-                                        <a href="{{ asset($item->sertifikat_file) }}" target="_blank" class="btn-icon"
-                                            title="Lihat Sertifikat">
-                                            <i class="fas fa-file-pdf text-danger"></i>
-                                        </a>
-                                    @endif
-                                    @if ($canDelete)
-                                        <form action="{{ route('dashboard.kesiswaan.prestasi.destroy', $item->id) }}"
-                                            method="POST" style="display:inline;" data-confirm="delete"
-                                            data-name="prestasi ini">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn-icon" title="Hapus Prestasi"><i
-                                                    class="fas fa-trash"></i></button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                Peringkat</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Nama Siswa</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Bidang Lomba / Event</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                Tingkat</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
+                                Tanggal</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                                Pembimbing</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 80px;">
+                                Aksi</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                <i class="fas fa-folder-open"
-                                    style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                                Belum ada catatan prestasi yang cocok dengan pencarian.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 3. Footer Paginasi Terpadu Datatable -->
-        @if ($currentList->hasPages())
-            <div class="datatable-footer">
-                @include('partials.datatable-pagination', ['paginator' => $currentList])
+                    </thead>
+                    <tbody>
+                        @forelse ($currentList as $item)
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 16px;">
+                                    @php
+                                        $pColor = match ($item->peringkat) {
+                                            'juara_1'
+                                                => 'background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.4);',
+                                            'juara_2'
+                                                => 'background: rgba(148,163,184,0.15); color: #64748b; border: 1px solid rgba(148,163,184,0.4);',
+                                            'juara_3'
+                                                => 'background: rgba(180,83,9,0.15); color: #b45309; border: 1px solid rgba(180,83,9,0.4);',
+                                            default => 'background: rgba(59,130,246,0.1); color: #2563eb;',
+                                        };
+                                    @endphp
+                                    <span class="badge"
+                                        style="{{ $pColor }} font-weight: 800;">{{ strtoupper(str_replace('_', ' ', $item->peringkat)) }}</span>
+                                </td>
+                                <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
+                                    {{ $item->siswa?->nama ?: '-' }}
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">
+                                        NISN:
+                                        {{ $item->siswa?->nisn ?: '-' }}</div>
+                                </td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                    <strong>{{ $item->bidang_lomba }}</strong>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted);">{{ $item->nama_event }}
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 16px;">
+                                    <span
+                                        class="badge badge-outline">{{ strtoupper(str_replace('_', ' ', $item->tingkat)) }}</span>
+                                </td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                    {{ date('d/m/Y', strtotime($item->tanggal_prestasi)) }}
+                                </td>
+                                <td style="padding: 12px 16px; font-size: 0.82rem; color: var(--text-muted);">
+                                    {{ $item->pembimbing?->nama ?: ($item->pembimbing_nama ?: '-') }}
+                                </td>
+                                <td style="padding: 12px 16px; text-align: right;">
+                                    <div class="table-actions">
+                                        @if ($item->sertifikat_file)
+                                            <a href="{{ asset($item->sertifikat_file) }}" target="_blank"
+                                                class="btn-icon" title="Lihat Sertifikat">
+                                                <i class="fas fa-file-pdf text-danger"></i>
+                                            </a>
+                                        @endif
+                                        @if ($canDelete)
+                                            <form action="{{ route('dashboard.kesiswaan.prestasi.destroy', $item->id) }}"
+                                                method="POST" style="display:inline;" data-confirm="delete"
+                                                data-name="prestasi ini">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn-icon" title="Hapus Prestasi"><i
+                                                        class="fas fa-trash"></i></button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7"
+                                    style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                    <i class="fas fa-folder-open"
+                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                    Belum ada catatan prestasi yang cocok dengan pencarian.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
-    </div>
+
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if ($currentList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $currentList])
+                </div>
+            @endif
+        </div>
     @elseif ($activeTab === 'rekap')
         <!-- TAB 3: REKAPITULASI PRESTASI -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
