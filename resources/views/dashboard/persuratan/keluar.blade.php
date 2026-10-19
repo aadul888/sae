@@ -252,544 +252,528 @@
             </div>
         </div>
 
-        <!-- 5. Toolbar & Filter Standar SAE -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select">
-                            @foreach ([10, 15, 25, 50, 100] as $n)
-                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
-                                    {{ $n }}</option>
-                            @endforeach
-                        </select>
-                        <span>entri</span>
+        <!-- Unified Datatable Surat Keluar (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
+                                        {{ $n }}</option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        @if (($tab ?? '') !== 'spt' && ($tab ?? '') !== 'template')
+                            <select id="filterKodeIndeks" name="kode_indeks" class="toolbar-filter-select"
+                                style="height: 38px;">
+                                <option value="">Semua Indeks</option>
+                                @foreach ($indeksList as $idx)
+                                    <option value="{{ $idx->kode }}"
+                                        {{ ($kodeIndeks ?? '') === $idx->kode ? 'selected' : '' }}>
+                                        {{ $idx->kode }} - {{ $idx->judul }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <select id="filterStatus" name="status" class="toolbar-filter-select"
+                                style="height: 38px;">
+                                <option value="">Semua Status</option>
+                                <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai /
+                                    Terbit
+                                </option>
+                                <option value="draf" {{ ($status ?? '') === 'draf' ? 'selected' : '' }}>Draf</option>
+                                <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>
+                                    Diarsipkan
+                                </option>
+                            </select>
+                        @endif
+
+                        @if (!empty($q) || !empty($status) || !empty($kodeIndeks))
+                            <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => $tab ?? 'keluar']) }}"
+                                class="btn btn-outline btn-reset-filter"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter" data-live-reset>
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
                     </div>
 
-                    @if (($tab ?? '') !== 'spt' && ($tab ?? '') !== 'template')
-                        <select id="filterKodeIndeks" name="kode_indeks" class="toolbar-filter-select">
-                            <option value="">Semua Indeks</option>
-                            @foreach ($indeksList as $idx)
-                                <option value="{{ $idx->kode }}"
-                                    {{ ($kodeIndeks ?? '') === $idx->kode ? 'selected' : '' }}>
-                                    {{ $idx->kode }} - {{ $idx->judul }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        <select id="filterStatus" name="status" class="toolbar-filter-select">
-                            <option value="">Semua Status</option>
-                            <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai / Terbit
-                            </option>
-                            <option value="draf" {{ ($status ?? '') === 'draf' ? 'selected' : '' }}>Draf</option>
-                            <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan
-                            </option>
-                        </select>
-                    @endif
-
-                    @if (!empty($q) || !empty($status) || !empty($kodeIndeks))
-                        <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => $tab ?? 'keluar']) }}"
-                            class="btn btn-outline btn-reset-filter" style="padding: 7px 12px; font-size: 0.84rem;"
-                            title="Reset filter" data-live-reset>
-                            <i class="fas fa-undo"></i>
-                        </a>
-                    @endif
-                </div>
-
-                <div class="live-search-wrap">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" name="q"
-                        placeholder="{{ ($tab ?? '') === 'spt' ? 'Cari nomor SPT, kegiatan, tujuan...' : 'Cari nomor surat, perihal, tujuan...' }}"
-                        value="{{ $q ?? '' }}" autocomplete="off">
-                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                        title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="liveSearch" name="q"
+                            placeholder="{{ ($tab ?? '') === 'spt' ? 'Cari nomor SPT, kegiatan, tujuan...' : 'Cari nomor surat, perihal, tujuan...' }}"
+                            value="{{ $q ?? '' }}" autocomplete="off">
+                        <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                            title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        @if (($tab ?? '') === 'spt')
-            <!-- Container Datatable Responsive-Stack: Surat Perintah Tugas (SPT) -->
-            <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
-                                No</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Nomor SPT &amp; Anggaran</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Kegiatan &amp; Lokasi</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Waktu Penugasan</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                GTK Yang Ditugaskan</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
-                                Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($items as $idx => $spt)
-                            @php
-                                $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
-                                $assignedGtk = isset($allGtk) ? $allGtk->whereIn('ptk_id', $ptkIds) : collect();
-                            @endphp
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px; text-align: center; font-size: 0.88rem; color: var(--text-muted);"
-                                    data-label="No">
-                                    {{ $items->firstItem() + $idx }}
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="Nomor SPT">
-                                    <div
-                                        style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
-                                        {{ $spt->nomor_spt }}</div>
-                                    <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
-                                        Beban: <span class="badge-compact"
-                                            style="background: rgba(16,185,129,0.1); color: #10b981;">{{ $spt->beban_anggaran }}</span>
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="Kegiatan & Lokasi">
-                                    <div style="font-weight: 600; color: var(--text-color); font-size: 0.85rem;">
-                                        {{ $spt->nama_kegiatan }}</div>
-                                    <div style="font-size: 0.76rem; color: var(--text-muted);">
-                                        <i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $spt->lokasi_tujuan }}
-                                    </div>
-                                    @if (!empty($spt->dasar_penugasan))
+            <!-- 2. Konten Datatable Sesuai Tab Aktif -->
+            @if (($tab ?? '') === 'spt')
+                <!-- Container Datatable Responsive-Stack: Surat Perintah Tugas (SPT) -->
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
+                                    No</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Nomor SPT &amp; Anggaran</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Kegiatan &amp; Lokasi</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Waktu Penugasan</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    GTK Yang Ditugaskan</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($items as $idx => $spt)
+                                @php
+                                    $ptkIds = json_decode($spt->daftar_ptk_id ?? '[]', true) ?: [];
+                                    $assignedGtk = isset($allGtk) ? $allGtk->whereIn('ptk_id', $ptkIds) : collect();
+                                @endphp
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 16px; text-align: center; font-size: 0.88rem; color: var(--text-muted);"
+                                        data-label="No">
+                                        {{ $items->firstItem() + $idx }}
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Nomor SPT">
                                         <div
-                                            style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; font-style: italic;">
-                                            Dasar: {{ \Illuminate\Support\Str::limit($spt->dasar_penugasan, 60) }}
+                                            style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                            {{ $spt->nomor_spt }}</div>
+                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 2px;">
+                                            Beban: <span class="badge-compact"
+                                                style="background: rgba(16,185,129,0.1); color: #10b981;">{{ $spt->beban_anggaran }}</span>
                                         </div>
-                                    @endif
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="Waktu">
-                                    <div style="font-size: 0.82rem; color: var(--text-color);">
-                                        <i class="far fa-calendar-alt text-muted me-1"></i>
-                                        {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d M Y') }} s/d
-                                        {{ \Carbon\Carbon::parse($spt->tanggal_kembali)->translatedFormat('d M Y') }}
-                                    </div>
-                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
-                                        Durasi: <strong>{{ $spt->lama_hari }} Hari</strong>
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="GTK Ditugaskan">
-                                    <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                                        @forelse($assignedGtk as $g)
-                                            <span class="badge-compact"
-                                                style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.76rem;">
-                                                <i class="fas fa-user-check me-1"></i> {{ $g->nama }}
-                                            </span>
-                                        @empty
-                                            <span
-                                                style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">-</span>
-                                        @endforelse
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
-                                    <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
-                                        <a href="{{ route('dashboard.persuratan.keluar.spt.cetak', $spt->id) }}"
-                                            target="_blank" class="btn-icon" style="color: #2563eb;"
-                                            title="Cetak Lembar SPT Resmi (A4 Ber-KOP)">
-                                            <i class="fas fa-print"></i>
-                                        </a>
-                                        @if ($canDelete)
-                                            <form action="{{ route('dashboard.persuratan.keluar.spt.delete', $spt->id) }}"
-                                                method="POST" style="display: inline;" data-confirm="delete"
-                                                data-name="{{ $spt->nomor_spt }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-icon text-danger" title="Hapus SPT">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-file-contract mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
-                                    <div>Belum ada Surat Perintah Tugas (SPT) yang diterbitkan.</div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        @elseif (($tab ?? '') === 'template')
-            <!-- Container Datatable: Surat Keluar dari Template Autocrat -->
-            <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
-                                No</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Nomor Surat &amp; Indeks</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Jenis Template &amp; Perihal</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Tujuan Penerima</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Tanggal &amp; Penandatangan</th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
-                                Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($items as $idx => $tmpl)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px; text-align: center; font-size: 0.88rem; color: var(--text-muted);"
-                                    data-label="No">
-                                    {{ $items->firstItem() + $idx }}
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="Nomor Surat">
-                                    <div
-                                        style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
-                                        {{ $tmpl->nomor_surat }}</div>
-                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
-                                        Indeks: <span class="badge-compact"
-                                            style="background: rgba(99,102,241,0.1); color: var(--primary);">{{ $tmpl->kode_indeks ?: '-' }}</span>
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="Template &amp; Perihal">
-                                    <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
-                                        {{ $tmpl->perihal }}</div>
-                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
-                                        <span class="badge-compact"
-                                            style="background: rgba(16,185,129,0.1); color: #10b981; text-transform: uppercase;">
-                                            <i class="fas fa-wand-magic-sparkles me-1"></i>
-                                            {{ ucfirst($tmpl->template_type) }}
-                                        </span>
-                                        @if ($tmpl->lampiran && $tmpl->lampiran !== '-')
-                                            <span style="margin-left: 6px;">Lampiran: {{ $tmpl->lampiran }}</span>
-                                        @endif
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="Tujuan">
-                                    <div style="font-weight: 600; color: var(--text-color); font-size: 0.84rem;">
-                                        <i class="fas fa-location-arrow text-success me-1"></i>
-                                        {{ $tmpl->tujuan_penerima }}
-                                    </div>
-                                    <div style="font-size: 0.74rem; color: var(--text-muted);">
-                                        {{ $tmpl->tujuan_lokasi ?: 'Di Tempat' }}
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px;" data-label="Tanggal &amp; Pejabat">
-                                    <div style="font-size: 0.82rem; color: var(--text-color);">
-                                        <i class="far fa-calendar-alt text-muted me-1"></i>
-                                        {{ \Carbon\Carbon::parse($tmpl->tanggal_surat)->translatedFormat('d F Y') }}
-                                    </div>
-                                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
-                                        TTD: {{ $tmpl->pejabat_nama ?: 'Kepala Sekolah' }}
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
-                                    <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
-                                        <a href="{{ route('dashboard.persuratan.keluar.template.cetak', $tmpl->id) }}"
-                                            target="_blank" class="btn-icon" style="color: #2563eb;"
-                                            title="Cetak Lembar Resmi A4 (Print / PDF)">
-                                            <i class="fas fa-print"></i>
-                                        </a>
-                                        <a href="{{ url('/v/doc/' . $tmpl->doc_id) }}" target="_blank"
-                                            class="btn-icon text-info" title="Halaman Verifikasi Publik (QR Code)">
-                                            <i class="fas fa-qrcode"></i>
-                                        </a>
-                                        @if ($canDelete)
-                                            <form
-                                                action="{{ route('dashboard.persuratan.keluar.template.delete', $tmpl->id) }}"
-                                                method="POST" style="display: inline;" data-confirm="delete"
-                                                data-name="{{ $tmpl->nomor_surat }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-icon text-danger"
-                                                    title="Hapus Dokumen Template">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-wand-magic-sparkles mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
-                                    <div>Belum ada surat keluar yang dibuat dari template Autocrat.</div>
-                                    @if ($canCreate)
-                                        <button type="button" class="btn btn-outline btn-sm mt-3"
-                                            onclick="document.getElementById('btnOpenModalTemplate')?.click()">
-                                            <i class="fas fa-plus me-1"></i> Buat Surat Sekarang
-                                        </button>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        @else
-            <!-- Container Datatable Responsive-Stack Standar SAE -->
-            <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                            <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}"
-                                data-sort="nomor_surat"
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                No. Surat &amp; Indeks
-                                <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                            </th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Perihal &amp; Tujuan Penerima
-                            </th>
-                            <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}"
-                                data-sort="tanggal_surat"
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
-                                Tgl Surat
-                                <span class="sort-icon">{!! ($sort ?? '') === 'tanggal_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                            </th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
-                                Arsip HDD
-                            </th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
-                                Status
-                            </th>
-                            <th
-                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
-                                Aksi
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($items as $item)
-                            @php
-                                $suratKet = $item->suratKeterangan;
-                                $isKet = !empty($suratKet);
-                                $jenisKet = $suratKet?->jenis_surat;
-                                $labelKet = match ($jenisKet) {
-                                    'kelakuan_baik' => 'Berkelakuan Baik',
-                                    'panggilan_ortu' => 'Panggilan Ortu',
-                                    'rekomendasi' => 'Rekomendasi',
-                                    default => 'Siswa Aktif',
-                                };
-                                $badgeKetStyle = match ($jenisKet) {
-                                    'kelakuan_baik' => 'background: rgba(16,185,129,0.1); color: #10b981;',
-                                    'panggilan_ortu' => 'background: rgba(239,68,68,0.1); color: #ef4444;',
-                                    'rekomendasi' => 'background: rgba(245,158,11,0.1); color: #f59e0b;',
-                                    default => 'background: rgba(99,102,241,0.1); color: var(--primary);',
-                                };
-                            @endphp
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 16px;">
-                                    <div
-                                        style="font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
-                                        {{ $item->nomor_surat }}
-                                    </div>
-                                    <div
-                                        style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
-                                        <span class="badge-compact"
-                                            style="background: rgba(16,185,129,0.1); color: #10b981;">Idx:
-                                            {{ $item->kode_indeks ?: '-' }}</span>
-                                        @if ($isKet)
-                                            <span class="badge-compact"
-                                                style="{{ $badgeKetStyle }}">{{ $labelKet }}</span>
-                                        @endif
-                                        @if ($item->sarprasAset)
-                                            <span class="badge-compact"
-                                                style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.25);">
-                                                <i class="fas fa-boxes-stacked me-1"></i> Aset:
-                                                {{ $item->sarprasAset->kode_aset }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </td>
-
-                                <td style="padding: 12px 16px;">
-                                    <div
-                                        style="font-weight: 600; font-size: 0.84rem; color: var(--text-color); margin-bottom: 2px;">
-                                        {{ $item->perihal }}
-                                    </div>
-                                    <div style="font-size: 0.76rem; color: var(--text-muted);">
-                                        <i class="fas fa-location-arrow text-success me-1"></i> Kepada:
-                                        <strong>{{ $item->tujuan_penerima ?: '-' }}</strong>
-                                    </div>
-                                    @if ($item->sarprasAset)
-                                        <div style="font-size: 0.73rem; color: #d97706; margin-top: 3px;">
-                                            <i class="fas fa-box me-1"></i> Barang:
-                                            <strong>{{ $item->sarprasAset->nama_barang }}</strong>
-                                            ({{ $item->sarprasAset->merk_tipe ?: 'Merk -' }} &bull; Kondisi:
-                                            {{ ucfirst($item->sarprasAset->kondisi) }})
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Kegiatan & Lokasi">
+                                        <div style="font-weight: 600; color: var(--text-color); font-size: 0.85rem;">
+                                            {{ $spt->nama_kegiatan }}</div>
+                                        <div style="font-size: 0.76rem; color: var(--text-muted);">
+                                            <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                            {{ $spt->lokasi_tujuan }}
                                         </div>
-                                    @endif
-                                    @if ($isKet && $suratKet->siswa)
-                                        <div style="font-size: 0.73rem; color: var(--primary); margin-top: 3px;">
-                                            <i class="fas fa-user-graduate me-1"></i> Siswa:
-                                            <strong>{{ $suratKet->siswa->nama }}</strong> (NISN:
-                                            {{ $suratKet->siswa->nisn ?: '-' }})
+                                        @if (!empty($spt->dasar_penugasan))
+                                            <div
+                                                style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; font-style: italic;">
+                                                Dasar: {{ \Illuminate\Support\Str::limit($spt->dasar_penugasan, 60) }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Waktu">
+                                        <div style="font-size: 0.82rem; color: var(--text-color);">
+                                            <i class="far fa-calendar-alt text-muted me-1"></i>
+                                            {{ \Carbon\Carbon::parse($spt->tanggal_berangkat)->translatedFormat('d M Y') }}
+                                            s/d
+                                            {{ \Carbon\Carbon::parse($spt->tanggal_kembali)->translatedFormat('d M Y') }}
                                         </div>
-                                    @endif
-                                </td>
-
-                                <td style="padding: 12px 16px;">
-                                    <div style="font-size: 0.8rem; color: var(--text-color);">
-                                        <i class="far fa-calendar-alt text-muted me-1"></i>
-                                        {{ date('d/m/Y', strtotime($item->tanggal_surat)) }}
-                                    </div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
-                                        Oleh: {{ $item->created_by ?: 'Petugas' }}
-                                    </div>
-                                </td>
-
-                                <td style="padding: 12px 16px; text-align: center;">
-                                    @if (!empty($item->file_path))
-                                        <button type="button" class="btn-icon text-primary btn-view-dokumen"
-                                            title="Pratinjau Berkas dari HDD"
-                                            data-view-url="{{ route('dashboard.persuratan.dokumen.view', $item->id) }}"
-                                            data-download-url="{{ route('dashboard.persuratan.dokumen.download', $item->id) }}"
-                                            data-title="Surat Keluar: {{ $item->nomor_surat }} - {{ $item->perihal }}"
-                                            data-mime="{{ str_contains($item->file_path, '.pdf') ? 'application/pdf' : 'image/jpeg' }}">
-                                            <i class="fas fa-file-pdf" style="font-size: 1.1rem; color: #ef4444;"></i>
-                                        </button>
-                                    @else
-                                        <span style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">
-                                            Tanpa Berkas
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <td style="padding: 12px 16px; text-align: center;">
-                                    <span
-                                        class="badge-compact {{ $item->status === 'selesai' ? 'badge-success' : ($item->status === 'draf' ? 'badge-warning' : 'badge-secondary') }}">
-                                        {{ $item->status === 'selesai' ? 'Terbit' : ucfirst($item->status) }}
-                                    </span>
-                                </td>
-
-                                <td style="padding: 12px 16px; text-align: center;">
-                                    <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
-                                        <!-- Jika Surat Keterangan Siswa: Tombol Cetak Resmi -->
-                                        @if ($isKet && $suratKet)
-                                            <a href="{{ route('dashboard.persuratan.keterangan.cetak', $suratKet->id) }}"
-                                                target="_blank" class="btn-icon text-primary"
-                                                title="Cetak Lembar Resmi Surat Keterangan (Kop &amp; QR Code)">
+                                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                            Durasi: <strong>{{ $spt->lama_hari }} Hari</strong>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="GTK Ditugaskan">
+                                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                            @forelse($assignedGtk as $g)
+                                                <span class="badge-compact"
+                                                    style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.76rem;">
+                                                    <i class="fas fa-user-check me-1"></i> {{ $g->nama }}
+                                                </span>
+                                            @empty
+                                                <span
+                                                    style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">-</span>
+                                            @endforelse
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
+                                        <div class="table-actions"
+                                            style="display: flex; gap: 4px; justify-content: center;">
+                                            <a href="{{ route('dashboard.persuratan.keluar.spt.cetak', $spt->id) }}"
+                                                target="_blank" class="btn-icon" style="color: #2563eb;"
+                                                title="Cetak Lembar SPT Resmi (A4 Ber-KOP)">
                                                 <i class="fas fa-print"></i>
                                             </a>
-                                            <a href="{{ url('/v/doc/' . $suratKet->doc_id) }}" target="_blank"
-                                                class="btn-icon text-info" title="Lihat Halaman Verifikasi Publik (QR)">
+                                            @if ($canDelete)
+                                                <form
+                                                    action="{{ route('dashboard.persuratan.keluar.spt.delete', $spt->id) }}"
+                                                    method="POST" style="display: inline;" data-confirm="delete"
+                                                    data-name="{{ $spt->nomor_spt }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-icon text-danger"
+                                                        title="Hapus SPT">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6"
+                                        style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                        <i class="fas fa-file-contract mb-2"
+                                            style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                        <div>Belum ada Surat Perintah Tugas (SPT) yang diterbitkan.</div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            @elseif (($tab ?? '') === 'template')
+                <!-- Container Datatable: Surat Keluar dari Template Autocrat -->
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                    No</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Nomor Surat &amp; Indeks</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Jenis Template &amp; Perihal</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Tujuan Penerima</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Tanggal &amp; Penandatangan</th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($items as $idx => $tmpl)
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 16px; text-align: center; font-size: 0.88rem; color: var(--text-muted);"
+                                        data-label="No">
+                                        {{ $items->firstItem() + $idx }}
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Nomor Surat">
+                                        <div
+                                            style="font-family: monospace; font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                            {{ $tmpl->nomor_surat }}</div>
+                                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                            Indeks: <span class="badge-compact"
+                                                style="background: rgba(99,102,241,0.1); color: var(--primary);">{{ $tmpl->kode_indeks ?: '-' }}</span>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Template &amp; Perihal">
+                                        <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                            {{ $tmpl->perihal }}</div>
+                                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                            <span class="badge-compact"
+                                                style="background: rgba(16,185,129,0.1); color: #10b981; text-transform: uppercase;">
+                                                <i class="fas fa-wand-magic-sparkles me-1"></i>
+                                                {{ ucfirst($tmpl->template_type) }}
+                                            </span>
+                                            @if ($tmpl->lampiran && $tmpl->lampiran !== '-')
+                                                <span style="margin-left: 6px;">Lampiran: {{ $tmpl->lampiran }}</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Tujuan">
+                                        <div style="font-weight: 600; color: var(--text-color); font-size: 0.84rem;">
+                                            <i class="fas fa-location-arrow text-success me-1"></i>
+                                            {{ $tmpl->tujuan_penerima }}
+                                        </div>
+                                        <div style="font-size: 0.74rem; color: var(--text-muted);">
+                                            {{ $tmpl->tujuan_lokasi ?: 'Di Tempat' }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px;" data-label="Tanggal &amp; Pejabat">
+                                        <div style="font-size: 0.82rem; color: var(--text-color);">
+                                            <i class="far fa-calendar-alt text-muted me-1"></i>
+                                            {{ \Carbon\Carbon::parse($tmpl->tanggal_surat)->translatedFormat('d F Y') }}
+                                        </div>
+                                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                                            TTD: {{ $tmpl->pejabat_nama ?: 'Kepala Sekolah' }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
+                                        <div class="table-actions"
+                                            style="display: flex; gap: 4px; justify-content: center;">
+                                            <a href="{{ route('dashboard.persuratan.keluar.template.cetak', $tmpl->id) }}"
+                                                target="_blank" class="btn-icon" style="color: #2563eb;"
+                                                title="Cetak Lembar Resmi A4 (Print / PDF)">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                            <a href="{{ url('/v/doc/' . $tmpl->doc_id) }}" target="_blank"
+                                                class="btn-icon text-info" title="Halaman Verifikasi Publik (QR Code)">
                                                 <i class="fas fa-qrcode"></i>
                                             </a>
-                                        @endif
-
-                                        @if ($canUpdate)
-                                            <button type="button" class="btn-icon btn-edit-keluar"
-                                                title="Edit Surat Keluar" data-id="{{ $item->id }}"
-                                                data-nomor="{{ $item->nomor_surat }}"
-                                                data-indeks="{{ $item->kode_indeks }}"
-                                                data-perihal="{{ $item->perihal }}"
-                                                data-tujuan="{{ $item->tujuan_penerima }}"
-                                                data-tgl-surat="{{ $item->tanggal_surat }}"
-                                                data-aset-id="{{ $item->sarpras_aset_id }}"
-                                                data-status="{{ $item->status }}"
-                                                data-keterangan="{{ $item->keterangan }}"
-                                                data-file-path="{{ $item->file_path }}"
-                                                data-file-name="{{ $item->file_name_original }}">
-                                                <i class="fas fa-edit"></i>
+                                            @if ($canDelete)
+                                                <form
+                                                    action="{{ route('dashboard.persuratan.keluar.template.delete', $tmpl->id) }}"
+                                                    method="POST" style="display: inline;" data-confirm="delete"
+                                                    data-name="{{ $tmpl->nomor_surat }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-icon text-danger"
+                                                        title="Hapus Dokumen Template">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6"
+                                        style="padding: 30px; text-align: center; color: var(--text-muted);">
+                                        <i class="fas fa-wand-magic-sparkles mb-2"
+                                            style="font-size: 1.8rem; opacity: 0.5; display: block;"></i>
+                                        <div>Belum ada surat keluar yang dibuat dari template Autocrat.</div>
+                                        @if ($canCreate)
+                                            <button type="button" class="btn btn-outline btn-sm mt-3"
+                                                onclick="document.getElementById('btnOpenModalTemplate')?.click()">
+                                                <i class="fas fa-plus me-1"></i> Buat Surat Sekarang
                                             </button>
                                         @endif
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <!-- Container Datatable Responsive-Stack Standar SAE -->
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}"
+                                    data-sort="nomor_surat"
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    No. Surat &amp; Indeks
+                                    <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Perihal &amp; Tujuan Penerima
+                                </th>
+                                <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}"
+                                    data-sort="tanggal_surat"
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                    Tgl Surat
+                                    <span class="sort-icon">{!! ($sort ?? '') === 'tanggal_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
+                                    Arsip HDD
+                                </th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
+                                    Status
+                                </th>
+                                <th
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
+                                    Aksi
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($items as $item)
+                                @php
+                                    $suratKet = $item->suratKeterangan;
+                                    $isKet = !empty($suratKet);
+                                    $jenisKet = $suratKet?->jenis_surat;
+                                    $labelKet = match ($jenisKet) {
+                                        'kelakuan_baik' => 'Berkelakuan Baik',
+                                        'panggilan_ortu' => 'Panggilan Ortu',
+                                        'rekomendasi' => 'Rekomendasi',
+                                        default => 'Siswa Aktif',
+                                    };
+                                    $badgeKetStyle = match ($jenisKet) {
+                                        'kelakuan_baik' => 'background: rgba(16,185,129,0.1); color: #10b981;',
+                                        'panggilan_ortu' => 'background: rgba(239,68,68,0.1); color: #ef4444;',
+                                        'rekomendasi' => 'background: rgba(245,158,11,0.1); color: #f59e0b;',
+                                        default => 'background: rgba(99,102,241,0.1); color: var(--primary);',
+                                    };
+                                @endphp
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 16px;">
+                                        <div
+                                            style="font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
+                                            {{ $item->nomor_surat }}
+                                        </div>
+                                        <div
+                                            style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
+                                            <span class="badge-compact"
+                                                style="background: rgba(16,185,129,0.1); color: #10b981;">Idx:
+                                                {{ $item->kode_indeks ?: '-' }}</span>
+                                            @if ($isKet)
+                                                <span class="badge-compact"
+                                                    style="{{ $badgeKetStyle }}">{{ $labelKet }}</span>
+                                            @endif
+                                            @if ($item->sarprasAset)
+                                                <span class="badge-compact"
+                                                    style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.25);">
+                                                    <i class="fas fa-boxes-stacked me-1"></i> Aset:
+                                                    {{ $item->sarprasAset->kode_aset }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
 
-                                        @if ($canDelete)
-                                            <form action="{{ route('dashboard.persuratan.keluar.destroy', $item->id) }}"
-                                                method="POST" data-confirm="delete"
-                                                data-name="Surat Keluar No. {{ $item->nomor_surat }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-icon text-danger"
-                                                    title="Hapus Surat Keluar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                    <td style="padding: 12px 16px;">
+                                        <div
+                                            style="font-weight: 600; font-size: 0.84rem; color: var(--text-color); margin-bottom: 2px;">
+                                            {{ $item->perihal }}
+                                        </div>
+                                        <div style="font-size: 0.76rem; color: var(--text-muted);">
+                                            <i class="fas fa-location-arrow text-success me-1"></i> Kepada:
+                                            <strong>{{ $item->tujuan_penerima ?: '-' }}</strong>
+                                        </div>
+                                        @if ($item->sarprasAset)
+                                            <div style="font-size: 0.73rem; color: #d97706; margin-top: 3px;">
+                                                <i class="fas fa-box me-1"></i> Barang:
+                                                <strong>{{ $item->sarprasAset->nama_barang }}</strong>
+                                                ({{ $item->sarprasAset->merk_tipe ?: 'Merk -' }} &bull; Kondisi:
+                                                {{ ucfirst($item->sarprasAset->kondisi) }})
+                                            </div>
                                         @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6"
-                                    style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                    <i class="fas fa-paper-plane"
-                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                                    Tidak ada data surat keluar yang sesuai kriteria pencarian.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        @endif
+                                        @if ($isKet && $suratKet->siswa)
+                                            <div style="font-size: 0.73rem; color: var(--primary); margin-top: 3px;">
+                                                <i class="fas fa-user-graduate me-1"></i> Siswa:
+                                                <strong>{{ $suratKet->siswa->nama }}</strong> (NISN:
+                                                {{ $suratKet->siswa->nisn ?: '-' }})
+                                            </div>
+                                        @endif
+                                    </td>
 
-        <!-- Paginasi Baku SAE -->
-        @if ($items->hasPages())
-            <div class="custom-pagination">
-                @if ($items->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $items->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
+                                    <td style="padding: 12px 16px;">
+                                        <div style="font-size: 0.8rem; color: var(--text-color);">
+                                            <i class="far fa-calendar-alt text-muted me-1"></i>
+                                            {{ date('d/m/Y', strtotime($item->tanggal_surat)) }}
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                            Oleh: {{ $item->created_by ?: 'Petugas' }}
+                                        </div>
+                                    </td>
 
-                @php
-                    $cur = $items->currentPage();
-                    $last = $items->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
+                                    <td style="padding: 12px 16px; text-align: center;">
+                                        @if (!empty($item->file_path))
+                                            <button type="button" class="btn-icon text-primary btn-view-dokumen"
+                                                title="Pratinjau Berkas dari HDD"
+                                                data-view-url="{{ route('dashboard.persuratan.dokumen.view', $item->id) }}"
+                                                data-download-url="{{ route('dashboard.persuratan.dokumen.download', $item->id) }}"
+                                                data-title="Surat Keluar: {{ $item->nomor_surat }} - {{ $item->perihal }}"
+                                                data-mime="{{ str_contains($item->file_path, '.pdf') ? 'application/pdf' : 'image/jpeg' }}">
+                                                <i class="fas fa-file-pdf" style="font-size: 1.1rem; color: #ef4444;"></i>
+                                            </button>
+                                        @else
+                                            <span
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">
+                                                Tanpa Berkas
+                                            </span>
+                                        @endif
+                                    </td>
 
-                @if ($from > 1)
-                    <a href="{{ $items->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
+                                    <td style="padding: 12px 16px; text-align: center;">
+                                        <span
+                                            class="badge-compact {{ $item->status === 'selesai' ? 'badge-success' : ($item->status === 'draf' ? 'badge-warning' : 'badge-secondary') }}">
+                                            {{ $item->status === 'selesai' ? 'Terbit' : ucfirst($item->status) }}
+                                        </span>
+                                    </td>
 
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $items->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
+                                    <td style="padding: 12px 16px; text-align: center;">
+                                        <div class="table-actions"
+                                            style="display: flex; gap: 4px; justify-content: center;">
+                                            <!-- Jika Surat Keterangan Siswa: Tombol Cetak Resmi -->
+                                            @if ($isKet && $suratKet)
+                                                <a href="{{ route('dashboard.persuratan.keterangan.cetak', $suratKet->id) }}"
+                                                    target="_blank" class="btn-icon text-primary"
+                                                    title="Cetak Lembar Resmi Surat Keterangan (Kop &amp; QR Code)">
+                                                    <i class="fas fa-print"></i>
+                                                </a>
+                                                <a href="{{ url('/v/doc/' . $suratKet->doc_id) }}" target="_blank"
+                                                    class="btn-icon text-info"
+                                                    title="Lihat Halaman Verifikasi Publik (QR)">
+                                                    <i class="fas fa-qrcode"></i>
+                                                </a>
+                                            @endif
 
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $items->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
+                                            @if ($canUpdate)
+                                                <button type="button" class="btn-icon btn-edit-keluar"
+                                                    title="Edit Surat Keluar" data-id="{{ $item->id }}"
+                                                    data-nomor="{{ $item->nomor_surat }}"
+                                                    data-indeks="{{ $item->kode_indeks }}"
+                                                    data-perihal="{{ $item->perihal }}"
+                                                    data-tujuan="{{ $item->tujuan_penerima }}"
+                                                    data-tgl-surat="{{ $item->tanggal_surat }}"
+                                                    data-aset-id="{{ $item->sarpras_aset_id }}"
+                                                    data-status="{{ $item->status }}"
+                                                    data-keterangan="{{ $item->keterangan }}"
+                                                    data-file-path="{{ $item->file_path }}"
+                                                    data-file-name="{{ $item->file_name_original }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            @endif
 
-                @if ($items->hasMorePages())
-                    <a href="{{ $items->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
-            </div>
-        @endif
+                                            @if ($canDelete)
+                                                <form
+                                                    action="{{ route('dashboard.persuratan.keluar.destroy', $item->id) }}"
+                                                    method="POST" data-confirm="delete"
+                                                    data-name="Surat Keluar No. {{ $item->nomor_surat }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-icon text-danger"
+                                                        title="Hapus Surat Keluar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6"
+                                        style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                        <i class="fas fa-paper-plane"
+                                            style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                        Tidak ada data surat keluar yang sesuai kriteria pencarian.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if ($items->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $items])
+                </div>
+            @endif
+        </div>
 
         <!-- Modal 1: Catat / Edit Surat Keluar Umum -->
         <div class="modal-overlay" id="modalSuratKeluar"

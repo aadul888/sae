@@ -268,189 +268,160 @@
                     @endif
                 </div>
 
-                <!-- Filter & Search Indeks Standar SAE -->
-                <div
-                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                        <div class="toolbar-entries">
-                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                            <select id="perPageSelect" class="per-page-select">
-                                @foreach ([10, 15, 20, 25, 50, 100] as $n)
-                                    <option value="{{ $n }}" {{ ($perPage ?? 20) == $n ? 'selected' : '' }}>
-                                        {{ $n }}</option>
-                                @endforeach
-                            </select>
-                            <span>entri</span>
+                <!-- Unified Datatable Referensi Indeks Surat (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+                <div class="card datatable-card-wrapper" id="tableDataContainer">
+                    <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+                    <div class="datatable-toolbar">
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                <div class="toolbar-entries">
+                                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                                    <select id="perPageSelect" name="perPage" class="per-page-select"
+                                        style="height: 38px;">
+                                        @foreach ([10, 15, 20, 25, 50, 100] as $n)
+                                            <option value="{{ $n }}"
+                                                {{ ($perPage ?? 20) == $n ? 'selected' : '' }}>
+                                                {{ $n }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span>entri</span>
+                                </div>
+
+                                <select id="filterKategori" name="kategori" class="toolbar-filter-select"
+                                    style="height: 38px;">
+                                    <option value="">Semua Kategori</option>
+                                    @foreach ($kategoriList as $kat)
+                                        <option value="{{ $kat }}"
+                                            {{ ($kategoriIndeks ?? '') === $kat ? 'selected' : '' }}>{{ $kat }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @if (!empty($qIndeks) || !empty($kategoriIndeks))
+                                    <a href="{{ route('dashboard.persuratan.pengaturan.index', ['tab' => 'referensi']) }}"
+                                        class="btn btn-outline btn-reset-filter"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                        title="Reset filter" data-live-reset>
+                                        <i class="fas fa-undo"></i>
+                                    </a>
+                                @endif
+                            </div>
+
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" id="liveSearchIndeks" name="q"
+                                    placeholder="Cari kode indeks atau klasifikasi..." value="{{ $qIndeks ?? '' }}"
+                                    autocomplete="off">
+                                <button type="button" id="clearSearchIndeks"
+                                    class="clear-search {{ !empty($qIndeks) ? 'visible' : '' }}" title="Hapus pencarian">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
                         </div>
-
-                        <select id="filterKategori" class="toolbar-filter-select">
-                            <option value="">Semua Kategori</option>
-                            @foreach ($kategoriList as $kat)
-                                <option value="{{ $kat }}"
-                                    {{ ($kategoriIndeks ?? '') === $kat ? 'selected' : '' }}>{{ $kat }}</option>
-                            @endforeach
-                        </select>
-
-                        @if (!empty($qIndeks) || !empty($kategoriIndeks))
-                            <a href="{{ route('dashboard.persuratan.pengaturan.index', ['tab' => 'referensi']) }}"
-                                class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;"
-                                title="Reset filter">
-                                <i class="fas fa-undo"></i>
-                            </a>
-                        @endif
                     </div>
 
-                    <div class="live-search-wrap">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="liveSearchIndeks" placeholder="Cari kode indeks atau klasifikasi..."
-                            value="{{ $qIndeks ?? '' }}" autocomplete="off">
-                        <button type="button" id="clearSearchIndeks"
-                            class="clear-search {{ !empty($qIndeks) ? 'visible' : '' }}" title="Hapus pencarian">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tabel Responsive Stack Standar SAE -->
-                <div class="card table-responsive-stack" id="tableDataContainer"
-                    style="padding: 0; margin-bottom: 16px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden;">
-                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px;">
-                                    Kode</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Perihal / Klasifikasi</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                                    Kategori</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Keterangan</th>
-                                <th
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 90px; text-align: center;">
-                                    Status</th>
-                                @if ($canUpdate)
+                    <!-- 2. Tabel Responsive Stack Standar SAE -->
+                    <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                        <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                    <th
+                                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px;">
+                                        Kode</th>
+                                    <th
+                                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                        Perihal / Klasifikasi</th>
+                                    <th
+                                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                        Kategori</th>
+                                    <th
+                                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                        Keterangan</th>
                                     <th
                                         style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 90px; text-align: center;">
-                                        Aksi</th>
-                                @endif
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($indeksList as $idx)
-                                <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td
-                                        style="padding: 12px 16px; font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--primary);">
-                                        {{ $idx->kode }}
-                                    </td>
-                                    <td
-                                        style="padding: 12px 16px; font-weight: 600; font-size: 0.84rem; color: var(--text-color);">
-                                        {{ $idx->judul }}
-                                    </td>
-                                    <td style="padding: 12px 16px;">
-                                        <span class="badge-compact"
-                                            style="background: rgba(99,102,241,0.1); color: var(--primary);">
-                                            {{ $idx->kategori }}
-                                        </span>
-                                    </td>
-                                    <td style="padding: 12px 16px; font-size: 0.78rem; color: var(--text-muted);">
-                                        {{ $idx->keterangan ?: '-' }}
-                                    </td>
-                                    <td style="padding: 12px 16px; text-align: center;">
-                                        <span
-                                            class="badge-compact {{ $idx->is_active ? 'badge-success' : 'badge-danger' }}">
-                                            {{ $idx->is_active ? 'Aktif' : 'Nonaktif' }}
-                                        </span>
-                                    </td>
+                                        Status</th>
                                     @if ($canUpdate)
-                                        <td style="padding: 12px 16px; text-align: center;">
-                                            <div class="table-actions"
-                                                style="display: flex; gap: 4px; justify-content: center;">
-                                                <button type="button" class="btn-icon btn-edit-indeks"
-                                                    title="Edit Kode Indeks" data-id="{{ $idx->id }}"
-                                                    data-kode="{{ $idx->kode }}" data-judul="{{ $idx->judul }}"
-                                                    data-kategori="{{ $idx->kategori }}"
-                                                    data-keterangan="{{ $idx->keterangan }}"
-                                                    data-active="{{ $idx->is_active ? '1' : '0' }}">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <form
-                                                    action="{{ route('dashboard.persuratan.pengaturan.indeks.destroy', $idx->id) }}"
-                                                    method="POST" data-confirm="delete"
-                                                    data-name="Kode Indeks {{ $idx->kode }} ({{ $idx->judul }})">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn-icon text-danger"
-                                                        title="Hapus Indeks">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
+                                        <th
+                                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 90px; text-align: center;">
+                                            Aksi</th>
                                     @endif
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6"
-                                        style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
-                                        <i class="fas fa-tags"
-                                            style="font-size: 2rem; opacity: 0.3; margin-bottom: 8px; display: block;"></i>
-                                        Tidak ada kode indeks surat yang ditemukan.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Paginasi Baku SAE -->
-                @if ($indeksList->hasPages())
-                    <div class="custom-pagination">
-                        @if ($indeksList->onFirstPage())
-                            <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                        @else
-                            <a href="{{ $indeksList->appends(['tab' => 'referensi'])->previousPageUrl() }}"
-                                class="page-btn" title="Sebelumnya"><i class="fas fa-chevron-left"></i></a>
-                        @endif
-
-                        @php
-                            $cur = $indeksList->currentPage();
-                            $last = $indeksList->lastPage();
-                            $from = max(1, $cur - 2);
-                            $to = min($last, $cur + 2);
-                        @endphp
-
-                        @if ($from > 1)
-                            <a href="{{ $indeksList->appends(['tab' => 'referensi'])->url(1) }}" class="page-btn">1</a>
-                            @if ($from > 2)
-                                <span class="page-info">&hellip;</span>
-                            @endif
-                        @endif
-
-                        @for ($i = $from; $i <= $to; $i++)
-                            <a href="{{ $indeksList->appends(['tab' => 'referensi'])->url($i) }}"
-                                class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                        @endfor
-
-                        @if ($to < $last)
-                            @if ($to < $last - 1)
-                                <span class="page-info">&hellip;</span>
-                            @endif
-                            <a href="{{ $indeksList->appends(['tab' => 'referensi'])->url($last) }}"
-                                class="page-btn">{{ $last }}</a>
-                        @endif
-
-                        @if ($indeksList->hasMorePages())
-                            <a href="{{ $indeksList->appends(['tab' => 'referensi'])->nextPageUrl() }}" class="page-btn"
-                                title="Selanjutnya"><i class="fas fa-chevron-right"></i></a>
-                        @else
-                            <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                        @endif
+                            </thead>
+                            <tbody>
+                                @forelse ($indeksList as $idx)
+                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                        <td
+                                            style="padding: 12px 16px; font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--primary);">
+                                            {{ $idx->kode }}
+                                        </td>
+                                        <td
+                                            style="padding: 12px 16px; font-weight: 600; font-size: 0.84rem; color: var(--text-color);">
+                                            {{ $idx->judul }}
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <span class="badge-compact"
+                                                style="background: rgba(99,102,241,0.1); color: var(--primary);">
+                                                {{ $idx->kategori }}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px 16px; font-size: 0.78rem; color: var(--text-muted);">
+                                            {{ $idx->keterangan ?: '-' }}
+                                        </td>
+                                        <td style="padding: 12px 16px; text-align: center;">
+                                            <span
+                                                class="badge-compact {{ $idx->is_active ? 'badge-success' : 'badge-danger' }}">
+                                                {{ $idx->is_active ? 'Aktif' : 'Nonaktif' }}
+                                            </span>
+                                        </td>
+                                        @if ($canUpdate)
+                                            <td style="padding: 12px 16px; text-align: center;">
+                                                <div class="table-actions"
+                                                    style="display: flex; gap: 4px; justify-content: center;">
+                                                    <button type="button" class="btn-icon btn-edit-indeks"
+                                                        title="Edit Kode Indeks" data-id="{{ $idx->id }}"
+                                                        data-kode="{{ $idx->kode }}" data-judul="{{ $idx->judul }}"
+                                                        data-kategori="{{ $idx->kategori }}"
+                                                        data-keterangan="{{ $idx->keterangan }}"
+                                                        data-active="{{ $idx->is_active ? '1' : '0' }}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <form
+                                                        action="{{ route('dashboard.persuratan.pengaturan.indeks.destroy', $idx->id) }}"
+                                                        method="POST" data-confirm="delete"
+                                                        data-name="Kode Indeks {{ $idx->kode }} ({{ $idx->judul }})">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn-icon text-danger"
+                                                            title="Hapus Indeks">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6"
+                                            style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
+                                            <i class="fas fa-tags"
+                                                style="font-size: 2rem; opacity: 0.3; margin-bottom: 8px; display: block;"></i>
+                                            Tidak ada kode indeks surat yang ditemukan.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
-                @endif
+
+                    <!-- 3. Footer Paginasi Terpadu Datatable -->
+                    @if ($indeksList->hasPages())
+                        <div class="datatable-footer">
+                            @include('partials.datatable-pagination', ['paginator' => $indeksList])
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
 

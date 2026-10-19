@@ -305,1263 +305,1141 @@
         </div>
     </div>
 
-    <!-- 4. Toolbar & Filter Standar SAE -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <div class="toolbar-entries">
-                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
-                        @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
-                                {{ $n }}</option>
-                        @endforeach
-                    </select>
-                    <span>entri</span>
+    <!-- Unified Datatable Peserta Didik Kesiswaan (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header Datatable Baku SAE (Entries, Filters & Live Search) -->
+        <div class="datatable-toolbar">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
+                                    {{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    @if ($activeTab === 'aktif')
+                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Rombel</option>
+                            @foreach ($filterRombel as $r)
+                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
+                                    {{ $r }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filterGender" name="gender" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua L/P</option>
+                            <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                    @elseif ($activeTab === 'tidak_aktif')
+                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Rombel Terakhir</option>
+                            @foreach ($filterRombelTidakAktif as $r)
+                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
+                                    {{ $r }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Status Keluar</option>
+                            @foreach (['Mutasi', 'Dikeluarkan', 'Mengundurkan Diri', 'Putus Sekolah', 'Wafat', 'Alumni'] as $st)
+                                <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>
+                                    {{ $st }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filterGender" name="gender" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua L/P</option>
+                            <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-laki</option>
+                            <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan</option>
+                        </select>
+                    @elseif ($activeTab === 'berkas')
+                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Rombel</option>
+                            @foreach ($filterRombel as $r)
+                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
+                                    {{ $r }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Status Validasi</option>
+                            <option value="lengkap" {{ $status === 'lengkap' ? 'selected' : '' }}>Berkas Lengkap &amp;
+                                Valid
+                            </option>
+                            <option value="belum_lengkap" {{ $status === 'belum_lengkap' ? 'selected' : '' }}>Belum
+                                Lengkap
+                            </option>
+                            <option value="menunggu" {{ $status === 'menunggu' ? 'selected' : '' }}>Menunggu Validasi
+                            </option>
+                            <option value="tidak_valid" {{ $status === 'tidak_valid' ? 'selected' : '' }}>Ada Berkas
+                                Ditolak
+                            </option>
+                        </select>
+                    @elseif ($activeTab === 'usulan')
+                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Rombel</option>
+                            @foreach ($filterRombel as $r)
+                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
+                                    {{ $r }}</option>
+                            @endforeach
+                        </select>
+                        <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Status Usulan</option>
+                            <option value="menunggu" {{ $status === 'menunggu' ? 'selected' : '' }}>Menunggu Review
+                            </option>
+                            <option value="disetujui" {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui (Siap
+                                Dapodik)
+                            </option>
+                            <option value="sudah_ke_dapodik" {{ $status === 'sudah_ke_dapodik' ? 'selected' : '' }}>
+                                Selesai di
+                                Dapodik</option>
+                            <option value="ditolak" {{ $status === 'ditolak' ? 'selected' : '' }}>Ditolak Kesiswaan
+                            </option>
+                        </select>
+                    @elseif ($activeTab === 'alumni')
+                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Rombel Terakhir</option>
+                            @foreach ($filterRombelTidakAktif as $r)
+                                <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
+                                    {{ $r }}</option>
+                            @endforeach
+                        </select>
+                        <input type="text" id="filterTahunLulus" name="tahun_lulus" value="{{ $tahunLulus }}"
+                            placeholder="Tahun Lulus (Contoh: 2026)" class="form-control"
+                            style="width: 170px; height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                    @endif
+
+                    @if (!empty($q) || !empty($rombel) || !empty($gender) || !empty($status) || !empty($tahunLulus))
+                        <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => $activeTab]) }}"
+                            class="btn btn-outline btn-reset-filter"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            title="Reset filter" data-live-reset>
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
 
-                @if ($activeTab === 'aktif')
-                    <select id="filterRombel" class="toolbar-filter-select">
-                        <option value="">Semua Rombel</option>
-                        @foreach ($filterRombel as $r)
-                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
-                                {{ $r }}</option>
-                        @endforeach
-                    </select>
-                    <select id="filterGender" class="toolbar-filter-select">
-                        <option value="">Semua L/P</option>
-                        <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                        <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan</option>
-                    </select>
-                @elseif ($activeTab === 'tidak_aktif')
-                    <select id="filterRombel" class="toolbar-filter-select">
-                        <option value="">Semua Rombel Terakhir</option>
-                        @foreach ($filterRombelTidakAktif as $r)
-                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
-                                {{ $r }}</option>
-                        @endforeach
-                    </select>
-                    <select id="filterStatus" class="toolbar-filter-select">
-                        <option value="">Semua Status Keluar</option>
-                        @foreach (['Mutasi', 'Dikeluarkan', 'Mengundurkan Diri', 'Putus Sekolah', 'Wafat', 'Alumni'] as $st)
-                            <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>
-                                {{ $st }}</option>
-                        @endforeach
-                    </select>
-                    <select id="filterGender" class="toolbar-filter-select">
-                        <option value="">Semua L/P</option>
-                        <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-laki</option>
-                        <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan</option>
-                    </select>
-                @elseif ($activeTab === 'berkas')
-                    <select id="filterRombel" class="toolbar-filter-select">
-                        <option value="">Semua Rombel</option>
-                        @foreach ($filterRombel as $r)
-                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
-                                {{ $r }}</option>
-                        @endforeach
-                    </select>
-                    <select id="filterStatus" class="toolbar-filter-select">
-                        <option value="">Semua Status Validasi</option>
-                        <option value="lengkap" {{ $status === 'lengkap' ? 'selected' : '' }}>Berkas Lengkap &amp; Valid
-                        </option>
-                        <option value="belum_lengkap" {{ $status === 'belum_lengkap' ? 'selected' : '' }}>Belum Lengkap
-                        </option>
-                        <option value="menunggu" {{ $status === 'menunggu' ? 'selected' : '' }}>Menunggu Validasi</option>
-                        <option value="tidak_valid" {{ $status === 'tidak_valid' ? 'selected' : '' }}>Ada Berkas Ditolak
-                        </option>
-                    </select>
-                @elseif ($activeTab === 'usulan')
-                    <select id="filterRombel" class="toolbar-filter-select">
-                        <option value="">Semua Rombel</option>
-                        @foreach ($filterRombel as $r)
-                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
-                                {{ $r }}</option>
-                        @endforeach
-                    </select>
-                    <select id="filterStatus" class="toolbar-filter-select">
-                        <option value="">Semua Status Usulan</option>
-                        <option value="menunggu" {{ $status === 'menunggu' ? 'selected' : '' }}>Menunggu Review</option>
-                        <option value="disetujui" {{ $status === 'disetujui' ? 'selected' : '' }}>Disetujui (Siap Dapodik)
-                        </option>
-                        <option value="sudah_ke_dapodik" {{ $status === 'sudah_ke_dapodik' ? 'selected' : '' }}>Selesai di
-                            Dapodik</option>
-                        <option value="ditolak" {{ $status === 'ditolak' ? 'selected' : '' }}>Ditolak Kesiswaan</option>
-                    </select>
-                @elseif ($activeTab === 'alumni')
-                    <select id="filterRombel" class="toolbar-filter-select">
-                        <option value="">Semua Rombel Terakhir</option>
-                        @foreach ($filterRombelTidakAktif as $r)
-                            <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>
-                                {{ $r }}</option>
-                        @endforeach
-                    </select>
-                    <input type="text" id="filterTahunLulus" value="{{ $tahunLulus }}"
-                        placeholder="Tahun Lulus (Contoh: 2026)" class="form-control"
-                        style="width: 170px; height: 38px; border-radius: 8px; font-size: 0.84rem;">
-                @endif
-
-                @if (!empty($q) || !empty($rombel) || !empty($gender) || !empty($status) || !empty($tahunLulus))
-                    <a href="{{ route('dashboard.kesiswaan.peserta-didik.index', ['tab' => $activeTab]) }}"
-                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                        <i class="fas fa-undo"></i>
-                    </a>
-                @endif
-            </div>
-
-            <div class="live-search-wrap">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIPD / NIK..."
-                    value="{{ $q ?? '' }}" autocomplete="off">
-                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                    title="Hapus pencarian">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari nama / NISN / NIPD / NIK..."
+                        value="{{ $q ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                        title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- 5. Content Sesuai Tab -->
-    @if ($activeTab === 'aktif')
-        <!-- TAB 1: SISWA AKTIF (Format Baku Selaras Modul Administrator) -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        @php
-                            $cols = [
-                                ['nama', 'Nama Lengkap'],
-                                ['nisn', 'NISN / NIPD'],
-                                ['jenis_kelamin', 'L/P'],
-                                ['nama_rombel', 'Rombel Kelas'],
-                                ['tingkat_pendidikan_id', 'Tingkat'],
-                            ];
-                        @endphp
-                        @foreach ($cols as [$key, $label])
-                            <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
-                                data-sort="{{ $key }}">
-                                {{ $label }}
-                                <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+        <!-- 2. Content Sesuai Tab -->
+        @if ($activeTab === 'aktif')
+            <!-- TAB 1: SISWA AKTIF (Format Baku Selaras Modul Administrator) -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            @php
+                                $cols = [
+                                    ['nama', 'Nama Lengkap'],
+                                    ['nisn', 'NISN / NIPD'],
+                                    ['jenis_kelamin', 'L/P'],
+                                    ['nama_rombel', 'Rombel Kelas'],
+                                    ['tingkat_pendidikan_id', 'Tingkat'],
+                                ];
+                            @endphp
+                            @foreach ($cols as [$key, $label])
+                                <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
+                                    data-sort="{{ $key }}">
+                                    {{ $label }}
+                                    <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                            @endforeach
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Tempat, Tanggal Lahir
                             </th>
-                        @endforeach
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Tempat, Tanggal Lahir
-                        </th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                            Aksi
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($aktifList as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama"
-                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                                data-label="Nama Lengkap">
-                                <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
-                                    @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
-                                            @if ($canUpdate || $canCreate) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url }}', '{{ $item->foto_size ?? '' }}')"
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($aktifList as $item)
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td class="cell-pd-nama"
+                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                    data-label="Nama Lengkap">
+                                    <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
+                                        @if (!empty($item->foto_url))
+                                            <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
+                                                @if ($canUpdate || $canCreate) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url }}', '{{ $item->foto_size ?? '' }}')"
                                             title="Klik untuk melihat / mengubah pasfoto peserta didik"
                                             @else
                                             onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')"
                                             title="Pasfoto {{ $item->nama }}" @endif
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;">
-                                        </div>
-                                    @else
-                                        <div class="pd-foto-thumb empty" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
-                                            @if ($canUpdate || $canCreate) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '', '')"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
+                                                <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="pd-foto-thumb empty"
+                                                id="pdFotoThumb_{{ $item->peserta_didik_id }}"
+                                                @if ($canUpdate || $canCreate) onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '', '')"
                                             title="Klik untuk mengunggah pasfoto peserta didik"
                                             @else
                                             onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')"
                                             title="Belum ada pasfoto" @endif
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
-                                            <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
-                                        </div>
-                                    @endif
-                                    <div class="pd-info">
-                                        <div class="pd-title-row"
-                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama"
-                                                onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')"
-                                                style="font-weight: 700; color: var(--text-color); cursor: pointer;">{{ $item->nama }}</span>
-                                            @if (!empty($item->is_koordinator))
-                                                <span class="badge badge-koordinator"
-                                                    id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
-                                                    title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
-                                                </span>
-                                            @else
-                                                <span class="badge badge-koordinator"
-                                                    id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; align-items: center; gap: 4px;"
-                                                    title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
-                                                </span>
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
+                                                <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
+                                            </div>
+                                        @endif
+                                        <div class="pd-info">
+                                            <div class="pd-title-row"
+                                                style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <span class="pd-nama"
+                                                    onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')"
+                                                    style="font-weight: 700; color: var(--text-color); cursor: pointer;">{{ $item->nama }}</span>
+                                                @if (!empty($item->is_koordinator))
+                                                    <span class="badge badge-koordinator"
+                                                        id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                                        style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                                        title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
+                                                        <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                    </span>
+                                                @else
+                                                    <span class="badge badge-koordinator"
+                                                        id="badgeKoordinator_{{ $item->peserta_didik_id }}"
+                                                        style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: 0.68rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; align-items: center; gap: 4px;"
+                                                        title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
+                                                        <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @if (!empty($item->nik))
+                                                <div
+                                                    style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    <span class="copyable" data-copy="{{ $item->nik }}"
+                                                        data-label="NIK" title="Klik untuk salin NIK">
+                                                        NIK: {{ $item->nik }}
+                                                    </span>
+                                                </div>
                                             @endif
                                         </div>
-                                        @if (!empty($item->nik))
-                                            <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
-                                                    title="Klik untuk salin NIK">
-                                                    NIK: {{ $item->nik }}
-                                                </span>
-                                            </div>
-                                        @endif
                                     </div>
-                                </div>
-                            </td>
-                            <td class="cell-pd-nisn"
-                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
-                                data-label="NISN/NIPD">
-                                <div class="cell-col-right">
-                                    <div>
-                                        @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
-                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-                                    @if (!empty($item->nipd))
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
-                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
-                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                    style="font-size: 0.72rem; padding: 2px 7px;">
-                                    {{ $item->jenis_kelamin ?: '-' }}
-                                </span>
-                            </td>
-                            <td class="cell-pd-rombel"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
-                                data-label="Rombel">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
-                                    {{ $item->nama_rombel ?: '-' }}
-                                </span>
-                            </td>
-                            <td class="cell-pd-tingkat"
-                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                                data-label="Tingkat">
-                                {{ $item->tingkat_pendidikan_id ?: '-' }}
-                            </td>
-                            <td class="cell-pd-ttl"
-                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                                data-label="TTL">
-                                <div class="cell-col-right" style="color: var(--text-muted);">
-                                    {{ $item->tempat_lahir ? $item->tempat_lahir . ', ' : '' }}{{ $item->tanggal_lahir ? date('d/m/Y', strtotime($item->tanggal_lahir)) : '-' }}
-                                </div>
-                            </td>
-                            <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions"
-                                    style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                    @if ($canUpdate || $canCreate)
-                                        <button type="button" class="btn-icon"
-                                            title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
-                                            onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
-                                            <i class="fas fa-camera"
-                                                style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
-                                        </button>
-                                    @endif
-                                    <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
-                                        onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
-                                        <i class="fas fa-id-card"></i>
-                                    </button>
-                                    @if (!empty($item->nisn))
-                                        <button type="button" class="btn-icon"
-                                            title="Pratinjau / Cetak Kartu Pelajar Digital"
-                                            onclick="openKartuPelajarModal('{{ $item->nisn }}')">
-                                            <i class="fas fa-address-card" style="color: #0284c7;"></i>
-                                        </button>
-                                    @endif
-                                    @if ($canUpdate)
-                                        <button type="button"
-                                            class="btn-icon btn-toggle-koordinator {{ !empty($item->is_koordinator) ? 'is-active' : '' }}"
-                                            id="btnKoordinator_{{ $item->peserta_didik_id }}"
-                                            data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
-                                            data-rombel="{{ $item->nama_rombel ?: '-' }}"
-                                            data-status="{{ !empty($item->is_koordinator) ? '1' : '0' }}"
-                                            title="{{ !empty($item->is_koordinator) ? 'Cabut Wewenang Koordinator Kelas' : 'Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)' }}">
-                                            <i class="fas fa-crown"
-                                                style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b; opacity: 1;' : '' }}"></i>
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada data peserta didik aktif yang cocok.</div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($aktifList->hasPages())
-            <div class="custom-pagination">
-                @if ($aktifList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $aktifList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $aktifList->currentPage();
-                    $last = $aktifList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $aktifList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $aktifList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $aktifList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($aktifList->hasMorePages())
-                    <a href="{{ $aktifList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
-            </div>
-        @endif
-    @elseif ($activeTab === 'tidak_aktif')
-        <!-- TAB 2: SISWA TIDAK AKTIF (Format Baku Selaras Modul Administrator) -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        @php
-                            $colsTa = [
-                                ['nama', 'Nama Lengkap'],
-                                ['nisn', 'NISN / NIPD'],
-                                ['jenis_kelamin', 'L/P'],
-                                ['nama_rombel_terakhir', 'Rombel Terakhir'],
-                                ['tingkat_pendidikan_terakhir', 'Tingkat'],
-                                ['tahun_lulus', 'Status & Tanggal'],
-                            ];
-                        @endphp
-                        @foreach ($colsTa as [$key, $label])
-                            <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
-                                data-sort="{{ $key }}">
-                                {{ $label }}
-                                <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                            </th>
-                        @endforeach
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Kontak &amp; Alamat
-                        </th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                            Aksi
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($tidakAktifList as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama"
-                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                                data-label="Nama">
-                                <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
-                                    @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
-                                            onclick="openPhotoPreviewModal('{{ $item->foto_url }}', '{{ addslashes($item->nama) }}')"
-                                            title="Klik untuk memperbesar pasfoto"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;">
-                                        </div>
-                                    @else
-                                        <div class="pd-foto-thumb empty"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.05rem; flex-shrink: 0;">
-                                            <i class="fas fa-user-slash" style="opacity: 0.7;"></i>
-                                        </div>
-                                    @endif
-                                    <div class="pd-info">
-                                        <div class="pd-title-row"
-                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama"
-                                                onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')"
-                                                style="font-weight: 700; color: var(--text-color); cursor: pointer;">{{ $item->nama }}</span>
-                                            @if ($item->status_keluar === 'Alumni')
-                                                <span class="badge"
-                                                    style="font-size: 0.62rem; background: rgba(16,185,129,0.12); color: #10b981; padding: 2px 6px; white-space: nowrap;">
-                                                    <i class="fas fa-graduation-cap me-1"></i>Alumni
-                                                </span>
+                                </td>
+                                <td class="cell-pd-nisn"
+                                    style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                    data-label="NISN/NIPD">
+                                    <div class="cell-col-right">
+                                        <div>
+                                            @if ($item->nisn)
+                                                <span class="copyable" data-copy="{{ $item->nisn }}"
+                                                    data-label="NISN"
+                                                    title="Klik untuk salin NISN">{{ $item->nisn }}</span>
                                             @else
-                                                <span class="badge"
-                                                    style="font-size: 0.62rem; background: rgba(245,158,11,0.12); color: #f59e0b; padding: 2px 6px; white-space: nowrap;">
-                                                    <i
-                                                        class="fas fa-right-from-bracket me-1"></i>{{ $item->status_keluar ?: 'Tidak Aktif' }}
-                                                </span>
+                                                -
                                             @endif
                                         </div>
-                                        @if (!empty($item->nik))
-                                            <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
-                                                    title="Klik untuk salin NIK">
-                                                    NIK: {{ $item->nik }}
-                                                </span>
+                                        @if (!empty($item->nipd))
+                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nipd }}"
+                                                    data-label="NIPD" title="Klik untuk salin NIPD">NIPD:
+                                                    {{ $item->nipd }}</span>
                                             </div>
                                         @endif
                                     </div>
-                                </div>
-                            </td>
-                            <td class="cell-pd-nisn"
-                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
-                                data-label="NISN/NIPD">
-                                <div class="cell-col-right">
-                                    <div>
-                                        @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
-                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
-                                        @else
-                                            -
+                                </td>
+                                <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;"
+                                    data-label="L/P">
+                                    <span
+                                        class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                        style="font-size: 0.72rem; padding: 2px 7px;">
+                                        {{ $item->jenis_kelamin ?: '-' }}
+                                    </span>
+                                </td>
+                                <td class="cell-pd-rombel"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                    data-label="Rombel">
+                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                        {{ $item->nama_rombel ?: '-' }}
+                                    </span>
+                                </td>
+                                <td class="cell-pd-tingkat"
+                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    data-label="Tingkat">
+                                    {{ $item->tingkat_pendidikan_id ?: '-' }}
+                                </td>
+                                <td class="cell-pd-ttl"
+                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    data-label="TTL">
+                                    <div class="cell-col-right" style="color: var(--text-muted);">
+                                        {{ $item->tempat_lahir ? $item->tempat_lahir . ', ' : '' }}{{ $item->tanggal_lahir ? date('d/m/Y', strtotime($item->tanggal_lahir)) : '-' }}
+                                    </div>
+                                </td>
+                                <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;"
+                                    data-label="Aksi">
+                                    <div class="table-actions"
+                                        style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        @if ($canUpdate || $canCreate)
+                                            <button type="button" class="btn-icon"
+                                                title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
+                                                onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
+                                                <i class="fas fa-camera"
+                                                    style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
+                                            </button>
                                         @endif
-                                    </div>
-                                    @if (!empty($item->nipd))
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
-                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
-                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                    style="font-size: 0.72rem; padding: 2px 7px;">
-                                    {{ $item->jenis_kelamin ?: '-' }}
-                                </span>
-                            </td>
-                            <td class="cell-pd-rombel"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
-                                data-label="Rombel Terakhir">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
-                                    {{ $item->rombel_terakhir ?: '-' }}
-                                </span>
-                            </td>
-                            <td class="cell-pd-tingkat"
-                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                                data-label="Tingkat">
-                                {{ $item->tingkat_pendidikan_terakhir ?: '-' }}
-                            </td>
-                            <td class="cell-pd-ttl"
-                                style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                                data-label="Status & Tanggal">
-                                <div class="cell-col-right">
-                                    <div style="font-weight: 600; color: var(--text-color);">
-                                        {{ $item->status_keluar === 'Alumni' ? 'Lulus ' . ($item->tahun_lulus ?: '-') : ($item->status_keluar ?: 'Keluar') }}
-                                    </div>
-                                    <div style="font-size: 0.72rem; color: var(--text-muted);">
-                                        {{ $item->tanggal_keluar ? \Carbon\Carbon::parse($item->tanggal_keluar)->format('d/m/Y') : '-' }}
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted); max-width: 220px;"
-                                data-label="Kontak & Alamat">
-                                <div class="cell-col-right">
-                                    @if ($item->nomor_telepon_seluler)
-                                        <div><i class="fas fa-phone-alt me-1 text-primary"
-                                                style="font-size: 0.72rem;"></i>
-                                            <span class="copyable" data-copy="{{ $item->nomor_telepon_seluler }}"
-                                                data-label="No HP"
-                                                title="Klik untuk salin No HP">{{ $item->nomor_telepon_seluler }}</span>
-                                        </div>
-                                    @endif
-                                    @if ($item->alamat_jalan)
-                                        <div style="font-size: 0.74rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;"
-                                            title="{{ $item->alamat_jalan }}">
-                                            <i class="fas fa-map-marker-alt me-1"
-                                                style="font-size: 0.7rem;"></i>{{ $item->alamat_jalan }}
-                                        </div>
-                                    @endif
-                                    @if (!$item->nomor_telepon_seluler && !$item->alamat_jalan)
-                                        -
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions"
-                                    style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                    @if (!empty($item->foto_url))
-                                        <button type="button" class="btn-icon" title="Lihat Pasfoto"
-                                            onclick="openPhotoPreviewModal('{{ $item->foto_url }}', '{{ addslashes($item->nama) }}')">
-                                            <i class="fas fa-image" style="color: #10b981;"></i>
+                                        <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
+                                            onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
+                                            <i class="fas fa-id-card"></i>
                                         </button>
-                                    @endif
-                                    <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
-                                        onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
-                                        <i class="fas fa-id-card"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada data siswa tidak aktif yang cocok.</div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($tidakAktifList->hasPages())
-            <div class="custom-pagination">
-                @if ($tidakAktifList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $tidakAktifList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $tidakAktifList->currentPage();
-                    $last = $tidakAktifList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $tidakAktifList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $tidakAktifList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $tidakAktifList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($tidakAktifList->hasMorePages())
-                    <a href="{{ $tidakAktifList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                                        @if (!empty($item->nisn))
+                                            <button type="button" class="btn-icon"
+                                                title="Pratinjau / Cetak Kartu Pelajar Digital"
+                                                onclick="openKartuPelajarModal('{{ $item->nisn }}')">
+                                                <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                            </button>
+                                        @endif
+                                        @if ($canUpdate)
+                                            <button type="button"
+                                                class="btn-icon btn-toggle-koordinator {{ !empty($item->is_koordinator) ? 'is-active' : '' }}"
+                                                id="btnKoordinator_{{ $item->peserta_didik_id }}"
+                                                data-id="{{ $item->peserta_didik_id }}"
+                                                data-nama="{{ $item->nama }}"
+                                                data-rombel="{{ $item->nama_rombel ?: '-' }}"
+                                                data-status="{{ !empty($item->is_koordinator) ? '1' : '0' }}"
+                                                title="{{ !empty($item->is_koordinator) ? 'Cabut Wewenang Koordinator Kelas' : 'Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)' }}">
+                                                <i class="fas fa-crown"
+                                                    style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b; opacity: 1;' : '' }}"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7"
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <div>Belum ada data peserta didik aktif yang cocok.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
-    @elseif ($activeTab === 'berkas')
-        <!-- TAB 3: VERIFIKASI BERKAS FISIK & DIGITAL -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        @php
-                            $colsBerkas = [['nama', 'Nama Siswa'], ['nisn', 'NISN / NIPD'], ['nama_rombel', 'Rombel']];
-                        @endphp
-                        @foreach ($colsBerkas as [$key, $label])
-                            <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"
-                                data-sort="{{ $key }}">
-                                {{ $label }}
-                                <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                            </th>
-                        @endforeach
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Akta Lahir</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Kartu Keluarga</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Ijazah SMP</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            KTP Ortu</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            KIP / PIP</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                            Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($berkasList as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama"
-                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                                data-label="Nama Siswa">
-                                <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
-                                    @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
-                                            role="button" tabindex="0"
-                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;">
-                                        </div>
-                                    @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}"
-                                            role="button" tabindex="0"
-                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
-                                            <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
-                                        </div>
-                                    @endif
-                                    <div class="pd-info">
-                                        <div class="pd-title-row"
-                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
-                                                role="button" tabindex="0"
-                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
-                                                style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
-                                        </div>
-                                        @if (!empty($item->nik))
-                                            <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
-                                                    title="Klik untuk salin NIK">
-                                                    NIK: {{ $item->nik }}
-                                                </span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="cell-pd-nisn"
-                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
-                                data-label="NISN/NIPD">
-                                <div class="cell-col-right">
-                                    <div>
-                                        @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
-                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-                                    @if (!empty($item->nipd))
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
-                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="cell-pd-rombel"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem; order: 3;"
-                                data-label="Rombel">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
-                                    {{ $item->rombel_nama ?: '-' }}
-                                </span>
-                            </td>
+
+            @if ($aktifList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $aktifList])
+                </div>
+            @endif
+        @elseif ($activeTab === 'tidak_aktif')
+            <!-- TAB 2: SISWA TIDAK AKTIF (Format Baku Selaras Modul Administrator) -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             @php
-                                $aktaF = $item->files['akta_kelahiran'] ?? null;
-                                $kkF = $item->files['kartu_keluarga'] ?? null;
-                                $ijzF = $item->files['ijazah_smp'] ?? null;
-                                $ktpF = $item->files['ktp_orang_tua'] ?? null;
-                                $kipF = $item->files['kip_pip'] ?? null;
+                                $colsTa = [
+                                    ['nama', 'Nama Lengkap'],
+                                    ['nisn', 'NISN / NIPD'],
+                                    ['jenis_kelamin', 'L/P'],
+                                    ['nama_rombel_terakhir', 'Rombel Terakhir'],
+                                    ['tingkat_pendidikan_terakhir', 'Tingkat'],
+                                    ['tahun_lulus', 'Status & Tanggal'],
+                                ];
                             @endphp
-                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 5;"
-                                data-label="Akta Lahir">
-                                @if ($aktaF)
-                                    @if ($aktaF->status === 'valid')
-                                        <span class="badge badge-success" title="Valid / Sesuai"><i
-                                                class="fas fa-circle-check"></i> Valid</span>
-                                    @elseif ($aktaF->status === 'tidak_valid')
-                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
-                                                class="fas fa-circle-xmark"></i> Ditolak</span>
-                                    @else
-                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
-                                                class="fas fa-clock"></i> PDF</span>
-                                    @endif
-                                @elseif ($item->akta_kelahiran)
-                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
-                                            class="fas fa-check"></i></span>
-                                @else
-                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
-                                @endif
-                            </td>
-                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 6;"
-                                data-label="Kartu Keluarga">
-                                @if ($kkF)
-                                    @if ($kkF->status === 'valid')
-                                        <span class="badge badge-success" title="Valid / Sesuai"><i
-                                                class="fas fa-circle-check"></i> Valid</span>
-                                    @elseif ($kkF->status === 'tidak_valid')
-                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
-                                                class="fas fa-circle-xmark"></i> Ditolak</span>
-                                    @else
-                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
-                                                class="fas fa-clock"></i> PDF</span>
-                                    @endif
-                                @elseif ($item->kartu_keluarga)
-                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
-                                            class="fas fa-check"></i></span>
-                                @else
-                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
-                                @endif
-                            </td>
-                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 7;"
-                                data-label="Ijazah SMP">
-                                @if ($ijzF)
-                                    @if ($ijzF->status === 'valid')
-                                        <span class="badge badge-success" title="Valid / Sesuai"><i
-                                                class="fas fa-circle-check"></i> Valid</span>
-                                    @elseif ($ijzF->status === 'tidak_valid')
-                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
-                                                class="fas fa-circle-xmark"></i> Ditolak</span>
-                                    @else
-                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
-                                                class="fas fa-clock"></i> PDF</span>
-                                    @endif
-                                @elseif ($item->ijazah_smp)
-                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
-                                            class="fas fa-check"></i></span>
-                                @else
-                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
-                                @endif
-                            </td>
-                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 8;"
-                                data-label="KTP Ortu">
-                                @if ($ktpF)
-                                    @if ($ktpF->status === 'valid')
-                                        <span class="badge badge-success" title="Valid / Sesuai"><i
-                                                class="fas fa-circle-check"></i> Valid</span>
-                                    @elseif ($ktpF->status === 'tidak_valid')
-                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
-                                                class="fas fa-circle-xmark"></i> Ditolak</span>
-                                    @else
-                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
-                                                class="fas fa-clock"></i> PDF</span>
-                                    @endif
-                                @elseif ($item->ktp_orang_tua)
-                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
-                                            class="fas fa-check"></i></span>
-                                @else
-                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
-                                @endif
-                            </td>
-                            <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 9;"
-                                data-label="KIP / PIP">
-                                @if ($kipF)
-                                    @if ($kipF->status === 'valid')
-                                        <span class="badge badge-success" title="Valid / Sesuai"><i
-                                                class="fas fa-circle-check"></i> Valid</span>
-                                    @elseif ($kipF->status === 'tidak_valid')
-                                        <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
-                                                class="fas fa-circle-xmark"></i> Ditolak</span>
-                                    @else
-                                        <span class="badge badge-warning" title="Menunggu Verifikasi"><i
-                                                class="fas fa-clock"></i> PDF</span>
-                                    @endif
-                                @elseif ($item->kip_pip)
-                                    <span class="badge badge-success" title="Fisik Terverifikasi"><i
-                                            class="fas fa-check"></i></span>
-                                @else
-                                    <span class="text-muted" style="font-size: 0.8rem;">-</span>
-                                @endif
-                            </td>
-                            <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right; order: 10 !important;"
-                                data-label="Aksi">
-                                <div class="table-actions" style="justify-content: flex-end;">
-                                    <button type="button" class="btn-icon btn-validasi-berkas-detail"
-                                        data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
-                                        title="Validasi Dokumen Siswa">
-                                        <i class="fas fa-check-double" style="color: var(--primary);"></i>
-                                    </button>
-                                </div>
-                            </td>
+                            @foreach ($colsTa as [$key, $label])
+                                <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; {{ $key === 'jenis_kelamin' ? 'text-align: center;' : '' }}"
+                                    data-sort="{{ $key }}">
+                                    {{ $label }}
+                                    <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                            @endforeach
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Kontak &amp; Alamat
+                            </th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                Aksi
+                            </th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada data berkas siswa.</div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($berkasList->hasPages())
-            <div class="custom-pagination">
-                @if ($berkasList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $berkasList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $berkasList->currentPage();
-                    $last = $berkasList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $berkasList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $berkasList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $berkasList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($berkasList->hasMorePages())
-                    <a href="{{ $berkasList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                    </thead>
+                    <tbody>
+                        @forelse ($tidakAktifList as $item)
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td class="cell-pd-nama"
+                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                    data-label="Nama">
+                                    <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
+                                        @if (!empty($item->foto_url))
+                                            <div class="pd-foto-thumb" id="pdFotoThumb_{{ $item->peserta_didik_id }}"
+                                                onclick="openPhotoPreviewModal('{{ $item->foto_url }}', '{{ addslashes($item->nama) }}')"
+                                                title="Klik untuk memperbesar pasfoto"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.2s ease, border-color 0.2s ease;">
+                                                <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="pd-foto-thumb empty"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.05rem; flex-shrink: 0;">
+                                                <i class="fas fa-user-slash" style="opacity: 0.7;"></i>
+                                            </div>
+                                        @endif
+                                        <div class="pd-info">
+                                            <div class="pd-title-row"
+                                                style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <span class="pd-nama"
+                                                    onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')"
+                                                    style="font-weight: 700; color: var(--text-color); cursor: pointer;">{{ $item->nama }}</span>
+                                                @if ($item->status_keluar === 'Alumni')
+                                                    <span class="badge"
+                                                        style="font-size: 0.62rem; background: rgba(16,185,129,0.12); color: #10b981; padding: 2px 6px; white-space: nowrap;">
+                                                        <i class="fas fa-graduation-cap me-1"></i>Alumni
+                                                    </span>
+                                                @else
+                                                    <span class="badge"
+                                                        style="font-size: 0.62rem; background: rgba(245,158,11,0.12); color: #f59e0b; padding: 2px 6px; white-space: nowrap;">
+                                                        <i
+                                                            class="fas fa-right-from-bracket me-1"></i>{{ $item->status_keluar ?: 'Tidak Aktif' }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @if (!empty($item->nik))
+                                                <div
+                                                    style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    <span class="copyable" data-copy="{{ $item->nik }}"
+                                                        data-label="NIK" title="Klik untuk salin NIK">
+                                                        NIK: {{ $item->nik }}
+                                                    </span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="cell-pd-nisn"
+                                    style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                    data-label="NISN/NIPD">
+                                    <div class="cell-col-right">
+                                        <div>
+                                            @if ($item->nisn)
+                                                <span class="copyable" data-copy="{{ $item->nisn }}"
+                                                    data-label="NISN"
+                                                    title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                            @else
+                                                -
+                                            @endif
+                                        </div>
+                                        @if (!empty($item->nipd))
+                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nipd }}"
+                                                    data-label="NIPD" title="Klik untuk salin NIPD">NIPD:
+                                                    {{ $item->nipd }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;"
+                                    data-label="L/P">
+                                    <span
+                                        class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                        style="font-size: 0.72rem; padding: 2px 7px;">
+                                        {{ $item->jenis_kelamin ?: '-' }}
+                                    </span>
+                                </td>
+                                <td class="cell-pd-rombel"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                    data-label="Rombel Terakhir">
+                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                        {{ $item->rombel_terakhir ?: '-' }}
+                                    </span>
+                                </td>
+                                <td class="cell-pd-tingkat"
+                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    data-label="Tingkat">
+                                    {{ $item->tingkat_pendidikan_terakhir ?: '-' }}
+                                </td>
+                                <td class="cell-pd-ttl"
+                                    style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                    data-label="Status & Tanggal">
+                                    <div class="cell-col-right">
+                                        <div style="font-weight: 600; color: var(--text-color);">
+                                            {{ $item->status_keluar === 'Alumni' ? 'Lulus ' . ($item->tahun_lulus ?: '-') : ($item->status_keluar ?: 'Keluar') }}
+                                        </div>
+                                        <div style="font-size: 0.72rem; color: var(--text-muted);">
+                                            {{ $item->tanggal_keluar ? \Carbon\Carbon::parse($item->tanggal_keluar)->format('d/m/Y') : '-' }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted); max-width: 220px;"
+                                    data-label="Kontak & Alamat">
+                                    <div class="cell-col-right">
+                                        @if ($item->nomor_telepon_seluler)
+                                            <div><i class="fas fa-phone-alt me-1 text-primary"
+                                                    style="font-size: 0.72rem;"></i>
+                                                <span class="copyable" data-copy="{{ $item->nomor_telepon_seluler }}"
+                                                    data-label="No HP"
+                                                    title="Klik untuk salin No HP">{{ $item->nomor_telepon_seluler }}</span>
+                                            </div>
+                                        @endif
+                                        @if ($item->alamat_jalan)
+                                            <div style="font-size: 0.74rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;"
+                                                title="{{ $item->alamat_jalan }}">
+                                                <i class="fas fa-map-marker-alt me-1"
+                                                    style="font-size: 0.7rem;"></i>{{ $item->alamat_jalan }}
+                                            </div>
+                                        @endif
+                                        @if (!$item->nomor_telepon_seluler && !$item->alamat_jalan)
+                                            -
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;"
+                                    data-label="Aksi">
+                                    <div class="table-actions"
+                                        style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        @if (!empty($item->foto_url))
+                                            <button type="button" class="btn-icon" title="Lihat Pasfoto"
+                                                onclick="openPhotoPreviewModal('{{ $item->foto_url }}', '{{ addslashes($item->nama) }}')">
+                                                <i class="fas fa-image" style="color: #10b981;"></i>
+                                            </button>
+                                        @endif
+                                        <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
+                                            onclick="openBiodataPesertaDidikModal('{{ $item->peserta_didik_id }}')">
+                                            <i class="fas fa-id-card"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8"
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-user-slash mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <div>Belum ada data siswa tidak aktif yang cocok.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
-    @elseif ($activeTab === 'usulan')
-        <!-- TAB 4: USULAN PERUBAHAN DATA SISWA -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Nama Siswa</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Rombel</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Usulan Perubahan Data</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Perbandingan (Lama vs Baru)</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Berkas Pendukung</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Status Verifikasi &amp; Dapodik</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                            Aksi Pengelolaan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($usulanList as $item)
-                        @php
-                            $usulanPdId = $item->peserta_didik_id ?: $item->siswa?->peserta_didik_id ?? '';
-                        @endphp
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama"
-                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                                data-label="Nama Siswa">
-                                <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
-                                    @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $usulanPdId }}" role="button"
-                                            tabindex="0"
-                                            title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->siswa?->nama }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;">
-                                        </div>
-                                    @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $usulanPdId }}"
-                                            role="button" tabindex="0"
-                                            title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
-                                            <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
-                                        </div>
-                                    @endif
-                                    <div class="pd-info">
-                                        <div class="pd-title-row"
-                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $usulanPdId }}" role="button"
+
+            @if ($tidakAktifList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $tidakAktifList])
+                </div>
+            @endif
+        @elseif ($activeTab === 'berkas')
+            <!-- TAB 3: VERIFIKASI BERKAS FISIK & DIGITAL -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            @php
+                                $colsBerkas = [
+                                    ['nama', 'Nama Siswa'],
+                                    ['nisn', 'NISN / NIPD'],
+                                    ['nama_rombel', 'Rombel'],
+                                ];
+                            @endphp
+                            @foreach ($colsBerkas as [$key, $label])
+                                <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"
+                                    data-sort="{{ $key }}">
+                                    {{ $label }}
+                                    <span class="sort-icon">{!! $sort === $key ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                            @endforeach
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                Akta Lahir</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                Kartu Keluarga</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                Ijazah SMP</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                KTP Ortu</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                KIP / PIP</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($berkasList as $item)
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td class="cell-pd-nama"
+                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                    data-label="Nama Siswa">
+                                    <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
+                                        @if (!empty($item->foto_url))
+                                            <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                                role="button" tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
+                                                <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="pd-foto-thumb empty"
+                                                data-biodata-id="{{ $item->peserta_didik_id }}" role="button"
                                                 tabindex="0"
-                                                title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
-                                                style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}</span>
+                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
+                                                <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
+                                            </div>
+                                        @endif
+                                        <div class="pd-info">
+                                            <div class="pd-title-row"
+                                                style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                                    role="button" tabindex="0"
+                                                    title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                                    style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
+                                            </div>
+                                            @if (!empty($item->nik))
+                                                <div
+                                                    style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    <span class="copyable" data-copy="{{ $item->nik }}"
+                                                        data-label="NIK" title="Klik untuk salin NIK">
+                                                        NIK: {{ $item->nik }}
+                                                    </span>
+                                                </div>
+                                            @endif
                                         </div>
-                                        <div
-                                            style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                            @if ($item->siswa?->nisn)
-                                                <span class="copyable" data-copy="{{ $item->siswa->nisn }}"
-                                                    data-label="NISN" title="Klik untuk salin NISN">
-                                                    NISN: {{ $item->siswa->nisn }}
+                                    </div>
+                                </td>
+                                <td class="cell-pd-nisn"
+                                    style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                    data-label="NISN/NIPD">
+                                    <div class="cell-col-right">
+                                        <div>
+                                            @if ($item->nisn)
+                                                <span class="copyable" data-copy="{{ $item->nisn }}"
+                                                    data-label="NISN"
+                                                    title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                            @else
+                                                -
+                                            @endif
+                                        </div>
+                                        @if (!empty($item->nipd))
+                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nipd }}"
+                                                    data-label="NIPD" title="Klik untuk salin NIPD">NIPD:
+                                                    {{ $item->nipd }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="cell-pd-rombel"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem; order: 3;"
+                                    data-label="Rombel">
+                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                        {{ $item->rombel_nama ?: '-' }}
+                                    </span>
+                                </td>
+                                @php
+                                    $aktaF = $item->files['akta_kelahiran'] ?? null;
+                                    $kkF = $item->files['kartu_keluarga'] ?? null;
+                                    $ijzF = $item->files['ijazah_smp'] ?? null;
+                                    $ktpF = $item->files['ktp_orang_tua'] ?? null;
+                                    $kipF = $item->files['kip_pip'] ?? null;
+                                @endphp
+                                <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 5;"
+                                    data-label="Akta Lahir">
+                                    @if ($aktaF)
+                                        @if ($aktaF->status === 'valid')
+                                            <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                    class="fas fa-circle-check"></i> Valid</span>
+                                        @elseif ($aktaF->status === 'tidak_valid')
+                                            <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                    class="fas fa-circle-xmark"></i> Ditolak</span>
+                                        @else
+                                            <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                    class="fas fa-clock"></i> PDF</span>
+                                        @endif
+                                    @elseif ($item->akta_kelahiran)
+                                        <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                                class="fas fa-check"></i></span>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                    @endif
+                                </td>
+                                <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 6;"
+                                    data-label="Kartu Keluarga">
+                                    @if ($kkF)
+                                        @if ($kkF->status === 'valid')
+                                            <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                    class="fas fa-circle-check"></i> Valid</span>
+                                        @elseif ($kkF->status === 'tidak_valid')
+                                            <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                    class="fas fa-circle-xmark"></i> Ditolak</span>
+                                        @else
+                                            <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                    class="fas fa-clock"></i> PDF</span>
+                                        @endif
+                                    @elseif ($item->kartu_keluarga)
+                                        <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                                class="fas fa-check"></i></span>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                    @endif
+                                </td>
+                                <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 7;"
+                                    data-label="Ijazah SMP">
+                                    @if ($ijzF)
+                                        @if ($ijzF->status === 'valid')
+                                            <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                    class="fas fa-circle-check"></i> Valid</span>
+                                        @elseif ($ijzF->status === 'tidak_valid')
+                                            <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                    class="fas fa-circle-xmark"></i> Ditolak</span>
+                                        @else
+                                            <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                    class="fas fa-clock"></i> PDF</span>
+                                        @endif
+                                    @elseif ($item->ijazah_smp)
+                                        <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                                class="fas fa-check"></i></span>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                    @endif
+                                </td>
+                                <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 8;"
+                                    data-label="KTP Ortu">
+                                    @if ($ktpF)
+                                        @if ($ktpF->status === 'valid')
+                                            <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                    class="fas fa-circle-check"></i> Valid</span>
+                                        @elseif ($ktpF->status === 'tidak_valid')
+                                            <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                    class="fas fa-circle-xmark"></i> Ditolak</span>
+                                        @else
+                                            <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                    class="fas fa-clock"></i> PDF</span>
+                                        @endif
+                                    @elseif ($item->ktp_orang_tua)
+                                        <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                                class="fas fa-check"></i></span>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                    @endif
+                                </td>
+                                <td class="cell-pd-berkas-item" style="padding: 14px 18px; text-align: center; order: 9;"
+                                    data-label="KIP / PIP">
+                                    @if ($kipF)
+                                        @if ($kipF->status === 'valid')
+                                            <span class="badge badge-success" title="Valid / Sesuai"><i
+                                                    class="fas fa-circle-check"></i> Valid</span>
+                                        @elseif ($kipF->status === 'tidak_valid')
+                                            <span class="badge badge-danger" title="Tidak Valid / Ditolak"><i
+                                                    class="fas fa-circle-xmark"></i> Ditolak</span>
+                                        @else
+                                            <span class="badge badge-warning" title="Menunggu Verifikasi"><i
+                                                    class="fas fa-clock"></i> PDF</span>
+                                        @endif
+                                    @elseif ($item->kip_pip)
+                                        <span class="badge badge-success" title="Fisik Terverifikasi"><i
+                                                class="fas fa-check"></i></span>
+                                    @else
+                                        <span class="text-muted" style="font-size: 0.8rem;">-</span>
+                                    @endif
+                                </td>
+                                <td class="cell-pd-aksi"
+                                    style="padding: 14px 18px; text-align: right; order: 10 !important;"
+                                    data-label="Aksi">
+                                    <div class="table-actions" style="justify-content: flex-end;">
+                                        <button type="button" class="btn-icon btn-validasi-berkas-detail"
+                                            data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
+                                            title="Validasi Dokumen Siswa">
+                                            <i class="fas fa-check-double" style="color: var(--primary);"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9"
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <div>Belum ada data berkas siswa.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            @if ($berkasList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $berkasList])
+                </div>
+            @endif
+        @elseif ($activeTab === 'usulan')
+            <!-- TAB 4: USULAN PERUBAHAN DATA SISWA -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Nama Siswa</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Rombel</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Usulan Perubahan Data</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Perbandingan (Lama vs Baru)</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                Berkas Pendukung</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Status Verifikasi &amp; Dapodik</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                Aksi Pengelolaan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($usulanList as $item)
+                            @php
+                                $usulanPdId = $item->peserta_didik_id ?: $item->siswa?->peserta_didik_id ?? '';
+                            @endphp
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td class="cell-pd-nama"
+                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                    data-label="Nama Siswa">
+                                    <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
+                                        @if (!empty($item->foto_url))
+                                            <div class="pd-foto-thumb" data-biodata-id="{{ $usulanPdId }}"
+                                                role="button" tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
+                                                <img src="{{ $item->foto_url }}" alt="Foto {{ $item->siswa?->nama }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="pd-foto-thumb empty" data-biodata-id="{{ $usulanPdId }}"
+                                                role="button" tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
+                                                <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
+                                            </div>
+                                        @endif
+                                        <div class="pd-info">
+                                            <div class="pd-title-row"
+                                                style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <span class="pd-nama" data-biodata-id="{{ $usulanPdId }}"
+                                                    role="button" tabindex="0"
+                                                    title="Klik untuk melihat biodata lengkap {{ $item->siswa?->nama }}"
+                                                    style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->siswa?->nama ?: 'Siswa #' . $item->peserta_didik_id }}</span>
+                                            </div>
+                                            <div
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                @if ($item->siswa?->nisn)
+                                                    <span class="copyable" data-copy="{{ $item->siswa->nisn }}"
+                                                        data-label="NISN" title="Klik untuk salin NISN">
+                                                        NISN: {{ $item->siswa->nisn }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="cell-pd-rombel"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                    data-label="Rombel">
+                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                        {{ $item->siswa?->nama_rombel ?: '-' }}
+                                    </span>
+                                </td>
+                                <td style="padding: 14px 18px;" data-label="Usulan Perubahan">
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <span class="badge badge-primary"
+                                            style="font-size: 0.72rem; padding: 3px 8px; width: fit-content;">
+                                            <i class="fas fa-list-check me-1"></i> {{ $item->total_usulan }} Perubahan
+                                        </span>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 240px;">
+                                            @foreach (array_slice($item->kolom_list ?? [], 0, 3) as $kItem)
+                                                <span class="badge badge-outline"
+                                                    style="font-size: 0.68rem; padding: 2px 6px;">
+                                                    {{ $kItem['label'] }}
+                                                </span>
+                                            @endforeach
+                                            @if (count($item->kolom_list ?? []) > 3)
+                                                <span class="badge badge-outline"
+                                                    style="font-size: 0.68rem; padding: 2px 6px; opacity: 0.7;">
+                                                    +{{ count($item->kolom_list) - 3 }} lainnya
                                                 </span>
                                             @endif
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td class="cell-pd-rombel"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
-                                data-label="Rombel">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
-                                    {{ $item->siswa?->nama_rombel ?: '-' }}
-                                </span>
-                            </td>
-                            <td style="padding: 14px 18px;" data-label="Usulan Perubahan">
-                                <div style="display: flex; flex-direction: column; gap: 5px;">
-                                    <span class="badge badge-primary"
-                                        style="font-size: 0.72rem; padding: 3px 8px; width: fit-content;">
-                                        <i class="fas fa-list-check me-1"></i> {{ $item->total_usulan }} Perubahan
-                                    </span>
-                                    <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 240px;">
-                                        @foreach (array_slice($item->kolom_list ?? [], 0, 3) as $kItem)
-                                            <span class="badge badge-outline"
-                                                style="font-size: 0.68rem; padding: 2px 6px;">
-                                                {{ $kItem['label'] }}
-                                            </span>
+                                </td>
+                                <td style="padding: 14px 18px;" data-label="Perbandingan Nilai">
+                                    <div style="display: flex; flex-direction: column; gap: 6px; max-width: 260px;">
+                                        @foreach (array_slice($item->kolom_list ?? [], 0, 2) as $kItem)
+                                            <div
+                                                style="font-size: 0.74rem; background: rgba(0,0,0,0.04); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+                                                <div
+                                                    style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">
+                                                    {{ $kItem['label'] }}:</div>
+                                                <div
+                                                    style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                    <span
+                                                        style="text-decoration: line-through; opacity: 0.75; font-size: 0.72rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_lama'], 14) }}</span>
+                                                    <i class="fas fa-arrow-right"
+                                                        style="font-size: 0.62rem; color: var(--text-muted);"></i>
+                                                    <span
+                                                        style="font-weight: 700; color: #10b981; font-size: 0.74rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_baru'], 16) }}</span>
+                                                </div>
+                                            </div>
                                         @endforeach
-                                        @if (count($item->kolom_list ?? []) > 3)
-                                            <span class="badge badge-outline"
-                                                style="font-size: 0.68rem; padding: 2px 6px; opacity: 0.7;">
-                                                +{{ count($item->kolom_list) - 3 }} lainnya
-                                            </span>
+                                        @if (count($item->kolom_list ?? []) > 2)
+                                            <div style="font-size: 0.7rem; color: var(--text-muted); font-style: italic;">
+                                                +{{ count($item->kolom_list) - 2 }} data lainnya (buka formulir)
+                                            </div>
                                         @endif
                                     </div>
-                                </div>
-                            </td>
-                            <td style="padding: 14px 18px;" data-label="Perbandingan Nilai">
-                                <div style="display: flex; flex-direction: column; gap: 6px; max-width: 260px;">
-                                    @foreach (array_slice($item->kolom_list ?? [], 0, 2) as $kItem)
-                                        <div
-                                            style="font-size: 0.74rem; background: rgba(0,0,0,0.04); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color);">
-                                            <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">
-                                                {{ $kItem['label'] }}:</div>
-                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                                <span
-                                                    style="text-decoration: line-through; opacity: 0.75; font-size: 0.72rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_lama'], 14) }}</span>
-                                                <i class="fas fa-arrow-right"
-                                                    style="font-size: 0.62rem; color: var(--text-muted);"></i>
-                                                <span
-                                                    style="font-weight: 700; color: #10b981; font-size: 0.74rem;">{{ \Illuminate\Support\Str::limit($kItem['nilai_baru'], 16) }}</span>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                    @if (count($item->kolom_list ?? []) > 2)
-                                        <div style="font-size: 0.7rem; color: var(--text-muted); font-style: italic;">
-                                            +{{ count($item->kolom_list) - 2 }} data lainnya (buka formulir)
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Berkas Pendukung">
-                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
-                                    <span
-                                        class="badge {{ ($item->kk_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
-                                        style="font-size: 0.65rem; padding: 2px 6px;">
-                                        KK: {{ ($item->kk_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}
-                                    </span>
-                                    <span
-                                        class="badge {{ ($item->ijazah_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
-                                        style="font-size: 0.65rem; padding: 2px 6px;">
-                                        Ijazah: {{ ($item->ijazah_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}
-                                    </span>
-                                    @if (!empty($item->berkas_bukti_path))
-                                        <button type="button" class="btn btn-outline btn-sm btn-preview-pdf-inline"
-                                            data-url="{{ asset('storage/' . ltrim($item->berkas_bukti_path, '/')) }}"
-                                            data-title="Bukti Usulan - {{ $item->siswa?->nama }}"
-                                            style="padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; margin-top: 2px;">
-                                            <i class="fas fa-file-pdf text-danger me-1"></i> Bukti PDF
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                            <td style="padding: 14px 18px;" data-label="Status">
-                                @php
-                                    $bColor = match ($item->status) {
-                                        'disetujui' => 'badge-success',
-                                        'sudah_ke_dapodik' => 'badge-primary',
-                                        'ditolak' => 'badge-danger',
-                                        default => 'badge-warning',
-                                    };
-                                    $bLabel = match ($item->status) {
-                                        'disetujui' => 'Disetujui (' . ($item->disetujui_count ?? 1) . ')',
-                                        'sudah_ke_dapodik' => 'Selesai di Dapodik',
-                                        'ditolak' => 'Ditolak Kesiswaan',
-                                        default => 'Menunggu Review (' . ($item->menunggu_count ?? 1) . ')',
-                                    };
-                                @endphp
-                                <span class="badge {{ $bColor }}"
-                                    style="font-size: 0.72rem; padding: 3px 8px;">{{ $bLabel }}</span>
-                            </td>
-                            <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions"
-                                    style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                                    <button type="button" class="btn btn-primary btn-sm btn-kelola-usulan-modal"
-                                        data-id="{{ $usulanPdId }}" data-nama="{{ $item->siswa?->nama }}"
-                                        title="Buka Formulir Usulan Perubahan Data Siswa"
-                                        style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                                        <i class="fas fa-file-pen"></i> Formulir Usulan
-                                    </button>
-                                    @if ($item->disetujui_count > 0 && $canUpdate)
-                                        <button type="button" class="btn-icon btn-mark-dapodik"
+                                </td>
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Berkas Pendukung">
+                                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                        <span
+                                            class="badge {{ ($item->kk_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
+                                            style="font-size: 0.65rem; padding: 2px 6px;">
+                                            KK: {{ ($item->kk_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}
+                                        </span>
+                                        <span
+                                            class="badge {{ ($item->ijazah_status ?? '') === 'valid' ? 'badge-success' : 'badge-outline' }}"
+                                            style="font-size: 0.65rem; padding: 2px 6px;">
+                                            Ijazah:
+                                            {{ ($item->ijazah_status ?? '') === 'valid' ? 'Valid' : 'Belum Valid' }}
+                                        </span>
+                                        @if (!empty($item->berkas_bukti_path))
+                                            <button type="button" class="btn btn-outline btn-sm btn-preview-pdf-inline"
+                                                data-url="{{ asset('storage/' . ltrim($item->berkas_bukti_path, '/')) }}"
+                                                data-title="Bukti Usulan - {{ $item->siswa?->nama }}"
+                                                style="padding: 2px 8px; font-size: 0.7rem; border-radius: 4px; margin-top: 2px;">
+                                                <i class="fas fa-file-pdf text-danger me-1"></i> Bukti PDF
+                                            </button>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td style="padding: 14px 18px;" data-label="Status">
+                                    @php
+                                        $bColor = match ($item->status) {
+                                            'disetujui' => 'badge-success',
+                                            'sudah_ke_dapodik' => 'badge-primary',
+                                            'ditolak' => 'badge-danger',
+                                            default => 'badge-warning',
+                                        };
+                                        $bLabel = match ($item->status) {
+                                            'disetujui' => 'Disetujui (' . ($item->disetujui_count ?? 1) . ')',
+                                            'sudah_ke_dapodik' => 'Selesai di Dapodik',
+                                            'ditolak' => 'Ditolak Kesiswaan',
+                                            default => 'Menunggu Review (' . ($item->menunggu_count ?? 1) . ')',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $bColor }}"
+                                        style="font-size: 0.72rem; padding: 3px 8px;">{{ $bLabel }}</span>
+                                </td>
+                                <td class="cell-pd-aksi" style="padding: 14px 18px; text-align: right;"
+                                    data-label="Aksi">
+                                    <div class="table-actions"
+                                        style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                        <button type="button" class="btn btn-primary btn-sm btn-kelola-usulan-modal"
                                             data-id="{{ $usulanPdId }}" data-nama="{{ $item->siswa?->nama }}"
-                                            title="Tandai Selesai Di-update ke Dapodik"
-                                            style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); cursor: pointer;">
-                                            <i class="fas fa-cloud-arrow-up"></i>
+                                            title="Buka Formulir Usulan Perubahan Data Siswa"
+                                            style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                                            <i class="fas fa-file-pen"></i> Formulir Usulan
                                         </button>
-                                    @endif
-                                    <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $usulanPdId]) }}"
-                                        target="_blank" class="btn-icon" title="Lihat Formulir Lengkap Siswa"
-                                        style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(6,182,212,0.12); color: var(--accent); border: 1px solid rgba(6,182,212,0.25);">
-                                        <i class="fas fa-id-card"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-file-circle-question mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada usulan perubahan data siswa.</div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($usulanList->hasPages())
-            <div class="custom-pagination">
-                @if ($usulanList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $usulanList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $usulanList->currentPage();
-                    $last = $usulanList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $usulanList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $usulanList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $usulanList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($usulanList->hasMorePages())
-                    <a href="{{ $usulanList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                                        @if ($item->disetujui_count > 0 && $canUpdate)
+                                            <button type="button" class="btn-icon btn-mark-dapodik"
+                                                data-id="{{ $usulanPdId }}" data-nama="{{ $item->siswa?->nama }}"
+                                                title="Tandai Selesai Di-update ke Dapodik"
+                                                style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); cursor: pointer;">
+                                                <i class="fas fa-cloud-arrow-up"></i>
+                                            </button>
+                                        @endif
+                                        <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $usulanPdId]) }}"
+                                            target="_blank" class="btn-icon" title="Lihat Formulir Lengkap Siswa"
+                                            style="width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: rgba(6,182,212,0.12); color: var(--accent); border: 1px solid rgba(6,182,212,0.25);">
+                                            <i class="fas fa-id-card"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7"
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-file-circle-question mb-2"
+                                        style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <div>Belum ada usulan perubahan data siswa.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
-    @elseif ($activeTab === 'alumni')
-        <!-- TAB 5: ALUMNI (DIALIHKAN SETELAH USULAN PERUBAHAN) -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Nama Alumni</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            NISN / NIPD</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            L/P</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Rombel Terakhir</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                            Tahun Lulus</th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Keterangan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($alumniList as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="cell-pd-nama"
-                                style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
-                                data-label="Nama Alumni">
-                                <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
-                                    @if (!empty($item->foto_url))
-                                        <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
-                                            role="button" tabindex="0"
-                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
-                                            <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
-                                                style="width: 100%; height: 100%; object-fit: cover;">
-                                        </div>
-                                    @else
-                                        <div class="pd-foto-thumb empty" data-biodata-id="{{ $item->peserta_didik_id }}"
-                                            role="button" tabindex="0"
-                                            title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
-                                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
-                                            <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
-                                        </div>
-                                    @endif
-                                    <div class="pd-info">
-                                        <div class="pd-title-row"
-                                            style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                            <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
+
+            @if ($usulanList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $usulanList])
+                </div>
+            @endif
+        @elseif ($activeTab === 'alumni')
+            <!-- TAB 5: ALUMNI (DIALIHKAN SETELAH USULAN PERUBAHAN) -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Nama Alumni</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                NISN / NIPD</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                L/P</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Rombel Terakhir</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                Tahun Lulus</th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($alumniList as $item)
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td class="cell-pd-nama"
+                                    style="padding: 14px 18px; font-weight: 700; color: var(--text-color); font-size: 0.88rem;"
+                                    data-label="Nama Alumni">
+                                    <div class="pd-main-wrapper" style="display: flex; align-items: center; gap: 12px;">
+                                        @if (!empty($item->foto_url))
+                                            <div class="pd-foto-thumb" data-biodata-id="{{ $item->peserta_didik_id }}"
                                                 role="button" tabindex="0"
                                                 title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
-                                                style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: repeating-conic-gradient(#2a3447 0% 25%, #182030 0% 50%) 50% / 8px 8px; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s ease;">
+                                                <img src="{{ $item->foto_url }}" alt="Foto {{ $item->nama }}"
+                                                    style="width: 100%; height: 100%; object-fit: cover;">
+                                            </div>
+                                        @else
+                                            <div class="pd-foto-thumb empty"
+                                                data-biodata-id="{{ $item->peserta_didik_id }}" role="button"
+                                                tabindex="0"
+                                                title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                                style="width: 42px; height: 42px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1.5px dashed rgba(99,102,241,0.4); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.05rem; flex-shrink: 0; cursor: pointer; transition: all 0.2s ease;">
+                                                <i class="fas fa-user-graduate" style="opacity: 0.7;"></i>
+                                            </div>
+                                        @endif
+                                        <div class="pd-info">
+                                            <div class="pd-title-row"
+                                                style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <span class="pd-nama" data-biodata-id="{{ $item->peserta_didik_id }}"
+                                                    role="button" tabindex="0"
+                                                    title="Klik untuk melihat biodata lengkap {{ $item->nama }}"
+                                                    style="font-weight: 700; color: var(--text-color); cursor: pointer; transition: color 0.2s ease;">{{ $item->nama }}</span>
+                                            </div>
+                                            @if (!empty($item->nik))
+                                                <div
+                                                    style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
+                                                    <span class="copyable" data-copy="{{ $item->nik }}"
+                                                        data-label="NIK" title="Klik untuk salin NIK">
+                                                        NIK: {{ $item->nik }}
+                                                    </span>
+                                                </div>
+                                            @endif
                                         </div>
-                                        @if (!empty($item->nik))
-                                            <div
-                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace; margin-top: 2px;">
-                                                <span class="copyable" data-copy="{{ $item->nik }}" data-label="NIK"
-                                                    title="Klik untuk salin NIK">
-                                                    NIK: {{ $item->nik }}
-                                                </span>
+                                    </div>
+                                </td>
+                                <td class="cell-pd-nisn"
+                                    style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
+                                    data-label="NISN/NIPD">
+                                    <div class="cell-col-right">
+                                        <div>
+                                            @if ($item->nisn)
+                                                <span class="copyable" data-copy="{{ $item->nisn }}"
+                                                    data-label="NISN"
+                                                    title="Klik untuk salin NISN">{{ $item->nisn }}</span>
+                                            @else
+                                                -
+                                            @endif
+                                        </div>
+                                        @if (!empty($item->nipd))
+                                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                                <span class="copyable" data-copy="{{ $item->nipd }}"
+                                                    data-label="NIPD" title="Klik untuk salin NIPD">NIPD:
+                                                    {{ $item->nipd }}</span>
                                             </div>
                                         @endif
                                     </div>
-                                </div>
-                            </td>
-                            <td class="cell-pd-nisn"
-                                style="padding: 14px 18px; font-family: monospace; font-size: 0.84rem; color: var(--primary);"
-                                data-label="NISN/NIPD">
-                                <div class="cell-col-right">
-                                    <div>
-                                        @if ($item->nisn)
-                                            <span class="copyable" data-copy="{{ $item->nisn }}" data-label="NISN"
-                                                title="Klik untuk salin NISN">{{ $item->nisn }}</span>
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-                                    @if (!empty($item->nipd))
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                            <span class="copyable" data-copy="{{ $item->nipd }}" data-label="NIPD"
-                                                title="Klik untuk salin NIPD">NIPD: {{ $item->nipd }}</span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;" data-label="L/P">
-                                <span class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
-                                    style="font-size: 0.72rem; padding: 2px 7px;">
-                                    {{ $item->jenis_kelamin ?: '-' }}
-                                </span>
-                            </td>
-                            <td class="cell-pd-rombel"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
-                                data-label="Rombel Terakhir">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
-                                    {{ $item->rombel_terakhir ?: '-' }}
-                                </span>
-                            </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Tahun Lulus">
-                                <span class="badge badge-primary"
-                                    style="font-weight: 700; font-size: 0.8rem; padding: 3px 8px;">
-                                    {{ $item->tahun_lulus ?: ($item->tanggal_keluar ? date('Y', strtotime($item->tanggal_keluar)) : '-') }}
-                                </span>
-                            </td>
-                            <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-muted);"
-                                data-label="Keterangan">
-                                {{ $item->alasan_keluar ?: 'Alumni / Tamat Belajar' }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6"
-                                style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-graduation-cap mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Belum ada data arsip alumni.</div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($alumniList->hasPages())
-            <div class="custom-pagination">
-                @if ($alumniList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $alumniList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $alumniList->currentPage();
-                    $last = $alumniList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $alumniList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $alumniList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $alumniList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($alumniList->hasMorePages())
-                    <a href="{{ $alumniList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                                </td>
+                                <td class="cell-pd-gender" style="padding: 14px 18px; text-align: center;"
+                                    data-label="L/P">
+                                    <span
+                                        class="badge {{ $item->jenis_kelamin === 'L' ? 'badge-primary' : 'badge-danger' }}"
+                                        style="font-size: 0.72rem; padding: 2px 7px;">
+                                        {{ $item->jenis_kelamin ?: '-' }}
+                                    </span>
+                                </td>
+                                <td class="cell-pd-rombel"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.84rem;"
+                                    data-label="Rombel Terakhir">
+                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                        {{ $item->rombel_terakhir ?: '-' }}
+                                    </span>
+                                </td>
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Tahun Lulus">
+                                    <span class="badge badge-primary"
+                                        style="font-weight: 700; font-size: 0.8rem; padding: 3px 8px;">
+                                        {{ $item->tahun_lulus ?: ($item->tanggal_keluar ? date('Y', strtotime($item->tanggal_keluar)) : '-') }}
+                                    </span>
+                                </td>
+                                <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-muted);"
+                                    data-label="Keterangan">
+                                    {{ $item->alasan_keluar ?: 'Alumni / Tamat Belajar' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6"
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-graduation-cap mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <div>Belum ada data arsip alumni.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
+
+            @if ($alumniList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $alumniList])
+                </div>
+            @endif
         @endif
-    @endif
+    </div>
 
     <!-- MODAL 1: DETAIL BIODATA LENGKAP PESERTA DIDIK (Persis seperti Manajemen Data) -->
     <div id="biodataModal" class="modal-backdrop"

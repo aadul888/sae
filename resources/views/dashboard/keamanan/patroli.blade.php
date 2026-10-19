@@ -98,207 +98,324 @@
 
         @if ($tab === 'patroli')
             {{-- TAB 1: PATROLI --}}
-            <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Waktu Patroli</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Rute / Zona</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Kondisi Lingkungan</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Catatan Temuan</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Petugas</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                                Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($patroliList as $item)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 18px;">
-                                    <div style="font-weight: 600; color: var(--text-heading);">
-                                        {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Pukul
-                                        {{ substr($item->jam_patroli, 0, 5) }} WIB</div>
-                                </td>
-                                <td style="padding: 12px 18px;">
-                                    <span
-                                        style="font-weight: 600; color: var(--text-heading);">{{ $item->rute_zona }}</span>
-                                </td>
-                                <td style="padding: 12px 18px;">
-                                    @if ($item->kondisi_lingkungan === 'aman_terkendali')
-                                        <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Aman
-                                            & Terkendali</span>
-                                    @elseif ($item->kondisi_lingkungan === 'mencurigakan')
-                                        <span class="badge"
-                                            style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Mencurigakan</span>
-                                    @else
-                                        <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">{{ ucwords(str_replace('_', ' ', $item->kondisi_lingkungan)) }}</span>
-                                    @endif
-                                </td>
-                                <td
-                                    style="padding: 12px 18px; font-size: 0.85rem; color: var(--text-muted); max-width: 250px;">
-                                    {{ $item->catatan_temuan ?: '-' }}
-                                </td>
-                                <td style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-heading);">
-                                    {{ $item->nama_petugas ?: 'Satpam' }}
-                                </td>
-                                <td style="padding: 12px 18px; text-align: center;">
-                                    <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
-                                        @if ($canUpdate)
-                                            <button type="button" class="btn-icon" title="Edit"
-                                                onclick="editPatroli({{ json_encode($item) }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                        @endif
-                                        @if ($canDelete)
-                                            <form action="{{ route('dashboard.keamanan.patroli.destroy', $item->id) }}"
-                                                method="POST" data-confirm="delete"
-                                                data-name="Patroli {{ $item->rute_zona }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-icon btn-icon-danger" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
+            <div class="card datatable-card-wrapper" id="tableDataContainer">
+                {{-- 1. Toolbar Header (Entries, Filters & Live Search) --}}
+                <div class="datatable-toolbar">
+                    <form method="GET" action="{{ route('dashboard.keamanan.patroli.index') }}" id="filterForm"
+                        style="margin: 0;">
+                        <input type="hidden" name="tab" value="patroli">
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                <div class="toolbar-entries">
+                                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                                    <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                        @foreach ([10, 15, 25, 50, 100] as $n)
+                                            <option value="{{ $n }}"
+                                                {{ request('perPage', 15) == $n ? 'selected' : '' }}>
+                                                {{ $n }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span>entri</span>
+                                </div>
+
+                                <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
+                                    style="height: 38px; width: auto; min-width: 140px; padding: 4px 10px;">
+
+                                @if ($search || $tanggal)
+                                    <a href="{{ route('dashboard.keamanan.patroli.index', ['tab' => 'patroli']) }}"
+                                        class="btn btn-outline btn-reset-filter"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                        title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
+                                @endif
+                            </div>
+
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" name="search" id="searchPatroli" value="{{ $search }}"
+                                    placeholder="Cari rute, temuan, petugas..." autocomplete="off">
+                                <button type="button" id="clearSearch"
+                                    class="clear-search {{ !empty($search) ? 'visible' : '' }}" title="Hapus pencarian">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- 2. Konten Datatable Responsive Stack --}}
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
-                                    <i class="fas fa-walking"
-                                        style="font-size: 2rem; margin-bottom: 8px; opacity: 0.4;"></i>
-                                    <p style="margin: 0;">Belum ada log patroli.</p>
-                                </td>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Waktu Patroli</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Rute / Zona</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Kondisi Lingkungan</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Catatan Temuan</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Petugas</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    Aksi</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse ($patroliList as $item)
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 18px;">
+                                        <div style="font-weight: 600; color: var(--text-heading);">
+                                            {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);">Pukul
+                                            {{ substr($item->jam_patroli, 0, 5) }} WIB</div>
+                                    </td>
+                                    <td style="padding: 12px 18px;">
+                                        <span
+                                            style="font-weight: 600; color: var(--text-heading);">{{ $item->rute_zona }}</span>
+                                    </td>
+                                    <td style="padding: 12px 18px;">
+                                        @if ($item->kondisi_lingkungan === 'aman_terkendali')
+                                            <span class="badge"
+                                                style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Aman
+                                                & Terkendali</span>
+                                        @elseif ($item->kondisi_lingkungan === 'mencurigakan')
+                                            <span class="badge"
+                                                style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Mencurigakan</span>
+                                        @else
+                                            <span class="badge"
+                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">{{ ucwords(str_replace('_', ' ', $item->kondisi_lingkungan)) }}</span>
+                                        @endif
+                                    </td>
+                                    <td
+                                        style="padding: 12px 18px; font-size: 0.85rem; color: var(--text-muted); max-width: 250px;">
+                                        {{ $item->catatan_temuan ?: '-' }}
+                                    </td>
+                                    <td style="padding: 12px 18px; font-size: 0.82rem; color: var(--text-heading);">
+                                        {{ $item->nama_petugas ?: 'Satpam' }}
+                                    </td>
+                                    <td style="padding: 12px 18px; text-align: center;">
+                                        <div class="table-actions"
+                                            style="display: flex; gap: 6px; justify-content: center;">
+                                            @if ($canUpdate)
+                                                <button type="button" class="btn-icon" title="Edit"
+                                                    onclick="editPatroli({{ json_encode($item) }})">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            @endif
+                                            @if ($canDelete)
+                                                <form
+                                                    action="{{ route('dashboard.keamanan.patroli.destroy', $item->id) }}"
+                                                    method="POST" data-confirm="delete"
+                                                    data-name="Patroli {{ $item->rute_zona }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-icon btn-icon-danger"
+                                                        title="Hapus">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6"
+                                        style="text-align: center; padding: 36px; color: var(--text-muted);">
+                                        <i class="fas fa-walking"
+                                            style="font-size: 2rem; margin-bottom: 8px; opacity: 0.4;"></i>
+                                        <p style="margin: 0;">Belum ada log patroli.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- 3. Footer Paginasi Terpadu Datatable Tab Patroli --}}
+                @if ($patroliList->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $patroliList])
+                    </div>
+                @endif
             </div>
         @else
             {{-- TAB 2: INSIDEN --}}
-            <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                No Laporan & Waktu</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Judul Insiden & Lokasi</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Urgensi</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Kronologi / Tindakan</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Status Penyelesaian</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                                Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($insidenList as $ins)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 18px;">
-                                    <div
-                                        style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: 0.85rem;">
-                                        {{ $ins->nomor_laporan }}</div>
-                                    <div style="font-size: 0.78rem; color: var(--text-muted);">
-                                        {{ \Carbon\Carbon::parse($ins->tanggal)->translatedFormat('d M Y') }} &bull;
-                                        {{ substr($ins->jam_kejadian, 0, 5) }}
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 18px;">
-                                    <div style="font-weight: 600; color: var(--text-heading);">{{ $ins->judul_insiden }}
-                                    </div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);"><i
-                                            class="fas fa-map-marker-alt"></i> {{ $ins->lokasi_kejadian }}</div>
-                                </td>
-                                <td style="padding: 12px 18px;">
-                                    @if ($ins->tingkat_urgensi === 'darurat')
-                                        <span class="badge"
-                                            style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4);">Darurat</span>
-                                    @elseif ($ins->tingkat_urgensi === 'tinggi')
-                                        <span class="badge"
-                                            style="background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.4);">Tinggi</span>
-                                    @elseif ($ins->tingkat_urgensi === 'sedang')
-                                        <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4);">Sedang</span>
-                                    @else
-                                        <span class="badge"
-                                            style="background: rgba(107, 114, 128, 0.2); color: #6b7280;">Rendah</span>
-                                    @endif
-                                </td>
-                                <td style="padding: 12px 18px; font-size: 0.82rem; max-width: 250px;">
-                                    <div style="color: var(--text-heading); white-space: normal;">
-                                        {{ Str::limit($ins->kronologi, 80) }}</div>
-                                    @if ($ins->tindakan_diambil)
-                                        <div style="color: var(--text-muted); margin-top: 2px;"><em>Tindakan:
-                                                {{ Str::limit($ins->tindakan_diambil, 60) }}</em></div>
-                                    @endif
-                                </td>
-                                <td style="padding: 12px 18px;">
-                                    @if ($ins->status_penyelesaian === 'selesai')
-                                        <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Selesai</span>
-                                    @else
-                                        <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Dalam
-                                            Penanganan</span>
-                                    @endif
-                                </td>
-                                <td style="padding: 12px 18px; text-align: center;">
-                                    <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
-                                        @if ($canUpdate)
-                                            <button type="button" class="btn-icon" title="Edit"
-                                                onclick="editInsiden({{ json_encode($ins) }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                        @endif
-                                        @if ($canDelete)
-                                            <form action="{{ route('dashboard.keamanan.insiden.destroy', $ins->id) }}"
-                                                method="POST" data-confirm="delete"
-                                                data-name="Insiden {{ $ins->nomor_laporan }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-icon btn-icon-danger" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
+            <div class="card datatable-card-wrapper" id="tableDataContainer">
+                {{-- 1. Toolbar Header (Entries, Filters & Live Search) --}}
+                <div class="datatable-toolbar">
+                    <form method="GET" action="{{ route('dashboard.keamanan.patroli.index') }}" id="filterForm"
+                        style="margin: 0;">
+                        <input type="hidden" name="tab" value="insiden">
+                        <div
+                            style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                                <div class="toolbar-entries">
+                                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                                    <select id="perPageSelect" name="perPage" class="per-page-select"
+                                        style="height: 38px;">
+                                        @foreach ([10, 15, 25, 50, 100] as $n)
+                                            <option value="{{ $n }}"
+                                                {{ request('perPage', 15) == $n ? 'selected' : '' }}>
+                                                {{ $n }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span>entri</span>
+                                </div>
+
+                                <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
+                                    style="height: 38px; width: auto; min-width: 140px; padding: 4px 10px;">
+
+                                @if ($search || $tanggal)
+                                    <a href="{{ route('dashboard.keamanan.patroli.index', ['tab' => 'insiden']) }}"
+                                        class="btn btn-outline btn-reset-filter"
+                                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                        title="Reset filter" data-live-reset><i class="fas fa-undo"></i></a>
+                                @endif
+                            </div>
+
+                            <div class="live-search-wrap" style="height: 38px;">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" name="search" id="searchInsiden" value="{{ $search }}"
+                                    placeholder="Cari nomor laporan, insiden, lokasi..." autocomplete="off">
+                                <button type="button" id="clearSearch"
+                                    class="clear-search {{ !empty($search) ? 'visible' : '' }}" title="Hapus pencarian">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- 2. Konten Datatable Responsive Stack --}}
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
-                                    <i class="fas fa-check-circle"
-                                        style="font-size: 2rem; margin-bottom: 8px; color: #10b981; opacity: 0.6;"></i>
-                                    <p style="margin: 0;">Tidak ada laporan insiden.</p>
-                                </td>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    No Laporan & Waktu</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Judul Insiden & Lokasi</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Urgensi</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Kronologi / Tindakan</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Status Penyelesaian</th>
+                                <th
+                                    style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    Aksi</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse ($insidenList as $ins)
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px 18px;">
+                                        <div
+                                            style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: 0.85rem;">
+                                            {{ $ins->nomor_laporan }}</div>
+                                        <div style="font-size: 0.78rem; color: var(--text-muted);">
+                                            {{ \Carbon\Carbon::parse($ins->tanggal)->translatedFormat('d M Y') }} &bull;
+                                            {{ substr($ins->jam_kejadian, 0, 5) }}
+                                        </div>
+                                    </td>
+                                    <td style="padding: 12px 18px;">
+                                        <div style="font-weight: 600; color: var(--text-heading);">
+                                            {{ $ins->judul_insiden }}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><i
+                                                class="fas fa-map-marker-alt"></i> {{ $ins->lokasi_kejadian }}</div>
+                                    </td>
+                                    <td style="padding: 12px 18px;">
+                                        @if ($ins->tingkat_urgensi === 'darurat')
+                                            <span class="badge"
+                                                style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4);">Darurat</span>
+                                        @elseif ($ins->tingkat_urgensi === 'tinggi')
+                                            <span class="badge"
+                                                style="background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.4);">Tinggi</span>
+                                        @elseif ($ins->tingkat_urgensi === 'sedang')
+                                            <span class="badge"
+                                                style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4);">Sedang</span>
+                                        @else
+                                            <span class="badge"
+                                                style="background: rgba(107, 114, 128, 0.2); color: #6b7280;">Rendah</span>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 12px 18px; font-size: 0.82rem; max-width: 250px;">
+                                        <div style="color: var(--text-heading); white-space: normal;">
+                                            {{ Str::limit($ins->kronologi, 80) }}</div>
+                                        @if ($ins->tindakan_diambil)
+                                            <div style="color: var(--text-muted); margin-top: 2px;"><em>Tindakan:
+                                                    {{ Str::limit($ins->tindakan_diambil, 60) }}</em></div>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 12px 18px;">
+                                        @if ($ins->status_penyelesaian === 'selesai')
+                                            <span class="badge"
+                                                style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Selesai</span>
+                                        @else
+                                            <span class="badge"
+                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Dalam
+                                                Penanganan</span>
+                                        @endif
+                                    </td>
+                                    <td style="padding: 12px 18px; text-align: center;">
+                                        <div class="table-actions"
+                                            style="display: flex; gap: 6px; justify-content: center;">
+                                            @if ($canUpdate)
+                                                <button type="button" class="btn-icon" title="Edit"
+                                                    onclick="editInsiden({{ json_encode($ins) }})">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                            @endif
+                                            @if ($canDelete)
+                                                <form action="{{ route('dashboard.keamanan.insiden.destroy', $ins->id) }}"
+                                                    method="POST" data-confirm="delete"
+                                                    data-name="Insiden {{ $ins->nomor_laporan }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-icon btn-icon-danger"
+                                                        title="Hapus">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6"
+                                        style="text-align: center; padding: 36px; color: var(--text-muted);">
+                                        <i class="fas fa-check-circle"
+                                            style="font-size: 2rem; margin-bottom: 8px; color: #10b981; opacity: 0.6;"></i>
+                                        <p style="margin: 0;">Tidak ada laporan insiden.</p>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- 3. Footer Paginasi Terpadu Datatable Tab Insiden --}}
+                @if ($insidenList->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $insidenList])
+                    </div>
+                @endif
             </div>
         @endif
     </div>

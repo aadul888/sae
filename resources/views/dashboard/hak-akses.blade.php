@@ -66,224 +66,235 @@
             </div>
         </div>
 
-        <!-- Toolbar Header Datatable Baku -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select">
-                            <option value="10">10</option>
-                            <option value="25" selected>25</option>
-                            <option value="50">50</option>
-                            <option value="all">Semua</option>
+        <!-- Unified Datatable Hak Akses (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                                <option value="10">10</option>
+                                <option value="25" selected>25</option>
+                                <option value="50">50</option>
+                                <option value="all">Semua</option>
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <select id="filterGroup" class="toolbar-filter-select" style="min-width: 170px; height: 38px;">
+                            <option value="">Semua Kelompok ({{ count($tableModules) }})</option>
+                            @foreach ($groups as $g)
+                                <option value="{{ $g }}">{{ $g }} ({{ $groupCounts[$g] ?? 0 }})
+                                </option>
+                            @endforeach
                         </select>
-                        <span>entri</span>
+
+                        <button type="button" id="btnOpenAddModule" class="btn btn-primary"
+                            style="padding: 7px 14px; font-size: 0.82rem; height: 38px;">
+                            <i class="fas fa-plus me-1"></i> Tambah Modul ke Peran
+                        </button>
+
+                        <span class="badge badge-outline" id="totalBadge" style="font-size: 0.74rem;">
+                            Total: {{ count($tableModules) }} Modul
+                        </span>
                     </div>
 
-                    <select id="filterGroup" class="toolbar-filter-select" style="min-width: 170px;">
-                        <option value="">Semua Kelompok ({{ count($tableModules) }})</option>
-                        @foreach ($groups as $g)
-                            <option value="{{ $g }}">{{ $g }} ({{ $groupCounts[$g] ?? 0 }})
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <button type="button" id="btnOpenAddModule" class="btn btn-primary"
-                        style="padding: 7px 14px; font-size: 0.82rem;">
-                        <i class="fas fa-plus me-1"></i> Tambah Modul ke Peran
-                    </button>
-
-                    <span class="badge badge-outline" id="totalBadge" style="font-size: 0.74rem;">
-                        Total: {{ count($tableModules) }} Modul
-                    </span>
-                </div>
-
-                <div class="live-search-wrap">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari nama modul / fitur..." autocomplete="off">
-                    <button type="button" id="clearSearch" class="clear-search" title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="liveSearch" placeholder="Cari nama modul / fitur..." autocomplete="off">
+                        <button type="button" id="clearSearch" class="clear-search" title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Container Datatable -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-hover table-hak-akses" id="hakAksesTable"
-                style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                        <th class="module-th sortable-th" data-col="no"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center; cursor: pointer;">
-                            No <span class="sort-icon">&#9650;&#9660;</span>
-                        </th>
-                        <th class="module-th sortable-th" data-col="modul"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
-                            Modul &amp; Fitur Sistem <span class="sort-icon">&#9650;&#9660;</span>
-                        </th>
-                        <th class="module-th sortable-th" data-col="kelompok"
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px; cursor: pointer;">
-                            Kelompok <span class="sort-icon">&#9650;&#9660;</span>
-                        </th>
+            <!-- 2. Konten Datatable Responsive Stack -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-hover table-hak-akses" id="hakAksesTable"
+                    style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            <th class="module-th sortable-th" data-col="no"
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center; cursor: pointer;">
+                                No <span class="sort-icon">&#9650;&#9660;</span>
+                            </th>
+                            <th class="module-th sortable-th" data-col="modul"
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                                Modul &amp; Fitur Sistem <span class="sort-icon">&#9650;&#9660;</span>
+                            </th>
+                            <th class="module-th sortable-th" data-col="kelompok"
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px; cursor: pointer;">
+                                Kelompok <span class="sort-icon">&#9650;&#9660;</span>
+                            </th>
 
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 270px;">
-                            <div style="display: inline-flex; align-items: center; gap: 14px;">
-                                <span>Aksi:</span>
-                                <span style="color: #3b82f6; font-size: 0.73rem;" title="Tambah (Create)"><i
-                                        class="fas fa-plus-circle me-1"></i>Tambah</span>
-                                <span style="color: #10b981; font-size: 0.73rem;" title="Lihat (Read)"><i
-                                        class="fas fa-eye me-1"></i>Lihat</span>
-                                <span style="color: #f59e0b; font-size: 0.73rem;" title="Ubah (Update)"><i
-                                        class="fas fa-pen-to-square me-1"></i>Ubah</span>
-                                <span style="color: #ef4444; font-size: 0.73rem;" title="Hapus (Delete)"><i
-                                        class="fas fa-trash me-1"></i>Hapus</span>
-                            </div>
-                        </th>
-                        <th
-                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 75px;">
-                            Kelola
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    @forelse ($tableModules as $index => $item)
-                        <tr class="module-row" data-modul="{{ strtolower($item['label']) }}"
-                            data-kelompok="{{ strtolower($item['group']) }}"
-                            data-name="{{ strtolower($item['label'] . ' ' . $item['key']) }}"
-                            data-group="{{ $item['group'] }}"
-                            style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                            <td class="row-number"
-                                style="padding: 14px 18px; font-weight: 600; color: var(--text-muted); text-align: center; font-size: 0.84rem;"
-                                data-label="No">
-                                {{ $index + 1 }}
-                            </td>
-                            <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.88rem;"
-                                data-label="Modul">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div
-                                        style="width: 34px; height: 34px; border-radius: 8px; background: rgba(99, 102, 241, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;">
-                                        <i class="fas {{ $item['icon'] }}"></i>
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 2px;">
-                                        <span style="font-weight: 700;">{{ $item['label'] }}</span>
-                                        <span
-                                            style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">{{ $item['key'] }}</span>
-                                    </div>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 270px;">
+                                <div style="display: inline-flex; align-items: center; gap: 14px;">
+                                    <span>Aksi:</span>
+                                    <span style="color: #3b82f6; font-size: 0.73rem;" title="Tambah (Create)"><i
+                                            class="fas fa-plus-circle me-1"></i>Tambah</span>
+                                    <span style="color: #10b981; font-size: 0.73rem;" title="Lihat (Read)"><i
+                                            class="fas fa-eye me-1"></i>Lihat</span>
+                                    <span style="color: #f59e0b; font-size: 0.73rem;" title="Ubah (Update)"><i
+                                            class="fas fa-pen-to-square me-1"></i>Ubah</span>
+                                    <span style="color: #ef4444; font-size: 0.73rem;" title="Hapus (Delete)"><i
+                                            class="fas fa-trash me-1"></i>Hapus</span>
                                 </div>
-                            </td>
-                            <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Kelompok">
-                                <span class="badge badge-primary"
-                                    style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
-                                    {{ $item['group'] }}
-                                </span>
-                            </td>
-
-                            <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                                <div class="table-actions"
-                                    style="display: inline-flex; align-items: center; gap: 16px; justify-content: flex-end;">
-                                    <!-- Tambah (Create) -->
-                                    <div style="display: flex; align-items: center; gap: 6px;" title="Tambah (Create)">
-                                        <i class="fas fa-plus-circle" style="color: #3b82f6; font-size: 1rem;"></i>
-                                        <label class="switch-container"
-                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                data-key="{{ $item['key'] }}" data-action="create" data-color="#3b82f6"
-                                                {{ $item['can_create'] ? 'checked' : '' }}
-                                                {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                style="opacity: 0; width: 0; height: 0;">
-                                            <span class="slider-toggle-crud"
-                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_create'] ? '#3b82f6' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                        </label>
-                                    </div>
-
-                                    <!-- Lihat (Read) -->
-                                    <div style="display: flex; align-items: center; gap: 6px;" title="Lihat (Read)">
-                                        <i class="fas fa-eye" style="color: #10b981; font-size: 1rem;"></i>
-                                        <label class="switch-container"
-                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                data-key="{{ $item['key'] }}" data-action="read" data-color="#10b981"
-                                                {{ $item['can_read'] ? 'checked' : '' }}
-                                                {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                style="opacity: 0; width: 0; height: 0;">
-                                            <span class="slider-toggle-crud"
-                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_read'] ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                        </label>
-                                    </div>
-
-                                    <!-- Ubah (Update) -->
-                                    <div style="display: flex; align-items: center; gap: 6px;" title="Ubah (Update)">
-                                        <i class="fas fa-pen-to-square" style="color: #f59e0b; font-size: 1rem;"></i>
-                                        <label class="switch-container"
-                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                data-key="{{ $item['key'] }}" data-action="update" data-color="#f59e0b"
-                                                {{ $item['can_update'] ? 'checked' : '' }}
-                                                {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                style="opacity: 0; width: 0; height: 0;">
-                                            <span class="slider-toggle-crud"
-                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_update'] ? '#f59e0b' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                        </label>
-                                    </div>
-
-                                    <!-- Hapus (Delete) -->
-                                    <div style="display: flex; align-items: center; gap: 6px;" title="Hapus (Delete)">
-                                        <i class="fas fa-trash" style="color: #ef4444; font-size: 1rem;"></i>
-                                        <label class="switch-container"
-                                            style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
-                                            <input type="checkbox" class="crud-toggle" data-role="{{ $activeRole }}"
-                                                data-key="{{ $item['key'] }}" data-action="delete" data-color="#ef4444"
-                                                {{ $item['can_delete'] ? 'checked' : '' }}
-                                                {{ $item['is_locked'] ? 'disabled' : '' }}
-                                                style="opacity: 0; width: 0; height: 0;">
-                                            <span class="slider-toggle-crud"
-                                                style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_delete'] ? '#ef4444' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </td>
-                            <td style="padding: 14px 18px; text-align: center;" data-label="Kelola">
-                                @if (!$item['is_locked'])
-                                    <button type="button" class="btn-icon btn-remove-module"
-                                        data-key="{{ $item['key'] }}" data-name="{{ $item['label'] }}"
-                                        title="Hapus Modul {{ $item['label'] }} dari Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
-                                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
-                                        <i class="fas fa-trash-can" style="font-size: 0.82rem;"></i>
-                                    </button>
-                                @else
-                                    <span
-                                        style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.4;"
-                                        title="Modul ini dikunci sistem">
-                                        <i class="fas fa-lock" style="font-size: 0.8rem;"></i>
-                                    </span>
-                                @endif
-                            </td>
+                            </th>
+                            <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 75px;">
+                                Kelola
+                            </th>
                         </tr>
-                    @empty
-                        <tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        @forelse ($tableModules as $index => $item)
+                            <tr class="module-row" data-modul="{{ strtolower($item['label']) }}"
+                                data-kelompok="{{ strtolower($item['group']) }}"
+                                data-name="{{ strtolower($item['label'] . ' ' . $item['key']) }}"
+                                data-group="{{ $item['group'] }}"
+                                style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td class="row-number"
+                                    style="padding: 14px 18px; font-weight: 600; color: var(--text-muted); text-align: center; font-size: 0.84rem;"
+                                    data-label="No">
+                                    {{ $index + 1 }}
+                                </td>
+                                <td style="padding: 14px 18px; font-weight: 600; color: var(--text-color); font-size: 0.88rem;"
+                                    data-label="Modul">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div
+                                            style="width: 34px; height: 34px; border-radius: 8px; background: rgba(99, 102, 241, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 0.95rem; flex-shrink: 0;">
+                                            <i class="fas {{ $item['icon'] }}"></i>
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                                            <span style="font-weight: 700;">{{ $item['label'] }}</span>
+                                            <span
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">{{ $item['key'] }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Kelompok">
+                                    <span class="badge badge-primary"
+                                        style="font-size: 0.72rem; padding: 4px 8px; border-radius: 6px;">
+                                        {{ $item['group'] }}
+                                    </span>
+                                </td>
+
+                                <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
+                                    <div class="table-actions"
+                                        style="display: inline-flex; align-items: center; gap: 16px; justify-content: flex-end;">
+                                        <!-- Tambah (Create) -->
+                                        <div style="display: flex; align-items: center; gap: 6px;"
+                                            title="Tambah (Create)">
+                                            <i class="fas fa-plus-circle" style="color: #3b82f6; font-size: 1rem;"></i>
+                                            <label class="switch-container"
+                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="create" data-color="#3b82f6"
+                                                    {{ $item['can_create'] ? 'checked' : '' }}
+                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
+                                                    style="opacity: 0; width: 0; height: 0;">
+                                                <span class="slider-toggle-crud"
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_create'] ? '#3b82f6' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                            </label>
+                                        </div>
+
+                                        <!-- Lihat (Read) -->
+                                        <div style="display: flex; align-items: center; gap: 6px;" title="Lihat (Read)">
+                                            <i class="fas fa-eye" style="color: #10b981; font-size: 1rem;"></i>
+                                            <label class="switch-container"
+                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="read" data-color="#10b981"
+                                                    {{ $item['can_read'] ? 'checked' : '' }}
+                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
+                                                    style="opacity: 0; width: 0; height: 0;">
+                                                <span class="slider-toggle-crud"
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_read'] ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                            </label>
+                                        </div>
+
+                                        <!-- Ubah (Update) -->
+                                        <div style="display: flex; align-items: center; gap: 6px;" title="Ubah (Update)">
+                                            <i class="fas fa-pen-to-square" style="color: #f59e0b; font-size: 1rem;"></i>
+                                            <label class="switch-container"
+                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="update" data-color="#f59e0b"
+                                                    {{ $item['can_update'] ? 'checked' : '' }}
+                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
+                                                    style="opacity: 0; width: 0; height: 0;">
+                                                <span class="slider-toggle-crud"
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_update'] ? '#f59e0b' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                            </label>
+                                        </div>
+
+                                        <!-- Hapus (Delete) -->
+                                        <div style="display: flex; align-items: center; gap: 6px;" title="Hapus (Delete)">
+                                            <i class="fas fa-trash" style="color: #ef4444; font-size: 1rem;"></i>
+                                            <label class="switch-container"
+                                                style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
+                                                <input type="checkbox" class="crud-toggle"
+                                                    data-role="{{ $activeRole }}" data-key="{{ $item['key'] }}"
+                                                    data-action="delete" data-color="#ef4444"
+                                                    {{ $item['can_delete'] ? 'checked' : '' }}
+                                                    {{ $item['is_locked'] ? 'disabled' : '' }}
+                                                    style="opacity: 0; width: 0; height: 0;">
+                                                <span class="slider-toggle-crud"
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_delete'] ? '#ef4444' : '#64748b' }}; transition: .3s; border-radius: 20px;"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Kelola">
+                                    @if (!$item['is_locked'])
+                                        <button type="button" class="btn-icon btn-remove-module"
+                                            data-key="{{ $item['key'] }}" data-name="{{ $item['label'] }}"
+                                            title="Hapus Modul {{ $item['label'] }} dari Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
+                                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                                            <i class="fas fa-trash-can" style="font-size: 0.82rem;"></i>
+                                        </button>
+                                    @else
+                                        <span
+                                            style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); opacity: 0.4;"
+                                            title="Modul ini dikunci sistem">
+                                            <i class="fas fa-lock" style="font-size: 0.8rem;"></i>
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5"
+                                    style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                    <div>Tidak ada modul yang tersedia untuk peran ini.</div>
+                                </td>
+                            </tr>
+                        @endforelse
+                        <tr id="noSearchResultRow" style="display: none;">
                             <td colspan="5"
                                 style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                                <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                                <div>Tidak ada modul yang tersedia untuk peran ini.</div>
+                                <i class="fas fa-magnifying-glass mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
+                                <div>Tidak ada modul yang cocok dengan filter pencarian.</div>
                             </td>
                         </tr>
-                    @endforelse
-                    <tr id="noSearchResultRow" style="display: none;">
-                        <td colspan="5"
-                            style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
-                            <i class="fas fa-magnifying-glass mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
-                            <div>Tidak ada modul yang cocok dengan filter pencarian.</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                    </tbody>
+                </table>
+            </div>
 
-        <!-- Table Pagination Footer -->
-        <div id="tablePaginationWrap" class="custom-pagination"></div>
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            <div class="datatable-footer">
+                <div id="tablePaginationWrap" class="custom-pagination" style="margin: 0; padding: 0;"></div>
+            </div>
+        </div>
 
         <!-- Modal Tambah Modul ke Peran -->
         <div>

@@ -22,7 +22,7 @@ class PiketIzinController extends Controller
             return redirect()->route('dashboard.' . $role)->with('error', 'Anda tidak memiliki hak akses ke modul Piket Sekolah.');
         }
 
-        $search = $request->get('search', '');
+        $search = $request->get('q', $request->get('search', ''));
         $status = $request->get('status', '');
         $jenis = $request->get('jenis_izin', '');
         $tanggal = $request->get('tanggal', date('Y-m-d'));

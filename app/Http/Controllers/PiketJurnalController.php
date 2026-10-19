@@ -22,7 +22,7 @@ class PiketJurnalController extends Controller
             return redirect()->route('dashboard.' . $role)->with('error', 'Anda tidak memiliki hak akses ke Jurnal Piket.');
         }
 
-        $search = $request->get('search', '');
+        $search = $request->get('q', $request->get('search', ''));
         $tanggal = $request->get('tanggal', '');
         $shift = $request->get('shift', '');
         $perPage = (int) $request->get('perPage', 15);

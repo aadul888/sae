@@ -150,285 +150,257 @@
             </div>
         </div>
 
-        <!-- 4. Main Data Card & Table -->
-        <!-- 4. Toolbar & Filter Standar SAE -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select">
-                            @foreach ([10, 15, 25, 50, 100] as $n)
-                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
-                                    {{ $n }}</option>
+        <!-- Unified Datatable Surat Masuk (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
+                                        {{ $n }}</option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Status</option>
+                            <option value="menunggu_disposisi"
+                                {{ ($status ?? '') === 'menunggu_disposisi' ? 'selected' : '' }}>Menunggu Disposisi
+                            </option>
+                            <option value="diproses" {{ ($status ?? '') === 'diproses' ? 'selected' : '' }}>Sedang
+                                Diproses
+                            </option>
+                            <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan
+                            </option>
+                        </select>
+
+                        <select id="filterPtk" name="ptk_id" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Tujuan Disposisi</option>
+                            @foreach ($ptkList as $ptk)
+                                <option value="{{ $ptk->ptk_id }}"
+                                    {{ ($filterPtk ?? '') === $ptk->ptk_id ? 'selected' : '' }}>
+                                    {{ $ptk->nama }}
+                                </option>
                             @endforeach
                         </select>
-                        <span>entri</span>
+
+                        @if (!empty($q) || !empty($status) || !empty($filterPtk))
+                            <a href="{{ route('dashboard.persuratan.masuk.index') }}"
+                                class="btn btn-outline btn-reset-filter"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter" data-live-reset>
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
                     </div>
 
-                    <select id="filterStatus" class="toolbar-filter-select">
-                        <option value="">Semua Status</option>
-                        <option value="menunggu_disposisi"
-                            {{ ($status ?? '') === 'menunggu_disposisi' ? 'selected' : '' }}>Menunggu Disposisi</option>
-                        <option value="diproses" {{ ($status ?? '') === 'diproses' ? 'selected' : '' }}>Sedang Diproses
-                        </option>
-                        <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                        <option value="diarsipkan" {{ ($status ?? '') === 'diarsipkan' ? 'selected' : '' }}>Diarsipkan
-                        </option>
-                    </select>
-
-                    <select id="filterPtk" name="ptk_id" class="toolbar-filter-select">
-                        <option value="">Semua Tujuan Disposisi</option>
-                        @foreach ($ptkList as $ptk)
-                            <option value="{{ $ptk->ptk_id }}"
-                                {{ ($filterPtk ?? '') === $ptk->ptk_id ? 'selected' : '' }}>
-                                {{ $ptk->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    @if (!empty($q) || !empty($status) || !empty($filterPtk))
-                        <a href="{{ route('dashboard.persuratan.masuk.index') }}"
-                            class="btn btn-outline btn-reset-filter" style="padding: 7px 12px; font-size: 0.84rem;"
-                            title="Reset filter" data-live-reset>
-                            <i class="fas fa-undo"></i>
-                        </a>
-                    @endif
-                </div>
-
-                <div class="live-search-wrap">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" name="q"
-                        placeholder="Cari nomor surat / perihal / pengirim..." value="{{ $q ?? '' }}"
-                        autocomplete="off">
-                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                        title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="liveSearch" name="q"
+                            placeholder="Cari nomor surat / perihal / pengirim..." value="{{ $q ?? '' }}"
+                            autocomplete="off">
+                        <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                            title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Container Datatable Responsive-Stack Standar SAE -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                        <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}"
-                            data-sort="nomor_surat"
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            No. Surat
-                            <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Pengirim &amp; Perihal
-                        </th>
-                        <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}"
-                            data-sort="tanggal_surat"
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                            Tgl Surat / Masuk
-                            <span class="sort-icon">{!! ($sort ?? '') === 'tanggal_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
-                            Arsip HDD
-                        </th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
-                            Status
-                        </th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
-                            Aksi
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($items as $item)
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px;">
-                                <div
-                                    style="font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
-                                    {{ $item->nomor_surat }}
-                                </div>
-                            </td>
-
-                            <td style="padding: 12px 16px;">
-                                <div
-                                    style="font-weight: 600; font-size: 0.84rem; color: var(--text-color); margin-bottom: 2px;">
-                                    {{ $item->perihal }}
-                                </div>
-                                <div style="font-size: 0.76rem; color: var(--text-muted);">
-                                    <i class="fas fa-building text-primary me-1"></i> Dari:
-                                    <strong>{{ $item->pengirim_asal ?: '-' }}</strong>
-                                </div>
-                                @if ($item->latestDisposisi)
-                                    <div style="margin-top: 5px;">
-                                        <span class="badge-compact"
-                                            style="background: rgba(37,99,235,0.08); color: #2563eb; font-size: 0.72rem; border: 1px solid rgba(37,99,235,0.2);">
-                                            <i class="fas fa-share-nodes me-1"></i> Disp:
-                                            <strong>{{ $item->latestDisposisi->disposisi_ke }}</strong>
-                                            @if ($item->latestDisposisi->ptk)
-                                                <small>({{ $item->latestDisposisi->ptk->jabatan_ptk_id_str ?: $item->latestDisposisi->ptk->jenis_ptk_id_str }})</small>
-                                            @endif
-                                            &bull; {{ $item->latestDisposisi->instruksi }}
-                                        </span>
+            <!-- 2. Konten Datatable Responsive Stack -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                            <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}"
+                                data-sort="nomor_surat"
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                No. Surat
+                                <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Pengirim &amp; Perihal
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'tanggal_surat' ? 'sorted' : '' }}"
+                                data-sort="tanggal_surat"
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                Tgl Surat / Masuk
+                                <span class="sort-icon">{!! ($sort ?? '') === 'tanggal_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 100px; text-align: center;">
+                                Arsip HDD
+                            </th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
+                                Status
+                            </th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
+                                Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($items as $item)
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 16px;">
+                                    <div
+                                        style="font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
+                                        {{ $item->nomor_surat }}
                                     </div>
-                                @endif
-                            </td>
+                                </td>
 
-                            <td style="padding: 12px 16px;">
-                                <div style="font-size: 0.8rem; color: var(--text-color);">
-                                    <i class="far fa-calendar-alt text-muted me-1"></i>
-                                    {{ date('d/m/Y', strtotime($item->tanggal_surat)) }}
-                                </div>
-                                @if ($item->tanggal_diterima)
-                                    <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                        Terima: {{ date('d/m/Y', strtotime($item->tanggal_diterima)) }}
+                                <td style="padding: 12px 16px;">
+                                    <div
+                                        style="font-weight: 600; font-size: 0.84rem; color: var(--text-color); margin-bottom: 2px;">
+                                        {{ $item->perihal }}
                                     </div>
-                                @endif
-                            </td>
+                                    <div style="font-size: 0.76rem; color: var(--text-muted);">
+                                        <i class="fas fa-building text-primary me-1"></i> Dari:
+                                        <strong>{{ $item->pengirim_asal ?: '-' }}</strong>
+                                    </div>
+                                    @if ($item->latestDisposisi)
+                                        <div style="margin-top: 5px;">
+                                            <span class="badge-compact"
+                                                style="background: rgba(37,99,235,0.08); color: #2563eb; font-size: 0.72rem; border: 1px solid rgba(37,99,235,0.2);">
+                                                <i class="fas fa-share-nodes me-1"></i> Disp:
+                                                <strong>{{ $item->latestDisposisi->disposisi_ke }}</strong>
+                                                @if ($item->latestDisposisi->ptk)
+                                                    <small>({{ $item->latestDisposisi->ptk->jabatan_ptk_id_str ?: $item->latestDisposisi->ptk->jenis_ptk_id_str }})</small>
+                                                @endif
+                                                &bull; {{ $item->latestDisposisi->instruksi }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                </td>
 
-                            <td style="padding: 12px 16px; text-align: center;">
-                                @if (!empty($item->file_path))
-                                    <button type="button" class="btn-icon text-primary btn-view-dokumen"
-                                        title="Pratinjau Berkas dari HDD"
-                                        data-view-url="{{ route('dashboard.persuratan.dokumen.view', $item->id) }}"
-                                        data-download-url="{{ route('dashboard.persuratan.dokumen.download', $item->id) }}"
-                                        data-title="Surat Masuk: {{ $item->nomor_surat }} - {{ $item->perihal }}"
-                                        data-mime="{{ str_contains($item->file_path, '.pdf') ? 'application/pdf' : 'image/jpeg' }}">
-                                        <i class="fas fa-file-pdf" style="font-size: 1.1rem; color: #ef4444;"></i>
-                                    </button>
-                                @else
-                                    <span style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">
-                                        Tanpa Berkas
-                                    </span>
-                                @endif
-                            </td>
+                                <td style="padding: 12px 16px;">
+                                    <div style="font-size: 0.8rem; color: var(--text-color);">
+                                        <i class="far fa-calendar-alt text-muted me-1"></i>
+                                        {{ date('d/m/Y', strtotime($item->tanggal_surat)) }}
+                                    </div>
+                                    @if ($item->tanggal_diterima)
+                                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
+                                            Terima: {{ date('d/m/Y', strtotime($item->tanggal_diterima)) }}
+                                        </div>
+                                    @endif
+                                </td>
 
-                            <td style="padding: 12px 16px; text-align: center;">
-                                @php
-                                    $badgeClass = match ($item->status) {
-                                        'menunggu_disposisi' => 'badge-warning',
-                                        'diproses' => 'badge-info',
-                                        'selesai' => 'badge-success',
-                                        default => 'badge-secondary',
-                                    };
-                                    $badgeLabel = match ($item->status) {
-                                        'menunggu_disposisi' => 'Menunggu Disp.',
-                                        'diproses' => 'Diproses',
-                                        'selesai' => 'Selesai',
-                                        'diarsipkan' => 'Diarsipkan',
-                                        default => ucfirst($item->status),
-                                    };
-                                @endphp
-                                <span class="badge-compact {{ $badgeClass }}">
-                                    {{ $badgeLabel }}
-                                </span>
-                            </td>
-
-                            <td style="padding: 12px 16px; text-align: center;">
-                                <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
-                                    <!-- Tombol Disposisi -->
-                                    <button type="button" class="btn-icon text-warning btn-disposisi-masuk"
-                                        title="Buat Lembar Disposisi" data-id="{{ $item->id }}"
-                                        data-nomor="{{ $item->nomor_surat }}" data-perihal="{{ $item->perihal }}">
-                                        <i class="fas fa-share-nodes"></i>
-                                    </button>
-
-                                    <!-- Tombol Cetak Lembar Disposisi -->
-                                    <a href="{{ route('dashboard.persuratan.masuk.disposisi.cetak', $item->id) }}"
-                                        target="_blank" class="btn-icon text-info" title="Cetak Lembar Disposisi Resmi">
-                                        <i class="fas fa-print"></i>
-                                    </a>
-
-                                    @if ($canUpdate)
-                                        <button type="button" class="btn-icon btn-edit-masuk" title="Edit Surat Masuk"
-                                            data-id="{{ $item->id }}" data-nomor="{{ $item->nomor_surat }}"
-                                            data-perihal="{{ $item->perihal }}"
-                                            data-pengirim="{{ $item->pengirim_asal }}"
-                                            data-tgl-surat="{{ $item->tanggal_surat }}"
-                                            data-tgl-diterima="{{ $item->tanggal_diterima }}"
-                                            data-status="{{ $item->status }}" data-keterangan="{{ $item->keterangan }}"
-                                            data-file-path="{{ $item->file_path }}"
-                                            data-file-name="{{ $item->file_name_original }}">
-                                            <i class="fas fa-edit"></i>
+                                <td style="padding: 12px 16px; text-align: center;">
+                                    @if (!empty($item->file_path))
+                                        <button type="button" class="btn-icon text-primary btn-view-dokumen"
+                                            title="Pratinjau Berkas dari HDD"
+                                            data-view-url="{{ route('dashboard.persuratan.dokumen.view', $item->id) }}"
+                                            data-download-url="{{ route('dashboard.persuratan.dokumen.download', $item->id) }}"
+                                            data-title="Surat Masuk: {{ $item->nomor_surat }} - {{ $item->perihal }}"
+                                            data-mime="{{ str_contains($item->file_path, '.pdf') ? 'application/pdf' : 'image/jpeg' }}">
+                                            <i class="fas fa-file-pdf" style="font-size: 1.1rem; color: #ef4444;"></i>
                                         </button>
+                                    @else
+                                        <span style="font-size: 0.72rem; color: var(--text-muted); font-style: italic;">
+                                            Tanpa Berkas
+                                        </span>
                                     @endif
+                                </td>
 
-                                    @if ($canDelete)
-                                        <form action="{{ route('dashboard.persuratan.masuk.destroy', $item->id) }}"
-                                            method="POST" data-confirm="delete"
-                                            data-name="Surat Masuk No. {{ $item->nomor_surat }}">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn-icon text-danger"
-                                                title="Hapus Surat Masuk">
-                                                <i class="fas fa-trash"></i>
+                                <td style="padding: 12px 16px; text-align: center;">
+                                    @php
+                                        $badgeClass = match ($item->status) {
+                                            'menunggu_disposisi' => 'badge-warning',
+                                            'diproses' => 'badge-info',
+                                            'selesai' => 'badge-success',
+                                            default => 'badge-secondary',
+                                        };
+                                        $badgeLabel = match ($item->status) {
+                                            'menunggu_disposisi' => 'Menunggu Disp.',
+                                            'diproses' => 'Diproses',
+                                            'selesai' => 'Selesai',
+                                            'diarsipkan' => 'Diarsipkan',
+                                            default => ucfirst($item->status),
+                                        };
+                                    @endphp
+                                    <span class="badge-compact {{ $badgeClass }}">
+                                        {{ $badgeLabel }}
+                                    </span>
+                                </td>
+
+                                <td style="padding: 12px 16px; text-align: center;">
+                                    <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
+                                        <!-- Tombol Disposisi -->
+                                        <button type="button" class="btn-icon text-warning btn-disposisi-masuk"
+                                            title="Buat Lembar Disposisi" data-id="{{ $item->id }}"
+                                            data-nomor="{{ $item->nomor_surat }}" data-perihal="{{ $item->perihal }}">
+                                            <i class="fas fa-share-nodes"></i>
+                                        </button>
+
+                                        <!-- Tombol Cetak Lembar Disposisi -->
+                                        <a href="{{ route('dashboard.persuratan.masuk.disposisi.cetak', $item->id) }}"
+                                            target="_blank" class="btn-icon text-info"
+                                            title="Cetak Lembar Disposisi Resmi">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+
+                                        @if ($canUpdate)
+                                            <button type="button" class="btn-icon btn-edit-masuk"
+                                                title="Edit Surat Masuk" data-id="{{ $item->id }}"
+                                                data-nomor="{{ $item->nomor_surat }}"
+                                                data-perihal="{{ $item->perihal }}"
+                                                data-pengirim="{{ $item->pengirim_asal }}"
+                                                data-tgl-surat="{{ $item->tanggal_surat }}"
+                                                data-tgl-diterima="{{ $item->tanggal_diterima }}"
+                                                data-status="{{ $item->status }}"
+                                                data-keterangan="{{ $item->keterangan }}"
+                                                data-file-path="{{ $item->file_path }}"
+                                                data-file-name="{{ $item->file_name_original }}">
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                <i class="fas fa-inbox"
-                                    style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                                Tidak ada data surat masuk yang sesuai kriteria pencarian.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                                        @endif
 
-        <!-- Paginasi Baku SAE -->
-        @if ($items->hasPages())
-            <div class="custom-pagination">
-                @if ($items->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $items->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-
-                @php
-                    $cur = $items->currentPage();
-                    $last = $items->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-
-                @if ($from > 1)
-                    <a href="{{ $items->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $items->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $items->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-
-                @if ($items->hasMorePages())
-                    <a href="{{ $items->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                                        @if ($canDelete)
+                                            <form action="{{ route('dashboard.persuratan.masuk.destroy', $item->id) }}"
+                                                method="POST" data-confirm="delete"
+                                                data-name="Surat Masuk No. {{ $item->nomor_surat }}">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn-icon text-danger"
+                                                    title="Hapus Surat Masuk">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6"
+                                    style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                    <i class="fas fa-inbox"
+                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                    Tidak ada data surat masuk yang sesuai kriteria pencarian.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
+
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if ($items->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $items])
+                </div>
+            @endif
+        </div>
 
         <!-- Modal 1: Catat / Edit Surat Masuk -->
         <div class="modal-overlay" id="modalSuratMasuk"

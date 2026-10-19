@@ -21,7 +21,7 @@ class KeamananIzinController extends Controller
             return redirect()->route('dashboard.' . $role)->with('error', 'Anda tidak memiliki hak akses ke modul Keamanan.');
         }
 
-        $search = $request->get('search', '');
+        $search = $request->get('q', $request->get('search', ''));
         $status = $request->get('status', '');
         $tanggal = $request->get('tanggal', date('Y-m-d'));
         $perPage = (int) $request->get('perPage', 15);

@@ -23,7 +23,7 @@ class KeamananPatroliController extends Controller
         }
 
         $tab = $request->get('tab', 'patroli');
-        $search = $request->get('search', '');
+        $search = $request->get('q', $request->get('search', ''));
         $tanggal = $request->get('tanggal', '');
         $perPage = (int) $request->get('perPage', 15);
 

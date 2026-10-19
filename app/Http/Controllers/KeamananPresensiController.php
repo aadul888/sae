@@ -21,7 +21,7 @@ class KeamananPresensiController extends Controller
         $tanggal = $request->get('tanggal', date('Y-m-d'));
         $status = $request->get('status', '');
         $rombelId = $request->get('rombel_id', '');
-        $search = $request->get('search', '');
+        $search = $request->get('q', $request->get('search', ''));
         $perPage = (int) $request->get('perPage', 20);
         $sort = $request->get('sort', 'jam_masuk');
         $sortDir = $request->get('sortDir', 'desc');

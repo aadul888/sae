@@ -469,95 +469,101 @@
                 </div>
             </div>
         @else
-            <!-- 3. Toolbar & Filter -->
-            <div class="card" style="padding: 16px; margin-bottom: 20px;">
-                <div
-                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                        <div class="toolbar-entries">
-                            <label for="perPageSelect"
-                                style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Tampilkan</label>
-                            <select id="perPageSelect" class="per-page-select" style="height: 38px;">
-                                @foreach ([10, 15, 25, 50, 100] as $n)
-                                    <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
-                                        {{ $n }}</option>
+            <!-- Unified Datatable Agenda Kelas (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+            <div class="card datatable-card-wrapper" id="tableDataContainer">
+                <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+                <div class="datatable-toolbar">
+                    <div
+                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <div class="toolbar-entries">
+                                <label for="perPageSelect"
+                                    style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Tampilkan</label>
+                                <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                                    @foreach ([10, 15, 25, 50, 100] as $n)
+                                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                            {{ $n }}</option>
+                                    @endforeach
+                                </select>
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">entri</span>
+                            </div>
+
+                            <!-- Filter Rentang Tanggal Inline -->
+                            <div
+                                style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
+                                <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;"
+                                    title="Rentang Tanggal"></i>
+                                <input type="date" id="filterTanggalMulai" value="{{ $tanggalMulai }}"
+                                    title="Tanggal Mulai"
+                                    style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
+                                <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
+                                <input type="date" id="filterTanggalSelesai" value="{{ $tanggalSelesai }}"
+                                    title="Tanggal Selesai"
+                                    style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
+                            </div>
+
+                            <!-- Filter Guru Pengampu -->
+                            <select id="filterPtk" class="toolbar-filter-select" style="min-width: 160px; height: 38px;">
+                                <option value="">Semua Guru Pengampu</option>
+                                @foreach ($guruMapelList as $g)
+                                    <option value="{{ $g->ptk_id }}"
+                                        {{ $filterPtk === $g->ptk_id ? 'selected' : '' }}>
+                                        {{ $g->nama_guru }}
+                                    </option>
                                 @endforeach
                             </select>
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">entri</span>
+
+                            <!-- Filter Mapel -->
+                            <select id="filterMapel" class="toolbar-filter-select"
+                                style="min-width: 160px; height: 38px;">
+                                <option value="">Semua Mata Pelajaran</option>
+                                @foreach ($mapelList as $m)
+                                    <option value="{{ $m }}" {{ $filterMapel === $m ? 'selected' : '' }}>
+                                        {{ $m }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <!-- Filter Status KBM -->
+                            <select id="filterStatus" class="toolbar-filter-select"
+                                style="min-width: 140px; height: 38px;">
+                                <option value="">Semua Status</option>
+                                <option value="Terlaksana" {{ $filterStatus === 'Terlaksana' ? 'selected' : '' }}>
+                                    Terlaksana
+                                </option>
+                                <option value="Sebagian" {{ $filterStatus === 'Sebagian' ? 'selected' : '' }}>Sebagian
+                                </option>
+                                <option value="Tertunda" {{ $filterStatus === 'Tertunda' ? 'selected' : '' }}>Tertunda
+                                </option>
+                                <option value="Digantikan" {{ $filterStatus === 'Digantikan' ? 'selected' : '' }}>
+                                    Digantikan
+                                </option>
+                            </select>
+
+                            @if ($q || $filterPtk || $filterMapel || $filterStatus || $tanggalMulai || $tanggalSelesai)
+                                <button type="button" id="btnResetFilter" class="btn btn-outline"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    title="Reset filter">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            @endif
                         </div>
 
-                        <!-- Filter Rentang Tanggal Inline -->
-                        <div
-                            style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
-                            <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;"
-                                title="Rentang Tanggal"></i>
-                            <input type="date" id="filterTanggalMulai" value="{{ $tanggalMulai }}"
-                                title="Tanggal Mulai"
-                                style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
-                            <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
-                            <input type="date" id="filterTanggalSelesai" value="{{ $tanggalSelesai }}"
-                                title="Tanggal Selesai"
-                                style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
-                        </div>
-
-                        <!-- Filter Guru Pengampu -->
-                        <select id="filterPtk" class="toolbar-filter-select" style="min-width: 160px; height: 38px;">
-                            <option value="">Semua Guru Pengampu</option>
-                            @foreach ($guruMapelList as $g)
-                                <option value="{{ $g->ptk_id }}" {{ $filterPtk === $g->ptk_id ? 'selected' : '' }}>
-                                    {{ $g->nama_guru }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        <!-- Filter Mapel -->
-                        <select id="filterMapel" class="toolbar-filter-select" style="min-width: 160px; height: 38px;">
-                            <option value="">Semua Mata Pelajaran</option>
-                            @foreach ($mapelList as $m)
-                                <option value="{{ $m }}" {{ $filterMapel === $m ? 'selected' : '' }}>
-                                    {{ $m }}
-                                </option>
-                            @endforeach
-                        </select>
-
-                        <!-- Filter Status KBM -->
-                        <select id="filterStatus" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
-                            <option value="">Semua Status</option>
-                            <option value="Terlaksana" {{ $filterStatus === 'Terlaksana' ? 'selected' : '' }}>Terlaksana
-                            </option>
-                            <option value="Sebagian" {{ $filterStatus === 'Sebagian' ? 'selected' : '' }}>Sebagian
-                            </option>
-                            <option value="Tertunda" {{ $filterStatus === 'Tertunda' ? 'selected' : '' }}>Tertunda
-                            </option>
-                            <option value="Digantikan" {{ $filterStatus === 'Digantikan' ? 'selected' : '' }}>Digantikan
-                            </option>
-                        </select>
-
-                        @if ($q || $filterPtk || $filterMapel || $filterStatus || $tanggalMulai || $tanggalSelesai)
-                            <button type="button" id="btnResetFilter" class="btn btn-outline"
-                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                                title="Reset filter">
-                                <i class="fas fa-undo"></i>
+                        <!-- Live Search Box -->
+                        <div class="live-search-wrap" style="height: 38px;">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="liveSearchInput" placeholder="Cari materi, guru, mapel, tugas..."
+                                value="{{ $q }}" autocomplete="off">
+                            <button type="button" class="clear-search {{ $q ? 'visible' : '' }}"
+                                title="Hapus pencarian">
+                                <i class="fas fa-times"></i>
                             </button>
-                        @endif
-                    </div>
-
-                    <!-- Live Search Box -->
-                    <div class="live-search-wrap" style="height: 38px;">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="liveSearchInput" placeholder="Cari materi, guru, mapel, tugas..."
-                            value="{{ $q }}" autocomplete="off">
-                        <button type="button" class="clear-search {{ $q ? 'visible' : '' }}" title="Hapus pencarian">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 4. Datatable Agenda Kelas (Baku SAE: table-responsive-stack & table-pd) -->
-            <div class="card table-responsive-stack" id="tableDataContainer"
-                style="padding: 0; margin-bottom: 24px; overflow: hidden;">
-                <div style="overflow-x: auto; width: 100%;">
+                <!-- 2. Konten Datatable Responsive Stack -->
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                     <table class="table table-pd table-wali-agenda"
                         style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
@@ -751,57 +757,13 @@
                     </table>
                 </div>
 
-                <!-- Footer Keterangan Entri & Pagination -->
-                @if ($total > 0)
-                    <div
-                        style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <div class="total-count-text" style="font-size: 0.83rem; color: var(--text-muted);">
-                            Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai
-                            <strong>{{ $list->lastItem() ?: 0 }}</strong> dari
-                            <strong>{{ number_format($total, 0, ',', '.') }}</strong> agenda kelas
-                        </div>
+                <!-- 3. Footer Paginasi Terpadu Datatable -->
+                @if ($list->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $list])
                     </div>
                 @endif
             </div>
-
-            @if ($list->hasPages())
-                <div class="custom-pagination">
-                    @if ($list->onFirstPage())
-                        <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                    @else
-                        <a href="{{ $list->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                                class="fas fa-chevron-left"></i></a>
-                    @endif
-                    @php
-                        $cur = $list->currentPage();
-                        $last = $list->lastPage();
-                        $from = max(1, $cur - 2);
-                        $to = min($last, $cur + 2);
-                    @endphp
-                    @if ($from > 1)
-                        <a href="{{ $list->url(1) }}" class="page-btn">1</a>
-                        @if ($from > 2)
-                            <span class="page-info">&hellip;</span>
-                        @endif
-                    @endif
-                    @for ($i = $from; $i <= $to; $i++)
-                        <a href="{{ $list->url($i) }}"
-                            class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                    @endfor
-                    @if ($to < $last)
-                        @if ($to < $last - 1)
-                            <span class="page-info">&hellip;</span>
-                        @endif
-                        <a href="{{ $list->url($last) }}" class="page-btn">{{ $last }}</a>
-                    @endif
-                    @if ($list->hasMorePages())
-                        <a href="{{ $list->nextPageUrl() }}" class="page-btn" title="Berikutnya"><i
-                                class="fas fa-chevron-right"></i></a>
-                    @else
-                        <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                    @endif
-                </div>
-            @endif
         @endif
     @endif
 
