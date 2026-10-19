@@ -1331,6 +1331,97 @@ class KartuPelajarController extends Controller
     }
 
     /**
+     * Update Catatan Pengeluaran (Alat / Bahan Cetak Kartu Pelajar)
+     */
+    public function updatePengeluaran(Request $request, int $id)
+    {
+        $user = session('user');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if ($role !== 'admin' && !RolePermission::canAccess($user ?: $role, 'menu_kartu_pelajar', 'update')) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+            }
+            abort(403, 'Akses ditolak.');
+        }
+
+        $item = KartuPelajarPengeluaran::findOrFail($id);
+
+        // Normalisasi format nominal (membersihkan Rp, titik ribuan, koma, spasi)
+        if ($request->has('nominal')) {
+            $rawNominal = preg_replace('/[^0-9]/', '', (string) $request->nominal);
+            $request->merge([
+                'nominal' => $rawNominal !== '' ? (int) $rawNominal : null,
+            ]);
+        }
+
+        // Normalisasi jumlah / kuantitas jika ada
+        if ($request->has('jumlah')) {
+            $rawJumlah = preg_replace('/[^0-9]/', '', (string) $request->jumlah);
+            $request->merge([
+                'jumlah' => $rawJumlah !== '' ? max(1, (int) $rawJumlah) : 1,
+            ]);
+        }
+
+        $request->validate([
+            'judul'           => 'required|string|max:255',
+            'kategori'        => 'required|string|max:50',
+            'jumlah'          => 'nullable|integer|min:1|max:10000000',
+            'nominal'         => 'required|numeric|min:1',
+            'tanggal'         => 'required|date',
+            'keterangan'      => 'nullable|string|max:1000',
+            'bukti_nota'      => 'nullable|file|mimes:jpg,jpeg,png,pdf,webp|max:5120',
+        ], [
+            'judul.required'    => 'Uraian / judul pembelanjaan wajib diisi.',
+            'kategori.required' => 'Kategori pengeluaran wajib dipilih.',
+            'nominal.required'  => 'Nominal pengeluaran wajib diisi.',
+            'nominal.numeric'   => 'Nominal pengeluaran harus berupa angka.',
+            'nominal.min'       => 'Nominal pengeluaran minimal Rp 1.',
+            'tanggal.required'  => 'Tanggal pengeluaran wajib diisi.',
+            'bukti_nota.mimes'  => 'Bukti nota harus berupa berkas gambar (JPG, PNG, WebP) atau PDF.',
+            'bukti_nota.max'    => 'Ukuran berkas bukti nota maksimal 5 MB.',
+        ]);
+
+        $buktiPath = $item->bukti_nota_path;
+        if ($request->hasFile('bukti_nota')) {
+            if ($buktiPath && Storage::disk('public')->exists($buktiPath)) {
+                Storage::disk('public')->delete($buktiPath);
+            }
+            $ext = $request->file('bukti_nota')->getClientOriginalExtension();
+            $buktiPath = $request->file('bukti_nota')->storeAs('pengeluaran_kartu', 'nota_' . time() . '_' . uniqid() . '.' . $ext, 'public');
+        }
+
+        $jumlah = max(1, (int) ($request->jumlah ?: 1));
+        $hargaSatuan = (int) $request->nominal;
+        $totalNominal = $hargaSatuan * $jumlah;
+
+        $item->judul = trim($request->judul);
+        $item->kategori = $request->kategori;
+        $item->nominal = $totalNominal;
+        $item->tanggal = $request->tanggal;
+        $item->keterangan = trim((string) $request->keterangan);
+        $item->bukti_nota_path = $buktiPath;
+
+        if (Schema::hasColumn('kartu_pelajar_pengeluaran', 'jumlah')) {
+            $item->jumlah = $jumlah;
+        }
+        if (Schema::hasColumn('kartu_pelajar_pengeluaran', 'harga_satuan')) {
+            $item->harga_satuan = $hargaSatuan;
+        }
+
+        $item->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Catatan pengeluaran berhasil diperbarui (Total: Rp ' . number_format($totalNominal, 0, ',', '.') . ').',
+            ]);
+        }
+
+        return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan'])
+            ->with('success', 'Catatan pengeluaran berhasil diperbarui.');
+    }
+
+    /**
      * Hapus Catatan Pengeluaran
      */
     public function destroyPengeluaran(Request $request, int $id)

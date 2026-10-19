@@ -692,10 +692,48 @@ document.addEventListener("DOMContentLoaded", function () {
         navigator.clipboard.writeText(txtPesan.value).then(() => {
             if (window.SAE && typeof window.SAE.toast === "function") {
                 window.SAE.toast("Teks pesan WhatsApp berhasil disalin!", "success");
-            } else {
-                alert("Teks pesan berhasil disalin!");
+            } else if (window.Swal) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Tersalin!",
+                    text: "Teks pesan WhatsApp berhasil disalin ke clipboard.",
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
             }
         });
+    };
+
+    window.confirmResetWaTemplate = function (btn) {
+        const doReset = () => {
+            const form = btn ? btn.closest("form") : document.getElementById("formTemplateWa");
+            if (!form) return;
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "reset_template";
+            input.value = "1";
+            form.appendChild(input);
+            form.submit();
+        };
+
+        if (window.Swal) {
+            Swal.fire({
+                title: "Reset Template WhatsApp?",
+                text: "Format pesan WhatsApp akan dikembalikan ke template bawaan sistem.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#f59e0b",
+                cancelButtonColor: "#64748b",
+                confirmButtonText: "Ya, Reset ke Default",
+                cancelButtonText: "Batal",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    doReset();
+                }
+            });
+        } else {
+            doReset();
+        }
     };
 
     window.unduhQrCodeSvg = function () {
@@ -927,6 +965,67 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.closeTambahPengeluaran = function () {
         const m = document.getElementById("modalTambahPengeluaran");
+        if (m) {
+            m.style.display = "none";
+            document.body.style.overflow = "";
+        }
+    };
+
+    window.openEditPengeluaran = function (data) {
+        const m = document.getElementById("modalEditPengeluaran");
+        const form = document.getElementById("formEditPengeluaran");
+        if (!m || !form || !data) return;
+
+        form.reset();
+        document.getElementById("editPgId").value = data.id || "";
+        form.action = `/dashboard/kartu-pelajar/pengeluaran/${data.id}`;
+
+        const judulInput = document.getElementById("editPgJudul");
+        if (judulInput) judulInput.value = data.judul || "";
+
+        const katInput = document.getElementById("editPgKategori");
+        if (katInput) katInput.value = data.kategori || "lainnya";
+
+        const jumlah = parseInt(data.jumlah, 10) || 1;
+        const jmlInput = document.getElementById("editPgJumlah");
+        if (jmlInput) jmlInput.value = jumlah;
+
+        const hargaSatuan = data.harga_satuan ? parseInt(data.harga_satuan, 10) : (jumlah > 0 && data.nominal ? Math.round(data.nominal / jumlah) : data.nominal);
+        const nomInput = document.getElementById("editPgNominal");
+        if (nomInput) nomInput.value = new Intl.NumberFormat("id-ID").format(hargaSatuan || 0);
+
+        const tglInput = document.getElementById("editPgTanggal");
+        if (tglInput) {
+            if (data.tanggal) {
+                tglInput.value = String(data.tanggal).substring(0, 10);
+            } else {
+                tglInput.value = new Date().toISOString().split("T")[0];
+            }
+        }
+
+        const ketInput = document.getElementById("editPgKeterangan");
+        if (ketInput) ketInput.value = data.keterangan || "";
+
+        const hintNota = document.getElementById("editPgNotaHint");
+        if (hintNota) {
+            if (data.bukti_nota_path) {
+                hintNota.innerHTML = `Nota saat ini: <a href="/storage/${data.bukti_nota_path.replace(/^\/+/, '')}" target="_blank" style="color: #4f46e5; text-decoration: underline;"><i class="fas fa-file-invoice me-1"></i>Lihat Nota</a>. Pilih berkas baru hanya jika ingin menggantinya.`;
+            } else {
+                hintNota.textContent = "JPG, PNG, WebP, PDF. Maks. 5 MB. Kosongkan jika tidak ada nota.";
+            }
+        }
+
+        if (typeof updateEditPengeluaranCalc === "function") {
+            updateEditPengeluaranCalc();
+        }
+
+        m.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        if (judulInput) judulInput.focus();
+    };
+
+    window.closeEditPengeluaran = function () {
+        const m = document.getElementById("modalEditPengeluaran");
         if (m) {
             m.style.display = "none";
             document.body.style.overflow = "";
@@ -1456,10 +1555,111 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // =========================================================================
+    // 11B. Modal & Form Edit Pengeluaran (AJAX + Auto-format Rupiah & Perkalian Total)
+    // =========================================================================
+    const editPgNominalInput = document.getElementById("editPgNominal");
+    const editPgJumlahInput = document.getElementById("editPgJumlah");
+    const editPgNominalPreview = document.getElementById("editPgNominalPreview");
+
+    function updateEditPengeluaranCalc() {
+        if (!editPgNominalInput) return;
+        const rawDigits = String(editPgNominalInput.value || "").replace(/[^0-9]/g, "");
+        const unitPrice = rawDigits ? parseInt(rawDigits, 10) : 0;
+        const formattedPrice = new Intl.NumberFormat("id-ID").format(unitPrice);
+        editPgNominalInput.value = rawDigits ? formattedPrice : "";
+
+        const qty = editPgJumlahInput ? (parseInt(editPgJumlahInput.value, 10) || 1) : 1;
+        const total = qty * unitPrice;
+        const formattedTotal = new Intl.NumberFormat("id-ID").format(total);
+
+        if (editPgNominalPreview) {
+            if (unitPrice > 0) {
+                editPgNominalPreview.innerHTML = `Total Pengeluaran: <strong style="color: #ef4444;">Rp ${formattedTotal}</strong> (${qty} item &times; Rp ${formattedPrice})`;
+            } else {
+                editPgNominalPreview.textContent = "Total Pengeluaran: Rp 0";
+            }
+        }
+    }
+
+    if (editPgNominalInput) {
+        editPgNominalInput.addEventListener("input", updateEditPengeluaranCalc);
+    }
+    if (editPgJumlahInput) {
+        editPgJumlahInput.addEventListener("input", updateEditPengeluaranCalc);
+        editPgJumlahInput.addEventListener("change", updateEditPengeluaranCalc);
+    }
+
+    const formEditPengeluaran = document.getElementById("formEditPengeluaran");
+    if (formEditPengeluaran) {
+        formEditPengeluaran.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById("editPgSubmit") || formEditPengeluaran.querySelector('button[type="submit"]');
+            const originalText = btnSubmit ? btnSubmit.innerHTML : "";
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Memperbarui...';
+            }
+
+            const formData = new FormData(formEditPengeluaran);
+            const rawNom = (formData.get("nominal") || "").toString().replace(/[^0-9]/g, "");
+            formData.set("nominal", rawNom);
+
+            try {
+                const res = await fetch(formEditPengeluaran.action, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "application/json",
+                    },
+                    body: formData,
+                });
+                const data = await res.json();
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+
+                if (res.ok && data.success) {
+                    closeEditPengeluaran();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil!",
+                        text: data.message,
+                        timer: 1600,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        if (typeof window.refreshLiveTable === "function") {
+                            window.refreshLiveTable(window.location.href);
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                } else {
+                    const errorMsg = data.errors
+                        ? Object.values(data.errors).flat().join("<br>")
+                        : (data.message || "Gagal memperbarui pengeluaran.");
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal Memperbarui",
+                        html: errorMsg,
+                    });
+                }
+            } catch (err) {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
+        });
+    }
+
     // Delegated handler: delete pengeluaran -> AJAX dengan SweetAlert
     document.addEventListener("submit", async function (e) {
         const form = e.target;
-        if (form && form.matches('form[action*="destroy-pengeluaran"]')) {
+        if (form && (form.matches('form.delete-pengeluaran-form') || form.matches('form[action*="destroy-pengeluaran"]'))) {
             e.preventDefault();
             const result = await Swal.fire({
                 title: "Hapus Pengeluaran?",
@@ -1512,6 +1712,7 @@ document.addEventListener("DOMContentLoaded", function () {
             closeModalBulkPembayaran();
             closeModalCetakPengambilan();
             closeTambahPengeluaran();
+            closeEditPengeluaran();
             closeTambahRequest();
         }
     });

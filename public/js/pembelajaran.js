@@ -4,92 +4,82 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
-    const perPageSelect = document.getElementById('perPageSelect');
-    const filterRombel = document.getElementById('filterRombel');
-    const filterGuru = document.getElementById('filterGuru');
-    const filterStatus = document.getElementById('filterStatus');
-    const liveSearchInput = document.getElementById('liveSearch');
-    const clearSearchBtn = document.getElementById('clearSearch');
-
-    function applyFilter(paramName, paramValue) {
-        const url = new URL(window.location.href);
-        if (paramValue) {
-            url.searchParams.set(paramName, paramValue);
-        } else {
-            url.searchParams.delete(paramName);
+    // Helper filter global pembelajaran
+    window.applyPembelajaranFilter = function (overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
         }
-        url.searchParams.delete('page');
+
+        const url = new URL(window.location.href);
+        const perPageSelect = document.getElementById('perPageSelect');
+        const filterRombel = document.getElementById('filterRombel');
+        const filterGuru = document.getElementById('filterGuru');
+        const filterStatus = document.getElementById('filterStatus');
+        const liveSearchInput = document.getElementById('liveSearch');
+
+        if (liveSearchInput && liveSearchInput.value.trim()) url.searchParams.set('q', liveSearchInput.value.trim());
+        else url.searchParams.delete('q');
+
+        if (filterRombel && filterRombel.value) url.searchParams.set('rombel', filterRombel.value);
+        else url.searchParams.delete('rombel');
+
+        if (filterGuru && filterGuru.value) url.searchParams.set('guru', filterGuru.value);
+        else url.searchParams.delete('guru');
+
+        if (filterStatus && filterStatus.value) url.searchParams.set('status', filterStatus.value);
+        else url.searchParams.delete('status');
+
+        if (perPageSelect && perPageSelect.value) url.searchParams.set('perPage', perPageSelect.value);
+
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
+            else url.searchParams.delete(k);
+        });
+
+        if (!('page' in overrideParams)) url.searchParams.set('page', '1');
 
         if (typeof window.refreshLiveTable === 'function') {
             window.refreshLiveTable(url.toString());
         } else {
             window.location.href = url.toString();
         }
-    }
+    };
 
-    if (perPageSelect) {
-        perPageSelect.addEventListener('change', function () {
-            applyFilter('perPage', this.value);
-        });
-    }
+    // Delegated Change Handler untuk filter Pembelajaran
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
+            (e.target.id === "filterRombel" || e.target.id === "filterGuru" || e.target.id === "filterStatus" || e.target.id === "perPageSelect")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.applyPembelajaranFilter();
+        }
+    });
 
-    if (filterRombel) {
-        filterRombel.addEventListener('change', function () {
-            applyFilter('rombel', this.value);
-        });
-    }
+    // Delegated Sort Click Handler untuk tabel Pembelajaran
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th || !th.closest("#tableDataContainer")) return;
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+        e.preventDefault();
+        e.stopPropagation();
 
-    if (filterGuru) {
-        filterGuru.addEventListener('change', function () {
-            applyFilter('guru', this.value);
-        });
-    }
-
-    if (filterStatus) {
-        filterStatus.addEventListener('change', function () {
-            applyFilter('status', this.value);
-        });
-    }
-
-    let debounceTimer;
-    if (liveSearchInput) {
-        liveSearchInput.addEventListener('input', function () {
-            const val = this.value;
-            if (clearSearchBtn) clearSearchBtn.classList.toggle('visible', val.length > 0);
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                applyFilter('q', val.trim());
-            }, 300);
-        });
-    }
-
-    if (clearSearchBtn && liveSearchInput) {
-        clearSearchBtn.addEventListener('click', function () {
-            liveSearchInput.value = '';
-            this.classList.remove('visible');
-            applyFilter('q', '');
-        });
-    }
-
-    document.querySelectorAll('.sortable-th').forEach(th => {
-        th.addEventListener('click', function () {
-            const sortKey = this.dataset.sort;
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get('sort');
-            const currentDir = url.searchParams.get('sort_dir') || 'asc';
-            let nextDir = 'asc';
-            if (currentSort === sortKey) {
-                nextDir = currentDir === 'asc' ? 'desc' : 'asc';
-            }
-            url.searchParams.set('sort', sortKey);
-            url.searchParams.set('sort_dir', nextDir);
-            url.searchParams.delete('page');
-            if (typeof window.refreshLiveTable === 'function') {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        });
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "nama_mata_pelajaran";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
+        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
+        window.applyPembelajaranFilter({ sort: sortField, sort_dir: newDir });
     });
 
     // Modal Detail Pembelajaran

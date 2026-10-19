@@ -80,7 +80,7 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                             @foreach ([10, 15, 25, 50, 100] as $n)
                                 <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                     {{ $n }}
@@ -90,7 +90,7 @@
                         <span>entri</span>
                     </div>
 
-                    <select id="filterRombel" class="toolbar-filter-select" style="height: 38px;">
+                    <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
                         <option value="">Semua Rombel</option>
                         @foreach ($filterRombel as $r)
                             <option value="{{ $r }}" {{ $rombel === $r ? 'selected' : '' }}>{{ $r }}
@@ -98,7 +98,7 @@
                         @endforeach
                     </select>
 
-                    <select id="filterGuru" class="toolbar-filter-select" style="height: 38px;">
+                    <select id="filterGuru" name="guru" class="toolbar-filter-select" style="height: 38px;">
                         <option value="">Semua Guru Pengampu</option>
                         @foreach ($filterGuru as $g)
                             <option value="{{ $g }}" {{ $guru === $g ? 'selected' : '' }}>{{ $g }}
@@ -106,7 +106,7 @@
                         @endforeach
                     </select>
 
-                    <select id="filterStatus" class="toolbar-filter-select" style="height: 38px;">
+                    <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
                         <option value="">Semua Status Kurikulum</option>
                         @foreach ($filterStatus as $st)
                             <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>
@@ -116,9 +116,9 @@
                     </select>
 
                     @if ($q || $rombel || $guru || $status)
-                        <a href="{{ route('dashboard.pembelajaran.index') }}" class="btn btn-outline"
+                        <a href="{{ route('dashboard.pembelajaran.index') }}" class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                            title="Reset filter">
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -126,7 +126,7 @@
 
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari mapel / guru / rombel..."
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari mapel / guru / rombel..."
                         value="{{ $q }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                         title="Hapus pencarian">
@@ -388,5 +388,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/pembelajaran.js') }}"></script>
+    <script
+        src="{{ asset('js/pembelajaran.js') }}?v={{ file_exists(public_path('js/pembelajaran.js')) ? filemtime(public_path('js/pembelajaran.js')) : time() }}">
+    </script>
 @endpush

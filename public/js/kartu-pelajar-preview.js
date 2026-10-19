@@ -34,7 +34,16 @@ window.openKartuPelajarModal = function(nisn) {
     .then(r => r.json())
     .then(data => {
         if (!data.success) {
-            alert(data.message || 'Gagal memuat kartu pelajar.');
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Memuat Kartu',
+                    text: data.message || 'Gagal memuat kartu pelajar.',
+                    confirmButtonColor: '#ef4444'
+                });
+            } else {
+                alert(data.message || 'Gagal memuat kartu pelajar.');
+            }
             window.closeKartuPelajarModal();
             return;
         }
@@ -58,7 +67,16 @@ window.openKartuPelajarModal = function(nisn) {
     })
     .catch(err => {
         console.error(err);
-        alert('Terjadi kesalahan saat memuat data kartu pelajar.');
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Kesalahan Sistem',
+                text: 'Terjadi kesalahan saat memuat data kartu pelajar.',
+                confirmButtonColor: '#ef4444'
+            });
+        } else {
+            alert('Terjadi kesalahan saat memuat data kartu pelajar.');
+        }
         window.closeKartuPelajarModal();
     });
 };
@@ -106,7 +124,16 @@ window.unduhKartuJpg = async function(mode) {
     try {
         await loadHtml2CanvasLib();
     } catch (e) {
-        alert('Gagal memuat script html2canvas untuk unduh JPG.');
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Library Gagal Dimuat',
+                text: 'Gagal memuat library html2canvas untuk unduh berkas JPG.',
+                confirmButtonColor: '#ef4444'
+            });
+        } else {
+            alert('Gagal memuat script html2canvas untuk unduh JPG.');
+        }
         if (btn) {
             btn.innerHTML = originalHtml;
             btn.disabled = false;
@@ -333,7 +360,16 @@ window.handleCetakRombelBackdropClick = function(e) {
 window.proceedCetakRombel = function() {
     const select = document.getElementById('selectCetakRombel');
     if (!select || !select.value) {
-        alert('Silakan pilih rombongan belajar terlebih dahulu.');
+        if (window.Swal) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Pilih Rombel',
+                text: 'Silakan pilih rombongan belajar terlebih dahulu.',
+                confirmButtonColor: '#4f46e5'
+            });
+        } else {
+            alert('Silakan pilih rombongan belajar terlebih dahulu.');
+        }
         return;
     }
     const rombelName = select.value;

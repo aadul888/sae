@@ -512,7 +512,9 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/kartu-pelajar/pengaturan', [\App\Http\Controllers\KartuPelajarController::class, 'updatePengaturan'])->name('kartu-pelajar.pengaturan');
     Route::post('/kartu-pelajar/klaim-garansi', [\App\Http\Controllers\KartuPelajarController::class, 'klaimGaransi'])->name('kartu-pelajar.klaim-garansi');
     Route::post('/kartu-pelajar/pengeluaran', [\App\Http\Controllers\KartuPelajarController::class, 'storePengeluaran'])->name('kartu-pelajar.store-pengeluaran');
-    Route::match(['post', 'delete'], '/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran'])->name('kartu-pelajar.destroy-pengeluaran');
+    Route::match(['post', 'put', 'patch'], '/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'updatePengeluaran'])->name('kartu-pelajar.update-pengeluaran');
+    Route::match(['post', 'delete'], '/kartu-pelajar/pengeluaran/{id}/delete', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran'])->name('kartu-pelajar.destroy-pengeluaran');
+    Route::delete('/kartu-pelajar/pengeluaran/{id}', [\App\Http\Controllers\KartuPelajarController::class, 'destroyPengeluaran']);
     Route::get('/kartu-pelajar/cari-siswa', [\App\Http\Controllers\KartuPelajarController::class, 'cariSiswa'])->name('kartu-pelajar.cari-siswa');
     Route::post('/kartu-pelajar/request', [\App\Http\Controllers\KartuPelajarController::class, 'storeRequest'])->name('kartu-pelajar.store-request');
     Route::match(['post', 'put', 'patch'], '/kartu-pelajar/request/{id}/status', [\App\Http\Controllers\KartuPelajarController::class, 'updateStatusRequest'])->name('kartu-pelajar.update-request');

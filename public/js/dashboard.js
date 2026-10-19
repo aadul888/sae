@@ -975,7 +975,7 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
     const processedSelects = new Set();
     scopes.forEach((scope) => {
         const selects = scope.querySelectorAll(
-            "select.per-page-select, select.toolbar-filter-select, select[data-live-filter], select#perPageSelect, select#perPageSelectAdmin, select#filterRombel, select#filterGender, select#filterStatus, select#filterJenis, select#filterTingkat, select#filterJurusan, select#filterTahun, select#filterTahunAjaran, select#filterSemester, select#filterBulan, select#filterModulAdmin, select#filterModul, select#filterStatusKbm, select#filterPtk, select#adminRombelSelect"
+            "select.per-page-select, select.toolbar-filter-select, select[data-live-filter], select[id*='filter'], select[id*='Filter'], select[id*='perPage'], select[name]"
         );
         selects.forEach((sel) => {
             if (processedSelects.has(sel)) return;
@@ -987,27 +987,20 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
                     pName = "perPage";
                 } else if (sel.id === "filterRombel" || sel.id === "adminRombelSelect") {
                     pName = url.searchParams.has("rombongan_belajar_id") ? "rombongan_belajar_id" : (url.searchParams.has("rombel_id") ? "rombel_id" : "rombel");
-                } else if (sel.id === "filterGender") {
-                    pName = "gender";
-                } else if (sel.id === "filterStatus") {
-                    pName = "status";
-                } else if (sel.id === "filterJenis") {
-                    pName = "jenis";
-                } else if (sel.id === "filterTingkat") {
-                    pName = "tingkat";
-                } else if (sel.id === "filterJurusan") {
-                    pName = "jurusan";
-                } else if (sel.id === "filterTahun") {
-                    pName = "tahun";
-                } else if (sel.id === "filterStatusKbm") {
-                    pName = "status_kbm";
                 } else if (sel.id === "filterPtk") {
                     pName = "filter_ptk_id";
-                } else if (sel.id === "filterModulAdmin" || sel.id === "filterModul") {
-                    pName = "modul";
+                } else if (sel.id === "filterStatusKbm") {
+                    pName = "status_kbm";
+                } else if (sel.id.startsWith("filter") || sel.id.startsWith("adminFilter")) {
+                    const raw = sel.id.replace(/^(?:admin)?Filter_?/, "");
+                    pName = raw.charAt(0).toLowerCase() + raw.slice(1);
                 } else {
                     pName = sel.id;
                 }
+            }
+
+            if (pName === "perPage") {
+                url.searchParams.delete("perPageSelect");
             }
 
             if (pName) {

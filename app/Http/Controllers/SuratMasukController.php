@@ -160,7 +160,7 @@ class SuratMasukController extends Controller
 
         $persuratan = Persuratan::create([
             'nomor_surat' => trim($request->nomor_surat),
-            'kode_indeks' => $request->kode_indeks ?: null,
+            'kode_indeks' => null, // Surat masuk tidak menggunakan relasi kode indeks internal sekolah
             'jenis_surat' => 'masuk',
             'perihal' => trim($request->perihal),
             'pengirim_asal' => trim($request->pengirim_asal),
@@ -226,7 +226,7 @@ class SuratMasukController extends Controller
 
         $data = [
             'nomor_surat' => trim($request->nomor_surat),
-            'kode_indeks' => $request->kode_indeks ?: null,
+            'kode_indeks' => null, // Surat masuk tidak menggunakan relasi kode indeks internal sekolah
             'perihal' => trim($request->perihal),
             'pengirim_asal' => trim($request->pengirim_asal),
             'tanggal_surat' => $request->tanggal_surat,

@@ -80,7 +80,16 @@
         .then(res => res.json())
         .then(data => {
             if (!data.success) {
-                alert(data.message || 'Gagal memuat kartu pelajar.');
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Memuat Kartu',
+                        text: data.message || 'Gagal memuat kartu pelajar.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                } else {
+                    alert(data.message || 'Gagal memuat kartu pelajar.');
+                }
                 window.closeKartuPelajarModal();
                 return;
             }
@@ -117,7 +126,16 @@
                 loading.classList.add('hidden');
                 loading.style.setProperty('display', 'none', 'important');
             }
-            alert('Terjadi kesalahan saat memuat kartu pelajar.');
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kesalahan Sistem',
+                    text: 'Terjadi kesalahan saat memuat kartu pelajar.',
+                    confirmButtonColor: '#ef4444'
+                });
+            } else {
+                alert('Terjadi kesalahan saat memuat kartu pelajar.');
+            }
             window.closeKartuPelajarModal();
         });
     };

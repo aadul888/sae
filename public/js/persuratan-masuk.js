@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalMasukTitle = document.getElementById('modalMasukTitle');
     const methodSpoofMasuk = document.getElementById('methodSpoofMasuk');
     const inputNomorSurat = document.getElementById('inputNomorSurat');
-    const selectKodeIndeks = document.getElementById('selectKodeIndeks');
     const inputPerihal = document.getElementById('inputPerihal');
     const inputPengirimAsal = document.getElementById('inputPengirimAsal');
     const inputTanggalSurat = document.getElementById('inputTanggalSurat');
@@ -36,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function () {
             methodSpoofMasuk.value = 'PUT';
 
             inputNomorSurat.value = data.nomor_surat || '';
-            if (selectKodeIndeks) selectKodeIndeks.value = data.kode_indeks || '';
             inputPerihal.value = data.perihal || '';
             inputPengirimAsal.value = data.pengirim_asal || '';
             inputTanggalSurat.value = data.tanggal_surat || '';
@@ -58,7 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
             methodSpoofMasuk.value = 'POST';
 
             inputNomorSurat.value = '';
-            if (selectKodeIndeks) selectKodeIndeks.value = '';
             inputPerihal.value = '';
             inputPengirimAsal.value = '';
             inputTanggalSurat.value = new Date().toISOString().split('T')[0];
@@ -221,14 +218,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = {
                 id: btnEdit.dataset.id,
                 nomor_surat: btnEdit.dataset.nomor,
-                kode_indeks: btnEdit.dataset.indeks,
                 perihal: btnEdit.dataset.perihal,
                 pengirim_asal: btnEdit.dataset.pengirim,
-                tanggal_surat: btnEdit.dataset.tglSurat,
-                tanggal_diterima: btnEdit.dataset.tglDiterima,
+                tanggal_surat: btnEdit.dataset.tglSurat || btnEdit.dataset.tanggalSurat,
+                tanggal_diterima: btnEdit.dataset.tglDiterima || btnEdit.dataset.tanggalDiterima,
                 status: btnEdit.dataset.status,
                 keterangan: btnEdit.dataset.keterangan,
-                file_path: btnEdit.dataset.filePath,
+                file_path: btnEdit.dataset.filePath || btnEdit.dataset.file,
                 file_name_original: btnEdit.dataset.fileName
             };
             openMasukModal(true, data);

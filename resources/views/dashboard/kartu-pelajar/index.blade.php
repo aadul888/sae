@@ -238,7 +238,7 @@
                                 style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                 Nominal</th>
                             <th
-                                style="padding: 10px 12px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 85px;">
+                                style="padding: 10px 12px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -295,10 +295,14 @@
                                                     <i class="fas fa-file-invoice"></i>
                                                 </a>
                                             @endif
+                                            <button type="button" class="btn-icon" style="color: #4f46e5;"
+                                                title="Edit Catatan Pengeluaran"
+                                                onclick="openEditPengeluaran({{ json_encode($p) }})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
                                             <form
                                                 action="{{ route('dashboard.kartu-pelajar.destroy-pengeluaran', $p->id) }}"
-                                                method="POST"
-                                                onsubmit="return confirm('Hapus catatan pengeluaran ini?')">
+                                                method="POST" class="delete-pengeluaran-form" style="margin: 0;">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn-icon" style="color: #ef4444;"
@@ -1304,8 +1308,7 @@
 
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <button type="submit" name="reset_template" value="1" class="btn btn-outline"
-                            onclick="return confirm('Kembalikan format pesan WhatsApp ke template bawaan sistem?')"
+                        <button type="button" class="btn btn-outline" onclick="confirmResetWaTemplate(this)"
                             style="padding: 8px 14px; font-size: 0.82rem;">
                             <i class="fas fa-undo me-1"></i> Reset ke Default
                         </button>
@@ -2120,7 +2123,94 @@
         </div>
     </div>
 
-    <!-- MODAL 4B: Tambah Request Cetak Kartu Pelajar -->
+    <!-- MODAL 4B: Edit Catatan Pengeluaran -->
+    <div id="modalEditPengeluaran" class="modal-backdrop">
+        <div class="card kp-modal-card">
+            <div class="kp-modal-header">
+                <h4 class="kp-modal-title">
+                    <i class="fas fa-edit text-primary"></i> Edit Catatan Pengeluaran
+                </h4>
+                <button type="button" class="kp-modal-close" onclick="closeEditPengeluaran()"
+                    aria-label="Tutup">&times;</button>
+            </div>
+
+            <form action="" method="POST" enctype="multipart/form-data" class="kp-modal-form"
+                id="formEditPengeluaran">
+                @csrf
+                @method('PUT')
+                <input type="hidden" id="editPgId" name="id">
+                <div class="kp-modal-body">
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="editPgJudul">Uraian / Judul Pembelanjaan <span
+                                class="req">*</span></label>
+                        <input type="text" id="editPgJudul" name="judul" required maxlength="255"
+                            class="form-control" placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon">
+                    </div>
+
+                    <div class="kp-form-grid">
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="editPgKategori">Kategori <span
+                                    class="req">*</span></label>
+                            <select id="editPgKategori" name="kategori" required class="form-control">
+                                @foreach ($kategoriList as $kKey => $kVal)
+                                    <option value="{{ $kKey }}">{{ $kVal }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="editPgJumlah">Jumlah / Kuantitas (Qty) <span
+                                    class="req">*</span></label>
+                            <input type="number" id="editPgJumlah" name="jumlah" min="1" max="10000000"
+                                value="1" required class="form-control" placeholder="1">
+                            <div class="kp-form-hint">Contoh: 1 (roll/set), 250 (pcs), dsb.</div>
+                        </div>
+                    </div>
+
+                    <div class="kp-form-grid">
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="editPgNominal">Harga Satuan / Nominal per Item (Rp) <span
+                                    class="req">*</span></label>
+                            <input type="text" id="editPgNominal" name="nominal" required inputmode="numeric"
+                                class="form-control" placeholder="Contoh: 2.500" autocomplete="off"
+                                style="font-weight: 700;">
+                            <div class="kp-form-hint" id="editPgNominalPreview"
+                                style="color: var(--primary); font-weight: 700; margin-top: 5px;">
+                                Total Pengeluaran: Rp 0
+                            </div>
+                        </div>
+                        <div class="kp-form-group">
+                            <label class="kp-form-label" for="editPgTanggal">Tanggal <span
+                                    class="req">*</span></label>
+                            <input type="date" id="editPgTanggal" name="tanggal" required class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="editPgNota">Ganti Bukti Nota / Kwitansi</label>
+                        <input type="file" id="editPgNota" name="bukti_nota"
+                            accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control">
+                        <div class="kp-form-hint" id="editPgNotaHint">JPG, PNG, WebP, PDF. Maks. 5 MB. Kosongkan jika
+                            tidak ingin mengubah bukti nota.</div>
+                    </div>
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="editPgKeterangan">Keterangan / Toko (Opsional)</label>
+                        <textarea id="editPgKeterangan" name="keterangan" rows="2" maxlength="1000" class="form-control"
+                            placeholder="Nama toko, nomor pesanan, atau spesifikasi barang..."></textarea>
+                    </div>
+                </div>
+
+                <div class="kp-modal-footer">
+                    <button type="button" onclick="closeEditPengeluaran()" class="btn btn-outline">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="editPgSubmit">
+                        <i class="fas fa-save me-1"></i> Perbarui Pengeluaran
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4C: Tambah Request Cetak Kartu Pelajar -->
     <div id="modalTambahRequest" class="modal-backdrop">
         <div class="card kp-modal-card">
             <div class="kp-modal-header">

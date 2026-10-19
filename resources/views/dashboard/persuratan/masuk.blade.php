@@ -215,7 +215,7 @@
                         <th class="sortable-th {{ ($sort ?? '') === 'nomor_surat' ? 'sorted' : '' }}"
                             data-sort="nomor_surat"
                             style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            No. Surat &amp; Indeks
+                            No. Surat
                             <span class="sort-icon">{!! ($sort ?? '') === 'nomor_surat' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                         </th>
                         <th
@@ -249,10 +249,6 @@
                                 <div
                                     style="font-family: monospace; font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
                                     {{ $item->nomor_surat }}
-                                </div>
-                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">
-                                    Indeks: <span class="badge-compact"
-                                        style="background: rgba(99,102,241,0.1); color: var(--primary);">{{ $item->kode_indeks ?: '421' }}</span>
                                 </div>
                             </td>
 
@@ -348,7 +344,7 @@
                                     @if ($canUpdate)
                                         <button type="button" class="btn-icon btn-edit-masuk" title="Edit Surat Masuk"
                                             data-id="{{ $item->id }}" data-nomor="{{ $item->nomor_surat }}"
-                                            data-indeks="{{ $item->kode_indeks }}" data-perihal="{{ $item->perihal }}"
+                                            data-perihal="{{ $item->perihal }}"
                                             data-pengirim="{{ $item->pengirim_asal }}"
                                             data-tgl-surat="{{ $item->tanggal_surat }}"
                                             data-tgl-diterima="{{ $item->tanggal_diterima }}"
@@ -455,31 +451,15 @@
                     <input type="hidden" name="_method" id="methodSpoofMasuk" value="POST">
 
                     <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
-                        <div style="display: flex; gap: 12px;">
-                            <div style="flex: 2;">
-                                <label
-                                    style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                                    Nomor Surat Pengirim: <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" name="nomor_surat" id="inputNomorSurat"
-                                    placeholder="Nomor resmi pada surat masuk..."
-                                    style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.84rem;"
-                                    required>
-                            </div>
-                            <div style="flex: 1;">
-                                <label
-                                    style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
-                                    Kode Indeks:
-                                </label>
-                                <select name="kode_indeks" id="selectKodeIndeks"
-                                    style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem;">
-                                    <option value="">Pilih...</option>
-                                    @foreach ($indeksList as $idx)
-                                        <option value="{{ $idx->kode }}">{{ $idx->kode }} - {{ $idx->judul }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Nomor Surat Pengirim: <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" name="nomor_surat" id="inputNomorSurat"
+                                placeholder="Nomor resmi pada surat masuk (format bebas sesuai instansi pengirim)..."
+                                style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-family: monospace; font-size: 0.84rem;"
+                                required>
                         </div>
 
                         <div>
