@@ -69,7 +69,7 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                             @foreach ([10, 15, 25, 50, 100] as $n)
                                 <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                     {{ $n }}</option>
@@ -81,9 +81,10 @@
                     </div>
 
                     @if ($q)
-                        <a href="{{ route('dashboard.kompetensi-keahlian.index') }}" class="btn btn-outline"
+                        <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
+                            class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                            title="Reset filter">
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -91,7 +92,7 @@
 
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari kode / nama jurusan..."
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari kode / nama jurusan..."
                         value="{{ $q }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                         title="Hapus pencarian">

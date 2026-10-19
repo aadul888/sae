@@ -137,7 +137,7 @@
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <div class="toolbar-entries">
                             <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                            <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                            <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                                 @foreach ([10, 15, 25, 50, 100] as $n)
                                     <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                         {{ $n }}</option>
@@ -147,7 +147,8 @@
                         </div>
 
                         <!-- Filter Status Konfirmasi -->
-                        <select id="filterKonfirmasi" class="toolbar-filter-select" style="height: 38px; min-width: 180px;">
+                        <select id="filterKonfirmasi" name="konfirmasi" class="toolbar-filter-select"
+                            style="height: 38px; min-width: 180px;">
                             <option value="" {{ in_array($konfirmasi, ['', 'semua'], true) ? 'selected' : '' }}>
                                 Semua Siswa di Rombel
                             </option>
@@ -169,7 +170,8 @@
                         </select>
 
                         <!-- Filter Status Berkas -->
-                        <select id="filterBerkas" class="toolbar-filter-select" style="height: 38px; min-width: 170px;">
+                        <select id="filterBerkas" name="berkas" class="toolbar-filter-select"
+                            style="height: 38px; min-width: 170px;">
                             <option value="" {{ $berkas === '' ? 'selected' : '' }}>Semua Status Berkas</option>
                             <option value="lengkap" {{ $berkas === 'lengkap' ? 'selected' : '' }}>Berkas Lengkap &amp;
                                 Valid
@@ -184,7 +186,8 @@
                         </select>
 
                         <!-- Filter Gender -->
-                        <select id="filterGender" class="toolbar-filter-select" style="height: 38px; min-width: 125px;">
+                        <select id="filterGender" name="gender" class="toolbar-filter-select"
+                            style="height: 38px; min-width: 125px;">
                             <option value="">Semua Gender</option>
                             <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
                             <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
@@ -192,9 +195,9 @@
 
                         @if ($q || $gender || $berkas || ($konfirmasi && !in_array($konfirmasi, ['', 'semua'], true)))
                             <a href="{{ route('dashboard.wali-kelas.validasi.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}"
-                                class="btn btn-outline"
+                                class="btn btn-outline btn-reset-filter"
                                 style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                                title="Reset filter">
+                                title="Reset filter" data-live-reset>
                                 <i class="fas fa-undo"></i>
                             </a>
                         @endif
@@ -203,7 +206,7 @@
                     <!-- Live Search Box -->
                     <div class="live-search-wrap" style="height: 38px;">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIK..."
+                        <input type="text" id="liveSearch" name="q" placeholder="Cari nama / NISN / NIK..."
                             value="{{ $q }}" autocomplete="off">
                         <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                             title="Hapus pencarian">
@@ -649,8 +652,8 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-                     * Datatable Validasi Data Wali Kelas — Desktop & Responsive Modern
-                     * ------------------------------------------------------------- */
+                         * Datatable Validasi Data Wali Kelas — Desktop & Responsive Modern
+                         * ------------------------------------------------------------- */
         .table-validasi-data {
             width: 100%;
             border-collapse: collapse;
@@ -785,8 +788,8 @@
         }
 
         /* -------------------------------------------------------------
-                     * Responsive Mobile Stack (< 768px)
-                     * ------------------------------------------------------------- */
+                         * Responsive Mobile Stack (< 768px)
+                         * ------------------------------------------------------------- */
         @media (max-width: 768px) {
             .table-responsive-stack tbody tr.validasi-row {
                 display: flex !important;

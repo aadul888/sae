@@ -155,7 +155,7 @@
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                 <div class="toolbar-entries">
                     <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
+                    <select id="perPageSelect" name="perPage" class="per-page-select">
                         @foreach ([10, 15, 25, 50, 100] as $n)
                             <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
                                 {{ $n }}</option>
@@ -166,7 +166,7 @@
 
                 @if ($tab === 'pegawai' || $tab === 'berkas' || $tab === 'guru' || $tab === 'tendik')
                     <!-- Filter Jenis PTK -->
-                    <select id="filterJenis" class="toolbar-filter-select">
+                    <select id="filterJenis" name="jenis_ptk" class="toolbar-filter-select">
                         <option value="">Semua Jenis PTK</option>
                         @foreach ($jenisPtkList as $j)
                             <option value="{{ $j }}" {{ ($filterJenis ?? '') === $j ? 'selected' : '' }}>
@@ -175,7 +175,7 @@
                     </select>
 
                     <!-- Filter Status Kepegawaian -->
-                    <select id="filterStatus" class="toolbar-filter-select">
+                    <select id="filterStatus" name="status" class="toolbar-filter-select">
                         <option value="">Semua Status Kepegawaian</option>
                         @foreach ($statusKepegawaianList as $s)
                             <option value="{{ $s }}" {{ ($filterStatus ?? '') === $s ? 'selected' : '' }}>
@@ -185,7 +185,8 @@
 
                     @if ($tab === 'pegawai' || $tab === 'guru')
                         <!-- Filter Gender -->
-                        <select id="filterGender" class="toolbar-filter-select" style="min-width: 120px;">
+                        <select id="filterGender" name="gender" class="toolbar-filter-select"
+                            style="min-width: 120px;">
                             <option value="">Semua Gender</option>
                             <option value="L" {{ ($filterGender ?? '') === 'L' ? 'selected' : '' }}>Laki-laki (L)
                             </option>
@@ -196,8 +197,9 @@
                 @endif
 
                 @if (!empty($search) || !empty($filterJenis) || !empty($filterStatus) || !empty($filterGender))
-                    <a href="{{ route('dashboard.kepegawaian.index', ['tab' => $tab]) }}" class="btn btn-outline"
-                        style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter & pencarian">
+                    <a href="{{ route('dashboard.kepegawaian.index', ['tab' => $tab]) }}"
+                        class="btn btn-outline btn-reset-filter" style="padding: 7px 12px; font-size: 0.84rem;"
+                        title="Reset filter & pencarian" data-live-reset>
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif
@@ -205,7 +207,7 @@
 
             <div class="live-search-wrap">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch"
+                <input type="text" id="liveSearch" name="q"
                     placeholder="{{ $tab === 'kgb' ? 'Cari nama GTK / NIP / nomor SK...' : ($tab === 'cuti' ? 'Cari nama GTK / keperluan...' : 'Cari nama / NIP / NUPTK / NIK...') }}"
                     value="{{ $search ?? '' }}" autocomplete="off">
                 <button type="button" id="clearSearch" class="clear-search {{ !empty($search) ? 'visible' : '' }}"

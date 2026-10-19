@@ -103,60 +103,65 @@
         </div>
     </div>
 
-    <!-- 4. Toolbar & Filter Standar SAE -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <div class="toolbar-entries">
-                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
-                        @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
-                                {{ $n }}</option>
-                        @endforeach
-                    </select>
-                    <span>entri</span>
+    <!-- Unified Datatable Kegiatan Kesiswaan (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header Datatable Baku SAE (Entries, Filters & Live Search) -->
+        <div class="datatable-toolbar">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
+                                    {{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    @if ($activeTab === 'ekskul')
+                        <select id="filterKategori" name="kategori" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Kategori Ekskul</option>
+                            <option value="olahraga" {{ $kategori === 'olahraga' ? 'selected' : '' }}>Olahraga</option>
+                            <option value="seni" {{ $kategori === 'seni' ? 'selected' : '' }}>Seni &amp; Budaya</option>
+                            <option value="akademik" {{ $kategori === 'akademik' ? 'selected' : '' }}>Akademik</option>
+                            <option value="keagamaan" {{ $kategori === 'keagamaan' ? 'selected' : '' }}>Keagamaan</option>
+                            <option value="bela_negara" {{ $kategori === 'bela_negara' ? 'selected' : '' }}>Bela Negara
+                            </option>
+                        </select>
+                    @endif
+
+                    @if (!empty($q) || !empty($kategori))
+                        <a href="{{ route('dashboard.kesiswaan.kegiatan.index', ['tab' => $activeTab]) }}"
+                            class="btn btn-outline btn-reset-filter"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            title="Reset filter" data-live-reset>
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
 
-                @if ($activeTab === 'ekskul')
-                    <select id="filterKategori" class="toolbar-filter-select">
-                        <option value="">Semua Kategori Ekskul</option>
-                        <option value="olahraga" {{ $kategori === 'olahraga' ? 'selected' : '' }}>Olahraga</option>
-                        <option value="seni" {{ $kategori === 'seni' ? 'selected' : '' }}>Seni &amp; Budaya</option>
-                        <option value="akademik" {{ $kategori === 'akademik' ? 'selected' : '' }}>Akademik</option>
-                        <option value="keagamaan" {{ $kategori === 'keagamaan' ? 'selected' : '' }}>Keagamaan</option>
-                        <option value="bela_negara" {{ $kategori === 'bela_negara' ? 'selected' : '' }}>Bela Negara
-                        </option>
-                    </select>
-                @endif
-
-                @if (!empty($q) || !empty($kategori))
-                    <a href="{{ route('dashboard.kesiswaan.kegiatan.index', ['tab' => $activeTab]) }}"
-                        class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                        <i class="fas fa-undo"></i>
-                    </a>
-                @endif
-            </div>
-
-            <div class="live-search-wrap">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari kegiatan / organisasi / ekskul..."
-                    value="{{ $q ?? '' }}" autocomplete="off">
-                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                    title="Hapus pencarian">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari kegiatan / organisasi / ekskul..."
+                        value="{{ $q ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                        title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- 5. Content Sesuai Tab -->
-    @if ($activeTab === 'osis')
-        <!-- TAB 1: OSIS -->
-        @if ($osis)
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 24px;">
-                <div class="card" style="padding: 24px; text-align: center;">
-                    <div
+        <!-- 2. Content Sesuai Tab -->
+        @if ($activeTab === 'osis')
+            <!-- TAB 1: OSIS -->
+            <div style="padding: 20px;">
+                @if ($osis)
+                    <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                        <div class="card" style="padding: 24px; text-align: center;">
+                            <div
                         style="width: 80px; height: 80px; border-radius: 50%; background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 14px;">
                         <i class="fas fa-id-badge"></i>
                     </div>
@@ -212,54 +217,55 @@
                 </div>
             </div>
         @else
-            <div class="card" style="padding: 40px; text-align: center; color: var(--text-muted); margin-bottom: 24px;">
-                <i class="fas fa-id-badge mb-2" style="font-size: 2.5rem; opacity: 0.5;"></i>
-                <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Belum Ada
-                    Data Kepengurusan OSIS</div>
-                <p style="margin: 0 0 16px 0; font-size: 0.88rem;">Silakan buat data OSIS periode aktif untuk memetakan
-                    pengurus dan program kerja.</p>
-                @if ($canCreate)
-                    <button type="button" class="btn btn-primary"
-                        onclick="document.getElementById('btnOpenOrganisasiModal').click()" style="border-radius: 8px;">
-                        <i class="fas fa-plus"></i> Buat Data OSIS
-                    </button>
-                @endif
+                <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+                    <i class="fas fa-id-badge mb-2" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                    <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">Belum Ada
+                        Data Kepengurusan OSIS</div>
+                    <p style="margin: 0 0 16px 0; font-size: 0.88rem;">Silakan buat data OSIS periode aktif untuk memetakan
+                        pengurus dan program kerja.</p>
+                    @if ($canCreate)
+                        <button type="button" class="btn btn-primary"
+                            onclick="document.getElementById('btnOpenOrganisasiModal').click()" style="border-radius: 8px;">
+                            <i class="fas fa-plus"></i> Buat Data OSIS
+                        </button>
+                    @endif
+                </div>
+            @endif
             </div>
-        @endif
-    @elseif ($activeTab === 'organisasi')
-        <!-- TAB 2: ORGANISASI LAIN -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
-                            Jenis</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Nama Organisasi</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
-                            Masa Bakti</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 180px;">
-                            Ketua</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 180px;">
-                            Pembina</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($organisasiList as $org)
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px;"><span
-                                    class="badge badge-primary">{{ strtoupper($org->jenis) }}</span></td>
-                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
-                                {{ $org->nama_organisasi }}</td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $org->masa_bakti }}</td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $org->ketua?->nama ?: '-' }}</td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
-                                {{ $org->pembina?->nama ?: '-' }}</td>
+        @elseif ($activeTab === 'organisasi')
+            <!-- TAB 2: ORGANISASI LAIN -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                Jenis</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Nama Organisasi</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                Masa Bakti</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 180px;">
+                                Ketua</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 180px;">
+                                Pembina</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($organisasiList as $org)
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 16px;"><span
+                                        class="badge badge-primary">{{ strtoupper($org->jenis) }}</span></td>
+                                <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
+                                    {{ $org->nama_organisasi }}</td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $org->masa_bakti }}</td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $org->ketua?->nama ?: '-' }}</td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
+                                    {{ $org->pembina?->nama ?: '-' }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -273,163 +279,131 @@
                 </tbody>
             </table>
         </div>
-    @elseif ($activeTab === 'ekskul')
-        <!-- TAB 3: EKSTRAKURIKULER -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Nama Ekstrakurikuler</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                            Kategori</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
-                            Jadwal Latihan</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                            Tempat</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
-                            Pembina / Pelatih</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
-                            Anggota</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($ekskulList as $ek)
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
-                                {{ $ek->nama_ekskul }}</td>
-                            <td style="padding: 12px 16px;"><span
-                                    class="badge badge-accent">{{ strtoupper($ek->kategori) }}</span></td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $ek->jadwal_hari ?: '-' }}
-                                {{ $ek->jam_mulai ? '(' . substr($ek->jam_mulai, 0, 5) . ' - ' . substr($ek->jam_selesai, 0, 5) . ')' : '' }}
-                            </td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $ek->tempat ?: '-' }}</td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
-                                {{ $ek->pembina?->nama ?: ($ek->pelatih_nama ?: '-') }}</td>
-                            <td style="padding: 12px 16px; text-align: center; font-weight: 700;">
-                                {{ $ek->anggota->count() }} Siswa</td>
+        @elseif ($activeTab === 'ekskul')
+            <!-- TAB 3: EKSTRAKURIKULER -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Nama Ekstrakurikuler</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                Kategori</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
+                                Jadwal Latihan</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                Tempat</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 170px;">
+                                Pembina / Pelatih</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px; text-align: center;">
+                                Anggota</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                <i class="fas fa-folder-open"
-                                    style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                                Belum ada data ekstrakurikuler yang cocok dengan pencarian.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    @elseif ($activeTab === 'agenda')
-        <!-- TAB 4: AGENDA KEGIATAN -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
-                            Tanggal</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Judul Kegiatan</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
-                            Jenis</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                            Tempat</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
-                            Penanggung Jawab</th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
-                            Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($agendaList as $ag)
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">
-                                {{ date('d/m/Y', strtotime($ag->tanggal_mulai)) }}</td>
-                            <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
-                                {{ $ag->judul_kegiatan }}</td>
-                            <td style="padding: 12px 16px;"><span
-                                    class="badge badge-outline">{{ strtoupper($ag->jenis_kegiatan) }}</span></td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $ag->tempat ?: '-' }}</td>
-                            <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
-                                {{ $ag->penanggung_jawab ?: '-' }}</td>
-                            <td style="padding: 12px 16px; text-align: center;">
-                                @php
-                                    $agColor = match ($ag->status) {
-                                        'selesai' => 'badge-success',
-                                        'berlangsung' => 'badge-warning',
-                                        'dibatalkan' => 'badge-danger',
-                                        default => 'badge-primary',
-                                    };
-                                @endphp
-                                <span class="badge {{ $agColor }}">{{ strtoupper($ag->status) }}</span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
-                                <i class="fas fa-folder-open"
-                                    style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                                Belum ada agenda kegiatan kesiswaan yang cocok dengan pencarian.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($agendaList->hasPages())
-            <div class="custom-pagination" style="margin-bottom: 24px;">
-                @if ($agendaList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $agendaList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $agendaList->currentPage();
-                    $last = $agendaList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $agendaList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $agendaList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $agendaList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($agendaList->hasMorePages())
-                    <a href="{{ $agendaList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                    </thead>
+                    <tbody>
+                        @forelse ($ekskulList as $ek)
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
+                                    {{ $ek->nama_ekskul }}</td>
+                                <td style="padding: 12px 16px;"><span
+                                        class="badge badge-accent">{{ strtoupper($ek->kategori) }}</span></td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $ek->jadwal_hari ?: '-' }}
+                                    {{ $ek->jam_mulai ? '(' . substr($ek->jam_mulai, 0, 5) . ' - ' . substr($ek->jam_selesai, 0, 5) . ')' : '' }}
+                                </td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $ek->tempat ?: '-' }}</td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
+                                    {{ $ek->pembina?->nama ?: ($ek->pelatih_nama ?: '-') }}</td>
+                                <td style="padding: 12px 16px; text-align: center; font-weight: 700;">
+                                    {{ $ek->anggota->count() }} Siswa</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                    <i class="fas fa-folder-open"
+                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                    Belum ada data ekstrakurikuler yang cocok dengan pencarian.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
-    @endif
+        @elseif ($activeTab === 'agenda')
+            <!-- TAB 4: AGENDA KEGIATAN -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 110px;">
+                                Tanggal</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Judul Kegiatan</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 130px;">
+                                Jenis</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
+                                Tempat</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 160px;">
+                                Penanggung Jawab</th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 120px; text-align: center;">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($agendaList as $ag)
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">
+                                    {{ date('d/m/Y', strtotime($ag->tanggal_mulai)) }}</td>
+                                <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
+                                    {{ $ag->judul_kegiatan }}</td>
+                                <td style="padding: 12px 16px;"><span
+                                        class="badge badge-outline">{{ strtoupper($ag->jenis_kegiatan) }}</span></td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem;">{{ $ag->tempat ?: '-' }}</td>
+                                <td style="padding: 12px 16px; font-size: 0.85rem; color: var(--text-muted);">
+                                    {{ $ag->penanggung_jawab ?: '-' }}</td>
+                                <td style="padding: 12px 16px; text-align: center;">
+                                    @php
+                                        $agColor = match ($ag->status) {
+                                            'selesai' => 'badge-success',
+                                            'berlangsung' => 'badge-warning',
+                                            'dibatalkan' => 'badge-danger',
+                                            default => 'badge-primary',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $agColor }}">{{ strtoupper($ag->status) }}</span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                    <i class="fas fa-folder-open"
+                                        style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
+                                    Belum ada agenda kegiatan kesiswaan yang cocok dengan pencarian.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if ($agendaList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $agendaList])
+                </div>
+            @endif
+        @endif
+    </div>
     <!-- MODAL 1: ORGANISASI KESISWAAN -->
     <div id="modalOrganisasi" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">

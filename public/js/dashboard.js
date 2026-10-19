@@ -470,13 +470,18 @@ document.addEventListener("DOMContentLoaded", () => {
             newDir = "desc";
         }
 
-        url.searchParams.set("sort", sortField);
-        url.searchParams.set("sort_dir", newDir);
-        url.searchParams.delete("page");
-        if (typeof window.refreshLiveTable === "function") {
-            window.refreshLiveTable(url.toString());
+        if (typeof window.collectDatatableUrl === "function") {
+            const targetUrl = window.collectDatatableUrl(th, { sort: sortField, sort_dir: newDir });
+            window.refreshLiveTable(targetUrl);
         } else {
-            window.location.href = url.toString();
+            url.searchParams.set("sort", sortField);
+            url.searchParams.set("sort_dir", newDir);
+            url.searchParams.delete("page");
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(url.toString());
+            } else {
+                window.location.href = url.toString();
+            }
         }
     });
 });
@@ -920,19 +925,31 @@ function isDatatableSearchInput(el) {
     if (el.closest(".live-search-wrap")) return true;
     const id = (el.id || "").toLowerCase();
     if (
+        id.includes("search") ||
         id === "livesearch" ||
         id === "livesearchinput" ||
         id === "livesearchadmin" ||
         id === "searchtable" ||
         id === "livesearchindeks" ||
         id === "livesearchkelasinput" ||
-        id === "livesearchizininput"
+        id === "livesearchizininput" ||
+        id === "searchpip" ||
+        id === "searchkartupelajar" ||
+        id === "inputsearchizin" ||
+        id === "livesearchmonitorinput"
     ) {
         return true;
     }
     const name = (el.name || "").toLowerCase();
-    if (name === "q" || name === "search" || name === "keyword") return true;
+    if (name === "q" || name === "search" || name === "keyword" || name === "monitor_q") return true;
     if (el.classList.contains("live-search-input") || el.classList.contains("table-search-input")) return true;
+
+    // Jika input berada di dalam form GET yang terhubung ke datatable
+    const form = el.closest("form[method='GET'], form[method='get']");
+    if (form && document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd")) {
+        return true;
+    }
+
     return false;
 }
 
@@ -944,8 +961,8 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
 
     // 1. Temukan kontainer datatable atau toolbar terdekat
     const cardContainer =
-        sourceEl?.closest("#tableDataContainer, .datatable-card-wrapper, .dash-table-card, .card.table-responsive-stack, .table-responsive-stack") ||
-        document.querySelector("#tableDataContainer, .datatable-card-wrapper, .card.table-responsive-stack");
+        sourceEl?.closest("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .dash-table-card, .card.table-responsive-stack, .table-responsive-stack") ||
+        document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .card.table-responsive-stack");
 
     const toolbarContainer =
         sourceEl?.closest(".datatable-toolbar, .dash-table-toolbar, .toolbar-entries") ||
@@ -954,10 +971,14 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
 
     // 2. Ambil nilai query pencarian
     const searchInput =
-        (toolbarContainer ? toolbarContainer.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, .live-search-wrap input") : null) ||
-        (cardContainer ? cardContainer.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, .live-search-wrap input") : null) ||
+        (toolbarContainer ? toolbarContainer.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, input#searchPip, input#searchKartuPelajar, input#inputSearchIzin, input#liveSearchMonitorInput, .live-search-wrap input") : null) ||
+        (cardContainer ? cardContainer.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, input#searchPip, input#searchKartuPelajar, input#inputSearchIzin, input#liveSearchMonitorInput, .live-search-wrap input") : null) ||
         document.getElementById("liveSearch") ||
-        document.getElementById("liveSearchInput");
+        document.getElementById("liveSearchInput") ||
+        document.getElementById("searchPip") ||
+        document.getElementById("searchKartuPelajar") ||
+        document.getElementById("inputSearchIzin") ||
+        document.getElementById("liveSearchMonitorInput");
 
     if (searchInput && isDatatableSearchInput(searchInput)) {
         const qParam = searchInput.name || "q";
@@ -975,7 +996,7 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
     const processedSelects = new Set();
     scopes.forEach((scope) => {
         const selects = scope.querySelectorAll(
-            "select.per-page-select, select.toolbar-filter-select, select[data-live-filter], select[id*='filter'], select[id*='Filter'], select[id*='perPage'], select[name]"
+            "select.per-page-select, select.toolbar-filter-select, select.filter-select, select[data-live-filter], select[id*='filter'], select[id*='Filter'], select[id*='perPage'], select[name]"
         );
         selects.forEach((sel) => {
             if (processedSelects.has(sel)) return;
@@ -987,10 +1008,30 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
                     pName = "perPage";
                 } else if (sel.id === "filterRombel" || sel.id === "adminRombelSelect") {
                     pName = url.searchParams.has("rombongan_belajar_id") ? "rombongan_belajar_id" : (url.searchParams.has("rombel_id") ? "rombel_id" : "rombel");
+                } else if (sel.id === "filterJenis") {
+                    pName = (url.searchParams.has("jenis_ptk") || window.location.pathname.includes("kepegawaian")) ? "jenis_ptk" : "jenis";
                 } else if (sel.id === "filterPtk") {
-                    pName = "filter_ptk_id";
+                    pName = url.searchParams.has("ptk_id") ? "ptk_id" : "filter_ptk_id";
                 } else if (sel.id === "filterStatusKbm") {
                     pName = "status_kbm";
+                } else if (sel.id === "filterStatusPip") {
+                    pName = "status_pip";
+                } else if (sel.id === "filterJenisSk") {
+                    pName = "jenis_sk";
+                } else if (sel.id === "filterStatusVerif") {
+                    pName = "status_verifikasi";
+                } else if (sel.id === "filterStatusKeluar") {
+                    pName = "status_keluar";
+                } else if (sel.id === "filterStatusBayar") {
+                    pName = "status_pembayaran";
+                } else if (sel.id === "filterReqStatus") {
+                    pName = "req_status";
+                } else if (sel.id === "filterKonfirmasi") {
+                    pName = "konfirmasi";
+                } else if (sel.id === "filterBerkas") {
+                    pName = "berkas";
+                } else if (sel.id === "filterKodeIndeks") {
+                    pName = "kode_indeks";
                 } else if (sel.id.startsWith("filter") || sel.id.startsWith("adminFilter")) {
                     const raw = sel.id.replace(/^(?:admin)?Filter_?/, "");
                     pName = raw.charAt(0).toLowerCase() + raw.slice(1);
@@ -1010,11 +1051,28 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
         });
 
         // 4. Input tanggal inline (seperti agenda-kbm)
-        const dateInputs = scope.querySelectorAll("input[type='date']#filterTanggalMulai, input[type='date']#filterTanggalSelesai, input[type='date']#filterTanggal");
+        const dateInputs = scope.querySelectorAll("input[type='date']#filterTanggalMulai, input[type='date']#filterTanggalSelesai, input[type='date']#filterTanggal, input[type='date'][name*='tanggal']");
         dateInputs.forEach((dInput) => {
             const dName = dInput.name || (dInput.id === "filterTanggalMulai" ? "tanggal_mulai" : (dInput.id === "filterTanggalSelesai" ? "tanggal_selesai" : "tanggal"));
             if (dInput.value) url.searchParams.set(dName, dInput.value);
             else url.searchParams.delete(dName);
+        });
+
+        // 4b. Input filter teks/angka lainnya (seperti #filterTahunLulus)
+        const textFilterInputs = scope.querySelectorAll(
+            "input[id*='filter']:not(#liveSearch):not(#liveSearchInput):not(#liveSearchAdmin):not(#searchPip):not(#searchKartuPelajar):not(#inputSearchIzin):not(#liveSearchMonitorInput), input[id*='Filter']:not(#liveSearch):not(#liveSearchInput):not(#liveSearchAdmin):not(#searchPip):not(#searchKartuPelajar):not(#inputSearchIzin):not(#liveSearchMonitorInput)"
+        );
+        textFilterInputs.forEach((tInput) => {
+            if (tInput.type === "date" || tInput.type === "submit" || tInput.type === "button") return;
+            let pName = tInput.name;
+            if (!pName) {
+                const raw = tInput.id.replace(/^(?:admin)?Filter_?/, "");
+                pName = raw.charAt(0).toLowerCase() + raw.slice(1);
+            }
+            if (pName) {
+                if (tInput.value.trim()) url.searchParams.set(pName, tInput.value.trim());
+                else url.searchParams.delete(pName);
+            }
         });
     });
 
@@ -1030,6 +1088,21 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
 
     if (!("page" in overrideParams)) {
         url.searchParams.set("page", "1");
+        url.searchParams.delete("aktif_page");
+        url.searchParams.delete("tidak_aktif_page");
+        url.searchParams.delete("alumni_page");
+        url.searchParams.delete("berkas_page");
+        url.searchParams.delete("usulan_page");
+        url.searchParams.delete("kuota_page");
+        url.searchParams.delete("riwayat_page");
+        url.searchParams.delete("klaper_page");
+        url.searchParams.delete("mutasi_page");
+        url.searchParams.delete("kelulusan_page");
+        url.searchParams.delete("admin_page");
+        url.searchParams.delete("guru_page");
+        url.searchParams.delete("tendik_page");
+        url.searchParams.delete("peserta_didik_page");
+        url.searchParams.delete("tugas_page");
     }
 
     return url.toString();
@@ -1060,14 +1133,14 @@ function executeDatatableSearch(input) {
 
 // Global Delegated Handler for Clear Search Buttons (.clear-search, #clearSearch, dsb)
 document.addEventListener("click", function (e) {
-    const clearBtn = e.target.closest(".live-search-wrap .clear-search, #clearSearch, #clearSearchBtn, .clear-search");
+    const clearBtn = e.target.closest(".live-search-wrap .clear-search, #clearSearch, #clearSearchBtn, #clearSearchPip, #clearSearchKartuPelajar, #clearSearchMonitorBtn, #btnClearSearch, .clear-search");
     if (!clearBtn) return;
     e.preventDefault();
 
     const wrap = clearBtn.closest(".live-search-wrap") || clearBtn.parentElement;
     const input = wrap
         ? wrap.querySelector("input")
-        : (document.getElementById("liveSearch") || document.getElementById("liveSearchInput"));
+        : (document.getElementById("liveSearch") || document.getElementById("liveSearchInput") || document.getElementById("searchPip") || document.getElementById("searchKartuPelajar") || document.getElementById("inputSearchIzin") || document.getElementById("liveSearchMonitorInput"));
 
     if (input) {
         input.value = "";
@@ -1091,8 +1164,8 @@ document.addEventListener("input", function (e) {
     // Toggle clear button visibility
     const wrap = input.closest(".live-search-wrap") || input.parentElement;
     const clearBtn = wrap
-        ? wrap.querySelector(".clear-search, #clearSearch, #clearSearchBtn")
-        : (document.getElementById("clearSearch") || document.getElementById("clearSearchBtn"));
+        ? wrap.querySelector(".clear-search, #clearSearch, #clearSearchBtn, #clearSearchPip, #clearSearchKartuPelajar, #clearSearchMonitorBtn, #btnClearSearch")
+        : (document.getElementById("clearSearch") || document.getElementById("clearSearchBtn") || document.getElementById("clearSearchPip") || document.getElementById("clearSearchKartuPelajar") || document.getElementById("clearSearchMonitorBtn") || document.getElementById("btnClearSearch"));
     if (clearBtn) {
         clearBtn.classList.toggle("visible", input.value.trim().length > 0);
     }
@@ -1125,7 +1198,7 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
-// Global Interception for Search Forms submitting with live-search-wrap
+// Global Interception for Search Forms submitting with live-search-wrap or datatable GET forms
 document.addEventListener("submit", function (e) {
     const form = e.target;
     if (
@@ -1133,20 +1206,28 @@ document.addEventListener("submit", function (e) {
         !form.hasAttribute("data-no-ajax") &&
         (form.method || "get").toLowerCase() === "get"
     ) {
-        const searchInput = form.querySelector(".live-search-wrap input, #liveSearch, #liveSearchInput, input[name='q']");
-        if (searchInput && isDatatableSearchInput(searchInput)) {
-            e.preventDefault();
-            clearTimeout(globalLiveSearchTimer);
-            if (liveTableAbortController) {
-                try { liveTableAbortController.abort(); } catch (err) {}
-                liveTableAbortController = null;
-            }
-            executeDatatableSearch(searchInput);
+        const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd");
+        if (!hasTable) return;
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        clearTimeout(globalLiveSearchTimer);
+        if (liveTableAbortController) {
+            try { liveTableAbortController.abort(); } catch (err) {}
+            liveTableAbortController = null;
         }
+        const formData = new FormData(form);
+        const url = new URL(form.action || window.location.href, window.location.origin);
+        for (const [k, v] of formData.entries()) {
+            if (v !== "") url.searchParams.set(k, v);
+            else url.searchParams.delete(k);
+        }
+        url.searchParams.set("page", "1");
+        window.refreshLiveTable(url.toString());
     }
 });
 
-// Universal Delegated Change Handler for Dropdown & Date Filters across ALL modules
+// Universal Delegated Change Handler for Dropdown & Date Filters across ALL modules (Capture Phase)
 document.addEventListener("change", function (e) {
     const el = e.target;
     if (!el) return;
@@ -1161,52 +1242,57 @@ document.addEventListener("change", function (e) {
         return;
     }
 
+    // 1. Jika elemen berada di dalam form GET yang berasosiasi dengan datatable
+    const form = el.closest("form");
+    if (form && (form.method || "get").toLowerCase() === "get" && !form.hasAttribute("data-manual-filter")) {
+        const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd");
+        if (hasTable) {
+            e.stopImmediatePropagation();
+            const formData = new FormData(form);
+            const url = new URL(form.action || window.location.href, window.location.origin);
+            for (const [k, v] of formData.entries()) {
+                if (v !== "") url.searchParams.set(k, v);
+                else url.searchParams.delete(k);
+            }
+            url.searchParams.set("page", "1");
+            window.refreshLiveTable(url.toString());
+            return;
+        }
+    }
+
+    // 2. Standalone datatable toolbar
     const isFilter =
         (el.tagName === "SELECT" && (
             el.classList.contains("per-page-select") ||
             el.classList.contains("toolbar-filter-select") ||
+            el.classList.contains("filter-select") ||
             el.hasAttribute("data-live-filter") ||
             el.id.startsWith("filter") ||
+            el.id.startsWith("adminFilter") ||
             el.id.startsWith("perPage") ||
-            el.name === "perPage" ||
-            el.name === "per_page" ||
-            el.name === "rombel" ||
-            el.name === "gender" ||
-            el.name === "status" ||
-            el.name === "jenis" ||
-            el.name === "tingkat" ||
-            el.name === "jurusan" ||
-            el.name === "modul" ||
-            el.closest(".toolbar-entries, .dash-table-toolbar, .datatable-toolbar")
+            el.closest(".toolbar-entries, .dash-table-toolbar, .datatable-toolbar, #tableDataContainer, .datatable-card-wrapper, .card")
         )) ||
-        (el.tagName === "INPUT" && el.type === "date" && (el.id.startsWith("filter") || el.name.startsWith("tanggal")));
+        (el.tagName === "INPUT" && (el.type === "date" || el.id.startsWith("filter") || el.name.startsWith("tanggal")));
 
     if (!isFilter) return;
 
-    // If inside a GET form, submit via AJAX
-    const form = el.closest("form");
-    if (form && (form.method || "get").toLowerCase() === "get" && !form.hasAttribute("data-manual-filter")) {
-        const formData = new FormData(form);
-        const url = new URL(form.action || window.location.href, window.location.origin);
-        for (const [k, v] of formData.entries()) {
-            if (v !== "") url.searchParams.set(k, v);
-            else url.searchParams.delete(k);
-        }
-        url.searchParams.set("page", "1");
-        window.refreshLiveTable(url.toString());
-        return;
-    }
-
-    // Standalone datatable toolbar
+    e.stopImmediatePropagation();
     const targetUrl = window.collectDatatableUrl(el);
     window.refreshLiveTable(targetUrl);
-});
+}, true);
 
 // Universal Delegated Handler for Reset Filter Buttons
 document.addEventListener("click", function (e) {
-    const resetBtn = e.target.closest("[data-live-reset], .btn-reset-filter, #resetFilterAdmin, a[title*='Reset filter'], a[title*='Reset']");
+    const resetBtn = e.target.closest("[data-live-reset], .btn-reset-filter, #resetFilterAdmin, #btnResetFilter, a[title*='Reset filter'], a[title*='Reset']");
     if (resetBtn && resetBtn.href) {
         e.preventDefault();
+        const wrap = resetBtn.closest(".datatable-toolbar, .dash-table-toolbar, .card, body");
+        const sInput = wrap ? wrap.querySelector("input#liveSearch, input#liveSearchInput, input#liveSearchAdmin, .live-search-wrap input") : null;
+        if (sInput) {
+            sInput.value = "";
+            const cBtn = wrap ? wrap.querySelector(".clear-search") : null;
+            if (cBtn) cBtn.classList.remove("visible");
+        }
         window.refreshLiveTable(resetBtn.href);
     }
 });

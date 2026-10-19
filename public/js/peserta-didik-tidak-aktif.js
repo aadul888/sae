@@ -12,110 +12,89 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let debounceTimer;
 
-    function applyFilter() {
-        const params = new URLSearchParams(window.location.search);
-        params.delete('perPageSelect');
+    function applyFilter(overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        const liveSearch = document.getElementById('liveSearch');
+        const perPageSelect = document.getElementById('perPageSelect');
+        const filterStatus = document.getElementById('filterStatus');
+        const filterTahun = document.getElementById('filterTahun');
 
         if (liveSearch && liveSearch.value.trim()) {
-            params.set('q', liveSearch.value.trim());
+            url.searchParams.set('q', liveSearch.value.trim());
         } else {
-            params.delete('q');
+            url.searchParams.delete('q');
         }
 
         if (filterStatus && filterStatus.value) {
-            params.set('status', filterStatus.value);
+            url.searchParams.set('status', filterStatus.value);
         } else {
-            params.delete('status');
+            url.searchParams.delete('status');
         }
 
         if (filterTahun && filterTahun.value) {
-            params.set('tahun', filterTahun.value);
+            url.searchParams.set('tahun', filterTahun.value);
         } else {
-            params.delete('tahun');
+            url.searchParams.delete('tahun');
         }
 
-        const curPerPage = perPageSelect ? perPageSelect.value : (params.get('perPage') || '15');
+        const curPerPage = perPageSelect ? perPageSelect.value : (url.searchParams.get('perPage') || '15');
         if (curPerPage) {
-            params.set('perPage', curPerPage);
+            url.searchParams.set('perPage', curPerPage);
         }
 
-        params.set('page', '1');
-        const targetUrl = window.location.pathname + '?' + params.toString();
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
+            else url.searchParams.delete(k);
+        });
+
+        if (!('page' in overrideParams)) url.searchParams.set('page', '1');
+
         if (typeof window.refreshLiveTable === 'function') {
-            window.refreshLiveTable(targetUrl);
+            window.refreshLiveTable(url.toString());
         } else {
-            window.location.search = params.toString();
+            window.location.href = url.toString();
         }
     }
 
-    if (perPageSelect) {
-        perPageSelect.addEventListener('change', function (e) {
+    // Delegated Change Handler untuk filter Peserta Didik Tidak Aktif
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
+            (e.target.id === "filterStatus" || e.target.id === "filterTahun" || e.target.id === "perPageSelect")
+        ) {
             e.preventDefault();
             e.stopPropagation();
             applyFilter();
-        });
-    }
-    if (filterStatus) {
-        filterStatus.addEventListener('change', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            applyFilter();
-        });
-    }
-    if (filterTahun) {
-        filterTahun.addEventListener('change', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            applyFilter();
-        });
-    }
+        }
+    });
 
-    if (liveSearch) {
-        liveSearch.addEventListener('input', function () {
-            if (this.value.trim()) {
-                if (clearSearch) clearSearch.classList.add('visible');
-            } else {
-                if (clearSearch) clearSearch.classList.remove('visible');
-            }
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(applyFilter, 450);
-        });
+    // Delegated Sort Click Handler untuk tabel Peserta Didik Tidak Aktif
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th || !th.closest("#tableDataContainer")) return;
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+        e.preventDefault();
+        e.stopPropagation();
 
-        liveSearch.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                clearTimeout(debounceTimer);
-                applyFilter();
-            }
-        });
-    }
-
-    if (clearSearch) {
-        clearSearch.addEventListener('click', function () {
-            if (liveSearch) liveSearch.value = '';
-            clearSearch.classList.remove('visible');
-            applyFilter();
-        });
-    }
-
-    // Sortable column headers
-    document.querySelectorAll('.sortable-th').forEach(function (th) {
-        th.style.cursor = 'pointer';
-        th.addEventListener('click', function () {
-            const sortKey = this.dataset.sort;
-            if (!sortKey) return;
-            const params = new URLSearchParams(window.location.search);
-            const currentSort = params.get('sort') || 'nama';
-            const currentDir = params.get('sort_dir') || 'asc';
-            let newDir = 'asc';
-            if (currentSort === sortKey) {
-                newDir = currentDir === 'asc' ? 'desc' : 'asc';
-            }
-            params.set('sort', sortKey);
-            params.set('sort_dir', newDir);
-            params.set('page', '1');
-            window.location.search = params.toString();
-        });
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "nama";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
+        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
+        applyFilter({ sort: sortField, sort_dir: newDir });
     });
 
     // Aksi Pengarsipan Peserta Didik Tingkat XII

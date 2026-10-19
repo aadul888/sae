@@ -149,7 +149,7 @@
 
         <div class="live-search-wrap">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="liveSearch"
+            <input type="text" id="liveSearch" name="q"
                 placeholder="{{ $activeTab === 'tugas_tambahan' ? 'Cari nama PTK / tugas / kelas...' : 'Cari nama / username / no HP...' }}"
                 value="{{ $q }}" autocomplete="off">
             <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}" title="Hapus pencarian">

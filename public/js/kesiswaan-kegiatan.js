@@ -86,7 +86,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const perPageSelect = document.getElementById("perPageSelect");
     const filterKategori = document.getElementById("filterKategori");
 
-    function applyFilter() {
+    function applyFilter(overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
+        }
+
         const url = new URL(window.location.href);
         if (searchInput && searchInput.value.trim()) {
             url.searchParams.set("q", searchInput.value.trim());
@@ -116,28 +127,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    if (searchInput) {
-        let timer = null;
-        searchInput.addEventListener("input", function () {
-            if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
-            clearTimeout(timer);
-            timer = setTimeout(applyFilter, 300);
-        });
-
-        searchInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                clearTimeout(timer);
-                applyFilter();
-            }
-        });
-    }
-
-    if (clearBtn) {
-        clearBtn.addEventListener("click", function () {
-            if (searchInput) {
-                searchInput.value = "";
-                clearBtn.classList.remove("visible");
+    // Delegated Change Handler untuk filter Kegiatan
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar, .dash-table-toolbar, .card") &&
+            (e.target.id === "filterKategori" || e.target.id === "perPageSelect")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        }
+    });
                 applyFilter();
             }
         });

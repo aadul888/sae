@@ -268,7 +268,7 @@
                     </div>
 
                     @if (($tab ?? '') !== 'spt' && ($tab ?? '') !== 'template')
-                        <select id="filterKodeIndeks" class="toolbar-filter-select">
+                        <select id="filterKodeIndeks" name="kode_indeks" class="toolbar-filter-select">
                             <option value="">Semua Indeks</option>
                             @foreach ($indeksList as $idx)
                                 <option value="{{ $idx->kode }}"
@@ -278,7 +278,7 @@
                             @endforeach
                         </select>
 
-                        <select id="filterStatus" class="toolbar-filter-select">
+                        <select id="filterStatus" name="status" class="toolbar-filter-select">
                             <option value="">Semua Status</option>
                             <option value="selesai" {{ ($status ?? '') === 'selesai' ? 'selected' : '' }}>Selesai / Terbit
                             </option>
@@ -290,7 +290,8 @@
 
                     @if (!empty($q) || !empty($status) || !empty($kodeIndeks))
                         <a href="{{ route('dashboard.persuratan.keluar.index', ['tab' => $tab ?? 'keluar']) }}"
-                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                            class="btn btn-outline btn-reset-filter" style="padding: 7px 12px; font-size: 0.84rem;"
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -298,7 +299,7 @@
 
                 <div class="live-search-wrap">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch"
+                    <input type="text" id="liveSearch" name="q"
                         placeholder="{{ ($tab ?? '') === 'spt' ? 'Cari nomor SPT, kegiatan, tujuan...' : 'Cari nomor surat, perihal, tujuan...' }}"
                         value="{{ $q ?? '' }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"

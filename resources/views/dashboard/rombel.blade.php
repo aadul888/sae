@@ -124,7 +124,7 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                             @foreach ([10, 15, 25, 50, 100] as $n)
                                 <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                     {{ $n }}
@@ -134,7 +134,8 @@
                         <span>entri</span>
                     </div>
 
-                    <select id="filterTingkat" class="toolbar-filter-select" style="height: 38px; min-width: 130px;">
+                    <select id="filterTingkat" name="tingkat" class="toolbar-filter-select"
+                        style="height: 38px; min-width: 130px;">
                         <option value="">Semua Tingkat</option>
                         @foreach ($filterTingkat as $tk)
                             <option value="{{ $tk }}" {{ $tingkat === $tk ? 'selected' : '' }}>
@@ -143,7 +144,7 @@
                         @endforeach
                     </select>
 
-                    <select id="filterJurusan" class="toolbar-filter-select" style="height: 38px;">
+                    <select id="filterJurusan" name="jurusan" class="toolbar-filter-select" style="height: 38px;">
                         <option value="">Semua Jurusan</option>
                         @foreach ($filterJurusan as $j)
                             <option value="{{ $j }}" {{ $jurusan === $j ? 'selected' : '' }}>
@@ -153,9 +154,10 @@
                     </select>
 
                     @if ($q || $tingkat || $jurusan)
-                        <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}" class="btn btn-outline"
+                        <a href="{{ route('dashboard.rombel.' . ($currentType ?? 'reguler')) }}"
+                            class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                            title="Reset filter">
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -163,7 +165,7 @@
 
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari nama rombel / wali / ruang..."
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari nama rombel / wali / ruang..."
                         value="{{ $q }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                         title="Hapus pencarian">

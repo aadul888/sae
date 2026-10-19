@@ -177,7 +177,7 @@
                         </option>
                     </select>
 
-                    <select id="filterPtk" class="toolbar-filter-select">
+                    <select id="filterPtk" name="ptk_id" class="toolbar-filter-select">
                         <option value="">Semua Tujuan Disposisi</option>
                         @foreach ($ptkList as $ptk)
                             <option value="{{ $ptk->ptk_id }}"
@@ -188,8 +188,9 @@
                     </select>
 
                     @if (!empty($q) || !empty($status) || !empty($filterPtk))
-                        <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="btn btn-outline"
-                            style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
+                        <a href="{{ route('dashboard.persuratan.masuk.index') }}"
+                            class="btn btn-outline btn-reset-filter" style="padding: 7px 12px; font-size: 0.84rem;"
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -197,8 +198,9 @@
 
                 <div class="live-search-wrap">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari nomor surat / perihal / pengirim..."
-                        value="{{ $q ?? '' }}" autocomplete="off">
+                    <input type="text" id="liveSearch" name="q"
+                        placeholder="Cari nomor surat / perihal / pengirim..." value="{{ $q ?? '' }}"
+                        autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
                         title="Hapus pencarian">
                         <i class="fas fa-times"></i>

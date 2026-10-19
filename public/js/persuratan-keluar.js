@@ -437,7 +437,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterKodeIndeks = document.getElementById("filterKodeIndeks");
     const filterStatus = document.getElementById("filterStatus");
 
-    function applyFilter() {
+    function applyFilter(overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
+        }
+
         const url = new URL(window.location.href);
         if (searchInput && searchInput.value.trim()) {
             url.searchParams.set("q", searchInput.value.trim());
@@ -461,7 +472,14 @@ document.addEventListener('DOMContentLoaded', function () {
             url.searchParams.set("perPage", perPageSelect.value);
         }
 
-        url.searchParams.set("page", "1");
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
+            else url.searchParams.delete(k);
+        });
+
+        if (!("page" in overrideParams)) url.searchParams.set("page", "1");
+
         if (typeof window.refreshLiveTable === "function") {
             window.refreshLiveTable(url.toString());
         } else {
@@ -469,45 +487,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    if (searchInput) {
-        let timer = null;
-        searchInput.addEventListener("input", function () {
-            if (clearBtn) clearBtn.classList.toggle("visible", this.value.trim().length > 0);
-            clearTimeout(timer);
-            timer = setTimeout(applyFilter, 300);
-        });
+    // Delegated Change Handler untuk filter Surat Keluar
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar, .dash-table-toolbar, .card") &&
+            (e.target.id === "filterKodeIndeks" || e.target.id === "filterStatus" || e.target.id === "perPageSelect")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        }
+    });
 
-        searchInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                clearTimeout(timer);
-                applyFilter();
-            }
-        });
-    }
+    // Delegated Sort Click Handler untuk tabel Surat Keluar
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th || !th.closest("#tableDataContainer")) return;
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+        e.preventDefault();
+        e.stopPropagation();
 
-    if (clearBtn) {
-        clearBtn.addEventListener("click", function () {
-            if (searchInput) {
-                searchInput.value = "";
-                clearBtn.classList.remove("visible");
-                applyFilter();
-            }
-        });
-    }
-
-    if (filterKodeIndeks) filterKodeIndeks.addEventListener("change", applyFilter);
-    if (filterStatus) filterStatus.addEventListener("change", applyFilter);
-    if (perPageSelect) perPageSelect.addEventListener("change", applyFilter);
-
-    document.querySelectorAll(".sortable-th").forEach(function (th) {
-        th.style.cursor = "pointer";
-        th.addEventListener("click", function () {
-            const sortField = this.getAttribute("data-sort");
-            if (!sortField) return;
-
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get("sort") || "tanggal_surat";
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "tanggal_surat";
+        const currentDir = url.searchParams.get("sort_dir") || url.searchParams.get("dir") || "desc";
+        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
+        applyFilter({ sort: sortField, sort_dir: newDir });
+    });
             const currentDir = url.searchParams.get("sort_dir") || url.searchParams.get("dir") || "desc";
 
             let newDir = "asc";

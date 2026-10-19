@@ -24,6 +24,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const adminRombelSelect = document.getElementById("adminRombelSelect");
 
     function applyFilter(overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
+        }
+
         const url = new URL(window.location.href);
 
         if (perPageSelect) {
@@ -71,11 +82,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    if (perPageSelect) perPageSelect.addEventListener("change", () => applyFilter());
-    if (filterKonfirmasi) filterKonfirmasi.addEventListener("change", () => applyFilter());
-    if (filterBerkas) filterBerkas.addEventListener("change", () => applyFilter());
-    if (filterGender) filterGender.addEventListener("change", () => applyFilter());
-    if (adminRombelSelect) adminRombelSelect.addEventListener("change", () => applyFilter());
+    // Delegated Change Handler untuk filter Validasi Data
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
+            (e.target.id === "filterKonfirmasi" || e.target.id === "filterBerkas" || e.target.id === "filterGender" || e.target.id === "adminRombelSelect" || e.target.id === "perPageSelect")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        }
+    });
 
     // Live search with 450ms debounce
     let searchDebounce = null;

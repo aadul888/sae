@@ -631,43 +631,75 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // Per Page Select Handler
-    const perPageSelect = document.getElementById("perPageSelect");
-    if (perPageSelect) {
-        perPageSelect.addEventListener("change", function () {
-            const url = new URL(window.location.href);
-            url.searchParams.set("perPage", this.value);
-            url.searchParams.set("page", "1");
+    function applyFilter(overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
             if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
+                window.refreshLiveTable(targetUrl);
             } else {
-                window.location.href = url.toString();
+                window.location.href = targetUrl;
             }
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        const searchInput = document.getElementById("liveSearch") || document.getElementById("searchTable");
+        const perPageSelect = document.getElementById("perPageSelect");
+
+        if (searchInput && searchInput.value.trim()) {
+            url.searchParams.set("q", searchInput.value.trim());
+        } else {
+            url.searchParams.delete("q");
+        }
+
+        if (perPageSelect && perPageSelect.value) {
+            url.searchParams.set("perPage", perPageSelect.value);
+        }
+
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
+            else url.searchParams.delete(k);
         });
+
+        if (!("page" in overrideParams)) url.searchParams.set("page", "1");
+
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
     }
 
-    // Sortable Column Headers Click Handler
-    document.querySelectorAll(".sortable-th").forEach(function (th) {
-        th.style.cursor = "pointer";
-        th.addEventListener("click", function () {
-            const sortField = this.getAttribute("data-sort");
-            if (!sortField) return;
+    // Delegated Change Handler untuk perPageSelect
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
+            e.target.id === "perPageSelect"
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        }
+    });
 
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get("sort") || "nama";
-            const currentDir = url.searchParams.get("sort_dir") || "asc";
+    // Delegated Sort Click Handler untuk tabel Kompetensi Keahlian
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th || !th.closest("#tableDataContainer")) return;
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+        e.preventDefault();
+        e.stopPropagation();
 
-            let newDir = "asc";
-            if (currentSort === sortField && currentDir === "asc") {
-                newDir = "desc";
-            }
-
-            url.searchParams.set("sort", sortField);
-            url.searchParams.set("sort_dir", newDir);
-            url.searchParams.set("page", "1");
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
-            } else {
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "nama";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
+        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
+        applyFilter({ sort: sortField, sort_dir: newDir });
+    });
                 window.location.href = url.toString();
             }
         });

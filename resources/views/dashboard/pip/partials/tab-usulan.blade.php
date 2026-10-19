@@ -222,9 +222,9 @@
 
                 @if ($q || $statusVerif || ($isAdmin && $activeRombel))
                     <a href="{{ route('dashboard.pip.index', ['tab' => 'usulan', 'tahun' => $activeTahun]) }}"
-                        class="btn btn-outline"
+                        class="btn btn-outline btn-reset-filter"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                        title="Reset filter">
+                        title="Reset filter" data-live-reset>
                         <i class="fas fa-undo"></i>
                     </a>
                 @endif

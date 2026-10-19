@@ -246,80 +246,75 @@
 
     <!-- TAB 1: Log Presensi Hari Ini -->
     <div class="presensi-tab-pane" id="tab-log" style="display: {{ $activeTab === 'log' ? 'block' : 'none' }};">
-        <!-- Toolbar & Filter Bar -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <form id="formFilterLog" action="{{ route('dashboard.presensi.index') }}" method="GET">
-                <input type="hidden" name="tab" value="log">
-                <input type="hidden" name="perPageLog" id="inputHiddenPerPageLog" value="{{ $perPageLog ?? 15 }}">
+        <!-- Unified Datatable Log Presensi (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <form id="formFilterLog" action="{{ route('dashboard.presensi.index') }}" method="GET" style="margin: 0;">
+                    <input type="hidden" name="tab" value="log">
 
-                <div
-                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                        <div class="toolbar-entries">
-                            <label for="perPageLogSelect" style="margin: 0;">Tampilkan</label>
-                            <select id="perPageLogSelect" class="per-page-select">
-                                @foreach ([10, 15, 25, 50, 100] as $n)
-                                    <option value="{{ $n }}"
-                                        {{ ($perPageLog ?? 15) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    <div
+                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <div class="toolbar-entries">
+                                <label for="perPageLogSelect" style="margin: 0;">Tampilkan</label>
+                                <select id="perPageLogSelect" name="perPageLog" class="per-page-select" style="height: 38px;">
+                                    @foreach ([10, 15, 25, 50, 100] as $n)
+                                        <option value="{{ $n }}"
+                                            {{ ($perPageLog ?? 15) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                                    @endforeach
+                                </select>
+                                <span>entri</span>
+                            </div>
+
+                            <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
+                                style="height: 38px; padding: 0 10px; font-size: 0.82rem; border-radius: 8px;" title="Pilih Tanggal Presensi">
+
+                            <select name="rombel_id" id="filterRombel" class="toolbar-filter-select" style="min-width: 150px; height: 38px;">
+                                <option value="">Semua Kelas</option>
+                                @foreach ($rombelList as $r)
+                                    <option value="{{ $r->rombongan_belajar_id }}"
+                                        {{ request('rombel_id') == $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                        {{ $r->nama }}
+                                    </option>
                                 @endforeach
                             </select>
-                            <span>entri</span>
-                        </div>
 
-                        <div>
-                            <input type="date" name="tanggal" value="{{ $tanggal }}" class="form-control"
-                                style="padding: 7px 12px; font-size: 0.82rem;" title="Pilih Tanggal Presensi">
-                        </div>
-
-                        <select name="rombel_id" class="toolbar-filter-select" style="min-width: 150px;">
-                            <option value="">Semua Kelas</option>
-                            @foreach ($rombelList as $r)
-                                <option value="{{ $r->rombongan_belajar_id }}"
-                                    {{ request('rombel_id') == $r->rombongan_belajar_id ? 'selected' : '' }}>
-                                    {{ $r->nama }}
+                            <select name="status" id="filterStatus" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
+                                <option value="">Semua Status</option>
+                                <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir Tepat Waktu
                                 </option>
-                            @endforeach
-                        </select>
+                                <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>Terlambat</option>
+                                <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
+                                <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>Sakit</option>
+                                <option value="A" {{ request('status') === 'A' ? 'selected' : '' }}>Alpha</option>
+                            </select>
 
-                        <select name="status" class="toolbar-filter-select" style="min-width: 140px;">
-                            <option value="">Semua Status</option>
-                            <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir Tepat Waktu
-                            </option>
-                            <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>Terlambat</option>
-                            <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
-                            <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>Sakit</option>
-                            <option value="A" {{ request('status') === 'A' ? 'selected' : '' }}>Alpha</option>
-                        </select>
+                            @if (request('rombel_id') || request('status') || request('search') || $tanggal !== now()->toDateString())
+                                <a href="{{ route('dashboard.presensi.index', ['tab' => 'log']) }}" class="btn btn-outline btn-reset-filter"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    title="Reset filter" data-live-reset>
+                                    <i class="fas fa-undo"></i>
+                                </a>
+                            @endif
+                        </div>
 
-                        <button type="submit" class="btn btn-primary"
-                            style="padding: 7px 14px; font-size: 0.82rem; font-weight: 600;">
-                            <i class="fas fa-filter me-1"></i> Filter
-                        </button>
-
-                        @if (request('rombel_id') || request('status') || request('search') || $tanggal !== now()->toDateString())
-                            <a href="{{ route('dashboard.presensi.index', ['tab' => 'log']) }}" class="btn btn-outline"
-                                style="padding: 7px 12px; font-size: 0.82rem;" title="Reset filter">
-                                <i class="fas fa-undo me-1"></i> Reset
-                            </a>
-                        @endif
+                        <div class="live-search-wrap" style="height: 38px;">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="logSearchInput" name="search" value="{{ request('search') }}"
+                                placeholder="Cari nama / NISN..." autocomplete="off">
+                            <button type="button" id="clearLogSearch"
+                                class="clear-search {{ request('search') ? 'visible' : '' }}" title="Hapus pencarian">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
+                </form>
+            </div>
 
-                    <div class="live-search-wrap">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="logSearchInput" name="search" value="{{ request('search') }}"
-                            placeholder="Cari nama / NISN..." autocomplete="off">
-                        <button type="button" id="clearLogSearch"
-                            class="clear-search {{ request('search') ? 'visible' : '' }}" title="Hapus pencarian">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-
-        <!-- Datatable Log Presensi -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-presensi-log" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <!-- 2. Konten Datatable Responsive Stack -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd table-presensi-log" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                         <th
@@ -497,49 +492,10 @@
             </table>
         </div>
 
-        {{-- Custom Pagination for Logs with Entry Summary --}}
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding: 0 4px;">
-            <div style="font-size: 0.82rem; color: var(--text-muted);">
-                Menampilkan {{ $logs->firstItem() ?? 0 }} sampai {{ $logs->lastItem() ?? 0 }} dari {{ $logs->total() }}
-                entri
-            </div>
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
             @if ($logs->hasPages())
-                <div class="custom-pagination" style="margin: 0; padding: 0;">
-                    @if ($logs->onFirstPage())
-                        <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                    @else
-                        <a href="{{ $logs->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                                class="fas fa-chevron-left"></i></a>
-                    @endif
-                    @php
-                        $cur = $logs->currentPage();
-                        $last = $logs->lastPage();
-                        $from = max(1, $cur - 2);
-                        $to = min($last, $cur + 2);
-                    @endphp
-                    @if ($from > 1)
-                        <a href="{{ $logs->url(1) }}" class="page-btn">1</a>
-                        @if ($from > 2)
-                            <span class="page-info">&hellip;</span>
-                        @endif
-                    @endif
-                    @for ($i = $from; $i <= $to; $i++)
-                        <a href="{{ $logs->url($i) }}"
-                            class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                    @endfor
-                    @if ($to < $last)
-                        @if ($to < $last - 1)
-                            <span class="page-info">&hellip;</span>
-                        @endif
-                        <a href="{{ $logs->url($last) }}" class="page-btn">{{ $last }}</a>
-                    @endif
-                    @if ($logs->hasMorePages())
-                        <a href="{{ $logs->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                                class="fas fa-chevron-right"></i></a>
-                    @else
-                        <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                    @endif
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $logs])
                 </div>
             @endif
         </div>

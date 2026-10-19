@@ -101,55 +101,60 @@
         @php
             $currentList = $activeTab === 'akademik' ? $akademikList : $nonakademikList;
         @endphp
-        <!-- 4. Toolbar & Filter Standar SAE -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select">
-                            @foreach ([10, 15, 25, 50, 100] as $n)
-                                <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
-                                    {{ $n }}</option>
-                            @endforeach
+        <!-- Unified Datatable Prestasi Siswa (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}" {{ ($perPage ?? 25) == $n ? 'selected' : '' }}>
+                                        {{ $n }}</option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <select id="filterTingkat" name="tingkat" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Tingkat</option>
+                            <option value="sekolah" {{ $tingkat === 'sekolah' ? 'selected' : '' }}>Sekolah</option>
+                            <option value="kecamatan" {{ $tingkat === 'kecamatan' ? 'selected' : '' }}>Kecamatan</option>
+                            <option value="kabupaten_kota" {{ $tingkat === 'kabupaten_kota' ? 'selected' : '' }}>Kabupaten /
+                                Kota</option>
+                            <option value="provinsi" {{ $tingkat === 'provinsi' ? 'selected' : '' }}>Provinsi</option>
+                            <option value="nasional" {{ $tingkat === 'nasional' ? 'selected' : '' }}>Nasional</option>
+                            <option value="internasional" {{ $tingkat === 'internasional' ? 'selected' : '' }}>Internasional
+                            </option>
                         </select>
-                        <span>entri</span>
+
+                        @if (!empty($q) || !empty($tingkat))
+                            <a href="{{ route('dashboard.kesiswaan.prestasi.index', ['tab' => $activeTab]) }}"
+                                class="btn btn-outline btn-reset-filter"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter" data-live-reset>
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
                     </div>
 
-                    <select id="filterTingkat" class="toolbar-filter-select">
-                        <option value="">Semua Tingkat</option>
-                        <option value="sekolah" {{ $tingkat === 'sekolah' ? 'selected' : '' }}>Sekolah</option>
-                        <option value="kecamatan" {{ $tingkat === 'kecamatan' ? 'selected' : '' }}>Kecamatan</option>
-                        <option value="kabupaten_kota" {{ $tingkat === 'kabupaten_kota' ? 'selected' : '' }}>Kabupaten /
-                            Kota</option>
-                        <option value="provinsi" {{ $tingkat === 'provinsi' ? 'selected' : '' }}>Provinsi</option>
-                        <option value="nasional" {{ $tingkat === 'nasional' ? 'selected' : '' }}>Nasional</option>
-                        <option value="internasional" {{ $tingkat === 'internasional' ? 'selected' : '' }}>Internasional
-                        </option>
-                    </select>
-
-                    @if (!empty($q) || !empty($tingkat))
-                        <a href="{{ route('dashboard.kesiswaan.prestasi.index', ['tab' => $activeTab]) }}"
-                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                            <i class="fas fa-undo"></i>
-                        </a>
-                    @endif
-                </div>
-
-                <div class="live-search-wrap">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari event, lomba, atau siswa..."
-                        value="{{ $q ?? '' }}" autocomplete="off">
-                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                        title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="liveSearch" name="q" placeholder="Cari event, lomba, atau siswa..."
+                            value="{{ $q ?? '' }}" autocomplete="off">
+                        <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                            title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+            <!-- 2. Konten Datatable Responsive Stack -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                 <thead>
                     <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border-color);">
                         <th
@@ -245,44 +250,13 @@
             </table>
         </div>
 
+        <!-- 3. Footer Paginasi Terpadu Datatable -->
         @if ($currentList->hasPages())
-            <div class="custom-pagination" style="margin-bottom: 24px;">
-                @if ($currentList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $currentList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $currentList->currentPage();
-                    $last = $currentList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $currentList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $currentList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $currentList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($currentList->hasMorePages())
-                    <a href="{{ $currentList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+            <div class="datatable-footer">
+                @include('partials.datatable-pagination', ['paginator' => $currentList])
             </div>
         @endif
+    </div>
     @elseif ($activeTab === 'rekap')
         <!-- TAB 3: REKAPITULASI PRESTASI -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">

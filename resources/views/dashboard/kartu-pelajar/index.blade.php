@@ -436,266 +436,246 @@
             @endforeach
         </div>
 
-        <!-- Toolbar & Filter Request Cetak (Pola Datatable Global SAE) -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" name="perPage" class="per-page-select">
-                            @foreach ([10, 15, 25, 50, 100] as $n)
-                                <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
-                                    {{ $n }}
+        <!-- Unified Datatable Request Cetak (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                        {{ $n }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Rombel</option>
+                            @foreach ($rombelList as $r)
+                                <option value="{{ $r->nama }}" {{ $rombel === $r->nama ? 'selected' : '' }}>
+                                    {{ $r->nama }}
                                 </option>
                             @endforeach
                         </select>
-                        <span>entri</span>
+
+                        <select id="filterStatusBayar" name="status_pembayaran" class="toolbar-filter-select"
+                            style="height: 38px;">
+                            <option value="">Semua Status Pembayaran</option>
+                            <option value="lunas" {{ $statusBayar === 'lunas' ? 'selected' : '' }}>Lunas</option>
+                            <option value="belum_bayar" {{ $statusBayar === 'belum_bayar' ? 'selected' : '' }}>Belum Bayar
+                            </option>
+                        </select>
+
+                        <select id="filterReqStatus" name="req_status" class="toolbar-filter-select"
+                            style="height: 38px;">
+                            <option value="">Semua Status Request</option>
+                            @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
+                                <option value="{{ $stKey }}" {{ $reqStatus === $stKey ? 'selected' : '' }}>
+                                    {{ $stLabel }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        @if ($q || $rombel || $statusBayar || $reqStatus)
+                            <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request']) }}"
+                                class="btn btn-outline btn-reset-filter"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter" data-live-reset>
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
                     </div>
 
-                    <select id="filterRombel" name="rombel" class="toolbar-filter-select">
-                        <option value="">Semua Rombel</option>
-                        @foreach ($rombelList as $r)
-                            <option value="{{ $r->nama }}" {{ $rombel === $r->nama ? 'selected' : '' }}>
-                                {{ $r->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <select id="filterStatusBayar" name="status_pembayaran" class="toolbar-filter-select">
-                        <option value="">Semua Status Pembayaran</option>
-                        <option value="lunas" {{ $statusBayar === 'lunas' ? 'selected' : '' }}>Lunas</option>
-                        <option value="belum_bayar" {{ $statusBayar === 'belum_bayar' ? 'selected' : '' }}>Belum Bayar
-                        </option>
-                    </select>
-
-                    <select id="filterReqStatus" name="req_status" class="toolbar-filter-select">
-                        <option value="">Semua Status Request</option>
-                        @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
-                            <option value="{{ $stKey }}" {{ $reqStatus === $stKey ? 'selected' : '' }}>
-                                {{ $stLabel }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    @if ($q || $rombel || $statusBayar || $reqStatus)
-                        <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'request']) }}"
-                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                            <i class="fas fa-undo"></i>
-                        </a>
-                    @endif
-                </div>
-
-                <div class="live-search-wrap">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchKartuPelajar" name="q"
-                        placeholder="Cari nama / NISN / NIPD / alasan..." value="{{ $q }}"
-                        autocomplete="off">
-                    <button type="button" id="clearSearchKartuPelajar"
-                        class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchKartuPelajar" name="q"
+                            placeholder="Cari nama / NISN / NIPD / alasan..." value="{{ $q }}"
+                            autocomplete="off">
+                        <button type="button" id="clearSearchKartuPelajar"
+                            class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Table Datatable Request Cetak -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                        <th
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
-                            No</th>
-                        <th class="sortable-th {{ $sort === 'nama' ? 'sorted' : '' }}" data-sort="nama"
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Peserta Didik
-                            <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'nama_rombel' ? 'sorted' : '' }}" data-sort="nama_rombel"
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Rombel / Kelas
-                            <span class="sort-icon">{!! $sort === 'nama_rombel' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ in_array($sort, ['created_at', 'tanggal']) ? 'sorted' : '' }}"
-                            data-sort="created_at"
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Tanggal Request
-                            <span class="sort-icon">{!! in_array($sort, ['created_at', 'tanggal']) ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'jenis_request' ? 'sorted' : '' }}" data-sort="jenis_request"
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Jenis &amp; Alasan
-                            <span class="sort-icon">{!! $sort === 'jenis_request' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'status_pembayaran' ? 'sorted' : '' }}"
-                            data-sort="status_pembayaran"
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Pembayaran
-                            <span class="sort-icon">{!! $sort === 'status_pembayaran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'status' ? 'sorted' : '' }}" data-sort="status"
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Status Request
-                            <span class="sort-icon">{!! $sort === 'status' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 170px;">
-                            Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse (($requestList ?? []) as $ri => $rq)
-                        @php
-                            $rqColor =
-                                [
-                                    'menunggu' => 'badge-warning',
-                                    'diproses' => 'badge-primary',
-                                    'selesai' => 'badge-success',
-                                    'ditolak' => 'badge-danger',
-                                ][$rq->status] ?? 'badge-outline';
-                        @endphp
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
-                            <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;" data-label="No">
-                                {{ $requestList->firstItem() + $ri }}</td>
-                            <td style="padding: 12px 16px;" data-label="Peserta Didik">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="{{ $rq->foto_url ?: asset('img/logo-dark.png') }}"
-                                        alt="{{ $rq->nama }}"
-                                        style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
-                                        onerror="this.src='/img/logo-dark.png'">
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
-                                            {{ $rq->nama }}
-                                        </div>
-                                        <div style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
-                                            NISN: {{ $rq->nisn ?: '-' }} &bull; NIPD: {{ $rq->nipd ?: '-' }}
+            <!-- 2. Table Datatable Request Cetak -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                No</th>
+                            <th class="sortable-th {{ $sort === 'nama' ? 'sorted' : '' }}" data-sort="nama"
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Peserta Didik
+                                <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'nama_rombel' ? 'sorted' : '' }}" data-sort="nama_rombel"
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Rombel / Kelas
+                                <span class="sort-icon">{!! $sort === 'nama_rombel' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ in_array($sort, ['created_at', 'tanggal']) ? 'sorted' : '' }}"
+                                data-sort="created_at"
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Tanggal Request
+                                <span class="sort-icon">{!! in_array($sort, ['created_at', 'tanggal']) ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'jenis_request' ? 'sorted' : '' }}"
+                                data-sort="jenis_request"
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Jenis &amp; Alasan
+                                <span class="sort-icon">{!! $sort === 'jenis_request' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'status_pembayaran' ? 'sorted' : '' }}"
+                                data-sort="status_pembayaran"
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Pembayaran
+                                <span class="sort-icon">{!! $sort === 'status_pembayaran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'status' ? 'sorted' : '' }}" data-sort="status"
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Status Request
+                                <span class="sort-icon">{!! $sort === 'status' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 170px;">
+                                Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse (($requestList ?? []) as $ri => $rq)
+                            @php
+                                $rqColor =
+                                    [
+                                        'menunggu' => 'badge-warning',
+                                        'diproses' => 'badge-primary',
+                                        'selesai' => 'badge-success',
+                                        'ditolak' => 'badge-danger',
+                                    ][$rq->status] ?? 'badge-outline';
+                            @endphp
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                                <td style="text-align: center; color: var(--text-muted); font-size: 0.84rem;"
+                                    data-label="No">
+                                    {{ $requestList->firstItem() + $ri }}</td>
+                                <td style="padding: 12px 16px;" data-label="Peserta Didik">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="{{ $rq->foto_url ?: asset('img/logo-dark.png') }}"
+                                            alt="{{ $rq->nama }}"
+                                            style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
+                                            onerror="this.src='/img/logo-dark.png'">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
+                                                {{ $rq->nama }}
+                                            </div>
+                                            <div
+                                                style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
+                                                NISN: {{ $rq->nisn ?: '-' }} &bull; NIPD: {{ $rq->nipd ?: '-' }}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td style="padding: 12px 14px;" data-label="Kelas">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
-                                    {{ $rq->nama_rombel ?: '-' }}
-                                </span>
-                            </td>
-                            <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;"
-                                data-label="Tanggal">
-                                {{ \Carbon\Carbon::parse($rq->created_at)->translatedFormat('d M Y H:i') }}
-                                <div>oleh {{ $rq->diminta_oleh ?: 'Admin' }}</div>
-                            </td>
-                            <td style="padding: 12px 14px;" data-label="Jenis">
-                                <span class="badge badge-outline"
-                                    style="font-size: 0.72rem;">{{ \App\Models\KartuPelajarRequest::JENIS[$rq->jenis_request] ?? $rq->jenis_request }}</span>
-                                @if ($rq->alasan)
-                                    <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;">
-                                        {{ $rq->alasan }}</div>
-                                @endif
-                                @if ($rq->catatan_admin)
-                                    <div style="font-size: 0.74rem; color: var(--primary); margin-top: 2px;"><i
-                                            class="fas fa-comment-dots me-1"></i>{{ $rq->catatan_admin }}</div>
-                                @endif
-                            </td>
-                            <td style="padding: 12px 14px;" data-label="Pembayaran">
-                                <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
-                                    {{ \App\Models\KartuPelajarRequest::METODE_PEMBAYARAN[$rq->metode_pembayaran_aktif] ?? strtoupper($rq->metode_pembayaran_aktif ?: 'Belum diisi') }}
-                                </span>
-                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
-                                    {{ $rq->status_pembayaran_aktif === 'lunas' ? 'Lunas' : 'Belum Bayar' }}
-                                </div>
-                            </td>
-                            <td style="padding: 12px 14px;" data-label="Status">
-                                <span class="badge {{ $rqColor }}"
-                                    style="font-size: 0.74rem; padding: 3px 8px;">{{ \App\Models\KartuPelajarRequest::STATUS[$rq->status] ?? $rq->status }}</span>
-                                @if ($rq->selesai_at)
-                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
-                                        {{ \Carbon\Carbon::parse($rq->selesai_at)->translatedFormat('d M Y H:i') }}</div>
-                                @endif
-                            </td>
-                            <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
-                                <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
-                                    {{-- Tombol Pratinjau / Cetak Kartu Digital --}}
-                                    @if (!empty($rq->nisn))
-                                        <button type="button" class="btn-icon" style="color: #0284c7;"
-                                            title="Pratinjau / Cetak Kartu Pelajar Digital"
-                                            onclick="openKartuPelajarModal('{{ $rq->nisn }}')">
-                                            <i class="fas fa-address-card"></i>
-                                        </button>
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Kelas">
+                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                        {{ $rq->nama_rombel ?: '-' }}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;"
+                                    data-label="Tanggal">
+                                    {{ \Carbon\Carbon::parse($rq->created_at)->translatedFormat('d M Y H:i') }}
+                                    <div>oleh {{ $rq->diminta_oleh ?: 'Admin' }}</div>
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Jenis">
+                                    <span class="badge badge-outline"
+                                        style="font-size: 0.72rem;">{{ \App\Models\KartuPelajarRequest::JENIS[$rq->jenis_request] ?? $rq->jenis_request }}</span>
+                                    @if ($rq->alasan)
+                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;">
+                                            {{ $rq->alasan }}</div>
                                     @endif
+                                    @if ($rq->catatan_admin)
+                                        <div style="font-size: 0.74rem; color: var(--primary); margin-top: 2px;"><i
+                                                class="fas fa-comment-dots me-1"></i>{{ $rq->catatan_admin }}</div>
+                                    @endif
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Pembayaran">
+                                    <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
+                                        {{ \App\Models\KartuPelajarRequest::METODE_PEMBAYARAN[$rq->metode_pembayaran_aktif] ?? strtoupper($rq->metode_pembayaran_aktif ?: 'Belum diisi') }}
+                                    </span>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;">
+                                        {{ $rq->status_pembayaran_aktif === 'lunas' ? 'Lunas' : 'Belum Bayar' }}
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Status">
+                                    <span class="badge {{ $rqColor }}"
+                                        style="font-size: 0.74rem; padding: 3px 8px;">{{ \App\Models\KartuPelajarRequest::STATUS[$rq->status] ?? $rq->status }}</span>
+                                    @if ($rq->selesai_at)
+                                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                            {{ \Carbon\Carbon::parse($rq->selesai_at)->translatedFormat('d M Y H:i') }}
+                                        </div>
+                                    @endif
+                                </td>
+                                <td style="padding: 12px 14px; text-align: center;" data-label="Aksi">
+                                    <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
+                                        {{-- Tombol Pratinjau / Cetak Kartu Digital --}}
+                                        @if (!empty($rq->nisn))
+                                            <button type="button" class="btn-icon" style="color: #0284c7;"
+                                                title="Pratinjau / Cetak Kartu Pelajar Digital"
+                                                onclick="openKartuPelajarModal('{{ $rq->nisn }}')">
+                                                <i class="fas fa-address-card"></i>
+                                            </button>
+                                        @endif
 
-                                    <form action="{{ route('dashboard.kartu-pelajar.update-request', $rq->id) }}"
-                                        method="POST" class="form-update-request-status" style="margin: 0;">
-                                        @csrf
-                                        <select name="status" class="form-control select-request-status"
-                                            data-current="{{ $rq->status }}"
-                                            style="min-width: 110px; height: 32px; padding: 0 8px; font-size: 0.78rem;">
-                                            @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
-                                                <option value="{{ $stKey }}"
-                                                    {{ $rq->status === $stKey ? 'selected' : '' }}>{{ $stLabel }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </form>
-                                    <form action="{{ route('dashboard.kartu-pelajar.destroy-request', $rq->id) }}"
-                                        method="POST" class="delete-request-form form-destroy-request"
-                                        style="margin: 0;">
-                                        @csrf
-                                        <button type="submit" class="btn-icon" style="color: #ef4444;"
-                                            title="Hapus Request"><i class="fas fa-trash-alt"></i></button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" style="padding: 35px; text-align: center; color: var(--text-muted);">
-                                <i class="fas fa-paper-plane mb-2"
-                                    style="font-size: 2rem; opacity: 0.4; display: block;"></i>
-                                Belum ada request cetak kartu.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if (!empty($requestList) && $requestList->hasPages())
-            <div class="custom-pagination" style="margin-bottom: 24px;">
-                @if ($requestList->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $requestList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $requestList->currentPage();
-                    $last = $requestList->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $requestList->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $requestList->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $requestList->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($requestList->hasMorePages())
-                    <a href="{{ $requestList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                                        <form action="{{ route('dashboard.kartu-pelajar.update-request', $rq->id) }}"
+                                            method="POST" class="form-update-request-status" style="margin: 0;">
+                                            @csrf
+                                            <select name="status" class="form-control select-request-status"
+                                                data-current="{{ $rq->status }}"
+                                                style="min-width: 110px; height: 32px; padding: 0 8px; font-size: 0.78rem;">
+                                                @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
+                                                    <option value="{{ $stKey }}"
+                                                        {{ $rq->status === $stKey ? 'selected' : '' }}>{{ $stLabel }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </form>
+                                        <form action="{{ route('dashboard.kartu-pelajar.destroy-request', $rq->id) }}"
+                                            method="POST" class="delete-request-form form-destroy-request"
+                                            style="margin: 0;">
+                                            @csrf
+                                            <button type="submit" class="btn-icon" style="color: #ef4444;"
+                                                title="Hapus Request"><i class="fas fa-trash-alt"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" style="padding: 35px; text-align: center; color: var(--text-muted);">
+                                    <i class="fas fa-paper-plane mb-2"
+                                        style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                    Belum ada request cetak kartu.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
+
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if (!empty($requestList) && $requestList->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $requestList])
+                </div>
+            @endif
+        </div>
     @elseif (in_array($tab, ['siswa', 'berhasil-cetak', 'berhasil_cetak']))
         <!-- 3. Header & Stat Grid Baku SAE (4 Kartu Ringkasan Berhasil Cetak - Jumlah Genap Rapi) -->
         <div
@@ -767,340 +747,326 @@
             </div>
         </div>
 
-        <!-- 4. Toolbar & Filter Card -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" name="perPage" class="per-page-select">
-                            @foreach ([10, 15, 25, 50, 100] as $n)
-                                <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
-                                    {{ $n }}
+        <!-- Unified Datatable Kartu Berhasil Cetak (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar & Filter Header -->
+            <div class="datatable-toolbar">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                        {{ $n }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <select id="filterRombel" name="rombel" class="toolbar-filter-select" style="height: 38px;">
+                            <option value="">Semua Rombel</option>
+                            @foreach ($rombelList as $r)
+                                <option value="{{ $r->nama }}" {{ $rombel === $r->nama ? 'selected' : '' }}>
+                                    {{ $r->nama }}
                                 </option>
                             @endforeach
                         </select>
-                        <span>entri</span>
+
+                        <select id="filterStatusBayar" name="status_pembayaran" class="toolbar-filter-select"
+                            style="height: 38px;">
+                            <option value="">Semua Status Pembayaran</option>
+                            <option value="lunas" {{ $statusBayar === 'lunas' ? 'selected' : '' }}>Lunas</option>
+                            <option value="belum_bayar" {{ $statusBayar === 'belum_bayar' ? 'selected' : '' }}>Belum
+                                Bayar
+                            </option>
+                        </select>
+
+                        @if ($q || $rombel || $statusBayar)
+                            <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'berhasil-cetak']) }}"
+                                class="btn btn-outline btn-reset-filter"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter" data-live-reset>
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
                     </div>
 
-                    <select id="filterRombel" name="rombel" class="toolbar-filter-select">
-                        <option value="">Semua Rombel</option>
-                        @foreach ($rombelList as $r)
-                            <option value="{{ $r->nama }}" {{ $rombel === $r->nama ? 'selected' : '' }}>
-                                {{ $r->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    <select id="filterStatusBayar" name="status_pembayaran" class="toolbar-filter-select">
-                        <option value="">Semua Status Pembayaran</option>
-                        <option value="lunas" {{ $statusBayar === 'lunas' ? 'selected' : '' }}>Lunas</option>
-                        <option value="belum_bayar" {{ $statusBayar === 'belum_bayar' ? 'selected' : '' }}>Belum Bayar
-                        </option>
-                    </select>
-
-                    @if ($q || $rombel || $statusBayar)
-                        <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'berhasil-cetak']) }}"
-                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                            <i class="fas fa-undo"></i>
-                        </a>
-                    @endif
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchKartuPelajar" name="q"
+                            placeholder="Cari nama / NISN / NIPD..." value="{{ $q }}" autocomplete="off">
+                        <button type="button" id="clearSearchKartuPelajar"
+                            class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="live-search-wrap">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="searchKartuPelajar" name="q"
-                        placeholder="Cari nama / NISN / NIPD..." value="{{ $q }}" autocomplete="off">
-                    <button type="button" id="clearSearchKartuPelajar"
-                        class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Floating Multi-Select Bulk Actions Bar -->
-            <div id="bulkActionBar"
-                style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                <div
-                    style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
-                    <i class="fas fa-check-square"></i>
-                    <span><span id="bulkSelectedCount">0</span> peserta didik dipilih</span>
-                </div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="btn btn-primary btn-sm"
-                        onclick="openModalBulkPembayaran('custom_bulk')" style="font-weight: 700;">
-                        <i class="fas fa-sliders-h me-1"></i> Sesuaikan Masal
-                    </button>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="openModalBulkPembayaran('set_lunas')"
-                        style="border-color: #10b981; color: #10b981; font-weight: 600;">
-                        <i class="fas fa-check me-1"></i> Tandai Lunas
-                    </button>
-                    <button type="button" class="btn btn-outline btn-sm"
-                        onclick="openModalBulkPembayaran('set_belum_bayar')"
-                        style="border-color: #f59e0b; color: #f59e0b; font-weight: 600;">
-                        <i class="fas fa-clock me-1"></i> Tandai Belum Bayar
-                    </button>
+                <!-- Floating Multi-Select Bulk Actions Bar -->
+                <div id="bulkActionBar"
+                    style="display: none; margin-top: 14px; padding: 10px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <div
+                        style="font-size: 0.85rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-check-square"></i>
+                        <span><span id="bulkSelectedCount">0</span> peserta didik dipilih</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary btn-sm"
+                            onclick="openModalBulkPembayaran('custom_bulk')" style="font-weight: 700;">
+                            <i class="fas fa-sliders-h me-1"></i> Sesuaikan Masal
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm"
+                            onclick="openModalBulkPembayaran('set_lunas')"
+                            style="border-color: #10b981; color: #10b981; font-weight: 600;">
+                            <i class="fas fa-check me-1"></i> Tandai Lunas
+                        </button>
+                        <button type="button" class="btn btn-outline btn-sm"
+                            onclick="openModalBulkPembayaran('set_belum_bayar')"
+                            style="border-color: #f59e0b; color: #f59e0b; font-weight: 600;">
+                            <i class="fas fa-clock me-1"></i> Tandai Belum Bayar
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 5. Table Data Kartu Pelajar -->
-        <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                        <th style="width: 40px; text-align: center; padding: 12px 10px;">
-                            <input type="checkbox" id="checkAllStudents" title="Pilih Semua di Halaman Ini">
-                        </th>
-                        <th
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
-                            No
-                        </th>
-                        <th class="sortable-th {{ $sort === 'nama' ? 'sorted' : '' }}" data-sort="nama"
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Peserta Didik
-                            <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'nama_rombel' ? 'sorted' : '' }}" data-sort="nama_rombel"
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Rombel / Kelas
-                            <span class="sort-icon">{!! $sort === 'nama_rombel' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'status_pembayaran' ? 'sorted' : '' }}"
-                            data-sort="status_pembayaran"
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Status Pembayaran
-                            <span class="sort-icon">{!! $sort === 'status_pembayaran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th class="sortable-th {{ $sort === 'status_cetak' ? 'sorted' : '' }}" data-sort="status_cetak"
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Status Cetak
-                            <span class="sort-icon">{!! $sort === 'status_cetak' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                        <th
-                            style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Kontak WhatsApp
-                        </th>
-                        <th
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 145px;">
-                            Aksi
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($students as $idx => $s)
-                        @php
-                            $isLunas = $s->status_pembayaran === 'lunas';
-                            $isCetak = $s->status_cetak === 'sudah_cetak';
-                            $phone = $s->nomor_wa ?: ($s->nomor_telepon_seluler ?: $s->nomor_telepon_rumah);
-                        @endphp
-                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
-                            <td style="text-align: center; padding: 12px 10px;" data-label="Pilih">
-                                <input type="checkbox" class="check-student-row" value="{{ $s->peserta_didik_id }}">
-                            </td>
-                            <td style="text-align: center; font-size: 0.84rem; color: var(--text-muted); padding: 12px 14px;"
-                                data-label="No">
-                                {{ $students->firstItem() + $idx }}
-                            </td>
-                            <td style="padding: 12px 16px;" data-label="Peserta Didik">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="{{ $s->foto_url ?: asset('img/logo-dark.png') }}"
-                                        alt="{{ $s->nama }}"
-                                        style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
-                                        onerror="this.src='/img/logo-dark.png'">
-                                    <div>
-                                        <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
-                                            {{ $s->nama }}
-                                        </div>
-                                        <div style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
-                                            NISN: {{ $s->nisn ?: '-' }} &bull; NIPD: {{ $s->nipd ?: '-' }}
+            <!-- 2. Konten Datatable Responsive Stack -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                            <th style="width: 40px; text-align: center; padding: 12px 10px;">
+                                <input type="checkbox" id="checkAllStudents" title="Pilih Semua di Halaman Ini">
+                            </th>
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                No
+                            </th>
+                            <th class="sortable-th {{ $sort === 'nama' ? 'sorted' : '' }}" data-sort="nama"
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Peserta Didik
+                                <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'nama_rombel' ? 'sorted' : '' }}"
+                                data-sort="nama_rombel"
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Rombel / Kelas
+                                <span class="sort-icon">{!! $sort === 'nama_rombel' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'status_pembayaran' ? 'sorted' : '' }}"
+                                data-sort="status_pembayaran"
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Status Pembayaran
+                                <span class="sort-icon">{!! $sort === 'status_pembayaran' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ $sort === 'status_cetak' ? 'sorted' : '' }}"
+                                data-sort="status_cetak"
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Status Cetak
+                                <span class="sort-icon">{!! $sort === 'status_cetak' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th
+                                style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Kontak WhatsApp
+                            </th>
+                            <th
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 145px;">
+                                Aksi
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($students as $idx => $s)
+                            @php
+                                $isLunas = $s->status_pembayaran === 'lunas';
+                                $isCetak = $s->status_cetak === 'sudah_cetak';
+                                $phone = $s->nomor_wa ?: ($s->nomor_telepon_seluler ?: $s->nomor_telepon_rumah);
+                            @endphp
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;">
+                                <td style="text-align: center; padding: 12px 10px;" data-label="Pilih">
+                                    <input type="checkbox" class="check-student-row"
+                                        value="{{ $s->peserta_didik_id }}">
+                                </td>
+                                <td style="text-align: center; font-size: 0.84rem; color: var(--text-muted); padding: 12px 14px;"
+                                    data-label="No">
+                                    {{ $students->firstItem() + $idx }}
+                                </td>
+                                <td style="padding: 12px 16px;" data-label="Peserta Didik">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="{{ $s->foto_url ?: asset('img/logo-dark.png') }}"
+                                            alt="{{ $s->nama }}"
+                                            style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--border-color); flex-shrink: 0;"
+                                            onerror="this.src='/img/logo-dark.png'">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-color);">
+                                                {{ $s->nama }}
+                                            </div>
+                                            <div
+                                                style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
+                                                NISN: {{ $s->nisn ?: '-' }} &bull; NIPD: {{ $s->nipd ?: '-' }}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td style="padding: 12px 14px;" data-label="Kelas">
-                                <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
-                                    {{ $s->nama_rombel ?: '-' }}
-                                </span>
-                            </td>
-                            <td style="padding: 12px 16px;" data-label="Pembayaran">
-                                @if ($isLunas)
-                                    <div style="display: inline-flex; align-items: center; gap: 6px;">
-                                        <span class="badge badge-success" style="font-size: 0.74rem; padding: 3px 8px;">
-                                            <i class="fas fa-check-circle me-1"></i> LUNAS
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="Kelas">
+                                    <span class="badge badge-outline" style="font-size: 0.76rem; padding: 3px 8px;">
+                                        {{ $s->nama_rombel ?: '-' }}
+                                    </span>
+                                </td>
+                                <td style="padding: 12px 16px;" data-label="Pembayaran">
+                                    @if ($isLunas)
+                                        <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                            <span class="badge badge-success"
+                                                style="font-size: 0.74rem; padding: 3px 8px;">
+                                                <i class="fas fa-check-circle me-1"></i> LUNAS
+                                            </span>
+                                        </div>
+                                        <div
+                                            style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-top: 3px;">
+                                            Rp {{ number_format($s->nominal, 0, ',', '.') }}
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: var(--text-muted);">
+                                            {{ strtoupper($s->metode_pembayaran ?: 'Tunai') }}
+                                            @if ($s->tanggal_bayar)
+                                                &bull;
+                                                {{ \Carbon\Carbon::parse($s->tanggal_bayar)->translatedFormat('d/m/Y') }}
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="badge badge-warning" style="font-size: 0.74rem; padding: 3px 8px;">
+                                            <i class="fas fa-clock me-1"></i> BELUM BAYAR
                                         </span>
-                                    </div>
-                                    <div
-                                        style="font-size: 0.78rem; font-weight: 700; color: var(--text-color); margin-top: 3px;">
-                                        Rp {{ number_format($s->nominal, 0, ',', '.') }}
-                                    </div>
-                                    <div style="font-size: 0.7rem; color: var(--text-muted);">
-                                        {{ strtoupper($s->metode_pembayaran ?: 'Tunai') }}
-                                        @if ($s->tanggal_bayar)
-                                            &bull;
-                                            {{ \Carbon\Carbon::parse($s->tanggal_bayar)->translatedFormat('d/m/Y') }}
+                                        <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;">
+                                            Tagihan: Rp {{ number_format($s->nominal, 0, ',', '.') }}
+                                        </div>
+                                    @endif
+                                </td>
+                                <td style="padding: 12px 16px;" data-label="Status Cetak">
+                                    @php
+                                        $sisaKartu = max(
+                                            0,
+                                            ($settings->kuota_ganti_kartu_full ?? 1) - (int) $s->klaim_ganti_kartu,
+                                        );
+                                        $sisaStiker = max(
+                                            0,
+                                            ($settings->kuota_ganti_stiker ?? 3) - (int) $s->klaim_stiker,
+                                        );
+                                    @endphp
+                                    @if ($isCetak)
+                                        <span id="badgeCetak_{{ $s->peserta_didik_id }}" class="badge badge-primary"
+                                            style="font-size: 0.74rem; padding: 3px 8px;">
+                                            <i class="fas fa-print me-1"></i> Sudah Dicetak
+                                        </span>
+                                        @if ($s->tanggal_cetak)
+                                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                                {{ \Carbon\Carbon::parse($s->tanggal_cetak)->translatedFormat('d/m/Y H:i') }}
+                                            </div>
                                         @endif
-                                    </div>
-                                @else
-                                    <span class="badge badge-warning" style="font-size: 0.74rem; padding: 3px 8px;">
-                                        <i class="fas fa-clock me-1"></i> BELUM BAYAR
-                                    </span>
-                                    <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;">
-                                        Tagihan: Rp {{ number_format($s->nominal, 0, ',', '.') }}
-                                    </div>
-                                @endif
-                            </td>
-                            <td style="padding: 12px 16px;" data-label="Status Cetak">
-                                @php
-                                    $sisaKartu = max(
-                                        0,
-                                        ($settings->kuota_ganti_kartu_full ?? 1) - (int) $s->klaim_ganti_kartu,
-                                    );
-                                    $sisaStiker = max(0, ($settings->kuota_ganti_stiker ?? 3) - (int) $s->klaim_stiker);
-                                @endphp
-                                @if ($isCetak)
-                                    <span id="badgeCetak_{{ $s->peserta_didik_id }}" class="badge badge-primary"
-                                        style="font-size: 0.74rem; padding: 3px 8px;">
-                                        <i class="fas fa-print me-1"></i> Sudah Dicetak
-                                    </span>
-                                    @if ($s->tanggal_cetak)
-                                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
-                                            {{ \Carbon\Carbon::parse($s->tanggal_cetak)->translatedFormat('d/m/Y H:i') }}
+                                        <div
+                                            style="font-size: 0.69rem; color: #10b981; margin-top: 3px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                                            <i class="fas fa-shield-alt text-success"></i>
+                                            <span>Garansi: {{ $sisaKartu }} Kartu &bull; {{ $sisaStiker }}
+                                                Stiker</span>
+                                        </div>
+                                    @else
+                                        <span id="badgeCetak_{{ $s->peserta_didik_id }}" class="badge badge-outline"
+                                            style="font-size: 0.74rem; padding: 3px 8px;">
+                                            <i class="fas fa-clock me-1"></i> Belum Dicetak
+                                        </span>
+                                        <div
+                                            style="font-size: 0.69rem; color: var(--text-muted); margin-top: 3px; font-style: italic;">
+                                            <i class="fas fa-shield-alt" style="opacity: 0.4;"></i> Garansi belum aktif
                                         </div>
                                     @endif
-                                    <div
-                                        style="font-size: 0.69rem; color: #10b981; margin-top: 3px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                                        <i class="fas fa-shield-alt text-success"></i>
-                                        <span>Garansi: {{ $sisaKartu }} Kartu &bull; {{ $sisaStiker }}
-                                            Stiker</span>
-                                    </div>
-                                @else
-                                    <span id="badgeCetak_{{ $s->peserta_didik_id }}" class="badge badge-outline"
-                                        style="font-size: 0.74rem; padding: 3px 8px;">
-                                        <i class="fas fa-clock me-1"></i> Belum Dicetak
-                                    </span>
-                                    <div
-                                        style="font-size: 0.69rem; color: var(--text-muted); margin-top: 3px; font-style: italic;">
-                                        <i class="fas fa-shield-alt" style="opacity: 0.4;"></i> Garansi belum aktif
-                                    </div>
-                                @endif
-                            </td>
-                            <td style="padding: 12px 14px;" data-label="WhatsApp">
-                                @if ($phone)
-                                    <div style="font-size: 0.8rem; font-family: monospace; color: var(--text-color);">
-                                        <i class="fab fa-whatsapp text-success me-1"></i> {{ $phone }}
-                                    </div>
-                                    @if ($s->wa_terkirim_at)
-                                        <div style="font-size: 0.68rem; color: #10b981; margin-top: 2px;">
-                                            <i class="fas fa-check-double me-1"></i> Terkirim
-                                            {{ \Carbon\Carbon::parse($s->wa_terkirim_at)->translatedFormat('d/m/Y H:i') }}
+                                </td>
+                                <td style="padding: 12px 14px;" data-label="WhatsApp">
+                                    @if ($phone)
+                                        <div style="font-size: 0.8rem; font-family: monospace; color: var(--text-color);">
+                                            <i class="fab fa-whatsapp text-success me-1"></i> {{ $phone }}
                                         </div>
+                                        @if ($s->wa_terkirim_at)
+                                            <div style="font-size: 0.68rem; color: #10b981; margin-top: 2px;">
+                                                <i class="fas fa-check-double me-1"></i> Terkirim
+                                                {{ \Carbon\Carbon::parse($s->wa_terkirim_at)->translatedFormat('d/m/Y H:i') }}
+                                            </div>
+                                        @endif
+                                    @else
+                                        <span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
+                                            Belum ada nomor
+                                        </span>
                                     @endif
-                                @else
-                                    <span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
-                                        Belum ada nomor
-                                    </span>
-                                @endif
-                            </td>
-                            <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
-                                <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
-                                    {{-- Tombol Edit Pembayaran --}}
-                                    <button type="button" class="btn-icon" style="color: #4f46e5;"
-                                        title="Catat / Edit Pembayaran"
-                                        onclick="openEditPembayaran({{ json_encode($s) }})">
-                                        <i class="fas fa-wallet"></i>
-                                    </button>
-
-                                    {{-- Tombol Toggle Status Cetak --}}
-                                    <button type="button" class="btn-icon" style="color: #0284c7;"
-                                        onclick="toggleStatusCetak('{{ $s->peserta_didik_id }}', this)"
-                                        title="{{ $isCetak ? 'Tandai Belum Dicetak' : 'Tandai Sudah Dicetak' }}">
-                                        <i
-                                            class="fas {{ $isCetak ? 'fa-toggle-on text-primary' : 'fa-toggle-off text-muted' }}"></i>
-                                    </button>
-
-                                    {{-- Tombol Klaim Garansi --}}
-                                    <button type="button" class="btn-icon"
-                                        style="color: {{ $isCetak ? '#f59e0b' : '#94a3b8' }}; opacity: {{ $isCetak ? '1' : '0.6' }};"
-                                        onclick="openKlaimGaransi('{{ $s->peserta_didik_id }}', '{{ addslashes($s->nama) }}', '{{ $s->nisn }}', '{{ addslashes($s->nama_rombel ?? '-') }}', {{ (int) $s->klaim_ganti_kartu }}, {{ (int) $s->klaim_stiker }}, {{ (int) ($settings->kuota_ganti_kartu_full ?? 1) }}, {{ (int) ($settings->kuota_ganti_stiker ?? 3) }}, {{ $isCetak ? 1 : 0 }})"
-                                        title="{{ $isCetak ? 'Klaim Garansi (Sisa: ' . $sisaKartu . ' Kartu, ' . $sisaStiker . ' Stiker)' : 'Garansi Belum Aktif (Kartu Belum Dicetak)' }}">
-                                        <i class="fas fa-shield-alt"></i>
-                                    </button>
-
-                                    {{-- Tombol Pratinjau / Cetak Kartu Tunggal (Sama dengan Peserta Didik Aktif) --}}
-                                    @if (!empty($s->nisn))
-                                        <button type="button" class="btn-icon" style="color: #0284c7;"
-                                            title="Pratinjau / Cetak Kartu Pelajar Digital"
-                                            onclick="openKartuPelajarModal('{{ $s->nisn }}')">
-                                            <i class="fas fa-address-card"></i>
+                                </td>
+                                <td style="padding: 12px 16px; text-align: center;" data-label="Aksi">
+                                    <div class="table-actions" style="display: flex; gap: 4px; justify-content: center;">
+                                        {{-- Tombol Edit Pembayaran --}}
+                                        <button type="button" class="btn-icon" style="color: #4f46e5;"
+                                            title="Catat / Edit Pembayaran"
+                                            onclick="openEditPembayaran({{ json_encode($s) }})">
+                                            <i class="fas fa-wallet"></i>
                                         </button>
-                                    @endif
 
-                                    {{-- Tombol Kirim WhatsApp & QR Code --}}
-                                    <button type="button" class="btn-icon" style="color: #22c55e;"
-                                        onclick="openModalWa('{{ $s->nisn }}')"
-                                        title="Kirim Notifikasi WhatsApp &amp; QR Code">
-                                        <i class="fab fa-whatsapp"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" style="padding: 35px; text-align: center; color: var(--text-muted);">
-                                <i class="fas fa-id-card mb-2" style="font-size: 2rem; opacity: 0.4; display: block;"></i>
-                                <div style="font-weight: 700; font-size: 0.92rem;">Belum ada data kartu yang berhasil
-                                    dicetak.</div>
-                                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
-                                    Tandai status "Selesai" pada antrean tab Request Cetak agar data peserta didik otomatis
-                                    masuk ke sini untuk pengelolaan pembayaran &amp; garansi.
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                                        {{-- Tombol Toggle Status Cetak --}}
+                                        <button type="button" class="btn-icon" style="color: #0284c7;"
+                                            onclick="toggleStatusCetak('{{ $s->peserta_didik_id }}', this)"
+                                            title="{{ $isCetak ? 'Tandai Belum Dicetak' : 'Tandai Sudah Dicetak' }}">
+                                            <i
+                                                class="fas {{ $isCetak ? 'fa-toggle-on text-primary' : 'fa-toggle-off text-muted' }}"></i>
+                                        </button>
 
-        <!-- 6. Pagination -->
-        @if ($students->hasPages())
-            <div class="custom-pagination" style="margin-bottom: 24px;">
-                @if ($students->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $students->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $students->currentPage();
-                    $last = $students->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $students->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $students->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $students->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($students->hasMorePages())
-                    <a href="{{ $students->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
+                                        {{-- Tombol Klaim Garansi --}}
+                                        <button type="button" class="btn-icon"
+                                            style="color: {{ $isCetak ? '#f59e0b' : '#94a3b8' }}; opacity: {{ $isCetak ? '1' : '0.6' }};"
+                                            onclick="openKlaimGaransi('{{ $s->peserta_didik_id }}', '{{ addslashes($s->nama) }}', '{{ $s->nisn }}', '{{ addslashes($s->nama_rombel ?? '-') }}', {{ (int) $s->klaim_ganti_kartu }}, {{ (int) $s->klaim_stiker }}, {{ (int) ($settings->kuota_ganti_kartu_full ?? 1) }}, {{ (int) ($settings->kuota_ganti_stiker ?? 3) }}, {{ $isCetak ? 1 : 0 }})"
+                                            title="{{ $isCetak ? 'Klaim Garansi (Sisa: ' . $sisaKartu . ' Kartu, ' . $sisaStiker . ' Stiker)' : 'Garansi Belum Aktif (Kartu Belum Dicetak)' }}">
+                                            <i class="fas fa-shield-alt"></i>
+                                        </button>
+
+                                        {{-- Tombol Pratinjau / Cetak Kartu Tunggal (Sama dengan Peserta Didik Aktif) --}}
+                                        @if (!empty($s->nisn))
+                                            <button type="button" class="btn-icon" style="color: #0284c7;"
+                                                title="Pratinjau / Cetak Kartu Pelajar Digital"
+                                                onclick="openKartuPelajarModal('{{ $s->nisn }}')">
+                                                <i class="fas fa-address-card"></i>
+                                            </button>
+                                        @endif
+
+                                        {{-- Tombol Kirim WhatsApp & QR Code --}}
+                                        <button type="button" class="btn-icon" style="color: #22c55e;"
+                                            onclick="openModalWa('{{ $s->nisn }}')"
+                                            title="Kirim Notifikasi WhatsApp &amp; QR Code">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" style="padding: 35px; text-align: center; color: var(--text-muted);">
+                                    <i class="fas fa-id-card mb-2"
+                                        style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                    <div style="font-weight: 700; font-size: 0.92rem;">Belum ada data kartu yang berhasil
+                                        dicetak.</div>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                                        Tandai status "Selesai" pada antrean tab Request Cetak agar data peserta didik
+                                        otomatis
+                                        masuk ke sini untuk pengelolaan pembayaran &amp; garansi.
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
+
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if ($students->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $students])
+                </div>
+            @endif
+        </div>
     @elseif ($tab === 'harga')
         <!-- TAB 2: Pengaturan Harga Standar, Rekening Bank & QRIS -->
         <div class="card" style="padding: 24px; max-width: 860px; margin-bottom: 24px;">

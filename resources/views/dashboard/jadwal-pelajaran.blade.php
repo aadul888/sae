@@ -133,93 +133,85 @@
         </div>
     </div>
 
-    <!-- 5. Toolbar Filter & Search Baku SAE -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;">
-        <form action="{{ route('dashboard.jadwal-pelajaran.index') }}" method="GET" style="margin: 0;">
-            <input type="hidden" name="hari" value="{{ $selectedHari }}">
-            @if (request('view'))
-                <input type="hidden" name="view" value="{{ request('view') }}">
-            @endif
+    <!-- Unified Datatable Jadwal Pelajaran (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header Datatable Baku SAE (Entries, Filters & Live Search) -->
+        <div class="datatable-toolbar">
+            <form action="{{ route('dashboard.jadwal-pelajaran.index') }}" method="GET" style="margin: 0;">
+                <input type="hidden" name="hari" value="{{ $selectedHari }}">
+                @if (request('view'))
+                    <input type="hidden" name="view" value="{{ request('view') }}">
+                @endif
 
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <!-- Tampilkan Entri Selector -->
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" name="per_page" class="per-page-select" style="height: 38px;"
-                            onchange="this.form.submit()">
-                            @foreach ([10, 15, 25, 50, 'all'] as $n)
-                                <option value="{{ $n }}" {{ request('per_page', 15) == $n ? 'selected' : '' }}>
-                                    {{ $n === 'all' ? 'Semua' : $n }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <span>entri</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <!-- Tampilkan Entri Selector -->
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" name="per_page" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 'all'] as $n)
+                                    <option value="{{ $n }}" {{ request('per_page', 15) == $n ? 'selected' : '' }}>
+                                        {{ $n === 'all' ? 'Semua' : $n }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <!-- Filter Rombel -->
+                        @if ($rombelOptions->isNotEmpty())
+                            <select name="rombel_id" id="filterRombel" class="toolbar-filter-select" style="min-width: 150px; height: 38px;">
+                                <option value="">Semua Kelas</option>
+                                @foreach ($rombelOptions as $r)
+                                    <option value="{{ $r->rombongan_belajar_id }}"
+                                        {{ request('rombel_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                        Kelas {{ $r->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @endif
+
+                        @if (request('q') || request('rombel_id') || ($selectedHari !== 'semua' && $selectedHari !== $hariIni))
+                            <a href="{{ route('dashboard.jadwal-pelajaran.index', array_filter(['view' => request('view')])) }}"
+                                class="btn btn-outline btn-reset-filter"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter" data-live-reset>
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
+
+                        <!-- Mode Switcher (Tabel Datatable / Kartu Grid) -->
+                        <div
+                            style="display: inline-flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; height: 38px;">
+                            <button type="button" id="btnJadwalViewTable" class="btn btn-primary"
+                                style="height: 100%; border: none; border-radius: 0; padding: 0 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"
+                                title="Tampilan Tabel Datatable">
+                                <i class="fas fa-table-list"></i> <span class="d-none-mobile">Tabel</span>
+                            </button>
+                            <button type="button" id="btnJadwalViewGrid" class="btn btn-outline"
+                                style="height: 100%; border: none; border-radius: 0; padding: 0 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"
+                                title="Tampilan Kartu Grid">
+                                <i class="fas fa-grip"></i> <span class="d-none-mobile">Kartu</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Filter Rombel -->
-                    @if ($rombelOptions->isNotEmpty())
-                        <select name="rombel_id" class="toolbar-filter-select" style="min-width: 150px; height: 38px;"
-                            onchange="this.form.submit()">
-                            <option value="">Semua Kelas</option>
-                            @foreach ($rombelOptions as $r)
-                                <option value="{{ $r->rombongan_belajar_id }}"
-                                    {{ request('rombel_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
-                                    Kelas {{ $r->nama }}
-                                </option>
-                            @endforeach
-                        </select>
-                    @endif
-
-                    @if (request('q') || request('rombel_id') || ($selectedHari !== 'semua' && $selectedHari !== $hariIni))
-                        <a href="{{ route('dashboard.jadwal-pelajaran.index', array_filter(['view' => request('view')])) }}"
-                            class="btn btn-outline"
-                            style="height: 38px; padding: 0 12px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;"
-                            title="Reset filter">
-                            <i class="fas fa-undo"></i> <span>Reset</span>
-                        </a>
-                    @endif
-
-                    <!-- Mode Switcher (Tabel Datatable / Kartu Grid) -->
-                    <div
-                        style="display: inline-flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; height: 38px;">
-                        <button type="button" id="btnJadwalViewTable" class="btn btn-primary"
-                            style="height: 100%; border: none; border-radius: 0; padding: 0 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"
-                            title="Tampilan Tabel Datatable">
-                            <i class="fas fa-table-list"></i> <span class="d-none-mobile">Tabel</span>
-                        </button>
-                        <button type="button" id="btnJadwalViewGrid" class="btn btn-outline"
-                            style="height: 100%; border: none; border-radius: 0; padding: 0 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"
-                            title="Tampilan Kartu Grid">
-                            <i class="fas fa-grip"></i> <span class="d-none-mobile">Kartu</span>
+                    <!-- Live Search Box Baku SAE -->
+                    <div class="live-search-wrap" style="height: 38px; min-width: 220px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" name="q" id="searchJadwalInput"
+                            placeholder="Cari mapel, kelas, ruangan..." value="{{ request('q') }}" autocomplete="off">
+                        <button type="button" class="clear-search {{ request('q') ? 'visible' : '' }}" id="clearSearchJadwalBtn" title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
+            </form>
+        </div>
 
-                <!-- Live Search Box Baku SAE -->
-                <div class="live-search-wrap" style="height: 38px; min-width: 220px;">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" name="q" id="searchJadwalInput"
-                        placeholder="Cari mapel, kelas, ruangan..." value="{{ request('q') }}" autocomplete="off">
-                    @if (request('q'))
-                        <a href="{{ route('dashboard.jadwal-pelajaran.index', array_filter(['hari' => $selectedHari, 'rombel_id' => request('rombel_id'), 'view' => request('view')])) }}"
-                            class="clear-search visible" title="Hapus pencarian">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    @else
-                        <button type="button" class="clear-search" id="clearSearchJadwalBtn" title="Hapus pencarian">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    @endif
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- 6. Datatable Jadwal Pelajaran & Mengajar Baku SAE -->
-    <div class="card table-responsive-stack" id="tableDataContainerJadwal"
-        style="padding: 0; margin-bottom: 24px; border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
-        <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+        <!-- 2. Datatable Jadwal Pelajaran & Mengajar Baku SAE -->
+        <div class="table-responsive-stack" id="tableDataContainerJadwal" style="overflow-x: auto; width: 100%;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
                 <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                     <th
@@ -385,8 +377,13 @@
         </table>
     </div>
 
-    {{-- Custom Pagination Baku SAE (Acuan: peserta-didik-aktif) --}}
-    @include('partials.datatable-pagination', ['paginator' => $schedules])
+    <!-- 3. Footer Paginasi Terpadu Datatable -->
+    @if ($schedules->hasPages())
+        <div class="datatable-footer">
+            @include('partials.datatable-pagination', ['paginator' => $schedules])
+        </div>
+    @endif
+</div>
 
     <!-- 7. Schedule Card Grid (Alternatif Tampilan Kartu Grid) -->
     <div id="gridDataContainerJadwal" style="display: none;">

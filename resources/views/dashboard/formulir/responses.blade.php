@@ -147,235 +147,204 @@
         </div>
     @endif
 
-    <!-- 3. Toolbar Header Datatable Baku SAE (Entries, Reset & Live Search) -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <div class="toolbar-entries">
-                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
-                        @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>
-                                {{ $n }}</option>
-                        @endforeach
-                    </select>
-                    <span>entri</span>
+    <!-- Unified Datatable Tanggapan Formulir (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header Datatable Baku SAE (Entries, Reset & Live Search) -->
+        <div class="datatable-toolbar">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>
+                                    {{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    @if (!empty(request('q')))
+                        <a href="{{ route('dashboard.formulir.responses', $formulir->id) }}"
+                            class="btn btn-outline btn-reset-filter"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            title="Reset pencarian" data-live-reset>
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
 
-                @if (!empty(request('q')))
-                    <a href="{{ route('dashboard.formulir.responses', $formulir->id) }}" class="btn btn-outline"
-                        style="padding: 7px 12px; font-size: 0.84rem;" title="Reset pencarian">
-                        <i class="fas fa-undo"></i>
-                    </a>
-                @endif
-            </div>
-
-            <div class="live-search-wrap">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari nama responden atau jawaban..."
-                    value="{{ request('q') }}" autocomplete="off">
-                <button type="button" id="clearSearch" class="clear-search {{ !empty(request('q')) ? 'visible' : '' }}"
-                    title="Hapus pencarian">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" name="q"
+                        placeholder="Cari nama responden atau jawaban..." value="{{ request('q') }}"
+                        autocomplete="off">
+                    <button type="button" id="clearSearch"
+                        class="clear-search {{ !empty(request('q')) ? 'visible' : '' }}" title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- 4. Datatable Responsif Resmi SAE (.table-responsive-stack) -->
-    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-        <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-            <thead>
-                <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
-                        No</th>
-                    <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}" data-sort="created_at"
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
-                        Waktu Submit
-                        <span class="sort-icon">{!! $sort === 'created_at' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                    </th>
-                    <th class="sortable-th {{ $sort === 'nama_responden' ? 'sorted' : '' }}" data-sort="nama_responden"
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
-                        Nama Responden
-                        <span class="sort-icon">{!! $sort === 'nama_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                    </th>
-                    <th class="sortable-th {{ $sort === 'identitas_responden' ? 'sorted' : '' }}"
-                        data-sort="identitas_responden"
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
-                        Identitas
-                        <span class="sort-icon">{!! $sort === 'identitas_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                    </th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Ringkasan Jawaban
-                    </th>
-                    <th
-                        style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 100px;">
-                        Aksi
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($responses as $idx => $r)
-                    @php
-                        $jawaban = is_array($r->jawaban) ? $r->jawaban : [];
-                    @endphp
-                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
-                        <td style="padding: 14px 18px; text-align: center; color: var(--text-muted); font-weight: 600;"
-                            data-label="No">
-                            {{ $responses->firstItem() + $idx }}
-                        </td>
-                        <td style="padding: 14px 18px;" data-label="Waktu Submit">
-                            <span style="font-weight: 600; color: var(--text-color);">
-                                {{ $r->created_at ? $r->created_at->format('d/m/Y') : '-' }}
-                            </span>
-                            <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">
-                                {{ $r->created_at ? $r->created_at->format('H:i:s') . ' WIB' : '' }}
-                            </span>
-                        </td>
-                        <td style="padding: 14px 18px;" data-label="Nama Responden">
-                            <div style="font-weight: 700; color: var(--text-color);">
-                                {{ $r->nama_responden ?: 'Responden Tamu' }}</div>
-                            @if ($r->pengguna_id)
-                                <span class="badge"
-                                    style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.12); color: var(--primary); padding: 2px 6px; border-radius: 4px;">
-                                    <i class="fas fa-user-check me-1"></i>Akun SAE
+        <!-- 2. Datatable Responsif Resmi SAE (.table-responsive-stack) -->
+        <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="background: var(--bg-hover); border-bottom: 1px solid var(--border-color);">
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px; text-align: center;">
+                            No</th>
+                        <th class="sortable-th {{ $sort === 'created_at' ? 'sorted' : '' }}" data-sort="created_at"
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Waktu Submit
+                            <span class="sort-icon">{!! $sort === 'created_at' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th class="sortable-th {{ $sort === 'nama_responden' ? 'sorted' : '' }}"
+                            data-sort="nama_responden"
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Nama Responden
+                            <span class="sort-icon">{!! $sort === 'nama_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th class="sortable-th {{ $sort === 'identitas_responden' ? 'sorted' : '' }}"
+                            data-sort="identitas_responden"
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Identitas
+                            <span class="sort-icon">{!! $sort === 'identitas_responden' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                        </th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Ringkasan Jawaban
+                        </th>
+                        <th
+                            style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; width: 100px;">
+                            Aksi
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($responses as $idx => $r)
+                        @php
+                            $jawaban = is_array($r->jawaban) ? $r->jawaban : [];
+                        @endphp
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                            <td style="padding: 14px 18px; text-align: center; color: var(--text-muted); font-weight: 600;"
+                                data-label="No">
+                                {{ $responses->firstItem() + $idx }}
+                            </td>
+                            <td style="padding: 14px 18px;" data-label="Waktu Submit">
+                                <span style="font-weight: 600; color: var(--text-color);">
+                                    {{ $r->created_at ? $r->created_at->format('d/m/Y') : '-' }}
                                 </span>
-                            @else
-                                <span class="badge badge-outline"
-                                    style="font-size: 0.65rem; padding: 2px 5px; color: var(--text-muted);">Tamu</span>
-                            @endif
-                        </td>
-                        <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
-                            data-label="Identitas">
-                            {{ $r->identitas_responden ?: '-' }}
-                        </td>
-                        <td style="padding: 14px 18px; max-width: 280px;" data-label="Ringkasan Jawaban">
-                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                                @foreach (array_slice($jawaban, 0, 2) as $k => $val)
-                                    <span
-                                        style="background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; font-size: 0.75rem; color: var(--text-muted); border: 1px solid var(--border-color); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;">
-                                        {{ is_array($val) ? implode(', ', $val) : \Illuminate\Support\Str::limit($val, 25) }}
+                                <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">
+                                    {{ $r->created_at ? $r->created_at->format('H:i:s') . ' WIB' : '' }}
+                                </span>
+                            </td>
+                            <td style="padding: 14px 18px;" data-label="Nama Responden">
+                                <div style="font-weight: 700; color: var(--text-color);">
+                                    {{ $r->nama_responden ?: 'Responden Tamu' }}</div>
+                                @if ($r->pengguna_id)
+                                    <span class="badge"
+                                        style="font-size: 0.65rem; background: rgba(99, 102, 241, 0.12); color: var(--primary); padding: 2px 6px; border-radius: 4px;">
+                                        <i class="fas fa-user-check me-1"></i>Akun SAE
                                     </span>
-                                @endforeach
-                                @if (count($jawaban) > 2)
-                                    <span style="font-size: 0.72rem; color: var(--text-muted);">+{{ count($jawaban) - 2 }}
-                                        lainnya</span>
+                                @else
+                                    <span class="badge badge-outline"
+                                        style="font-size: 0.65rem; padding: 2px 5px; color: var(--text-muted);">Tamu</span>
                                 @endif
-                            </div>
-                        </td>
-                        <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
-                            <div class="table-actions" style="display: flex; gap: 5px; justify-content: flex-end;">
-                                <button type="button" class="btn-icon" title="Lihat Detail"
-                                    onclick='openDetailModal(@json($r), @json($formulir->skema ?? []))'>
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <form action="{{ route('dashboard.formulir.delete-response', [$formulir->id, $r->id]) }}"
-                                    method="POST" data-confirm="delete"
-                                    data-name="tanggapan dari {{ $r->nama_responden ?? 'responden ini' }}"
-                                    style="margin: 0;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-icon text-danger" title="Hapus Tanggapan">
-                                        <i class="fas fa-trash"></i>
+                            </td>
+                            <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                data-label="Identitas">
+                                {{ $r->identitas_responden ?: '-' }}
+                            </td>
+                            <td style="padding: 14px 18px; max-width: 280px;" data-label="Ringkasan Jawaban">
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                    @foreach (array_slice($jawaban, 0, 2) as $k => $val)
+                                        <span
+                                            style="background: var(--bg-hover); padding: 2px 7px; border-radius: 5px; font-size: 0.75rem; color: var(--text-muted); border: 1px solid var(--border-color); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ is_array($val) ? implode(', ', $val) : \Illuminate\Support\Str::limit($val, 25) }}
+                                        </span>
+                                    @endforeach
+                                    @if (count($jawaban) > 2)
+                                        <span
+                                            style="font-size: 0.72rem; color: var(--text-muted);">+{{ count($jawaban) - 2 }}
+                                            lainnya</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td style="padding: 14px 18px; text-align: right;" data-label="Aksi">
+                                <div class="table-actions" style="display: flex; gap: 5px; justify-content: flex-end;">
+                                    <button type="button" class="btn-icon" title="Lihat Detail"
+                                        onclick='openDetailModal(@json($r), @json($formulir->skema ?? []))'>
+                                        <i class="fas fa-eye"></i>
                                     </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
-                            <i class="fas fa-inbox mb-2" style="font-size: 2.2rem; opacity: 0.35; display: block;"></i>
-                            <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">Belum Ada Tanggapan
-                            </div>
-                            <div style="font-size: 0.82rem;">Belum ada responden yang mengisi formulir ini atau tidak ada
-                                data yang cocok dengan pencarian.</div>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                                    <form
+                                        action="{{ route('dashboard.formulir.delete-response', [$formulir->id, $r->id]) }}"
+                                        method="POST" data-confirm="delete"
+                                        data-name="tanggapan dari {{ $r->nama_responden ?? 'responden ini' }}"
+                                        style="margin: 0;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-icon text-danger" title="Hapus Tanggapan">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+                                <i class="fas fa-inbox mb-2"
+                                    style="font-size: 2.2rem; opacity: 0.35; display: block;"></i>
+                                <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">Belum Ada Tanggapan
+                                </div>
+                                <div style="font-size: 0.82rem;">Belum ada responden yang mengisi formulir ini atau tidak
+                                    ada
+                                    data yang cocok dengan pencarian.</div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
 
-        <!-- 5. Pagination Footer Resmi SAE -->
-        <div class="pagination-wrapper"
-            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 20px; border-top: 1px solid var(--border-color);">
-            <div style="font-size: 0.82rem; color: var(--text-muted);">
-                Menampilkan
-                <strong>{{ $responses->firstItem() ?? 0 }}</strong>–<strong>{{ $responses->lastItem() ?? 0 }}</strong>
-                dari <strong>{{ $responses->total() }}</strong> entri
-            </div>
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
             @if ($responses->hasPages())
-                <div class="custom-pagination" style="margin: 0; padding: 0;">
-                    @if ($responses->onFirstPage())
-                        <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                    @else
-                        <a href="{{ $responses->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                                class="fas fa-chevron-left"></i></a>
-                    @endif
-                    @php
-                        $cur = $responses->currentPage();
-                        $last = $responses->lastPage();
-                        $from = max(1, $cur - 2);
-                        $to = min($last, $cur + 2);
-                    @endphp
-                    @if ($from > 1)
-                        <a href="{{ $responses->url(1) }}" class="page-btn">1</a>
-                        @if ($from > 2)
-                            <span class="page-info">&hellip;</span>
-                        @endif
-                    @endif
-                    @for ($i = $from; $i <= $to; $i++)
-                        <a href="{{ $responses->url($i) }}"
-                            class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                    @endfor
-                    @if ($to < $last)
-                        @if ($to < $last - 1)
-                            <span class="page-info">&hellip;</span>
-                        @endif
-                        <a href="{{ $responses->url($last) }}" class="page-btn">{{ $last }}</a>
-                    @endif
-                    @if ($responses->hasMorePages())
-                        <a href="{{ $responses->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                                class="fas fa-chevron-right"></i></a>
-                    @else
-                        <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                    @endif
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $responses])
                 </div>
             @endif
         </div>
-    </div>
 
-    <!-- Modal Detail Tanggapan Standar Dashboard SAE -->
-    <div id="responseModal" class="modal-backdrop"
-        style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div class="card"
-            style="max-width: 640px; width: 95%; padding: 0; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color);">
-            <div
-                style="padding: 18px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-color);">Rincian
-                        Tanggapan Responden</h4>
-                    <span id="modalMeta" style="font-size: 0.78rem; color: var(--text-muted);">-</span>
+        <!-- Modal Detail Tanggapan Standar Dashboard SAE -->
+        <div id="responseModal" class="modal-backdrop"
+            style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div class="card"
+                style="max-width: 640px; width: 95%; padding: 0; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border: 1px solid var(--border-color);">
+                <div
+                    style="padding: 18px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0; color: var(--text-color);">Rincian
+                            Tanggapan Responden</h4>
+                        <span id="modalMeta" style="font-size: 0.78rem; color: var(--text-muted);">-</span>
+                    </div>
+                    <button type="button" onclick="closeDetail()" class="btn-theme-toggle"
+                        style="width: 32px; height: 32px;" title="Tutup">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <button type="button" onclick="closeDetail()" class="btn-theme-toggle"
-                    style="width: 32px; height: 32px;" title="Tutup">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div style="padding: 24px; overflow-y: auto; max-height: 60vh;" id="modalContent"></div>
-            <div
-                style="padding: 14px 24px; border-top: 1px solid var(--border-color); text-align: right; background: var(--bg-hover);">
-                <button type="button" class="btn btn-outline" onclick="closeDetail()"
-                    style="font-size: 0.85rem; padding: 6px 16px;">Tutup</button>
+                <div style="padding: 24px; overflow-y: auto; max-height: 60vh;" id="modalContent"></div>
+                <div
+                    style="padding: 14px 24px; border-top: 1px solid var(--border-color); text-align: right; background: var(--bg-hover);">
+                    <button type="button" class="btn btn-outline" onclick="closeDetail()"
+                        style="font-size: 0.85rem; padding: 6px 16px;">Tutup</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    @push('scripts')
-        <script
-            src="{{ asset('js/formulir.js') }}?v={{ file_exists(public_path('js/formulir.js')) ? filemtime(public_path('js/formulir.js')) : time() }}">
-        </script>
-    @endpush
-@endsection
+        @push('scripts')
+            <script
+                src="{{ asset('js/formulir.js') }}?v={{ file_exists(public_path('js/formulir.js')) ? filemtime(public_path('js/formulir.js')) : time() }}">
+            </script>
+        @endpush
+    @endsection

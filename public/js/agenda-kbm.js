@@ -302,116 +302,76 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Refresh Live Table Asinkron Baku SAE
-    window.refreshLiveTable = (url = null) => {
-        if (!tableDataContainer) return;
-
-        let targetUrl = url;
-        if (!targetUrl) {
-            const params = new URLSearchParams();
-            if (liveSearchInput?.value) params.set('q', liveSearchInput.value.trim());
-            if (filterTanggalMulai?.value) params.set('tanggal_mulai', filterTanggalMulai.value);
-            if (filterTanggalSelesai?.value) params.set('tanggal_selesai', filterTanggalSelesai.value);
-            if (filterRombel?.value) params.set('rombongan_belajar_id', filterRombel.value);
-            if (filterStatusKbm?.value) params.set('status_kbm', filterStatusKbm.value);
-            if (filterPtk?.value) params.set('filter_ptk_id', filterPtk.value);
-            if (perPageSelect?.value) params.set('per_page', perPageSelect.value);
-            params.set('sort', currentSort);
-            params.set('sort_dir', currentSortDir);
-            params.set('ajax_table', '1');
-            targetUrl = `${window.location.pathname}?${params.toString()}`;
-        } else {
-            const separator = targetUrl.includes('?') ? '&' : '?';
-            targetUrl = `${targetUrl}${separator}ajax_table=1`;
+    const applyAgendaFilter = (overrideParams = {}) => {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
         }
 
-        tableDataContainer.style.opacity = '0.5';
+        const params = new URLSearchParams(window.location.search);
+        if (liveSearchInput?.value) params.set('q', liveSearchInput.value.trim());
+        else params.delete('q');
+        if (filterTanggalMulai?.value) params.set('tanggal_mulai', filterTanggalMulai.value);
+        else params.delete('tanggal_mulai');
+        if (filterTanggalSelesai?.value) params.set('tanggal_selesai', filterTanggalSelesai.value);
+        else params.delete('tanggal_selesai');
+        if (filterRombel?.value) params.set('rombongan_belajar_id', filterRombel.value);
+        else params.delete('rombongan_belajar_id');
+        if (filterStatusKbm?.value) params.set('status_kbm', filterStatusKbm.value);
+        else params.delete('status_kbm');
+        if (filterPtk?.value) params.set('filter_ptk_id', filterPtk.value);
+        else params.delete('filter_ptk_id');
+        if (perPageSelect?.value) params.set('per_page', perPageSelect.value);
 
-        fetch(targetUrl, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'text/html'
-            }
-        })
-        .then(res => res.text())
-        .then(html => {
-            tableDataContainer.innerHTML = html;
-            tableDataContainer.style.opacity = '1';
-            bindTableEvents();
-        })
-        .catch(err => {
-            console.error('Error refreshing table:', err);
-            tableDataContainer.style.opacity = '1';
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") params.set(k, v);
+            else params.delete(k);
         });
+
+        params.set('page', '1');
+        const targetUrl = `${window.location.pathname}?${params.toString()}`;
+        if (typeof window.refreshLiveTable === 'function') {
+            window.refreshLiveTable(targetUrl);
+        } else {
+            window.location.href = targetUrl;
+        }
     };
 
-    // Binding event ke elemen datatable (Sorting & Pagination)
-    const bindTableEvents = () => {
-        // Sortable Headers
-        document.querySelectorAll('.sortable-th').forEach(th => {
-            th.addEventListener('click', () => {
-                const sortKey = th.dataset.sort;
-                if (currentSort === sortKey) {
-                    currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSort = sortKey;
-                    currentSortDir = 'asc';
-                }
-                window.refreshLiveTable();
-            });
-        });
-
-        // Ajax pagination links
-        document.querySelectorAll('.ajax-page-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.refreshLiveTable(link.getAttribute('href'));
-            });
-        });
-    };
-
-    bindTableEvents();
-
-    // Live Search with Debounce
-    let searchTimeout = null;
-    if (liveSearchInput) {
-        liveSearchInput.addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                window.refreshLiveTable();
-            }, 350);
-        });
-    }
-
-    if (clearSearchBtn) {
-        clearSearchBtn.addEventListener('click', () => {
-            if (liveSearchInput) liveSearchInput.value = '';
-            window.refreshLiveTable();
-        });
-    }
-
-    // Filter Change Listeners
-    [filterTanggalMulai, filterTanggalSelesai, filterRombel, filterStatusKbm, filterPtk, perPageSelect].forEach(el => {
-        if (el) {
-            el.addEventListener('change', () => {
-                window.refreshLiveTable();
-            });
+    // Delegated Change Handler untuk filter Agenda KBM
+    document.addEventListener("change", function (e) {
+        if (!e.target) return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
+            (e.target.id === "filterRombel" || e.target.id === "filterStatusKbm" || e.target.id === "filterPtk" || e.target.id === "perPageSelect" || e.target.id === "filterTanggalMulai" || e.target.id === "filterTanggalSelesai")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyAgendaFilter();
         }
     });
 
-    if (btnResetFilter) {
-        btnResetFilter.addEventListener('click', () => {
-            if (liveSearchInput) liveSearchInput.value = '';
-            if (filterTanggalMulai) filterTanggalMulai.value = '';
-            if (filterTanggalSelesai) filterTanggalSelesai.value = '';
-            if (filterRombel) filterRombel.value = '';
-            if (filterStatusKbm) filterStatusKbm.value = '';
-            if (filterPtk) filterPtk.value = '';
-            if (perPageSelect) perPageSelect.value = '15';
-            currentSort = 'tanggal';
-            currentSortDir = 'desc';
-            window.refreshLiveTable();
-        });
-    }
+    // Delegated Sort Click Handler untuk tabel Agenda KBM
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th || !th.closest("#tableDataContainer")) return;
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "tanggal";
+        const currentDir = url.searchParams.get("sort_dir") || "desc";
+        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
+        applyAgendaFilter({ sort: sortField, sort_dir: newDir });
+    });
 
     // Submit Form Simpan / Update Jurnal Agenda KBM
     if (formAgenda) {

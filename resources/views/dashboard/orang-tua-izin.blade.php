@@ -101,17 +101,31 @@
         </div>
 
         @if ($izinKeluarList->isNotEmpty())
-            <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
-                <table class="table-minimal-compact" style="width: 100%;">
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%; margin: 0;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <th style="min-width: 110px;">Tanggal</th>
-                            <th style="min-width: 120px;">Jenis Izin</th>
-                            <th style="min-width: 120px; text-align: center;">Jam Rencana</th>
-                            <th style="min-width: 130px; text-align: center;">Aktual Gerbang</th>
-                            <th style="min-width: 180px;">Alasan &amp; Tujuan</th>
-                            <th style="min-width: 110px; text-align: center;">Status</th>
-                            <th style="min-width: 130px;">Petugas Piket</th>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="min-width: 110px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Tanggal</th>
+                            <th
+                                style="min-width: 120px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Jenis Izin</th>
+                            <th
+                                style="min-width: 120px; text-align: center; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Jam Rencana</th>
+                            <th
+                                style="min-width: 130px; text-align: center; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Aktual Gerbang</th>
+                            <th
+                                style="min-width: 180px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Alasan &amp; Tujuan</th>
+                            <th
+                                style="min-width: 110px; text-align: center; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Status</th>
+                            <th
+                                style="min-width: 130px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Petugas Piket</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -222,15 +236,25 @@
         </div>
 
         @if ($suratIzinList->isNotEmpty())
-            <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
-                <table class="table-minimal-compact" style="width: 100%;">
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%; margin: 0;">
+                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <th style="min-width: 140px;">Rentang Tanggal</th>
-                            <th style="min-width: 90px; text-align: center;">Jenis Izin</th>
-                            <th style="min-width: 220px;">Alasan / Keterangan Permohonan</th>
-                            <th style="min-width: 120px; text-align: center;">Status Verifikasi</th>
-                            <th style="min-width: 130px;">Wali Kelas</th>
+                        <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                            <th
+                                style="min-width: 140px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Rentang Tanggal</th>
+                            <th
+                                style="min-width: 90px; text-align: center; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Jenis Izin</th>
+                            <th
+                                style="min-width: 220px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Alasan / Keterangan Permohonan</th>
+                            <th
+                                style="min-width: 120px; text-align: center; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Status Verifikasi</th>
+                            <th
+                                style="min-width: 130px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                Wali Kelas</th>
                         </tr>
                     </thead>
                     <tbody>

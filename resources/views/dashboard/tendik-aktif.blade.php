@@ -85,7 +85,7 @@
                     <!-- Per Page -->
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
                             @foreach ([10, 15, 25, 50, 100] as $n)
                                 <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
                                     {{ $n }}
@@ -96,7 +96,7 @@
                     </div>
 
                     <!-- Filter Status Kepegawaian -->
-                    <select id="filterStatus" class="toolbar-filter-select" style="height: 38px;">
+                    <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
                         <option value="">Semua Status Kepegawaian</option>
                         @foreach ($filterStatus as $st)
                             <option value="{{ $st }}" {{ $status === $st ? 'selected' : '' }}>
@@ -106,16 +106,17 @@
                     </select>
 
                     <!-- Filter Gender -->
-                    <select id="filterGender" class="toolbar-filter-select" style="height: 38px; min-width: 120px;">
+                    <select id="filterGender" name="gender" class="toolbar-filter-select"
+                        style="height: 38px; min-width: 120px;">
                         <option value="">Semua Gender</option>
                         <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
                         <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
                     </select>
 
                     @if ($status || $gender || $q)
-                        <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline"
+                        <a href="{{ route('dashboard.tendik-aktif.index') }}" class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                            title="Reset filter">
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -123,7 +124,7 @@
 
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari nama / NUPTK / NIP..."
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari nama / NUPTK / NIP..."
                         value="{{ $q }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                         title="Hapus pencarian">

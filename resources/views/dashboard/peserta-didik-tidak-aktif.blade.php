@@ -120,9 +120,10 @@
                     </select>
 
                     @if ($q || $status || $tahun)
-                        <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}" class="btn btn-outline"
+                        <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}"
+                            class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                            title="Reset filter">
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
                     @endif
@@ -130,7 +131,7 @@
 
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIK / rombel..."
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari nama / NISN / NIK / rombel..."
                         value="{{ $q }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                         title="Hapus pencarian">

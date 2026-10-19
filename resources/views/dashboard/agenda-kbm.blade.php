@@ -167,7 +167,7 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                     <div class="toolbar-entries">
                         <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                        <select id="perPageSelect" name="per_page" class="per-page-select" style="height: 38px;">
                             @foreach ([10, 15, 25, 50, 100] as $n)
                                 <option value="{{ $n }}" {{ request('per_page', 15) == $n ? 'selected' : '' }}>
                                     {{ $n }}</option>
@@ -181,17 +181,18 @@
                         style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
                         <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;"
                             title="Rentang Tanggal"></i>
-                        <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}"
-                            title="Tanggal Mulai"
+                        <input type="date" id="filterTanggalMulai" name="tanggal_mulai"
+                            value="{{ request('tanggal_mulai') }}" title="Tanggal Mulai"
                             style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
                         <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
-                        <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}"
-                            title="Tanggal Selesai"
+                        <input type="date" id="filterTanggalSelesai" name="tanggal_selesai"
+                            value="{{ request('tanggal_selesai') }}" title="Tanggal Selesai"
                             style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
                     </div>
 
                     <!-- Filter Rombel -->
-                    <select id="filterRombel" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
+                    <select id="filterRombel" name="rombongan_belajar_id" class="toolbar-filter-select"
+                        style="min-width: 140px; height: 38px;">
                         <option value="">Semua Kelas</option>
                         @foreach ($rombelList as $r)
                             <option value="{{ $r->rombongan_belajar_id }}"
@@ -202,7 +203,8 @@
                     </select>
 
                     <!-- Filter Status KBM -->
-                    <select id="filterStatusKbm" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
+                    <select id="filterStatusKbm" name="status_kbm" class="toolbar-filter-select"
+                        style="min-width: 140px; height: 38px;">
                         <option value="">Semua Status</option>
                         <option value="Terlaksana" {{ request('status_kbm') === 'Terlaksana' ? 'selected' : '' }}>
                             Terlaksana
@@ -217,7 +219,8 @@
                     </select>
 
                     @if (!$isGuru && count($guruList) > 0)
-                        <select id="filterPtk" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
+                        <select id="filterPtk" name="filter_ptk_id" class="toolbar-filter-select"
+                            style="min-width: 140px; height: 38px;">
                             <option value="">Semua Guru</option>
                             @foreach ($guruList as $g)
                                 <option value="{{ $g->ptk_id }}"
@@ -234,19 +237,21 @@
                             request('rombongan_belajar_id') ||
                             request('status_kbm') ||
                             request('filter_ptk_id'))
-                        <button type="button" id="btnResetFilter" class="btn btn-outline"
+                        <a href="{{ route('dashboard.agenda-kbm.index') }}" id="btnResetFilter"
+                            class="btn btn-outline btn-reset-filter"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
-                            title="Reset filter">
+                            title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
-                        </button>
+                        </a>
                     @endif
                 </div>
 
                 <!-- Live Search Box Baku SAE -->
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearchInput" placeholder="Cari materi, tugas, uraian kegiatan..."
-                        value="{{ request('q') }}" autocomplete="off">
+                    <input type="text" id="liveSearchInput" name="q"
+                        placeholder="Cari materi, tugas, uraian kegiatan..." value="{{ request('q') }}"
+                        autocomplete="off">
                     <button type="button" class="clear-search {{ request('q') ? 'visible' : '' }}"
                         title="Hapus pencarian">
                         <i class="fas fa-times"></i>

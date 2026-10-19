@@ -158,15 +158,26 @@
             </div>
 
             @if (!empty($riwayatHarian) && count($riwayatHarian) > 0)
-                <div class="table-responsive-stack" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
-                    <table class="table-minimal-compact" style="width: 100%;">
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%; margin: 0;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <th style="min-width: 140px;">Hari &amp; Tanggal</th>
-                                <th style="min-width: 110px; text-align: center;">Jam Masuk</th>
-                                <th style="min-width: 110px; text-align: center;">Jam Pulang</th>
-                                <th style="min-width: 100px; text-align: center;">Metode</th>
-                                <th style="min-width: 120px; text-align: center;">Status Kehadiran</th>
+                            <tr
+                                style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                                <th
+                                    style="min-width: 140px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Hari &amp; Tanggal</th>
+                                <th
+                                    style="min-width: 110px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    Jam Masuk</th>
+                                <th
+                                    style="min-width: 110px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    Jam Pulang</th>
+                                <th
+                                    style="min-width: 100px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    Metode</th>
+                                <th
+                                    style="min-width: 120px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    Status Kehadiran</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -231,17 +242,29 @@
             </div>
 
             @if ($riwayatMapel->isNotEmpty())
-                <div class="table-responsive-stack"
-                    style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0;">
-                    <table class="table-minimal-compact" style="width: 100%;">
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%; margin: 0;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <th style="min-width: 110px;">Tanggal</th>
-                                <th style="min-width: 160px;">Mata Pelajaran</th>
-                                <th style="min-width: 140px;">Guru Pengampu</th>
-                                <th style="width: 80px; text-align: center;">Jam Ke</th>
-                                <th style="width: 100px; text-align: center;">Status</th>
-                                <th style="min-width: 140px;">Catatan / Keterangan</th>
+                            <tr
+                                style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
+                                <th
+                                    style="min-width: 110px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Tanggal</th>
+                                <th
+                                    style="min-width: 160px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Mata Pelajaran</th>
+                                <th
+                                    style="min-width: 140px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Guru Pengampu</th>
+                                <th
+                                    style="width: 80px; text-align: center; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Jam Ke</th>
+                                <th
+                                    style="width: 100px; text-align: center; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Status</th>
+                                <th
+                                    style="min-width: 140px; padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Catatan / Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>

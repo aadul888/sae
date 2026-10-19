@@ -148,8 +148,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const filterStatus = document.getElementById("filterStatus");
     const filterGender = document.getElementById("filterGender");
 
-    function applyFilter() {
+    function applyFilter(overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
+        }
+
         const url = new URL(window.location.href);
+        const searchInput = document.getElementById("liveSearch");
+        const perPageSelect = document.getElementById("perPageSelect");
+        const filterStatus = document.getElementById("filterStatus");
+        const filterGender = document.getElementById("filterGender");
+
         if (searchInput && searchInput.value.trim()) {
             url.searchParams.set("q", searchInput.value.trim());
         } else {
@@ -172,7 +188,14 @@ document.addEventListener("DOMContentLoaded", function () {
             url.searchParams.set("perPage", perPageSelect.value);
         }
 
-        url.searchParams.set("page", "1");
+        Object.keys(overrideParams).forEach((k) => {
+            const v = overrideParams[k];
+            if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
+            else url.searchParams.delete(k);
+        });
+
+        if (!("page" in overrideParams)) url.searchParams.set("page", "1");
+
         if (typeof window.refreshLiveTable === "function") {
             window.refreshLiveTable(url.toString());
         } else {
@@ -180,68 +203,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    let searchTimer = null;
-    if (searchInput) {
-        searchInput.addEventListener("input", function () {
-            if (clearBtn)
-                clearBtn.classList.toggle(
-                    "visible",
-                    this.value.trim().length > 0,
-                );
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(applyFilter, 450);
-        });
+    // Delegated Change Handler untuk filter Tendik Aktif
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
+            (e.target.id === "filterStatus" || e.target.id === "filterGender" || e.target.id === "perPageSelect")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            applyFilter();
+        }
+    });
 
-        searchInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                clearTimeout(searchTimer);
-                applyFilter();
-            }
-        });
-    }
+    // Delegated Sort Click Handler untuk tabel Tendik Aktif
+    document.addEventListener("click", function (e) {
+        const th = e.target.closest(".sortable-th");
+        if (!th || !th.closest("#tableDataContainer")) return;
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+        e.preventDefault();
+        e.stopPropagation();
 
-    if (clearBtn) {
-        clearBtn.addEventListener("click", function () {
-            if (searchInput) {
-                searchInput.value = "";
-                clearBtn.classList.remove("visible");
-                applyFilter();
-            }
-        });
-    }
-
-    if (perPageSelect) perPageSelect.addEventListener("change", applyFilter);
-    if (filterStatus) filterStatus.addEventListener("change", applyFilter);
-    if (filterGender) filterGender.addEventListener("change", applyFilter);
-
-    // Sorting clicks
-    document.querySelectorAll(".sortable-th").forEach(function (th) {
-        th.addEventListener("click", function () {
-            const sortField = this.getAttribute("data-sort");
-            if (!sortField) return;
-
-            const url = new URL(window.location.href);
-            const currentSort = url.searchParams.get("sort");
-            const currentDir = url.searchParams.get("sort_dir") || "asc";
-
-            if (currentSort === sortField) {
-                url.searchParams.set(
-                    "sort_dir",
-                    currentDir === "asc" ? "desc" : "asc",
-                );
-            } else {
-                url.searchParams.set("sort", sortField);
-                url.searchParams.set("sort_dir", "asc");
-            }
-
-            url.searchParams.delete("page");
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        });
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "nama";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
+        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
+        applyFilter({ sort: sortField, sort_dir: newDir });
     });
 });
 
