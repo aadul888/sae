@@ -917,10 +917,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.body.style.overflow = "hidden";
             const form = document.getElementById("formTambahPengeluaran");
             if (form) form.reset();
-            const preview = document.getElementById("pgNominalPreview");
-            if (preview) preview.textContent = "Rp 0";
             const jml = document.getElementById("pgJumlah");
             if (jml) jml.value = "1";
+            const preview = document.getElementById("pgNominalPreview");
+            if (preview) preview.textContent = "Total Pengeluaran: Rp 0";
             document.getElementById("pgJudul")?.focus();
         }
     };
@@ -1355,27 +1355,38 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // =========================================================================
-    // 11. Modal & Form Tambah Pengeluaran (AJAX + Auto-format Rupiah)
+    // 11. Modal & Form Tambah Pengeluaran (AJAX + Auto-format Rupiah & Perkalian Total)
     // =========================================================================
     const pgNominalInput = document.getElementById("pgNominal");
+    const pgJumlahInput = document.getElementById("pgJumlah");
     const pgNominalPreview = document.getElementById("pgNominalPreview");
 
-    function formatRupiahNumber(val) {
-        const rawDigits = String(val || "").replace(/[^0-9]/g, "");
-        if (!rawDigits) return { formatted: "", raw: 0, text: "Rp 0" };
-        const num = parseInt(rawDigits, 10);
-        const formatted = new Intl.NumberFormat("id-ID").format(num);
-        return { formatted, raw: num, text: "Rp " + formatted };
+    function updatePengeluaranCalc() {
+        if (!pgNominalInput) return;
+        const rawDigits = String(pgNominalInput.value || "").replace(/[^0-9]/g, "");
+        const unitPrice = rawDigits ? parseInt(rawDigits, 10) : 0;
+        const formattedPrice = new Intl.NumberFormat("id-ID").format(unitPrice);
+        pgNominalInput.value = rawDigits ? formattedPrice : "";
+
+        const qty = pgJumlahInput ? (parseInt(pgJumlahInput.value, 10) || 1) : 1;
+        const total = qty * unitPrice;
+        const formattedTotal = new Intl.NumberFormat("id-ID").format(total);
+
+        if (pgNominalPreview) {
+            if (unitPrice > 0) {
+                pgNominalPreview.innerHTML = `Total Pengeluaran: <strong style="color: #ef4444;">Rp ${formattedTotal}</strong> (${qty} item &times; Rp ${formattedPrice})`;
+            } else {
+                pgNominalPreview.textContent = "Total Pengeluaran: Rp 0";
+            }
+        }
     }
 
     if (pgNominalInput) {
-        pgNominalInput.addEventListener("input", function () {
-            const res = formatRupiahNumber(this.value);
-            this.value = res.formatted;
-            if (pgNominalPreview) {
-                pgNominalPreview.textContent = res.text;
-            }
-        });
+        pgNominalInput.addEventListener("input", updatePengeluaranCalc);
+    }
+    if (pgJumlahInput) {
+        pgJumlahInput.addEventListener("input", updatePengeluaranCalc);
+        pgJumlahInput.addEventListener("change", updatePengeluaranCalc);
     }
 
     const formTambahPengeluaran = document.getElementById("formTambahPengeluaran");

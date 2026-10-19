@@ -1296,10 +1296,14 @@ class KartuPelajarController extends Controller
             $buktiPath = $request->file('bukti_nota')->storeAs('pengeluaran_kartu', 'nota_' . time() . '_' . uniqid() . '.' . $ext, 'public');
         }
 
+        $jumlah = max(1, (int) ($request->jumlah ?: 1));
+        $hargaSatuan = (int) $request->nominal;
+        $totalNominal = $hargaSatuan * $jumlah;
+
         $payload = [
             'judul'           => trim($request->judul),
             'kategori'        => $request->kategori,
-            'nominal'         => (int) $request->nominal,
+            'nominal'         => $totalNominal,
             'tanggal'         => $request->tanggal,
             'keterangan'      => trim((string) $request->keterangan),
             'bukti_nota_path' => $buktiPath,
@@ -1307,7 +1311,10 @@ class KartuPelajarController extends Controller
         ];
 
         if (Schema::hasColumn('kartu_pelajar_pengeluaran', 'jumlah')) {
-            $payload['jumlah'] = max(1, (int) ($request->jumlah ?: 1));
+            $payload['jumlah'] = $jumlah;
+        }
+        if (Schema::hasColumn('kartu_pelajar_pengeluaran', 'harga_satuan')) {
+            $payload['harga_satuan'] = $hargaSatuan;
         }
 
         KartuPelajarPengeluaran::create($payload);
@@ -1315,7 +1322,7 @@ class KartuPelajarController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Catatan pengeluaran berhasil disimpan.',
+                'message' => 'Catatan pengeluaran berhasil disimpan (Total: Rp ' . number_format($totalNominal, 0, ',', '.') . ').',
             ]);
         }
 

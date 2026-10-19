@@ -262,8 +262,10 @@
                                             @if (!empty($p->jumlah))
                                                 <span class="badge badge-outline"
                                                     style="font-size: 0.68rem; padding: 2px 6px; border-color: rgba(99,102,241,0.3); color: var(--primary);">
-                                                    <i class="fas fa-boxes-stacked me-1"></i> Qty:
-                                                    {{ number_format($p->jumlah, 0, ',', '.') }}
+                                                    <i class="fas fa-boxes-stacked me-1"></i> Qty: {{ number_format($p->jumlah, 0, ',', '.') }}
+                                                    @if (!empty($p->harga_satuan) || ($p->jumlah > 1 && $p->nominal > 0))
+                                                        &bull; @ Rp {{ number_format($p->harga_satuan ?: ($p->nominal / $p->jumlah), 0, ',', '.') }}
+                                                    @endif
                                                 </span>
                                             @endif
                                             @if ($p->petugas)
@@ -2075,13 +2077,15 @@
 
                     <div class="kp-form-grid">
                         <div class="kp-form-group">
-                            <label class="kp-form-label" for="pgNominal">Nominal / Total Biaya (Rp) <span
+                            <label class="kp-form-label" for="pgNominal">Harga Satuan / Nominal per Item (Rp) <span
                                     class="req">*</span></label>
                             <input type="text" id="pgNominal" name="nominal" required inputmode="numeric"
-                                class="form-control" placeholder="Contoh: 350.000" autocomplete="off"
+                                class="form-control" placeholder="Contoh: 2.500" autocomplete="off"
                                 style="font-weight: 700;">
                             <div class="kp-form-hint" id="pgNominalPreview"
-                                style="color: var(--primary); font-weight: 600;">Rp 0</div>
+                                style="color: var(--primary); font-weight: 700; margin-top: 5px;">
+                                Total Pengeluaran: Rp 0
+                            </div>
                         </div>
                         <div class="kp-form-group">
                             <label class="kp-form-label" for="pgTanggal">Tanggal <span class="req">*</span></label>

@@ -288,6 +288,30 @@ class JadwalKbm extends Model
     }
 
     /**
+     * Scope query untuk hanya mengambil mata pelajaran murni dengan guru mapel (tanpa kegiatan rutin upacara, istirahat, pembiasaan)
+     *
+     * ponytail: explicit exclusion of school routine slots. Upgrade to configurable routine category filter if new routine slot types are added.
+     */
+    public function scopeHanyaMapelGuru($query)
+    {
+        return $query->whereNotNull('ptk_id')
+            ->where('ptk_id', '!=', '')
+            ->whereHas('gtk', function ($g) {
+                $g->whereNotNull('nama')->where('nama', '!=', '');
+            })
+            ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT', 'LITERASI'])
+            ->where(function ($q) {
+                $q->whereNull('pembelajaran_id')
+                  ->orWhere('pembelajaran_id', 'NOT LIKE', 'ROUTINE_%');
+            })
+            ->where(function ($q) {
+                $q->where('nama_mata_pelajaran', 'NOT LIKE', '%upacara%')
+                  ->where('nama_mata_pelajaran', 'NOT LIKE', '%istirahat%')
+                  ->where('nama_mata_pelajaran', 'NOT LIKE', '%pembiasaan%');
+            });
+    }
+
+    /**
      * Scope query hanya untuk jadwal yang aktif dan resmi diberlakukan
      */
     public function scopeDiberlakukan($query, ?string $mode = null)

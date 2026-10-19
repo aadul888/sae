@@ -101,12 +101,22 @@ class PipController extends Controller
 
             // Sinkronkan peserta_didik_id dari NISN jika masih kosong
             if (Schema::hasTable('pip_riwayat') && Schema::hasTable('peserta_didik')) {
-                DB::statement("
-                    UPDATE pip_riwayat r
-                    INNER JOIN peserta_didik pd ON r.nisn IS NOT NULL AND r.nisn != '' AND r.nisn = pd.nisn
-                    SET r.peserta_didik_id = pd.peserta_didik_id
-                    WHERE r.peserta_didik_id IS NULL OR r.peserta_didik_id = ''
-                ");
+                $hasMissing = DB::table('pip_riwayat')
+                    ->where(function ($q) {
+                        $q->whereNull('peserta_didik_id')->orWhere('peserta_didik_id', '');
+                    })
+                    ->whereNotNull('nisn')
+                    ->where('nisn', '!=', '')
+                    ->exists();
+
+                if ($hasMissing) {
+                    DB::statement("
+                        UPDATE pip_riwayat r
+                        INNER JOIN peserta_didik pd ON r.nisn IS NOT NULL AND r.nisn != '' AND r.nisn = pd.nisn
+                        SET r.peserta_didik_id = pd.peserta_didik_id
+                        WHERE r.peserta_didik_id IS NULL OR r.peserta_didik_id = ''
+                    ");
+                }
             }
         } catch (\Throwable $e) {
             // Biarkan lewat jika tabel sudah siap
@@ -122,7 +132,7 @@ class PipController extends Controller
 
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        $isAdmin = ($role === 'admin');
+        $isAdmin = ($role === 'admin') || RolePermission::canAccess($user, 'menu_pip', 'read');
 
         // Hak akses: Admin memiliki akses penuh; Wali Kelas harus memiliki tugas tambahan Wali Kelas atau izin menu_wali_kelas_pip
         $isWaliKelas = RolePermission::isWaliKelasOrAdmin($user);
@@ -204,7 +214,7 @@ class PipController extends Controller
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
-        return $role === 'admin';
+        return ($role === 'admin') || RolePermission::canAccess($user, 'menu_pip', 'read');
     }
 
     /**

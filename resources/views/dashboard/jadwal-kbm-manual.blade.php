@@ -163,7 +163,18 @@
             @endif
 
             @if ($activeRombel)
-                <div class="banner-action-buttons" style="display: flex; gap: 8px; align-items: center;">
+                <div class="banner-action-buttons" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    @if (!empty($hasOtomatisSchedule) && ($isAdmin || !empty($isWaliKelas) || !empty($isGuru)))
+                        <button type="button" class="btn btn-outline" id="btnSalinOtomatis"
+                            data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
+                            data-rombel-name="{{ $activeRombel->nama }}"
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; border-color: rgba(99,102,241,0.35); color: var(--primary);"
+                            title="Salin seluruh susunan mata pelajaran dari Jadwal Induk (Otomatis) ke kelas ini agar seluruh baris JP terisi padat">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            <span class="d-none d-sm-inline">Penuhi dari Jadwal Induk</span>
+                        </button>
+                    @endif
+
                     <a href="{{ route('dashboard.jadwal-kbm.cetak-rombel', ['rombel_id' => $activeRombel->rombongan_belajar_id]) }}"
                         target="_blank" class="btn btn-outline"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; text-decoration: none;"
@@ -736,12 +747,12 @@
                                 <tr
                                     style="background: rgba(255,255,255,0.03); border-bottom: 1.5px solid var(--border-color);">
                                     <th class="sticky-jp-col"
-                                        style="padding: 12px 14px; width: 88px; min-width: 88px; text-align: center; font-weight: 800; color: var(--text-muted); text-transform: uppercase; font-size: 0.72rem;">
+                                        style="padding: 10px 8px; width: 88px; min-width: 88px; text-align: center; font-weight: 800; color: var(--text-muted); text-transform: uppercase; font-size: 0.72rem;">
                                         Jam / JP
                                     </th>
                                     @foreach ($hariAktif as $h)
                                         <th
-                                            style="padding: 12px 14px; min-width: 145px; text-align: center; font-weight: 800; color: var(--text-color); font-size: 0.82rem; border-left: 1px solid var(--border-color);">
+                                            style="padding: 10px 8px; min-width: 155px; text-align: center; font-weight: 800; color: var(--text-color); font-size: 0.82rem; border-left: 1px solid var(--border-color);">
                                             {{ $h }}
                                         </th>
                                     @endforeach
@@ -756,11 +767,11 @@
                                 @endphp
 
                                 @for ($jamKe = 1; $jamKe <= $maxSlots; $jamKe++)
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <tr style="height: 64px; border-bottom: 1px solid var(--border-color);">
                                         <!-- Kolom Jam Pelajaran (Sticky di Layar Mobile) -->
                                         <td class="sticky-jp-col"
-                                            style="padding: 10px 8px; text-align: center; vertical-align: middle;">
-                                            <div style="font-weight: 800; font-size: 0.84rem; color: var(--text-color);">JP
+                                            style="height: 64px; box-sizing: border-box; padding: 6px 8px; text-align: center; vertical-align: middle; border-bottom: 1px solid var(--border-color);">
+                                            <div style="font-weight: 800; font-size: 0.82rem; color: var(--text-color);">JP
                                                 {{ $jamKe }}</div>
                                             @php
                                                 $firstDaySlot = $timeSlotsByDay[$hariAktif[0] ?? 'Senin'] ?? [];
@@ -768,7 +779,7 @@
                                             @endphp
                                             @if ($slotInfo)
                                                 <div
-                                                    style="font-size: 0.68rem; color: var(--text-muted); margin-top: 2px;">
+                                                    style="font-size: 0.67rem; color: var(--text-muted); margin-top: 2px; font-weight: 600;">
                                                     {{ substr($slotInfo['mulai'] ?? ($slotInfo['jam_mulai'] ?? ''), 0, 5) }}
                                                     -
                                                     {{ substr($slotInfo['selesai'] ?? ($slotInfo['jam_selesai'] ?? ''), 0, 5) }}
@@ -780,6 +791,7 @@
                                         @foreach ($hariAktif as $h)
                                             @php
                                                 $daySlots = $timeSlotsByDay[$h] ?? [];
+                                                $daySlotCount = count($daySlots);
                                                 $isSlotExists = isset($daySlots[$jamKe]);
                                                 $routine = $routinesMap[$h][$jamKe] ?? null;
                                                 $schedule = $scheduleMatrix[$h][$jamKe] ?? null;
@@ -787,10 +799,25 @@
                                             @endphp
 
                                             @if (!$isSlotExists)
-                                                <td
-                                                    style="padding: 8px; border-left: 1px solid var(--border-color); background: rgba(0,0,0,0.15); text-align: center; color: var(--text-muted); font-size: 0.72rem; vertical-align: middle;">
-                                                    —
-                                                </td>
+                                                @if ($jamKe === $daySlotCount + 1)
+                                                    @php
+                                                        $trailingSpan = max(1, $maxSlots - $daySlotCount);
+                                                    @endphp
+                                                    <td rowspan="{{ $trailingSpan }}"
+                                                        style="height: {{ $trailingSpan * 64 }}px; padding: 3px 4px; border-left: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; background: rgba(0,0,0,0.02); box-sizing: border-box;">
+                                                        <div
+                                                            style="height: calc(100% - 2px); min-height: {{ max(54, $trailingSpan * 64 - 8) }}px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--text-muted); font-size: 0.74rem; background: rgba(0,0,0,0.04); border-radius: 7px; border: 1px dashed var(--border-color); padding: 6px; box-sizing: border-box;">
+                                                            <i class="fas fa-door-open"
+                                                                style="font-size: 0.95rem; opacity: 0.5;"></i>
+                                                            <strong
+                                                                style="font-size: 0.75rem; color: var(--text-muted);">KBM
+                                                                Selesai ({{ $daySlotCount }} JP)</strong>
+                                                            <span
+                                                                style="font-size: 0.67rem; opacity: 0.8;">{{ $h === 'Jumat' ? 'Sholat Jumat & Kepulangan' : 'Di Luar Jam Belajar' }}</span>
+                                                        </div>
+                                                    </td>
+                                                @endif
+                                                {{-- Jika $jamKe > $daySlotCount + 1, lewati karena sudah di-cover oleh rowspan di atas --}}
                                             @elseif ($isOccupied)
                                                 {{-- Slot ini terisi oleh pelajaran multi-JP dari jam sebelumnya, lewati perenderan terpisah --}}
                                             @elseif ($schedule)
@@ -801,42 +828,65 @@
                                                             (int) $schedule->jam_ke_mulai +
                                                             1,
                                                     );
+                                                    $isUpacara = $schedule->mata_pelajaran_id === 'UPACARA';
+                                                    $isPembiasaan = $schedule->mata_pelajaran_id === 'PEMBIASAAN';
+                                                    $isIstirahat = $schedule->mata_pelajaran_id === 'ISTIRAHAT';
                                                     $isRoutine =
-                                                        in_array(
-                                                            $schedule->mata_pelajaran_id,
-                                                            ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'],
-                                                            true,
-                                                        ) ||
+                                                        $isUpacara ||
+                                                        $isPembiasaan ||
+                                                        $isIstirahat ||
                                                         str_starts_with($schedule->pembelajaran_id ?? '', 'ROUTINE_') ||
                                                         in_array(
                                                             strtolower(trim($schedule->nama_mata_pelajaran)),
                                                             ['upacara', 'upacara bendera', 'istirahat', 'pembiasaan'],
                                                             true,
                                                         );
+                                                    $borderCol = $isUpacara
+                                                        ? '#ef4444'
+                                                        : ($isPembiasaan
+                                                            ? '#10b981'
+                                                            : ($isIstirahat
+                                                                ? '#f59e0b'
+                                                                : 'var(--primary)'));
+                                                    $bgCard = $isUpacara
+                                                        ? 'rgba(239,68,68,0.04)'
+                                                        : ($isPembiasaan
+                                                            ? 'rgba(16,185,129,0.04)'
+                                                            : ($isIstirahat
+                                                                ? 'rgba(245,158,11,0.04)'
+                                                                : 'var(--bg-card)'));
                                                 @endphp
                                                 <td rowspan="{{ $jpSpan }}"
-                                                    style="padding: 8px; border-left: 1px solid var(--border-color); vertical-align: top; background: {{ $isRoutine ? 'rgba(100,116,139,0.03)' : 'rgba(99,102,241,0.04)' }};">
+                                                    style="height: {{ $jpSpan * 64 }}px; padding: 3px 4px; border-left: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); vertical-align: top; box-sizing: border-box; background: {{ $isRoutine ? 'rgba(100,116,139,0.02)' : 'rgba(99,102,241,0.03)' }};">
                                                     <div class="slot-card-active"
-                                                        style="padding: 10px; border-radius: 8px; border: 1px solid {{ $isRoutine ? 'rgba(100,116,139,0.35)' : 'rgba(99,102,241,0.35)' }}; background: var(--bg-card); box-shadow: 0 4px 12px rgba(0,0,0,0.1); height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                                                        style="height: calc(100% - 2px); min-height: {{ max(54, $jpSpan * 64 - 8) }}px; padding: 7px 9px; border-radius: 7px; border: 1px solid {{ $isRoutine ? $borderCol : 'rgba(99,102,241,0.35)' }}; border-left: 4px solid {{ $borderCol }}; background: {{ $bgCard }}; box-shadow: 0 1px 3px rgba(0,0,0,0.08); box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
                                                         <div>
                                                             <div
-                                                                style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 4px;">
+                                                                style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 2px;">
                                                                 <strong
-                                                                    style="font-size: 0.82rem; color: var(--text-color); line-height: 1.3;"
+                                                                    style="font-size: 0.81rem; color: var(--text-color); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: {{ $jpSpan > 1 ? '3' : '1' }}; -webkit-box-orient: vertical; overflow: hidden;"
                                                                     title="{{ $schedule->nama_mata_pelajaran }}">
+                                                                    @if ($isUpacara)
+                                                                        <i class="fas fa-flag text-danger me-1"></i>
+                                                                    @elseif ($isPembiasaan)
+                                                                        <i
+                                                                            class="fas fa-hands-praying text-success me-1"></i>
+                                                                    @elseif ($isIstirahat)
+                                                                        <i class="fas fa-mug-hot text-warning me-1"></i>
+                                                                    @endif
                                                                     {{ $schedule->nama_mata_pelajaran }}
                                                                 </strong>
                                                                 <span class="badge"
-                                                                    style="background: {{ $isRoutine ? 'rgba(100,116,139,0.18)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isRoutine ? 'var(--text-muted)' : 'var(--primary)' }}; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">
+                                                                    style="background: {{ $isRoutine ? 'rgba(100,116,139,0.18)' : 'rgba(99,102,241,0.15)' }}; color: {{ $isRoutine ? 'var(--text-muted)' : 'var(--primary)' }}; font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; flex-shrink: 0; font-weight: 700;">
                                                                     {{ $jpSpan }} JP
                                                                 </span>
                                                             </div>
 
                                                             @if (!$isRoutine)
                                                                 <div
-                                                                    style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 5px;">
-                                                                    <i class="fas fa-user-tie"
-                                                                        style="font-size: 0.68rem;"></i>
+                                                                    style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                    <i class="fas fa-user-tie text-primary"
+                                                                        style="font-size: 0.68rem; flex-shrink: 0;"></i>
                                                                     <span
                                                                         title="{{ $schedule->nama_guru }}">{{ $schedule->nama_guru ?: 'Guru belum ada' }}</span>
                                                                 </div>
@@ -844,31 +894,31 @@
 
                                                             @if ($schedule->ruangan)
                                                                 <div
-                                                                    style="font-size: 0.72rem; color: #10b981; display: flex; align-items: center; gap: 5px;">
+                                                                    style="font-size: 0.7rem; color: #10b981; display: flex; align-items: center; gap: 4px;">
                                                                     <i class="fas fa-location-dot"
-                                                                        style="font-size: 0.68rem;"></i>
+                                                                        style="font-size: 0.65rem;"></i>
                                                                     <span>{{ $schedule->ruangan }}</span>
                                                                 </div>
                                                             @endif
 
                                                             @if ($routine && !$isRoutine)
                                                                 <div
-                                                                    style="margin-top: 4px; font-size: 0.68rem; color: #ef4444; background: rgba(239,68,68,0.1); border-radius: 4px; padding: 2px 5px; display: inline-flex; align-items: center; gap: 3px;">
+                                                                    style="margin-top: 2px; font-size: 0.65rem; color: #ef4444; background: rgba(239,68,68,0.1); border-radius: 4px; padding: 1px 4px; display: inline-flex; align-items: center; gap: 3px;">
                                                                     <i class="fas fa-triangle-exclamation"></i>
                                                                     <span>Bentrok {{ $routine->nama }}</span>
                                                                 </div>
                                                             @endif
                                                         </div>
 
-                                                        <!-- Tombol Aksi Slot (Touch-Friendly & Responsif) -->
+                                                        <!-- Tombol Aksi Slot Padat & Rapi -->
                                                         <div
-                                                            style="display: flex; justify-content: {{ $isRoutine ? 'space-between' : 'flex-end' }}; align-items: center; gap: 8px; margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border-color);">
+                                                            style="display: flex; justify-content: {{ $isRoutine ? 'space-between' : 'flex-end' }}; align-items: center; gap: 6px; margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color);">
                                                             @if ($isRoutine)
                                                                 <span
-                                                                    style="font-size: 0.68rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;"
-                                                                    title="Kegiatan rutin sekolah otomatis berdasarkan Pengaturan Jam &amp; Bel KBM">
-                                                                    <i class="fas fa-lock"
-                                                                        style="font-size: 0.62rem;"></i> Pengaturan Jam
+                                                                    style="font-size: 0.65rem; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px;"
+                                                                    title="Kegiatan rutin disinkronkan otomatis dari Pengaturan KBM">
+                                                                    <i class="fas fa-lock" style="font-size: 0.6rem;"></i>
+                                                                    Pengaturan KBM
                                                                 </span>
                                                             @else
                                                                 <button type="button"
@@ -882,7 +932,8 @@
                                                                     data-jam-selesai="{{ $schedule->jam_ke_selesai }}"
                                                                     data-ruangan="{{ $schedule->ruangan }}"
                                                                     data-keterangan="{{ $schedule->keterangan }}"
-                                                                    title="Edit Slot Ini" aria-label="Edit Slot Ini">
+                                                                    title="Edit Slot Ini" aria-label="Edit Slot Ini"
+                                                                    style="width: 26px; height: 26px; min-width: 26px; min-height: 26px; font-size: 0.72rem; padding: 0;">
                                                                     <i class="fas fa-pen"></i>
                                                                 </button>
                                                                 <button type="button"
@@ -891,7 +942,8 @@
                                                                     data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
                                                                     data-hari="{{ $schedule->hari }}"
                                                                     data-jam="Jam ke-{{ $schedule->jam_ke_mulai }} s/d {{ $schedule->jam_ke_selesai }}"
-                                                                    title="Hapus Slot Ini" aria-label="Hapus Slot Ini">
+                                                                    title="Hapus Slot Ini" aria-label="Hapus Slot Ini"
+                                                                    style="width: 26px; height: 26px; min-width: 26px; min-height: 26px; font-size: 0.72rem; padding: 0;">
                                                                     <i class="fas fa-trash"></i>
                                                                 </button>
                                                             @endif
@@ -909,10 +961,10 @@
                                                                 : '#f59e0b');
                                                     $rBg =
                                                         $rType === 'UPACARA'
-                                                            ? 'rgba(239,68,68,0.06)'
+                                                            ? 'rgba(239,68,68,0.04)'
                                                             : ($rType === 'PEMBIASAAN'
-                                                                ? 'rgba(16,185,129,0.06)'
-                                                                : 'rgba(245,158,11,0.06)');
+                                                                ? 'rgba(16,185,129,0.04)'
+                                                                : 'rgba(245,158,11,0.04)');
                                                     $rBadgeBg =
                                                         $rType === 'UPACARA'
                                                             ? 'rgba(239,68,68,0.12)'
@@ -921,26 +973,32 @@
                                                                 : 'rgba(245,158,11,0.12)');
                                                 @endphp
                                                 <td
-                                                    style="padding: 8px; border-left: 1px solid var(--border-color); background: {{ $rBg }}; text-align: center; vertical-align: middle;">
+                                                    style="height: 64px; padding: 3px 4px; border-left: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); vertical-align: middle; text-align: center; box-sizing: border-box; background: {{ $rBg }};">
                                                     <div
-                                                        style="padding: 8px 10px; border-radius: 8px; border: 1px solid {{ $rColor }}; background: {{ $rBadgeBg }}; color: {{ $rColor }};">
-                                                        <i class="fas {{ $routine->icon }} me-1"></i>
-                                                        <strong style="font-size: 0.78rem;">{{ $routine->nama }}</strong>
-                                                        <div style="font-size: 0.68rem; opacity: 0.85;">
+                                                        style="height: calc(100% - 2px); min-height: 54px; padding: 6px 8px; border-radius: 7px; border: 1px solid {{ $rColor }}; border-left: 4px solid {{ $rColor }}; background: {{ $rBadgeBg }}; color: {{ $rColor }}; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;">
+                                                        <div
+                                                            style="font-weight: 700; font-size: 0.78rem; display: flex; align-items: center; gap: 4px;">
+                                                            <i class="fas {{ $routine->icon }}"></i>
+                                                            <span>{{ $routine->nama }}</span>
+                                                        </div>
+                                                        <div style="font-size: 0.67rem; opacity: 0.85;">
                                                             {{ $routine->durasi }}</div>
                                                     </div>
                                                 </td>
                                             @else
-                                                <!-- Slot Kosong: Tombol Tambah Cepat -->
+                                                <!-- Slot Tersedia: Padat & Siap Diisi (Bukan Kotak Kosong Bolong) -->
                                                 <td
-                                                    style="padding: 8px; border-left: 1px solid var(--border-color); vertical-align: middle;">
+                                                    style="height: 64px; padding: 3px 4px; border-left: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); vertical-align: middle; box-sizing: border-box;">
                                                     <button type="button" class="btn-empty-slot"
                                                         data-hari="{{ $h }}"
                                                         data-jam-ke="{{ $jamKe }}"
-                                                        style="width: 100%; min-height: 52px; background: transparent; border: 1.5px dashed var(--border-color); border-radius: 8px; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease;">
-                                                        <i class="fas fa-plus"
-                                                            style="font-size: 0.8rem; opacity: 0.6;"></i>
-                                                        <span>Kosong</span>
+                                                        title="Klik untuk mengisi mata pelajaran pada hari {{ $h }} Jam Ke-{{ $jamKe }}"
+                                                        style="width: 100%; height: calc(100% - 2px); min-height: 54px; background: rgba(99,102,241,0.02); border: 1px dashed rgba(99,102,241,0.22); border-radius: 7px; color: var(--text-muted); font-size: 0.72rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; box-sizing: border-box; transition: all 0.15s ease;">
+                                                        <i class="fas fa-plus text-primary"
+                                                            style="font-size: 0.75rem; opacity: 0.75;"></i>
+                                                        <span
+                                                            style="font-size: 0.68rem; font-weight: 600; color: var(--text-muted);">+
+                                                            Isi JP {{ $jamKe }}</span>
                                                     </button>
                                                 </td>
                                             @endif
@@ -961,6 +1019,7 @@
         data-route-update="{{ url('/dashboard/master-data/jadwal-kbm/manual/update-slot') }}"
         data-route-delete="{{ url('/dashboard/master-data/jadwal-kbm/manual/delete-slot') }}"
         data-route-clear="{{ route('dashboard.jadwal-kbm.manual.clear-rombel') }}"
+        data-route-copy="{{ route('dashboard.jadwal-kbm.manual.copy-from-otomatis') }}"
         data-route-conflict="{{ route('dashboard.jadwal-kbm.check-conflict') }}"
         data-slots="{{ json_encode($timeSlotsByDay) }}" data-routines="{{ json_encode($routinesMap) }}"
         data-rombel-id="{{ $activeRombel ? $activeRombel->rombongan_belajar_id : '' }}"

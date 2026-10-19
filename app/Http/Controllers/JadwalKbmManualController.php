@@ -359,6 +359,16 @@ class JadwalKbmManualController extends Controller
         $isGuru = ($role === 'guru');
         $isWaliKelas = RolePermission::getWaliKelasRombelInfo($user)?->rombongan_belajar_id === ($activeRombel?->rombongan_belajar_id ?? null);
 
+        $hasOtomatisSchedule = false;
+        if ($activeRombel) {
+            $hasOtomatisSchedule = DB::table('jadwal_kbm')
+                ->where('rombongan_belajar_id', $activeRombel->rombongan_belajar_id)
+                ->where('sumber', 'otomatis')
+                ->where('is_active', true)
+                ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
+                ->exists();
+        }
+
         return view('dashboard.jadwal-kbm-manual', compact(
             'activeRombel',
             'rombelList',
@@ -366,6 +376,7 @@ class JadwalKbmManualController extends Controller
             'isAdmin',
             'isGuru',
             'isWaliKelas',
+            'hasOtomatisSchedule',
             'currentPtkId',
             'role',
             'pembelajaranData',
@@ -901,6 +912,96 @@ class JadwalKbmManualController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Berhasil mereset {$deleted} jadwal pelajaran pada kelas ini.",
+        ]);
+    }
+
+    /**
+     * API: Salin dan penuhi seluruh baris JP kelas dari Jadwal Induk (Otomatis)
+     */
+    public function copyFromOtomatis(Request $request)
+    {
+        $user = session('user');
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Sesi login telah berakhir.'], 401);
+        }
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+
+        $rombelId = $request->input('rombongan_belajar_id');
+        if (!$rombelId) {
+            return response()->json(['success' => false, 'message' => 'ID Rombongan belajar diperlukan.'], 422);
+        }
+
+        if ($role === 'peserta_didik') {
+            return response()->json(['success' => false, 'message' => 'Hanya Guru atau Administrator yang dapat menyalin jadwal induk.'], 403);
+        }
+
+        if ($role === 'guru') {
+            $waliRombel = RolePermission::getWaliKelasRombelInfo($user);
+            $isWali = $waliRombel && ($waliRombel->rombongan_belajar_id === $rombelId);
+            $canManageAll = RolePermission::canAccess($user, 'menu_jadwal_kbm', 'create') || RolePermission::canAccess($user, 'menu_jadwal_kbm', 'update');
+            $sessionPtkId = is_array($user) ? ($user['ptk_id'] ?? null) : ($user->ptk_id ?? null);
+            $isGuruInRombel = $sessionPtkId && DB::table('pembelajaran')->where('ptk_id', $sessionPtkId)->where('rombongan_belajar_id', $rombelId)->exists();
+
+            if (!$isWali && !$canManageAll && !$isGuruInRombel) {
+                return response()->json(['success' => false, 'message' => 'Anda tidak memiliki wewenang mengelola jadwal kelas ini.'], 403);
+            }
+        }
+
+        $otomatisList = DB::table('jadwal_kbm')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->where('sumber', 'otomatis')
+            ->where('is_active', true)
+            ->get();
+
+        if ($otomatisList->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Belum ada jadwal induk (otomatis) untuk kelas ini yang dapat disalin.'], 422);
+        }
+
+        // Hapus jadwal manual lama (kecualikan upacara/pembiasaan/istirahat agar tetap tersinkron)
+        DB::table('jadwal_kbm')
+            ->where('rombongan_belajar_id', $rombelId)
+            ->where('sumber', 'manual')
+            ->whereNotIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
+            ->delete();
+
+        $inserted = 0;
+        foreach ($otomatisList as $item) {
+            $isRoutine = in_array($item->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)
+                || str_starts_with($item->pembelajaran_id ?? '', 'ROUTINE_');
+            if ($isRoutine) {
+                continue;
+            }
+
+            DB::table('jadwal_kbm')->insert([
+                'rombongan_belajar_id' => $item->rombongan_belajar_id,
+                'pembelajaran_id'      => $item->pembelajaran_id,
+                'ptk_id'               => $item->ptk_id,
+                'mata_pelajaran_id'    => $item->mata_pelajaran_id,
+                'nama_mata_pelajaran'  => $item->nama_mata_pelajaran,
+                'hari'                 => $item->hari,
+                'jam_ke_mulai'         => $item->jam_ke_mulai,
+                'jam_ke_selesai'       => $item->jam_ke_selesai,
+                'jam_mulai'            => $item->jam_mulai,
+                'jam_selesai'          => $item->jam_selesai,
+                'ruangan'              => $item->ruangan,
+                'semester_id'          => $item->semester_id,
+                'sumber'               => 'manual',
+                'is_active'            => true,
+                'keterangan'           => $item->keterangan,
+                'created_at'           => now(),
+                'updated_at'           => now(),
+            ]);
+            $inserted++;
+        }
+
+        RealtimeService::trigger('jadwal.changed', [
+            'action' => 'copied_from_otomatis',
+            'rombel' => $rombelId,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Sebanyak {$inserted} slot pelajaran dari Jadwal Induk berhasil disalin ke Jadwal Manual kelas ini sehingga baris JP terisi padat!",
         ]);
     }
 }

@@ -140,8 +140,8 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-                     * Tab Riwayat PIP — Desktop & Responsive Modern Table
-                     * ------------------------------------------------------------- */
+                         * Tab Riwayat PIP — Desktop & Responsive Modern Table
+                         * ------------------------------------------------------------- */
         .table-pip-riwayat {
             width: 100%;
             border-collapse: collapse;
@@ -328,19 +328,33 @@
             tahun: @json($activeTahun),
             rombelId: @json($isAdmin ? $activeRombel?->rombongan_belajar_id : null),
             routes: {
-                cariSiswa: @json(route('dashboard.pip.cari-siswa')),
-                exportUsulan: @json(route('dashboard.pip.export-usulan')),
-                storeUsulan: @json(route('dashboard.pip.store-usulan')),
-                prioritas: @json(route('dashboard.pip.update-prioritas')),
-                bulkVerifikasi: @json(route('dashboard.pip.bulk-verifikasi')),
-                kuota: @json(route('dashboard.pip.update-kuota')),
-                importRiwayat: @json(route('dashboard.pip.import-riwayat')),
-                storeRiwayat: @json(route('dashboard.pip.store-riwayat')),
+                cariSiswa: @json(Route::has('dashboard.pip.cari-siswa') ? route('dashboard.pip.cari-siswa') : url('/dashboard/pip/cari-siswa')),
+                exportUsulan: @json(Route::has('dashboard.pip.export-usulan')
+                        ? route('dashboard.pip.export-usulan')
+                        : url('/dashboard/pip/usulan/export')),
+                storeUsulan: @json(Route::has('dashboard.pip.store-usulan') ? route('dashboard.pip.store-usulan') : url('/dashboard/pip/usulan')),
+                prioritas: @json(Route::has('dashboard.pip.update-prioritas')
+                        ? route('dashboard.pip.update-prioritas')
+                        : url('/dashboard/pip/usulan/prioritas')),
+                bulkVerifikasi: @json(Route::has('dashboard.pip.bulk-verifikasi')
+                        ? route('dashboard.pip.bulk-verifikasi')
+                        : url('/dashboard/pip/usulan/bulk-verifikasi')),
+                kuota: @json(Route::has('dashboard.pip.update-kuota') ? route('dashboard.pip.update-kuota') : url('/dashboard/pip/kuota')),
+                importRiwayat: @json(Route::has('dashboard.pip.import-riwayat')
+                        ? route('dashboard.pip.import-riwayat')
+                        : url('/dashboard/pip/riwayat/import')),
+                storeRiwayat: @json(Route::has('dashboard.pip.store-riwayat') ? route('dashboard.pip.store-riwayat') : url('/dashboard/pip/riwayat')),
             },
             urlTemplates: {
-                destroyUsulan: @json(route('dashboard.pip.destroy-usulan', ['id' => '__ID__'])),
-                verifikasi: @json(route('dashboard.pip.update-verifikasi', ['id' => '__ID__'])),
-                destroyRiwayat: @json(route('dashboard.pip.destroy-riwayat', ['id' => '__ID__'])),
+                destroyUsulan: @json(Route::has('dashboard.pip.destroy-usulan')
+                        ? route('dashboard.pip.destroy-usulan', ['id' => '__ID__'])
+                        : url('/dashboard/pip/usulan/__ID__/delete')),
+                verifikasi: @json(Route::has('dashboard.pip.update-verifikasi')
+                        ? route('dashboard.pip.update-verifikasi', ['id' => '__ID__'])
+                        : url('/dashboard/pip/usulan/__ID__/verifikasi')),
+                destroyRiwayat: @json(Route::has('dashboard.pip.destroy-riwayat')
+                        ? route('dashboard.pip.destroy-riwayat', ['id' => '__ID__'])
+                        : url('/dashboard/pip/riwayat/__ID__/delete')),
             },
         };
     </script>

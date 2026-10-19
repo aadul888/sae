@@ -24,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Form inputs
     const selectJadwalKbm = document.getElementById("selectJadwalKbm");
     const inputJadwalKbmId = document.getElementById("inputJadwalKbmId");
+    const inputPtkId = document.getElementById("inputPtkId");
+    const selectPtkId = document.getElementById("selectPtkId");
     const inputRombel = document.getElementById("inputRombonganBelajarId");
     const inputMapel = document.getElementById("inputNamaMataPelajaran");
     const inputPembelajaranId = document.getElementById("inputPembelajaranId");
@@ -149,6 +151,12 @@ document.addEventListener("DOMContentLoaded", () => {
         radio.addEventListener("change", checkStatusRadio);
     });
 
+    if (selectPtkId && inputPtkId) {
+        selectPtkId.addEventListener("change", () => {
+            inputPtkId.value = selectPtkId.value;
+        });
+    }
+
     // Handle auto-fill dari select jadwal KBM
     if (selectJadwalKbm) {
         selectJadwalKbm.addEventListener("change", () => {
@@ -168,6 +176,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 inputPembelajaranId.value = opt.dataset.pembelajaranId || "";
             if (inputMataPelajaranId)
                 inputMataPelajaranId.value = opt.dataset.mapelId || "";
+            if (opt.dataset.ptkId) {
+                if (inputPtkId) inputPtkId.value = opt.dataset.ptkId;
+                if (selectPtkId) selectPtkId.value = opt.dataset.ptkId;
+            }
             if (inputJamKeMulai && opt.dataset.jamMulai)
                 inputJamKeMulai.value = opt.dataset.jamMulai;
             if (inputJamKeSelesai && opt.dataset.jamSelesai)
@@ -199,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (inputPembelajaranId) inputPembelajaranId.value = "";
         if (inputMataPelajaranId) inputMataPelajaranId.value = "";
         if (selectJadwalKbm) selectJadwalKbm.value = "";
+        if (selectPtkId) selectPtkId.value = "";
         resetWaktuKbm();
 
         // Reset radio ke Hadir (H)
@@ -299,6 +312,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 inputPembelajaranId.value = d.pembelajaranId || "";
             if (inputMataPelajaranId)
                 inputMataPelajaranId.value = d.mapelId || "";
+            if (d.ptkId) {
+                if (inputPtkId) inputPtkId.value = d.ptkId;
+                if (selectPtkId) selectPtkId.value = d.ptkId;
+            }
             if (inputJamKeMulai && d.jamMulai)
                 inputJamKeMulai.value = d.jamMulai;
             if (inputJamKeSelesai && d.jamSelesai)
@@ -596,6 +613,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     inputJadwalKbmId.value = d.jadwal_kbm_id || "";
                 if (selectJadwalKbm)
                     selectJadwalKbm.value = d.jadwal_kbm_id || "";
+                if (d.ptk_id) {
+                    if (inputPtkId) inputPtkId.value = d.ptk_id;
+                    if (selectPtkId) selectPtkId.value = d.ptk_id;
+                }
                 if (inputRombel) inputRombel.value = d.rombongan_belajar_id;
                 if (inputMapel) inputMapel.value = d.nama_mata_pelajaran;
                 if (inputTanggal) inputTanggal.value = d.tanggal;

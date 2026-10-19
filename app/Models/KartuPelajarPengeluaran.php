@@ -15,6 +15,7 @@ class KartuPelajarPengeluaran extends Model
         'judul',
         'kategori',
         'jumlah',
+        'harga_satuan',
         'nominal',
         'tanggal',
         'keterangan',
@@ -23,9 +24,10 @@ class KartuPelajarPengeluaran extends Model
     ];
 
     protected $casts = [
-        'jumlah'  => 'integer',
-        'nominal' => 'integer',
-        'tanggal' => 'date',
+        'jumlah'       => 'integer',
+        'harga_satuan' => 'integer',
+        'nominal'      => 'integer',
+        'tanggal'      => 'date',
     ];
 
     public static function getKategoriList(): array

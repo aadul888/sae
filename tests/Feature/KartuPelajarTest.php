@@ -128,7 +128,7 @@ class KartuPelajarTest extends TestCase
             'judul'      => 'Beli 100 Kartu PVC RFID Blank',
             'kategori'   => 'bahan_pvc',
             'jumlah'     => 100,
-            'nominal'    => '250.000',
+            'nominal'    => '2.500',
             'tanggal'    => '2026-10-14',
             'keterangan' => 'Pembelian toko elektronik',
         ]);
@@ -137,6 +137,7 @@ class KartuPelajarTest extends TestCase
         $item = \App\Models\KartuPelajarPengeluaran::where('judul', 'Beli 100 Kartu PVC RFID Blank')->latest('id')->first();
         $this->assertNotNull($item);
         $this->assertEquals(250000, $item->nominal);
+        $this->assertEquals(2500, $item->harga_satuan);
         $this->assertEquals(100, $item->jumlah);
 
         // 2. Akses Tab Keuangan

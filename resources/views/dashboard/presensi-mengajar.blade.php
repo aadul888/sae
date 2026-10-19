@@ -174,7 +174,7 @@
             </div>
             <span class="badge"
                 style="background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.75rem; padding: 3px 8px; font-weight: 700;">
-                {{ count($jadwalHariIni) }} Sesi
+                {{ count($jadwalHariIni) }} Sesi Mapel
             </span>
         </div>
 
@@ -231,6 +231,19 @@
                                 {{ $j->nama_mata_pelajaran }}
                             </div>
 
+                            @php
+                                $guruNama = $j->gtk?->nama ?? null;
+                            @endphp
+                            @if (!empty($guruNama))
+                                <div style="font-size: 0.76rem; color: var(--text-color); font-weight: 600; margin-top: 3px; display: flex; align-items: center; gap: 6px;"
+                                    title="Guru Mapel: {{ $guruNama }}">
+                                    <i class="fas fa-user-tie text-primary"
+                                        style="font-size: 0.72rem; flex-shrink: 0;"></i>
+                                    <span
+                                        style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $guruNama }}</span>
+                                </div>
+                            @endif
+
                             <div
                                 style="font-size: 0.74rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 4px;">
                                 <span><i class="far fa-clock me-1"></i>{{ $j->jam_waktu_range }}</span>
@@ -279,7 +292,7 @@
                                         data-jam-keluar="{{ !empty($j->jam_selesai) ? substr($j->jam_selesai, 0, 5) : '' }}"
                                         data-jam-waktu="{{ $j->jam_waktu_range }}" data-durasi-jp="{{ $j->durasi_jp }}"
                                         data-hari="{{ $j->hari }}" data-ptk-id="{{ $j->ptk_id }}"
-                                        title="Presensi Sekarang"
+                                        data-guru-nama="{{ $guruNama ?? '' }}" title="Presensi Sekarang"
                                         style="font-size: 0.8rem; padding: 5px 10px; border-radius: 7px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
                                         <i class="fas fa-calendar-check"></i>
                                     </button>
@@ -292,8 +305,10 @@
         @else
             <div
                 style="text-align: center; padding: 18px 12px; background: var(--bg-hover); border-radius: 8px; color: var(--text-muted); font-size: 0.82rem;">
-                <i class="fas fa-coffee" style="font-size: 1.5rem; margin-bottom: 6px; display: block; opacity: 0.5;"></i>
-                Tidak ada jadwal KBM aktif untuk Anda pada hari {{ $hariIni }}.
+                <i class="fas fa-calendar-xmark"
+                    style="font-size: 1.5rem; margin-bottom: 6px; display: block; opacity: 0.5;"></i>
+                Tidak ada jadwal KBM aktif {{ $isGuru ? 'untuk Anda' : 'dengan guru mata pelajaran' }} pada hari
+                {{ $hariIni }}.
             </div>
         @endif
     </div>
@@ -455,11 +470,30 @@
                                     data-jam-waktu="{{ $j['jam_waktu_range'] ?? '' }}"
                                     data-durasi-jp="{{ $j['durasi_jp'] }}" data-ptk-id="{{ $j['ptk_id'] }}">
                                     [{{ $j['hari'] }}] {{ $j['rombel_nama'] }} — {{ $j['nama_mata_pelajaran'] }} (Jam
-                                    {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }})
+                                    {{ $j['jam_ke_mulai'] }}-{{ $j['jam_ke_selesai'] }}{{ !empty($j['jam_waktu_range']) ? ' • ' . $j['jam_waktu_range'] : '' }}){{ !$isGuru && !empty($j['guru_nama']) && $j['guru_nama'] !== '-' ? ' • ' . $j['guru_nama'] : '' }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
+
+                    @if (!$isGuru && count($guruList) > 0)
+                        <!-- Pilihan Guru Pengampu (Khusus Guru Piket / Tendik / Admin) -->
+                        <div class="pm-field" style="margin-bottom: 12px;" id="wrapPtkSelector">
+                            <label
+                                style="font-size: 0.78rem; font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                <i class="fas fa-user-tie text-primary"></i> Guru Mata Pelajaran <span
+                                    style="color: #ef4444;">*</span>
+                            </label>
+                            <select id="selectPtkId"
+                                style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 8px; font-size: 0.82rem; box-sizing: border-box;">
+                                <option value="">-- Pilih Guru Pengampu --</option>
+                                @foreach ($guruList as $g)
+                                    <option value="{{ $g->ptk_id }}">{{ $g->nama }}
+                                        {{ $g->nip ? '(' . $g->nip . ')' : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
 
                     <!-- Alert Info Kalender Pendidikan pada Tanggal Terpilih -->
                     <div id="infoKalenderTanggalPresensi"

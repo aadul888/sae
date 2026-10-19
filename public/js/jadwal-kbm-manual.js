@@ -128,6 +128,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnSimpan = document.getElementById("btnSimpanSlot");
     const btnTambah = document.getElementById("btnTambahSlotManual");
     const btnResetRombel = document.getElementById("btnResetRombel");
+    const btnSalinOtomatis = document.getElementById("btnSalinOtomatis");
     const adminSelectRombel = document.getElementById("adminSelectRombel");
 
     const inputSlotId = document.getElementById("slotId");
@@ -147,6 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const routeUpdateBase = modal.dataset.routeUpdate;
     const routeDeleteBase = modal.dataset.routeDelete;
     const routeClear = modal.dataset.routeClear;
+    const routeCopy = modal.dataset.routeCopy || "/dashboard/master-data/jadwal-kbm/manual/copy-from-otomatis";
     const routeConflict = modal.dataset.routeConflict;
     const defaultRombelId = modal.dataset.rombelId;
     const defaultRombelName = modal.dataset.rombelName;
@@ -810,6 +812,91 @@ document.addEventListener("DOMContentLoaded", function () {
                     alert(err.message);
                 }
             });
+    }
+
+    // Salin & Penuhi Baris JP dari Jadwal Induk (Otomatis)
+    if (btnSalinOtomatis) {
+        btnSalinOtomatis.addEventListener("click", function () {
+            const rombelId = this.dataset.rombelId;
+            const rombelName = this.dataset.rombelName || "kelas ini";
+            const swalObj = typeof Swal !== "undefined" ? Swal : (window.Swal || null);
+
+            const executeCopy = () => {
+                if (swalObj) {
+                    swalObj.fire({
+                        title: "Menyalin Jadwal...",
+                        text: "Menyalin dan memenuhi seluruh baris JP dari Jadwal Induk...",
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: () => {
+                            swalObj.showLoading();
+                        }
+                    });
+                }
+
+                fetch(routeCopy, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": getCsrfToken(),
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify({ rombongan_belajar_id: rombelId }),
+                })
+                    .then(async (res) => {
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) throw new Error(data.message || "Gagal menyalin jadwal induk.");
+                        return data;
+                    })
+                    .then((res) => {
+                        if (swalObj) {
+                            swalObj.fire({
+                                icon: "success",
+                                title: "Berhasil Dipenuhi!",
+                                text: res.message || "Seluruh baris JP berhasil dipenuhi dari Jadwal Induk.",
+                                timer: 1800,
+                                showConfirmButton: false,
+                            }).then(() => window.location.reload());
+                        } else {
+                            alert(res.message);
+                            window.location.reload();
+                        }
+                    })
+                    .catch((err) => {
+                        if (swalObj) {
+                            swalObj.fire({
+                                icon: "error",
+                                title: "Gagal Menyalin",
+                                text: err.message || "Terjadi kesalahan saat menyalin jadwal induk.",
+                            });
+                        } else {
+                            alert(err.message);
+                        }
+                    });
+            };
+
+            if (!swalObj) {
+                if (confirm(`Penuhi seluruh baris JP kelas ${rombelName} dari Jadwal Induk (Otomatis)?`)) {
+                    executeCopy();
+                }
+                return;
+            }
+
+            swalObj.fire({
+                title: `Penuhi Jadwal Kelas ${rombelName}?`,
+                html: `Seluruh slot mata pelajaran dari <strong>Jadwal Induk (Otomatis)</strong> akan disalin ke kelas ini sehingga seluruh baris JP terisi padat tanpa jam kosong. Anda tetap dapat mengedit atau menyesuaikan slot kapan saja.`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "#6366f1",
+                cancelButtonColor: "#64748b",
+                confirmButtonText: '<i class="fas fa-wand-magic-sparkles me-1"></i> Ya, Salin & Penuhi Baris JP',
+                cancelButtonText: "Batal",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    executeCopy();
+                }
+            });
+        });
     }
 
     // Submit Formulir Simpan / Update Slot

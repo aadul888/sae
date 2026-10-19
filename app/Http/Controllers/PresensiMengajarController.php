@@ -64,13 +64,15 @@ class PresensiMengajarController extends Controller
         $tanggalHariIni = Carbon::today()->toDateString();
         $statusHariIni = KalenderPendidikan::getStatusHari($tanggalHariIni, 'gtk');
 
-        // 1. Ambil Jadwal Mengajar Hari Ini untuk Widget Cepat Guru (Kecualikan PKL karena presensi via ePKL)
+        // 1. Ambil Jadwal Mengajar Hari Ini untuk Widget Cepat Guru / Guru Piket (Hanya mapel dengan guru, tanpa upacara, istirahat, pembiasaan)
         $isJadwalDiberlakukan = \App\Models\JadwalPengaturan::isDiberlakukan();
         $modeAktif = \App\Models\JadwalPengaturan::getModeAktif();
         $jadwalHariIniQuery = JadwalKbm::query()
             ->where('is_active', true)
             ->where('hari', $hariIni)
-            ->excludePkl();
+            ->excludePkl()
+            ->hanyaMapelGuru()
+            ->with('gtk');
 
         if ($modeAktif) {
             $jadwalHariIniQuery->where('sumber', $modeAktif);
@@ -78,6 +80,12 @@ class PresensiMengajarController extends Controller
 
         if ($isGuru && $ptkId) {
             $jadwalHariIniQuery->where('ptk_id', $ptkId);
+        } elseif ($request->filled('filter_ptk_id')) {
+            $jadwalHariIniQuery->where('ptk_id', $request->filter_ptk_id);
+        }
+
+        if ($request->filled('rombongan_belajar_id')) {
+            $jadwalHariIniQuery->where('rombongan_belajar_id', $request->rombongan_belajar_id);
         }
 
         $isHariAktifHariIni = class_exists(\App\Models\JadwalPengaturan::class)
@@ -86,7 +94,7 @@ class PresensiMengajarController extends Controller
 
         $jadwalHariIni = (($statusHariIni['mode'] ?? null) === 'libur' || ($statusHariIni['is_libur'] ?? false) || !$isHariAktifHariIni || !$isJadwalDiberlakukan || !$modeAktif)
             ? collect()
-            : $jadwalHariIniQuery->orderBy('jam_ke_mulai', 'asc')->get();
+            : $jadwalHariIniQuery->orderBy('jam_ke_mulai', 'asc')->orderBy('rombongan_belajar_id', 'asc')->get();
 
         // Cari presensi yang sudah dicatat hari ini
         $presensiHariIniKeyed = PresensiMengajar::where('tanggal', $tanggalHariIni)
@@ -218,20 +226,22 @@ class PresensiMengajarController extends Controller
             'hari_efektif_berjalan' => $hebBulanBerjalan,
         ];
 
-        // 4. Data Master untuk Dropdown Modal & Filter (Hanya mode yang aktif & diberlakukan, kecualikan PKL untuk guru)
+        // 4. Data Master untuk Dropdown Modal & Filter (Hanya mode yang aktif & diberlakukan, kecualikan PKL & rutinitas tanpa guru)
         if (!$isJadwalDiberlakukan || !$modeAktif) {
             $jadwalList = collect();
         } else {
             $jadwalQuery = JadwalKbm::where('is_active', true)
-                ->where('sumber', $modeAktif);
-            if ($isGuru) {
-                $jadwalQuery->excludePkl();
-                if ($ptkId) {
-                    $jadwalQuery->where('ptk_id', $ptkId);
-                }
+                ->where('sumber', $modeAktif)
+                ->excludePkl()
+                ->hanyaMapelGuru()
+                ->with('gtk');
+
+            if ($isGuru && $ptkId) {
+                $jadwalQuery->where('ptk_id', $ptkId);
             }
             $jadwalList = $jadwalQuery->orderBy('hari')->orderBy('jam_ke_mulai')->get()->map(function ($j) {
                 $rombelNama = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $j->rombongan_belajar_id)->value('nama') ?? $j->rombongan_belajar_id;
+                $guruNama = $j->gtk?->nama ?? '-';
                 return [
                     'id' => $j->id,
                     'hari' => $j->hari,
@@ -247,6 +257,7 @@ class PresensiMengajarController extends Controller
                     'pembelajaran_id' => $j->pembelajaran_id,
                     'mata_pelajaran_id' => $j->mata_pelajaran_id,
                     'ptk_id' => $j->ptk_id,
+                    'guru_nama' => $guruNama,
                     'ruangan' => $j->ruangan,
                 ];
             });
