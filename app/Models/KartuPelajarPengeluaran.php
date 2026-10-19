@@ -14,6 +14,7 @@ class KartuPelajarPengeluaran extends Model
     protected $fillable = [
         'judul',
         'kategori',
+        'jumlah',
         'nominal',
         'tanggal',
         'keterangan',
@@ -22,6 +23,7 @@ class KartuPelajarPengeluaran extends Model
     ];
 
     protected $casts = [
+        'jumlah'  => 'integer',
         'nominal' => 'integer',
         'tanggal' => 'date',
     ];

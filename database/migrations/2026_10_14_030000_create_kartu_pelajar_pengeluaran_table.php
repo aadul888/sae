@@ -16,6 +16,7 @@ return new class extends Migration
                 $table->id();
                 $table->string('judul', 255);
                 $table->string('kategori', 50)->default('bahan_pvc')->index(); // bahan_pvc, ribbon_stiker, alat_mesin, pemeliharaan, operasional, lainnya
+                $table->unsignedInteger('jumlah')->default(1)->nullable();
                 $table->unsignedBigInteger('nominal')->default(0);
                 $table->date('tanggal')->index();
                 $table->text('keterangan')->nullable();

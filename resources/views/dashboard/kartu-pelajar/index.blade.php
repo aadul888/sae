@@ -45,11 +45,11 @@
             <div>{{ session('success') }}</div>
         </div>
     @endif
-    @if (session('error'))
+    @if (session('error') || $errors->any())
         <div
             style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 0.86rem; display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
-            <div>{{ session('error') }}</div>
+            <div>{{ session('error') ?: $errors->first() }}</div>
         </div>
     @endif
 
@@ -259,6 +259,13 @@
                                                 style="font-size: 0.68rem; padding: 2px 6px;">
                                                 {{ $kategoriList[$p->kategori] ?? ucfirst($p->kategori) }}
                                             </span>
+                                            @if (!empty($p->jumlah))
+                                                <span class="badge badge-outline"
+                                                    style="font-size: 0.68rem; padding: 2px 6px; border-color: rgba(99,102,241,0.3); color: var(--primary);">
+                                                    <i class="fas fa-boxes-stacked me-1"></i> Qty:
+                                                    {{ number_format($p->jumlah, 0, ',', '.') }}
+                                                </span>
+                                            @endif
                                             @if ($p->petugas)
                                                 <span style="font-size: 0.7rem; color: var(--text-muted);">
                                                     &bull; Oleh: {{ $p->petugas }}
@@ -2037,7 +2044,7 @@
             </div>
 
             <form action="{{ route('dashboard.kartu-pelajar.store-pengeluaran') }}" method="POST"
-                enctype="multipart/form-data" class="kp-modal-form">
+                enctype="multipart/form-data" class="kp-modal-form" id="formTambahPengeluaran">
                 @csrf
                 <div class="kp-modal-body">
                     <div class="kp-form-group">
@@ -2058,25 +2065,36 @@
                             </select>
                         </div>
                         <div class="kp-form-group">
-                            <label class="kp-form-label" for="pgNominal">Nominal (Rp) <span
+                            <label class="kp-form-label" for="pgJumlah">Jumlah / Kuantitas (Qty) <span
                                     class="req">*</span></label>
-                            <input type="number" id="pgNominal" name="nominal" min="1" step="500"
-                                required inputmode="numeric" class="form-control" placeholder="350000">
+                            <input type="number" id="pgJumlah" name="jumlah" min="1" max="10000000"
+                                value="1" required class="form-control" placeholder="1">
+                            <div class="kp-form-hint">Contoh: 1 (roll/set), 250 (pcs), dsb.</div>
                         </div>
                     </div>
 
                     <div class="kp-form-grid">
                         <div class="kp-form-group">
+                            <label class="kp-form-label" for="pgNominal">Nominal / Total Biaya (Rp) <span
+                                    class="req">*</span></label>
+                            <input type="text" id="pgNominal" name="nominal" required inputmode="numeric"
+                                class="form-control" placeholder="Contoh: 350.000" autocomplete="off"
+                                style="font-weight: 700;">
+                            <div class="kp-form-hint" id="pgNominalPreview"
+                                style="color: var(--primary); font-weight: 600;">Rp 0</div>
+                        </div>
+                        <div class="kp-form-group">
                             <label class="kp-form-label" for="pgTanggal">Tanggal <span class="req">*</span></label>
                             <input type="date" id="pgTanggal" name="tanggal" value="{{ date('Y-m-d') }}"
                                 required class="form-control">
                         </div>
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="pgNota">Bukti Nota / Kwitansi</label>
-                            <input type="file" id="pgNota" name="bukti_nota"
-                                accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control">
-                            <div class="kp-form-hint">JPG, PNG, WebP, PDF. Maks. 5 MB.</div>
-                        </div>
+                    </div>
+
+                    <div class="kp-form-group">
+                        <label class="kp-form-label" for="pgNota">Bukti Nota / Kwitansi</label>
+                        <input type="file" id="pgNota" name="bukti_nota"
+                            accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control">
+                        <div class="kp-form-hint">JPG, PNG, WebP, PDF. Maks. 5 MB.</div>
                     </div>
 
                     <div class="kp-form-group">
@@ -2088,7 +2106,7 @@
 
                 <div class="kp-modal-footer">
                     <button type="button" onclick="closeTambahPengeluaran()" class="btn btn-outline">Batal</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="pgSubmit">
                         <i class="fas fa-save me-1"></i> Simpan Pengeluaran
                     </button>
                 </div>

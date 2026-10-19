@@ -915,6 +915,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (m) {
             m.style.display = "flex";
             document.body.style.overflow = "hidden";
+            const form = document.getElementById("formTambahPengeluaran");
+            if (form) form.reset();
+            const preview = document.getElementById("pgNominalPreview");
+            if (preview) preview.textContent = "Rp 0";
+            const jml = document.getElementById("pgJumlah");
+            if (jml) jml.value = "1";
+            document.getElementById("pgJudul")?.focus();
         }
     };
 
@@ -1340,6 +1347,144 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 } else {
                     Swal.fire("Gagal", data.message || "Gagal menghapus request.", "error");
+                }
+            } catch (err) {
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
+        }
+    });
+
+    // =========================================================================
+    // 11. Modal & Form Tambah Pengeluaran (AJAX + Auto-format Rupiah)
+    // =========================================================================
+    const pgNominalInput = document.getElementById("pgNominal");
+    const pgNominalPreview = document.getElementById("pgNominalPreview");
+
+    function formatRupiahNumber(val) {
+        const rawDigits = String(val || "").replace(/[^0-9]/g, "");
+        if (!rawDigits) return { formatted: "", raw: 0, text: "Rp 0" };
+        const num = parseInt(rawDigits, 10);
+        const formatted = new Intl.NumberFormat("id-ID").format(num);
+        return { formatted, raw: num, text: "Rp " + formatted };
+    }
+
+    if (pgNominalInput) {
+        pgNominalInput.addEventListener("input", function () {
+            const res = formatRupiahNumber(this.value);
+            this.value = res.formatted;
+            if (pgNominalPreview) {
+                pgNominalPreview.textContent = res.text;
+            }
+        });
+    }
+
+    const formTambahPengeluaran = document.getElementById("formTambahPengeluaran");
+    if (formTambahPengeluaran) {
+        formTambahPengeluaran.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const btnSubmit = document.getElementById("pgSubmit") || formTambahPengeluaran.querySelector('button[type="submit"]');
+            const originalText = btnSubmit ? btnSubmit.innerHTML : "";
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+            }
+
+            const formData = new FormData(formTambahPengeluaran);
+            // Pastikan nominal yang dikirim adalah angka murni
+            const rawNom = (formData.get("nominal") || "").toString().replace(/[^0-9]/g, "");
+            formData.set("nominal", rawNom);
+
+            try {
+                const res = await fetch(formTambahPengeluaran.action, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRF-TOKEN": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "application/json",
+                    },
+                    body: formData,
+                });
+                const data = await res.json();
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+
+                if (res.ok && data.success) {
+                    closeTambahPengeluaran();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil!",
+                        text: data.message,
+                        timer: 1600,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        if (typeof window.refreshLiveTable === "function") {
+                            window.refreshLiveTable(window.location.href);
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                } else {
+                    const errorMsg = data.errors
+                        ? Object.values(data.errors).flat().join("<br>")
+                        : (data.message || "Gagal menyimpan pengeluaran.");
+                    Swal.fire({
+                        icon: "error",
+                        title: "Gagal Menyimpan",
+                        html: errorMsg,
+                    });
+                }
+            } catch (err) {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = originalText;
+                }
+                Swal.fire("Error", "Gagal menghubungi server.", "error");
+            }
+        });
+    }
+
+    // Delegated handler: delete pengeluaran -> AJAX dengan SweetAlert
+    document.addEventListener("submit", async function (e) {
+        const form = e.target;
+        if (form && form.matches('form[action*="destroy-pengeluaran"]')) {
+            e.preventDefault();
+            const result = await Swal.fire({
+                title: "Hapus Pengeluaran?",
+                text: "Catatan belanja/pengeluaran ini akan dihapus permanen.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#ef4444",
+                cancelButtonColor: "#64748b",
+                confirmButtonText: "Ya, Hapus!",
+                cancelButtonText: "Batal",
+            });
+            if (!result.isConfirmed) return;
+
+            try {
+                const res = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest",
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify({ _token: csrfToken, _method: "DELETE" }),
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    if (window.SAE && typeof window.SAE.toast === "function") {
+                        window.SAE.toast(data.message, "success");
+                    }
+                    if (typeof window.refreshLiveTable === "function") {
+                        window.refreshLiveTable(window.location.href);
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    Swal.fire("Gagal", data.message || "Gagal menghapus pengeluaran.", "error");
                 }
             } catch (err) {
                 Swal.fire("Error", "Gagal menghubungi server.", "error");

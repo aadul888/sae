@@ -127,15 +127,17 @@ class KartuPelajarTest extends TestCase
         $postRes = $this->withSession($adminSession)->post(route('dashboard.kartu-pelajar.store-pengeluaran'), [
             'judul'      => 'Beli 100 Kartu PVC RFID Blank',
             'kategori'   => 'bahan_pvc',
-            'nominal'    => 250000,
+            'jumlah'     => 100,
+            'nominal'    => '250.000',
             'tanggal'    => '2026-10-14',
             'keterangan' => 'Pembelian toko elektronik',
         ]);
         $postRes->assertRedirect(route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']));
 
-        $item = \App\Models\KartuPelajarPengeluaran::where('judul', 'Beli 100 Kartu PVC RFID Blank')->first();
+        $item = \App\Models\KartuPelajarPengeluaran::where('judul', 'Beli 100 Kartu PVC RFID Blank')->latest('id')->first();
         $this->assertNotNull($item);
         $this->assertEquals(250000, $item->nominal);
+        $this->assertEquals(100, $item->jumlah);
 
         // 2. Akses Tab Keuangan
         $this->withoutExceptionHandling();

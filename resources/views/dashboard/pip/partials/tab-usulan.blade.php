@@ -230,13 +230,22 @@
                 @endif
             </div>
 
-            <div class="live-search-wrap" style="height: 38px;">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchPip" name="q" placeholder="Cari nama / NISN / alasan..."
-                    value="{{ $q }}" autocomplete="off">
-                <button type="button" id="clearSearchPip" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                    title="Hapus pencarian">
-                    <i class="fas fa-times"></i>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="searchPip" name="q" placeholder="Cari nama / NISN / alasan..."
+                        value="{{ $q }}" autocomplete="off">
+                    <button type="button" id="clearSearchPip" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                        title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <button type="button" class="btn btn-outline" onclick="pipExportUsulanExcel()"
+                    style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; border-color: #10b981; color: #10b981;"
+                    title="Export Seluruh Data Usulan PIP ke Format Excel (.xlsx) Lengkap">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Export</span>
                 </button>
             </div>
         </div>

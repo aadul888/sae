@@ -487,6 +487,25 @@ document.addEventListener("DOMContentLoaded", function () {
         } catch (e) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
     };
 
+    // ---------------------------------------------------------------------
+    // Export Usulan PIP ke Excel (.xlsx)
+    // ---------------------------------------------------------------------
+    window.pipExportUsulanExcel = function () {
+        const curUrl = new URL(window.location.href);
+        const exportBase = (CFG.routes && CFG.routes.exportUsulan) ? CFG.routes.exportUsulan : "/dashboard/pip/usulan/export";
+        const exportUrl = new URL(exportBase, window.location.origin);
+        ["tahun", "rombel_id", "status_verifikasi", "q"].forEach(k => {
+            const val = curUrl.searchParams.get(k);
+            if (val) exportUrl.searchParams.set(k, val);
+        });
+        const searchInp = document.getElementById("searchPip");
+        if (searchInp && searchInp.value.trim()) {
+            exportUrl.searchParams.set("q", searchInp.value.trim());
+        }
+        toast("Mengunduh data usulan PIP lengkap...", "info");
+        window.location.href = exportUrl.toString();
+    };
+
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") ["modalTambahUsulan", "modalImportRiwayat", "modalTambahRiwayat"].forEach(closeModal);
     });

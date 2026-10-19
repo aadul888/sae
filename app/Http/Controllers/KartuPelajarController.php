@@ -1254,13 +1254,39 @@ class KartuPelajarController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
+        // Normalisasi format nominal (membersihkan Rp, titik ribuan, koma, spasi)
+        if ($request->has('nominal')) {
+            $rawNominal = preg_replace('/[^0-9]/', '', (string) $request->nominal);
+            $request->merge([
+                'nominal' => $rawNominal !== '' ? (int) $rawNominal : null,
+            ]);
+        }
+
+        // Normalisasi jumlah / kuantitas jika ada
+        if ($request->has('jumlah')) {
+            $rawJumlah = preg_replace('/[^0-9]/', '', (string) $request->jumlah);
+            $request->merge([
+                'jumlah' => $rawJumlah !== '' ? max(1, (int) $rawJumlah) : 1,
+            ]);
+        }
+
         $request->validate([
             'judul'           => 'required|string|max:255',
             'kategori'        => 'required|string|max:50',
+            'jumlah'          => 'nullable|integer|min:1|max:10000000',
             'nominal'         => 'required|numeric|min:1',
             'tanggal'         => 'required|date',
             'keterangan'      => 'nullable|string|max:1000',
             'bukti_nota'      => 'nullable|file|mimes:jpg,jpeg,png,pdf,webp|max:5120',
+        ], [
+            'judul.required'    => 'Uraian / judul pembelanjaan wajib diisi.',
+            'kategori.required' => 'Kategori pengeluaran wajib dipilih.',
+            'nominal.required'  => 'Nominal pengeluaran wajib diisi.',
+            'nominal.numeric'   => 'Nominal pengeluaran harus berupa angka.',
+            'nominal.min'       => 'Nominal pengeluaran minimal Rp 1.',
+            'tanggal.required'  => 'Tanggal pengeluaran wajib diisi.',
+            'bukti_nota.mimes'  => 'Bukti nota harus berupa berkas gambar (JPG, PNG, WebP) atau PDF.',
+            'bukti_nota.max'    => 'Ukuran berkas bukti nota maksimal 5 MB.',
         ]);
 
         $userName = is_array($user) ? ($user['nama'] ?? 'Admin') : ($user->nama ?? 'Admin');
@@ -1270,7 +1296,7 @@ class KartuPelajarController extends Controller
             $buktiPath = $request->file('bukti_nota')->storeAs('pengeluaran_kartu', 'nota_' . time() . '_' . uniqid() . '.' . $ext, 'public');
         }
 
-        KartuPelajarPengeluaran::create([
+        $payload = [
             'judul'           => trim($request->judul),
             'kategori'        => $request->kategori,
             'nominal'         => (int) $request->nominal,
@@ -1278,7 +1304,20 @@ class KartuPelajarController extends Controller
             'keterangan'      => trim((string) $request->keterangan),
             'bukti_nota_path' => $buktiPath,
             'petugas'         => $userName,
-        ]);
+        ];
+
+        if (Schema::hasColumn('kartu_pelajar_pengeluaran', 'jumlah')) {
+            $payload['jumlah'] = max(1, (int) ($request->jumlah ?: 1));
+        }
+
+        KartuPelajarPengeluaran::create($payload);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Catatan pengeluaran berhasil disimpan.',
+            ]);
+        }
 
         return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan'])
             ->with('success', 'Catatan pengeluaran berhasil disimpan.');
@@ -1287,7 +1326,7 @@ class KartuPelajarController extends Controller
     /**
      * Hapus Catatan Pengeluaran
      */
-    public function destroyPengeluaran(int $id)
+    public function destroyPengeluaran(Request $request, int $id)
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -1300,6 +1339,13 @@ class KartuPelajarController extends Controller
             Storage::disk('public')->delete($item->bukti_nota_path);
         }
         $item->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Catatan pengeluaran berhasil dihapus.',
+            ]);
+        }
 
         return redirect()->route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan'])
             ->with('success', 'Catatan pengeluaran berhasil dihapus.');

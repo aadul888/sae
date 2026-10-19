@@ -53,10 +53,15 @@
                     </button>
                 @endif
             @elseif ($tab === 'usulan')
+                <button type="button" class="btn btn-outline" onclick="pipExportUsulanExcel()"
+                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700; border-color: #10b981; color: #10b981;"
+                    title="Export Seluruh Data Usulan PIP ke Format Excel (.xlsx) Lengkap">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
                 <button type="button" class="btn btn-primary" onclick="openTambahUsulan()"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    style="height: 38px; padding: 0 14px; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-size: 0.84rem; font-weight: 700;"
                     title="Tambah Usulan Siswa PIP Baru">
-                    <i class="fas fa-plus"></i>
+                    <i class="fas fa-plus"></i> Usulan
                 </button>
             @elseif (in_array($tab, ['riwayat', 'riwayat_alumni'], true) && $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openTambahRiwayat()"
@@ -135,8 +140,8 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-                 * Tab Riwayat PIP — Desktop & Responsive Modern Table
-                 * ------------------------------------------------------------- */
+                     * Tab Riwayat PIP — Desktop & Responsive Modern Table
+                     * ------------------------------------------------------------- */
         .table-pip-riwayat {
             width: 100%;
             border-collapse: collapse;
@@ -324,6 +329,7 @@
             rombelId: @json($isAdmin ? $activeRombel?->rombongan_belajar_id : null),
             routes: {
                 cariSiswa: @json(route('dashboard.pip.cari-siswa')),
+                exportUsulan: @json(route('dashboard.pip.export-usulan')),
                 storeUsulan: @json(route('dashboard.pip.store-usulan')),
                 prioritas: @json(route('dashboard.pip.update-prioritas')),
                 bulkVerifikasi: @json(route('dashboard.pip.bulk-verifikasi')),

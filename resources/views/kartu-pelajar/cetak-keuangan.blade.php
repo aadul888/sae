@@ -124,6 +124,10 @@
                         <td>{{ \Carbon\Carbon::parse($p->tanggal)->translatedFormat('d/m/Y') }}</td>
                         <td>
                             <strong>{{ $p->judul }}</strong>
+                            @if (!empty($p->jumlah))
+                                <span style="font-size: 0.74rem; color: #475569; font-weight: 600;">(Qty:
+                                    {{ number_format($p->jumlah, 0, ',', '.') }})</span>
+                            @endif
                             @if (!empty($p->keterangan))
                                 <div style="font-size: 0.74rem; color: #64748b; margin-top: 2px;">{{ $p->keterangan }}
                                 </div>
