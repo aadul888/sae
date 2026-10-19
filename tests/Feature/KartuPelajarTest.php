@@ -147,13 +147,31 @@ class KartuPelajarTest extends TestCase
         $viewRes->assertSee('Catatan Belanja Bahan &amp; Alat', false);
         $viewRes->assertSee('Beli 100 Kartu PVC RFID Blank');
 
-        // 3. Akses Halaman Cetak Laporan Keuangan
+        // 3. Update Pengeluaran (Edit Data & Perhitungan Perkalian)
+        $updateRes = $this->withSession($adminSession)->putJson(route('dashboard.kartu-pelajar.update-pengeluaran', $item->id), [
+            'judul'      => 'Beli 120 Kartu PVC RFID Blank Revisi',
+            'kategori'   => 'bahan_pvc',
+            'jumlah'     => 120,
+            'nominal'    => '3.000',
+            'tanggal'    => '2026-10-15',
+            'keterangan' => 'Revisi nota toko',
+        ]);
+        $updateRes->assertOk();
+        $updateRes->assertJson(['success' => true]);
+
+        $item->refresh();
+        $this->assertEquals('Beli 120 Kartu PVC RFID Blank Revisi', $item->judul);
+        $this->assertEquals(360000, $item->nominal); // 120 * 3000
+        $this->assertEquals(3000, $item->harga_satuan);
+        $this->assertEquals(120, $item->jumlah);
+
+        // 4. Akses Halaman Cetak Laporan Keuangan
         $cetakRes = $this->withSession($adminSession)->get(route('dashboard.kartu-pelajar.cetak-keuangan'));
         $cetakRes->assertOk();
         $cetakRes->assertSee('LAPORAN KEUANGAN &amp; ARUS KAS KARTU PELAJAR', false);
-        $cetakRes->assertSee('Beli 100 Kartu PVC RFID Blank');
+        $cetakRes->assertSee('Beli 120 Kartu PVC RFID Blank Revisi');
 
-        // 4. Hapus Pengeluaran
+        // 5. Hapus Pengeluaran
         $delRes = $this->withSession($adminSession)->delete(route('dashboard.kartu-pelajar.destroy-pengeluaran', $item->id));
         $delRes->assertRedirect(route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']));
         $this->assertNull(\App\Models\KartuPelajarPengeluaran::find($item->id));

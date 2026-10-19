@@ -1770,7 +1770,7 @@ const payloadEl = document.getElementById('sectionPersuratanChartPayload');
                 labels: labels,
                 datasets: [{
                     data: data,
-                    backgroundColor: ['rgba(245,158,11,0.85)', 'rgba(16,185,129,0.85)', 'rgba(99,102,241,0.85)'],
+                    backgroundColor: ['rgba(245,158,11,0.85)', 'rgba(59,130,246,0.85)', 'rgba(16,185,129,0.85)', 'rgba(99,102,241,0.85)', 'rgba(100,116,139,0.85)'],
                     borderRadius: 6,
                     maxBarThickness: 34
                 }]

@@ -852,6 +852,9 @@ class DashboardController extends Controller
         $totalPersuratan = $totalSuratMasuk + $totalSuratKeluar;
         $hddStatus = \App\Services\PersuratanHddService::checkStatus();
 
+        $noSuratMasukTerakhir = Schema::hasTable('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'masuk')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
+        $noSuratKeluarTerakhir = Schema::hasTable('persuratan') ? (DB::table('persuratan')->where('jenis_surat', 'keluar')->orderByDesc('id')->value('nomor_surat') ?: '-') : '-';
+
         $totalSiswa = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->count() : 1126;
         $siswaLaki = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'L')->count() : 620;
         $siswaPerempuan = Schema::hasTable('peserta_didik') ? DB::table('peserta_didik')->where('jenis_kelamin', 'P')->count() : 506;
@@ -864,11 +867,13 @@ class DashboardController extends Controller
         $totalJamKbm = Schema::hasTable('pembelajaran') ? DB::table('pembelajaran')->sum('jam_mengajar_per_minggu') : 840;
 
         $stats = [
-            'total_surat_masuk'  => $totalSuratMasuk,
-            'total_surat_keluar' => $totalSuratKeluar,
-            'total_surat_ket'    => $totalSuratKeterangan,
-            'total_persuratan'   => $totalPersuratan,
-            'hdd_status'         => $hddStatus,
+            'total_surat_masuk'       => $totalSuratMasuk,
+            'total_surat_keluar'      => $totalSuratKeluar,
+            'total_surat_ket'         => $totalSuratKeterangan,
+            'total_persuratan'        => $totalPersuratan,
+            'no_surat_masuk_terakhir' => $noSuratMasukTerakhir,
+            'no_surat_keluar_terakhir'=> $noSuratKeluarTerakhir,
+            'hdd_status'              => $hddStatus,
             'total_siswa'        => $totalSiswa,
             'siswa_laki'         => $siswaLaki,
             'siswa_perempuan'    => $siswaPerempuan,
@@ -1145,13 +1150,63 @@ class DashboardController extends Controller
             'jurusan' => $chartsUmum['jurusanRombel'],
         ];
 
+        // Agregasi Data Riil Seluruh Dokumen Persuratan untuk Chart
+        $jenisCounts = [];
+        if (Schema::hasTable('persuratan')) {
+            $rawJenis = DB::table('persuratan')
+                ->selectRaw('COALESCE(jenis_surat, "lainnya") as jenis, count(*) as total')
+                ->groupBy('jenis')
+                ->pluck('total', 'jenis')
+                ->toArray();
+
+            $jenisLabelMap = [
+                'masuk'     => 'Surat Masuk',
+                'keluar'    => 'Surat Keluar',
+                'keputusan' => 'SK Dinas',
+                'tugas'     => 'Surat Tugas (SPT)',
+            ];
+            foreach ($rawJenis as $jKey => $jCount) {
+                $lbl = $jenisLabelMap[strtolower($jKey)] ?? ucfirst($jKey);
+                $jenisCounts[$lbl] = ($jenisCounts[$lbl] ?? 0) + $jCount;
+            }
+        }
+        if (Schema::hasTable('surat_keterangan_pd')) {
+            $ketCount = DB::table('surat_keterangan_pd')->count();
+            if ($ketCount > 0) {
+                $jenisCounts['Surat Keterangan'] = ($jenisCounts['Surat Keterangan'] ?? 0) + $ketCount;
+            }
+        }
+        if (Schema::hasTable('gtk_spt')) {
+            $sptCount = DB::table('gtk_spt')->count();
+            if ($sptCount > 0) {
+                $jenisCounts['Surat Tugas (SPT)'] = ($jenisCounts['Surat Tugas (SPT)'] ?? 0) + $sptCount;
+            }
+        }
+
+        $statusCounts = [];
+        if (Schema::hasTable('persuratan')) {
+            $rawStatus = DB::table('persuratan')
+                ->selectRaw('COALESCE(status, "draf") as status, count(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status')
+                ->toArray();
+
+            $statusLabelMap = [
+                'menunggu_disposisi' => 'Menunggu Disposisi',
+                'diproses'           => 'Sedang Diproses',
+                'selesai'            => 'Selesai / Terbit',
+                'diarsipkan'         => 'Diarsipkan',
+                'draf'               => 'Draf',
+            ];
+            foreach ($rawStatus as $sKey => $sCount) {
+                $sLbl = $statusLabelMap[strtolower($sKey)] ?? ucfirst($sKey);
+                $statusCounts[$sLbl] = $sCount;
+            }
+        }
+
         $persuratanCharts = [
-            'jenis' => Schema::hasTable('persuratan')
-                ? DB::table('persuratan')->selectRaw('COALESCE(jenis_surat, "Lainnya") as jenis, count(*) as total')->groupBy('jenis')->pluck('total', 'jenis')->toArray()
-                : [],
-            'status' => Schema::hasTable('persuratan')
-                ? DB::table('persuratan')->selectRaw('COALESCE(status, "Tercatat") as status, count(*) as total')->groupBy('status')->pluck('total', 'status')->toArray()
-                : [],
+            'jenis'  => !empty($jenisCounts) ? $jenisCounts : ['Surat Masuk' => 0, 'Surat Keluar' => 0],
+            'status' => !empty($statusCounts) ? $statusCounts : ['Selesai / Terbit' => 0, 'Menunggu Disposisi' => 0],
         ];
 
         $sarprasCharts = [
@@ -1356,6 +1411,21 @@ class DashboardController extends Controller
                                 ->where('status', 'selesai')
                                 ->count();
                         }
+
+                        // Hubungkan realisasi transaksi riil operasional jika log harian persuratan belum diinput
+                        if ($realisasi === 0 && $dbBidang === 'persuratan') {
+                            $sasaranLower = strtolower($ind->sasaran . ' ' . $ind->indikator_kinerja);
+                            if (str_contains($sasaranLower, 'surat masuk')) {
+                                $realisasi = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'masuk')->count() : 0;
+                            } elseif (str_contains($sasaranLower, 'surat keluar')) {
+                                $realisasi = Schema::hasTable('persuratan') ? DB::table('persuratan')->where('jenis_surat', 'keluar')->count() : 0;
+                            } elseif (str_contains($sasaranLower, 'kearsipan') || str_contains($sasaranLower, 'sk dinas') || str_contains($sasaranLower, 'surat tugas')) {
+                                $realisasi = (Schema::hasTable('persuratan') ? DB::table('persuratan')->whereIn('jenis_surat', ['keputusan', 'tugas'])->count() : 0) + (Schema::hasTable('gtk_spt') ? DB::table('gtk_spt')->count() : 0);
+                            } elseif (str_contains($sasaranLower, 'keterangan aktif') || str_contains($sasaranLower, 'legalisir')) {
+                                $realisasi = Schema::hasTable('surat_keterangan_pd') ? DB::table('surat_keterangan_pd')->count() : 0;
+                            }
+                        }
+
                         $ind->realisasi_count = $realisasi;
                         $ind->realisasi_label = $realisasi > 0 ? "{$realisasi} {$ind->satuan}" : "0 {$ind->satuan}";
                         $ind->status_kpi = $realisasi >= $ind->target_kuantitas ? 'Tercapai' : ($realisasi > 0 ? 'Sedang Berjalan' : 'Dalam Proses');
@@ -1432,6 +1502,22 @@ class DashboardController extends Controller
             $allActsQuery->where('bidang', $bidangFilter);
         }
         $allActs = $allActsQuery ? $allActsQuery->get() : collect();
+
+        // Integrasi transaksi persuratan riil sebagai aktivitas jika log manual belum diisi
+        if ($bidangFilter === 'persuratan' && $allActs->isEmpty() && Schema::hasTable('persuratan')) {
+            $realSurat = DB::table('persuratan')->get()->map(function ($s) {
+                $tgl = $s->tanggal_surat ?: substr($s->created_at, 0, 10);
+                $jam = substr($s->created_at ?? '08:00:00', 11, 8) ?: '08:00:00';
+                $st = in_array($s->status, ['selesai', 'diarsipkan'], true) ? 'selesai' : 'proses';
+                return (object) [
+                    'tanggal'   => $tgl,
+                    'jam_mulai' => $jam,
+                    'status'    => $st,
+                ];
+            });
+            $allActs = $allActs->concat($realSurat);
+            $factor = 2; // Rata-rata 2 staf operasional persuratan
+        }
 
         // 1. HARI
         $hariLabels = [];
