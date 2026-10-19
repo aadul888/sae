@@ -262,9 +262,11 @@
                                             @if (!empty($p->jumlah))
                                                 <span class="badge badge-outline"
                                                     style="font-size: 0.68rem; padding: 2px 6px; border-color: rgba(99,102,241,0.3); color: var(--primary);">
-                                                    <i class="fas fa-boxes-stacked me-1"></i> Qty: {{ number_format($p->jumlah, 0, ',', '.') }}
+                                                    <i class="fas fa-boxes-stacked me-1"></i> Qty:
+                                                    {{ number_format($p->jumlah, 0, ',', '.') }}
                                                     @if (!empty($p->harga_satuan) || ($p->jumlah > 1 && $p->nominal > 0))
-                                                        &bull; @ Rp {{ number_format($p->harga_satuan ?: ($p->nominal / $p->jumlah), 0, ',', '.') }}
+                                                        &bull; @ Rp
+                                                        {{ number_format($p->harga_satuan ?: $p->nominal / $p->jumlah, 0, ',', '.') }}
                                                     @endif
                                                 </span>
                                             @endif

@@ -128,7 +128,8 @@
                                 <span style="font-size: 0.74rem; color: #475569; font-weight: 600;">
                                     (Qty: {{ number_format($p->jumlah, 0, ',', '.') }}
                                     @if (!empty($p->harga_satuan) || ($p->jumlah > 1 && $p->nominal > 0))
-                                        &bull; @ Rp {{ number_format($p->harga_satuan ?: ($p->nominal / $p->jumlah), 0, ',', '.') }}
+                                        &bull; @ Rp
+                                        {{ number_format($p->harga_satuan ?: $p->nominal / $p->jumlah, 0, ',', '.') }}
                                     @endif)
                                 </span>
                             @endif
