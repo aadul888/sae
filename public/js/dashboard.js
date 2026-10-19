@@ -473,7 +473,11 @@ document.addEventListener("DOMContentLoaded", () => {
         url.searchParams.set("sort", sortField);
         url.searchParams.set("sort_dir", newDir);
         url.searchParams.delete("page");
-        window.location.href = url.toString();
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
     });
 });
 
@@ -597,8 +601,63 @@ window.refreshLiveTable = async function (url, options = {}) {
         let tableAnchor = null;
 
         if (curDataContainer && newDataContainer) {
-            curDataContainer.innerHTML = newDataContainer.innerHTML;
-            tableAnchor = curDataContainer;
+            const curToolbar = curDataContainer.querySelector(".datatable-toolbar");
+            const newToolbar = newDataContainer.querySelector(".datatable-toolbar");
+            const curTableStack = curDataContainer.querySelector(".table-responsive-stack, table");
+            const newTableStack = newDataContainer.querySelector(".table-responsive-stack, table");
+
+            if (curToolbar && newToolbar && curTableStack && newTableStack) {
+                // Swap tabel
+                curTableStack.innerHTML = newTableStack.innerHTML;
+                tableAnchor = curTableStack;
+
+                // Swap pagination di dalam kontainer jika ada
+                const curPagination = curDataContainer.querySelector(
+                    ".custom-pagination, .dash-pagination, .pagination",
+                );
+                const newPagination = newDataContainer.querySelector(
+                    ".custom-pagination, .dash-pagination, .pagination",
+                );
+                if (curPagination && newPagination) {
+                    curPagination.outerHTML = newPagination.outerHTML;
+                } else if (curPagination && !newPagination) {
+                    curPagination.remove();
+                } else if (!curPagination && newPagination) {
+                    curTableStack.insertAdjacentElement("afterend", newPagination);
+                }
+
+                // Cek apakah pengguna sedang aktif mengetik/memilih di dalam toolbar
+                const isUserActiveInToolbar =
+                    document.activeElement && curToolbar.contains(document.activeElement);
+
+                if (!isUserActiveInToolbar) {
+                    curToolbar.innerHTML = newToolbar.innerHTML;
+                } else {
+                    // Jangan hancurkan toolbar agar input aktif tidak kehilangan fokus, kursor, atau input buffer!
+                    // Sinkronkan tombol reset filter jika status query/filter berubah
+                    const curResetWrap = curToolbar.querySelector(".toolbar-filter-select, .toolbar-entries")?.parentElement;
+                    const newResetBtn = newToolbar.querySelector('a[title*="Reset"], [data-live-reset], .btn-outline[href*="peserta-didik"]');
+                    const curResetBtn = curToolbar.querySelector('a[title*="Reset"], [data-live-reset], .btn-outline[href*="peserta-didik"]');
+
+                    if (newResetBtn && !curResetBtn && curResetWrap) {
+                        curResetWrap.insertAdjacentHTML("beforeend", newResetBtn.outerHTML);
+                    } else if (!newResetBtn && curResetBtn) {
+                        curResetBtn.remove();
+                    } else if (newResetBtn && curResetBtn) {
+                        curResetBtn.outerHTML = newResetBtn.outerHTML;
+                    }
+
+                    // Sinkronkan class visible pada clearSearch sesuai input saat ini
+                    const curSearchInput = curToolbar.querySelector("input");
+                    const curClearBtn = curToolbar.querySelector(".clear-search");
+                    if (curSearchInput && curClearBtn) {
+                        curClearBtn.classList.toggle("visible", curSearchInput.value.trim().length > 0);
+                    }
+                }
+            } else {
+                curDataContainer.innerHTML = newDataContainer.innerHTML;
+                tableAnchor = curDataContainer;
+            }
         }
 
         const curGridContainer = document.querySelector("#gridMatrixContainer");
@@ -746,22 +805,20 @@ window.refreshLiveTable = async function (url, options = {}) {
         if (focusedElId) {
             const reFocusEl = document.getElementById(focusedElId);
             if (reFocusEl) {
-                if (activeElVal !== null && reFocusEl.value !== activeElVal) {
-                    reFocusEl.value = activeElVal;
-                }
-                // Hanya refocus jika fokus sempat terlepas (misal container input ter-render ulang)
+                // Hanya refocus dan pulihkan jika fokus sempat terlepas dari elemen input
                 if (document.activeElement !== reFocusEl) {
+                    if (activeElVal !== null && reFocusEl.value !== activeElVal) {
+                        reFocusEl.value = activeElVal;
+                    }
                     reFocusEl.focus();
+                    const curPos =
+                        activeCursorPos !== null
+                            ? activeCursorPos
+                            : (reFocusEl.value ? reFocusEl.value.length : 0);
+                    try {
+                        reFocusEl.setSelectionRange(curPos, curPos);
+                    } catch (e) {}
                 }
-                const curPos =
-                    activeCursorPos !== null
-                        ? activeCursorPos
-                        : (reFocusEl.value ? reFocusEl.value.length : 0);
-                try {
-                    reFocusEl.setSelectionRange(curPos, curPos);
-                } catch (e) {}
-                // Jika reFocusEl SUDAH merupakan document.activeElement, kursor TIDAK diubah
-                // agar kursor tidak meloncat mundur ke belakang saat pengguna masih mengetik.
             }
         }
 
@@ -847,56 +904,171 @@ document.addEventListener("click", function (e) {
     }
 });
 
-// Global Delegated Handler for Clear Search Buttons (.clear-search)
+// Universal Helper: Check if input is a Datatable search field
+function isDatatableSearchInput(el) {
+    if (!el || el.tagName !== "INPUT") return false;
+    const type = (el.type || "").toLowerCase();
+    if (
+        type === "button" ||
+        type === "submit" ||
+        type === "checkbox" ||
+        type === "radio" ||
+        type === "file" ||
+        type === "password" ||
+        type === "hidden"
+    ) {
+        return false;
+    }
+    if (
+        el.hasAttribute("data-manual-search") ||
+        el.hasAttribute("data-no-ajax") ||
+        el.closest(".modal, .swal2-container, #actionModal, .modal-backdrop, [data-manual-search], [data-no-ajax]")
+    ) {
+        return false;
+    }
+    if (el.closest(".live-search-wrap")) return true;
+    const id = (el.id || "").toLowerCase();
+    if (
+        id === "livesearch" ||
+        id === "livesearchinput" ||
+        id === "livesearchadmin" ||
+        id === "searchtable" ||
+        id === "livesearchindeks" ||
+        id === "livesearchkelasinput" ||
+        id === "livesearchizininput"
+    ) {
+        return true;
+    }
+    const name = (el.name || "").toLowerCase();
+    if (name === "q" || name === "search" || name === "keyword") return true;
+    if (el.classList.contains("live-search-input") || el.classList.contains("table-search-input")) return true;
+    return false;
+}
+
+// Universal Helper: Execute Datatable search (works for forms and standalone toolbars)
+function executeDatatableSearch(input) {
+    if (!input) return;
+
+    // 1. Jika berada di dalam form GET, submit form secara asinkron
+    const form = input.closest("form");
+    if (form && !form.hasAttribute("data-manual-search") && (form.method || "get").toLowerCase() === "get") {
+        const formData = new FormData(form);
+        const url = new URL(form.action || window.location.href, window.location.origin);
+        for (const [key, val] of formData.entries()) {
+            if (val !== "") url.searchParams.set(key, val);
+            else url.searchParams.delete(key);
+        }
+        url.searchParams.set("page", "1");
+        window.refreshLiveTable(url.toString());
+        return;
+    }
+
+    // 2. Standalone datatable toolbar (tanpa form GET)
+    const url = new URL(window.location.href);
+    url.searchParams.delete("perPageSelect");
+    url.searchParams.delete("_token");
+
+    const paramName = input.name || "q";
+    const queryVal = input.value.trim();
+
+    if (queryVal) {
+        url.searchParams.set(paramName, queryVal);
+    } else {
+        url.searchParams.delete(paramName);
+    }
+    url.searchParams.set("page", "1");
+
+    // Sinkronkan nilai filter aktif di toolbar jika ada
+    const container = input.closest("#tableDataContainer, .datatable-card-wrapper, .dash-table-card, .card, body");
+    if (container) {
+        const selects = container.querySelectorAll(
+            ".per-page-select, .toolbar-filter-select, #perPageSelect, #perPageSelectAdmin, #filterRombel, #filterGender, #filterStatus, #filterJenis, #filterTahun, #filterTahunAjaran, #filterSemester, #filterBulan, #filterModulAdmin, #filterModul"
+        );
+        selects.forEach((sel) => {
+            let pName = sel.name;
+            if (!pName) {
+                if (sel.classList.contains("per-page-select") || sel.id === "perPageSelect" || sel.id === "perPageSelectAdmin") pName = "perPage";
+                else if (sel.id === "filterRombel") pName = "rombel";
+                else if (sel.id === "filterGender") pName = "gender";
+                else if (sel.id === "filterStatus") pName = "status";
+                else if (sel.id === "filterJenis") pName = "jenis";
+                else if (sel.id === "filterTahun") pName = "tahun";
+                else if (sel.id === "filterModulAdmin" || sel.id === "filterModul") pName = "modul";
+            }
+            if (pName) {
+                if (sel.value) url.searchParams.set(pName, sel.value);
+                else url.searchParams.delete(pName);
+            }
+        });
+    }
+
+    window.refreshLiveTable(url.toString());
+}
+
+// Global Delegated Handler for Clear Search Buttons (.clear-search, #clearSearch, dsb)
 document.addEventListener("click", function (e) {
-    const clearBtn = e.target.closest(".live-search-wrap .clear-search");
+    const clearBtn = e.target.closest(".live-search-wrap .clear-search, #clearSearch, #clearSearchBtn, .clear-search");
     if (!clearBtn) return;
     e.preventDefault();
-    const wrap = clearBtn.closest(".live-search-wrap");
-    if (!wrap) return;
-    const input = wrap.querySelector("input");
+
+    const wrap = clearBtn.closest(".live-search-wrap") || clearBtn.parentElement;
+    const input = wrap
+        ? wrap.querySelector("input")
+        : (document.getElementById("liveSearch") || document.getElementById("liveSearchInput"));
+
     if (input) {
         input.value = "";
         clearBtn.classList.remove("visible");
         input.focus();
-        input.dispatchEvent(new Event("input", { bubbles: true }));
+        clearTimeout(globalLiveSearchTimer);
+        if (liveTableAbortController) {
+            try { liveTableAbortController.abort(); } catch (err) {}
+            liveTableAbortController = null;
+        }
+        executeDatatableSearch(input);
     }
 });
 
-// Universal Auto-Enhancer for ANY .live-search-wrap input inside a GET form
+// Universal Real-Time Live Search Engine across ALL modules
 let globalLiveSearchTimer = null;
 document.addEventListener("input", function (e) {
     const input = e.target;
-    const wrap = input.closest(".live-search-wrap");
-    if (!wrap) return;
+    if (!isDatatableSearchInput(input)) return;
 
     // Toggle clear button visibility
-    const clearBtn = wrap.querySelector(".clear-search");
+    const wrap = input.closest(".live-search-wrap") || input.parentElement;
+    const clearBtn = wrap
+        ? wrap.querySelector(".clear-search, #clearSearch, #clearSearchBtn")
+        : (document.getElementById("clearSearch") || document.getElementById("clearSearchBtn"));
     if (clearBtn) {
         clearBtn.classList.toggle("visible", input.value.trim().length > 0);
     }
 
-    // If this input is inside a GET form, auto-refresh table via AJAX
-    const form = wrap.closest("form");
-    if (
-        form &&
-        !form.hasAttribute("data-manual-search") &&
-        (form.method || "get").toLowerCase() === "get"
-    ) {
-        clearTimeout(globalLiveSearchTimer);
-        globalLiveSearchTimer = setTimeout(() => {
-            const formData = new FormData(form);
-            const url = new URL(
-                form.action || window.location.href,
-                window.location.origin,
-            );
-            for (const [key, val] of formData.entries()) {
-                if (val) url.searchParams.set(key, val);
-                else url.searchParams.delete(key);
+    // Segera batalkan fetch yang sedang berjalan agar respon lama tidak menimpa ketikan baru
+    if (liveTableAbortController) {
+        try { liveTableAbortController.abort(); } catch (err) {}
+        liveTableAbortController = null;
+    }
+
+    clearTimeout(globalLiveSearchTimer);
+    globalLiveSearchTimer = setTimeout(() => {
+        executeDatatableSearch(input);
+    }, 400);
+});
+
+// Global Keydown Handler: Tekan Enter langsung lakukan pencarian tanpa menunggu debounce
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        const input = e.target;
+        if (isDatatableSearchInput(input)) {
+            e.preventDefault();
+            clearTimeout(globalLiveSearchTimer);
+            if (liveTableAbortController) {
+                try { liveTableAbortController.abort(); } catch (err) {}
+                liveTableAbortController = null;
             }
-            url.searchParams.set("page", "1");
-            window.refreshLiveTable(url.toString());
-        }, 450);
+            executeDatatableSearch(input);
+        }
     }
 });
 
@@ -905,23 +1077,19 @@ document.addEventListener("submit", function (e) {
     const form = e.target;
     if (
         form &&
-        form.querySelector(".live-search-wrap") &&
         !form.hasAttribute("data-no-ajax") &&
         (form.method || "get").toLowerCase() === "get"
     ) {
-        e.preventDefault();
-        clearTimeout(globalLiveSearchTimer);
-        const formData = new FormData(form);
-        const url = new URL(
-            form.action || window.location.href,
-            window.location.origin,
-        );
-        for (const [key, val] of formData.entries()) {
-            if (val) url.searchParams.set(key, val);
-            else url.searchParams.delete(key);
+        const searchInput = form.querySelector(".live-search-wrap input, #liveSearch, #liveSearchInput, input[name='q']");
+        if (searchInput && isDatatableSearchInput(searchInput)) {
+            e.preventDefault();
+            clearTimeout(globalLiveSearchTimer);
+            if (liveTableAbortController) {
+                try { liveTableAbortController.abort(); } catch (err) {}
+                liveTableAbortController = null;
+            }
+            executeDatatableSearch(searchInput);
         }
-        url.searchParams.set("page", "1");
-        window.refreshLiveTable(url.toString());
     }
 });
 
@@ -942,10 +1110,15 @@ document.addEventListener("change", function (e) {
 
     const isFilterDropdown =
         select.classList.contains("per-page-select") ||
+        select.classList.contains("toolbar-filter-select") ||
         select.hasAttribute("data-live-filter") ||
         select.id === "perPageSelectAdmin" ||
         select.id === "perPageSelect" ||
         select.id === "filterModulAdmin" ||
+        select.id === "filterRombel" ||
+        select.id === "filterGender" ||
+        select.id === "filterStatus" ||
+        select.id === "filterJenis" ||
         select.name === "perPage" ||
         select.name === "per_page" ||
         select.name === "modul" ||
@@ -953,10 +1126,14 @@ document.addEventListener("change", function (e) {
         select.name === "kategori" ||
         select.name === "filter_status" ||
         select.name === "filter_kategori" ||
+        select.name === "rombel" ||
         select.name === "rombel_id" ||
+        select.name === "gender" ||
+        select.name === "jenis" ||
         select.name === "tingkat" ||
         select.closest(".toolbar-entries") ||
-        select.closest(".dash-table-toolbar");
+        select.closest(".dash-table-toolbar") ||
+        select.closest(".datatable-toolbar");
 
     if (!isFilterDropdown) return;
 
@@ -975,7 +1152,7 @@ document.addEventListener("change", function (e) {
     }
 
     // If not in a GET form, check if inside or near a table/toolbar container
-    const container = select.closest("#tableDataContainer, .table-responsive-stack, .dash-table-card, .card, .toolbar-entries");
+    const container = select.closest("#tableDataContainer, .table-responsive-stack, .dash-table-card, .card, .toolbar-entries, .datatable-toolbar");
     if (container) {
         const url = new URL(window.location.href);
         let paramName = select.name;
@@ -990,6 +1167,8 @@ document.addEventListener("change", function (e) {
                 paramName = "gender";
             } else if (select.id === "filterStatus") {
                 paramName = "status";
+            } else if (select.id === "filterJenis") {
+                paramName = "jenis";
             } else if (select.id === "filterTahun") {
                 paramName = "tahun";
             } else {
@@ -1004,6 +1183,13 @@ document.addEventListener("change", function (e) {
         } else {
             url.searchParams.delete(paramName);
         }
+
+        // Pertahankan query pencarian aktif saat filter dropdown berubah
+        const sInput = container.querySelector ? container.querySelector("input#liveSearch, input.live-search-input, .live-search-wrap input") : null;
+        if (sInput && sInput.value.trim()) {
+            url.searchParams.set(sInput.name || "q", sInput.value.trim());
+        }
+
         url.searchParams.set("page", "1");
         window.refreshLiveTable(url.toString());
     }
@@ -1011,7 +1197,7 @@ document.addEventListener("change", function (e) {
 
 // Universal Delegated Handler for Reset Filter Buttons
 document.addEventListener("click", function (e) {
-    const resetBtn = e.target.closest("[data-live-reset], .btn-reset-filter, #resetFilterAdmin");
+    const resetBtn = e.target.closest("[data-live-reset], .btn-reset-filter, #resetFilterAdmin, a[title*='Reset filter'], a[title*='Reset']");
     if (resetBtn && resetBtn.href) {
         e.preventDefault();
         window.refreshLiveTable(resetBtn.href);

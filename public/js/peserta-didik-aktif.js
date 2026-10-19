@@ -651,40 +651,40 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Pastikan listener filter tabel ini tidak menduplikasi modul kesiswaan
+    // Pastikan helper filter tabel ini tidak menduplikasi modul kesiswaan
     if (window.location.pathname.includes("/kesiswaan/")) {
         return;
     }
 
-    const searchInput = document.getElementById("liveSearch");
-    const clearBtn = document.getElementById("clearSearch");
-    const perPageSelect = document.getElementById("perPageSelect");
-    const filterRombel = document.getElementById("filterRombel");
-    const filterGender = document.getElementById("filterGender");
-
-    function applyFilter(overrideParams = {}) {
+    // Helper filter global peserta didik aktif (dapat dipanggil oleh aksi modal/eksternal)
+    window.applyPesertaDidikFilter = function (overrideParams = {}) {
         const url = new URL(window.location.href);
         url.searchParams.delete("perPageSelect");
+        url.searchParams.delete("_token");
 
-        if (searchInput && searchInput.value.trim()) {
-            url.searchParams.set("q", searchInput.value.trim());
+        const sInput = document.getElementById("liveSearch");
+        if (sInput && sInput.value.trim()) {
+            url.searchParams.set("q", sInput.value.trim());
         } else {
             url.searchParams.delete("q");
         }
 
-        if (filterRombel && filterRombel.value) {
-            url.searchParams.set("rombel", filterRombel.value);
+        const fRombel = document.getElementById("filterRombel");
+        if (fRombel && fRombel.value) {
+            url.searchParams.set("rombel", fRombel.value);
         } else {
             url.searchParams.delete("rombel");
         }
 
-        if (filterGender && filterGender.value) {
-            url.searchParams.set("gender", filterGender.value);
+        const fGender = document.getElementById("filterGender");
+        if (fGender && fGender.value) {
+            url.searchParams.set("gender", fGender.value);
         } else {
             url.searchParams.delete("gender");
         }
 
-        const curPerPage = perPageSelect ? perPageSelect.value : (url.searchParams.get("perPage") || "15");
+        const ppSelect = document.getElementById("perPageSelect");
+        const curPerPage = ppSelect ? ppSelect.value : (url.searchParams.get("perPage") || "15");
         if (curPerPage) {
             url.searchParams.set("perPage", curPerPage);
         }
@@ -707,80 +707,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             window.location.href = url.toString();
         }
-    }
-
-    if (searchInput) {
-        let timer = null;
-        searchInput.addEventListener("input", function () {
-            if (clearBtn)
-                clearBtn.classList.toggle(
-                    "visible",
-                    this.value.trim().length > 0,
-                );
-            clearTimeout(timer);
-            timer = setTimeout(() => applyFilter(), 450);
-        });
-
-        searchInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                clearTimeout(timer);
-                applyFilter();
-            }
-        });
-    }
-
-    if (clearBtn) {
-        clearBtn.addEventListener("click", function () {
-            if (searchInput) {
-                searchInput.value = "";
-                clearBtn.classList.remove("visible");
-                applyFilter({ q: "" });
-            }
-        });
-    }
-
-    if (filterRombel) {
-        filterRombel.addEventListener("change", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            applyFilter();
-        });
-    }
-    if (filterGender) {
-        filterGender.addEventListener("change", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            applyFilter();
-        });
-    }
-    if (perPageSelect) {
-        perPageSelect.addEventListener("change", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            applyFilter();
-        });
-    }
-
-    // Event Delegation: Klik Sort Header Server-Side (Tetap berfungsi berkali-kali tanpa reload)
-    document.addEventListener("click", function (e) {
-        const th = e.target.closest(".sortable-th");
-        if (!th) return;
-
-        const sortField = th.getAttribute("data-sort");
-        if (!sortField) return;
-
-        const url = new URL(window.location.href);
-        const currentSort = url.searchParams.get("sort") || "nama";
-        const currentDir = url.searchParams.get("sort_dir") || "asc";
-
-        let newDir = "asc";
-        if (currentSort === sortField && currentDir === "asc") {
-            newDir = "desc";
-        }
-
-        applyFilter({ sort: sortField, sort_dir: newDir });
-    });
+    };
 });
 
 function escapeHtml(str) {
