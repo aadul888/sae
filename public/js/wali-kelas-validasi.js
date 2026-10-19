@@ -64,7 +64,11 @@ document.addEventListener("DOMContentLoaded", function () {
             url.searchParams.delete("page");
         }
 
-        window.location.href = url.toString();
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
     }
 
     if (perPageSelect) perPageSelect.addEventListener("change", () => applyFilter());

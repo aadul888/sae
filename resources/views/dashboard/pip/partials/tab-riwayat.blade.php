@@ -71,115 +71,101 @@
     </div>
 @endif
 
-<!-- Quick Filter Pills: Penerima vs Belum Menerima vs Semua -->
-<div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
-    <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun, 'rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'status_pip' => 'penerima'])) }}"
-        class="btn btn-sm {{ ($statusPipFilter ?? 'penerima') === 'penerima' ? 'btn-primary' : 'btn-outline' }}"
-        style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-        <i class="fas fa-circle-check"></i> Penerima PIP
-        ({{ number_format($riwayatStats['total_penerima_unik'] ?? 0) }})
-    </a>
-    <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun, 'rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'status_pip' => 'belum'])) }}"
-        class="btn btn-sm {{ ($statusPipFilter ?? 'penerima') === 'belum' ? 'btn-warning text-dark' : 'btn-outline' }}"
-        style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-        <i class="fas fa-user-xmark"></i> Belum Mendapatkan PIP
-        ({{ number_format($riwayatStats['total_belum'] ?? 0) }})
-    </a>
-    <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun, 'rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'status_pip' => 'semua'])) }}"
-        class="btn btn-sm {{ ($statusPipFilter ?? 'penerima') === 'semua' ? 'btn-primary' : 'btn-outline' }}"
-        style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-        <i class="fas fa-users"></i> Semua Siswa ({{ number_format($riwayatStats['total_siswa_aktif'] ?? 0) }})
-    </a>
-</div>
+<!-- Unified Datatable Riwayat PIP (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+<div class="card datatable-card-wrapper" id="tableDataContainer">
+    <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+    <div class="datatable-toolbar">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                        @foreach ([10, 15, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                {{ $n }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
+                </div>
 
-<div class="card" style="padding: 16px; margin-bottom: 20px;">
-    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-            <div class="toolbar-entries">
-                <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                <select id="perPageSelect" name="perPage" class="per-page-select">
-                    @foreach ([10, 15, 25, 50, 100] as $n)
-                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
-                            {{ $n }}
-                        </option>
-                    @endforeach
-                </select>
-                <span>entri</span>
-            </div>
-
-            <select id="filterStatusPip" name="status_pip" class="toolbar-filter-select" style="min-width: 175px;">
-                <option value="penerima" {{ ($statusPipFilter ?? 'penerima') === 'penerima' ? 'selected' : '' }}>
-                    Penerima PIP (Riwayat)
-                </option>
-                <option value="belum" {{ ($statusPipFilter ?? 'penerima') === 'belum' ? 'selected' : '' }}>
-                    Belum Mendapatkan PIP
-                </option>
-                <option value="semua" {{ ($statusPipFilter ?? 'penerima') === 'semua' ? 'selected' : '' }}>
-                    Semua Siswa (Penerima &amp; Belum)
-                </option>
-            </select>
-
-            @if (($statusPipFilter ?? 'penerima') !== 'belum')
-                <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select">
-                    <option value="">Semua Jenis SK</option>
-                    <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK
-                        Pemberian</option>
-                    <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK Nominasi
+                <select id="filterStatusPip" name="status_pip" class="toolbar-filter-select"
+                    style="height: 38px; min-width: 175px;">
+                    <option value="penerima" {{ ($statusPipFilter ?? 'penerima') === 'penerima' ? 'selected' : '' }}>
+                        Penerima PIP (Riwayat)
+                    </option>
+                    <option value="belum" {{ ($statusPipFilter ?? 'penerima') === 'belum' ? 'selected' : '' }}>
+                        Belum Mendapatkan PIP
+                    </option>
+                    <option value="semua" {{ ($statusPipFilter ?? 'penerima') === 'semua' ? 'selected' : '' }}>
+                        Semua Siswa (Penerima &amp; Belum)
                     </option>
                 </select>
-            @endif
 
-            @if ($isAdmin)
-                <select id="filterRombel" name="rombel_id" class="toolbar-filter-select">
-                    <option value="">Semua Kelas</option>
-                    @foreach ($rombelList as $r)
-                        <option value="{{ $r->rombongan_belajar_id }}"
-                            {{ $activeRombel?->rombongan_belajar_id === $r->rombongan_belajar_id ? 'selected' : '' }}>
-                            {{ $r->nama }}
+                @if (($statusPipFilter ?? 'penerima') !== 'belum')
+                    <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select" style="height: 38px;">
+                        <option value="">Semua Jenis SK</option>
+                        <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK
+                            Pemberian</option>
+                        <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK
+                            Nominasi
                         </option>
-                    @endforeach
-                </select>
-            @endif
+                    </select>
+                @endif
 
-            @if (($statusPipFilter ?? 'penerima') !== 'belum')
-                <select id="filterTahap" name="tahap" class="toolbar-filter-select">
-                    <option value="">Semua Tahap</option>
-                    @foreach ($riwayatTahapList as $th)
-                        <option value="{{ $th }}" {{ request('tahap') === $th ? 'selected' : '' }}>
-                            {{ $th }}
-                        </option>
-                    @endforeach
-                </select>
-            @endif
+                @if ($isAdmin)
+                    <select id="filterRombel" name="rombel_id" class="toolbar-filter-select" style="height: 38px;">
+                        <option value="">Semua Kelas</option>
+                        @foreach ($rombelList as $r)
+                            <option value="{{ $r->rombongan_belajar_id }}"
+                                {{ $activeRombel?->rombongan_belajar_id === $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                {{ $r->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
 
-            @if (
-                $q ||
-                    request('tahap') ||
-                    ($jenisSkFilter ?? '') ||
-                    ($isAdmin && $activeRombel) ||
-                    ($statusPipFilter ?? 'penerima') !== 'penerima')
-                <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun])) }}"
-                    class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                    <i class="fas fa-undo"></i>
-                </a>
-            @endif
-        </div>
+                @if (($statusPipFilter ?? 'penerima') !== 'belum')
+                    <select id="filterTahap" name="tahap" class="toolbar-filter-select" style="height: 38px;">
+                        <option value="">Semua Tahap</option>
+                        @foreach ($riwayatTahapList as $th)
+                            <option value="{{ $th }}" {{ request('tahap') === $th ? 'selected' : '' }}>
+                                {{ $th }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
 
-        <div class="live-search-wrap">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchPip" name="q" placeholder="Cari nama / NISN / No SK / ibu kandung..."
-                value="{{ $q }}" autocomplete="off">
-            <button type="button" id="clearSearchPip" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                title="Hapus pencarian">
-                <i class="fas fa-times"></i>
-            </button>
+                @if (
+                    $q ||
+                        request('tahap') ||
+                        ($jenisSkFilter ?? '') ||
+                        ($isAdmin && $activeRombel) ||
+                        ($statusPipFilter ?? 'penerima') !== 'penerima')
+                    <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'riwayat', 'tahun' => $activeTahun])) }}"
+                        class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                        title="Reset filter">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                @endif
+            </div>
+
+            <div class="live-search-wrap" style="height: 38px;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchPip" name="q"
+                    placeholder="Cari nama / NISN / No SK / ibu kandung..." value="{{ $q }}"
+                    autocomplete="off">
+                <button type="button" id="clearSearchPip" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                    title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="card table-responsive-stack" id="tableDataContainer"
-    style="padding: 0; margin-bottom: 24px; overflow: hidden;">
-    <div style="overflow-x: auto; width: 100%;">
+    <!-- 2. Konten Datatable Responsive Stack -->
+    <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
         <table class="table table-pd table-pip-riwayat"
             style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
@@ -377,11 +363,10 @@
                                         <i class="fas fa-check me-1"></i> Terusul
                                     </span>
                                 @else
-                                    <button type="button" class="btn btn-outline btn-sm btn-usulkan-pip"
+                                    <button type="button" class="btn-icon btn-usulkan-pip"
                                         onclick="openTambahUsulanSiswa('{{ $r->peserta_didik_id }}', @js($namaSiswa), @js($kelasAktif), @js($nisnSiswa))"
-                                        style="padding: 4px 10px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;"
-                                        title="Ajukan Usulan PIP Siswa Ini">
-                                        <i class="fas fa-plus text-primary"></i> <span>Usulkan</span>
+                                        title="Ajukan Usulan PIP Siswa Ini" style="color: var(--primary);">
+                                        <i class="fas fa-plus"></i>
                                     </button>
                                 @endif
                             @elseif ($isAdmin)
@@ -417,8 +402,11 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- 3. Footer Paginasi Terpadu Datatable -->
+        @if ($riwayatList->hasPages())
+            <div class="datatable-footer">
+                @include('partials.datatable-pagination', ['paginator' => $riwayatList])
+            </div>
+        @endif
     </div>
-
-    @include('dashboard.pip.partials.pagination', ['paginator' => $riwayatList])
-
-    @include('dashboard.pip.partials.pagination', ['paginator' => $riwayatList])

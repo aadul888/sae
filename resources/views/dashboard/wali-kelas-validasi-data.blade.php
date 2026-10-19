@@ -59,12 +59,10 @@
             </p>
         </div>
     @else
-        <!-- Summary Stats Grid (Klik untuk Filter Cepat) -->
+        <!-- Summary Stats Grid -->
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 20px;">
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null])) }}"
-                class="dash-stat-card"
-                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+            <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(99,102,241,0.15); color: var(--primary);">
                     <i class="fas fa-users"></i>
                 </div>
@@ -74,11 +72,9 @@
                     </div>
                     <div class="dash-stat-label">Total Peserta Didik</div>
                 </div>
-            </a>
+            </div>
 
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'sudah_konfirmasi'])) }}"
-                class="dash-stat-card"
-                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+            <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
                     <i class="fas fa-user-check"></i>
                 </div>
@@ -93,11 +89,9 @@
                         </span>
                     </div>
                 </div>
-            </a>
+            </div>
 
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'belum_konfirmasi'])) }}"
-                class="dash-stat-card"
-                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+            <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
                     <i class="fas fa-user-clock"></i>
                 </div>
@@ -107,11 +101,9 @@
                     </div>
                     <div class="dash-stat-label">Belum Konfirmasi</div>
                 </div>
-            </a>
+            </div>
 
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'berkas' => 'lengkap'])) }}"
-                class="dash-stat-card"
-                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+            <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent);">
                     <i class="fas fa-file-circle-check"></i>
                 </div>
@@ -121,11 +113,9 @@
                     </div>
                     <div class="dash-stat-label">Berkas Lengkap &amp; Valid</div>
                 </div>
-            </a>
+            </div>
 
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'berkas' => 'menunggu'])) }}"
-                class="dash-stat-card"
-                style="text-decoration: none; color: inherit; cursor: pointer; transition: transform 0.15s ease;">
+            <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(168,85,247,0.15); color: #a855f7;">
                     <i class="fas fa-hourglass-half"></i>
                 </div>
@@ -135,122 +125,96 @@
                     </div>
                     <div class="dash-stat-label">Menunggu Verifikasi</div>
                 </div>
-            </a>
-        </div>
-
-        <!-- Quick Filter Pills: Monitoring Langsung Seluruh Siswa Rombel -->
-        <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'berkas' => $berkas])) }}"
-                class="btn btn-sm {{ in_array($konfirmasi, ['', 'semua'], true) ? 'btn-primary' : 'btn-outline' }}"
-                style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-users"></i> Semua Siswa ({{ number_format($summary['total']) }})
-            </a>
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'sudah_konfirmasi', 'berkas' => $berkas])) }}"
-                class="btn btn-sm {{ $konfirmasi === 'sudah_konfirmasi' ? 'btn-success text-white' : 'btn-outline' }}"
-                style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-circle-check"></i> Sudah Konfirmasi ({{ number_format($summary['sudah_konfirmasi']) }})
-            </a>
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'belum_konfirmasi', 'berkas' => $berkas])) }}"
-                class="btn btn-sm {{ $konfirmasi === 'belum_konfirmasi' ? 'btn-warning text-dark' : 'btn-outline' }}"
-                style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-clock"></i> Belum Konfirmasi ({{ number_format($summary['belum_konfirmasi']) }})
-            </a>
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => 'perlu_perbaikan', 'berkas' => $berkas])) }}"
-                class="btn btn-sm {{ $konfirmasi === 'perlu_perbaikan' ? 'btn-danger text-white' : 'btn-outline' }}"
-                style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-triangle-exclamation"></i> Usul Perbaikan
-                ({{ number_format($summary['perlu_perbaikan']) }})
-            </a>
-            <a href="{{ route('dashboard.wali-kelas.validasi.index', array_filter(['rombel_id' => $isAdmin ? $activeRombel?->rombongan_belajar_id : null, 'konfirmasi' => $konfirmasi, 'berkas' => 'menunggu'])) }}"
-                class="btn btn-sm {{ $berkas === 'menunggu' ? 'btn-primary' : 'btn-outline' }}"
-                style="border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-hourglass-half"></i> Berkas Menunggu ({{ number_format($summary['berkas_menunggu']) }})
-            </a>
-        </div>
-
-        <!-- Toolbar & Filter -->
-        <div class="card" style="padding: 16px; margin-bottom: 20px;">
-            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                    <div class="toolbar-entries">
-                        <label for="perPageSelect"
-                            style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Tampilkan</label>
-                        <select id="perPageSelect" class="per-page-select">
-                            @foreach ([10, 15, 25, 50, 100] as $n)
-                                <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
-                                    {{ $n }}</option>
-                            @endforeach
-                        </select>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">entri</span>
-                    </div>
-
-                    <!-- Filter Status Konfirmasi -->
-                    <select id="filterKonfirmasi" class="toolbar-filter-select" style="min-width: 180px;">
-                        <option value="" {{ in_array($konfirmasi, ['', 'semua'], true) ? 'selected' : '' }}>
-                            Semua Siswa di Rombel
-                        </option>
-                        <option value="sudah_konfirmasi" {{ $konfirmasi === 'sudah_konfirmasi' ? 'selected' : '' }}>
-                            Sudah Konfirmasi
-                        </option>
-                        <option value="belum_konfirmasi" {{ $konfirmasi === 'belum_konfirmasi' ? 'selected' : '' }}>
-                            Belum Konfirmasi
-                        </option>
-                        <option value="sesuai" {{ $konfirmasi === 'sesuai' ? 'selected' : '' }}>
-                            Konfirmasi: Sesuai
-                        </option>
-                        <option value="perlu_perbaikan" {{ $konfirmasi === 'perlu_perbaikan' ? 'selected' : '' }}>
-                            Konfirmasi: Perlu Perbaikan
-                        </option>
-                        <option value="diverifikasi" {{ $konfirmasi === 'diverifikasi' ? 'selected' : '' }}>
-                            Konfirmasi: Diverifikasi
-                        </option>
-                    </select>
-
-                    <!-- Filter Status Berkas -->
-                    <select id="filterBerkas" class="toolbar-filter-select" style="min-width: 170px;">
-                        <option value="" {{ $berkas === '' ? 'selected' : '' }}>Semua Status Berkas</option>
-                        <option value="lengkap" {{ $berkas === 'lengkap' ? 'selected' : '' }}>Berkas Lengkap &amp; Valid
-                        </option>
-                        <option value="menunggu" {{ $berkas === 'menunggu' ? 'selected' : '' }}>Ada Berkas Menunggu
-                        </option>
-                        <option value="tidak_valid" {{ $berkas === 'tidak_valid' ? 'selected' : '' }}>Ada Berkas Ditolak
-                        </option>
-                        <option value="belum_lengkap" {{ $berkas === 'belum_lengkap' ? 'selected' : '' }}>Berkas Belum
-                            Lengkap</option>
-                    </select>
-
-                    <!-- Filter Gender -->
-                    <select id="filterGender" class="toolbar-filter-select" style="min-width: 125px;">
-                        <option value="">Semua Gender</option>
-                        <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
-                        <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
-                    </select>
-
-                    @if ($q || $gender || $berkas || ($konfirmasi && !in_array($konfirmasi, ['', 'semua'], true)))
-                        <a href="{{ route('dashboard.wali-kelas.validasi.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}"
-                            class="btn btn-outline" style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                            <i class="fas fa-undo"></i>
-                        </a>
-                    @endif
-                </div>
-
-                <!-- Live Search Box -->
-                <div class="live-search-wrap">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIK..."
-                        value="{{ $q }}" autocomplete="off">
-                    <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
-                        title="Hapus pencarian">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
             </div>
         </div>
 
-        <!-- Datatable Validasi Data Siswa (Baku SAE: table-responsive-stack & table-pd) -->
-        <div class="card table-responsive-stack" id="tableDataContainer"
-            style="padding: 0; margin-bottom: 24px; overflow: hidden;">
-            <div style="overflow-x: auto; width: 100%;">
+        <!-- Unified Datatable Validasi Data Siswa (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+        <div class="card datatable-card-wrapper" id="tableDataContainer">
+            <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+            <div class="datatable-toolbar">
+                <div
+                    style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-entries">
+                            <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                            <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                                @foreach ([10, 15, 25, 50, 100] as $n)
+                                    <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                        {{ $n }}</option>
+                                @endforeach
+                            </select>
+                            <span>entri</span>
+                        </div>
+
+                        <!-- Filter Status Konfirmasi -->
+                        <select id="filterKonfirmasi" class="toolbar-filter-select" style="height: 38px; min-width: 180px;">
+                            <option value="" {{ in_array($konfirmasi, ['', 'semua'], true) ? 'selected' : '' }}>
+                                Semua Siswa di Rombel
+                            </option>
+                            <option value="sudah_konfirmasi" {{ $konfirmasi === 'sudah_konfirmasi' ? 'selected' : '' }}>
+                                Sudah Konfirmasi
+                            </option>
+                            <option value="belum_konfirmasi" {{ $konfirmasi === 'belum_konfirmasi' ? 'selected' : '' }}>
+                                Belum Konfirmasi
+                            </option>
+                            <option value="sesuai" {{ $konfirmasi === 'sesuai' ? 'selected' : '' }}>
+                                Konfirmasi: Sesuai
+                            </option>
+                            <option value="perlu_perbaikan" {{ $konfirmasi === 'perlu_perbaikan' ? 'selected' : '' }}>
+                                Konfirmasi: Perlu Perbaikan
+                            </option>
+                            <option value="diverifikasi" {{ $konfirmasi === 'diverifikasi' ? 'selected' : '' }}>
+                                Konfirmasi: Diverifikasi
+                            </option>
+                        </select>
+
+                        <!-- Filter Status Berkas -->
+                        <select id="filterBerkas" class="toolbar-filter-select" style="height: 38px; min-width: 170px;">
+                            <option value="" {{ $berkas === '' ? 'selected' : '' }}>Semua Status Berkas</option>
+                            <option value="lengkap" {{ $berkas === 'lengkap' ? 'selected' : '' }}>Berkas Lengkap &amp;
+                                Valid
+                            </option>
+                            <option value="menunggu" {{ $berkas === 'menunggu' ? 'selected' : '' }}>Ada Berkas Menunggu
+                            </option>
+                            <option value="tidak_valid" {{ $berkas === 'tidak_valid' ? 'selected' : '' }}>Ada Berkas
+                                Ditolak
+                            </option>
+                            <option value="belum_lengkap" {{ $berkas === 'belum_lengkap' ? 'selected' : '' }}>Berkas Belum
+                                Lengkap</option>
+                        </select>
+
+                        <!-- Filter Gender -->
+                        <select id="filterGender" class="toolbar-filter-select" style="height: 38px; min-width: 125px;">
+                            <option value="">Semua Gender</option>
+                            <option value="L" {{ $gender === 'L' ? 'selected' : '' }}>Laki-Laki (L)</option>
+                            <option value="P" {{ $gender === 'P' ? 'selected' : '' }}>Perempuan (P)</option>
+                        </select>
+
+                        @if ($q || $gender || $berkas || ($konfirmasi && !in_array($konfirmasi, ['', 'semua'], true)))
+                            <a href="{{ route('dashboard.wali-kelas.validasi.index', $isAdmin ? ['rombel_id' => $activeRombel?->rombongan_belajar_id] : []) }}"
+                                class="btn btn-outline"
+                                style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                title="Reset filter">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        @endif
+                    </div>
+
+                    <!-- Live Search Box -->
+                    <div class="live-search-wrap" style="height: 38px;">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="liveSearch" placeholder="Cari nama / NISN / NIK..."
+                            value="{{ $q }}" autocomplete="off">
+                        <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
+                            title="Hapus pencarian">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Konten Datatable Responsive Stack -->
+            <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                 <table class="table table-pd table-validasi-data"
                     style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
@@ -517,17 +481,19 @@
                                 <!-- Kolom Aksi -->
                                 <td class="cell-pd-aksi" data-label="Aksi"
                                     style="padding: 14px 18px; text-align: right;">
-                                    <div class="validasi-actions">
-                                        <button type="button" class="btn btn-primary btn-sm btn-validasi-berkas-detail"
+                                    <div class="table-actions" style="justify-content: flex-end; gap: 6px;">
+                                        <button type="button" class="btn-icon btn-validasi-berkas-detail"
                                             data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
-                                            title="Validasi &amp; Kelola Dokumen Berkas Digital Siswa">
-                                            <i class="fas fa-check-double"></i> <span>Validasi Berkas</span>
+                                            title="Validasi &amp; Kelola Dokumen Berkas Digital Siswa"
+                                            style="color: var(--primary);">
+                                            <i class="fas fa-check-double"></i>
                                         </button>
 
                                         <a href="{{ route('dashboard.identitas.index', ['peserta_didik_id' => $item->peserta_didik_id]) }}"
-                                            class="btn btn-outline btn-sm btn-link-identitas"
-                                            title="Periksa Formulir Identitas Lengkap Siswa">
-                                            <i class="fas fa-id-card text-muted"></i> <span>Identitas</span>
+                                            class="btn-icon btn-link-identitas"
+                                            title="Periksa Formulir Identitas Lengkap Siswa"
+                                            style="color: var(--text-muted);">
+                                            <i class="fas fa-id-card"></i>
                                         </a>
                                     </div>
                                 </td>
@@ -550,58 +516,13 @@
                 </table>
             </div>
 
-            <!-- Footer Keterangan Entri -->
-            @if ($total > 0)
-                <div
-                    style="padding: 14px 18px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div class="total-count-text" style="font-size: 0.83rem; color: var(--text-muted);">
-                        Menampilkan <strong>{{ $list->firstItem() ?: 0 }}</strong> sampai
-                        <strong>{{ $list->lastItem() ?: 0 }}</strong> dari
-                        <strong>{{ number_format($total, 0, ',', '.') }}</strong> peserta didik
-                    </div>
+            <!-- 3. Footer Paginasi Terpadu Datatable -->
+            @if ($list->hasPages())
+                <div class="datatable-footer">
+                    @include('partials.datatable-pagination', ['paginator' => $list])
                 </div>
             @endif
         </div>
-
-        <!-- Custom Pagination Resmi SAE (Bebas dari links() Mentah) -->
-        @if ($list->hasPages())
-            <div class="custom-pagination">
-                @if ($list->onFirstPage())
-                    <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-                @else
-                    <a href="{{ $list->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                            class="fas fa-chevron-left"></i></a>
-                @endif
-                @php
-                    $cur = $list->currentPage();
-                    $last = $list->lastPage();
-                    $from = max(1, $cur - 2);
-                    $to = min($last, $cur + 2);
-                @endphp
-                @if ($from > 1)
-                    <a href="{{ $list->url(1) }}" class="page-btn">1</a>
-                    @if ($from > 2)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                @endif
-                @for ($i = $from; $i <= $to; $i++)
-                    <a href="{{ $list->url($i) }}"
-                        class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-                @endfor
-                @if ($to < $last)
-                    @if ($to < $last - 1)
-                        <span class="page-info">&hellip;</span>
-                    @endif
-                    <a href="{{ $list->url($last) }}" class="page-btn">{{ $last }}</a>
-                @endif
-                @if ($list->hasMorePages())
-                    <a href="{{ $list->nextPageUrl() }}" class="page-btn" title="Berikutnya"><i
-                            class="fas fa-chevron-right"></i></a>
-                @else
-                    <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-                @endif
-            </div>
-        @endif
     @endif
 
     <!-- MODAL: VERIFIKASI BERKAS DIGITAL SISWA (PDF ONLY, 2 STATUS: VALID / TIDAK VALID) -->
@@ -702,8 +623,8 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-             * Datatable Validasi Data Wali Kelas — Desktop & Responsive Modern
-             * ------------------------------------------------------------- */
+                 * Datatable Validasi Data Wali Kelas — Desktop & Responsive Modern
+                 * ------------------------------------------------------------- */
         .table-validasi-data {
             width: 100%;
             border-collapse: collapse;
@@ -838,8 +759,8 @@
         }
 
         /* -------------------------------------------------------------
-             * Responsive Mobile Stack (< 768px)
-             * ------------------------------------------------------------- */
+                 * Responsive Mobile Stack (< 768px)
+                 * ------------------------------------------------------------- */
         @media (max-width: 768px) {
             .table-responsive-stack tbody tr.validasi-row {
                 display: flex !important;

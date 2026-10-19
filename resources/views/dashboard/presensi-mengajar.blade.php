@@ -298,101 +298,110 @@
         @endif
     </div>
 
-    <!-- 5. Toolbar & Filter Presensi Mengajar Baku SAE -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <div class="toolbar-entries">
-                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select" style="height: 38px;">
-                        @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ request('per_page', 15) == $n ? 'selected' : '' }}>
-                                {{ $n }}</option>
-                        @endforeach
-                    </select>
-                    <span>entri</span>
-                </div>
+    <!-- Unified Datatable Presensi Mengajar (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+        <div class="datatable-toolbar">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" class="per-page-select" style="height: 38px;">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}"
+                                    {{ request('per_page', 15) == $n ? 'selected' : '' }}>
+                                    {{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
 
-                <!-- Filter Rentang Tanggal Inline Baku SAE -->
-                <div
-                    style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
-                    <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;" title="Rentang Tanggal"></i>
-                    <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}"
-                        title="Tanggal Mulai"
-                        style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
-                    <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
-                    <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}"
-                        title="Tanggal Selesai"
-                        style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
-                </div>
+                    <!-- Filter Rentang Tanggal Inline Baku SAE -->
+                    <div
+                        style="display: inline-flex; align-items: center; gap: 6px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 0 10px; height: 38px; box-sizing: border-box; flex-shrink: 0;">
+                        <i class="fas fa-calendar-day text-primary" style="font-size: 0.8rem;"
+                            title="Rentang Tanggal"></i>
+                        <input type="date" id="filterTanggalMulai" value="{{ request('tanggal_mulai') }}"
+                            title="Tanggal Mulai"
+                            style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
+                        <span style="color: var(--text-muted); font-size: 0.74rem;">&ndash;</span>
+                        <input type="date" id="filterTanggalSelesai" value="{{ request('tanggal_selesai') }}"
+                            title="Tanggal Selesai"
+                            style="background: transparent; border: none; color: var(--text-color); font-size: 0.82rem; padding: 0; outline: none; width: 125px; cursor: pointer;">
+                    </div>
 
-                <!-- Filter Rombel -->
-                <select id="filterRombel" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
-                    <option value="">Semua Kelas</option>
-                    @foreach ($rombelList as $r)
-                        <option value="{{ $r->rombongan_belajar_id }}"
-                            {{ request('rombongan_belajar_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
-                            {{ $r->nama }}
-                        </option>
-                    @endforeach
-                </select>
-
-                <!-- Filter Status -->
-                <select id="filterStatus" class="toolbar-filter-select" style="min-width: 130px; height: 38px;">
-                    <option value="">Semua Status</option>
-                    <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir</option>
-                    <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
-                    <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>Sakit</option>
-                    <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>Tugas</option>
-                    <option value="D" {{ request('status') === 'D' ? 'selected' : '' }}>Inval</option>
-                </select>
-
-                @if (!$isGuru && count($guruList) > 0)
-                    <select id="filterPtk" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
-                        <option value="">Semua Guru</option>
-                        @foreach ($guruList as $g)
-                            <option value="{{ $g->ptk_id }}"
-                                {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
-                                {{ $g->nama }}
+                    <!-- Filter Rombel -->
+                    <select id="filterRombel" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
+                        <option value="">Semua Kelas</option>
+                        @foreach ($rombelList as $r)
+                            <option value="{{ $r->rombongan_belajar_id }}"
+                                {{ request('rombongan_belajar_id') === $r->rombongan_belajar_id ? 'selected' : '' }}>
+                                {{ $r->nama }}
                             </option>
                         @endforeach
                     </select>
-                @endif
 
-                @if (request('q') ||
-                        request('tanggal_mulai') ||
-                        request('tanggal_selesai') ||
-                        request('rombongan_belajar_id') ||
-                        request('status') ||
-                        request('filter_ptk_id'))
-                    <button type="button" id="btnResetFilter" class="btn btn-outline"
-                        style="height: 38px; padding: 0 12px; font-size: 0.8rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;"
-                        title="Reset filter">
-                        <i class="fas fa-undo"></i> <span>Reset</span>
+                    <!-- Filter Status -->
+                    <select id="filterStatus" class="toolbar-filter-select" style="min-width: 130px; height: 38px;">
+                        <option value="">Semua Status</option>
+                        <option value="H" {{ request('status') === 'H' ? 'selected' : '' }}>Hadir</option>
+                        <option value="I" {{ request('status') === 'I' ? 'selected' : '' }}>Izin</option>
+                        <option value="S" {{ request('status') === 'S' ? 'selected' : '' }}>Sakit</option>
+                        <option value="T" {{ request('status') === 'T' ? 'selected' : '' }}>Tugas</option>
+                        <option value="D" {{ request('status') === 'D' ? 'selected' : '' }}>Inval</option>
+                    </select>
+
+                    @if (!$isGuru && count($guruList) > 0)
+                        <select id="filterPtk" class="toolbar-filter-select" style="min-width: 140px; height: 38px;">
+                            <option value="">Semua Guru</option>
+                            @foreach ($guruList as $g)
+                                <option value="{{ $g->ptk_id }}"
+                                    {{ request('filter_ptk_id') === $g->ptk_id ? 'selected' : '' }}>
+                                    {{ $g->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @endif
+
+                    @if (request('q') ||
+                            request('tanggal_mulai') ||
+                            request('tanggal_selesai') ||
+                            request('rombongan_belajar_id') ||
+                            request('status') ||
+                            request('filter_ptk_id'))
+                        <button type="button" id="btnResetFilter" class="btn btn-outline"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            title="Reset filter">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    @endif
+                </div>
+
+                <!-- Live Search Box Baku SAE -->
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearchInput" placeholder="Cari mapel, kelas, catatan..."
+                        value="{{ request('q') }}" autocomplete="off">
+                    <button type="button" class="clear-search {{ request('q') ? 'visible' : '' }}"
+                        title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
                     </button>
-                @endif
-            </div>
-
-            <!-- Live Search Box Baku SAE -->
-            <div class="live-search-wrap" style="height: 38px;">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearchInput" placeholder="Cari mapel, kelas, catatan..."
-                    value="{{ request('q') }}" autocomplete="off">
-                <button type="button" class="clear-search {{ request('q') ? 'visible' : '' }}" title="Hapus pencarian">
-                    <i class="fas fa-times"></i>
-                </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- 6. Datatable Container Baku SAE -->
-    <div class="card table-responsive-stack" id="tableDataContainer"
-        style="padding: 0; margin-bottom: 24px; border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden;">
-        @include('dashboard.presensi-mengajar-table')
-    </div>
+        <!-- 2. Konten Datatable Container Baku SAE -->
+        <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+            @include('dashboard.presensi-mengajar-table')
+        </div>
 
-    {{-- Custom Pagination Baku SAE (Acuan: peserta-didik-aktif) --}}
-    @include('partials.datatable-pagination', ['paginator' => $items])
+        <!-- 3. Footer Paginasi Terpadu Datatable -->
+        @if ($items->hasPages())
+            <div class="datatable-footer">
+                @include('partials.datatable-pagination', ['paginator' => $items])
+            </div>
+        @endif
+    </div>
 
     <!-- 6. Modal Form Catat Presensi Mengajar (z-index: 99999 !important) -->
     <div id="modalFormPresensi" class="modal-backdrop"

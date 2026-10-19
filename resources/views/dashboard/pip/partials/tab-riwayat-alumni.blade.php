@@ -50,74 +50,81 @@
     </div>
 </div>
 
-<div class="card" style="padding: 16px; margin-bottom: 20px;">
-    <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-            <div class="toolbar-entries">
-                <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                <select id="perPageSelect" name="perPage" class="per-page-select">
-                    @foreach ([10, 15, 25, 50, 100] as $n)
-                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}
+<!-- Unified Datatable Riwayat Alumni PIP (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+<div class="card datatable-card-wrapper" id="tableDataContainer">
+    <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+    <div class="datatable-toolbar">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <div class="toolbar-entries">
+                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                    <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                        @foreach ([10, 15, 25, 50, 100] as $n)
+                            <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                {{ $n }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span>entri</span>
+                </div>
+
+                <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select" style="height: 38px;">
+                    <option value="">Semua Jenis SK</option>
+                    <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK
+                        Pemberian
+                    </option>
+                    <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK Nominasi
+                    </option>
+                </select>
+
+                <select id="filterStatusKeluar" name="status_keluar" class="toolbar-filter-select"
+                    style="height: 38px;">
+                    <option value="">Semua Status Keluar</option>
+                    @foreach ($alumniStatusList as $st)
+                        <option value="{{ $st }}"
+                            {{ ($statusKeluarFilter ?? '') === $st ? 'selected' : '' }}>
+                            {{ $st }}
+                        </option>
+                    @endforeach
+                    @if (!in_array('Lainnya', $alumniStatusList, true))
+                        <option value="Lainnya" {{ ($statusKeluarFilter ?? '') === 'Lainnya' ? 'selected' : '' }}>
+                            Lainnya / Arsip
+                        </option>
+                    @endif
+                </select>
+
+                <select id="filterTahap" name="tahap" class="toolbar-filter-select" style="height: 38px;">
+                    <option value="">Semua Tahap</option>
+                    @foreach ($riwayatAlumniTahapList as $th)
+                        <option value="{{ $th }}" {{ request('tahap') === $th ? 'selected' : '' }}>
+                            {{ $th }}
                         </option>
                     @endforeach
                 </select>
-                <span>entri</span>
+
+                @if ($q || request('tahap') || ($jenisSkFilter ?? '') || ($statusKeluarFilter ?? ''))
+                    <a href="{{ route('dashboard.pip.index', ['tab' => 'riwayat_alumni']) }}" class="btn btn-outline"
+                        style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                        title="Reset filter">
+                        <i class="fas fa-undo"></i>
+                    </a>
+                @endif
             </div>
 
-            <select id="filterJenisSk" name="jenis_sk" class="toolbar-filter-select">
-                <option value="">Semua Jenis SK</option>
-                <option value="pemberian" {{ ($jenisSkFilter ?? '') === 'pemberian' ? 'selected' : '' }}>SK Pemberian
-                </option>
-                <option value="nominasi" {{ ($jenisSkFilter ?? '') === 'nominasi' ? 'selected' : '' }}>SK Nominasi
-                </option>
-            </select>
-
-            <select id="filterStatusKeluar" name="status_keluar" class="toolbar-filter-select">
-                <option value="">Semua Status Keluar</option>
-                @foreach ($alumniStatusList as $st)
-                    <option value="{{ $st }}" {{ ($statusKeluarFilter ?? '') === $st ? 'selected' : '' }}>
-                        {{ $st }}
-                    </option>
-                @endforeach
-                @if (!in_array('Lainnya', $alumniStatusList, true))
-                    <option value="Lainnya" {{ ($statusKeluarFilter ?? '') === 'Lainnya' ? 'selected' : '' }}>
-                        Lainnya / Arsip
-                    </option>
-                @endif
-            </select>
-
-            <select id="filterTahap" name="tahap" class="toolbar-filter-select">
-                <option value="">Semua Tahap</option>
-                @foreach ($riwayatAlumniTahapList as $th)
-                    <option value="{{ $th }}" {{ request('tahap') === $th ? 'selected' : '' }}>
-                        {{ $th }}
-                    </option>
-                @endforeach
-            </select>
-
-            @if ($q || request('tahap') || ($jenisSkFilter ?? '') || ($statusKeluarFilter ?? ''))
-                <a href="{{ route('dashboard.pip.index', ['tab' => 'riwayat_alumni']) }}" class="btn btn-outline"
-                    style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                    <i class="fas fa-undo"></i>
-                </a>
-            @endif
-        </div>
-
-        <div class="live-search-wrap">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchPip" name="q" placeholder="Cari nama / NISN / No SK / rombel..."
-                value="{{ $q }}" autocomplete="off">
-            <button type="button" id="clearSearchPip" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                title="Hapus pencarian">
-                <i class="fas fa-times"></i>
-            </button>
+            <div class="live-search-wrap" style="height: 38px;">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchPip" name="q" placeholder="Cari nama / NISN / No SK / rombel..."
+                    value="{{ $q }}" autocomplete="off">
+                <button type="button" id="clearSearchPip" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                    title="Hapus pencarian">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="card table-responsive-stack" id="tableDataContainer"
-    style="padding: 0; margin-bottom: 24px; overflow: hidden;">
-    <div style="overflow-x: auto; width: 100%;">
+    <!-- 2. Konten Datatable Responsive Stack -->
+    <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
         <table class="table table-pd table-pip-riwayat"
             style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
             <thead>
@@ -290,6 +297,11 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
-    @include('dashboard.pip.partials.pagination', ['paginator' => $riwayatAlumniList])
+        <!-- 3. Footer Paginasi Terpadu Datatable -->
+        @if ($riwayatAlumniList->hasPages())
+            <div class="datatable-footer">
+                @include('partials.datatable-pagination', ['paginator' => $riwayatAlumniList])
+            </div>
+        @endif
+    </div>
