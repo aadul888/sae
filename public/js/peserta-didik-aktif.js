@@ -658,6 +658,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Helper filter global peserta didik aktif (dapat dipanggil oleh aksi modal/eksternal)
     window.applyPesertaDidikFilter = function (overrideParams = {}) {
+        if (typeof window.collectDatatableUrl === "function") {
+            const tableWrap = document.getElementById("tableDataContainer");
+            const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(targetUrl);
+            } else {
+                window.location.href = targetUrl;
+            }
+            return;
+        }
+
         const url = new URL(window.location.href);
         url.searchParams.delete("perPageSelect");
         url.searchParams.delete("_token");
@@ -708,6 +719,37 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.href = url.toString();
         }
     };
+
+    // Delegated Change Handler untuk filter Peserta Didik Aktif
+    document.addEventListener("change", function (e) {
+        if (!e.target || e.target.tagName !== "SELECT") return;
+        if (window.location.pathname.includes("/kesiswaan/")) return;
+        if (
+            e.target.closest("#tableDataContainer, .datatable-toolbar") &&
+            (e.target.id === "filterRombel" || e.target.id === "filterGender" || e.target.id === "perPageSelect")
+        ) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.applyPesertaDidikFilter();
+        }
+    });
+
+    // Delegated Sort Click Handler untuk tabel Peserta Didik Aktif
+    document.addEventListener("click", function (e) {
+        if (window.location.pathname.includes("/kesiswaan/")) return;
+        const th = e.target.closest(".sortable-th");
+        if (!th || !th.closest("#tableDataContainer")) return;
+        const sortField = th.getAttribute("data-sort");
+        if (!sortField) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const url = new URL(window.location.href);
+        const currentSort = url.searchParams.get("sort") || "nama";
+        const currentDir = url.searchParams.get("sort_dir") || "asc";
+        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
+        window.applyPesertaDidikFilter({ sort: sortField, sort_dir: newDir });
+    });
 });
 
 function escapeHtml(str) {

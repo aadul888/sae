@@ -105,6 +105,51 @@
             </div>
         </div>
 
+        <!-- Card Interaktif: Nomor Surat Masuk Terakhir (Diatas Datatable) -->
+        <div class="card card-nomor-terakhir"
+            style="padding: 16px 20px; margin-bottom: 20px; border-radius: 14px; border: 1px solid rgba(59,130,246,0.25); background: linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(99,102,241,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="display: flex; align-items: center; gap: 16px; min-width: 260px; flex: 1;">
+                <div
+                    style="width: 48px; height: 48px; border-radius: 12px; background: rgba(59,130,246,0.15); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <div style="min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span
+                            style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                            Nomor Surat Masuk Terakhir
+                        </span>
+                        <span class="badge badge-info"
+                            style="font-size: 0.68rem; padding: 2px 8px; border-radius: 12px;">Agenda Masuk</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
+                        <span id="labelNomorSuratMasuk"
+                            style="font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 1.15rem; font-weight: 800; color: #2563eb; background: rgba(59,130,246,0.1); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.25); letter-spacing: 0.5px;">
+                            {{ $stats['nomor_terakhir'] ?? '-' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline"
+                    onclick="copyNomorSurat(this, '{{ $stats['nomor_terakhir'] ?? '' }}')"
+                    style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 7px; background: var(--card-bg);"
+                    title="Salin nomor surat masuk terakhir ke clipboard">
+                    <i class="fas fa-copy text-primary"></i> <span>Salin Nomor</span>
+                </button>
+
+                @if (($stats['nomor_terakhir'] ?? '-') !== '-')
+                    <button type="button" class="btn btn-primary"
+                        onclick="filterByNomorSurat('{{ $stats['nomor_terakhir'] }}')"
+                        style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 7px;"
+                        title="Filter / temukan surat ini pada datatable">
+                        <i class="fas fa-search"></i> <span>Cari di Datatable</span>
+                    </button>
+                @endif
+            </div>
+        </div>
+
         <!-- 4. Main Data Card & Table -->
         <!-- 4. Toolbar & Filter Standar SAE -->
         <div class="card" style="padding: 16px; margin-bottom: 20px;">
@@ -696,6 +741,57 @@
 @endsection
 
 @push('scripts')
+    <script>
+        function copyNomorSurat(btn, text) {
+            if (!text || text === '-') return;
+            const oldHtml = btn.innerHTML;
+            const updateBtn = () => {
+                btn.innerHTML =
+                    '<i class="fas fa-check text-success"></i> <span style="color:#10b981;">Tersalin!</span>';
+                setTimeout(() => {
+                    btn.innerHTML = oldHtml;
+                }, 2000);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(updateBtn).catch(() => fallbackCopy(text, updateBtn));
+            } else {
+                fallbackCopy(text, updateBtn);
+            }
+        }
+
+        function fallbackCopy(text, cb) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                if (cb) cb();
+            } catch (e) {}
+            document.body.removeChild(ta);
+        }
+
+        function filterByNomorSurat(text) {
+            if (!text || text === '-') return;
+            const input = document.getElementById('liveSearch');
+            if (input) {
+                input.value = text;
+                input.focus();
+                input.dispatchEvent(new Event('input', {
+                    bubbles: true
+                }));
+                const clearBtn = document.getElementById('clearSearch');
+                if (clearBtn) clearBtn.classList.add('visible');
+            } else {
+                const url = new URL(window.location.href);
+                url.searchParams.set('q', text);
+                url.searchParams.set('page', '1');
+                window.location.href = url.toString();
+            }
+        }
+    </script>
     <script
         src="{{ asset('js/persuratan-masuk.js') }}?v={{ file_exists(public_path('js/persuratan-masuk.js')) ? filemtime(public_path('js/persuratan-masuk.js')) : time() }}">
     </script>

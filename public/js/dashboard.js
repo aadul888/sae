@@ -936,12 +936,6 @@ function isDatatableSearchInput(el) {
     return false;
 }
 
-// Universal Helper: Execute Datatable search (works for forms and standalone toolbars)
-function executeDatatableSearch(input) {
-    if (!input) return;
-
-    // 1. Jika berada di dalam form GET, submit form secara asinkron
-    const form = input.closest("form");
 // Universal Helper: Collect all search & filter parameters for the active datatable
 window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
     const url = new URL(window.location.href);
@@ -1213,13 +1207,6 @@ document.addEventListener("change", function (e) {
     // Standalone datatable toolbar
     const targetUrl = window.collectDatatableUrl(el);
     window.refreshLiveTable(targetUrl);
-});
-            url.searchParams.set(sInput.name || "q", sInput.value.trim());
-        }
-
-        url.searchParams.set("page", "1");
-        window.refreshLiveTable(url.toString());
-    }
 });
 
 // Universal Delegated Handler for Reset Filter Buttons

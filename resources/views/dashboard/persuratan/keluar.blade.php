@@ -159,6 +159,99 @@
             </div>
         </div>
 
+        @php
+            $activeTab = $tab ?? 'keluar';
+            $tabConfigs = [
+                'keluar' => [
+                    'label' => 'Nomor Surat Keluar Terakhir',
+                    'nomor' => $stats['nomor_terakhir'] ?? '-',
+                    'badge' => 'Umum',
+                    'icon' => 'fas fa-paper-plane',
+                    'color' => '#10b981',
+                    'bg' => 'rgba(16,185,129,0.12)',
+                    'border' => 'rgba(16,185,129,0.25)',
+                    'gradient' => 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, rgba(99,102,241,0.03) 100%)',
+                ],
+                'keterangan' => [
+                    'label' => 'Nomor Surat Keterangan Siswa Terakhir',
+                    'nomor' => $stats['nomor_terakhir_keterangan'] ?? '-',
+                    'badge' => 'Siswa Aktif',
+                    'icon' => 'fas fa-graduation-cap',
+                    'color' => '#6366f1',
+                    'bg' => 'rgba(99,102,241,0.12)',
+                    'border' => 'rgba(99,102,241,0.25)',
+                    'gradient' => 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(59,130,246,0.03) 100%)',
+                ],
+                'spt' => [
+                    'label' => 'Nomor Surat Perintah Tugas (SPT) Terakhir',
+                    'nomor' => $stats['nomor_terakhir_spt'] ?? '-',
+                    'badge' => 'SPT Dinas',
+                    'icon' => 'fas fa-file-contract',
+                    'color' => '#2563eb',
+                    'bg' => 'rgba(37,99,235,0.12)',
+                    'border' => 'rgba(37,99,235,0.25)',
+                    'gradient' => 'linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(16,185,129,0.03) 100%)',
+                ],
+                'template' => [
+                    'label' => 'Nomor Template Surat Terakhir',
+                    'nomor' => $stats['nomor_terakhir_template'] ?? '-',
+                    'badge' => 'Autocrat',
+                    'icon' => 'fas fa-wand-magic-sparkles',
+                    'color' => '#7c3aed',
+                    'bg' => 'rgba(124,58,237,0.12)',
+                    'border' => 'rgba(124,58,237,0.25)',
+                    'gradient' => 'linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(99,102,241,0.03) 100%)',
+                ],
+            ];
+            $curCfg = $tabConfigs[$activeTab] ?? $tabConfigs['keluar'];
+        @endphp
+
+        <!-- Card Interaktif: Nomor Surat Terakhir (Diatas Datatable) -->
+        <div class="card card-nomor-terakhir"
+            style="padding: 16px 20px; margin-bottom: 20px; border-radius: 14px; border: 1px solid {{ $curCfg['border'] }}; background: {{ $curCfg['gradient'] }}; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+            <div style="display: flex; align-items: center; gap: 16px; min-width: 260px; flex: 1;">
+                <div
+                    style="width: 48px; height: 48px; border-radius: 12px; background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+                    <i class="{{ $curCfg['icon'] }}"></i>
+                </div>
+                <div style="min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span
+                            style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">
+                            {{ $curCfg['label'] }}
+                        </span>
+                        <span class="badge"
+                            style="font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; background: {{ $curCfg['bg'] }}; color: {{ $curCfg['color'] }}; border: 1px solid {{ $curCfg['border'] }};">
+                            {{ $curCfg['badge'] }}
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
+                        <span id="labelNomorSuratKeluar"
+                            style="font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 1.15rem; font-weight: 800; color: {{ $curCfg['color'] }}; background: {{ $curCfg['bg'] }}; padding: 4px 12px; border-radius: 8px; border: 1px solid {{ $curCfg['border'] }}; letter-spacing: 0.5px;">
+                            {{ $curCfg['nomor'] }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-outline" onclick="copyNomorSurat(this, '{{ $curCfg['nomor'] }}')"
+                    style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 7px; background: var(--card-bg);"
+                    title="Salin nomor surat ke clipboard">
+                    <i class="fas fa-copy" style="color: {{ $curCfg['color'] }};"></i> <span>Salin Nomor</span>
+                </button>
+
+                @if ($curCfg['nomor'] !== '-')
+                    <button type="button" class="btn btn-primary"
+                        onclick="filterByNomorSurat('{{ $curCfg['nomor'] }}')"
+                        style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 7px; background: {{ $curCfg['color'] }}; border-color: {{ $curCfg['color'] }};"
+                        title="Filter / temukan nomor ini pada datatable">
+                        <i class="fas fa-search"></i> <span>Cari di Datatable</span>
+                    </button>
+                @endif
+            </div>
+        </div>
+
         <!-- 5. Toolbar & Filter Standar SAE -->
         <div class="card" style="padding: 16px; margin-bottom: 20px;">
             <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
@@ -1468,6 +1561,57 @@
 @endsection
 
 @push('scripts')
+    <script>
+        function copyNomorSurat(btn, text) {
+            if (!text || text === '-') return;
+            const oldHtml = btn.innerHTML;
+            const updateBtn = () => {
+                btn.innerHTML =
+                    '<i class="fas fa-check text-success"></i> <span style="color:#10b981;">Tersalin!</span>';
+                setTimeout(() => {
+                    btn.innerHTML = oldHtml;
+                }, 2000);
+            };
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(updateBtn).catch(() => fallbackCopy(text, updateBtn));
+            } else {
+                fallbackCopy(text, updateBtn);
+            }
+        }
+
+        function fallbackCopy(text, cb) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                if (cb) cb();
+            } catch (e) {}
+            document.body.removeChild(ta);
+        }
+
+        function filterByNomorSurat(text) {
+            if (!text || text === '-') return;
+            const input = document.getElementById('liveSearch');
+            if (input) {
+                input.value = text;
+                input.focus();
+                input.dispatchEvent(new Event('input', {
+                    bubbles: true
+                }));
+                const clearBtn = document.getElementById('clearSearch');
+                if (clearBtn) clearBtn.classList.add('visible');
+            } else {
+                const url = new URL(window.location.href);
+                url.searchParams.set('q', text);
+                url.searchParams.set('page', '1');
+                window.location.href = url.toString();
+            }
+        }
+    </script>
     <script
         src="{{ asset('js/people-autocomplete.js') }}?v={{ file_exists(public_path('js/people-autocomplete.js')) ? filemtime(public_path('js/people-autocomplete.js')) : time() }}">
     </script>
