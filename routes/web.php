@@ -484,6 +484,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
 
     // Manajemen Data — Peserta Didik Aktif, Guru Aktif, & Tendik Aktif (Sumber: Peserta Didik & GTK Dapodik)
     Route::get('/manajemen-data/peserta-didik-aktif', [\App\Http\Controllers\PesertaDidikAktifController::class, 'index'])->name('peserta-didik-aktif.index')->middleware('permission:menu_peserta_didik_aktif|menu_wali_kelas_aktif,read');
+    Route::get('/manajemen-data/peserta-didik-aktif/download-template', [\App\Http\Controllers\PesertaDidikAktifController::class, 'downloadTemplate'])->name('peserta-didik-aktif.download-template')->middleware('permission:menu_peserta_didik_aktif|menu_wali_kelas_aktif,read');
+    Route::post('/manajemen-data/peserta-didik-aktif/import-excel', [\App\Http\Controllers\PesertaDidikAktifController::class, 'importExcel'])->name('peserta-didik-aktif.import-excel')->middleware('permission:menu_peserta_didik_aktif|menu_wali_kelas_aktif,create');
     Route::get('/manajemen-data/peserta-didik-aktif/rombel-members', [\App\Http\Controllers\PesertaDidikAktifController::class, 'getRombelMembers'])->name('peserta-didik-aktif.rombel-members')->middleware('permission:menu_peserta_didik_aktif|menu_wali_kelas_aktif,read');
     Route::post('/manajemen-data/peserta-didik-aktif/upload-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'uploadFoto'])->name('peserta-didik-aktif.upload-foto')->middleware('permission:menu_peserta_didik_aktif|menu_wali_kelas_aktif,update');
     Route::post('/manajemen-data/peserta-didik-aktif/bulk-upload-foto', [\App\Http\Controllers\PesertaDidikAktifController::class, 'bulkUploadFoto'])->name('peserta-didik-aktif.bulk-upload-foto')->middleware('permission:menu_peserta_didik_aktif|menu_wali_kelas_aktif,update');

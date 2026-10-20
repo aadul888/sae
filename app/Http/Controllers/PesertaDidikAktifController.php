@@ -2,11 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PesertaDidikMeta;
+use App\Models\RolePermission;
+use App\Models\User;
+use App\Services\SimpleXlsxExporter;
+use App\Services\SimpleXlsxReader;
+use App\Support\SemesterHelper;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use ZipArchive;
 
 class PesertaDidikAktifController extends Controller
@@ -1172,5 +1181,335 @@ class PesertaDidikAktifController extends Controller
             'generatedAt',
             'titimangsa'
         ));
+    }
+
+    /**
+     * Unduh berkas template Microsoft Excel (.xlsx) untuk import peserta didik aktif sementara
+     */
+    public function downloadTemplate(Request $request)
+    {
+        $user = session('user');
+        if (!$user) return redirect()->route('login');
+        $canRead = RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'read')
+            || RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'read');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!$canRead && $role !== 'admin') {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang mengunduh berkas template.');
+        }
+
+        $tempPath = tempnam(sys_get_temp_dir(), 'tpl_pd_') . '.xlsx';
+        $meta = [
+            'title' => 'TEMPLATE IMPORT PESERTA DIDIK AKTIF (SEMENTARA)',
+            'subtitle' => 'Sistem Aplikasi Edukasi (SAE) — Pangkalan Data & Verifikasi Kartu Pelajar Digital',
+            'fields' => [
+                'Petunjuk' => 'Kolom tanda (*) wajib diisi. NISN 10 digit. L/P: L untuk Laki-laki, P untuk Perempuan. Tanggal: YYYY-MM-DD.',
+            ],
+        ];
+
+        $headers = [
+            'NISN (*)',
+            'Nama Lengkap (*)',
+            'L/P (*)',
+            'Rombel Kelas (*)',
+            'NIPD',
+            'Tempat Lahir',
+            'Tanggal Lahir',
+            'NIK',
+        ];
+
+        $sampleRows = [
+            ['0081234561', 'Ahmad Rizki Pratama', 'L', 'X PPLG 1', '2425001', 'Cianjur', '2008-05-17', '3203010101080001'],
+            ['0081234562', 'Siti Nur Aisyah', 'P', 'X PPLG 1', '2425002', 'Bandung', '2008-08-20', '3203014101080002'],
+            ['0081234563', 'Budi Santoso', 'L', 'XI TJKT 2', '2324015', 'Jakarta', '2007-11-12', '3203010101070003'],
+        ];
+
+        SimpleXlsxExporter::export($tempPath, $meta, $headers, $sampleRows, [
+            'sheetName' => 'Peserta Didik Aktif',
+            'headerBg' => '#4338CA',
+        ]);
+
+        return response()->download($tempPath, 'Template_Import_Peserta_Didik_Aktif.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import berkas Excel / CSV untuk penambahan peserta didik aktif sementara
+     * Data utama yang wajib: NISN, Nama Lengkap, Jenis Kelamin (L/P), Rombel Kelas.
+     * Cukup sesuai data yang ditampilkan pada halaman validasi / cek kartu pelajar.
+     */
+    public function importExcel(Request $request): JsonResponse
+    {
+        $user = session('user');
+        if (!$user) return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 401);
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $canCreate = RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'create')
+            || RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'create');
+        $isAdmin = ($role === 'admin');
+
+        if (!$canCreate && !$isAdmin) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Akses ditolak: Anda tidak memiliki wewenang untuk menambah / mengimpor data peserta didik.'
+            ], 403);
+        }
+
+        $request->validate([
+            'file_excel' => 'required|file|max:20480',
+        ], [
+            'file_excel.required' => 'Berkas Excel wajib dipilih.',
+            'file_excel.max' => 'Ukuran berkas maksimal adalah 20 MB.',
+        ]);
+
+        $file = $request->file('file_excel');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['xlsx', 'xls', 'csv', 'txt'], true)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Format berkas tidak didukung. Unggah berkas Excel (.xlsx, .xls) atau CSV (.csv).'
+            ], 422);
+        }
+
+        $path = $file->getRealPath();
+
+        try {
+            $rows = SimpleXlsxReader::readFile($path);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal membaca berkas: ' . $e->getMessage()
+            ], 422);
+        }
+
+        if (empty($rows)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Berkas Excel kosong atau baris data tidak terdeteksi.'
+            ], 422);
+        }
+
+        if (!Schema::hasTable('peserta_didik')) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tabel peserta didik belum tersedia di database.'
+            ], 500);
+        }
+
+        $sekolah = Schema::hasTable('sekolah') ? DB::table('sekolah')->first() : null;
+        $sekolahId = $sekolah?->sekolah_id ?? null;
+        $activeSemesterId = SemesterHelper::getActiveSemesterId();
+
+        $rombelMap = collect();
+        if (Schema::hasTable('rombongan_belajar')) {
+            $rombelMap = DB::table('rombongan_belajar')->get()->keyBy(function ($r) {
+                return strtolower(trim($r->nama));
+            });
+        }
+
+        $importedCount = 0;
+        $updatedCount = 0;
+        $skippedCount = 0;
+        $errors = [];
+
+        foreach ($rows as $idx => $row) {
+            $rowNum = $idx + 2;
+
+            // 1. Ekstrak NISN
+            $nisnRaw = $row['nisn'] ?? ($row['nisn_*'] ?? ($row['nisn___'] ?? ($row['nomor_induk_siswa_nasional'] ?? '')));
+            $nisn = preg_replace('/[^0-9]/', '', trim((string)$nisnRaw));
+
+            // 2. Ekstrak Nama Lengkap
+            $nama = trim((string)($row['nama_lengkap'] ?? ($row['nama'] ?? ($row['nama_lengkap_*'] ?? ($row['nama_lengkap___'] ?? ($row['nama_pd'] ?? ($row['nama_siswa'] ?? '')))))));
+
+            // 3. Ekstrak Rombel
+            $rombel = trim((string)($row['rombel_kelas'] ?? ($row['rombel_kelas_*'] ?? ($row['rombel_kelas___'] ?? ($row['nama_rombel'] ?? ($row['rombel'] ?? ($row['kelas'] ?? '')))))));
+
+            if ($nama === '' && $nisn === '') {
+                continue;
+            }
+
+            if ($nisn === '') {
+                $skippedCount++;
+                $errors[] = "Baris {$rowNum}: NISN tidak boleh kosong (Nama: " . ($nama ?: 'Tanpa Nama') . ").";
+                continue;
+            }
+
+            if ($nama === '') {
+                $skippedCount++;
+                $errors[] = "Baris {$rowNum}: Nama lengkap tidak boleh kosong (NISN: {$nisn}).";
+                continue;
+            }
+
+            if ($rombel === '') {
+                $skippedCount++;
+                $errors[] = "Baris {$rowNum}: Rombel/Kelas tidak boleh kosong ({$nama} - NISN: {$nisn}).";
+                continue;
+            }
+
+            // 4. Ekstrak Jenis Kelamin (L/P)
+            $jkRaw = strtoupper(trim((string)($row['l_p'] ?? ($row['l_p_*'] ?? ($row['l_p___'] ?? ($row['jenis_kelamin'] ?? ($row['jk'] ?? ($row['gender'] ?? ''))))))));
+            $jk = str_starts_with($jkRaw, 'P') ? 'P' : 'L';
+
+            // 5. Ekstrak NIPD
+            $nipd = trim((string)($row['nipd'] ?? ($row['no_induk'] ?? ($row['nis'] ?? ''))));
+
+            // 6. Ekstrak Tempat Lahir
+            $tempatLahir = trim((string)($row['tempat_lahir'] ?? ($row['tmp_lahir'] ?? '')));
+
+            // 7. Ekstrak Tanggal Lahir
+            $tglLahirRaw = $row['tanggal_lahir'] ?? ($row['tgl_lahir'] ?? '');
+            $tglLahir = $this->parseTanggal($tglLahirRaw);
+
+            // 8. Ekstrak NIK
+            $nikRaw = $row['nik'] ?? ($row['no_nik'] ?? '');
+            $nik = preg_replace('/[^0-9]/', '', trim((string)$nikRaw));
+
+            // Hubungkan ke rombongan_belajar
+            $rombelKey = strtolower($rombel);
+            $rombelRecord = $rombelMap[$rombelKey] ?? null;
+            $rombelId = $rombelRecord?->rombongan_belajar_id ?? null;
+            $tingkat = $rombelRecord?->tingkat_pendidikan_id ?? null;
+            $kurikulum = $rombelRecord?->kurikulum_id_str ?? 'Kurikulum Merdeka';
+
+            if (!$tingkat) {
+                if (preg_match('/^(?:kelas\s*)?(?:12|xii)\b/i', $rombel)) {
+                    $tingkat = '12';
+                } elseif (preg_match('/^(?:kelas\s*)?(?:11|xi)\b/i', $rombel)) {
+                    $tingkat = '11';
+                } elseif (preg_match('/^(?:kelas\s*)?(?:10|x)\b/i', $rombel)) {
+                    $tingkat = '10';
+                } else {
+                    $tingkat = '10';
+                }
+            }
+
+            try {
+                $existing = DB::table('peserta_didik')->where('nisn', $nisn)->first();
+
+                if ($existing) {
+                    $pdId = $existing->peserta_didik_id;
+                    $updatePayload = [
+                        'nama' => $nama,
+                        'nama_rombel' => $rombel,
+                        'updated_at' => now(),
+                    ];
+                    if ($jk) $updatePayload['jenis_kelamin'] = $jk;
+                    if ($nipd !== '') $updatePayload['nipd'] = $nipd;
+                    if ($tempatLahir !== '') $updatePayload['tempat_lahir'] = $tempatLahir;
+                    if ($tglLahir) $updatePayload['tanggal_lahir'] = $tglLahir;
+                    if ($nik !== '') $updatePayload['nik'] = $nik;
+                    if ($rombelId) $updatePayload['rombongan_belajar_id'] = $rombelId;
+                    if ($tingkat) $updatePayload['tingkat_pendidikan_id'] = $tingkat;
+                    if ($kurikulum && empty($existing->kurikulum_id_str)) $updatePayload['kurikulum_id_str'] = $kurikulum;
+
+                    DB::table('peserta_didik')->where('peserta_didik_id', $pdId)->update($updatePayload);
+                    $updatedCount++;
+                } else {
+                    $pdId = (string) Str::uuid();
+                    $insertPayload = [
+                        'peserta_didik_id' => $pdId,
+                        'registrasi_id' => (string) Str::uuid(),
+                        'nama' => $nama,
+                        'nisn' => $nisn,
+                        'nipd' => $nipd ?: null,
+                        'nik' => $nik ?: null,
+                        'jenis_kelamin' => $jk,
+                        'tempat_lahir' => $tempatLahir ?: null,
+                        'tanggal_lahir' => $tglLahir ?: null,
+                        'nama_rombel' => $rombel,
+                        'rombongan_belajar_id' => $rombelId,
+                        'tingkat_pendidikan_id' => $tingkat,
+                        'kurikulum_id_str' => $kurikulum,
+                        'jenis_pendaftaran_id_str' => 'Siswa Baru',
+                        'tanggal_masuk_sekolah' => now()->format('Y-m-d'),
+                        'semester_id' => $activeSemesterId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                    DB::table('peserta_didik')->insert($insertPayload);
+                    $importedCount++;
+                }
+
+                if (Schema::hasTable('peserta_didik_meta')) {
+                    PesertaDidikMeta::firstOrCreate(
+                        ['peserta_didik_id' => $pdId],
+                        ['nisn' => $nisn]
+                    );
+                }
+
+                if (Schema::hasTable('pengguna')) {
+                    $hasUser = DB::table('pengguna')
+                        ->where('peserta_didik_id', $pdId)
+                        ->orWhere('username', $nisn)
+                        ->exists();
+
+                    if (!$hasUser) {
+                        User::create([
+                            'pengguna_id' => (string) Str::uuid(),
+                            'sekolah_id' => $sekolahId,
+                            'username' => $nisn,
+                            'nama' => $nama,
+                            'peran_id_str' => 'Peserta Didik',
+                            'password' => Hash::make($nisn),
+                            'peserta_didik_id' => $pdId,
+                            'password_updated_at' => null,
+                        ]);
+                    }
+                }
+
+                if (Schema::hasTable('peserta_didik_tidak_aktif')) {
+                    DB::table('peserta_didik_tidak_aktif')
+                        ->where('peserta_didik_id', $pdId)
+                        ->orWhere('nisn', $nisn)
+                        ->delete();
+                }
+            } catch (\Throwable $err) {
+                $skippedCount++;
+                $errors[] = "Baris {$rowNum} ({$nama}): " . $err->getMessage();
+            }
+        }
+
+        $totalProcessed = $importedCount + $updatedCount;
+        $message = "Import berhasil diproses: {$importedCount} peserta didik baru ditambahkan, {$updatedCount} data diperbarui.";
+        if ($skippedCount > 0) {
+            $message .= " ({$skippedCount} baris dilewati).";
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'imported_count' => $importedCount,
+            'updated_count' => $updatedCount,
+            'skipped_count' => $skippedCount,
+            'total_processed' => $totalProcessed,
+            'errors' => array_slice($errors, 0, 10),
+        ]);
+    }
+
+    /**
+     * Parsing tanggal dari Excel (serial number, format Y-m-d, D-M-Y, atau text)
+     */
+    private function parseTanggal(mixed $value): ?string
+    {
+        $s = trim((string) $value);
+        if ($s === '') {
+            return null;
+        }
+
+        if (is_numeric($s) && (float) $s > 20000 && (float) $s < 80000) {
+            return gmdate('Y-m-d', (int) (((float) $s - 25569) * 86400));
+        }
+
+        if (preg_match('/^\d{4}-\d{1,2}-\d{1,2}$/', $s)) {
+            $parts = explode('-', $s);
+            return sprintf('%04d-%02d-%02d', $parts[0], $parts[1], $parts[2]);
+        }
+
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $s, $m)) {
+            return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+        }
+
+        $time = strtotime($s);
+        return $time ? date('Y-m-d', $time) : $s;
     }
 }

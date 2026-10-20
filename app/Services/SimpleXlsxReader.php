@@ -253,6 +253,20 @@ class SimpleXlsxReader
                 $headers = $rowLower;
                 break;
             }
+
+            // Fallback: deteksi substring jika header berlabel khusus (contoh: "NISN (*)" atau "Nama Lengkap")
+            $hasKeyword = false;
+            foreach ($rowLower as $h) {
+                if (str_contains($h, 'nisn') || str_contains($h, 'peserta_didik') || str_starts_with($h, 'nama')) {
+                    $hasKeyword = true;
+                    break;
+                }
+            }
+            if ($hasKeyword) {
+                $headerIndex = $idx;
+                $headers = $rowLower;
+                break;
+            }
         }
 
         // Jika tidak ditemukan kata kunci khusus, gunakan baris pertama
@@ -273,7 +287,13 @@ class SimpleXlsxReader
             $assoc = [];
             foreach ($headers as $colIdx => $colKey) {
                 if ($colKey !== '') {
-                    $assoc[$colKey] = $row[$colIdx] ?? '';
+                    $val = $row[$colIdx] ?? '';
+                    $assoc[$colKey] = $val;
+                    $cleanKey = trim(preg_replace('/[^a-z0-9_]/', '_', preg_replace('/\s+/', '_', $colKey)), '_');
+                    $cleanKey = preg_replace('/_+/', '_', $cleanKey);
+                    if ($cleanKey !== '' && $cleanKey !== $colKey && !isset($assoc[$cleanKey])) {
+                        $assoc[$cleanKey] = $val;
+                    }
                 }
             }
 

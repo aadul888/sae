@@ -1807,3 +1807,141 @@ window.proceedCetakDataRombel = function () {
     window.open(url, "_blank");
     window.closeCetakDataRombelModal();
 };
+
+// =========================================================================
+// MODAL IMPORT EXCEL PESERTA DIDIK AKTIF (SEMENTARA)
+// =========================================================================
+window.openImportExcelModal = function () {
+    const modal = document.getElementById("modalImportExcel");
+    if (!modal) return;
+    const form = document.getElementById("formImportExcel");
+    if (form) form.reset();
+    const progress = document.getElementById("importExcelProgress");
+    if (progress) progress.style.display = "none";
+    const btnSubmit = document.getElementById("btnSubmitImportExcel");
+    if (btnSubmit) btnSubmit.disabled = false;
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+};
+
+window.closeImportExcelModal = function () {
+    const modal = document.getElementById("modalImportExcel");
+    if (!modal) return;
+    modal.style.display = "none";
+    document.body.style.overflow = "";
+};
+
+window.handleImportExcelSubmit = async function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const fileInput = document.getElementById("inputExcelFile");
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                title: "Berkas Belum Dipilih",
+                text: "Silakan pilih berkas Excel atau CSV terlebih dahulu.",
+                icon: "warning",
+                confirmButtonColor: "#6366f1",
+            });
+        } else {
+            alert("Silakan pilih berkas Excel atau CSV terlebih dahulu.");
+        }
+        return;
+    }
+
+    const progress = document.getElementById("importExcelProgress");
+    const btnSubmit = document.getElementById("btnSubmitImportExcel");
+    const btnText = document.getElementById("btnSubmitImportExcelText");
+
+    if (progress) progress.style.display = "block";
+    if (btnSubmit) btnSubmit.disabled = true;
+    if (btnText) btnText.textContent = "Mengimpor Data...";
+
+    const formData = new FormData(form);
+
+    try {
+        const res = await fetch(form.action, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            body: formData,
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json.status === "success") {
+            window.closeImportExcelModal();
+
+            let detailHtml = json.message;
+            if (json.errors && json.errors.length > 0) {
+                detailHtml +=
+                    "<br><br><small style='color: #ef4444; text-align: left; display: block; max-height: 120px; overflow-y: auto;'>" +
+                    json.errors.map((err) => escapeHtml(err)).join("<br>") +
+                    "</small>";
+            }
+
+            if (typeof Swal !== "undefined") {
+                await Swal.fire({
+                    title: "Import Berhasil!",
+                    html: detailHtml,
+                    icon: "success",
+                    confirmButtonColor: "#10b981",
+                });
+            } else {
+                alert(json.message);
+            }
+
+            if (typeof window.refreshLiveTable === "function") {
+                window.refreshLiveTable(window.location.href);
+            } else {
+                window.location.reload();
+            }
+        } else {
+            let errorMsg = json.message || "Gagal mengimpor berkas Excel.";
+            if (
+                json.errors &&
+                typeof json.errors === "object" &&
+                !Array.isArray(json.errors)
+            ) {
+                errorMsg = Object.values(json.errors).flat().join("\n");
+            }
+
+            if (typeof Swal !== "undefined") {
+                Swal.fire({
+                    title: "Gagal Mengimpor",
+                    text: errorMsg,
+                    icon: "error",
+                    confirmButtonColor: "#ef4444",
+                });
+            } else {
+                alert(errorMsg);
+            }
+        }
+    } catch (err) {
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                title: "Kesalahan Jaringan",
+                text:
+                    "Gagal terhubung ke server: " +
+                    (err.message || "Terjadi kesalahan."),
+                icon: "error",
+                confirmButtonColor: "#ef4444",
+            });
+        } else {
+            alert("Kesalahan jaringan: " + err.message);
+        }
+    } finally {
+        if (progress) progress.style.display = "none";
+        if (btnSubmit) btnSubmit.disabled = false;
+        if (btnText) btnText.textContent = "Import Sekarang";
+    }
+};
+
+document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "modalImportExcel") {
+        window.closeImportExcelModal();
+    }
+});
+
