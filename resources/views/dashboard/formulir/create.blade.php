@@ -32,7 +32,7 @@
         </div>
     @endif
 
-    <form id="builderForm" action="{{ route('dashboard.formulir.store') }}" method="POST">
+    <form id="builderForm" data-no-ajax="true" action="{{ route('dashboard.formulir.store') }}" method="POST">
         @csrf
         <input type="hidden" name="skema_json" id="skemaJsonInput">
 

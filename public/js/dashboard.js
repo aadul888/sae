@@ -1051,7 +1051,9 @@ window.collectDatatableUrl = function (sourceEl, overrideParams = {}) {
         });
 
         // 4. Input tanggal inline (seperti agenda-kbm)
-        const dateInputs = scope.querySelectorAll("input[type='date']#filterTanggalMulai, input[type='date']#filterTanggalSelesai, input[type='date']#filterTanggal, input[type='date'][name*='tanggal']");
+        const dateInputs = scope.querySelectorAll(
+            "input[type='date']#filterTanggalMulai, input[type='date']#filterTanggalSelesai, input[type='date']#filterTanggal, input[type='date'][id*='filter'], input[type='date'][data-live-filter]"
+        );
         dateInputs.forEach((dInput) => {
             const dName = dInput.name || (dInput.id === "filterTanggalMulai" ? "tanggal_mulai" : (dInput.id === "filterTanggalSelesai" ? "tanggal_selesai" : "tanggal"));
             if (dInput.value) url.searchParams.set(dName, dInput.value);
@@ -1237,30 +1239,38 @@ document.addEventListener("change", function (e) {
         el.hasAttribute("data-no-ajax") ||
         el.hasAttribute("data-manual-filter") ||
         el.closest("[data-manual-filter]") ||
+        el.closest("[data-no-ajax]") ||
         el.closest(".modal, .swal2-container, #actionModal, .modal-backdrop")
     ) {
         return;
     }
 
-    // 1. Jika elemen berada di dalam form GET yang berasosiasi dengan datatable
+    // 1. Jika elemen berada di dalam form
     const form = el.closest("form");
-    if (form && (form.method || "get").toLowerCase() === "get" && !form.hasAttribute("data-manual-filter")) {
-        const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd");
-        if (hasTable) {
-            e.stopImmediatePropagation();
-            const formData = new FormData(form);
-            const url = new URL(form.action || window.location.href, window.location.origin);
-            for (const [k, v] of formData.entries()) {
-                if (v !== "") url.searchParams.set(k, v);
-                else url.searchParams.delete(k);
+    if (form) {
+        // Hanya proses jika form adalah method GET yang berasosiasi dengan datatable
+        if ((form.method || "get").toLowerCase() === "get" && !form.hasAttribute("data-manual-filter")) {
+            const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd");
+            if (hasTable) {
+                e.stopImmediatePropagation();
+                const formData = new FormData(form);
+                const url = new URL(form.action || window.location.href, window.location.origin);
+                for (const [k, v] of formData.entries()) {
+                    if (v !== "") url.searchParams.set(k, v);
+                    else url.searchParams.delete(k);
+                }
+                url.searchParams.set("page", "1");
+                window.refreshLiveTable(url.toString());
             }
-            url.searchParams.set("page", "1");
-            window.refreshLiveTable(url.toString());
-            return;
         }
+        // Input di dalam form non-GET (POST/PUT/mutation form) tidak boleh diproses sebagai filter live datatable
+        return;
     }
 
-    // 2. Standalone datatable toolbar
+    // 2. Standalone datatable toolbar (tanpa form GET)
+    const hasTable = document.querySelector("#tableDataContainer, #tableMonitoringContainer, .datatable-card-wrapper, .table-responsive-stack, table.table-pd, #viewKalenderVisual");
+    if (!hasTable) return;
+
     const isFilter =
         (el.tagName === "SELECT" && (
             el.classList.contains("per-page-select") ||
@@ -1270,9 +1280,15 @@ document.addEventListener("change", function (e) {
             el.id.startsWith("filter") ||
             el.id.startsWith("adminFilter") ||
             el.id.startsWith("perPage") ||
-            el.closest(".toolbar-entries, .dash-table-toolbar, .datatable-toolbar, #tableDataContainer, .datatable-card-wrapper, .card")
+            el.closest(".toolbar-entries, .dash-table-toolbar, .datatable-toolbar, #tableDataContainer, .datatable-card-wrapper")
         )) ||
-        (el.tagName === "INPUT" && (el.type === "date" || el.id.startsWith("filter") || el.name.startsWith("tanggal")));
+        (el.tagName === "INPUT" && (
+            el.id.startsWith("filter") ||
+            el.id.startsWith("adminFilter") ||
+            el.classList.contains("toolbar-filter-date") ||
+            el.hasAttribute("data-live-filter") ||
+            el.closest(".toolbar-entries, .dash-table-toolbar, .datatable-toolbar")
+        ));
 
     if (!isFilter) return;
 

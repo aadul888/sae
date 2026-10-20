@@ -37,7 +37,8 @@
         </div>
     @endif
 
-    <form id="builderForm" data-mode="edit" action="{{ route('dashboard.formulir.update', $formulir->id) }}" method="POST">
+    <form id="builderForm" data-mode="edit" data-no-ajax="true"
+        action="{{ route('dashboard.formulir.update', $formulir->id) }}" method="POST">
         @csrf
         @method('PUT')
         <input type="hidden" name="skema_json" id="skemaJsonInput">
