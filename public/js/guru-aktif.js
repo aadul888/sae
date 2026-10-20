@@ -234,16 +234,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
         applyFilter({ sort: sortField, sort_dir: newDir });
     });
-
-            url.searchParams.set("sort", sortField);
-            url.searchParams.set("sort_dir", newDir);
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        });
-    });
 });
 
 function escapeHtml(str) {

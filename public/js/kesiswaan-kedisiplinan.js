@@ -168,5 +168,4 @@ document.addEventListener('DOMContentLoaded', function () {
             applyFilter();
         }
     });
-    }
 });

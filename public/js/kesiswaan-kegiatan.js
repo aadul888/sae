@@ -139,10 +139,6 @@ document.addEventListener('DOMContentLoaded', function () {
             applyFilter();
         }
     });
-                applyFilter();
-            }
-        });
-    }
 
     if (perPageSelect) {
         perPageSelect.addEventListener("change", applyFilter);

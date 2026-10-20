@@ -371,8 +371,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnClosePreview) btnClosePreview.addEventListener('click', closePreviewModal);
 
-    // 5. Event Delegation: Edit, Preview, dan Delete
+    // 5. Event Delegation: Tambah, Edit, Preview, dan Delete
     document.addEventListener('click', function (e) {
+        // Tombol Catat Surat Keluar Baru
+        if (e.target.closest('#btnOpenCreateKeluar, .btn-open-create-keluar')) {
+            e.preventDefault();
+            openKeluarModal(false);
+            return;
+        }
+
+        // Tombol Buat Surat Keterangan Siswa
+        if (e.target.closest('#btnOpenCreateKet, .btn-open-create-ket')) {
+            e.preventDefault();
+            openKetModal();
+            return;
+        }
+
+        // Tombol Terbitkan Surat Perintah Tugas (SPT)
+        if (e.target.closest('#btnOpenModalSpt, .btn-open-modal-spt')) {
+            e.preventDefault();
+            openSptModal();
+            return;
+        }
+
+        // Tombol Buat Surat dari Template Autocrat
+        if (e.target.closest('#btnOpenModalTemplate, .btn-open-modal-template')) {
+            e.preventDefault();
+            openTemplateModal();
+            return;
+        }
+
         // Tombol Edit Surat Keluar
         const btnEdit = e.target.closest('.btn-edit-keluar');
         if (btnEdit) {
@@ -515,22 +543,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
         applyFilter({ sort: sortField, sort_dir: newDir });
     });
-            const currentDir = url.searchParams.get("sort_dir") || url.searchParams.get("dir") || "desc";
-
-            let newDir = "asc";
-            if (currentSort === sortField && currentDir === "asc") {
-                newDir = "desc";
-            }
-
-            url.searchParams.set("sort", sortField);
-            url.searchParams.set("sort_dir", newDir);
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        });
-    });
 
     // 5. Handler Modal Surat Perintah Tugas (SPT)
     const modalSpt = document.getElementById('modalSpt');
@@ -539,12 +551,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnCancelModalSpt = document.getElementById('btnCancelModalSpt');
     const formSpt = document.getElementById('formSpt');
 
+    function openSptModal() {
+        if (!modalSpt) return;
+        if (formSpt) formSpt.reset();
+        modalSpt.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
     if (btnOpenModalSpt && modalSpt) {
-        btnOpenModalSpt.addEventListener('click', function () {
-            if (formSpt) formSpt.reset();
-            modalSpt.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        });
+        btnOpenModalSpt.addEventListener('click', openSptModal);
     }
 
     function closeModalSpt() {
@@ -577,11 +592,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const inputTmplPembuka = document.getElementById('inputTmplPembuka');
     const inputTmplPenutup = document.getElementById('inputTmplPenutup');
 
+    function openTemplateModal() {
+        if (!modalTemplate) return;
+        modalTemplate.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
     if (btnOpenModalTemplate && modalTemplate) {
-        btnOpenModalTemplate.addEventListener('click', function () {
-            modalTemplate.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        });
+        btnOpenModalTemplate.addEventListener('click', openTemplateModal);
     }
 
     function closeModalTemplate() {
@@ -589,6 +607,16 @@ document.addEventListener('DOMContentLoaded', function () {
         modalTemplate.style.display = 'none';
         document.body.style.overflow = '';
     }
+
+    // Ekspor fungsi modal ke window untuk akses global
+    window.openKeluarModal = openKeluarModal;
+    window.closeKeluarModal = closeKeluarModal;
+    window.openKetModal = openKetModal;
+    window.closeKetModal = closeKetModal;
+    window.openSptModal = openSptModal;
+    window.closeModalSpt = closeModalSpt;
+    window.openTemplateModal = openTemplateModal;
+    window.closeModalTemplate = closeModalTemplate;
 
     if (btnCloseModalTemplate) btnCloseModalTemplate.addEventListener('click', closeModalTemplate);
     if (btnCancelModalTemplate) btnCancelModalTemplate.addEventListener('click', closeModalTemplate);

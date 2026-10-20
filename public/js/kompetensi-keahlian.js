@@ -700,8 +700,4 @@ document.addEventListener("DOMContentLoaded", function () {
         const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
         applyFilter({ sort: sortField, sort_dir: newDir });
     });
-                window.location.href = url.toString();
-            }
-        });
-    });
 });

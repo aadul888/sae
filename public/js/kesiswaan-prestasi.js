@@ -187,7 +187,6 @@ document.addEventListener('DOMContentLoaded', function () {
             applyFilter();
         }
     });
-    }
 
     if (filterTingkat) {
         filterTingkat.addEventListener("change", applyFilter);

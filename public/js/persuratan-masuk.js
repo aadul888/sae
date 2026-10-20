@@ -80,6 +80,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btnCloseModalMasuk) btnCloseModalMasuk.addEventListener('click', closeMasukModal);
     if (btnCancelModalMasuk) btnCancelModalMasuk.addEventListener('click', closeMasukModal);
 
+    window.openMasukModal = openMasukModal;
+    window.closeMasukModal = closeMasukModal;
+
     // 2. Modal Lembar Disposisi
     const modalDisposisi = document.getElementById('modalDisposisi');
     const formDisposisi = document.getElementById('formDisposisi');
@@ -210,8 +213,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (btnClosePreview) btnClosePreview.addEventListener('click', closePreviewModal);
 
-    // Event Delegation: Tombol Edit, Disposisi, dan Preview
+    // Event Delegation: Tombol Tambah, Edit, Disposisi, dan Preview
     document.addEventListener('click', function (e) {
+        // Tombol Catat Surat Masuk Baru
+        if (e.target.closest('#btnOpenCreateMasuk, .btn-open-create-masuk')) {
+            e.preventDefault();
+            openMasukModal(false);
+            return;
+        }
+
         // Tombol Edit
         const btnEdit = e.target.closest('.btn-edit-masuk');
         if (btnEdit) {
@@ -359,16 +369,5 @@ document.addEventListener('DOMContentLoaded', function () {
         const currentDir = url.searchParams.get("sort_dir") || url.searchParams.get("dir") || "desc";
         const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
         applyFilter({ sort: sortField, sort_dir: newDir });
-    });
-            }
-
-            url.searchParams.set("sort", sortField);
-            url.searchParams.set("sort_dir", newDir);
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(url.toString());
-            } else {
-                window.location.href = url.toString();
-            }
-        });
     });
 });
