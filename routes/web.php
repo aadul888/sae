@@ -531,6 +531,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/pip/cari-siswa', [\App\Http\Controllers\PipController::class, 'cariSiswa'])->name('pip.cari-siswa');
     Route::get('/pip/usulan/export', [\App\Http\Controllers\PipController::class, 'exportUsulan'])->name('pip.export-usulan')->middleware('permission:menu_wali_kelas_pip|menu_pip,read');
     Route::post('/pip/usulan', [\App\Http\Controllers\PipController::class, 'storeUsulan'])->name('pip.store-usulan');
+    Route::post('/pip/usulan/{id}/update', [\App\Http\Controllers\PipController::class, 'updateUsulan'])->name('pip.update-usulan');
+    Route::get('/pip/usulan/{id}/riwayat', [\App\Http\Controllers\PipController::class, 'getRiwayatPerubahan'])->name('pip.riwayat-usulan');
     Route::post('/pip/usulan/prioritas', [\App\Http\Controllers\PipController::class, 'updatePrioritas'])->name('pip.update-prioritas');
     Route::match(['post', 'delete'], '/pip/usulan/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyUsulan'])->name('pip.destroy-usulan');
     Route::post('/pip/usulan/{id}/verifikasi', [\App\Http\Controllers\PipController::class, 'updateVerifikasi'])->name('pip.update-verifikasi');

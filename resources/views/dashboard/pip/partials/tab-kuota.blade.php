@@ -12,7 +12,7 @@
     $selisihTitle = $isKelebihan ? 'Kelebihan +' . $selisih : ($isKurang ? 'Kurang ' . abs($selisih) : 'Pas (100%)');
 @endphp
 
-<!-- 1. Stat Grid Baku SAE (6 Kartu Ringkasan Kuota - Jumlah Genap Rapi) -->
+<!-- 1. Stat Grid Baku SAE (6 Kartu Ringkasan Kuota - Jumlah Genap Rapi & Konsisten) -->
 <div class="dash-stat-grid"
     style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
     <!-- Card 1: Target Kuota Sekolah -->
@@ -24,7 +24,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
                 {{ number_format($kuotaStats['target_total'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Target Pagu Sekolah</div>
+            <div class="dash-stat-label">Pagu Sekolah</div>
         </div>
     </div>
 
@@ -37,7 +37,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #2563eb;">
                 {{ number_format($kuotaStats['total_teralokasi'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Total Kuota Teralokasi</div>
+            <div class="dash-stat-label">Kuota Teralokasi</div>
         </div>
     </div>
 
@@ -53,11 +53,11 @@
             </div>
             <div class="dash-stat-label">
                 @if ($isKelebihan)
-                    Kelebihan dari Pagu
+                    Kelebihan Pagu
                 @elseif ($isKurang)
-                    Sisa Belum Dialokasikan
+                    Belum Terbagi
                 @else
-                    Alokasi Pas Sesuai Target
+                    Alokasi Pas
                 @endif
             </div>
         </div>
@@ -72,7 +72,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
                 {{ number_format($kuotaStats['total_terpakai'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Total Usulan Masuk</div>
+            <div class="dash-stat-label">Usulan Masuk</div>
         </div>
     </div>
 
@@ -85,7 +85,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
                 {{ number_format($kuotaStats['rombel_penuh'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Kelas Kuota Terpenuhi</div>
+            <div class="dash-stat-label">Kelas Penuh</div>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
                 {{ number_format($kuotaStats['rombel_tersedia'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Kelas Masih Ada Kuota</div>
+            <div class="dash-stat-label">Kelas Ada Sisa</div>
         </div>
     </div>
 </div>

@@ -17,7 +17,7 @@
     $usulanTerbaru = $d['usulan_terbaru'] ?? collect();
 @endphp
 
-<!-- 1. Stats Counter Grid (6 Kartu Metrik Utama PIP SAE) -->
+<!-- 1. Stats Counter Grid (6 Kartu Metrik Utama PIP SAE - Genap & Konsisten) -->
 <div class="dash-stat-grid"
     style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px;">
     <!-- Card 1: Total Usulan -->
@@ -29,11 +29,11 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
                 {{ number_format($totalUsulan) }}
             </div>
-            <div class="dash-stat-label">Total Usulan Siswa ({{ $activeTahun }})</div>
+            <div class="dash-stat-label">Total Usulan</div>
         </div>
     </div>
 
-    <!-- Card 2: Sudah Diusulkan ke Web PIP -->
+    <!-- Card 2: Sudah Diusulkan -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
             <i class="fas fa-circle-check"></i>
@@ -42,11 +42,11 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
                 {{ number_format($sudahDiajukan) }}
             </div>
-            <div class="dash-stat-label">Diusulkan ke Web PIP</div>
+            <div class="dash-stat-label">Sudah Diusulkan</div>
         </div>
     </div>
 
-    <!-- Card 3: Belum Diusulkan (Pending) -->
+    <!-- Card 3: Belum Diusulkan -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
             <i class="fas fa-clock"></i>
@@ -55,7 +55,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
                 {{ number_format($belumDiajukan) }}
             </div>
-            <div class="dash-stat-label">Belum Diusulkan (Draft)</div>
+            <div class="dash-stat-label">Belum Diusulkan</div>
         </div>
     </div>
 
@@ -74,9 +74,9 @@
             </div>
             <div class="dash-stat-label">
                 @if ($isAdmin)
-                    Target Pagu Kuota ({{ $pctTerpakai }}%)
+                    Pagu Kuota ({{ $pctTerpakai }}%)
                 @else
-                    Kuota Kelas Binaan
+                    Kuota Kelas
                 @endif
             </div>
         </div>
@@ -95,7 +95,7 @@
                     {{ $sisaKuotaKelas }}
                 @endif
             </div>
-            <div class="dash-stat-label">Sisa Kuota Tersedia</div>
+            <div class="dash-stat-label">Sisa Kuota</div>
         </div>
     </div>
 
@@ -105,10 +105,10 @@
             <i class="fas fa-money-bill-trend-up"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.22rem; color: #0ea5e9; white-space: nowrap;">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #0ea5e9; white-space: nowrap;">
                 Rp {{ number_format($totalNominal, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Total Dana Riwayat ({{ number_format($totalRiwayat) }} Siswa)</div>
+            <div class="dash-stat-label">Total Dana Cair</div>
         </div>
     </div>
 </div>
@@ -135,9 +135,10 @@
 
     <!-- Charts Row 1: Status Doughnut + Alasan Horizontal Bar -->
     <div class="dash-grid-2"
-        style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+        style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: stretch;">
         <!-- Chart 1: Status Usulan & Keterisian Kuota -->
-        <div class="card" style="margin-bottom: 0; padding: 18px;">
+        <div class="card"
+            style="margin-bottom: 0; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <div>
                     <h4
@@ -157,7 +158,7 @@
                 </span>
             </div>
             <div
-                style="position: relative; height: 240px; width: 100%; display: flex; align-items: center; justify-content: center;">
+                style="position: relative; height: 250px; width: 100%; display: flex; align-items: center; justify-content: center;">
                 <canvas id="chartPipStatus"></canvas>
             </div>
             <div
@@ -165,12 +166,12 @@
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     <span
                         style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
-                    Sudah Diajukan ({{ $sudahDiajukan }})
+                    Sudah Diusulkan ({{ $sudahDiajukan }})
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     <span
                         style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
-                    Belum Diajukan ({{ $belumDiajukan }})
+                    Belum Diusulkan ({{ $belumDiajukan }})
                 </span>
                 @if ($ditolak > 0)
                     <span style="display: inline-flex; align-items: center; gap: 5px;">
@@ -188,7 +189,8 @@
         </div>
 
         <!-- Chart 2: 8 Kriteria Alasan Usulan -->
-        <div class="card" style="margin-bottom: 0; padding: 18px;">
+        <div class="card"
+            style="margin-bottom: 0; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                 <div>
                     <h4
@@ -203,7 +205,7 @@
                     <i class="fas fa-scale-balanced me-1"></i> Kriteria SiPintar
                 </span>
             </div>
-            <div style="position: relative; height: 260px; width: 100%;">
+            <div style="position: relative; height: 250px; width: 100%;">
                 <canvas id="chartPipAlasan"></canvas>
             </div>
         </div>
@@ -212,9 +214,10 @@
     <!-- Charts Row 2: Khusus Admin (Sebaran Tingkat Kelas & Tren Riwayat per Tahun) / Khusus Wali Kelas (Status Kepesertaan) -->
     @if ($isAdmin)
         <div class="dash-grid-2"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: stretch;">
             <!-- Chart 3: Usulan per Tingkat Kelas (X, XI, XII) -->
-            <div class="card" style="margin-bottom: 0; padding: 18px;">
+            <div class="card"
+                style="margin-bottom: 0; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                     <div>
                         <h4
@@ -226,13 +229,14 @@
                         </span>
                     </div>
                 </div>
-                <div style="position: relative; height: 230px; width: 100%;">
+                <div style="position: relative; height: 240px; width: 100%;">
                     <canvas id="chartPipTingkat"></canvas>
                 </div>
             </div>
 
             <!-- Chart 4: Tren Riwayat Penerimaan PIP per Tahun -->
-            <div class="card" style="margin-bottom: 0; padding: 18px;">
+            <div class="card"
+                style="margin-bottom: 0; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                     <div>
                         <h4
@@ -244,7 +248,7 @@
                         </span>
                     </div>
                 </div>
-                <div style="position: relative; height: 230px; width: 100%;">
+                <div style="position: relative; height: 240px; width: 100%;">
                     <canvas id="chartPipRiwayatTahun"></canvas>
                 </div>
             </div>
@@ -252,31 +256,38 @@
     @else
         <!-- View Wali Kelas: Detail Status Siswa Kelas Binaan -->
         <div class="dash-grid-2"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
-            <div class="card" style="margin-bottom: 0; padding: 18px;">
-                <h4
-                    style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-users-viewfinder text-primary"></i> Status Kepesertaan PIP Siswa Kelas
-                    {{ $activeRombel->nama ?? '' }}
-                </h4>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-                    <div
-                        style="padding: 14px; border-radius: 10px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
-                        <div style="font-size: 0.76rem; color: #10b981; font-weight: 700; text-transform: uppercase;">
-                            Sudah Pernah Terima PIP</div>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin: 4px 0;">
-                            {{ $d['wali_sudah_pip'] ?? 0 }}
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: stretch;">
+            <div class="card"
+                style="margin-bottom: 0; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h4
+                        style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-users-viewfinder text-primary"></i> Status Kepesertaan PIP Siswa Kelas
+                        {{ $activeRombel->nama ?? '' }}
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                        <div
+                            style="padding: 14px; border-radius: 10px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
+                            <div
+                                style="font-size: 0.76rem; color: #10b981; font-weight: 700; text-transform: uppercase;">
+                                Sudah Pernah Terima PIP</div>
+                            <div style="font-size: 1.5rem; font-weight: 800; color: #10b981; margin: 4px 0;">
+                                {{ $d['wali_sudah_pip'] ?? 0 }}
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">Tercatat di riwayat SiPintar
+                            </div>
                         </div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">Tercatat di riwayat SiPintar</div>
-                    </div>
-                    <div
-                        style="padding: 14px; border-radius: 10px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);">
-                        <div style="font-size: 0.76rem; color: #f59e0b; font-weight: 700; text-transform: uppercase;">
-                            Belum Pernah Terima PIP</div>
-                        <div style="font-size: 1.5rem; font-weight: 800; color: #f59e0b; margin: 4px 0;">
-                            {{ $d['wali_belum_pip'] ?? 0 }}
+                        <div
+                            style="padding: 14px; border-radius: 10px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);">
+                            <div
+                                style="font-size: 0.76rem; color: #f59e0b; font-weight: 700; text-transform: uppercase;">
+                                Belum Pernah Terima PIP</div>
+                            <div style="font-size: 1.5rem; font-weight: 800; color: #f59e0b; margin: 4px 0;">
+                                {{ $d['wali_belum_pip'] ?? 0 }}
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">Peluang prioritas usulan baru
+                            </div>
                         </div>
-                        <div style="font-size: 0.72rem; color: var(--text-muted);">Peluang prioritas usulan baru</div>
                     </div>
                 </div>
                 <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
@@ -286,22 +297,25 @@
                 </p>
             </div>
 
-            <div class="card" style="margin-bottom: 0; padding: 18px;">
-                <h4
-                    style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-gauge-high text-primary"></i> Alokasi Kuota Kelas Anda
-                </h4>
-                <div style="margin-bottom: 14px;">
-                    <div
-                        style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px;">
-                        <span>Keterisian Kuota Usulan:</span>
-                        <strong>{{ $terpakaiKelas }} dari {{ $kuotaKelas }} siswa
-                            ({{ $kuotaKelas > 0 ? round(($terpakaiKelas / $kuotaKelas) * 100) : 0 }}%)</strong>
-                    </div>
-                    <div
-                        style="width: 100%; height: 12px; background: rgba(0,0,0,0.06); border-radius: 6px; overflow: hidden;">
+            <div class="card"
+                style="margin-bottom: 0; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <h4
+                        style="font-size: 0.95rem; font-weight: 700; color: var(--text-color); margin: 0 0 14px 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-gauge-high text-primary"></i> Alokasi Kuota Kelas Anda
+                    </h4>
+                    <div style="margin-bottom: 14px;">
                         <div
-                            style="width: {{ $kuotaKelas > 0 ? min(100, round(($terpakaiKelas / $kuotaKelas) * 100)) : 0 }}%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); border-radius: 6px;">
+                            style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 6px;">
+                            <span>Keterisian Kuota Usulan:</span>
+                            <strong>{{ $terpakaiKelas }} dari {{ $kuotaKelas }} siswa
+                                ({{ $kuotaKelas > 0 ? round(($terpakaiKelas / $kuotaKelas) * 100) : 0 }}%)</strong>
+                        </div>
+                        <div
+                            style="width: 100%; height: 12px; background: rgba(0,0,0,0.06); border-radius: 6px; overflow: hidden;">
+                            <div
+                                style="width: {{ $kuotaKelas > 0 ? min(100, round(($terpakaiKelas / $kuotaKelas) * 100)) : 0 }}%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); border-radius: 6px;">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -531,9 +545,14 @@
             <h4
                 style="font-size: 1rem; font-weight: 800; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-bolt text-warning"></i> Usulan PIP Terbaru
+                @if (!empty($d['total_usulan_diubah']) && $d['total_usulan_diubah'] > 0)
+                    <span class="badge badge-warning" style="font-size: 0.7rem; padding: 2px 7px; font-weight: 700;">
+                        <i class="fas fa-pen-to-square me-1"></i> {{ $d['total_usulan_diubah'] }} usulan diperbarui
+                    </span>
+                @endif
             </h4>
             <span style="font-size: 0.75rem; color: var(--text-muted);">
-                Aktivitas usulan yang baru saja didaftarkan oleh Wali Kelas / Administrator
+                Aktivitas usulan yang baru saja didaftarkan atau diperbarui oleh Wali Kelas / Administrator
             </span>
         </div>
         <a href="{{ route('dashboard.pip.index', array_filter(['tab' => 'usulan', 'tahun' => $activeTahun])) }}"
@@ -605,6 +624,16 @@
                                     <span style="font-size: 0.72rem; color: var(--text-muted);">-</span>
                                 @endforelse
                             </div>
+                            @if (!empty($u->diubah_at))
+                                <div
+                                    style="margin-top: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                                    <span class="badge badge-warning" style="font-size: 0.65rem; padding: 1px 5px;"
+                                        title="{{ $u->perubahan_terakhir }}">
+                                        <i class="fas fa-pen-to-square me-1"></i> Diperbarui
+                                        ({{ \Carbon\Carbon::parse($u->diubah_at)->format('d/m H:i') }})
+                                    </span>
+                                </div>
+                            @endif
                         </td>
                         <td style="padding: 10px 14px; text-align: center;" data-label="Status">
                             @if ($u->status_verifikasi === 'sudah_diajukan')

@@ -74,6 +74,89 @@
     </div>
 </div>
 
+<!-- MODAL: Edit Usulan PIP (Wali Kelas & Admin) -->
+<div id="modalEditUsulan" class="modal-backdrop">
+    <div class="card kp-modal-card">
+        <div class="kp-modal-header">
+            <h4 class="kp-modal-title"><i class="fas fa-pen-to-square text-primary"></i> Edit Usulan PIP</h4>
+            <button type="button" class="kp-modal-close" onclick="closeEditUsulan()"
+                aria-label="Tutup">&times;</button>
+        </div>
+        <form id="formEditUsulan" class="kp-modal-form" method="POST">
+            @csrf
+            <input type="hidden" name="id" id="editUsulanId">
+            <div class="kp-modal-body">
+                <div
+                    style="margin-bottom: 14px; padding: 12px 14px; border-radius: 8px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25);">
+                    <div style="font-size: 0.9rem; font-weight: 800; color: var(--text-color);" id="editUsulanNamaPd">-
+                    </div>
+                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+                        Setiap perubahan alasan/kriteria atau keterangan akan dicatat otomatis pada riwayat log usulan
+                        dan ditandai secara visual.
+                    </div>
+                </div>
+
+                <div class="kp-form-group">
+                    <label class="kp-form-label">Kriteria / Alasan Diusulkan <span class="req">*</span></label>
+                    <div style="display: grid; gap: 6px;">
+                        @foreach ($kriteriaAlasan as $kKey => $kLabel)
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-size: 0.84rem; cursor: pointer; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 8px;">
+                                <input type="checkbox" name="alasan_usulan[]" value="{{ $kKey }}"
+                                    class="edit-alasan-cb">
+                                <span>{{ $kLabel }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="kp-form-group">
+                    <label class="kp-form-label" for="editPipKeterangan">Keterangan Tambahan Usulan</label>
+                    <textarea id="editPipKeterangan" name="keterangan" rows="3" maxlength="1000" class="form-control"
+                        placeholder="Kondisi ekonomi / catatan pendukung usulan..."></textarea>
+                </div>
+            </div>
+            <div class="kp-modal-footer">
+                <button type="button" onclick="closeEditUsulan()" class="btn btn-outline">Batal</button>
+                <button type="submit" class="btn btn-primary" id="btnSubmitEditUsulan">
+                    <i class="fas fa-save me-1"></i> Simpan Perubahan Usulan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: Riwayat Perubahan Usulan PIP -->
+<div id="modalRiwayatUsulan" class="modal-backdrop">
+    <div class="card kp-modal-card" style="max-width: 620px;">
+        <div class="kp-modal-header">
+            <h4 class="kp-modal-title"><i class="fas fa-clock-rotate-left text-warning"></i> Riwayat Perubahan Usulan
+            </h4>
+            <button type="button" class="kp-modal-close" onclick="closeRiwayatUsulan()"
+                aria-label="Tutup">&times;</button>
+        </div>
+        <div class="kp-modal-body" style="max-height: 70vh; overflow-y: auto;">
+            <!-- Header Info Siswa -->
+            <div
+                style="margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.2);">
+                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text-color);" id="riwayatPdNama">-
+                </div>
+                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 3px;" id="riwayatPdMeta">-</div>
+            </div>
+
+            <!-- Timeline Perubahan -->
+            <div id="riwayatPerubahanList" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+                    <i class="fas fa-spinner fa-spin me-1"></i> Memuat riwayat...
+                </div>
+            </div>
+        </div>
+        <div class="kp-modal-footer">
+            <button type="button" onclick="closeRiwayatUsulan()" class="btn btn-outline">Tutup</button>
+        </div>
+    </div>
+</div>
+
 @if ($isAdmin)
     <!-- MODAL: Import Excel SiPintar (SK Pemberian & SK Nominasi) -->
     <div id="modalImportRiwayat" class="modal-backdrop">
@@ -91,8 +174,8 @@
                     <div class="kp-form-group">
                         <label class="kp-form-label" for="pipJenisSk">Jenis SK SiPintar <span
                                 class="req">*</span></label>
-                        <select id="pipJenisSk" name="jenis_sk" class="form-control" required style="font-weight: 700;"
-                            onchange="pipOnJenisSkChange(this.value)">
+                        <select id="pipJenisSk" name="jenis_sk" class="form-control" required
+                            style="font-weight: 700;" onchange="pipOnJenisSkChange(this.value)">
                             <option value="pemberian" selected>SK Pemberian (Pencairan Dana PIP)</option>
                             <option value="nominasi">SK Nominasi (Aktivasi Rekening Siswa Baru/Penerima Baru)</option>
                         </select>

@@ -1,4 +1,4 @@
-<!-- 1. Stat Grid Baku SAE (4 Kartu Ringkasan Riwayat Siswa Aktif) -->
+<!-- 1. Stat Grid Baku SAE (4 Kartu Ringkasan Riwayat Siswa Aktif - Genap & Konsisten) -->
 <div class="dash-stat-grid"
     style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
     <div class="dash-stat-card">
@@ -9,7 +9,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
                 {{ number_format($riwayatStats['total_siswa_aktif'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Total Siswa Aktif</div>
+            <div class="dash-stat-label">Siswa Aktif</div>
         </div>
     </div>
 
@@ -21,12 +21,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
                 {{ number_format($riwayatStats['total_penerima_unik'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">
-                Penerima PIP Aktif
-                <span style="font-size: 0.7rem; opacity: 0.8; display: block;">
-                    ({{ $riwayatStats['total_siswa'] ?? 0 }} riwayat transaksi SK)
-                </span>
-            </div>
+            <div class="dash-stat-label">Penerima PIP</div>
         </div>
     </div>
 
@@ -38,7 +33,7 @@
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
                 {{ number_format($riwayatStats['total_belum'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Belum Mendapatkan PIP</div>
+            <div class="dash-stat-label">Belum Terima PIP</div>
         </div>
     </div>
 
@@ -47,10 +42,10 @@
             <i class="fas fa-money-bill-trend-up"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.25rem; color: #0ea5e9;">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #0ea5e9; white-space: nowrap;">
                 Rp {{ number_format($riwayatStats['total_nominal'] ?? 0, 0, ',', '.') }}
             </div>
-            <div class="dash-stat-label">Total Dana Tersalurkan</div>
+            <div class="dash-stat-label">Total Dana Cair</div>
         </div>
     </div>
 </div>

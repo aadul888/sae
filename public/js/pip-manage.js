@@ -191,6 +191,150 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // ---------------------------------------------------------------------
+    // Edit Usulan (Wali Kelas & Admin)
+    // ---------------------------------------------------------------------
+    window.pipBukaEditUsulan = function (id, nama, alasanList, keterangan) {
+        const f = document.getElementById("formEditUsulan");
+        if (!f) return;
+        document.getElementById("editUsulanId").value = id;
+        document.getElementById("editUsulanNamaPd").textContent = nama || "Peserta Didik";
+        document.getElementById("editPipKeterangan").value = keterangan || "";
+
+        const alasanArr = Array.isArray(alasanList) ? alasanList : [];
+        document.querySelectorAll(".edit-alasan-cb").forEach((cb) => {
+            cb.checked = alasanArr.includes(cb.value);
+        });
+
+        openModal("modalEditUsulan");
+    };
+    window.closeEditUsulan = () => closeModal("modalEditUsulan");
+
+    document.getElementById("formEditUsulan")?.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const id = document.getElementById("editUsulanId")?.value;
+        if (!id) return;
+
+        const btn = document.getElementById("btnSubmitEditUsulan");
+        const oldHtml = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Menyimpan...';
+        }
+
+        const fd = new FormData(this);
+        const payload = {
+            keterangan: fd.get("keterangan"),
+            alasan_usulan: fd.getAll("alasan_usulan[]"),
+        };
+
+        if (!payload.alasan_usulan.length) {
+            Swal.fire("Belum Lengkap", "Pilih minimal satu kriteria / alasan usulan.", "warning");
+            if (btn) { btn.disabled = false; btn.innerHTML = oldHtml; }
+            return;
+        }
+
+        try {
+            const url = tpl(CFG.urlTemplates.updateUsulan, id);
+            const { ok, data } = await post(url, payload);
+            if (ok) {
+                closeEditUsulan();
+                toast(data.message);
+                refresh();
+            } else {
+                Swal.fire("Gagal", data.message || "Terjadi kesalahan.", "error");
+            }
+        } catch (err) {
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = oldHtml; }
+        }
+    });
+
+    // ---------------------------------------------------------------------
+    // Riwayat Perubahan Usulan
+    // ---------------------------------------------------------------------
+    window.pipLihatRiwayatUsulan = async function (id) {
+        const modal = document.getElementById("modalRiwayatUsulan");
+        if (!modal) return;
+
+        const listContainer = document.getElementById("riwayatPerubahanList");
+        const namaEl = document.getElementById("riwayatPdNama");
+        const metaEl = document.getElementById("riwayatPdMeta");
+
+        if (listContainer) {
+            listContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;"><i class="fas fa-spinner fa-spin me-1"></i> Memuat riwayat...</div>';
+        }
+        if (namaEl) namaEl.textContent = "Memuat data...";
+        if (metaEl) metaEl.textContent = "";
+
+        openModal("modalRiwayatUsulan");
+
+        try {
+            const url = tpl(CFG.urlTemplates.riwayatUsulan, id);
+            const res = await fetch(url, {
+                headers: { "Accept": "application/json", "X-Requested-With": "XMLHttpRequest" }
+            });
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+                if (listContainer) listContainer.innerHTML = `<div class="text-danger p-3">${esc(data.message || "Gagal memuat riwayat.")}</div>`;
+                return;
+            }
+
+            const u = data.usulan || {};
+            const logs = data.riwayat || [];
+
+            if (namaEl) namaEl.textContent = u.nama_pd || "Peserta Didik";
+            if (metaEl) {
+                metaEl.innerHTML = `Kelas: <strong>${esc(u.rombel || "-")}</strong> &bull; NISN: <strong>${esc(u.nisn || "-")}</strong> &bull; Didaftarkan oleh: <strong>${esc(u.diusulkan_oleh || "-")}</strong> (${esc(u.created_at || "-")})`;
+            }
+
+            if (!logs.length) {
+                if (listContainer) {
+                    listContainer.innerHTML = `
+                        <div style="text-align: center; color: var(--text-muted); padding: 30px;">
+                            <i class="fas fa-history" style="font-size: 2rem; opacity: 0.35; margin-bottom: 8px; display: block;"></i>
+                            Data usulan ini belum pernah mengalami perubahan sejak awal didaftarkan oleh Wali Kelas.
+                        </div>`;
+                }
+                return;
+            }
+
+            let html = "";
+            logs.forEach((log) => {
+                const detailsHtml = Array.isArray(log.detail) && log.detail.length
+                    ? `<ul style="margin: 6px 0 0 18px; padding: 0; font-size: 0.78rem; color: var(--text-muted);">
+                        ${log.detail.map(d => `<li style="margin-bottom: 2px;">${esc(d)}</li>`).join("")}
+                       </ul>`
+                    : "";
+
+                html += `
+                    <div style="padding: 12px 14px; border-radius: 8px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-left: 3px solid #f59e0b;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+                            <span style="font-weight: 700; font-size: 0.84rem; color: var(--text-color);">
+                                <i class="fas fa-pen-to-square text-warning me-1"></i> ${esc(log.ringkasan || "Perubahan data")}
+                            </span>
+                            <span class="badge badge-outline" style="font-size: 0.68rem; padding: 1px 6px;">
+                                ${esc(log.waktu || "-")}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.74rem; color: var(--text-muted);">
+                            Diperbarui oleh: <strong>${esc(log.editor || "-")}</strong>
+                        </div>
+                        ${detailsHtml}
+                    </div>
+                `;
+            });
+
+            if (listContainer) listContainer.innerHTML = html;
+
+        } catch (e) {
+            if (listContainer) listContainer.innerHTML = `<div class="text-danger p-3">Gagal mengambil data dari server.</div>`;
+        }
+    };
+    window.closeRiwayatUsulan = () => closeModal("modalRiwayatUsulan");
+
+    // ---------------------------------------------------------------------
     // Prioritas / ranking (Khusus Wali Kelas)
     // ---------------------------------------------------------------------
     window.pipMovePrioritas = async function (id, direction) {
@@ -221,7 +365,16 @@ document.addEventListener("DOMContentLoaded", function () {
     // ---------------------------------------------------------------------
     // Hapus usulan
     // ---------------------------------------------------------------------
-    window.pipHapusUsulan = async function (id, nama) {
+    window.pipHapusUsulan = async function (id, nama, status) {
+        if (status === "sudah_diajukan") {
+            Swal.fire({
+                icon: "warning",
+                title: "Tidak Dapat Dihapus",
+                text: `Usulan PIP untuk ${nama} sudah berstatus "Sudah Diusulkan" sehingga tidak dapat dihapus.`,
+            });
+            return;
+        }
+
         const r = await Swal.fire({
             title: "Hapus Usulan?", text: `Usulan PIP untuk ${nama} akan dihapus dan urutan prioritas disusun ulang.`,
             icon: "warning", showCancelButton: true, confirmButtonColor: "#ef4444", cancelButtonColor: "#64748b",
@@ -642,7 +795,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") ["modalTambahUsulan", "modalImportRiwayat", "modalTambahRiwayat"].forEach(closeModal);
+        if (e.key === "Escape") ["modalTambahUsulan", "modalEditUsulan", "modalRiwayatUsulan", "modalImportRiwayat", "modalTambahRiwayat"].forEach(closeModal);
     });
 
     // ---------------------------------------------------------------------

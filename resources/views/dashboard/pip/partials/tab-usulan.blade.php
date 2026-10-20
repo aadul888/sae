@@ -145,45 +145,81 @@
 
 <div class="dash-stat-grid"
     style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px;">
+    <!-- 1. Total Usulan -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary);">
             <i class="fas fa-users"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: 1.35rem;">
-                {{ number_format($stats['total_usulan'], 0, ',', '.') }}</div>
-            <div class="dash-stat-label">Total Usulan {{ $activeTahun }}</div>
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--primary);">
+                {{ number_format($stats['total_usulan'], 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Total Usulan</div>
         </div>
     </div>
+
+    <!-- 2. Belum Diusulkan -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
             <i class="fas fa-hourglass-half"></i>
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #f59e0b;">
-                {{ number_format($stats['belum_diajukan'], 0, ',', '.') }}</div>
-            <div class="dash-stat-label">Belum Diusulkan ke Web PIP</div>
+                {{ number_format($stats['belum_diajukan'], 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Belum Diusulkan</div>
         </div>
     </div>
+
+    <!-- 3. Sudah Diusulkan -->
     <div class="dash-stat-card">
         <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
             <div class="dash-stat-value" style="font-size: 1.35rem; color: #10b981;">
-                {{ number_format($stats['sudah_diajukan'], 0, ',', '.') }}</div>
-            <div class="dash-stat-label">Sudah Diusulkan ke Web PIP</div>
+                {{ number_format($stats['sudah_diajukan'], 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Sudah Diusulkan</div>
         </div>
     </div>
+
+    <!-- 4. Ditolak -->
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <i class="fas fa-circle-xmark"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #ef4444;">
+                {{ number_format($stats['ditolak'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Ditolak</div>
+        </div>
+    </div>
+
+    <!-- 5. Diperbarui / Ada Perubahan -->
+    <div class="dash-stat-card">
+        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+            <i class="fas fa-clock-rotate-left"></i>
+        </div>
+        <div class="dash-stat-info">
+            <div class="dash-stat-value" style="font-size: 1.35rem; color: #8b5cf6;">
+                {{ number_format($stats['total_usulan_diubah'] ?? 0, 0, ',', '.') }}
+            </div>
+            <div class="dash-stat-label">Ada Perubahan</div>
+        </div>
+    </div>
+
+    <!-- 6. Kuota Kelas / Pagu Kuota -->
     @if ($activeRombel)
         <div class="dash-stat-card">
             <div class="dash-stat-icon"
-                style="background: {{ $kuotaPenuh ? 'rgba(239,68,68,0.12)' : 'rgba(37,99,235,0.12)' }}; color: {{ $kuotaPenuh ? '#ef4444' : '#2563eb' }};">
+                style="background: {{ $kuotaPenuh ? 'rgba(239,68,68,0.12)' : 'rgba(6,182,212,0.12)' }}; color: {{ $kuotaPenuh ? '#ef4444' : 'var(--accent)' }};">
                 <i class="fas fa-ticket"></i>
             </div>
             <div class="dash-stat-info">
                 <div class="dash-stat-value"
-                    style="font-size: 1.35rem; color: {{ $kuotaPenuh ? '#ef4444' : '#2563eb' }};">
+                    style="font-size: 1.35rem; color: {{ $kuotaPenuh ? '#ef4444' : 'var(--accent)' }};">
                     {{ $stats['terpakai_kelas'] }} / {{ $stats['kuota_kelas'] }}
                 </div>
                 <div class="dash-stat-label">Kuota Kelas {{ $activeRombel->nama }}</div>
@@ -191,15 +227,15 @@
         </div>
     @else
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
+            <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: var(--accent);">
                 <i class="fas fa-ticket"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: 1.35rem; color: #2563eb;">
+                <div class="dash-stat-value" style="font-size: 1.35rem; color: var(--accent);">
                     {{ number_format($stats['total_usulan'], 0, ',', '.') }} /
                     {{ number_format($stats['total_pagu_sekolah'] ?? 0, 0, ',', '.') }}
                 </div>
-                <div class="dash-stat-label">Pagu Kuota Sekolah</div>
+                <div class="dash-stat-label">Pagu Sekolah</div>
             </div>
         </div>
     @endif
@@ -253,7 +289,18 @@
                     @endforeach
                 </select>
 
-                @if ($q || $statusVerif || ($faseFilter ?? '') || ($isAdmin && $activeRombel))
+                <select id="filterPerubahan" name="status_perubahan" class="toolbar-filter-select"
+                    style="height: 38px;">
+                    <option value="">Semua Status Data</option>
+                    <option value="diubah" {{ ($statusPerubahanFilter ?? '') === 'diubah' ? 'selected' : '' }}>
+                        Ada Perubahan ({{ $stats['total_usulan_diubah'] ?? 0 }})
+                    </option>
+                    <option value="asli" {{ ($statusPerubahanFilter ?? '') === 'asli' ? 'selected' : '' }}>
+                        Data Asli (Belum Diubah)
+                    </option>
+                </select>
+
+                @if ($q || $statusVerif || ($faseFilter ?? '') || ($statusPerubahanFilter ?? '') || ($isAdmin && $activeRombel))
                     <a href="{{ route('dashboard.pip.index', ['tab' => 'usulan', 'tahun' => $activeTahun]) }}"
                         class="btn btn-outline btn-reset-filter"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
@@ -268,8 +315,8 @@
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="searchPip" name="q" placeholder="Cari nama / NISN / alasan..."
                         value="{{ $q }}" autocomplete="off">
-                    <button type="button" id="clearSearchPip" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                        title="Hapus pencarian">
+                    <button type="button" id="clearSearchPip"
+                        class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -295,13 +342,13 @@
                     <button type="button" class="btn btn-outline btn-sm"
                         onclick="pipBulkVerifikasi('set_sudah_diajukan')"
                         style="border-color: #10b981; color: #10b981; font-weight: 600;"
-                        title="Tandai Sudah Diusulkan ke Web PIP">
+                        title="Tandai Sudah Diusulkan">
                         <i class="fas fa-check me-1"></i> Diajukan
                     </button>
                     <button type="button" class="btn btn-outline btn-sm"
                         onclick="pipBulkVerifikasi('set_belum_diajukan')"
                         style="border-color: #f59e0b; color: #f59e0b; font-weight: 600;"
-                        title="Tandai Belum Diusulkan ke Web PIP">
+                        title="Tandai Belum Diusulkan">
                         <i class="fas fa-clock me-1"></i> Belum
                     </button>
                     <button type="button" class="btn btn-outline btn-sm" onclick="pipBulkVerifikasi('set_ditolak')"
@@ -409,7 +456,31 @@
                                                 TP {{ $u->tahun_pelajaran }}
                                             </span>
                                         @endif
+                                        @if (!empty($u->diubah_at))
+                                            <span class="badge badge-warning"
+                                                style="font-size: 0.66rem; padding: 1px 6px; font-weight: 700; cursor: pointer;"
+                                                onclick="pipLihatRiwayatUsulan({{ $u->id }})"
+                                                title="Klik untuk melihat riwayat perubahan data usulan ini">
+                                                <i class="fas fa-clock-rotate-left me-1"></i> Ada Perubahan
+                                            </span>
+                                            @if ($u->verifikasi_admin_at && \Carbon\Carbon::parse($u->diubah_at)->gt(\Carbon\Carbon::parse($u->verifikasi_admin_at)))
+                                                <span class="badge badge-danger"
+                                                    style="font-size: 0.65rem; padding: 1px 5px;"
+                                                    title="Diubah oleh wali kelas setelah status usulan diverifikasi oleh admin!">
+                                                    <i class="fas fa-triangle-exclamation me-1"></i> Pasca-Verifikasi
+                                                </span>
+                                            @endif
+                                        @endif
                                     </div>
+                                    @if (!empty($u->diubah_at))
+                                        <div style="font-size: 0.68rem; color: #f59e0b; margin-top: 2px;">
+                                            <i class="fas fa-pen-to-square me-1"></i> Diperbarui:
+                                            {{ \Carbon\Carbon::parse($u->diubah_at)->format('d/m/Y H:i') }}
+                                            @if (!empty($u->diubah_oleh))
+                                                &bull; {{ $u->diubah_oleh }}
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </td>
@@ -469,23 +540,46 @@
                                             {{ $u->status_verifikasi === 'ditolak' ? 'selected' : '' }}>✕ Ditolak
                                         </option>
                                     </select>
+                                @endif
+
+                                <!-- Tombol Edit Usulan (Wali Kelas saat tidak terkunci & Admin) -->
+                                @if ($isAdmin || empty($isWaliLocked))
+                                    <button type="button" class="btn-icon text-primary"
+                                        style="color: var(--primary); width: 30px; height: 30px;"
+                                        title="Edit Kriteria Alasan &amp; Keterangan Usulan"
+                                        onclick="pipBukaEditUsulan({{ $u->id }}, @js($u->nama_pd), @js($u->alasan_list), @js($u->keterangan))">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                @endif
+
+                                <!-- Tombol Riwayat Perubahan jika ada riwayat -->
+                                @if (!empty($u->diubah_at))
                                     <button type="button" class="btn-icon"
-                                        style="color: #ef4444; width: 30px; height: 30px;" title="Hapus Usulan"
-                                        onclick="pipHapusUsulan({{ $u->id }}, @js($u->nama_pd))">
+                                        style="color: #f59e0b; width: 30px; height: 30px;"
+                                        title="Lihat Riwayat Perubahan Usulan"
+                                        onclick="pipLihatRiwayatUsulan({{ $u->id }})">
+                                        <i class="fas fa-history"></i>
+                                    </button>
+                                @endif
+
+                                @if ($u->status_verifikasi === 'sudah_diajukan')
+                                    <button type="button" class="btn-icon"
+                                        style="color: var(--text-muted); opacity: 0.4; width: 30px; height: 30px; cursor: not-allowed;"
+                                        title="Tidak dapat dihapus karena sudah diusulkan" disabled>
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
-                                @elseif (!empty($isWaliLocked))
+                                @elseif ($isAdmin || empty($isWaliLocked))
+                                    <button type="button" class="btn-icon"
+                                        style="color: #ef4444; width: 30px; height: 30px;" title="Hapus Usulan"
+                                        onclick="pipHapusUsulan({{ $u->id }}, @js($u->nama_pd), @js($u->status_verifikasi))">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                @else
                                     <span class="badge badge-outline"
                                         style="font-size: 0.7rem; padding: 3px 8px; color: var(--text-muted);"
                                         title="Pengusulan PIP saat ini terkunci">
                                         <i class="fas fa-lock me-1"></i> Terkunci
                                     </span>
-                                @else
-                                    <button type="button" class="btn-icon"
-                                        style="color: #ef4444; width: 30px; height: 30px;" title="Hapus Usulan"
-                                        onclick="pipHapusUsulan({{ $u->id }}, @js($u->nama_pd))">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
                                 @endif
                             </div>
                         </td>

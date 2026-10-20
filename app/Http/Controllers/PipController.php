@@ -139,6 +139,18 @@ class PipController extends Controller
                     if (!Schema::hasColumn('pip_usulan', 'judul_usulan')) {
                         $table->string('judul_usulan', 150)->nullable()->after('tahun_pelajaran');
                     }
+                    if (!Schema::hasColumn('pip_usulan', 'diubah_oleh')) {
+                        $table->string('diubah_oleh', 100)->nullable()->after('catatan_admin');
+                    }
+                    if (!Schema::hasColumn('pip_usulan', 'diubah_at')) {
+                        $table->dateTime('diubah_at')->nullable()->after('diubah_oleh')->index();
+                    }
+                    if (!Schema::hasColumn('pip_usulan', 'perubahan_terakhir')) {
+                        $table->string('perubahan_terakhir', 255)->nullable()->after('diubah_at');
+                    }
+                    if (!Schema::hasColumn('pip_usulan', 'riwayat_perubahan')) {
+                        $table->longText('riwayat_perubahan')->nullable()->after('perubahan_terakhir');
+                    }
                 });
 
                 try {
@@ -316,6 +328,7 @@ class PipController extends Controller
         $q = trim((string) $request->get('q', ''));
         $statusVerif = trim((string) $request->get('status_verifikasi', ''));
         $faseFilter = trim((string) $request->get('fase', ''));
+        $statusPerubahanFilter = trim((string) $request->get('status_perubahan', ''));
         $jenisSkFilter = trim((string) $request->get('jenis_sk', ''));
         $statusPipFilter = trim((string) $request->get('status_pip', 'penerima'));
         if (!in_array($statusPipFilter, ['penerima', 'belum', 'semua'], true)) {
@@ -366,13 +379,21 @@ class PipController extends Controller
                 $usulanQuery->where('u.fase', $faseFilter);
             }
 
+            if ($statusPerubahanFilter === 'diubah') {
+                $usulanQuery->whereNotNull('u.diubah_at');
+            } elseif ($statusPerubahanFilter === 'asli') {
+                $usulanQuery->whereNull('u.diubah_at');
+            }
+
             if ($q !== '') {
                 $usulanQuery->where(function ($sub) use ($q) {
                     $sub->where('pd.nama', 'LIKE', "%{$q}%")
                         ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
                         ->orWhere('pd.nipd', 'LIKE', "%{$q}%")
                         ->orWhere('u.keterangan', 'LIKE', "%{$q}%")
-                        ->orWhere('u.alasan_usulan', 'LIKE', "%{$q}%");
+                        ->orWhere('u.alasan_usulan', 'LIKE', "%{$q}%")
+                        ->orWhere('u.perubahan_terakhir', 'LIKE', "%{$q}%")
+                        ->orWhere('u.diubah_oleh', 'LIKE', "%{$q}%");
                 });
             }
 
@@ -384,10 +405,11 @@ class PipController extends Controller
                 ->paginate($perPage, ['*'], 'usulan_page')
                 ->withQueryString();
 
-            // Transform foto_url dan decode alasan_usulan
+            // Transform foto_url dan decode alasan_usulan & riwayat_perubahan
             $usulanList->getCollection()->transform(function ($item) {
                 $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
                 $item->alasan_list = is_string($item->alasan_usulan) ? (json_decode($item->alasan_usulan, true) ?: []) : ($item->alasan_usulan ?: []);
+                $item->riwayat_perubahan_list = is_string($item->riwayat_perubahan) ? (json_decode($item->riwayat_perubahan, true) ?: []) : ($item->riwayat_perubahan ?: []);
                 return $item;
             });
         } else {
@@ -405,6 +427,7 @@ class PipController extends Controller
         $totalBelumDiajukan = 0;
         $totalSudahDiajukan = 0;
         $totalDitolak = 0;
+        $totalUsulanDiubah = 0;
 
         if ($hasUsulanTable) {
             $statScope = DB::table('pip_usulan')->where('tahun', $activeTahun);
@@ -418,6 +441,7 @@ class PipController extends Controller
             $totalBelumDiajukan = (clone $statScope)->where('status_verifikasi', 'belum_diajukan')->count();
             $totalSudahDiajukan = (clone $statScope)->where('status_verifikasi', 'sudah_diajukan')->count();
             $totalDitolak = (clone $statScope)->where('status_verifikasi', 'ditolak')->count();
+            $totalUsulanDiubah = (clone $statScope)->whereNotNull('diubah_at')->count();
         }
 
         // Kuota info untuk kelas yang aktif / sekolah
@@ -453,6 +477,7 @@ class PipController extends Controller
             'belum_diajukan'      => $totalBelumDiajukan,
             'sudah_diajukan'      => $totalSudahDiajukan,
             'ditolak'             => $totalDitolak,
+            'total_usulan_diubah' => $totalUsulanDiubah,
             'kuota_kelas'         => $kuotaKelas,
             'terpakai_kelas'      => $terpakaiKelas,
             'sisa_kuota_kelas'    => $sisaKuotaKelas,
@@ -1118,6 +1143,7 @@ class PipController extends Controller
             'q',
             'statusVerif',
             'faseFilter',
+            'statusPerubahanFilter',
             'perPage',
             'usulanList',
             'stats',
@@ -1209,6 +1235,7 @@ class PipController extends Controller
             $belumDiajukan = (clone $uScope)->where('status_verifikasi', 'belum_diajukan')->count();
             $sudahDiajukan = (clone $uScope)->where('status_verifikasi', 'sudah_diajukan')->count();
             $ditolak       = (clone $uScope)->where('status_verifikasi', 'ditolak')->count();
+            $totalUsulanDiubah = (clone $uScope)->whereNotNull('diubah_at')->count();
 
             // Usulan terbaru (5 data)
             $recentQuery = DB::table('pip_usulan as u')
@@ -1230,6 +1257,7 @@ class PipController extends Controller
             $usulanTerbaru->transform(function ($item) {
                 $item->foto_url = !empty($item->foto_path) ? asset('storage/' . ltrim($item->foto_path, '/')) : null;
                 $item->alasan_list = is_string($item->alasan_usulan) ? (json_decode($item->alasan_usulan, true) ?: []) : ($item->alasan_usulan ?: []);
+                $item->riwayat_perubahan_list = is_string($item->riwayat_perubahan) ? (json_decode($item->riwayat_perubahan, true) ?: []) : ($item->riwayat_perubahan ?: []);
                 return $item;
             });
 
@@ -1434,6 +1462,7 @@ class PipController extends Controller
             'belum_diajukan'          => $belumDiajukan,
             'sudah_diajukan'          => $sudahDiajukan,
             'ditolak'                 => $ditolak,
+            'total_usulan_diubah'     => $totalUsulanDiubah,
             'usulan_per_rombel'       => $usulanPerRombel,
             'usulan_per_tingkat'      => $usulanPerTingkat,
             'alasan_distribusi'       => $alasanDistribusi,
@@ -1532,6 +1561,8 @@ class PipController extends Controller
 
         $q = trim((string) $request->get('q', ''));
         $statusVerif = trim((string) $request->get('status_verifikasi', ''));
+        $faseFilter = trim((string) $request->get('fase', ''));
+        $statusPerubahanFilter = trim((string) $request->get('status_perubahan', ''));
 
         if (!Schema::hasTable('pip_usulan')) {
             return back()->with('error', 'Tabel usulan PIP belum tersedia.');
@@ -1574,6 +1605,16 @@ class PipController extends Controller
 
         if ($statusVerif !== '' && isset(PipUsulan::STATUS_VERIFIKASI[$statusVerif])) {
             $query->where('u.status_verifikasi', $statusVerif);
+        }
+
+        if ($faseFilter !== '' && in_array($faseFilter, ['fase_1', 'fase_2'], true)) {
+            $query->where('u.fase', $faseFilter);
+        }
+
+        if ($statusPerubahanFilter === 'diubah') {
+            $query->whereNotNull('u.diubah_at');
+        } elseif ($statusPerubahanFilter === 'asli') {
+            $query->whereNull('u.diubah_at');
         }
 
         if ($q !== '') {
@@ -1629,7 +1670,7 @@ class PipController extends Controller
             'Fase Usulan',
             'Tahun Usulan',
             'Tahun Pelajaran',
-            'Status Verifikasi Web PIP',
+            'Status Usulan',
             'Kelas / Rombel',
             'Tingkat',
             'Jurusan',
@@ -1659,6 +1700,10 @@ class PipController extends Controller
             'Waktu Verifikasi Admin',
             'Catatan Verifikasi Admin',
             'Riwayat PIP Terakhir',
+            'Status Perubahan Data',
+            'Diperbarui Oleh',
+            'Waktu Perubahan Terakhir',
+            'Catatan Perubahan Terakhir',
         ];
 
         $rows = [];
@@ -1679,6 +1724,11 @@ class PipController extends Controller
             $riwayatTeks = $riwayatMap[$r->peserta_didik_id] ?? ($riwayatMap[$r->nisn] ?? 'Belum ada riwayat');
             $faseLabel = PipUsulan::getFaseLabel($r->fase ?? null);
             $judulUsulan = $r->judul_usulan ?: ("Usulan PIP {$r->tahun} — {$faseLabel}");
+
+            $statusPerubahanTeks = !empty($r->diubah_at) ? 'Ada Perubahan' : 'Asli (Belum Diubah)';
+            $diubahOleh = $r->diubah_oleh ?: '-';
+            $diubahAt = !empty($r->diubah_at) ? date('d/m/Y H:i', strtotime($r->diubah_at)) : '-';
+            $perubahanTerakhir = $r->perubahan_terakhir ?: '-';
 
             $rows[] = [
                 $no++,
@@ -1717,6 +1767,10 @@ class PipController extends Controller
                 $tglVerif,
                 $r->catatan_admin ?: '-',
                 $riwayatTeks,
+                $statusPerubahanTeks,
+                $diubahOleh,
+                $diubahAt,
+                $perubahanTerakhir,
             ];
         }
 
@@ -1876,6 +1930,155 @@ class PipController extends Controller
     }
 
     /**
+     * Perbarui Kriteria Alasan & Keterangan Usulan PIP oleh Wali Kelas / Admin
+     */
+    public function updateUsulan(Request $request, int $id): JsonResponse
+    {
+        $this->ensurePipSchema();
+        $ctx = $this->resolveContext($request);
+        $isAdmin = $ctx['isAdmin'];
+        $user = $ctx['user'];
+
+        if (!$isAdmin && !RolePermission::canAccess($user, 'menu_wali_kelas_pip', 'update') && !RolePermission::canAccess($user, 'menu_wali_kelas', 'update')) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak: Anda tidak memiliki izin mengubah usulan PIP.'], 403);
+        }
+
+        $item = PipUsulan::findOrFail($id);
+        if ($deny = $this->authorizeUsulan($request, $item)) {
+            return $deny;
+        }
+
+        if (!$isAdmin && PipPengaturan::isLockedForWaliKelas($item->tahun)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Pengusulan PIP telah dikunci atau telah melewati batas waktu pengisian.',
+            ], 403);
+        }
+
+        $data = $request->validate([
+            'alasan_usulan'   => 'required|array|min:1',
+            'alasan_usulan.*' => 'required|string',
+            'keterangan'      => 'nullable|string|max:1000',
+        ], [
+            'alasan_usulan.required' => 'Minimal pilih satu alasan/kriteria usulan PIP.',
+            'alasan_usulan.min'      => 'Minimal pilih satu alasan/kriteria usulan PIP.',
+        ]);
+
+        $oldAlasan = is_string($item->alasan_usulan)
+            ? (json_decode($item->alasan_usulan, true) ?: [])
+            : (array) ($item->alasan_usulan ?: []);
+        $newAlasan = array_values($data['alasan_usulan']);
+
+        $sortedOld = $oldAlasan;
+        $sortedNew = $newAlasan;
+        sort($sortedOld);
+        sort($sortedNew);
+
+        $oldKet = trim((string) ($item->keterangan ?? ''));
+        $newKet = trim((string) ($data['keterangan'] ?? ''));
+
+        $diffAlasan = ($sortedOld != $sortedNew);
+        $diffKet = ($oldKet !== $newKet);
+
+        if (!$diffAlasan && !$diffKet) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tidak ada perubahan pada data kriteria dan keterangan usulan.',
+            ]);
+        }
+
+        $detailPerubahan = [];
+        if ($diffAlasan) {
+            $tambah = array_values(array_diff($newAlasan, $oldAlasan));
+            $hapus = array_values(array_diff($oldAlasan, $newAlasan));
+            $parts = [];
+            if (!empty($tambah)) {
+                $parts[] = 'Ditambah: ' . implode(', ', $tambah);
+            }
+            if (!empty($hapus)) {
+                $parts[] = 'Dihapus: ' . implode(', ', $hapus);
+            }
+            $detailPerubahan[] = 'Kriteria alasan disesuaikan (' . implode('; ', $parts) . ')';
+        }
+        if ($diffKet) {
+            $detailPerubahan[] = 'Keterangan diperbarui dari "' . ($oldKet ?: '-') . '" menjadi "' . ($newKet ?: '-') . '"';
+        }
+
+        $editorNama = is_array($user) ? ($user['nama'] ?? ($user['name'] ?? 'Pengguna')) : ($user->nama ?? ($user->name ?? 'Pengguna'));
+        $roleLabel = $isAdmin ? 'Administrator' : 'Wali Kelas';
+        $editorSignature = $editorNama . ' (' . $roleLabel . ')';
+
+        $ringkasan = implode(' &bull; ', $detailPerubahan);
+
+        $riwayat = is_array($item->riwayat_perubahan)
+            ? $item->riwayat_perubahan
+            : (json_decode($item->riwayat_perubahan, true) ?: []);
+
+        array_unshift($riwayat, [
+            'waktu'     => now()->format('Y-m-d H:i:s'),
+            'editor'    => $editorSignature,
+            'peran'     => $roleLabel,
+            'ringkasan' => $ringkasan,
+            'detail'    => $detailPerubahan,
+        ]);
+
+        $item->alasan_usulan = array_values($data['alasan_usulan']);
+        $item->keterangan = $newKet;
+        $item->diubah_oleh = $editorSignature;
+        $item->diubah_at = now();
+        $item->perubahan_terakhir = mb_substr($ringkasan, 0, 250);
+        $item->riwayat_perubahan = $riwayat;
+        $item->save();
+
+        $pdNama = DB::table('peserta_didik')->where('peserta_didik_id', $item->peserta_didik_id)->value('nama') ?? 'Peserta Didik';
+
+        return response()->json([
+            'success' => true,
+            'message' => "Usulan untuk {$pdNama} berhasil diperbarui. Perubahan tercatat pada riwayat log.",
+            'data'    => $item,
+        ]);
+    }
+
+    /**
+     * Dapatkan Catatan Log Riwayat Perubahan Usulan PIP
+     */
+    public function getRiwayatPerubahan(Request $request, int $id): JsonResponse
+    {
+        $this->ensurePipSchema();
+        $item = PipUsulan::findOrFail($id);
+        if ($deny = $this->authorizeUsulan($request, $item)) {
+            return $deny;
+        }
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $item->peserta_didik_id)->first();
+        $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $item->rombongan_belajar_id)->first();
+
+        $riwayat = is_array($item->riwayat_perubahan)
+            ? $item->riwayat_perubahan
+            : (json_decode($item->riwayat_perubahan, true) ?: []);
+
+        return response()->json([
+            'success' => true,
+            'usulan'  => [
+                'id'                 => $item->id,
+                'nama_pd'            => $pd?->nama ?: '-',
+                'nisn'               => $pd?->nisn ?: '-',
+                'rombel'             => $rombel?->nama ?: '-',
+                'prioritas'          => $item->prioritas,
+                'status_verifikasi'  => $item->status_verifikasi,
+                'diusulkan_oleh'     => $item->diusulkan_oleh,
+                'created_at'         => $item->created_at ? $item->created_at->format('d/m/Y H:i') : '-',
+                'diubah_oleh'        => $item->diubah_oleh,
+                'diubah_at'          => $item->diubah_at ? $item->diubah_at->format('d/m/Y H:i') : null,
+                'perubahan_terakhir' => $item->perubahan_terakhir,
+                'alasan_list'        => is_string($item->alasan_usulan) ? (json_decode($item->alasan_usulan, true) ?: []) : ($item->alasan_usulan ?: []),
+                'keterangan'         => $item->keterangan,
+            ],
+            'riwayat' => $riwayat,
+        ]);
+    }
+
+    /**
      * Ubah Urutan Prioritas / Ranking Usulan PIP (Naik/Turun atau Input Langsung)
      * Khusus Wali Kelas (Admin Readonly)
      */
@@ -1949,12 +2152,43 @@ class PipController extends Controller
             }
         }
 
+        $oldRank = (int) $item->prioritas;
+        $newRankCalculated = null;
+
         // Terapkan nomor urut 1, 2, 3, ... secara sekuensial tanpa celah/bentrok
         foreach ($list->values() as $idx => $row) {
             $seq = $idx + 1;
+            if ((int) $row->id === (int) $item->id) {
+                $newRankCalculated = $seq;
+            }
             if ((int) $row->prioritas !== $seq) {
                 PipUsulan::where('id', $row->id)->update(['prioritas' => $seq]);
             }
+        }
+
+        if ($newRankCalculated !== null && $oldRank !== $newRankCalculated) {
+            $editorNama = is_array($ctx['user']) ? ($ctx['user']['nama'] ?? ($ctx['user']['name'] ?? 'Wali Kelas')) : ($ctx['user']->nama ?? ($ctx['user']->name ?? 'Wali Kelas'));
+            $editorSig = $editorNama . ' (Wali Kelas)';
+            $ringkasan = "Urutan prioritas diubah dari #{$oldRank} menjadi #{$newRankCalculated}";
+
+            $riwayat = is_array($item->riwayat_perubahan)
+                ? $item->riwayat_perubahan
+                : (json_decode($item->riwayat_perubahan, true) ?: []);
+
+            array_unshift($riwayat, [
+                'waktu'     => now()->format('Y-m-d H:i:s'),
+                'editor'    => $editorSig,
+                'peran'     => 'Wali Kelas',
+                'ringkasan' => $ringkasan,
+                'detail'    => ["Ranking prioritas bergeser dari urutan #{$oldRank} ke #{$newRankCalculated}"],
+            ]);
+
+            PipUsulan::where('id', $item->id)->update([
+                'diubah_oleh'        => $editorSig,
+                'diubah_at'          => now(),
+                'perubahan_terakhir' => $ringkasan,
+                'riwayat_perubahan'  => json_encode($riwayat),
+            ]);
         }
 
         return response()->json([
@@ -1979,6 +2213,13 @@ class PipController extends Controller
         }
         $rombelId = $item->rombongan_belajar_id;
         $tahun = $item->tahun;
+
+        if ($item->status_verifikasi === 'sudah_diajukan') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak: Usulan dengan status "Sudah Diusulkan" tidak dapat dihapus.',
+            ], 422);
+        }
 
         if (!$ctx['isAdmin'] && PipPengaturan::isLockedForWaliKelas($tahun)) {
             return response()->json([

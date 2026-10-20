@@ -28,8 +28,7 @@
                 </h2>
                 <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
                     @if ($isAdmin)
-                        Kelola kuota per kelas, pantau usulan wali kelas, verifikasi pengajuan ke web PIP, dan riwayat
-                        penerima.
+                        Kelola kuota, pantau usulan, verifikasi pengajuan, dan riwayat penerima PIP.
                     @else
                         Usulkan peserta didik kelas
                         <strong>{{ $activeRombel->nama ?? '-' }}</strong> beserta kriteria alasan dan urutan prioritasnya.
@@ -157,8 +156,72 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-                             * Tab Riwayat PIP — Desktop & Responsive Modern Table
-                             * ------------------------------------------------------------- */
+             * Standarisasi Konsistensi Ukuran Kartu Statistik PIP (Genap & Rapi)
+             * ------------------------------------------------------------- */
+        .dash-stat-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+            grid-auto-rows: 1fr !important;
+            gap: 14px !important;
+            margin-bottom: 20px !important;
+            align-items: stretch !important;
+        }
+
+        .dash-stat-card {
+            min-height: 82px !important;
+            height: 100% !important;
+            box-sizing: border-box !important;
+            padding: 14px 16px !important;
+            border-radius: 12px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+
+        .dash-stat-icon {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            border-radius: 12px !important;
+            font-size: 1.25rem !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+        }
+
+        .dash-stat-info {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            min-width: 0 !important;
+            flex: 1 1 auto !important;
+        }
+
+        .dash-stat-value {
+            font-size: 1.35rem !important;
+            font-weight: 800 !important;
+            line-height: 1.2 !important;
+            margin-bottom: 2px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .dash-stat-label {
+            font-size: 0.76rem !important;
+            font-weight: 600 !important;
+            color: var(--text-muted) !important;
+            line-height: 1.25 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        /* -------------------------------------------------------------
+             * Tab Riwayat PIP — Desktop & Responsive Modern Table
+             * ------------------------------------------------------------- */
         .table-pip-riwayat {
             width: 100%;
             border-collapse: collapse;
@@ -369,6 +432,12 @@
                 destroyUsulan: @json(Route::has('dashboard.pip.destroy-usulan')
                         ? route('dashboard.pip.destroy-usulan', ['id' => '__ID__'])
                         : url('/dashboard/pip/usulan/__ID__/delete')),
+                updateUsulan: @json(Route::has('dashboard.pip.update-usulan')
+                        ? route('dashboard.pip.update-usulan', ['id' => '__ID__'])
+                        : url('/dashboard/pip/usulan/__ID__/update')),
+                riwayatUsulan: @json(Route::has('dashboard.pip.riwayat-usulan')
+                        ? route('dashboard.pip.riwayat-usulan', ['id' => '__ID__'])
+                        : url('/dashboard/pip/usulan/__ID__/riwayat')),
                 verifikasi: @json(Route::has('dashboard.pip.update-verifikasi')
                         ? route('dashboard.pip.update-verifikasi', ['id' => '__ID__'])
                         : url('/dashboard/pip/usulan/__ID__/verifikasi')),

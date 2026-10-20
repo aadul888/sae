@@ -23,12 +23,18 @@ class PipUsulan extends Model
         'diverifikasi_oleh',
         'verifikasi_admin_at',
         'catatan_admin',
+        'diubah_oleh',
+        'diubah_at',
+        'perubahan_terakhir',
+        'riwayat_perubahan',
     ];
 
     protected $casts = [
         'alasan_usulan'       => 'array',
         'verifikasi_admin_at' => 'datetime',
         'prioritas'           => 'integer',
+        'diubah_at'           => 'datetime',
+        'riwayat_perubahan'   => 'array',
     ];
 
     /**
@@ -62,8 +68,8 @@ class PipUsulan extends Model
     ];
 
     public const STATUS_VERIFIKASI = [
-        'belum_diajukan' => 'Belum Diusulkan ke Web PIP',
-        'sudah_diajukan' => 'Sudah Diusulkan ke Web PIP',
+        'belum_diajukan' => 'Belum Diusulkan',
+        'sudah_diajukan' => 'Sudah Diusulkan',
         'ditolak'        => 'Ditolak',
     ];
 
