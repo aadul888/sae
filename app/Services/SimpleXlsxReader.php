@@ -242,27 +242,46 @@ class SimpleXlsxReader
         $headers = [];
 
         foreach ($rawRows as $idx => $row) {
+            $nonEmptyCells = array_values(array_filter($row, fn($v) => trim((string)$v) !== ''));
+            if (empty($nonEmptyCells)) {
+                continue;
+            }
+
             $rowLower = array_map(fn($v) => strtolower(trim((string)$v)), $row);
+
+            // 1. Cek kecocokan nama kolom baku (prioritas utama)
             if (
                 in_array('peserta_didik_id', $rowLower, true) ||
                 in_array('nama_pd', $rowLower, true) ||
                 in_array('nisn', $rowLower, true) ||
-                in_array('nama', $rowLower, true)
+                (in_array('nama', $rowLower, true) && count($nonEmptyCells) >= 3)
             ) {
                 $headerIndex = $idx;
                 $headers = $rowLower;
                 break;
             }
 
-            // Fallback: deteksi substring jika header berlabel khusus (contoh: "NISN (*)" atau "Nama Lengkap")
-            $hasKeyword = false;
+            // 2. Cek baris header yang memiliki imbuhan (contoh: "NISN (*)", "Nama Lengkap (*)")
+            // Syarat: bukan paragraf penjelasan (setiap sel <= 50 karakter), memiliki kolom yang diawali "nisn" atau "nama", dan minimal 3 kolom
+            $hasNisnCol = false;
+            $hasNamaCol = false;
+            $isNotParagraph = true;
+
             foreach ($rowLower as $h) {
-                if (str_contains($h, 'nisn') || str_contains($h, 'peserta_didik') || str_starts_with($h, 'nama')) {
-                    $hasKeyword = true;
+                if ($h === '') continue;
+                if (strlen($h) > 50) {
+                    $isNotParagraph = false;
                     break;
                 }
+                if (preg_match('/^nisn\b/i', $h) || preg_match('/^nomor\s*induk\s*siswa/i', $h)) {
+                    $hasNisnCol = true;
+                }
+                if (preg_match('/^nama\b/i', $h)) {
+                    $hasNamaCol = true;
+                }
             }
-            if ($hasKeyword) {
+
+            if ($isNotParagraph && ($hasNisnCol || $hasNamaCol) && count($nonEmptyCells) >= 3) {
                 $headerIndex = $idx;
                 $headers = $rowLower;
                 break;

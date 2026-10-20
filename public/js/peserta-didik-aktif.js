@@ -1874,7 +1874,7 @@ window.handleImportExcelSubmit = async function (e) {
         if (res.ok && json.status === "success") {
             window.closeImportExcelModal();
 
-            let detailHtml = json.message;
+            let detailHtml = escapeHtml(json.message);
             if (json.errors && json.errors.length > 0) {
                 detailHtml +=
                     "<br><br><small style='color: #ef4444; text-align: left; display: block; max-height: 120px; overflow-y: auto;'>" +
@@ -1893,25 +1893,36 @@ window.handleImportExcelSubmit = async function (e) {
                 alert(json.message);
             }
 
+            // Bersihkan filter pencarian agar data yang baru diimpor langsung terlihat
+            const targetUrl = new URL(window.location.origin + window.location.pathname);
             if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(window.location.href);
+                window.refreshLiveTable(targetUrl.toString());
             } else {
-                window.location.reload();
+                window.location.href = targetUrl.toString();
             }
         } else {
             let errorMsg = json.message || "Gagal mengimpor berkas Excel.";
-            if (
+            let errorHtml = escapeHtml(errorMsg);
+            if (json.errors && Array.isArray(json.errors) && json.errors.length > 0) {
+                errorHtml +=
+                    "<br><br><small style='color: #ef4444; text-align: left; display: block; max-height: 140px; overflow-y: auto;'>" +
+                    json.errors.map((err) => escapeHtml(err)).join("<br>") +
+                    "</small>";
+            } else if (
                 json.errors &&
-                typeof json.errors === "object" &&
-                !Array.isArray(json.errors)
+                typeof json.errors === "object"
             ) {
-                errorMsg = Object.values(json.errors).flat().join("\n");
+                const flat = Object.values(json.errors).flat().join("<br>");
+                errorHtml +=
+                    "<br><br><small style='color: #ef4444; text-align: left; display: block;'>" +
+                    escapeHtml(flat) +
+                    "</small>";
             }
 
             if (typeof Swal !== "undefined") {
                 Swal.fire({
                     title: "Gagal Mengimpor",
-                    text: errorMsg,
+                    html: errorHtml,
                     icon: "error",
                     confirmButtonColor: "#ef4444",
                 });

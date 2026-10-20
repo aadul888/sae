@@ -154,14 +154,20 @@ class SimpleXlsxExporter
         $sheetXml .= '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' . "\n";
 
         // Determine table header row position
+        $isRawTable = !empty($options['rawTable']) || empty($meta);
         $metaFields = $meta['fields'] ?? [];
-        $headerRowNum = 1; // Row 1 is Title
-        if (!empty($meta['subtitle'])) {
-            $headerRowNum++; // Subtitle row
+
+        if ($isRawTable) {
+            $headerRowNum = 1;
+        } else {
+            $headerRowNum = 1; // Row 1 is Title
+            if (!empty($meta['subtitle'])) {
+                $headerRowNum++; // Subtitle row
+            }
+            $headerRowNum += count($metaFields); // Meta key-value rows
+            $headerRowNum++; // 1 Blank separator row
+            $headerRowNum++; // Header row itself
         }
-        $headerRowNum += count($metaFields); // Meta key-value rows
-        $headerRowNum++; // 1 Blank separator row
-        $headerRowNum++; // Header row itself
 
         // Freeze pane below table header
         $sheetXml .= '  <sheetViews>' . "\n";
@@ -182,31 +188,34 @@ class SimpleXlsxExporter
         $sheetXml .= '  <sheetData>' . "\n";
 
         $curRow = 1;
-        // Row 1: Document Main Title
-        $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
-        $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="1"><is><t>' . $xmlEscape($meta['title'] ?? 'DATA REKAPITULASI') . '</t></is></c>' . "\n";
-        $sheetXml .= '    </row>' . "\n";
-        $curRow++;
 
-        // Row 2: Subtitle (Form Title & School Unit)
-        if (!empty($meta['subtitle'])) {
+        if (!$isRawTable) {
+            // Row 1: Document Main Title
             $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
-            $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="2"><is><t>' . $xmlEscape($meta['subtitle']) . '</t></is></c>' . "\n";
+            $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="1"><is><t>' . $xmlEscape($meta['title'] ?? 'DATA REKAPITULASI') . '</t></is></c>' . "\n";
             $sheetXml .= '    </row>' . "\n";
             $curRow++;
-        }
 
-        // Metadata Key-Value List
-        foreach ($metaFields as $mLabel => $mVal) {
-            $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
-            $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="3"><is><t>' . $xmlEscape($mLabel) . '</t></is></c>' . "\n";
-            $sheetXml .= '      <c r="B' . $curRow . '" t="inlineStr" s="4"><is><t>' . $xmlEscape($mVal) . '</t></is></c>' . "\n";
-            $sheetXml .= '    </row>' . "\n";
+            // Row 2: Subtitle (Form Title & School Unit)
+            if (!empty($meta['subtitle'])) {
+                $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
+                $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="2"><is><t>' . $xmlEscape($meta['subtitle']) . '</t></is></c>' . "\n";
+                $sheetXml .= '    </row>' . "\n";
+                $curRow++;
+            }
+
+            // Metadata Key-Value List
+            foreach ($metaFields as $mLabel => $mVal) {
+                $sheetXml .= '    <row r="' . $curRow . '">' . "\n";
+                $sheetXml .= '      <c r="A' . $curRow . '" t="inlineStr" s="3"><is><t>' . $xmlEscape($mLabel) . '</t></is></c>' . "\n";
+                $sheetXml .= '      <c r="B' . $curRow . '" t="inlineStr" s="4"><is><t>' . $xmlEscape($mVal) . '</t></is></c>' . "\n";
+                $sheetXml .= '    </row>' . "\n";
+                $curRow++;
+            }
+
+            // Blank separator row
             $curRow++;
         }
-
-        // Blank separator row
-        $curRow++;
 
         // Table Header Row
         $sheetXml .= '    <row r="' . $headerRowNum . '">' . "\n";

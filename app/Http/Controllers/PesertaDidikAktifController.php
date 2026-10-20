@@ -1207,10 +1207,10 @@ class PesertaDidikAktifController extends Controller
         ];
 
         $headers = [
-            'NISN (*)',
-            'Nama Lengkap (*)',
-            'L/P (*)',
-            'Rombel Kelas (*)',
+            'NISN',
+            'Nama Lengkap',
+            'Jenis Kelamin',
+            'Rombel Kelas',
             'NIPD',
             'Tempat Lahir',
             'Tanggal Lahir',
@@ -1223,8 +1223,9 @@ class PesertaDidikAktifController extends Controller
             ['0081234563', 'Budi Santoso', 'L', 'XI TJKT 2', '2324015', 'Jakarta', '2007-11-12', '3203010101070003'],
         ];
 
-        SimpleXlsxExporter::export($tempPath, $meta, $headers, $sampleRows, [
+        SimpleXlsxExporter::export($tempPath, [], $headers, $sampleRows, [
             'sheetName' => 'Peserta Didik Aktif',
+            'rawTable' => true,
             'headerBg' => '#4338CA',
         ]);
 
@@ -1306,6 +1307,44 @@ class PesertaDidikAktifController extends Controller
             });
         }
 
+        // Helper ekstraksi kolom cerdas & kebal variasi penamaan header / posisi kolom
+        $extractCol = function (array $row, array $keywords, ?int $fallbackIndex = null): string {
+            // 1. Cek exact match
+            foreach ($keywords as $kw) {
+                if (isset($row[$kw]) && trim((string)$row[$kw]) !== '') {
+                    return trim((string)$row[$kw]);
+                }
+            }
+            // 2. Cek loose match (mengabaikan simbol, kurung, bintang, spasi)
+            foreach ($row as $k => $v) {
+                $cleanK = preg_replace('/[^a-z0-9]/', '', strtolower((string)$k));
+                foreach ($keywords as $kw) {
+                    $cleanKw = preg_replace('/[^a-z0-9]/', '', strtolower($kw));
+                    if ($cleanK === $cleanKw && trim((string)$v) !== '') {
+                        return trim((string)$v);
+                    }
+                }
+            }
+            // 3. Cek starts with keyword
+            foreach ($row as $k => $v) {
+                $cleanK = preg_replace('/[^a-z0-9]/', '', strtolower((string)$k));
+                foreach ($keywords as $kw) {
+                    $cleanKw = preg_replace('/[^a-z0-9]/', '', strtolower($kw));
+                    if (str_starts_with($cleanK, $cleanKw) && trim((string)$v) !== '') {
+                        return trim((string)$v);
+                    }
+                }
+            }
+            // 4. Fallback ke indeks posisi kolom jika ada
+            if ($fallbackIndex !== null) {
+                $vals = array_values($row);
+                if (isset($vals[$fallbackIndex]) && trim((string)$vals[$fallbackIndex]) !== '') {
+                    return trim((string)$vals[$fallbackIndex]);
+                }
+            }
+            return '';
+        };
+
         $importedCount = 0;
         $updatedCount = 0;
         $skippedCount = 0;
@@ -1315,14 +1354,32 @@ class PesertaDidikAktifController extends Controller
             $rowNum = $idx + 2;
 
             // 1. Ekstrak NISN
-            $nisnRaw = $row['nisn'] ?? ($row['nisn_*'] ?? ($row['nisn___'] ?? ($row['nomor_induk_siswa_nasional'] ?? '')));
-            $nisn = preg_replace('/[^0-9]/', '', trim((string)$nisnRaw));
+            $nisnRaw = $extractCol($row, ['nisn', 'nomor_induk_siswa_nasional', 'no_nisn', 'nomor_nisn', 'nisn_*', 'nisn___'], 0);
+            $nisn = preg_replace('/[^0-9]/', '', $nisnRaw);
 
             // 2. Ekstrak Nama Lengkap
-            $nama = trim((string)($row['nama_lengkap'] ?? ($row['nama'] ?? ($row['nama_lengkap_*'] ?? ($row['nama_lengkap___'] ?? ($row['nama_pd'] ?? ($row['nama_siswa'] ?? '')))))));
+            $nama = $extractCol($row, ['nama_lengkap', 'nama', 'nama_siswa', 'nama_peserta_didik', 'nama_pd', 'nama_lengkap_*', 'nama_lengkap___'], 1);
 
-            // 3. Ekstrak Rombel
-            $rombel = trim((string)($row['rombel_kelas'] ?? ($row['rombel_kelas_*'] ?? ($row['rombel_kelas___'] ?? ($row['nama_rombel'] ?? ($row['rombel'] ?? ($row['kelas'] ?? '')))))));
+            // 3. Ekstrak Jenis Kelamin
+            $jkRaw = strtoupper($extractCol($row, ['jenis_kelamin', 'l_p', 'jk', 'gender', 'kelamin', 'sex', 'l_p_*', 'l_p___'], 2));
+            $jk = str_starts_with($jkRaw, 'P') ? 'P' : 'L';
+
+            // 4. Ekstrak Rombel
+            $rombel = $extractCol($row, ['rombel_kelas', 'nama_rombel', 'rombel', 'kelas', 'rombongan_belajar', 'rombel_kelas_*', 'rombel_kelas___'], 3);
+
+            // 5. Ekstrak NIPD
+            $nipd = $extractCol($row, ['nipd', 'no_induk', 'nis', 'nomor_induk', 'nipd_*'], 4);
+
+            // 6. Ekstrak Tempat Lahir
+            $tempatLahir = $extractCol($row, ['tempat_lahir', 'tmp_lahir', 'tempat'], 5);
+
+            // 7. Ekstrak Tanggal Lahir
+            $tglLahirRaw = $extractCol($row, ['tanggal_lahir', 'tgl_lahir', 'tgl'], 6);
+            $tglLahir = $this->parseTanggal($tglLahirRaw);
+
+            // 8. Ekstrak NIK
+            $nikRaw = $extractCol($row, ['nik', 'no_nik', 'nik_ktp'], 7);
+            $nik = preg_replace('/[^0-9]/', '', $nikRaw);
 
             if ($nama === '' && $nisn === '') {
                 continue;
@@ -1345,24 +1402,6 @@ class PesertaDidikAktifController extends Controller
                 $errors[] = "Baris {$rowNum}: Rombel/Kelas tidak boleh kosong ({$nama} - NISN: {$nisn}).";
                 continue;
             }
-
-            // 4. Ekstrak Jenis Kelamin (L/P)
-            $jkRaw = strtoupper(trim((string)($row['l_p'] ?? ($row['l_p_*'] ?? ($row['l_p___'] ?? ($row['jenis_kelamin'] ?? ($row['jk'] ?? ($row['gender'] ?? ''))))))));
-            $jk = str_starts_with($jkRaw, 'P') ? 'P' : 'L';
-
-            // 5. Ekstrak NIPD
-            $nipd = trim((string)($row['nipd'] ?? ($row['no_induk'] ?? ($row['nis'] ?? ''))));
-
-            // 6. Ekstrak Tempat Lahir
-            $tempatLahir = trim((string)($row['tempat_lahir'] ?? ($row['tmp_lahir'] ?? '')));
-
-            // 7. Ekstrak Tanggal Lahir
-            $tglLahirRaw = $row['tanggal_lahir'] ?? ($row['tgl_lahir'] ?? '');
-            $tglLahir = $this->parseTanggal($tglLahirRaw);
-
-            // 8. Ekstrak NIK
-            $nikRaw = $row['nik'] ?? ($row['no_nik'] ?? '');
-            $nik = preg_replace('/[^0-9]/', '', trim((string)$nikRaw));
 
             // Hubungkan ke rombongan_belajar
             $rombelKey = strtolower($rombel);
@@ -1430,38 +1469,47 @@ class PesertaDidikAktifController extends Controller
                     $importedCount++;
                 }
 
+                // Metadata foto kartu
                 if (Schema::hasTable('peserta_didik_meta')) {
-                    PesertaDidikMeta::firstOrCreate(
-                        ['peserta_didik_id' => $pdId],
-                        ['nisn' => $nisn]
-                    );
+                    try {
+                        PesertaDidikMeta::firstOrCreate(
+                            ['peserta_didik_id' => $pdId],
+                            ['nisn' => $nisn]
+                        );
+                    } catch (\Throwable $metaErr) {}
                 }
 
+                // Akun login
                 if (Schema::hasTable('pengguna')) {
-                    $hasUser = DB::table('pengguna')
-                        ->where('peserta_didik_id', $pdId)
-                        ->orWhere('username', $nisn)
-                        ->exists();
+                    try {
+                        $hasUser = DB::table('pengguna')
+                            ->where('peserta_didik_id', $pdId)
+                            ->orWhere('username', $nisn)
+                            ->exists();
 
-                    if (!$hasUser) {
-                        User::create([
-                            'pengguna_id' => (string) Str::uuid(),
-                            'sekolah_id' => $sekolahId,
-                            'username' => $nisn,
-                            'nama' => $nama,
-                            'peran_id_str' => 'Peserta Didik',
-                            'password' => Hash::make($nisn),
-                            'peserta_didik_id' => $pdId,
-                            'password_updated_at' => null,
-                        ]);
-                    }
+                        if (!$hasUser) {
+                            User::create([
+                                'pengguna_id' => (string) Str::uuid(),
+                                'sekolah_id' => $sekolahId,
+                                'username' => $nisn,
+                                'nama' => $nama,
+                                'peran_id_str' => 'Peserta Didik',
+                                'password' => Hash::make($nisn),
+                                'peserta_didik_id' => $pdId,
+                                'password_updated_at' => null,
+                            ]);
+                        }
+                    } catch (\Throwable $userErr) {}
                 }
 
+                // Bersihkan dari tabel tidak aktif
                 if (Schema::hasTable('peserta_didik_tidak_aktif')) {
-                    DB::table('peserta_didik_tidak_aktif')
-                        ->where('peserta_didik_id', $pdId)
-                        ->orWhere('nisn', $nisn)
-                        ->delete();
+                    try {
+                        DB::table('peserta_didik_tidak_aktif')
+                            ->where('peserta_didik_id', $pdId)
+                            ->orWhere('nisn', $nisn)
+                            ->delete();
+                    } catch (\Throwable $taErr) {}
                 }
             } catch (\Throwable $err) {
                 $skippedCount++;
@@ -1470,6 +1518,19 @@ class PesertaDidikAktifController extends Controller
         }
 
         $totalProcessed = $importedCount + $updatedCount;
+
+        if ($totalProcessed === 0) {
+            $errDetail = !empty($errors) ? implode(' ', array_slice($errors, 0, 3)) : 'Pastikan berkas Excel memiliki baris data dengan kolom NISN, Nama Lengkap, dan Rombel yang terisi.';
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tidak ada data peserta didik yang berhasil diimpor. ' . $errDetail,
+                'imported_count' => 0,
+                'updated_count' => 0,
+                'skipped_count' => $skippedCount,
+                'errors' => array_slice($errors, 0, 10),
+            ], 422);
+        }
+
         $message = "Import berhasil diproses: {$importedCount} peserta didik baru ditambahkan, {$updatedCount} data diperbarui.";
         if ($skippedCount > 0) {
             $message .= " ({$skippedCount} baris dilewati).";
