@@ -80,6 +80,7 @@
                         style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
                         <input type="text" name="username" id="usernameInput" required
                             placeholder="Masukkan ID pengguna..."
+                            value="{{ old('username') }}"
                             style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px;">
                     </div>
                 </div>
@@ -107,7 +108,9 @@
             </form>
 
             <!-- Form 2: Login Khusus Orang Tua / Wali Murid -->
-            <form id="formLoginOrtu" action="{{ route('login.post') }}" method="POST" style="display: none;">
+            <form id="formLoginOrtu" action="{{ route('login.post') }}" method="POST"
+                data-active="{{ old('login_type') === 'orang_tua' || old('nisn_anak') || $errors->has('nisn_anak') || $errors->has('tgl_lahir_anak') ? '1' : '0' }}"
+                style="display: none;">
                 @csrf
                 <input type="hidden" name="login_type" value="orang_tua">
                 <div style="margin-bottom: 16px;">
@@ -117,8 +120,10 @@
                     </label>
                     <div class="input-group"
                         style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
-                        <input type="text" name="nisn_anak" id="inputNisnAnak"
-                            placeholder="Masukkan NISN atau NIK siswa..."
+                        <input type="tel" inputmode="numeric" pattern="[0-9]*" name="nisn_anak" id="inputNisnAnak"
+                            maxlength="16" autocomplete="username"
+                            value="{{ old('nisn_anak') }}"
+                            placeholder="Masukkan 10 digit NISN atau 16 digit NIK..."
                             style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px;">
                     </div>
                     <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">
@@ -132,12 +137,19 @@
                         <i class="fas fa-calendar-check"></i> Password / PIN (Tanggal Lahir Siswa)
                     </label>
                     <div class="input-group"
-                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden;">
-                        <input type="date" name="tgl_lahir_anak" id="inputTglLahirAnak"
-                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px;">
+                        style="background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 0; display: flex; align-items: center; overflow: hidden; position: relative;">
+                        <input type="tel" inputmode="numeric" pattern="[0-9\-]*" name="tgl_lahir_anak" id="inputTglLahirAnak"
+                            maxlength="10" autocomplete="off"
+                            value="{{ old('tgl_lahir_anak') }}"
+                            placeholder="DD-MM-YYYY (contoh: 17-08-2008)"
+                            style="flex: 1; border: none; background: transparent; padding: 12px 14px; color: var(--text-color); font-size: 0.9rem; outline: none; border-radius: 12px 0 0 12px;">
+                        <div id="btnPickerWrapper" class="calendar-picker-btn" title="Pilih tanggal dari kalender">
+                            <i class="fas fa-calendar-days" style="font-size: 1.15rem; pointer-events: none;"></i>
+                            <input type="date" id="nativeDatePicker" aria-label="Pilih Tanggal Lahir Siswa" tabindex="-1">
+                        </div>
                     </div>
                     <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; display: block;">
-                        Pilih tanggal lahir anak sesuai data sekolah sebagai password/PIN keamanan.
+                        Ketik angka tanggal lahir (DD-MM-YYYY) atau klik ikon kalender untuk memilih tanggal.
                     </span>
                 </div>
 

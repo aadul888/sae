@@ -33,14 +33,20 @@ class AuthController extends Controller
             ]);
 
             $identifier = trim((string) $request->input('nisn_anak', $request->input('username', '')));
+            $cleanIdentifier = preg_replace('/[^0-9]/', '', $identifier);
             $pinInput = trim((string) $request->input('tgl_lahir_anak', $request->input('password', '')));
 
             // Cari peserta didik berdasarkan NISN, NIK, atau NIPD
             $student = DB::table('peserta_didik')
-                ->where(function ($q) use ($identifier) {
+                ->where(function ($q) use ($identifier, $cleanIdentifier) {
                     $q->where('nisn', $identifier)
                       ->orWhere('nik', $identifier)
                       ->orWhere('nipd', $identifier);
+                    if ($cleanIdentifier !== '' && $cleanIdentifier !== $identifier) {
+                        $q->orWhere('nisn', $cleanIdentifier)
+                          ->orWhere('nik', $cleanIdentifier)
+                          ->orWhere('nipd', $cleanIdentifier);
+                    }
                 })
                 ->first();
 
@@ -48,20 +54,65 @@ class AuthController extends Controller
                 return back()->withInput()->with('error', "Data peserta didik dengan NISN/NIK {$identifier} tidak ditemukan.");
             }
 
-            // Verifikasi tanggal lahir / NIK / PIN
+            // Verifikasi tanggal lahir / NIK / PIN (fleksibel: DD-MM-YYYY, YYYY-MM-DD, raw digit, atau NIK)
             $isValidParent = false;
 
             if (!empty($student->tanggal_lahir)) {
-                $dbDate = trim($student->tanggal_lahir);
-                $cleanInput = preg_replace('/[^0-9]/', '', $pinInput);
-                $cleanDbDate = preg_replace('/[^0-9]/', '', $dbDate);
-
-                if ($pinInput === $dbDate || $cleanInput === $cleanDbDate) {
-                    $isValidParent = true;
+                $rawDbDate = trim((string) $student->tanggal_lahir);
+                $dbYmd = null;
+                if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})/', $rawDbDate, $m)) {
+                    $dbYmd = sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]);
                 } else {
                     try {
+                        $dbYmd = \Carbon\Carbon::parse($rawDbDate)->format('Y-m-d');
+                    } catch (\Throwable $e) {
+                        $dbYmd = substr($rawDbDate, 0, 10);
+                    }
+                }
+
+                $cleanDbDateDigits = preg_replace('/[^0-9]/', '', $dbYmd ?: $rawDbDate);
+
+                $candidates = [];
+                $candidates[] = $pinInput;
+
+                // Format DD-MM-YYYY, DD/MM/YYYY, DD.MM.YYYY
+                if (preg_match('/^(\d{1,2})[-\/\.](\d{1,2})[-\/\.](\d{4})$/', $pinInput, $m)) {
+                    $candidates[] = sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+                }
+                // Format YYYY-MM-DD, YYYY/MM/DD
+                if (preg_match('/^(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})$/', $pinInput, $m)) {
+                    $candidates[] = sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]);
+                }
+
+                // Format raw 8 digit angka (DDMMYYYY atau YYYYMMDD)
+                $cleanInputDigits = preg_replace('/[^0-9]/', '', $pinInput);
+                if (strlen($cleanInputDigits) === 8) {
+                    // DDMMYYYY -> YYYY-MM-DD
+                    $candidates[] = sprintf('%04d-%02d-%02d', substr($cleanInputDigits, 4, 4), substr($cleanInputDigits, 2, 2), substr($cleanInputDigits, 0, 2));
+                    // YYYYMMDD -> YYYY-MM-DD
+                    $candidates[] = sprintf('%04d-%02d-%02d', substr($cleanInputDigits, 0, 4), substr($cleanInputDigits, 4, 2), substr($cleanInputDigits, 6, 2));
+                }
+
+                foreach ($candidates as $cand) {
+                    if ($dbYmd && $cand === $dbYmd) {
+                        $isValidParent = true;
+                        break;
+                    }
+                    if ($cand === $rawDbDate) {
+                        $isValidParent = true;
+                        break;
+                    }
+                    $cleanCand = preg_replace('/[^0-9]/', '', $cand);
+                    if ($cleanCand !== '' && $cleanCand === $cleanDbDateDigits) {
+                        $isValidParent = true;
+                        break;
+                    }
+                }
+
+                if (!$isValidParent) {
+                    try {
                         $parsedInput = \Carbon\Carbon::parse($pinInput)->format('Y-m-d');
-                        if ($parsedInput === $dbDate) {
+                        if ($parsedInput === $dbYmd || $parsedInput === $rawDbDate) {
                             $isValidParent = true;
                         }
                     } catch (\Throwable $e) {
