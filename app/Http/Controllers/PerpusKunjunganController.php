@@ -13,21 +13,28 @@ class PerpusKunjunganController extends Controller
         $user = session('user');
         $role = $user['role'] ?? 'tendik';
 
-        $canCreate = RolePermission::canAccess($user, 'menu_perpustakaan', 'create');
-        $canRead = RolePermission::canAccess($user, 'menu_perpustakaan', 'read');
-        $canUpdate = RolePermission::canAccess($user, 'menu_perpustakaan', 'update');
-        $canDelete = RolePermission::canAccess($user, 'menu_perpustakaan', 'delete');
+        $canCreate = RolePermission::canAccess($user, 'menu_perpustakaan', 'create') || RolePermission::canAccess($user, 'menu_perpustakaan_kunjungan', 'create');
+        $canRead = RolePermission::canAccess($user, 'menu_perpustakaan', 'read') || RolePermission::canAccess($user, 'menu_perpustakaan_kunjungan', 'read');
+        $canUpdate = RolePermission::canAccess($user, 'menu_perpustakaan', 'update') || RolePermission::canAccess($user, 'menu_perpustakaan_kunjungan', 'update');
+        $canDelete = RolePermission::canAccess($user, 'menu_perpustakaan', 'delete') || RolePermission::canAccess($user, 'menu_perpustakaan_kunjungan', 'delete');
 
         if (!$canRead && !in_array($role, ['admin', 'tendik', 'guru', 'pustakawan'])) {
             return redirect()->route('dashboard.' . $role)->with('error', 'Anda tidak memiliki hak akses ke Buku Kunjungan Perpustakaan.');
         }
 
-        $search = $request->get('search', '');
-        $tanggal = $request->get('tanggal', date('Y-m-d'));
-        $tipe = $request->get('pengunjung_tipe', '');
+        $q = $request->get('q', $request->get('search', ''));
+        $search = $q;
+        $tanggal = $request->get('tanggal', '');
+        $tipe = $request->get('tipe', $request->get('pengunjung_tipe', ''));
         $perPage = (int) $request->get('perPage', 15);
         $sort = $request->get('sort', 'id');
-        $sortDir = $request->get('sortDir', 'desc');
+        $sortDir = $request->get('sortDir', $request->get('sort_dir', 'desc'));
+
+        $allowedSort = ['id', 'tanggal', 'jam_kunjung', 'nama', 'pengunjung_tipe', 'rombel_atau_unit', 'keperluan'];
+        if (!in_array($sort, $allowedSort)) {
+            $sort = 'id';
+        }
+        $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
 
         $query = DB::table('perpus_kunjungan');
 
@@ -39,11 +46,11 @@ class PerpusKunjunganController extends Controller
             $query->where('pengunjung_tipe', $tipe);
         }
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('rombel_atau_unit', 'like', "%{$search}%")
-                    ->orWhere('keperluan', 'like', "%{$search}%");
+        if (!empty($q)) {
+            $query->where(function ($qb) use ($q) {
+                $qb->where('nama', 'like', "%{$q}%")
+                    ->orWhere('rombel_atau_unit', 'like', "%{$q}%")
+                    ->orWhere('keperluan', 'like', "%{$q}%");
             });
         }
 
@@ -51,13 +58,14 @@ class PerpusKunjunganController extends Controller
 
         $stats = [
             'total_kunjungan' => DB::table('perpus_kunjungan')->count(),
-            'hari_ini' => DB::table('perpus_kunjungan')->where('tanggal', date('Y-m-d'))->count(),
-            'siswa_hari_ini' => DB::table('perpus_kunjungan')->where('tanggal', date('Y-m-d'))->where('pengunjung_tipe', 'siswa')->count(),
-            'gtk_hari_ini' => DB::table('perpus_kunjungan')->where('tanggal', date('Y-m-d'))->where('pengunjung_tipe', 'gtk')->count(),
+            'hari_ini'        => DB::table('perpus_kunjungan')->where('tanggal', date('Y-m-d'))->count(),
+            'bulan_ini'       => DB::table('perpus_kunjungan')->whereYear('tanggal', date('Y'))->whereMonth('tanggal', date('m'))->count(),
+            'siswa'           => DB::table('perpus_kunjungan')->where('pengunjung_tipe', 'siswa')->count(),
+            'guru_staf'       => DB::table('perpus_kunjungan')->whereIn('pengunjung_tipe', ['guru', 'tendik', 'gtk'])->count(),
         ];
 
         return view('dashboard.perpus.kunjungan', compact(
-            'kunjungan', 'search', 'tanggal', 'tipe', 'perPage', 'sort', 'sortDir',
+            'kunjungan', 'q', 'search', 'tanggal', 'tipe', 'perPage', 'sort', 'sortDir',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }
@@ -84,12 +92,12 @@ class PerpusKunjunganController extends Controller
             'updated_at' => now(),
         ]);
 
-        return redirect()->route('dashboard.perpustakaan.kunjungan.index')->with('success', 'Kunjungan perpustakaan berhasil dicatat.');
+        return redirect()->route('dashboard.perpustakaan.kunjungan')->with('success', 'Kunjungan perpustakaan berhasil dicatat.');
     }
 
     public function destroy($id)
     {
         DB::table('perpus_kunjungan')->where('id', $id)->delete();
-        return redirect()->route('dashboard.perpustakaan.kunjungan.index')->with('success', 'Catatan kunjungan berhasil dihapus.');
+        return redirect()->route('dashboard.perpustakaan.kunjungan')->with('success', 'Catatan kunjungan berhasil dihapus.');
     }
 }

@@ -13,20 +13,27 @@ class PerpusKoleksiController extends Controller
         $user = session('user');
         $role = $user['role'] ?? 'tendik';
 
-        $canCreate = RolePermission::canAccess($user, 'menu_perpustakaan', 'create');
-        $canRead = RolePermission::canAccess($user, 'menu_perpustakaan', 'read');
-        $canUpdate = RolePermission::canAccess($user, 'menu_perpustakaan', 'update');
-        $canDelete = RolePermission::canAccess($user, 'menu_perpustakaan', 'delete');
+        $canCreate = RolePermission::canAccess($user, 'menu_perpustakaan', 'create') || RolePermission::canAccess($user, 'menu_perpustakaan_koleksi', 'create');
+        $canRead = RolePermission::canAccess($user, 'menu_perpustakaan', 'read') || RolePermission::canAccess($user, 'menu_perpustakaan_koleksi', 'read');
+        $canUpdate = RolePermission::canAccess($user, 'menu_perpustakaan', 'update') || RolePermission::canAccess($user, 'menu_perpustakaan_koleksi', 'update');
+        $canDelete = RolePermission::canAccess($user, 'menu_perpustakaan', 'delete') || RolePermission::canAccess($user, 'menu_perpustakaan_koleksi', 'delete');
 
         if (!$canRead && !in_array($role, ['admin', 'tendik', 'guru', 'pustakawan'])) {
             return redirect()->route('dashboard.' . $role)->with('error', 'Anda tidak memiliki hak akses ke modul Perpustakaan.');
         }
 
-        $search = $request->get('search', '');
+        $q = $request->get('q', $request->get('search', ''));
+        $search = $q;
         $kategori = $request->get('kategori', '');
         $perPage = (int) $request->get('perPage', 15);
         $sort = $request->get('sort', 'id');
-        $sortDir = $request->get('sortDir', 'desc');
+        $sortDir = $request->get('sortDir', $request->get('sort_dir', 'desc'));
+
+        $allowedSort = ['id', 'kode_buku', 'judul', 'penulis', 'kategori', 'jumlah_eksemplar', 'eksemplar_tersedia', 'lokasi_rak'];
+        if (!in_array($sort, $allowedSort)) {
+            $sort = 'id';
+        }
+        $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
 
         $query = DB::table('perpus_koleksi_buku');
 
@@ -34,14 +41,14 @@ class PerpusKoleksiController extends Controller
             $query->where('kategori', $kategori);
         }
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('judul', 'like', "%{$search}%")
-                    ->orWhere('kode_buku', 'like', "%{$search}%")
-                    ->orWhere('penulis', 'like', "%{$search}%")
-                    ->orWhere('penerbit', 'like', "%{$search}%")
-                    ->orWhere('isbn', 'like', "%{$search}%")
-                    ->orWhere('lokasi_rak', 'like', "%{$search}%");
+        if (!empty($q)) {
+            $query->where(function ($qb) use ($q) {
+                $qb->where('judul', 'like', "%{$q}%")
+                    ->orWhere('kode_buku', 'like', "%{$q}%")
+                    ->orWhere('penulis', 'like', "%{$q}%")
+                    ->orWhere('penerbit', 'like', "%{$q}%")
+                    ->orWhere('isbn', 'like', "%{$q}%")
+                    ->orWhere('lokasi_rak', 'like', "%{$q}%");
             });
         }
 
@@ -63,7 +70,7 @@ class PerpusKoleksiController extends Controller
         ];
 
         return view('dashboard.perpus.koleksi', compact(
-            'list', 'search', 'kategori', 'kategoriList', 'perPage', 'sort', 'sortDir',
+            'list', 'q', 'search', 'kategori', 'kategoriList', 'perPage', 'sort', 'sortDir',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
     }

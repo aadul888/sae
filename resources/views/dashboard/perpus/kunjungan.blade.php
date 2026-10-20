@@ -31,7 +31,25 @@
             </div>
         </div>
 
-        <!-- 2. Stat Grid Baku SAE -->
+        <!-- 2. Tab Navigasi Sub-Modul Perpustakaan Baku SAE -->
+        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+            <div class="periode-nav-desktop">
+                <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.koleksi*') ? 'active' : '' }}">
+                    <i class="fas fa-book"></i> Katalog Koleksi Buku
+                </a>
+                <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.sirkulasi*') ? 'active' : '' }}">
+                    <i class="fas fa-exchange-alt"></i> Sirkulasi Peminjaman
+                </a>
+                <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.kunjungan*') ? 'active' : '' }}">
+                    <i class="fas fa-user-check"></i> Buku Kunjungan
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
@@ -80,9 +98,9 @@
             <div class="datatable-toolbar">
                 <form method="GET" action="{{ route('dashboard.perpustakaan.kunjungan') }}" id="filterForm"
                     style="margin: 0;">
-                    <div
+                    <div class="toolbar-row"
                         style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <div class="toolbar-controls" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                             <div class="toolbar-entries">
                                 <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
                                 <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
@@ -95,13 +113,14 @@
                                 <span>entri</span>
                             </div>
 
-                            <input type="date" name="tanggal" id="filterTanggal" class="form-control"
-                                value="{{ $tanggal ?? '' }}"
-                                style="height: 38px; padding: 0 10px; font-size: 0.82rem; border-radius: 8px;"
-                                title="Filter Tanggal">
+                            <div class="toolbar-filter-date" title="Filter Tanggal">
+                                <i class="fas fa-calendar-alt text-primary" style="font-size: 0.82rem;"></i>
+                                <input type="date" name="tanggal" id="filterTanggal"
+                                    value="{{ $tanggal ?? '' }}" title="Filter Tanggal">
+                            </div>
 
                             <select name="tipe" id="filterTipe" class="toolbar-filter-select"
-                                style="height: 38px; min-width: 150px;">
+                                style="height: 38px;">
                                 <option value="">Semua Tipe</option>
                                 <option value="siswa" {{ ($tipe ?? '') === 'siswa' ? 'selected' : '' }}>Peserta Didik
                                 </option>
@@ -111,7 +130,7 @@
                                 </option>
                             </select>
 
-                            @if ($q || $tanggal || $tipe)
+                            @if (!empty($q) || !empty($tanggal) || !empty($tipe))
                                 <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
@@ -121,7 +140,7 @@
 
                         <div class="live-search-wrap" style="height: 38px;">
                             <i class="fas fa-search search-icon"></i>
-                            <input type="text" name="q" id="searchKunjungan" value="{{ $q ?? '' }}"
+                            <input type="text" name="q" id="liveSearch" value="{{ $q ?? '' }}"
                                 placeholder="Cari nama, kelas, atau keperluan..." autocomplete="off">
                             <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
                                 title="Hapus pencarian">
@@ -137,22 +156,30 @@
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr
-                            style="background-color: var(--table-header-bg, #f8fafc); border-bottom: 1px solid var(--border-color);">
+                            style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px;">
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
-                            <th
+                            <th class="sortable-th {{ ($sort ?? '') === 'tanggal' ? 'sorted' : '' }}" data-sort="tanggal"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Waktu</th>
-                            <th
+                                Waktu &amp; Tanggal
+                                <span class="sort-icon">{!! ($sort ?? '') === 'tanggal' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'nama' ? 'sorted' : '' }}" data-sort="nama"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Nama Pengunjung</th>
-                            <th
+                                Nama Pengunjung
+                                <span class="sort-icon">{!! ($sort ?? '') === 'nama' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'pengunjung_tipe' ? 'sorted' : '' }}" data-sort="pengunjung_tipe"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Tipe & Kelas / Unit</th>
-                            <th
+                                Tipe &amp; Kelas / Unit
+                                <span class="sort-icon">{!! ($sort ?? '') === 'pengunjung_tipe' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'keperluan' ? 'sorted' : '' }}" data-sort="keperluan"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Keperluan</th>
+                                Keperluan
+                                <span class="sort-icon">{!! ($sort ?? '') === 'keperluan' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
                             <th
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 80px;">
                                 Aksi</th>
@@ -160,11 +187,12 @@
                     </thead>
                     <tbody>
                         @forelse ($kunjungan as $idx => $row)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;"
+                                    data-label="No">
                                     {{ ($kunjungan->currentPage() - 1) * $kunjungan->perPage() + $loop->iteration }}
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.85rem;">
+                                <td style="padding: 14px 18px; font-size: 0.85rem;" data-label="Waktu & Tanggal">
                                     <div style="font-weight: 600; color: var(--text-heading);">
                                         {{ \Carbon\Carbon::parse($row->tanggal)->format('d M Y') }}
                                     </div>
@@ -172,24 +200,32 @@
                                         <i class="far fa-clock"></i> {{ substr($row->jam_kunjung ?? '00:00', 0, 5) }} WIB
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px;">
+                                <td style="padding: 14px 18px;" data-label="Nama Pengunjung">
                                     <div style="font-weight: 600; color: var(--text-heading); font-size: 0.9rem;">
                                         {{ $row->nama }}
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px;">
-                                    <span class="badge"
-                                        style="background-color: {{ $row->pengunjung_tipe === 'siswa' ? '#e0e7ff' : '#fef3c7' }}; color: {{ $row->pengunjung_tipe === 'siswa' ? '#3730a3' : '#92400e' }}; font-size: 0.75rem; padding: 2px 8px; border-radius: 4px;">
+                                <td style="padding: 14px 18px;" data-label="Tipe & Kelas / Unit">
+                                    @php
+                                        $badgeClass = match ($row->pengunjung_tipe) {
+                                            'siswa' => 'badge-primary',
+                                            'guru' => 'badge-success',
+                                            'tendik' => 'badge-warning',
+                                            default => 'badge-outline',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $badgeClass }}"
+                                        style="font-size: 0.72rem; padding: 2px 8px;">
                                         {{ strtoupper($row->pengunjung_tipe) }}
                                     </span>
                                     <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
                                         {{ $row->rombel_atau_unit ?: '-' }}
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-heading);">
+                                <td style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-heading);" data-label="Keperluan">
                                     {{ $row->keperluan }}
                                 </td>
-                                <td style="padding: 14px 18px; text-align: center;">
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Aksi">
                                     <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                         <form action="{{ route('dashboard.perpustakaan.kunjungan.destroy', $row->id) }}"
                                             method="POST" style="display: inline;" data-confirm="delete">
@@ -197,8 +233,8 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon btn-delete-kunjungan"
                                                 data-nama="{{ $row->nama }}" title="Hapus Log"
-                                                style="background-color: #fee2e2; color: #ef4444; width: 32px; height: 32px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
+                                                style="color: #ef4444;">
+                                                <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -206,10 +242,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 36px; color: var(--text-muted);">
-                                    <i class="fas fa-user-friends"
-                                        style="font-size: 2.2rem; margin-bottom: 10px; opacity: 0.4;"></i>
-                                    <p style="margin: 0; font-size: 0.95rem;">Belum ada data kunjungan perpustakaan.</p>
+                                <td colspan="6" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                    <div>Belum ada data kunjungan perpustakaan yang tercatat di sistem.</div>
                                 </td>
                             </tr>
                         @endforelse
@@ -243,7 +278,7 @@
                     style="padding: 20px;">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr; gap: 14px;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="modal-form-grid-2">
                             <div>
                                 <label class="form-label"
                                     style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tanggal
@@ -259,7 +294,7 @@
                                     value="{{ date('H:i') }}" required>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+                        <div class="modal-form-grid-1-2">
                             <div>
                                 <label class="form-label"
                                     style="font-size: 0.85rem; font-weight: 600; color: var(--text-heading); margin-bottom: 4px;">Tipe

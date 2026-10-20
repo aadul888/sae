@@ -31,9 +31,11 @@
 
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
-                <button type="button" class="btn btn-primary" id="btnOpenModalTambah" title="Catat Aktivitas Harian Baru"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; background: #10b981; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); color: #fff; cursor: pointer;">
+                <button type="button" class="btn btn-primary btn-open-modal-tambah" id="btnOpenModalTambah"
+                    title="Catat Aktivitas Harian Baru"
+                    style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; font-size: 0.88rem; font-weight: 600; background: #10b981; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); color: #fff; cursor: pointer;">
                     <i class="fas fa-plus"></i>
+                    <span>Catat Aktivitas</span>
                 </button>
             @endif
             <a href="{{ route('dashboard.tendik.target.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline"
@@ -137,304 +139,286 @@
         </div>
     </div>
 
-    <!-- 4. Toolbar & Filter Standar SAE -->
-    <div class="card" style="padding: 16px; margin-bottom: 20px;">
-        <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
-            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <div class="toolbar-entries">
-                    <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
-                    <select id="perPageSelect" class="per-page-select">
-                        @foreach ([10, 15, 25, 50, 100] as $n)
-                            <option value="{{ $n }}" {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>
-                                {{ $n }}</option>
+    <!-- Unified Datatable Aktivitas Tendik (Toolbar + Table + Pagination dalam 1 Card Terpadu) -->
+    <div class="card datatable-card-wrapper" id="tableDataContainer">
+        <!-- 1. Toolbar Header (Entries, Filters & Live Search) -->
+        <div class="datatable-toolbar">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                    <div class="toolbar-entries">
+                        <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                        <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                            @foreach ([10, 15, 25, 50, 100] as $n)
+                                <option value="{{ $n }}" {{ ($perPage ?? 15) == $n ? 'selected' : '' }}>
+                                    {{ $n }}</option>
+                            @endforeach
+                        </select>
+                        <span>entri</span>
+                    </div>
+
+                    <!-- Bulan -->
+                    <select id="filterBulan" name="bulan" class="toolbar-filter-select" style="height: 38px;">
+                        @for ($m = 1; $m <= 12; $m++)
+                            <option value="{{ $m }}" {{ (int) $bulan === $m ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::create(null, $m, 1)->translatedFormat('F') }}
+                            </option>
+                        @endfor
+                    </select>
+
+                    <!-- Tahun -->
+                    <select id="filterTahun" name="tahun" class="toolbar-filter-select" style="height: 38px;">
+                        @for ($y = date('Y') + 1; $y >= date('Y') - 2; $y--)
+                            <option value="{{ $y }}" {{ (int) $tahun === $y ? 'selected' : '' }}>
+                                {{ $y }}</option>
+                        @endfor
+                    </select>
+
+                    <!-- Status -->
+                    <select id="filterStatus" name="status" class="toolbar-filter-select" style="height: 38px;">
+                        <option value="">Semua Status</option>
+                        <option value="selesai" {{ ($filterStatus ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                        <option value="proses" {{ ($filterStatus ?? '') === 'proses' ? 'selected' : '' }}>Sedang Proses
+                        </option>
+                        <option value="tertunda" {{ ($filterStatus ?? '') === 'tertunda' ? 'selected' : '' }}>Tertunda
+                        </option>
+                    </select>
+
+                    @if ($isKepalaTas)
+                        <!-- Bidang Filter untuk Kepala TAS / Admin (Khusus Per Bidang) -->
+                        <select id="filterBidang" name="bidang" class="toolbar-filter-select" style="height: 38px;" title="Pilih Bidang Tugas">
+                            @foreach ($bidangOptions as $bKey => $bLabel)
+                                <option value="{{ $bKey }}" {{ $currentBidang === $bKey ? 'selected' : '' }}>
+                                    {{ $bLabel }}</option>
+                            @endforeach
+                        </select>
+                    @endif
+
+                    <!-- Filter Sasaran / Target Indikator Kinerja (Khusus Bidang Ini) -->
+                    <select id="filterIndikator" name="indikator_id" class="toolbar-filter-select" style="max-width: 260px; height: 38px;">
+                        <option value="">Semua Sasaran {{ $bidangOptions[$currentBidang] ?? ucfirst($currentBidang) }}
+                        </option>
+                        @foreach ($indikatorKinerjaList ?? [] as $ind)
+                            <option value="{{ $ind->id }}"
+                                {{ (string) ($filterIndikator ?? '') === (string) $ind->id ? 'selected' : '' }}>
+                                {{ \Illuminate\Support\Str::limit($ind->sasaran, 30) }}
+                            </option>
                         @endforeach
                     </select>
-                    <span>entri</span>
+
+                    @if (!empty($q) || !empty($filterStatus) || ($isKepalaTas && !empty($filterBidang) && $filterBidang !== $activeBidang) || !empty($filterIndikator) || (int)$bulan !== (int)date('m') || (int)$tahun !== (int)date('Y'))
+                        <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => $currentBidang]) }}" class="btn btn-outline btn-reset-filter"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                            title="Reset filter" data-live-reset>
+                            <i class="fas fa-undo"></i>
+                        </a>
+                    @endif
                 </div>
 
-                <!-- Bulan -->
-                <select id="filterBulan" class="toolbar-filter-select">
-                    @for ($m = 1; $m <= 12; $m++)
-                        <option value="{{ $m }}" {{ (int) $bulan === $m ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::create(null, $m, 1)->translatedFormat('F') }}
-                        </option>
-                    @endfor
-                </select>
-
-                <!-- Tahun -->
-                <select id="filterTahun" class="toolbar-filter-select">
-                    @for ($y = date('Y') + 1; $y >= date('Y') - 2; $y--)
-                        <option value="{{ $y }}" {{ (int) $tahun === $y ? 'selected' : '' }}>
-                            {{ $y }}</option>
-                    @endfor
-                </select>
-
-                <!-- Status -->
-                <select id="filterStatus" class="toolbar-filter-select">
-                    <option value="">Semua Status</option>
-                    <option value="selesai" {{ ($filterStatus ?? '') === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                    <option value="proses" {{ ($filterStatus ?? '') === 'proses' ? 'selected' : '' }}>Sedang Proses
-                    </option>
-                    <option value="tertunda" {{ ($filterStatus ?? '') === 'tertunda' ? 'selected' : '' }}>Tertunda
-                    </option>
-                </select>
-
-                @if ($isKepalaTas)
-                    <!-- Bidang Filter untuk Kepala TAS / Admin (Khusus Per Bidang) -->
-                    <select id="filterBidang" class="toolbar-filter-select" title="Pilih Bidang Tugas">
-                        @foreach ($bidangOptions as $bKey => $bLabel)
-                            <option value="{{ $bKey }}" {{ $currentBidang === $bKey ? 'selected' : '' }}>
-                                {{ $bLabel }}</option>
-                        @endforeach
-                    </select>
-                @endif
-
-                <!-- Filter Sasaran / Target Indikator Kinerja (Khusus Bidang Ini) -->
-                <select id="filterIndikator" class="toolbar-filter-select" style="max-width: 260px;">
-                    <option value="">Semua Sasaran {{ $bidangOptions[$currentBidang] ?? ucfirst($currentBidang) }}
-                    </option>
-                    @foreach ($indikatorKinerjaList ?? [] as $ind)
-                        <option value="{{ $ind->id }}"
-                            {{ (string) ($filterIndikator ?? '') === (string) $ind->id ? 'selected' : '' }}>
-                            {{ \Illuminate\Support\Str::limit($ind->sasaran, 30) }}
-                        </option>
-                    @endforeach
-                </select>
-
-                @if (!empty($q) || !empty($filterStatus) || !empty($filterBidang) || !empty($filterIndikator))
-                    <a href="{{ route('dashboard.tendik.aktivitas.index') }}" class="btn btn-outline"
-                        style="padding: 7px 12px; font-size: 0.84rem;" title="Reset filter">
-                        <i class="fas fa-undo"></i>
-                    </a>
-                @endif
-            </div>
-
-            <div class="live-search-wrap">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" id="liveSearch" placeholder="Cari aktivitas / uraian..."
-                    value="{{ $q ?? '' }}" autocomplete="off">
-                <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
-                    title="Hapus pencarian">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="live-search-wrap" style="height: 38px;">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="liveSearch" name="q" placeholder="Cari aktivitas / uraian..."
+                        value="{{ $q ?? '' }}" autocomplete="off">
+                    <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
+                        title="Hapus pencarian">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Container Datatable Responsive-Stack Standar SAE -->
-    <div class="card table-responsive-stack" id="tableDataContainer" style="padding: 0; margin-bottom: 24px;">
-        <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                    <th class="sortable-th {{ ($sort ?? '') === 'tanggal' ? 'sorted' : '' }}" data-sort="tanggal"
-                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px;">
-                        Waktu &amp; Tanggal
-                        <span class="sort-icon">{!! ($sort ?? '') === 'tanggal' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                    </th>
-                    @if ($isKepalaTas)
-                        <th class="sortable-th {{ ($sort ?? '') === 'nama_pegawai' ? 'sorted' : '' }}"
-                            data-sort="nama_pegawai"
-                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                            Pegawai / Bidang
-                            <span class="sort-icon">{!! ($sort ?? '') === 'nama_pegawai' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                        </th>
-                    @endif
-                    <th class="sortable-th {{ ($sort ?? '') === 'judul_aktivitas' ? 'sorted' : '' }}"
-                        data-sort="judul_aktivitas"
-                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Aktivitas / Sasaran Pekerjaan
-                        <span class="sort-icon">{!! ($sort ?? '') === 'judul_aktivitas'
-                            ? (($sortDir ?? '') === 'asc'
-                                ? '&#9650;'
-                                : '&#9660;')
-                            : '&#9650;&#9660;' !!}</span>
-                    </th>
-                    <th
-                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                        Hasil / Output
-                    </th>
-                    <th class="sortable-th {{ ($sort ?? '') === 'status' ? 'sorted' : '' }}" data-sort="status"
-                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
-                        Status
-                        <span class="sort-icon">{!! ($sort ?? '') === 'status' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                    </th>
-                    <th
-                        style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
-                        Aksi
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($aktivitasList as $item)
-                    <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td data-label="Waktu & Tanggal" style="padding: 12px 16px; font-size: 0.82rem;">
-                            <div style="font-weight: 700; color: var(--text-color);">
-                                {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}
-                            </div>
-                            <div style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
-                                <i class="far fa-clock me-1"></i>{{ substr($item->jam_mulai, 0, 5) }}
-                                {{ $item->jam_selesai ? '- ' . substr($item->jam_selesai, 0, 5) : 'WIB' }}
-                            </div>
-                        </td>
-
-                        @if ($isKepalaTas)
-                            <td data-label="Pegawai / Bidang" style="padding: 12px 14px; font-size: 0.82rem;">
-                                <div style="font-weight: 600; color: var(--text-color);">{{ $item->nama_pegawai }}</div>
-                                <span class="badge badge-info" style="font-size: 0.7rem; padding: 2px 6px;">
-                                    {{ $bidangOptions[$item->bidang] ?? ucfirst($item->bidang) }}
-                                </span>
-                            </td>
-                        @endif
-
-                        <td data-label="Aktivitas" style="padding: 12px 16px; font-size: 0.82rem;">
-                            @if (!empty($item->indikator))
-                                <div style="margin-bottom: 4px;">
-                                    <span class="badge"
-                                        style="background: rgba(99,102,241,0.08); color: var(--primary); font-size: 0.68rem; padding: 2px 7px; border: 1px solid rgba(99,102,241,0.25); display: inline-flex; align-items: center; gap: 4px;">
-                                        <i class="fas fa-bullseye"></i> {{ $item->indikator->sasaran }}
-                                    </span>
-                                </div>
-                            @endif
-                            <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
-                                {{ $item->judul_aktivitas }}
-                            </div>
-                            @if ($item->lampiran_path)
-                                <div style="margin-top: 6px;">
-                                    <a href="{{ asset('storage/' . $item->lampiran_path) }}" target="_blank"
-                                        class="btn btn-outline"
-                                        style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
-                                        <i class="fas fa-paperclip text-primary"></i> Lampiran Dokumen
-                                    </a>
-                                </div>
-                            @endif
-                        </td>
-
-                        <td data-label="Hasil / Output"
-                            style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-color);">
-                            <div style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
-                                <i class="fas fa-file-circle-check text-success" style="font-size: 0.8rem;"></i>
-                                <span>{{ $item->output_hasil ?: '1 Dokumen / Layanan Terlaksana' }}</span>
-                            </div>
-                        </td>
-
-                        <td data-label="Status" style="padding: 12px 14px; text-align: center;">
-                            @if ($item->status === 'selesai')
-                                <span class="badge badge-success"
-                                    style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i class="fas fa-circle-check"></i> Selesai
-                                </span>
-                            @elseif ($item->status === 'proses')
-                                <span class="badge badge-warning"
-                                    style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i class="fas fa-spinner fa-spin"></i> Proses
-                                </span>
+        <!-- 2. Konten Datatable Responsive Stack -->
+        <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+            <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                        <th class="sortable-th {{ ($sort ?? '') === 'tanggal' ? 'sorted' : '' }}" data-sort="tanggal"
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 140px; cursor: pointer;">
+                            Waktu &amp; Tanggal
+                            @if (($sort ?? '') === 'tanggal')
+                                <span style="color: var(--primary);">{!! ($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;' !!}</span>
                             @else
-                                <span class="badge badge-danger"
-                                    style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <i class="fas fa-clock-rotate-left"></i> Tertunda
-                                </span>
+                                <span style="opacity: 0.3;">&#9650;&#9660;</span>
                             @endif
-                        </td>
-
-                        <td data-label="Aksi" style="padding: 12px 16px; text-align: center;">
-                            <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
-                                @if ($canUpdate)
-                                    <button type="button" class="btn-icon btn-edit-aktivitas"
-                                        data-id="{{ $item->id }}"
-                                        data-tanggal="{{ $item->tanggal ? $item->tanggal->format('Y-m-d') : '' }}"
-                                        data-jam_mulai="{{ substr($item->jam_mulai, 0, 5) }}"
-                                        data-jam_selesai="{{ $item->jam_selesai ? substr($item->jam_selesai, 0, 5) : '' }}"
-                                        data-bidang="{{ $item->bidang }}" data-judul="{{ $item->judul_aktivitas }}"
-                                        data-uraian="{{ $item->uraian_pekerjaan }}"
-                                        data-output="{{ $item->output_hasil }}" data-status="{{ $item->status }}"
-                                        data-ptk="{{ $item->ptk_id }}" data-indikator="{{ $item->indikator_id }}"
-                                        title="Edit Aktivitas"
-                                        style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #3b82f6;">
-                                        <i class="fas fa-pen-to-square"></i>
-                                    </button>
+                        </th>
+                        @if ($isKepalaTas)
+                            <th class="sortable-th {{ ($sort ?? '') === 'nama_pegawai' ? 'sorted' : '' }}"
+                                data-sort="nama_pegawai"
+                                style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                                Pegawai / Bidang
+                                @if (($sort ?? '') === 'nama_pegawai')
+                                    <span style="color: var(--primary);">{!! ($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;' !!}</span>
+                                @else
+                                    <span style="opacity: 0.3;">&#9650;&#9660;</span>
                                 @endif
-                                @if ($canDelete)
-                                    <form action="{{ route('dashboard.tendik.aktivitas.destroy', $item->id) }}"
-                                        method="POST" data-confirm="delete" data-name="{{ $item->judul_aktivitas }}"
-                                        style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-icon" title="Hapus Aktivitas"
-                                            style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #ef4444;">
-                                            <i class="fas fa-trash-can"></i>
-                                        </button>
-                                    </form>
-                                @endif
-                                @if (!$canUpdate && !$canDelete)
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);"><i
-                                            class="fas fa-lock"></i></span>
-                                @endif
-                            </div>
-                        </td>
+                            </th>
+                        @endif
+                        <th class="sortable-th {{ ($sort ?? '') === 'judul_aktivitas' ? 'sorted' : '' }}"
+                            data-sort="judul_aktivitas"
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; cursor: pointer;">
+                            Aktivitas / Sasaran Pekerjaan
+                            @if (($sort ?? '') === 'judul_aktivitas')
+                                <span style="color: var(--primary);">{!! ($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;' !!}</span>
+                            @else
+                                <span style="opacity: 0.3;">&#9650;&#9660;</span>
+                            @endif
+                        </th>
+                        <th
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Hasil / Output
+                        </th>
+                        <th class="sortable-th {{ ($sort ?? '') === 'status' ? 'sorted' : '' }}" data-sort="status"
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px; cursor: pointer;">
+                            Status
+                            @if (($sort ?? '') === 'status')
+                                <span style="color: var(--primary);">{!! ($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;' !!}</span>
+                            @else
+                                <span style="opacity: 0.3;">&#9650;&#9660;</span>
+                            @endif
+                        </th>
+                        <th
+                            style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                            Aksi
+                        </th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="{{ $isKepalaTas ? 6 : 5 }}"
-                            style="text-align: center; padding: 36px 16px; color: var(--text-muted);">
-                            <i class="fas fa-clipboard-list"
-                                style="font-size: 2.2rem; opacity: 0.3; margin-bottom: 10px; display: block;"></i>
-                            <div style="font-weight: 600;">Belum ada catatan aktivitas harian pada periode ini.</div>
-                            <div style="font-size: 0.78rem; margin-top: 4px;">Klik tombol <strong>"Catat Aktivitas
-                                    Harian"</strong> di atas untuk menambahkan log pekerjaan.</div>
-                            @if ($canCreate)
-                                <div style="margin-top: 12px;">
-                                    <button type="button" class="btn btn-primary btn-sm btn-open-modal-empty"
-                                        style="background: #10b981; border: none; padding: 7px 16px; font-size: 0.82rem; border-radius: 8px; font-weight: 600;">
-                                        <i class="fas fa-plus me-1"></i> Catat Aktivitas Harian
-                                    </button>
+                </thead>
+                <tbody>
+                    @forelse ($aktivitasList as $item)
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td data-label="Waktu & Tanggal" style="padding: 12px 16px; font-size: 0.82rem;">
+                                <div style="font-weight: 700; color: var(--text-color);">
+                                    {{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('d M Y') }}
                                 </div>
-                            @endif
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                                <div style="font-size: 0.74rem; color: var(--text-muted); font-family: monospace;">
+                                    <i class="far fa-clock me-1"></i>{{ substr($item->jam_mulai, 0, 5) }}
+                                    {{ $item->jam_selesai ? '- ' . substr($item->jam_selesai, 0, 5) : 'WIB' }}
+                                </div>
+                            </td>
 
-    <!-- Paginasi Baku -->
-    @if ($aktivitasList->hasPages())
-        <div class="custom-pagination" style="margin-bottom: 24px;">
-            @if ($aktivitasList->onFirstPage())
-                <span class="page-btn disabled"><i class="fas fa-chevron-left"></i></span>
-            @else
-                <a href="{{ $aktivitasList->previousPageUrl() }}" class="page-btn" title="Sebelumnya"><i
-                        class="fas fa-chevron-left"></i></a>
-            @endif
-            @php
-                $cur = $aktivitasList->currentPage();
-                $last = $aktivitasList->lastPage();
-                $from = max(1, $cur - 2);
-                $to = min($last, $cur + 2);
-            @endphp
-            @if ($from > 1)
-                <a href="{{ $aktivitasList->url(1) }}" class="page-btn">1</a>
-                @if ($from > 2)
-                    <span class="page-info">&hellip;</span>
-                @endif
-            @endif
-            @for ($i = $from; $i <= $to; $i++)
-                <a href="{{ $aktivitasList->url($i) }}"
-                    class="page-btn {{ $i === $cur ? 'current' : '' }}">{{ $i }}</a>
-            @endfor
-            @if ($to < $last)
-                @if ($to < $last - 1)
-                    <span class="page-info">&hellip;</span>
-                @endif
-                <a href="{{ $aktivitasList->url($last) }}" class="page-btn">{{ $last }}</a>
-            @endif
-            @if ($aktivitasList->hasMorePages())
-                <a href="{{ $aktivitasList->nextPageUrl() }}" class="page-btn" title="Selanjutnya"><i
-                        class="fas fa-chevron-right"></i></a>
-            @else
-                <span class="page-btn disabled"><i class="fas fa-chevron-right"></i></span>
-            @endif
+                            @if ($isKepalaTas)
+                                <td data-label="Pegawai / Bidang" style="padding: 12px 14px; font-size: 0.82rem;">
+                                    <div style="font-weight: 600; color: var(--text-color);">{{ $item->nama_pegawai }}</div>
+                                    <span class="badge badge-info" style="font-size: 0.7rem; padding: 2px 6px;">
+                                        {{ $bidangOptions[$item->bidang] ?? ucfirst($item->bidang) }}
+                                    </span>
+                                </td>
+                            @endif
+
+                            <td data-label="Aktivitas" style="padding: 12px 16px; font-size: 0.82rem;">
+                                @if (!empty($item->indikator))
+                                    <div style="margin-bottom: 4px;">
+                                        <span class="badge"
+                                            style="background: rgba(99,102,241,0.08); color: var(--primary); font-size: 0.68rem; padding: 2px 7px; border: 1px solid rgba(99,102,241,0.25); display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fas fa-bullseye"></i> {{ $item->indikator->sasaran }}
+                                        </span>
+                                    </div>
+                                @endif
+                                <div style="font-weight: 700; color: var(--text-color); font-size: 0.88rem;">
+                                    {{ $item->judul_aktivitas }}
+                                </div>
+                                @if ($item->lampiran_path)
+                                    <div style="margin-top: 6px;">
+                                        <a href="{{ asset('storage/' . $item->lampiran_path) }}" target="_blank"
+                                            class="btn btn-outline"
+                                            style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                            <i class="fas fa-paperclip text-primary"></i> Lampiran Dokumen
+                                        </a>
+                                    </div>
+                                @endif
+                            </td>
+
+                            <td data-label="Hasil / Output"
+                                style="padding: 12px 14px; font-size: 0.82rem; color: var(--text-color);">
+                                <div style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                                    <i class="fas fa-file-circle-check text-success" style="font-size: 0.8rem;"></i>
+                                    <span>{{ $item->output_hasil ?: '1 Dokumen / Layanan Terlaksana' }}</span>
+                                </div>
+                            </td>
+
+                            <td data-label="Status" style="padding: 12px 14px; text-align: center;">
+                                @if ($item->status === 'selesai')
+                                    <span class="badge badge-success"
+                                        style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-circle-check"></i> Selesai
+                                    </span>
+                                @elseif ($item->status === 'proses')
+                                    <span class="badge badge-warning"
+                                        style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-spinner fa-spin"></i> Proses
+                                    </span>
+                                @else
+                                    <span class="badge badge-danger"
+                                        style="font-size: 0.74rem; padding: 4px 8px; display: inline-flex; align-items: center; gap: 4px;">
+                                        <i class="fas fa-clock-rotate-left"></i> Tertunda
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td data-label="Aksi" style="padding: 12px 16px; text-align: center;">
+                                <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
+                                    @if ($canUpdate)
+                                        <button type="button" class="btn-icon btn-edit-aktivitas"
+                                            data-id="{{ $item->id }}"
+                                            data-tanggal="{{ $item->tanggal ? ($item->tanggal instanceof \Carbon\Carbon ? $item->tanggal->format('Y-m-d') : \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d')) : '' }}"
+                                            data-jam_mulai="{{ substr($item->jam_mulai, 0, 5) }}"
+                                            data-jam_selesai="{{ $item->jam_selesai ? substr($item->jam_selesai, 0, 5) : '' }}"
+                                            data-bidang="{{ $item->bidang }}" data-judul="{{ $item->judul_aktivitas }}"
+                                            data-uraian="{{ $item->uraian_pekerjaan }}"
+                                            data-output="{{ $item->output_hasil }}" data-status="{{ $item->status }}"
+                                            data-ptk="{{ $item->ptk_id }}" data-indikator="{{ $item->indikator_id }}"
+                                            title="Edit Aktivitas"
+                                            style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #3b82f6;">
+                                            <i class="fas fa-pen-to-square"></i>
+                                        </button>
+                                    @endif
+                                    @if ($canDelete)
+                                        <form action="{{ route('dashboard.tendik.aktivitas.destroy', $item->id) }}"
+                                            method="POST" data-confirm="delete" data-name="{{ $item->judul_aktivitas }}"
+                                            style="display: inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-icon" title="Hapus Aktivitas"
+                                                style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: #ef4444;">
+                                                <i class="fas fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                    @if (!$canUpdate && !$canDelete)
+                                        <span style="font-size: 0.75rem; color: var(--text-muted);"><i
+                                                class="fas fa-lock"></i></span>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ $isKepalaTas ? 6 : 5 }}"
+                                style="text-align: center; padding: 40px 16px; color: var(--text-muted);">
+                                <i class="fas fa-clipboard-list"
+                                    style="font-size: 2.5rem; opacity: 0.3; margin-bottom: 12px; display: block;"></i>
+                                <div style="font-weight: 600; font-size: 0.95rem;">Belum ada catatan aktivitas harian pada periode ini.</div>
+                                <div style="font-size: 0.82rem; margin-top: 4px;">Klik tombol <strong>"Catat Aktivitas"</strong> di atas untuk menambahkan log pekerjaan.</div>
+                                @if ($canCreate)
+                                    <div style="margin-top: 14px;">
+                                        <button type="button" class="btn btn-primary btn-sm btn-open-modal-empty"
+                                            style="background: #10b981; border: none; padding: 8px 18px; font-size: 0.84rem; border-radius: 8px; font-weight: 600;">
+                                            <i class="fas fa-plus me-1"></i> Catat Aktivitas Harian
+                                        </button>
+                                    </div>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-    @endif
+
+        <!-- 3. Footer Paginasi Terpadu Datatable Baku SAE -->
+        @if ($aktivitasList->hasPages())
+            <div class="datatable-footer">
+                @include('partials.datatable-pagination', ['paginator' => $aktivitasList])
+            </div>
+        @endif
+    </div>
 
     <!-- Modal Form Tambah / Edit Aktivitas (Standar Baku Responsive SAE) -->
     <div id="modalAktivitas" class="modal-backdrop"

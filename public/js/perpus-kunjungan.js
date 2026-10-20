@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalKunjungan = document.getElementById('modalKunjungan');
 
     // Live search & debounce
-    const searchInput = document.getElementById('searchKunjungan');
+    const searchInput = document.getElementById('liveSearch') || document.getElementById('searchKunjungan');
     let searchTimeout = null;
 
     if (searchInput) {

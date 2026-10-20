@@ -381,82 +381,96 @@ document.addEventListener('DOMContentLoaded', function () {
         if (inputJamMulai) inputJamMulai.value = getNowTimeString();
         if (inputJamSelesai) inputJamSelesai.value = '';
         if (inputPegawaiPtk) inputPegawaiPtk.value = '';
+        if (inputJudul) inputJudul.value = '';
+        if (inputUraian) inputUraian.value = '';
+        if (inputOutput) inputOutput.value = '';
         if (inputStatus) inputStatus.value = 'selesai';
         if (inputIndikatorId) inputIndikatorId.value = '';
         if (inputBidang) populateTupoksiOptions(inputBidang.value);
         openModal();
     }
 
-    if (btnTambah) {
-        btnTambah.addEventListener('click', prepareCreateModal);
-    }
+    // Expose Global Helpers
+    window.openModalTambahAktivitas = prepareCreateModal;
+    window.closeModalAktivitas = closeModal;
 
-    // Tombol tambah di empty state
+    // Delegated Click Handlers untuk Tombol Modal & Aksi
     document.addEventListener('click', function (e) {
-        if (e.target.closest('.btn-open-modal-empty')) {
+        // Tombol Tambah Aktivitas (Banner, Empty State, dsb.)
+        const btnTambahTarget = e.target.closest('#btnOpenModalTambah, .btn-open-modal-tambah, .btn-open-modal-empty');
+        if (btnTambahTarget) {
+            e.preventDefault();
             prepareCreateModal();
+            return;
+        }
+
+        // Tombol Tutup / Batal Modal Aktivitas
+        const btnCloseTarget = e.target.closest('#btnCloseModalAktivitas, #btnCancelModalAktivitas, .btn-close-modal-aktivitas');
+        if (btnCloseTarget) {
+            e.preventDefault();
+            closeModal();
+            return;
+        }
+
+        // Klik di backdrop luar modal utama
+        if (modal && e.target === modal) {
+            closeModal();
+            return;
+        }
+
+        // Tombol Edit Aktivitas
+        const btnEdit = e.target.closest('.btn-edit-aktivitas');
+        if (btnEdit) {
+            e.preventDefault();
+            const id = btnEdit.getAttribute('data-id');
+            const tanggal = btnEdit.getAttribute('data-tanggal');
+            const jamMulai = btnEdit.getAttribute('data-jam_mulai');
+            const jamSelesai = btnEdit.getAttribute('data-jam_selesai');
+            const bidang = btnEdit.getAttribute('data-bidang');
+            const judul = btnEdit.getAttribute('data-judul');
+            const uraian = btnEdit.getAttribute('data-uraian');
+            const output = btnEdit.getAttribute('data-output');
+            const status = btnEdit.getAttribute('data-status');
+            const ptk = btnEdit.getAttribute('data-ptk');
+            const indikator = btnEdit.getAttribute('data-indikator');
+
+            if (form) {
+                form.action = '/dashboard/tendik/aktivitas/' + id;
+                if (methodOverride) {
+                    methodOverride.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+                }
+            }
+
+            if (modalTitle) {
+                modalTitle.innerHTML = '<i class="fas fa-pen-to-square text-warning me-2"></i> Edit Aktivitas Harian';
+            }
+
+            if (inputTanggal) inputTanggal.value = tanggal || '';
+            if (inputBidang) {
+                inputBidang.value = bidang || 'umum';
+                populateTupoksiOptions(inputBidang.value);
+            }
+            if (inputPegawaiPtk && ptk) inputPegawaiPtk.value = ptk;
+            if (inputIndikatorId) inputIndikatorId.value = indikator || '';
+            if (inputJamMulai) inputJamMulai.value = jamMulai || '';
+            if (inputJamSelesai) inputJamSelesai.value = jamSelesai || '';
+            if (inputJudul) inputJudul.value = judul || '';
+            if (inputUraian) inputUraian.value = uraian || '';
+            if (inputOutput) inputOutput.value = output || '';
+            if (inputStatus) inputStatus.value = status || 'selesai';
+            if (selectTupoksi) selectTupoksi.value = '';
+
+            openModal();
+            return;
         }
     });
 
-    if (btnClose) {
-        btnClose.addEventListener('click', closeModal);
-    }
-
-    if (btnCancel) {
-        btnCancel.addEventListener('click', closeModal);
-    }
-
-    // Tutup saat klik di luar box modal
-    if (modal) {
-        modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                closeModal();
-            }
-        });
-    }
-
-    // Tombol Edit Aktivitas (Event Delegation)
-    document.addEventListener('click', function (e) {
-        const btnEdit = e.target.closest('.btn-edit-aktivitas');
-        if (!btnEdit) return;
-
-        const id = btnEdit.getAttribute('data-id');
-        const tanggal = btnEdit.getAttribute('data-tanggal');
-        const jamMulai = btnEdit.getAttribute('data-jam_mulai');
-        const jamSelesai = btnEdit.getAttribute('data-jam_selesai');
-        const bidang = btnEdit.getAttribute('data-bidang');
-        const judul = btnEdit.getAttribute('data-judul');
-        const uraian = btnEdit.getAttribute('data-uraian');
-        const output = btnEdit.getAttribute('data-output');
-        const status = btnEdit.getAttribute('data-status');
-        const ptk = btnEdit.getAttribute('data-ptk');
-        const indikator = btnEdit.getAttribute('data-indikator');
-
-        if (form) {
-            form.action = '/dashboard/tendik/aktivitas/' + id;
-            methodOverride.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+    // Escape Key Listener
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            window.closeSubModalTupoksi();
+            closeModal();
         }
-
-        if (modalTitle) {
-            modalTitle.innerHTML = '<i class="fas fa-pen-to-square text-warning me-2"></i> Edit Aktivitas Harian';
-        }
-
-        if (inputTanggal) inputTanggal.value = tanggal || '';
-        if (inputBidang) {
-            inputBidang.value = bidang || 'umum';
-            populateTupoksiOptions(inputBidang.value);
-        }
-        if (inputPegawaiPtk && ptk) inputPegawaiPtk.value = ptk;
-        if (inputIndikatorId) inputIndikatorId.value = indikator || '';
-        if (inputJamMulai) inputJamMulai.value = jamMulai || '';
-        if (inputJamSelesai) inputJamSelesai.value = jamSelesai || '';
-        if (inputJudul) inputJudul.value = judul || '';
-        if (inputUraian) inputUraian.value = uraian || '';
-        if (inputOutput) inputOutput.value = output || '';
-        if (inputStatus) inputStatus.value = status || 'selesai';
-        if (selectTupoksi) selectTupoksi.value = '';
-
-        openModal();
     });
 
     // Form Delete Confirmation dengan SweetAlert2
@@ -495,107 +509,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Datatable Realtime Live Search, Entri perPage, Filter, dan Sorting Standar SAE
-    const searchInput = document.getElementById("liveSearch");
-    const clearBtn = document.getElementById("clearSearch");
-    const perPageSelect = document.getElementById("perPageSelect");
-    const filterBulan = document.getElementById("filterBulan");
-    const filterTahun = document.getElementById("filterTahun");
-    const filterStatus = document.getElementById("filterStatus");
-    const filterBidang = document.getElementById("filterBidang");
-    const filterIndikator = document.getElementById("filterIndikator");
-
-    function applyFilter(overrideParams = {}) {
-        if (typeof window.collectDatatableUrl === "function") {
-            const tableWrap = document.getElementById("tableDataContainer");
+    // Global Datatable Handler Bridge (Dikelola Otomatis oleh dashboard.js)
+    window.applyDatatableFilter = function (overrideParams = {}) {
+        const tableWrap = document.getElementById("tableDataContainer");
+        if (typeof window.collectDatatableUrl === "function" && typeof window.refreshLiveTable === "function") {
             const targetUrl = window.collectDatatableUrl(tableWrap, overrideParams);
-            if (typeof window.refreshLiveTable === "function") {
-                window.refreshLiveTable(targetUrl);
-            } else {
-                window.location.href = targetUrl;
-            }
-            return;
-        }
-
-        const url = new URL(window.location.href);
-        if (searchInput && searchInput.value.trim()) {
-            url.searchParams.set("q", searchInput.value.trim());
+            window.refreshLiveTable(targetUrl);
         } else {
-            url.searchParams.delete("q");
-        }
-
-        if (filterBulan && filterBulan.value) {
-            url.searchParams.set("bulan", filterBulan.value);
-        }
-
-        if (filterTahun && filterTahun.value) {
-            url.searchParams.set("tahun", filterTahun.value);
-        }
-
-        if (filterStatus && filterStatus.value) {
-            url.searchParams.set("status", filterStatus.value);
-        } else {
-            url.searchParams.delete("status");
-        }
-
-        if (filterBidang && filterBidang.value) {
-            url.searchParams.set("bidang", filterBidang.value);
-        } else {
-            url.searchParams.delete("bidang");
-        }
-
-        if (filterIndikator && filterIndikator.value) {
-            url.searchParams.set("indikator_id", filterIndikator.value);
-        } else {
-            url.searchParams.delete("indikator_id");
-        }
-
-        if (perPageSelect && perPageSelect.value) {
-            url.searchParams.set("perPage", perPageSelect.value);
-        }
-
-        Object.keys(overrideParams).forEach((k) => {
-            const v = overrideParams[k];
-            if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
-            else url.searchParams.delete(k);
-        });
-
-        if (!("page" in overrideParams)) url.searchParams.set("page", "1");
-
-        if (typeof window.refreshLiveTable === "function") {
-            window.refreshLiveTable(url.toString());
-        } else {
+            const url = new URL(window.location.href);
+            Object.keys(overrideParams).forEach((k) => {
+                const v = overrideParams[k];
+                if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
+                else url.searchParams.delete(k);
+            });
             window.location.href = url.toString();
         }
-    }
-
-    // Delegated Change Handler untuk filter Tendik Aktivitas
-    document.addEventListener("change", function (e) {
-        if (!e.target || e.target.tagName !== "SELECT") return;
-        if (
-            e.target.closest("#tableDataContainer, .datatable-toolbar, .dash-table-toolbar, .card") &&
-            (e.target.id === "filterBulan" || e.target.id === "filterTahun" || e.target.id === "filterStatus" || e.target.id === "filterBidang" || e.target.id === "filterIndikator" || e.target.id === "perPageSelect")
-        ) {
-            e.preventDefault();
-            e.stopPropagation();
-            applyFilter();
-        }
-    });
-
-    // Delegated Sort Click Handler untuk tabel Tendik Aktivitas
-    document.addEventListener("click", function (e) {
-        const th = e.target.closest(".sortable-th");
-        if (!th || !th.closest("#tableDataContainer")) return;
-        const sortField = th.getAttribute("data-sort");
-        if (!sortField) return;
-        e.preventDefault();
-        e.stopPropagation();
-
-        const url = new URL(window.location.href);
-        const currentSort = url.searchParams.get("sort") || "tanggal";
-        const currentDir = url.searchParams.get("sort_dir") || url.searchParams.get("dir") || "desc";
-        const newDir = currentSort === sortField && currentDir === "asc" ? "desc" : "asc";
-        applyFilter({ sort: sortField, sort_dir: newDir });
-    });
-    });
+    };
 });

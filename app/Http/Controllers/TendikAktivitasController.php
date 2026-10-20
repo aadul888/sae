@@ -115,7 +115,7 @@ class TendikAktivitasController extends Controller
             $query->where('status', $filterStatus);
         }
 
-        $filterIndikator = $request->input('indikator_id');
+        $filterIndikator = $request->input('indikator_id', $request->input('indikator'));
         if ($filterIndikator) {
             $query->where('indikator_id', $filterIndikator);
         }
@@ -297,7 +297,7 @@ class TendikAktivitasController extends Controller
             ]);
         }
 
-        return redirect()->route('dashboard.tendik.aktivitas.index')->with('success', 'Aktivitas pekerjaan harian berhasil dicatat.');
+        return redirect()->route('dashboard.tendik.aktivitas.index', ['bidang' => $validated['bidang']])->with('success', 'Aktivitas pekerjaan harian berhasil dicatat.');
     }
 
     /**
@@ -368,7 +368,7 @@ class TendikAktivitasController extends Controller
             ]);
         }
 
-        return redirect()->route('dashboard.tendik.aktivitas.index')->with('success', 'Aktivitas pekerjaan berhasil diperbarui.');
+        return redirect()->route('dashboard.tendik.aktivitas.index', ['bidang' => $validated['bidang']])->with('success', 'Aktivitas pekerjaan berhasil diperbarui.');
     }
 
     /**
@@ -402,6 +402,6 @@ class TendikAktivitasController extends Controller
             ]);
         }
 
-        return redirect()->route('dashboard.tendik.aktivitas.index')->with('success', 'Aktivitas berhasil dihapus.');
+        return redirect()->back()->with('success', 'Aktivitas berhasil dihapus.');
     }
 }

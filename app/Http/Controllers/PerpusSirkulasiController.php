@@ -13,21 +13,28 @@ class PerpusSirkulasiController extends Controller
         $user = session('user');
         $role = $user['role'] ?? 'tendik';
 
-        $canCreate = RolePermission::canAccess($user, 'menu_perpustakaan', 'create');
-        $canRead = RolePermission::canAccess($user, 'menu_perpustakaan', 'read');
-        $canUpdate = RolePermission::canAccess($user, 'menu_perpustakaan', 'update');
-        $canDelete = RolePermission::canAccess($user, 'menu_perpustakaan', 'delete');
+        $canCreate = RolePermission::canAccess($user, 'menu_perpustakaan', 'create') || RolePermission::canAccess($user, 'menu_perpustakaan_sirkulasi', 'create');
+        $canRead = RolePermission::canAccess($user, 'menu_perpustakaan', 'read') || RolePermission::canAccess($user, 'menu_perpustakaan_sirkulasi', 'read');
+        $canUpdate = RolePermission::canAccess($user, 'menu_perpustakaan', 'update') || RolePermission::canAccess($user, 'menu_perpustakaan_sirkulasi', 'update');
+        $canDelete = RolePermission::canAccess($user, 'menu_perpustakaan', 'delete') || RolePermission::canAccess($user, 'menu_perpustakaan_sirkulasi', 'delete');
 
         if (!$canRead && !in_array($role, ['admin', 'tendik', 'guru', 'pustakawan'])) {
             return redirect()->route('dashboard.' . $role)->with('error', 'Anda tidak memiliki hak akses ke Sirkulasi Perpustakaan.');
         }
 
-        $search = $request->get('search', '');
+        $q = $request->get('q', $request->get('search', ''));
+        $search = $q;
         $status = $request->get('status', '');
         $tanggal = $request->get('tanggal', '');
         $perPage = (int) $request->get('perPage', 15);
         $sort = $request->get('sort', 'id');
-        $sortDir = $request->get('sortDir', 'desc');
+        $sortDir = $request->get('sortDir', $request->get('sort_dir', 'desc'));
+
+        $allowedSort = ['id', 'kode_transaksi', 'peminjam_nama', 'tgl_pinjam', 'tgl_jatuh_tempo', 'status', 'denda'];
+        if (!in_array($sort, $allowedSort)) {
+            $sort = 'id';
+        }
+        $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
 
         $query = DB::table('perpus_sirkulasi as s')
             ->leftJoin('perpus_koleksi_buku as b', 's.buku_id', '=', 'b.id')
@@ -46,12 +53,12 @@ class PerpusSirkulasiController extends Controller
             $query->where('s.tgl_pinjam', $tanggal);
         }
 
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('s.kode_transaksi', 'like', "%{$search}%")
-                    ->orWhere('s.peminjam_nama', 'like', "%{$search}%")
-                    ->orWhere('b.judul', 'like', "%{$search}%")
-                    ->orWhere('b.kode_buku', 'like', "%{$search}%");
+        if (!empty($q)) {
+            $query->where(function ($qb) use ($q) {
+                $qb->where('s.kode_transaksi', 'like', "%{$q}%")
+                    ->orWhere('s.peminjam_nama', 'like', "%{$q}%")
+                    ->orWhere('b.judul', 'like', "%{$q}%")
+                    ->orWhere('b.kode_buku', 'like', "%{$q}%");
             });
         }
 
@@ -71,10 +78,11 @@ class PerpusSirkulasiController extends Controller
             'total_dipinjam'  => DB::table('perpus_sirkulasi')->where('status', 'dipinjam')->count(),
             'terlambat'       => DB::table('perpus_sirkulasi')->where('status', 'dipinjam')->where('tgl_jatuh_tempo', '<', date('Y-m-d'))->count(),
             'total_kembali'   => DB::table('perpus_sirkulasi')->where('status', 'kembali')->count(),
+            'denda_terkumpul' => DB::table('perpus_sirkulasi')->where('status_denda', 'lunas')->sum('denda') ?: 0,
         ];
 
         return view('dashboard.perpus.sirkulasi', compact(
-            'sirkulasi', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
+            'sirkulasi', 'q', 'search', 'status', 'tanggal', 'perPage', 'sort', 'sortDir',
             'bukuTersedia', 'bukuList',
             'canCreate', 'canRead', 'canUpdate', 'canDelete', 'stats'
         ));
@@ -125,7 +133,7 @@ class PerpusSirkulasiController extends Controller
             DB::table('perpus_koleksi_buku')->where('id', $buku->id)->decrement('eksemplar_tersedia', 1);
         });
 
-        return redirect()->route('dashboard.perpustakaan.sirkulasi.index')->with('success', 'Peminjaman buku berhasil dicatat (' . $kodeTransaksi . ').');
+        return redirect()->route('dashboard.perpustakaan.sirkulasi')->with('success', 'Peminjaman buku berhasil dicatat (' . $kodeTransaksi . ').');
     }
 
     public function kembalikan(Request $request, $id)
@@ -164,7 +172,7 @@ class PerpusSirkulasiController extends Controller
             $msg .= ' Denda keterlambatan: Rp ' . number_format($denda, 0, ',', '.') . '.';
         }
 
-        return redirect()->route('dashboard.perpustakaan.sirkulasi.index')->with('success', $msg);
+        return redirect()->route('dashboard.perpustakaan.sirkulasi')->with('success', $msg);
     }
 
     public function destroy($id)
@@ -181,6 +189,6 @@ class PerpusSirkulasiController extends Controller
             DB::table('perpus_sirkulasi')->where('id', $sirkulasi->id)->delete();
         });
 
-        return redirect()->route('dashboard.perpustakaan.sirkulasi.index')->with('success', 'Data transaksi sirkulasi berhasil dihapus.');
+        return redirect()->route('dashboard.perpustakaan.sirkulasi')->with('success', 'Data transaksi sirkulasi berhasil dihapus.');
     }
 }

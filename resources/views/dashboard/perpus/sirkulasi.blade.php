@@ -31,7 +31,25 @@
             </div>
         </div>
 
-        <!-- 2. Stat Grid Baku SAE -->
+        <!-- 2. Tab Navigasi Sub-Modul Perpustakaan Baku SAE -->
+        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+            <div class="periode-nav-desktop">
+                <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.koleksi*') ? 'active' : '' }}">
+                    <i class="fas fa-book"></i> Katalog Koleksi Buku
+                </a>
+                <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.sirkulasi*') ? 'active' : '' }}">
+                    <i class="fas fa-exchange-alt"></i> Sirkulasi Peminjaman
+                </a>
+                <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.kunjungan*') ? 'active' : '' }}">
+                    <i class="fas fa-user-check"></i> Buku Kunjungan
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
@@ -108,7 +126,7 @@
                                 </option>
                             </select>
 
-                            @if ($q || $status)
+                            @if (!empty($q) || !empty($status))
                                 <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
@@ -118,7 +136,7 @@
 
                         <div class="live-search-wrap" style="height: 38px;">
                             <i class="fas fa-search search-icon"></i>
-                            <input type="text" name="q" id="searchSirkulasi" value="{{ $q ?? '' }}"
+                            <input type="text" name="q" id="liveSearch" value="{{ $q ?? '' }}"
                                 placeholder="Cari kode transaksi, peminjam, atau judul buku..." autocomplete="off">
                             <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
                                 title="Hapus pencarian">
@@ -134,27 +152,37 @@
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr
-                            style="background-color: var(--table-header-bg, #f8fafc); border-bottom: 1px solid var(--border-color);">
+                            style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 60px;">
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                 No</th>
-                            <th
+                            <th class="sortable-th {{ ($sort ?? '') === 'kode_transaksi' ? 'sorted' : '' }}" data-sort="kode_transaksi"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Kode & Buku</th>
-                            <th
+                                Kode &amp; Buku
+                                <span class="sort-icon">{!! ($sort ?? '') === 'kode_transaksi' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'peminjam_nama' ? 'sorted' : '' }}" data-sort="peminjam_nama"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Peminjam</th>
-                            <th
+                                Peminjam
+                                <span class="sort-icon">{!! ($sort ?? '') === 'peminjam_nama' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'tgl_pinjam' ? 'sorted' : '' }}" data-sort="tgl_pinjam"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Tgl Pinjam / Tempo</th>
-                            <th
+                                Tgl Pinjam / Tempo
+                                <span class="sort-icon">{!! ($sort ?? '') === 'tgl_pinjam' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'status' ? 'sorted' : '' }}" data-sort="status"
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 120px;">
+                                Status
+                                <span class="sort-icon">{!! ($sort ?? '') === 'status' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'denda' ? 'sorted' : '' }}" data-sort="denda"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Status</th>
+                                Denda
+                                <span class="sort-icon">{!! ($sort ?? '') === 'denda' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Denda</th>
-                            <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 140px;">
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
                                 Aksi</th>
                         </tr>
                     </thead>
@@ -165,33 +193,34 @@
                                     $row->status === 'dipinjam' &&
                                     \Carbon\Carbon::parse($row->tgl_jatuh_tempo)->isPast();
                             @endphp
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 14px 18px; font-size: 0.88rem; color: var(--text-muted);">
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;"
+                                    data-label="No">
                                     {{ ($sirkulasi->currentPage() - 1) * $sirkulasi->perPage() + $loop->iteration }}
                                 </td>
-                                <td style="padding: 14px 18px;">
+                                <td style="padding: 14px 18px;" data-label="Kode & Buku">
                                     <div style="font-weight: 600; color: var(--text-heading); font-size: 0.9rem;">
-                                        {{ $row->buku->judul ?? '-' }}
+                                        {{ $row->judul_buku ?? ($row->buku->judul ?? '-') }}
                                     </div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">
-                                        TR: {{ $row->kode_transaksi }} | Kode: {{ $row->buku->kode_buku ?? '-' }}
+                                        TR: {{ $row->kode_transaksi }} | Kode: {{ $row->kode_buku ?? ($row->buku->kode_buku ?? '-') }}
                                     </div>
                                 </td>
-                                <td style="padding: 14px 18px;">
+                                <td style="padding: 14px 18px;" data-label="Peminjam">
                                     <div style="font-weight: 600; color: var(--text-heading); font-size: 0.88rem;">
                                         {{ $row->peminjam_nama }}</div>
-                                    <span class="badge"
-                                        style="background-color: {{ $row->peminjam_tipe === 'siswa' ? '#e0e7ff' : '#fef3c7' }}; color: {{ $row->peminjam_tipe === 'siswa' ? '#3730a3' : '#92400e' }}; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">
+                                    <span class="badge {{ $row->peminjam_tipe === 'siswa' ? 'badge-primary' : 'badge-outline' }}"
+                                        style="font-size: 0.72rem; padding: 2px 8px;">
                                         {{ strtoupper($row->peminjam_tipe) }}
                                     </span>
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.85rem;">
+                                <td style="padding: 14px 18px; font-size: 0.85rem;" data-label="Tgl Pinjam / Tempo">
                                     <div>Pinjam: {{ \Carbon\Carbon::parse($row->tgl_pinjam)->format('d M Y') }}</div>
                                     <div
                                         style="color: {{ $isOverdue ? '#ef4444' : 'var(--text-muted)' }}; font-weight: {{ $isOverdue ? '600' : 'normal' }}; font-size: 0.8rem;">
                                         Tempo: {{ \Carbon\Carbon::parse($row->tgl_jatuh_tempo)->format('d M Y') }}
                                         @if ($isOverdue)
-                                            <i class="fas fa-exclamation-circle" title="Terlambat"></i>
+                                            <i class="fas fa-exclamation-circle text-danger ms-1" title="Terlambat"></i>
                                         @endif
                                     </div>
                                     @if ($row->tgl_kembali)
@@ -199,52 +228,48 @@
                                             {{ \Carbon\Carbon::parse($row->tgl_kembali)->format('d M Y') }}</div>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px;">
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Status">
                                     @if ($row->status === 'dipinjam')
                                         @if ($isOverdue)
-                                            <span class="badge"
-                                                style="background-color: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;">
+                                            <span class="badge badge-danger" style="font-size: 0.72rem; padding: 2px 7px;">
                                                 Terlambat
                                             </span>
                                         @else
-                                            <span class="badge"
-                                                style="background-color: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;">
+                                            <span class="badge badge-warning" style="font-size: 0.72rem; padding: 2px 7px;">
                                                 Dipinjam
                                             </span>
                                         @endif
                                     @elseif ($row->status === 'kembali')
-                                        <span class="badge"
-                                            style="background-color: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;">
+                                        <span class="badge badge-success" style="font-size: 0.72rem; padding: 2px 7px;">
                                             Kembali
                                         </span>
                                     @else
-                                        <span class="badge"
-                                            style="background-color: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;">
+                                        <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
                                             {{ ucfirst($row->status) }}
                                         </span>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px; font-size: 0.88rem;">
+                                <td style="padding: 14px 18px; font-size: 0.88rem;" data-label="Denda">
                                     @if ($row->denda > 0)
                                         <div style="font-weight: 700; color: #d97706;">Rp
                                             {{ number_format($row->denda, 0, ',', '.') }}</div>
-                                        <span class="badge"
-                                            style="background-color: {{ $row->status_denda === 'lunas' ? '#dcfce7' : '#fee2e2' }}; color: {{ $row->status_denda === 'lunas' ? '#15803d' : '#b91c1c' }}; font-size: 0.7rem; padding: 2px 6px;">
+                                        <span class="badge {{ $row->status_denda === 'lunas' ? 'badge-success' : 'badge-danger' }}"
+                                            style="font-size: 0.7rem; padding: 2px 6px;">
                                             {{ strtoupper($row->status_denda) }}
                                         </span>
                                     @else
                                         <span style="color: var(--text-muted); font-size: 0.8rem;">-</span>
                                     @endif
                                 </td>
-                                <td style="padding: 14px 18px; text-align: center;">
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Aksi">
                                     <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                         @if ($row->status === 'dipinjam')
                                             <button type="button" class="btn-icon btn-kembalikan"
                                                 data-id="{{ $row->id }}" data-kode="{{ $row->kode_transaksi }}"
-                                                data-judul="{{ $row->buku->judul ?? 'Buku' }}"
+                                                data-judul="{{ $row->judul_buku ?? ($row->buku->judul ?? 'Buku') }}"
                                                 title="Proses Pengembalian"
-                                                style="background-color: #10b981; color: #fff; width: 32px; height: 32px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-undo-alt" style="font-size: 0.8rem;"></i>
+                                                style="color: #10b981;">
+                                                <i class="fas fa-undo-alt"></i>
                                             </button>
                                         @endif
                                         <form action="{{ route('dashboard.perpustakaan.sirkulasi.destroy', $row->id) }}"
@@ -253,8 +278,8 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon btn-delete-sirkulasi"
                                                 data-kode="{{ $row->kode_transaksi }}" title="Hapus Transaksi"
-                                                style="background-color: #fee2e2; color: #ef4444; width: 32px; height: 32px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                                                <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
+                                                style="color: #ef4444;">
+                                                <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -262,10 +287,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">
-                                    <i class="fas fa-book-open"
-                                        style="font-size: 2.2rem; margin-bottom: 10px; opacity: 0.4;"></i>
-                                    <p style="margin: 0; font-size: 0.95rem;">Belum ada data sirkulasi peminjaman buku.</p>
+                                <td colspan="7" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                    <div>Belum ada data sirkulasi peminjaman buku yang tercatat di sistem.</div>
                                 </td>
                             </tr>
                         @endforelse

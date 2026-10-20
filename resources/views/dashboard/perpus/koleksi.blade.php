@@ -3,7 +3,7 @@
 @section('title', 'Katalog Koleksi Buku - Perpustakaan')
 
 @section('content')
-    <div class="content-wrapper">
+    <div class="dash-content-inner">
         <!-- 1. Header Banner & Actions -->
         <div class="dash-banner"
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
@@ -33,14 +33,32 @@
             </div>
         </div>
 
-        <!-- 2. Stat Grid Baku SAE -->
+        <!-- 2. Tab Navigasi Sub-Modul Perpustakaan Baku SAE -->
+        <div class="periode-nav-wrapper" style="margin-bottom: 20px;">
+            <div class="periode-nav-desktop">
+                <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.koleksi*') ? 'active' : '' }}">
+                    <i class="fas fa-book"></i> Katalog Koleksi Buku
+                </a>
+                <a href="{{ route('dashboard.perpustakaan.sirkulasi') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.sirkulasi*') ? 'active' : '' }}">
+                    <i class="fas fa-exchange-alt"></i> Sirkulasi Peminjaman
+                </a>
+                <a href="{{ route('dashboard.perpustakaan.kunjungan') }}"
+                    class="periode-nav-tab {{ request()->routeIs('dashboard.perpustakaan.kunjungan*') ? 'active' : '' }}">
+                    <i class="fas fa-user-check"></i> Buku Kunjungan
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
                 <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
                     <i class="fas fa-book-bookmark"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $stats['total_judul'] }}</div>
+                    <div class="dash-stat-value">{{ number_format($stats['total_judul'] ?? 0) }}</div>
                     <div class="dash-stat-label">Total Judul Buku</div>
                 </div>
             </div>
@@ -50,7 +68,7 @@
                     <i class="fas fa-layer-group"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $stats['total_eksemplar'] }}</div>
+                    <div class="dash-stat-value">{{ number_format($stats['total_eksemplar'] ?? 0) }}</div>
                     <div class="dash-stat-label">Total Eksemplar</div>
                 </div>
             </div>
@@ -60,7 +78,7 @@
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $stats['tersedia'] }}</div>
+                    <div class="dash-stat-value">{{ number_format($stats['tersedia'] ?? 0) }}</div>
                     <div class="dash-stat-label">Eksemplar Tersedia</div>
                 </div>
             </div>
@@ -70,7 +88,7 @@
                     <i class="fas fa-book-reader"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value">{{ $stats['dipinjam'] }}</div>
+                    <div class="dash-stat-value">{{ number_format($stats['dipinjam'] ?? 0) }}</div>
                     <div class="dash-stat-label">Sedang Dipinjam</div>
                 </div>
             </div>
@@ -105,7 +123,7 @@
                                 @endforeach
                             </select>
 
-                            @if ($search || $kategori)
+                            @if (!empty($q) || !empty($kategori))
                                 <a href="{{ route('dashboard.perpustakaan.koleksi.index') }}"
                                     class="btn btn-outline btn-reset-filter"
                                     style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
@@ -115,9 +133,9 @@
 
                         <div class="live-search-wrap" style="height: 38px;">
                             <i class="fas fa-search search-icon"></i>
-                            <input type="text" name="search" id="liveSearch" value="{{ $search }}"
+                            <input type="text" name="q" id="liveSearch" value="{{ $q ?? '' }}"
                                 placeholder="Cari judul buku, kode, penulis, ISBN..." autocomplete="off">
-                            <button type="button" id="clearSearch" class="clear-search {{ $search ? 'visible' : '' }}"
+                            <button type="button" id="clearSearch" class="clear-search {{ !empty($q) ? 'visible' : '' }}"
                                 title="Hapus pencarian">
                                 <i class="fas fa-times"></i>
                             </button>
@@ -130,34 +148,54 @@
             <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                 <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
-                        <tr>
+                        <tr
+                            style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
                             <th
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                No</th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'kode_buku' ? 'sorted' : '' }}" data-sort="kode_buku"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Kode &amp; ISBN</th>
-                            <th
+                                Kode &amp; ISBN
+                                <span class="sort-icon">{!! ($sort ?? '') === 'kode_buku' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'judul' ? 'sorted' : '' }}" data-sort="judul"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Judul Buku</th>
-                            <th
+                                Judul Buku
+                                <span class="sort-icon">{!! ($sort ?? '') === 'judul' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'penulis' ? 'sorted' : '' }}" data-sort="penulis"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Penulis &amp; Penerbit</th>
-                            <th
+                                Penulis &amp; Penerbit
+                                <span class="sort-icon">{!! ($sort ?? '') === 'penulis' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'kategori' ? 'sorted' : '' }}" data-sort="kategori"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Kategori &amp; DDC</th>
-                            <th
+                                Kategori &amp; DDC
+                                <span class="sort-icon">{!! ($sort ?? '') === 'kategori' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'eksemplar_tersedia' ? 'sorted' : '' }}" data-sort="eksemplar_tersedia"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                                Stok Tersedia</th>
-                            <th
+                                Stok Tersedia
+                                <span class="sort-icon">{!! ($sort ?? '') === 'eksemplar_tersedia' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
+                            <th class="sortable-th {{ ($sort ?? '') === 'lokasi_rak' ? 'sorted' : '' }}" data-sort="lokasi_rak"
                                 style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Lokasi Rak</th>
+                                Lokasi Rak
+                                <span class="sort-icon">{!! ($sort ?? '') === 'lokasi_rak' ? (($sortDir ?? '') === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                            </th>
                             <th
-                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
                                 Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($list as $item)
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 12px 18px;">
+                            <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s ease;">
+                                <td style="padding: 14px 18px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.82rem;"
+                                    data-label="No">
+                                    {{ ($list->currentPage() - 1) * $list->perPage() + $loop->iteration }}
+                                </td>
+                                <td style="padding: 14px 18px;" data-label="Kode & ISBN">
                                     <span
                                         style="font-weight: 700; font-family: monospace; color: var(--primary); font-size: 0.85rem;">{{ $item->kode_buku }}</span>
                                     @if ($item->isbn)
@@ -166,22 +204,21 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td style="padding: 12px 18px;">
-                                    <div style="font-weight: 600; color: var(--text-heading);">{{ $item->judul }}</div>
+                                <td style="padding: 14px 18px;" data-label="Judul Buku">
+                                    <div style="font-weight: 600; color: var(--text-heading); font-size: 0.9rem;">{{ $item->judul }}</div>
                                     @if ($item->tahun_terbit)
                                         <div style="font-size: 0.78rem; color: var(--text-muted);">Tahun:
                                             {{ $item->tahun_terbit }}</div>
                                     @endif
                                 </td>
-                                <td style="padding: 12px 18px; font-size: 0.85rem;">
+                                <td style="padding: 14px 18px; font-size: 0.85rem;" data-label="Penulis & Penerbit">
                                     <div style="color: var(--text-heading);">{{ $item->penulis ?: '—' }}</div>
                                     <div style="font-size: 0.78rem; color: var(--text-muted);">
                                         {{ $item->penerbit ?: '—' }}
                                     </div>
                                 </td>
-                                <td style="padding: 12px 18px;">
-                                    <span class="badge"
-                                        style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3);">
+                                <td style="padding: 14px 18px;" data-label="Kategori & DDC">
+                                    <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
                                         {{ $item->kategori }}
                                     </span>
                                     @if ($item->klasifikasi_ddc)
@@ -189,7 +226,7 @@
                                             {{ $item->klasifikasi_ddc }}</div>
                                     @endif
                                 </td>
-                                <td style="padding: 12px 18px; text-align: center;">
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Stok Tersedia">
                                     <span
                                         style="font-weight: 700; color: {{ $item->eksemplar_tersedia > 0 ? '#10b981' : '#ef4444' }}; font-size: 1rem;">
                                         {{ $item->eksemplar_tersedia }}
@@ -198,26 +235,28 @@
                                         {{ $item->jumlah_eksemplar }}
                                         Eks</span>
                                 </td>
-                                <td style="padding: 12px 18px; font-size: 0.85rem; color: var(--text-heading);">
+                                <td style="padding: 14px 18px; font-size: 0.85rem; color: var(--text-heading);" data-label="Lokasi Rak">
                                     {{ $item->lokasi_rak ?: '—' }}
                                 </td>
-                                <td style="padding: 12px 18px; text-align: center;">
+                                <td style="padding: 14px 18px; text-align: center;" data-label="Aksi">
                                     <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                         @if ($canUpdate)
-                                            <button type="button" class="btn-icon btn-edit-buku" title="Edit"
+                                            <button type="button" class="btn-icon btn-edit-buku" title="Edit Buku"
                                                 onclick="editBuku({{ json_encode($item) }})"
-                                                data-item="{{ json_encode($item) }}">
+                                                data-item="{{ json_encode($item) }}" style="color: var(--primary);">
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                         @endif
                                         @if ($canDelete)
                                             <form
                                                 action="{{ route('dashboard.perpustakaan.koleksi.destroy', $item->id) }}"
-                                                method="POST" data-confirm="delete" data-name="{{ $item->judul }}">
+                                                method="POST" data-confirm="delete" data-name="{{ $item->judul }}"
+                                                style="display: inline;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn-icon btn-icon-danger" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="submit" class="btn-icon btn-delete-buku"
+                                                    data-judul="{{ $item->judul }}" title="Hapus Buku" style="color: #ef4444;">
+                                                    <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </form>
                                         @endif
@@ -226,10 +265,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" style="text-align: center; padding: 36px; color: var(--text-muted);">
-                                    <i class="fas fa-book-open"
-                                        style="font-size: 2rem; margin-bottom: 8px; opacity: 0.4;"></i>
-                                    <p style="margin: 0;">Belum ada koleksi buku di katalog.</p>
+                                <td colspan="8" style="text-align: center; padding: 36px 14px; color: var(--text-muted); font-size: 0.86rem;">
+                                    <i class="fas fa-folder-open mb-2" style="font-size: 2rem; opacity: 0.4;"></i>
+                                    <div>Belum ada data koleksi buku yang tercatat di sistem.</div>
                                 </td>
                             </tr>
                         @endforelse

@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const kembaliDetailJudul = document.getElementById('kembaliDetailJudul');
 
     // Live search & debounce
-    const searchInput = document.getElementById('searchSirkulasi');
+    const searchInput = document.getElementById('liveSearch') || document.getElementById('searchSirkulasi');
     let searchTimeout = null;
 
     if (searchInput) {

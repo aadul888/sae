@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('modalBuku');
 
     // Live search & debounce
-    const searchInput = document.getElementById('searchKoleksi');
+    const searchInput = document.getElementById('liveSearch') || document.getElementById('searchKoleksi');
     let searchTimeout = null;
 
     if (searchInput) {
