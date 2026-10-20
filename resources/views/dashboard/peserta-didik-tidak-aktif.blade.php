@@ -19,6 +19,14 @@
             </p>
         </div>
         <div class="dash-banner-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+            @if ($canCreate || $isAdmin)
+                <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
+                    style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 8px; font-size: 0.88rem; border-color: #10b981; color: #10b981;"
+                    title="Import Excel Peserta Didik Keluar / Tidak Aktif (Format Dapodik)">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Import Excel</span>
+                </button>
+            @endif
             @if (($canCreate || $canUpdate) && $grade12ActiveCount > 0)
                 <button type="button" id="btnArchiveGrade12" class="btn btn-primary" data-count="{{ $grade12ActiveCount }}"
                     data-url="{{ route('dashboard.peserta-didik-tidak-aktif.archive-grade12') }}"
@@ -126,6 +134,15 @@
                             title="Reset filter" data-live-reset>
                             <i class="fas fa-undo"></i>
                         </a>
+                    @endif
+
+                    @if ($canCreate || $isAdmin)
+                        <button type="button" class="btn btn-outline"
+                            onclick="openImportExcelModal()"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #10b981; color: #10b981;"
+                            title="Import Excel Peserta Didik Keluar / Tidak Aktif (Format Dapodik)">
+                            <i class="fas fa-file-excel"></i>
+                        </button>
                     @endif
                 </div>
 
@@ -361,6 +378,7 @@
             </div>
 
             <div id="bioContent" style="overflow-y: auto; flex: 1; display: none; font-size: 0.84rem;">
+                {{-- 1. Data Pribadi --}}
                 <div style="margin-bottom: 12px;">
                     <div
                         style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -369,8 +387,7 @@
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">NISN / NIPD</td>
-                            <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">-
-                            </td>
+                            <td id="bioNisn" style="font-weight: 600; font-family: monospace; color: var(--primary);">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">NIK</td>
@@ -388,9 +405,14 @@
                             <td style="padding: 6px 0; color: var(--text-muted);">Agama</td>
                             <td id="bioAgama">-</td>
                         </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Kebutuhan Khusus</td>
+                            <td id="bioKhusus">-</td>
+                        </tr>
                     </table>
                 </div>
 
+                {{-- 2. Status Pengarsipan & Akademik --}}
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
                         style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -402,37 +424,106 @@
                             <td id="bioStatus">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 6px 0; color: var(--text-muted);">Tahun Lulus / Keluar</td>
+                            <td style="padding: 6px 0; color: var(--text-muted);">Tahun Lulus</td>
                             <td id="bioTahunLulus">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Tanggal Keluar</td>
+                            <td id="bioTglKeluar">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">Rombel Terakhir</td>
                             <td id="bioRombelDetail">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 6px 0; color: var(--text-muted);">Keterangan / Alasan</td>
+                            <td style="padding: 6px 0; color: var(--text-muted);">Alasan / Keterangan</td>
                             <td id="bioAlasan">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">No. SKHUN</td>
+                            <td id="bioSkhun">-</td>
                         </tr>
                     </table>
                 </div>
 
+                {{-- 3. Alamat & Domisili --}}
                 <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
                     <div
                         style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        <i class="fas fa-address-book me-1"></i> Kontak &amp; Domisili
+                        <i class="fas fa-map-marker-alt me-1"></i> Alamat &amp; Tempat Tinggal
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">No. HP / Telepon</td>
+                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">Alamat Jalan</td>
+                            <td id="bioAlamat">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">RT / RW / Dusun</td>
+                            <td id="bioRtRwDusun">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Kelurahan / Desa</td>
+                            <td id="bioKelurahan">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Kecamatan / Pos</td>
+                            <td id="bioKecamatanPos">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Jenis Tinggal</td>
+                            <td id="bioJenisTinggal">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Alat Transportasi</td>
+                            <td id="bioTransportasi">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                {{-- 4. Kontak & Bantuan Sosial --}}
+                <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                    <div
+                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-address-book me-1"></i> Kontak &amp; Bantuan Sosial
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">No. HP</td>
                             <td id="bioHp">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Telepon Rumah</td>
+                            <td id="bioTelepon">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">Email</td>
                             <td id="bioEmail">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 6px 0; color: var(--text-muted);">Alamat Jalan</td>
-                            <td id="bioAlamat">-</td>
+                            <td style="padding: 6px 0; color: var(--text-muted);">Penerima KPS / KPS</td>
+                            <td id="bioKps">-</td>
+                        </tr>
+                    </table>
+                </div>
+
+                {{-- 5. Data Orang Tua & Wali --}}
+                <div style="margin-bottom: 12px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                    <div
+                        style="font-weight: 700; color: var(--primary); font-size: 0.82rem; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <i class="fas fa-users me-1"></i> Data Orang Tua &amp; Wali
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted); width: 140px;">Data Ayah</td>
+                            <td id="bioAyah">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Data Ibu</td>
+                            <td id="bioIbu">-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 6px 0; color: var(--text-muted);">Data Wali</td>
+                            <td id="bioWali">-</td>
                         </tr>
                     </table>
                 </div>
@@ -465,6 +556,110 @@
             </button>
         </div>
     </div>
+
+    {{-- Modal Import Excel Peserta Didik Keluar / Tidak Aktif (Format Dapodik) --}}
+    @if ($canCreate || $isAdmin)
+        <div id="modalImportExcel" class="modal-backdrop"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div class="card"
+                style="max-width: 580px; width: 94%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+
+                {{-- Header Modal --}}
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div
+                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-color); margin: 0;">
+                                Import Peserta Didik Keluar / Alumni
+                            </h3>
+                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                                Format Resmi Ekspor Dapodik (43 Kolom)
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeImportExcelModal()"
+                        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.15rem; padding: 4px;"
+                        title="Tutup">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form id="formImportExcel"
+                    action="{{ route('dashboard.peserta-didik-tidak-aktif.import-excel') }}" method="POST"
+                    enctype="multipart/form-data" onsubmit="handleImportExcelSubmit(event)">
+                    @csrf
+
+                    {{-- Alert Box Info Petunjuk --}}
+                    <div
+                        style="margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: 0.8rem; line-height: 1.45; color: var(--text-color);">
+                        <div
+                            style="font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-info-circle"></i> Kompatibel Format Dapodik
+                        </div>
+                        <div>
+                            Unggah langsung berkas Excel/CSV hasil unduhan dari Dapodik menu <strong>Peserta Didik
+                                Keluar</strong> tanpa perlu mengubah urutan kolom. Sistem otomatis mendeteksi status keluar
+                            (Alumni/Mutasi/Keluar) serta tahun kelulusan.
+                        </div>
+                    </div>
+
+                    {{-- Unduh Template Card --}}
+                    <div
+                        style="margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">Format Excel
+                                Baku Dapodik</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Unduh contoh template jika ingin
+                                menyusun data secara manual</div>
+                        </div>
+                        <a href="{{ route('dashboard.peserta-didik-tidak-aktif.download-template') }}"
+                            class="btn btn-outline"
+                            style="padding: 6px 12px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 6px; border-color: #10b981; color: #10b981; text-decoration: none; white-space: nowrap;">
+                            <i class="fas fa-download"></i> Unduh Template
+                        </a>
+                    </div>
+
+                    {{-- Berkas Input --}}
+                    <div style="margin-bottom: 16px;">
+                        <label for="inputExcelFile"
+                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                            Pilih Berkas Excel / CSV <span style="color: #ef4444;">*</span>
+                        </label>
+                        <input type="file" id="inputExcelFile" name="file_excel" accept=".xlsx,.xls,.csv,.txt"
+                            style="width: 100%; padding: 8px 12px; font-size: 0.82rem; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.03); color: var(--text-color);"
+                            required>
+                        <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 4px;">
+                            Mendukung format .xlsx, .xls, atau .csv dari Dapodik (Maksimal 30 MB).
+                        </div>
+                    </div>
+
+                    {{-- Loading / Status State --}}
+                    <div id="importExcelProgress"
+                        style="display: none; margin-bottom: 14px; padding: 12px; border-radius: 8px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: 0.82rem; color: #10b981;">
+                        <i class="fas fa-spinner fa-spin me-2"></i> Sedang membaca dan memproses data peserta didik...
+                    </div>
+
+                    {{-- Footer Buttons --}}
+                    <div
+                        style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                        <button type="button" onclick="closeImportExcelModal()" class="btn btn-outline"
+                            style="padding: 8px 18px; font-size: 0.82rem;">
+                            Batal
+                        </button>
+                        <button type="submit" id="btnSubmitImportExcel" class="btn btn-primary"
+                            style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-cloud-arrow-up"></i>
+                            <span id="btnSubmitImportExcelText">Import Sekarang</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')

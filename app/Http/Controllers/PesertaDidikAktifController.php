@@ -1571,6 +1571,13 @@ class PesertaDidikAktifController extends Controller
         }
 
         $time = strtotime($s);
-        return $time ? date('Y-m-d', $time) : $s;
+        if ($time !== false && $time > 0) {
+            $year = (int) date('Y', $time);
+            if ($year >= 1950 && $year <= 2100) {
+                return date('Y-m-d', $time);
+            }
+        }
+
+        return null;
     }
 }
