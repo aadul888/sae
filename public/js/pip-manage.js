@@ -366,51 +366,97 @@ document.addEventListener("DOMContentLoaded", function () {
     // Hapus usulan
     // ---------------------------------------------------------------------
     window.pipHapusUsulan = async function (id, nama, status) {
-        if (status === "sudah_diajukan") {
+        if (status === "sudah_diajukan" || status === "ditolak") {
+            const label = status === "sudah_diajukan" ? "Sudah Diusulkan" : "Ditolak";
             Swal.fire({
                 icon: "warning",
                 title: "Tidak Dapat Dihapus",
-                text: `Usulan PIP untuk ${nama} sudah berstatus "Sudah Diusulkan" sehingga tidak dapat dihapus.`,
+                text: `Usulan PIP untuk ${nama} berstatus "${label}" sehingga tidak dapat dihapus.`,
             });
             return;
         }
 
         const r = await Swal.fire({
-            title: "Hapus Usulan?", text: `Usulan PIP untuk ${nama} akan dihapus dan urutan prioritas disusun ulang.`,
-            icon: "warning", showCancelButton: true, confirmButtonColor: "#ef4444", cancelButtonColor: "#64748b",
-            confirmButtonText: "Ya, Hapus!", cancelButtonText: "Batal",
+            title: "Hapus Usulan?",
+            text: `Usulan PIP untuk ${nama} akan dihapus dan urutan prioritas disusun ulang.`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Ya, Hapus!",
+            cancelButtonText: "Batal",
         });
         if (!r.isConfirmed) return;
         try {
             const { ok, data } = await post(tpl(CFG.urlTemplates.destroyUsulan, id), {});
-            if (ok) { toast(data.message); refresh(); } else Swal.fire("Gagal", data.message, "error");
-        } catch (e) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
+            if (ok) {
+                toast(data.message);
+                refresh();
+            } else {
+                Swal.fire("Gagal", data.message, "error");
+            }
+        } catch (e) {
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        }
     };
 
     // ---------------------------------------------------------------------
     // Verifikasi admin (single + bulk)
     // ---------------------------------------------------------------------
-    document.addEventListener("change", async function (e) {
-        const el = e.target;
-        if (!el.classList?.contains("pip-verif-select")) return;
+    window.pipUbahStatusVerifikasi = async function (el) {
+        if (!el || el.dataset.busy === "1") return;
         const prev = el.dataset.current;
+        const newVal = el.value;
+        const id = el.dataset.id;
+        if (!id) return;
+
+        el.dataset.busy = "1";
         el.disabled = true;
+
         try {
-            const { ok, data } = await post(tpl(CFG.urlTemplates.verifikasi, el.dataset.id), { status_verifikasi: el.value });
+            const url = tpl(CFG.urlTemplates.verifikasi, id);
+            const { ok, data } = await post(url, { status_verifikasi: newVal });
             el.disabled = false;
-            if (ok) { el.dataset.current = el.value; toast(data.message); refresh(); }
-            else { el.value = prev; Swal.fire("Gagal", data.message, "error"); }
-        } catch (err) { el.disabled = false; el.value = prev; Swal.fire("Error", "Gagal menghubungi server.", "error"); }
+            el.dataset.busy = "0";
+
+            if (ok) {
+                el.dataset.current = newVal;
+                toast(data.message || "Status usulan berhasil diperbarui.");
+                refresh();
+            } else {
+                el.value = prev;
+                Swal.fire("Gagal", data.message || "Gagal mengubah status verifikasi.", "error");
+            }
+        } catch (err) {
+            el.disabled = false;
+            el.dataset.busy = "0";
+            el.value = prev;
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        }
+    };
+
+    document.addEventListener("change", function (e) {
+        const el = e.target;
+        if (!el || !el.classList?.contains("pip-verif-select")) return;
+        if (typeof window.pipUbahStatusVerifikasi === "function") {
+            window.pipUbahStatusVerifikasi(el);
+        }
     });
 
     function selectedIds() {
-        return Array.from(document.querySelectorAll(".check-pip-row:checked")).map((c) => c.value);
+        return Array.from(document.querySelectorAll(".check-pip-row:checked"))
+            .map((c) => parseInt(c.value, 10))
+            .filter((n) => !isNaN(n));
     }
+
     function updateBulkBar() {
         const ids = selectedIds();
         const bar = document.getElementById("bulkActionBar");
         const cnt = document.getElementById("bulkSelectedCount");
-        if (bar && cnt) { bar.style.display = ids.length ? "flex" : "none"; cnt.textContent = ids.length; }
+        if (bar && cnt) {
+            bar.style.display = ids.length ? "flex" : "none";
+            cnt.textContent = ids.length;
+        }
         const all = document.getElementById("checkAllPip");
         const boxes = document.querySelectorAll(".check-pip-row");
         if (all) {
@@ -418,22 +464,55 @@ document.addEventListener("DOMContentLoaded", function () {
             all.indeterminate = ids.length > 0 && ids.length < boxes.length;
         }
     }
+
     document.addEventListener("change", function (e) {
         if (e.target.id === "checkAllPip") {
             document.querySelectorAll(".check-pip-row").forEach((c) => (c.checked = e.target.checked));
             updateBulkBar();
-        } else if (e.target.classList?.contains("check-pip-row")) updateBulkBar();
+        } else if (e.target.classList?.contains("check-pip-row")) {
+            updateBulkBar();
+        }
     });
     window.addEventListener("sae:tableRefreshed", updateBulkBar);
 
     window.pipBulkVerifikasi = async function (action) {
         const ids = selectedIds();
-        if (!ids.length) return;
+        if (!ids.length) {
+            toast("Pilih minimal satu usulan siswa terlebih dahulu.", "warning");
+            return;
+        }
+
+        const actionLabels = {
+            set_sudah_diajukan: "Sudah Diusulkan",
+            set_belum_diajukan: "Belum Diusulkan",
+            set_ditolak: "Ditolak",
+        };
+        const targetLabel = actionLabels[action] || action;
+
+        const confirmResult = await Swal.fire({
+            title: `Tandai ${ids.length} Usulan?`,
+            text: `Ubah status verifikasi ${ids.length} usulan terpilih menjadi '${targetLabel}'.`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: action === "set_ditolak" ? "#ef4444" : "#10b981",
+            cancelButtonColor: "#64748b",
+            confirmButtonText: "Ya, Lanjutkan",
+            cancelButtonText: "Batal",
+        });
+        if (!confirmResult.isConfirmed) return;
+
         try {
             const { ok, data } = await post(CFG.routes.bulkVerifikasi, { ids, action });
-            if (ok) { toast(data.message); refresh(); setTimeout(updateBulkBar, 600); }
-            else Swal.fire("Gagal", data.message, "error");
-        } catch (e) { Swal.fire("Error", "Gagal menghubungi server.", "error"); }
+            if (ok) {
+                toast(data.message);
+                refresh();
+                setTimeout(updateBulkBar, 600);
+            } else {
+                Swal.fire("Gagal", data.message || "Gagal memproses verifikasi massal.", "error");
+            }
+        } catch (e) {
+            Swal.fire("Error", "Gagal menghubungi server.", "error");
+        }
     };
 
     // ---------------------------------------------------------------------

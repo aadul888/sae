@@ -535,8 +535,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/pip/usulan/{id}/riwayat', [\App\Http\Controllers\PipController::class, 'getRiwayatPerubahan'])->name('pip.riwayat-usulan');
     Route::post('/pip/usulan/prioritas', [\App\Http\Controllers\PipController::class, 'updatePrioritas'])->name('pip.update-prioritas');
     Route::match(['post', 'delete'], '/pip/usulan/{id}/delete', [\App\Http\Controllers\PipController::class, 'destroyUsulan'])->name('pip.destroy-usulan');
-    Route::post('/pip/usulan/{id}/verifikasi', [\App\Http\Controllers\PipController::class, 'updateVerifikasi'])->name('pip.update-verifikasi');
-    Route::post('/pip/usulan/bulk-verifikasi', [\App\Http\Controllers\PipController::class, 'bulkVerifikasi'])->name('pip.bulk-verifikasi');
+    Route::match(['post', 'put', 'patch'], '/pip/usulan/{id}/verifikasi', [\App\Http\Controllers\PipController::class, 'updateVerifikasi'])->name('pip.update-verifikasi');
+    Route::match(['post', 'put', 'patch'], '/pip/usulan/bulk-verifikasi', [\App\Http\Controllers\PipController::class, 'bulkVerifikasi'])->name('pip.bulk-verifikasi');
     Route::post('/pip/kuota', [\App\Http\Controllers\PipController::class, 'updateKuota'])->name('pip.update-kuota');
     Route::post('/pip/riwayat/import', [\App\Http\Controllers\PipController::class, 'importRiwayatExcel'])->name('pip.import-riwayat');
     Route::post('/pip/riwayat', [\App\Http\Controllers\PipController::class, 'storeRiwayatManual'])->name('pip.store-riwayat');

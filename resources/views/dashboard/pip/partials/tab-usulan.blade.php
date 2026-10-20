@@ -340,19 +340,20 @@
                 </div>
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                     <button type="button" class="btn btn-outline btn-sm"
-                        onclick="pipBulkVerifikasi('set_sudah_diajukan')"
+                        onclick="pipBulkVerifikasi('set_sudah_diajukan')" data-no-ajax="true"
                         style="border-color: #10b981; color: #10b981; font-weight: 600;"
                         title="Tandai Sudah Diusulkan">
                         <i class="fas fa-check me-1"></i> Diajukan
                     </button>
                     <button type="button" class="btn btn-outline btn-sm"
-                        onclick="pipBulkVerifikasi('set_belum_diajukan')"
+                        onclick="pipBulkVerifikasi('set_belum_diajukan')" data-no-ajax="true"
                         style="border-color: #f59e0b; color: #f59e0b; font-weight: 600;"
                         title="Tandai Belum Diusulkan">
                         <i class="fas fa-clock me-1"></i> Belum
                     </button>
                     <button type="button" class="btn btn-outline btn-sm" onclick="pipBulkVerifikasi('set_ditolak')"
-                        style="border-color: #ef4444; color: #ef4444; font-weight: 600;" title="Tandai Ditolak">
+                        data-no-ajax="true" style="border-color: #ef4444; color: #ef4444; font-weight: 600;"
+                        title="Tandai Ditolak">
                         <i class="fas fa-ban me-1"></i> Tolak
                     </button>
                 </div>
@@ -526,7 +527,8 @@
                             <div style="display: flex; gap: 6px; justify-content: center; align-items: center;">
                                 @if ($isAdmin)
                                     <select class="form-control pip-verif-select" data-id="{{ $u->id }}"
-                                        data-current="{{ $u->status_verifikasi }}"
+                                        data-current="{{ $u->status_verifikasi }}" data-no-ajax="true"
+                                        onchange="pipUbahStatusVerifikasi(this)"
                                         style="min-width: 105px; height: 30px; padding: 0 6px; font-size: 0.76rem; border-radius: 6px;"
                                         title="Ubah Status Verifikasi">
                                         <option value="belum_diajukan"
@@ -542,12 +544,32 @@
                                     </select>
                                 @endif
 
-                                <!-- Tombol Edit Usulan (Wali Kelas saat tidak terkunci & Admin) -->
-                                @if ($isAdmin || empty($isWaliLocked))
+                                <!-- Tombol Edit Usulan -->
+                                @if ($isAdmin)
                                     <button type="button" class="btn-icon text-primary"
                                         style="color: var(--primary); width: 30px; height: 30px;"
                                         title="Edit Kriteria Alasan &amp; Keterangan Usulan"
                                         onclick="pipBukaEditUsulan({{ $u->id }}, @js($u->nama_pd), @js($u->alasan_list), @js($u->keterangan))">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                @elseif (empty($isWaliLocked) && $u->status_verifikasi === 'belum_diajukan')
+                                    <button type="button" class="btn-icon text-primary"
+                                        style="color: var(--primary); width: 30px; height: 30px;"
+                                        title="Edit Kriteria Alasan &amp; Keterangan Usulan"
+                                        onclick="pipBukaEditUsulan({{ $u->id }}, @js($u->nama_pd), @js($u->alasan_list), @js($u->keterangan))">
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                @elseif (!empty($isWaliLocked))
+                                    <button type="button" class="btn-icon"
+                                        style="color: var(--text-muted); opacity: 0.35; width: 30px; height: 30px; cursor: not-allowed;"
+                                        title="Pengusulan PIP saat ini terkunci" disabled>
+                                        <i class="fas fa-pen-to-square"></i>
+                                    </button>
+                                @else
+                                    <button type="button" class="btn-icon"
+                                        style="color: var(--text-muted); opacity: 0.35; width: 30px; height: 30px; cursor: not-allowed;"
+                                        title="Tidak dapat diedit karena usulan berstatus '{{ $statusVerifikasiList[$u->status_verifikasi] ?? $u->status_verifikasi }}'"
+                                        disabled>
                                         <i class="fas fa-pen-to-square"></i>
                                     </button>
                                 @endif
@@ -562,10 +584,12 @@
                                     </button>
                                 @endif
 
-                                @if ($u->status_verifikasi === 'sudah_diajukan')
+                                <!-- Tombol Hapus Usulan -->
+                                @if ($u->status_verifikasi === 'sudah_diajukan' || $u->status_verifikasi === 'ditolak')
                                     <button type="button" class="btn-icon"
-                                        style="color: var(--text-muted); opacity: 0.4; width: 30px; height: 30px; cursor: not-allowed;"
-                                        title="Tidak dapat dihapus karena sudah diusulkan" disabled>
+                                        style="color: var(--text-muted); opacity: 0.35; width: 30px; height: 30px; cursor: not-allowed;"
+                                        title="Tidak dapat dihapus karena usulan berstatus '{{ $statusVerifikasiList[$u->status_verifikasi] ?? $u->status_verifikasi }}'"
+                                        disabled>
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 @elseif ($isAdmin || empty($isWaliLocked))

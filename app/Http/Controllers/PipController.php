@@ -1948,6 +1948,14 @@ class PipController extends Controller
             return $deny;
         }
 
+        if (!$isAdmin && in_array($item->status_verifikasi, ['sudah_diajukan', 'ditolak'], true)) {
+            $label = PipUsulan::STATUS_VERIFIKASI[$item->status_verifikasi] ?? $item->status_verifikasi;
+            return response()->json([
+                'success' => false,
+                'message' => "Akses ditolak: Usulan dengan status '{$label}' tidak dapat diubah lagi oleh Wali Kelas.",
+            ], 422);
+        }
+
         if (!$isAdmin && PipPengaturan::isLockedForWaliKelas($item->tahun)) {
             return response()->json([
                 'success' => false,
@@ -2214,10 +2222,11 @@ class PipController extends Controller
         $rombelId = $item->rombongan_belajar_id;
         $tahun = $item->tahun;
 
-        if ($item->status_verifikasi === 'sudah_diajukan') {
+        if (in_array($item->status_verifikasi, ['sudah_diajukan', 'ditolak'], true)) {
+            $label = PipUsulan::STATUS_VERIFIKASI[$item->status_verifikasi] ?? $item->status_verifikasi;
             return response()->json([
                 'success' => false,
-                'message' => 'Akses ditolak: Usulan dengan status "Sudah Diusulkan" tidak dapat dihapus.',
+                'message' => "Akses ditolak: Usulan dengan status '{$label}' tidak dapat dihapus.",
             ], 422);
         }
 
@@ -2309,6 +2318,7 @@ class PipController extends Controller
             'status_verifikasi'   => $statusTarget,
             'diverifikasi_oleh'   => $adminNama,
             'verifikasi_admin_at' => now(),
+            'updated_at'          => now(),
         ]);
 
         $label = PipUsulan::STATUS_VERIFIKASI[$statusTarget] ?? $statusTarget;
