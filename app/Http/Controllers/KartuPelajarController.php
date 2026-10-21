@@ -255,6 +255,10 @@ class KartuPelajarController extends Controller
         $pengeluaranList = null;
         $recentPemasukan = null;
         $pemasukanList = null;
+        $bQ = '';
+        $bPerPage = 10;
+        $bSort = null;
+        $bDir = 'desc';
         $chartKeuangan = [
             'labels'          => [],
             'pemasukan'       => [],
@@ -300,28 +304,33 @@ class KartuPelajarController extends Controller
                 $bayarQuery->orderByDesc('kp.tanggal_bayar')->orderByDesc('kp.updated_at');
             }
 
-            $pemasukanList = $bayarQuery->paginate($perPage, ['*'], 'pembayaran_page')->withQueryString();
+            $pemasukanList = $bayarQuery->paginate($perPage)->withQueryString();
             $recentPemasukan = $pemasukanList;
 
-            // 2. Pengeluaran Bahan / Alat (Datatable Global)
+            // 2. Pengeluaran Bahan / Alat: state datatable terpisah (prefix belanja_) agar tidak bentrok dengan tabel pembayaran
             if (Schema::hasTable('kartu_pelajar_pengeluaran')) {
+                $bQ = trim((string) $request->get('belanja_q', ''));
+                $bPerPage = in_array((int) $request->get('belanja_per_page'), [10, 15, 25, 50, 100], true) ? (int) $request->get('belanja_per_page') : 10;
+                $bSort = in_array($request->get('belanja_sort'), ['tanggal', 'nominal', 'judul', 'kategori'], true) ? $request->get('belanja_sort') : null;
+                $bDir = strtolower((string) $request->get('belanja_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
                 $pQuery = DB::table('kartu_pelajar_pengeluaran');
-                if ($q !== '') {
-                    $pQuery->where(function ($sub) use ($q) {
-                        $sub->where('judul', 'LIKE', "%{$q}%")
-                            ->orWhere('kategori', 'LIKE', "%{$q}%")
-                            ->orWhere('keterangan', 'LIKE', "%{$q}%")
-                            ->orWhere('petugas', 'LIKE', "%{$q}%");
+                if ($bQ !== '') {
+                    $pQuery->where(function ($sub) use ($bQ) {
+                        $sub->where('judul', 'LIKE', "%{$bQ}%")
+                            ->orWhere('kategori', 'LIKE', "%{$bQ}%")
+                            ->orWhere('keterangan', 'LIKE', "%{$bQ}%")
+                            ->orWhere('petugas', 'LIKE', "%{$bQ}%");
                     });
                 }
 
-                if (in_array($sort, ['tanggal', 'nominal', 'judul', 'kategori'], true)) {
-                    $pQuery->orderBy($sort, $sortDir);
+                if ($bSort) {
+                    $pQuery->orderBy($bSort, $bDir)->orderByDesc('id');
                 } else {
                     $pQuery->orderByDesc('tanggal')->orderByDesc('id');
                 }
 
-                $pengeluaranList = $pQuery->paginate($perPage, ['*'], 'pengeluaran_page')->withQueryString();
+                $pengeluaranList = $pQuery->paginate($bPerPage, ['*'], 'belanja_page')->withQueryString();
             }
 
             // Time series 6 bulan terakhir untuk chart bar pemasukan vs pengeluaran
@@ -476,6 +485,10 @@ class KartuPelajarController extends Controller
             'pengeluaranList',
             'recentPemasukan',
             'pemasukanList',
+            'bQ',
+            'bPerPage',
+            'bSort',
+            'bDir',
             'chartKeuangan',
             'kategoriList',
             'requestList',

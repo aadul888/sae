@@ -270,7 +270,7 @@
                         <div class="live-search-wrap" style="height: 38px;">
                             <i class="fas fa-search search-icon"></i>
                             <input type="text" id="searchKartuPelajar" name="q"
-                                placeholder="Cari siswa / NISN / rombel / belanja..." value="{{ $q }}"
+                                placeholder="Cari siswa / NISN / rombel / metode..." value="{{ $q }}"
                                 autocomplete="off">
                             <button type="button" id="clearSearchKartuPelajar"
                                 class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
@@ -431,6 +431,46 @@
                     </div>
                 </div>
 
+                <!-- Toolbar Datatable Belanja: state terpisah (belanja_*), dikelola kartu-pelajar-manage.js -->
+                <div class="datatable-toolbar" data-manual-filter>
+                    <div
+                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <div class="toolbar-entries">
+                                <label for="belanjaPerPage" style="margin: 0;">Tampilkan</label>
+                                <select id="belanjaPerPage" name="belanja_per_page" class="per-page-select"
+                                    style="height: 38px;">
+                                    @foreach ([10, 15, 25, 50, 100] as $n)
+                                        <option value="{{ $n }}" {{ $bPerPage == $n ? 'selected' : '' }}>
+                                            {{ $n }}</option>
+                                    @endforeach
+                                </select>
+                                <span>entri</span>
+                            </div>
+
+                            @if ($bQ || $bSort)
+                                <a href="{{ request()->fullUrlWithoutQuery(['belanja_q', 'belanja_per_page', 'belanja_sort', 'belanja_dir', 'belanja_page']) }}"
+                                    class="btn btn-outline btn-reset-filter"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    title="Reset filter" data-live-reset>
+                                    <i class="fas fa-undo"></i>
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="live-search-wrap" style="height: 38px;">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="belanjaSearch" name="belanja_q" data-manual-search
+                                placeholder="Cari uraian / kategori / toko..." value="{{ $bQ }}"
+                                autocomplete="off">
+                            <button type="button" class="clear-search {{ !empty($bQ) ? 'visible' : '' }}"
+                                title="Hapus pencarian">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
                     <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                         <thead>
@@ -438,26 +478,35 @@
                                 <th
                                     style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
                                     No</th>
-                                <th class="sortable-th {{ $sort === 'tanggal' ? 'sorted' : '' }}" data-sort="tanggal"
+                                <th class="sortable-th {{ $bSort === 'judul' ? 'sorted' : '' }}"
+                                    data-belanja-sort="judul"
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Uraian
+                                    <span class="sort-icon">{!! $bSort === 'judul' ? ($bDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th class="sortable-th {{ $bSort === 'kategori' ? 'sorted' : '' }}"
+                                    data-belanja-sort="kategori"
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Kategori
+                                    <span class="sort-icon">{!! $bSort === 'kategori' ? ($bDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th class="sortable-th {{ $bSort === 'tanggal' ? 'sorted' : '' }}"
+                                    data-belanja-sort="tanggal"
                                     style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
                                     Tanggal
-                                    <span class="sort-icon">{!! $sort === 'tanggal' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
-                                </th>
-                                <th class="sortable-th {{ $sort === 'judul' ? 'sorted' : '' }}" data-sort="judul"
-                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                    Uraian &amp; Kategori
-                                    <span class="sort-icon">{!! $sort === 'judul' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                    <span class="sort-icon">{!! $bSort === 'tanggal' ? ($bDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                                 </th>
                                 <th
                                     style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
-                                    Kuantitas (Qty)</th>
+                                    Qty</th>
                                 <th
                                     style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                     Harga Satuan</th>
-                                <th class="sortable-th {{ $sort === 'nominal' ? 'sorted' : '' }}" data-sort="nominal"
+                                <th class="sortable-th {{ $bSort === 'nominal' ? 'sorted' : '' }}"
+                                    data-belanja-sort="nominal"
                                     style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
                                     Total Pengeluaran
-                                    <span class="sort-icon">{!! $sort === 'nominal' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                    <span class="sort-icon">{!! $bSort === 'nominal' ? ($bDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
                                 </th>
                                 <th
                                     style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -471,50 +520,49 @@
                             @if ($pengeluaranList && $pengeluaranList->count() > 0)
                                 @foreach ($pengeluaranList as $p)
                                     <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td
+                                        <td data-label="No"
                                             style="padding: 12px 14px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
                                             {{ $loop->iteration + ($pengeluaranList && method_exists($pengeluaranList, 'currentPage') ? ($pengeluaranList->currentPage() - 1) * $pengeluaranList->perPage() : 0) }}
                                         </td>
-                                        <td
+                                        <td data-label="Judul" style="padding: 12px 16px;">
+                                            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
+                                                {{ $p->judul }}</div>
+                                            @if ($p->petugas)
+                                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">
+                                                    Oleh: {{ $p->petugas }}</div>
+                                            @endif
+                                        </td>
+                                        <td data-label="Kategori" style="padding: 12px 14px;">
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.72rem; padding: 2px 7px;">
+                                                {{ $kategoriList[$p->kategori] ?? ucfirst($p->kategori) }}
+                                            </span>
+                                        </td>
+                                        <td data-label="Tanggal"
                                             style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">
                                             {{ \Carbon\Carbon::parse($p->tanggal)->translatedFormat('d M Y') }}
                                         </td>
-                                        <td style="padding: 12px 16px;">
-                                            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
-                                                {{ $p->judul }}</div>
-                                            <div
-                                                style="display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap;">
-                                                <span class="badge badge-outline"
-                                                    style="font-size: 0.68rem; padding: 2px 6px;">
-                                                    {{ $kategoriList[$p->kategori] ?? ucfirst($p->kategori) }}
-                                                </span>
-                                                @if ($p->petugas)
-                                                    <span style="font-size: 0.7rem; color: var(--text-muted);">
-                                                        &bull; Oleh: {{ $p->petugas }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </td>
-                                        <td style="padding: 12px 14px; text-align: center;">
+                                        <td data-label="Qty" style="padding: 12px 14px; text-align: center;">
                                             <span class="badge badge-outline"
                                                 style="font-size: 0.72rem; padding: 2px 7px; border-color: rgba(99,102,241,0.3); color: var(--primary);">
                                                 <i class="fas fa-boxes-stacked me-1"></i>
                                                 {{ number_format($p->jumlah ?: 1, 0, ',', '.') }}
                                             </span>
                                         </td>
-                                        <td
+                                        <td data-label="Harga Satuan"
                                             style="padding: 12px 14px; text-align: right; font-size: 0.82rem; color: var(--text-muted); white-space: nowrap;">
                                             Rp
                                             {{ number_format($p->harga_satuan ?: ($p->jumlah > 1 ? round($p->nominal / $p->jumlah) : $p->nominal), 0, ',', '.') }}
                                         </td>
-                                        <td
+                                        <td data-label="Total"
                                             style="padding: 12px 14px; text-align: right; font-weight: 700; color: #ef4444; font-size: 0.88rem; white-space: nowrap;">
                                             Rp {{ number_format($p->nominal, 0, ',', '.') }}
                                         </td>
-                                        <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted);">
+                                        <td data-label="Keterangan"
+                                            style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted);">
                                             {{ $p->keterangan ?: '-' }}
                                         </td>
-                                        <td style="padding: 12px 12px; text-align: center;">
+                                        <td data-label="Aksi" style="padding: 12px 12px; text-align: center;">
                                             <div
                                                 style="display: flex; gap: 4px; justify-content: center; align-items: center;">
                                                 @if ($p->bukti_nota_path)
@@ -545,7 +593,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="8"
+                                    <td colspan="9"
                                         style="padding: 35px; text-align: center; color: var(--text-muted);">
                                         <i class="fas fa-receipt mb-2"
                                             style="font-size: 2rem; opacity: 0.4; display: block;"></i>
@@ -1739,8 +1787,8 @@
                                 style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
                                 Nominal / Biaya (Rp)
                             </label>
-                            <input type="number" name="nominal" id="bayarNominal" class="form-control" value="25000"
-                                min="0" step="1000"
+                            <input type="number" name="nominal" id="bayarNominal" class="form-control"
+                                value="25000" min="0" step="1000"
                                 style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: 6px; font-size: 0.84rem;">
                         </div>
                         <div>

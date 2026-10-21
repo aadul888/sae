@@ -1705,6 +1705,70 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // =========================================================================
+    // 11C. Datatable Catatan Belanja: state mandiri (prefix belanja_) via refreshLiveTable
+    // =========================================================================
+    function refreshBelanja(mutate) {
+        const url = new URL(window.location.href);
+        mutate(url.searchParams);
+        url.searchParams.delete("belanja_page");
+        if (typeof window.refreshLiveTable === "function") {
+            window.refreshLiveTable(url.toString());
+        } else {
+            window.location.href = url.toString();
+        }
+    }
+
+    let belanjaTimer = null;
+    document.addEventListener("input", function (e) {
+        if (e.target.id !== "belanjaSearch") return;
+        const val = e.target.value.trim();
+        e.target.closest(".live-search-wrap")?.querySelector(".clear-search")?.classList.toggle("visible", val.length > 0);
+        clearTimeout(belanjaTimer);
+        belanjaTimer = setTimeout(() => {
+            refreshBelanja((p) => (val ? p.set("belanja_q", val) : p.delete("belanja_q")));
+        }, 400);
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter" || e.target.id !== "belanjaSearch") return;
+        e.preventDefault();
+        clearTimeout(belanjaTimer);
+        const val = e.target.value.trim();
+        refreshBelanja((p) => (val ? p.set("belanja_q", val) : p.delete("belanja_q")));
+    });
+
+    document.addEventListener("change", function (e) {
+        if (e.target.id !== "belanjaPerPage") return;
+        refreshBelanja((p) => p.set("belanja_per_page", e.target.value));
+    });
+
+    // Capture phase agar handler global (.clear-search / .sortable-th) tidak ikut menimpa state tabel lain
+    document.addEventListener("click", function (e) {
+        const clearBtn = e.target.closest(".clear-search");
+        const belanjaInput = clearBtn?.closest(".live-search-wrap")?.querySelector("#belanjaSearch");
+        if (belanjaInput) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            belanjaInput.value = "";
+            clearBtn.classList.remove("visible");
+            refreshBelanja((p) => p.delete("belanja_q"));
+            return;
+        }
+
+        const th = e.target.closest("th[data-belanja-sort]");
+        if (th) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            const field = th.dataset.belanjaSort;
+            refreshBelanja((p) => {
+                const asc = p.get("belanja_sort") === field && p.get("belanja_dir") === "asc";
+                p.set("belanja_sort", field);
+                p.set("belanja_dir", asc ? "desc" : "asc");
+            });
+        }
+    }, true);
+
     // Close modals on escape key
     document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") {
