@@ -254,6 +254,7 @@ class KartuPelajarController extends Controller
 
         $pengeluaranList = null;
         $recentPemasukan = null;
+        $pemasukanList = null;
         $chartKeuangan = [
             'labels'          => [],
             'pemasukan'       => [],
@@ -263,6 +264,46 @@ class KartuPelajarController extends Controller
         ];
 
         if ($tab === 'keuangan') {
+            // 1. Pemasukan / Pembayaran Siswa (Datatable Global)
+            $bayarQuery = DB::table('kartu_pelajar_pembayaran as kp')
+                ->join('peserta_didik as pd', 'kp.peserta_didik_id', '=', 'pd.peserta_didik_id')
+                ->leftJoin('peserta_didik_meta as pdm', 'pd.peserta_didik_id', '=', 'pdm.peserta_didik_id')
+                ->where('kp.status_pembayaran', 'lunas')
+                ->select(
+                    'kp.*',
+                    'pd.nama',
+                    'pd.nama_rombel',
+                    'pd.nisn',
+                    'pd.nipd',
+                    'pd.nomor_telepon_seluler',
+                    'pd.nomor_telepon_rumah',
+                    'pdm.foto_path'
+                );
+
+            if ($q !== '') {
+                $bayarQuery->where(function ($sub) use ($q) {
+                    $sub->where('pd.nama', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nisn', 'LIKE', "%{$q}%")
+                        ->orWhere('pd.nama_rombel', 'LIKE', "%{$q}%")
+                        ->orWhere('kp.metode_pembayaran', 'LIKE', "%{$q}%");
+                });
+            }
+
+            if ($rombel !== '') {
+                $bayarQuery->where('pd.nama_rombel', $rombel);
+            }
+
+            if (in_array($sort, ['nama', 'nisn', 'nama_rombel', 'nominal', 'tanggal_bayar'], true)) {
+                $sortColumn = in_array($sort, ['nama', 'nisn', 'nama_rombel'], true) ? 'pd.' . $sort : 'kp.' . $sort;
+                $bayarQuery->orderBy($sortColumn, $sortDir);
+            } else {
+                $bayarQuery->orderByDesc('kp.tanggal_bayar')->orderByDesc('kp.updated_at');
+            }
+
+            $pemasukanList = $bayarQuery->paginate($perPage, ['*'], 'pembayaran_page')->withQueryString();
+            $recentPemasukan = $pemasukanList;
+
+            // 2. Pengeluaran Bahan / Alat (Datatable Global)
             if (Schema::hasTable('kartu_pelajar_pengeluaran')) {
                 $pQuery = DB::table('kartu_pelajar_pengeluaran');
                 if ($q !== '') {
@@ -273,17 +314,15 @@ class KartuPelajarController extends Controller
                             ->orWhere('petugas', 'LIKE', "%{$q}%");
                     });
                 }
-                $pengeluaranList = $pQuery->orderByDesc('tanggal')->orderByDesc('id')->paginate(10, ['*'], 'pengeluaran_page')->withQueryString();
-            }
 
-            $recentPemasukan = DB::table('kartu_pelajar_pembayaran as kp')
-                ->join('peserta_didik as pd', 'kp.peserta_didik_id', '=', 'pd.peserta_didik_id')
-                ->where('kp.status_pembayaran', 'lunas')
-                ->select('kp.*', 'pd.nama', 'pd.nama_rombel', 'pd.nisn')
-                ->orderByDesc('kp.tanggal_bayar')
-                ->orderByDesc('kp.updated_at')
-                ->limit(10)
-                ->get();
+                if (in_array($sort, ['tanggal', 'nominal', 'judul', 'kategori'], true)) {
+                    $pQuery->orderBy($sort, $sortDir);
+                } else {
+                    $pQuery->orderByDesc('tanggal')->orderByDesc('id');
+                }
+
+                $pengeluaranList = $pQuery->paginate($perPage, ['*'], 'pengeluaran_page')->withQueryString();
+            }
 
             // Time series 6 bulan terakhir untuk chart bar pemasukan vs pengeluaran
             for ($i = 5; $i >= 0; $i--) {
@@ -436,6 +475,7 @@ class KartuPelajarController extends Controller
             'keuangan',
             'pengeluaranList',
             'recentPemasukan',
+            'pemasukanList',
             'chartKeuangan',
             'kategoriList',
             'requestList',

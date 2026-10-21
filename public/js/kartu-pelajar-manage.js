@@ -958,7 +958,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const jml = document.getElementById("pgJumlah");
             if (jml) jml.value = "1";
             const preview = document.getElementById("pgNominalPreview");
-            if (preview) preview.textContent = "Total Pengeluaran: Rp 0";
+            if (preview) {
+                preview.innerHTML = `<span>Total Pengeluaran:</span> <strong style="font-size: 0.92rem; color: var(--text-muted);">Rp 0</strong>`;
+            }
             document.getElementById("pgJudul")?.focus();
         }
     };
@@ -1473,9 +1475,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (pgNominalPreview) {
             if (unitPrice > 0) {
-                pgNominalPreview.innerHTML = `Total Pengeluaran: <strong style="color: #ef4444;">Rp ${formattedTotal}</strong> (${qty} item &times; Rp ${formattedPrice})`;
+                pgNominalPreview.innerHTML = `<span>Total Pengeluaran:</span> <span style="display: inline-flex; align-items: baseline; gap: 6px;"><strong style="color: #ef4444; font-size: 0.95rem;">Rp ${formattedTotal}</strong> <span style="font-weight: 500; font-size: 0.74rem; color: var(--text-muted);">(${qty} item &times; Rp ${formattedPrice})</span></span>`;
             } else {
-                pgNominalPreview.textContent = "Total Pengeluaran: Rp 0";
+                pgNominalPreview.innerHTML = `<span>Total Pengeluaran:</span> <strong style="color: var(--text-muted); font-size: 0.92rem;">Rp 0</strong>`;
             }
         }
     }
@@ -1575,9 +1577,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (editPgNominalPreview) {
             if (unitPrice > 0) {
-                editPgNominalPreview.innerHTML = `Total Pengeluaran: <strong style="color: #ef4444;">Rp ${formattedTotal}</strong> (${qty} item &times; Rp ${formattedPrice})`;
+                editPgNominalPreview.innerHTML = `<span>Total Pengeluaran:</span> <span style="display: inline-flex; align-items: baseline; gap: 6px;"><strong style="color: #ef4444; font-size: 0.95rem;">Rp ${formattedTotal}</strong> <span style="font-weight: 500; font-size: 0.74rem; color: var(--text-muted);">(${qty} item &times; Rp ${formattedPrice})</span></span>`;
             } else {
-                editPgNominalPreview.textContent = "Total Pengeluaran: Rp 0";
+                editPgNominalPreview.innerHTML = `<span>Total Pengeluaran:</span> <strong style="color: var(--text-muted); font-size: 0.92rem;">Rp 0</strong>`;
             }
         }
     }

@@ -208,196 +208,360 @@
             </div>
         </div>
 
-        <!-- Dua Card Tabel: Pengeluaran & Pemasukan Terbaru -->
-        <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; margin-bottom: 24px;">
-            <!-- Tabel Kiri: Catatan Pengeluaran -->
-            <div class="card table-responsive-stack" style="padding: 0;">
+        <!-- Datatable Keuangan Terpadu: 1 Kolom Vertikal (Tabel Pembayaran Dulu, Baru Catatan Belanja) -->
+        <div id="tableDataContainer" style="display: flex; flex-direction: column; gap: 24px; margin-bottom: 24px;">
+            <!-- 1. Datatable Penerimaan Pembayaran Siswa (Uang Masuk) -->
+            <div class="card datatable-card-wrapper" style="margin-bottom: 0;">
                 <div
                     style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h4
-                        style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-receipt text-danger"></i> Catatan Belanja Bahan &amp; Alat
-                    </h4>
-                    <button type="button" class="btn btn-outline btn-sm" onclick="openTambahPengeluaran()"
-                        style="padding: 4px 10px; font-size: 0.76rem; border-color: #ef4444; color: #ef4444;">
-                        <i class="fas fa-plus me-1"></i> Tambah
-                    </button>
+                    <div>
+                        <h4
+                            style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-money-check-dollar text-success"></i> Penerimaan Pembayaran Siswa (Uang Masuk)
+                        </h4>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                            Daftar riwayat pembayaran kartu pelajar lunas dari peserta didik.
+                        </div>
+                    </div>
+                    <span class="badge badge-success" style="font-size: 0.74rem; padding: 5px 12px; font-weight: 700;">
+                        <i class="fas fa-circle-check me-1"></i>
+                        {{ number_format($pemasukanList ? $pemasukanList->total() : ($recentPemasukan ? $recentPemasukan->count() : 0), 0, ',', '.') }}
+                        Pembayaran Lunas
+                    </span>
                 </div>
 
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Tanggal</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Uraian &amp; Kategori</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                                Nominal</th>
-                            <th
-                                style="padding: 10px 12px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
-                                Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if ($pengeluaranList && $pengeluaranList->count() > 0)
-                            @foreach ($pengeluaranList as $p)
-                                <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td
-                                        style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;">
-                                        {{ \Carbon\Carbon::parse($p->tanggal)->translatedFormat('d M Y') }}
-                                    </td>
-                                    <td style="padding: 12px 14px;">
-                                        <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
-                                            {{ $p->judul }}</div>
-                                        <div
-                                            style="display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap;">
+                <!-- Datatable Toolbar Pembayaran: Entries, Filter Rombel & Live Search -->
+                <div class="datatable-toolbar">
+                    <div
+                        style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                            <div class="toolbar-entries">
+                                <label for="perPageSelect" style="margin: 0;">Tampilkan</label>
+                                <select id="perPageSelect" name="perPage" class="per-page-select" style="height: 38px;">
+                                    @foreach ([10, 15, 25, 50, 100] as $n)
+                                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>
+                                            {{ $n }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <span>entri</span>
+                            </div>
+
+                            <select id="filterRombel" name="rombel" class="toolbar-filter-select"
+                                style="height: 38px;">
+                                <option value="">Semua Rombel</option>
+                                @foreach ($rombelList as $r)
+                                    <option value="{{ $r->nama }}" {{ $rombel === $r->nama ? 'selected' : '' }}>
+                                        {{ $r->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @if ($q || $rombel)
+                                <a href="{{ route('dashboard.kartu-pelajar.index', ['tab' => 'keuangan']) }}"
+                                    class="btn btn-outline btn-reset-filter"
+                                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px;"
+                                    title="Reset filter" data-live-reset>
+                                    <i class="fas fa-undo"></i>
+                                </a>
+                            @endif
+                        </div>
+
+                        <div class="live-search-wrap" style="height: 38px;">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="searchKartuPelajar" name="q"
+                                placeholder="Cari siswa / NISN / rombel / belanja..." value="{{ $q }}"
+                                autocomplete="off">
+                            <button type="button" id="clearSearchKartuPelajar"
+                                class="clear-search {{ !empty($q) ? 'visible' : '' }}" title="Hapus pencarian">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                <th
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                    No</th>
+                                <th class="sortable-th {{ $sort === 'nama' ? 'sorted' : '' }}" data-sort="nama"
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Peserta Didik
+                                    <span class="sort-icon">{!! $sort === 'nama' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th class="sortable-th {{ $sort === 'nama_rombel' ? 'sorted' : '' }}"
+                                    data-sort="nama_rombel"
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Rombel / Kelas
+                                    <span class="sort-icon">{!! $sort === 'nama_rombel' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th class="sortable-th {{ $sort === 'tanggal_bayar' ? 'sorted' : '' }}"
+                                    data-sort="tanggal_bayar"
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Tanggal Bayar
+                                    <span class="sort-icon">{!! $sort === 'tanggal_bayar' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Metode</th>
+                                <th class="sortable-th {{ $sort === 'nominal' ? 'sorted' : '' }}" data-sort="nominal"
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                    Nominal
+                                    <span class="sort-icon">{!! $sort === 'nominal' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 100px;">
+                                    Status</th>
+                                <th
+                                    style="padding: 12px 12px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 85px;">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $bayarRows = $pemasukanList ?? $recentPemasukan;
+                            @endphp
+                            @if ($bayarRows && $bayarRows->count() > 0)
+                                @foreach ($bayarRows as $rp)
+                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                        <td
+                                            style="padding: 12px 14px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                                            {{ $loop->iteration + ($pemasukanList && method_exists($pemasukanList, 'currentPage') ? ($pemasukanList->currentPage() - 1) * $pemasukanList->perPage() : 0) }}
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
+                                                {{ $rp->nama }}
+                                            </div>
+                                            <div
+                                                style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
+                                                NISN: {{ $rp->nisn ?: '-' }}
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px 14px;">
                                             <span class="badge badge-outline"
-                                                style="font-size: 0.68rem; padding: 2px 6px;">
-                                                {{ $kategoriList[$p->kategori] ?? ucfirst($p->kategori) }}
+                                                style="font-size: 0.72rem; padding: 2px 7px;">
+                                                {{ $rp->nama_rombel ?: '-' }}
                                             </span>
-                                            @if (!empty($p->jumlah))
-                                                <span class="badge badge-outline"
-                                                    style="font-size: 0.68rem; padding: 2px 6px; border-color: rgba(99,102,241,0.3); color: var(--primary);">
-                                                    <i class="fas fa-boxes-stacked me-1"></i> Qty:
-                                                    {{ number_format($p->jumlah, 0, ',', '.') }}
-                                                    @if (!empty($p->harga_satuan) || ($p->jumlah > 1 && $p->nominal > 0))
-                                                        &bull; @ Rp
-                                                        {{ number_format($p->harga_satuan ?: $p->nominal / $p->jumlah, 0, ',', '.') }}
-                                                    @endif
-                                                </span>
-                                            @endif
-                                            @if ($p->petugas)
-                                                <span style="font-size: 0.7rem; color: var(--text-muted);">
-                                                    &bull; Oleh: {{ $p->petugas }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                        @if ($p->keterangan)
-                                            <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
-                                                {{ $p->keterangan }}</div>
-                                        @endif
-                                    </td>
-                                    <td
-                                        style="padding: 12px 14px; text-align: right; font-weight: 700; color: #ef4444; font-size: 0.86rem; white-space: nowrap;">
-                                        Rp {{ number_format($p->nominal, 0, ',', '.') }}
-                                    </td>
-                                    <td style="padding: 12px 12px; text-align: center;">
-                                        <div
-                                            style="display: flex; gap: 4px; justify-content: center; align-items: center;">
-                                            @if ($p->bukti_nota_path)
-                                                <a href="{{ asset('storage/' . ltrim($p->bukti_nota_path, '/')) }}"
-                                                    target="_blank" class="btn-icon" style="color: #3b82f6;"
-                                                    title="Lihat Bukti Nota">
-                                                    <i class="fas fa-file-invoice"></i>
-                                                </a>
-                                            @endif
-                                            <button type="button" class="btn-icon" style="color: #4f46e5;"
-                                                title="Edit Catatan Pengeluaran"
-                                                onclick="openEditPengeluaran({{ json_encode($p) }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <form
-                                                action="{{ route('dashboard.kartu-pelajar.destroy-pengeluaran', $p->id) }}"
-                                                method="POST" class="delete-pengeluaran-form" style="margin: 0;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-icon" style="color: #ef4444;"
-                                                    title="Hapus Pengeluaran">
-                                                    <i class="fas fa-trash-alt"></i>
+                                        </td>
+                                        <td
+                                            style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">
+                                            {{ $rp->tanggal_bayar ? \Carbon\Carbon::parse($rp->tanggal_bayar)->translatedFormat('d M Y') : '-' }}
+                                        </td>
+                                        <td style="padding: 12px 14px;">
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.72rem; padding: 2px 7px;">
+                                                {{ strtoupper($rp->metode_pembayaran ?: 'Tunai') }}
+                                            </span>
+                                        </td>
+                                        <td
+                                            style="padding: 12px 14px; text-align: right; font-weight: 700; color: #10b981; font-size: 0.88rem; white-space: nowrap;">
+                                            Rp {{ number_format($rp->nominal, 0, ',', '.') }}
+                                        </td>
+                                        <td style="padding: 12px 14px; text-align: center;">
+                                            <span class="badge badge-success"
+                                                style="font-size: 0.72rem; padding: 3px 8px;">
+                                                <i class="fas fa-check me-1"></i> Lunas
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px 12px; text-align: center;">
+                                            <div
+                                                style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                                @if (!empty($rp->nisn))
+                                                    <button type="button" class="btn-icon" style="color: #0284c7;"
+                                                        title="Pratinjau / Cetak Kartu Digital"
+                                                        onclick="openKartuPelajarModal('{{ $rp->nisn }}')">
+                                                        <i class="fas fa-address-card"></i>
+                                                    </button>
+                                                @endif
+                                                <button type="button" class="btn-icon" style="color: #25d366;"
+                                                    title="Kirim Pesan WhatsApp"
+                                                    onclick="openModalWa({{ json_encode($rp) }})">
+                                                    <i class="fab fa-whatsapp"></i>
                                                 </button>
-                                            </form>
-                                        </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="8"
+                                        style="padding: 35px; text-align: center; color: var(--text-muted);">
+                                        <i class="fas fa-money-check-dollar mb-2"
+                                            style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                        Belum ada data penerimaan pembayaran siswa.
                                     </td>
                                 </tr>
-                            @endforeach
-                        @else
-                            <tr>
-                                <td colspan="4" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-receipt mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.4; display: block;"></i>
-                                    <div>Belum ada catatan pengeluaran alat / bahan kartu pelajar.</div>
-                                </td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
 
-                @if ($pengeluaranList && $pengeluaranList->hasPages())
-                    <div style="padding: 12px 16px;">
-                        {{ $pengeluaranList->links() }}
+                @if (!empty($pemasukanList) && method_exists($pemasukanList, 'hasPages') && $pemasukanList->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $pemasukanList])
                     </div>
                 @endif
             </div>
 
-            <!-- Tabel Kanan: Pemasukan Siswa Terbaru -->
-            <div class="card table-responsive-stack" style="padding: 0;">
+            <!-- 2. Datatable Catatan Belanja Bahan & Alat (Pengeluaran) -->
+            <div class="card datatable-card-wrapper" style="margin-bottom: 0;">
                 <div
-                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                    <h4
-                        style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-money-check-dollar text-success"></i> Penerimaan Pembayaran Siswa Terbaru
-                    </h4>
-                    <span class="badge badge-success" style="font-size: 0.7rem;">Top 10 Transaksi</span>
+                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h4
+                            style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-receipt text-danger"></i> Catatan Belanja Bahan &amp; Alat
+                        </h4>
+                        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                            Pencatatan pengadaan bahan PVC, ribbon tinta, stiker, dan logistik cetak kartu pelajar.
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <span class="badge badge-outline" style="font-size: 0.74rem; padding: 5px 12px;">
+                            {{ number_format($pengeluaranList ? $pengeluaranList->total() : 0, 0, ',', '.') }} Catatan
+                            Pengadaan
+                        </span>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="openTambahPengeluaran()"
+                            style="font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;">
+                            <i class="fas fa-plus-circle"></i> Catat Pengeluaran
+                        </button>
+                    </div>
                 </div>
 
-                <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Tgl Bayar</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Peserta Didik</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-                                Metode</th>
-                            <th
-                                style="padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
-                                Nominal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if ($recentPemasukan && $recentPemasukan->count() > 0)
-                            @foreach ($recentPemasukan as $rp)
-                                <tr style="border-bottom: 1px solid var(--border-color);">
-                                    <td
-                                        style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted); white-space: nowrap;">
-                                        {{ $rp->tanggal_bayar ? \Carbon\Carbon::parse($rp->tanggal_bayar)->translatedFormat('d M Y') : '-' }}
-                                    </td>
-                                    <td style="padding: 12px 14px;">
-                                        <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
-                                            {{ $rp->nama }}</div>
-                                        <div style="font-size: 0.72rem; color: var(--text-muted); font-family: monospace;">
-                                            {{ $rp->nama_rombel ?: '-' }} &bull; NISN: {{ $rp->nisn ?: '-' }}
-                                        </div>
-                                    </td>
-                                    <td style="padding: 12px 14px;">
-                                        <span class="badge badge-outline" style="font-size: 0.72rem; padding: 2px 7px;">
-                                            {{ strtoupper($rp->metode_pembayaran ?: 'Tunai') }}
-                                        </span>
-                                    </td>
-                                    <td
-                                        style="padding: 12px 14px; text-align: right; font-weight: 700; color: #10b981; font-size: 0.86rem; white-space: nowrap;">
-                                        Rp {{ number_format($rp->nominal, 0, ',', '.') }}
+                <div class="table-responsive-stack" style="overflow-x: auto; width: 100%;">
+                    <table class="table table-pd" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.02);">
+                                <th
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; width: 50px; text-align: center;">
+                                    No</th>
+                                <th class="sortable-th {{ $sort === 'tanggal' ? 'sorted' : '' }}" data-sort="tanggal"
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Tanggal
+                                    <span class="sort-icon">{!! $sort === 'tanggal' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th class="sortable-th {{ $sort === 'judul' ? 'sorted' : '' }}" data-sort="judul"
+                                    style="padding: 12px 16px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Uraian &amp; Kategori
+                                    <span class="sort-icon">{!! $sort === 'judul' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center;">
+                                    Kuantitas (Qty)</th>
+                                <th
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                    Harga Satuan</th>
+                                <th class="sortable-th {{ $sort === 'nominal' ? 'sorted' : '' }}" data-sort="nominal"
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right;">
+                                    Total Pengeluaran
+                                    <span class="sort-icon">{!! $sort === 'nominal' ? ($sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;&#9660;' !!}</span>
+                                </th>
+                                <th
+                                    style="padding: 12px 14px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                                    Keterangan / Toko</th>
+                                <th
+                                    style="padding: 12px 12px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: center; width: 110px;">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if ($pengeluaranList && $pengeluaranList->count() > 0)
+                                @foreach ($pengeluaranList as $p)
+                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                        <td
+                                            style="padding: 12px 14px; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                                            {{ $loop->iteration + ($pengeluaranList && method_exists($pengeluaranList, 'currentPage') ? ($pengeluaranList->currentPage() - 1) * $pengeluaranList->perPage() : 0) }}
+                                        </td>
+                                        <td
+                                            style="padding: 12px 14px; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">
+                                            {{ \Carbon\Carbon::parse($p->tanggal)->translatedFormat('d M Y') }}
+                                        </td>
+                                        <td style="padding: 12px 16px;">
+                                            <div style="font-weight: 700; font-size: 0.86rem; color: var(--text-color);">
+                                                {{ $p->judul }}</div>
+                                            <div
+                                                style="display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap;">
+                                                <span class="badge badge-outline"
+                                                    style="font-size: 0.68rem; padding: 2px 6px;">
+                                                    {{ $kategoriList[$p->kategori] ?? ucfirst($p->kategori) }}
+                                                </span>
+                                                @if ($p->petugas)
+                                                    <span style="font-size: 0.7rem; color: var(--text-muted);">
+                                                        &bull; Oleh: {{ $p->petugas }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px 14px; text-align: center;">
+                                            <span class="badge badge-outline"
+                                                style="font-size: 0.72rem; padding: 2px 7px; border-color: rgba(99,102,241,0.3); color: var(--primary);">
+                                                <i class="fas fa-boxes-stacked me-1"></i>
+                                                {{ number_format($p->jumlah ?: 1, 0, ',', '.') }}
+                                            </span>
+                                        </td>
+                                        <td
+                                            style="padding: 12px 14px; text-align: right; font-size: 0.82rem; color: var(--text-muted); white-space: nowrap;">
+                                            Rp
+                                            {{ number_format($p->harga_satuan ?: ($p->jumlah > 1 ? round($p->nominal / $p->jumlah) : $p->nominal), 0, ',', '.') }}
+                                        </td>
+                                        <td
+                                            style="padding: 12px 14px; text-align: right; font-weight: 700; color: #ef4444; font-size: 0.88rem; white-space: nowrap;">
+                                            Rp {{ number_format($p->nominal, 0, ',', '.') }}
+                                        </td>
+                                        <td style="padding: 12px 14px; font-size: 0.78rem; color: var(--text-muted);">
+                                            {{ $p->keterangan ?: '-' }}
+                                        </td>
+                                        <td style="padding: 12px 12px; text-align: center;">
+                                            <div
+                                                style="display: flex; gap: 4px; justify-content: center; align-items: center;">
+                                                @if ($p->bukti_nota_path)
+                                                    <a href="{{ asset('storage/' . ltrim($p->bukti_nota_path, '/')) }}"
+                                                        target="_blank" class="btn-icon" style="color: #3b82f6;"
+                                                        title="Lihat Bukti Nota">
+                                                        <i class="fas fa-file-invoice"></i>
+                                                    </a>
+                                                @endif
+                                                <button type="button" class="btn-icon" style="color: #4f46e5;"
+                                                    title="Edit Catatan Pengeluaran"
+                                                    onclick="openEditPengeluaran({{ json_encode($p) }})">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form
+                                                    action="{{ route('dashboard.kartu-pelajar.destroy-pengeluaran', $p->id) }}"
+                                                    method="POST" class="delete-pengeluaran-form" style="margin: 0;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-icon" style="color: #ef4444;"
+                                                        title="Hapus Pengeluaran">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="8"
+                                        style="padding: 35px; text-align: center; color: var(--text-muted);">
+                                        <i class="fas fa-receipt mb-2"
+                                            style="font-size: 2rem; opacity: 0.4; display: block;"></i>
+                                        <div>Belum ada catatan pengeluaran alat / bahan kartu pelajar.</div>
                                     </td>
                                 </tr>
-                            @endforeach
-                        @else
-                            <tr>
-                                <td colspan="4" style="padding: 30px; text-align: center; color: var(--text-muted);">
-                                    <i class="fas fa-receipt mb-2"
-                                        style="font-size: 1.8rem; opacity: 0.4; display: block;"></i>
-                                    <div>Belum ada data pembayaran siswa lunas.</div>
-                                </td>
-                            </tr>
-                        @endif
-                    </tbody>
-                </table>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                @if ($pengeluaranList && method_exists($pengeluaranList, 'hasPages') && $pengeluaranList->hasPages())
+                    <div class="datatable-footer">
+                        @include('partials.datatable-pagination', ['paginator' => $pengeluaranList])
+                    </div>
+                @endif
             </div>
         </div>
     @elseif ($tab === 'request')
@@ -641,7 +805,8 @@
                                                 style="min-width: 110px; height: 32px; padding: 0 8px; font-size: 0.78rem;">
                                                 @foreach (\App\Models\KartuPelajarRequest::STATUS as $stKey => $stLabel)
                                                     <option value="{{ $stKey }}"
-                                                        {{ $rq->status === $stKey ? 'selected' : '' }}>{{ $stLabel }}
+                                                        {{ $rq->status === $stKey ? 'selected' : '' }}>
+                                                        {{ $stLabel }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -2005,11 +2170,11 @@
         </div>
     </div>
 
-    <!-- MODAL 4: Catat Pengeluaran Alat & Bahan Cetak -->
+    <!-- MODAL 4: Catat Pengeluaran Alat & Bahan Cetak (Compact & Rapi) -->
     <div id="modalTambahPengeluaran" class="modal-backdrop">
-        <div class="card kp-modal-card">
-            <div class="kp-modal-header">
-                <h4 class="kp-modal-title">
+        <div class="card kp-modal-card" style="max-width: 500px;">
+            <div class="kp-modal-header" style="padding: 14px 20px 10px;">
+                <h4 class="kp-modal-title" style="font-size: 0.98rem; font-weight: 800;">
                     <i class="fas fa-plus-circle text-danger"></i> Catat Pengeluaran Alat &amp; Bahan
                 </h4>
                 <button type="button" class="kp-modal-close" onclick="closeTambahPengeluaran()"
@@ -2019,69 +2184,102 @@
             <form action="{{ route('dashboard.kartu-pelajar.store-pengeluaran') }}" method="POST"
                 enctype="multipart/form-data" class="kp-modal-form" id="formTambahPengeluaran">
                 @csrf
-                <div class="kp-modal-body">
-                    <div class="kp-form-group">
-                        <label class="kp-form-label" for="pgJudul">Uraian / Judul Pembelanjaan <span
-                                class="req">*</span></label>
+                <div class="kp-modal-body" style="padding: 14px 20px;">
+                    <!-- 1. Uraian / Judul Pembelanjaan -->
+                    <div class="kp-form-group" style="margin-bottom: 10px;">
+                        <label class="kp-form-label" for="pgJudul"
+                            style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                            Uraian / Judul Pembelanjaan <span class="req">*</span>
+                        </label>
                         <input type="text" id="pgJudul" name="judul" required maxlength="255"
-                            class="form-control" placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon">
+                            class="form-control" style="height: 36px; font-size: 0.84rem;"
+                            placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon">
                     </div>
 
-                    <div class="kp-form-grid">
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="pgKategori">Kategori <span
-                                    class="req">*</span></label>
-                            <select id="pgKategori" name="kategori" required class="form-control">
+                    <!-- 2. Kategori & Tanggal Grid -->
+                    <div class="kp-form-grid" style="gap: 10px; margin-bottom: 10px;">
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="pgKategori"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Kategori <span class="req">*</span>
+                            </label>
+                            <select id="pgKategori" name="kategori" required class="form-control"
+                                style="height: 36px; font-size: 0.84rem;">
                                 @foreach ($kategoriList as $kKey => $kVal)
                                     <option value="{{ $kKey }}">{{ $kVal }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="pgJumlah">Jumlah / Kuantitas (Qty) <span
-                                    class="req">*</span></label>
-                            <input type="number" id="pgJumlah" name="jumlah" min="1" max="10000000"
-                                value="1" required class="form-control" placeholder="1">
-                            <div class="kp-form-hint">Contoh: 1 (roll/set), 250 (pcs), dsb.</div>
-                        </div>
-                    </div>
-
-                    <div class="kp-form-grid">
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="pgNominal">Harga Satuan / Nominal per Item (Rp) <span
-                                    class="req">*</span></label>
-                            <input type="text" id="pgNominal" name="nominal" required inputmode="numeric"
-                                class="form-control" placeholder="Contoh: 2.500" autocomplete="off"
-                                style="font-weight: 700;">
-                            <div class="kp-form-hint" id="pgNominalPreview"
-                                style="color: var(--primary); font-weight: 700; margin-top: 5px;">
-                                Total Pengeluaran: Rp 0
-                            </div>
-                        </div>
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="pgTanggal">Tanggal <span class="req">*</span></label>
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="pgTanggal"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Tanggal <span class="req">*</span>
+                            </label>
                             <input type="date" id="pgTanggal" name="tanggal" value="{{ date('Y-m-d') }}"
-                                required class="form-control">
+                                required class="form-control" style="height: 36px; font-size: 0.84rem;">
                         </div>
                     </div>
 
-                    <div class="kp-form-group">
-                        <label class="kp-form-label" for="pgNota">Bukti Nota / Kwitansi</label>
-                        <input type="file" id="pgNota" name="bukti_nota"
-                            accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control">
-                        <div class="kp-form-hint">JPG, PNG, WebP, PDF. Maks. 5 MB.</div>
+                    <!-- 3. Kuantitas (Qty) & Harga Satuan Grid -->
+                    <div class="kp-form-grid" style="gap: 10px; margin-bottom: 8px;">
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="pgJumlah"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Kuantitas (Qty) <span class="req">*</span>
+                            </label>
+                            <input type="number" id="pgJumlah" name="jumlah" min="1" max="10000000"
+                                value="1" required class="form-control" style="height: 36px; font-size: 0.84rem;"
+                                placeholder="1">
+                        </div>
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="pgNominal"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Harga Satuan (Rp) <span class="req">*</span>
+                            </label>
+                            <input type="text" id="pgNominal" name="nominal" required inputmode="numeric"
+                                class="form-control" style="height: 36px; font-size: 0.84rem; font-weight: 700;"
+                                placeholder="Contoh: 2.500" autocomplete="off">
+                        </div>
                     </div>
 
-                    <div class="kp-form-group">
-                        <label class="kp-form-label" for="pgKeterangan">Keterangan / Toko (Opsional)</label>
-                        <textarea id="pgKeterangan" name="keterangan" rows="2" maxlength="1000" class="form-control"
-                            placeholder="Nama toko, nomor pesanan, atau spesifikasi barang..."></textarea>
+                    <!-- 4. Highlight Preview Total Pengeluaran -->
+                    <div id="pgNominalPreview"
+                        style="padding: 8px 12px; border-radius: 8px; background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); font-size: 0.82rem; font-weight: 700; color: #ef4444; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Total Pengeluaran:</span>
+                        <strong style="font-size: 0.92rem; color: #ef4444;">Rp 0</strong>
+                    </div>
+
+                    <!-- 5. Bukti Nota & Keterangan / Toko Grid -->
+                    <div class="kp-form-grid" style="gap: 10px; margin-bottom: 0;">
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="pgNota"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Bukti Nota / Kwitansi
+                            </label>
+                            <input type="file" id="pgNota" name="bukti_nota"
+                                accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control"
+                                style="font-size: 0.76rem; padding: 5px 8px; height: 36px;">
+                            <div class="kp-form-hint" style="font-size: 0.68rem; margin-top: 2px;">JPG, PNG, PDF. Maks
+                                5MB.</div>
+                        </div>
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="pgKeterangan"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Keterangan / Toko
+                            </label>
+                            <input type="text" id="pgKeterangan" name="keterangan" maxlength="1000"
+                                class="form-control" style="height: 36px; font-size: 0.84rem;"
+                                placeholder="Nama toko / spesifikasi...">
+                            <div class="kp-form-hint" style="font-size: 0.68rem; margin-top: 2px;">Opsional</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="kp-modal-footer">
-                    <button type="button" onclick="closeTambahPengeluaran()" class="btn btn-outline">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="pgSubmit">
+                <div class="kp-modal-footer" style="padding: 10px 20px 14px;">
+                    <button type="button" onclick="closeTambahPengeluaran()" class="btn btn-outline btn-sm"
+                        style="padding: 6px 14px; font-size: 0.82rem;">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm" id="pgSubmit"
+                        style="padding: 6px 18px; font-size: 0.82rem; font-weight: 700;">
                         <i class="fas fa-save me-1"></i> Simpan Pengeluaran
                     </button>
                 </div>
@@ -2089,11 +2287,11 @@
         </div>
     </div>
 
-    <!-- MODAL 4B: Edit Catatan Pengeluaran -->
+    <!-- MODAL 4B: Edit Catatan Pengeluaran (Compact & Rapi) -->
     <div id="modalEditPengeluaran" class="modal-backdrop">
-        <div class="card kp-modal-card">
-            <div class="kp-modal-header">
-                <h4 class="kp-modal-title">
+        <div class="card kp-modal-card" style="max-width: 500px;">
+            <div class="kp-modal-header" style="padding: 14px 20px 10px;">
+                <h4 class="kp-modal-title" style="font-size: 0.98rem; font-weight: 800;">
                     <i class="fas fa-edit text-primary"></i> Edit Catatan Pengeluaran
                 </h4>
                 <button type="button" class="kp-modal-close" onclick="closeEditPengeluaran()"
@@ -2105,70 +2303,104 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" id="editPgId" name="id">
-                <div class="kp-modal-body">
-                    <div class="kp-form-group">
-                        <label class="kp-form-label" for="editPgJudul">Uraian / Judul Pembelanjaan <span
-                                class="req">*</span></label>
+                <div class="kp-modal-body" style="padding: 14px 20px;">
+                    <!-- 1. Uraian / Judul Pembelanjaan -->
+                    <div class="kp-form-group" style="margin-bottom: 10px;">
+                        <label class="kp-form-label" for="editPgJudul"
+                            style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                            Uraian / Judul Pembelanjaan <span class="req">*</span>
+                        </label>
                         <input type="text" id="editPgJudul" name="judul" required maxlength="255"
-                            class="form-control" placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon">
+                            class="form-control" style="height: 36px; font-size: 0.84rem;"
+                            placeholder="Contoh: Beli 250 Kartu PVC RFID Blank + 1 Roll Ribbon">
                     </div>
 
-                    <div class="kp-form-grid">
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="editPgKategori">Kategori <span
-                                    class="req">*</span></label>
-                            <select id="editPgKategori" name="kategori" required class="form-control">
+                    <!-- 2. Kategori & Tanggal Grid -->
+                    <div class="kp-form-grid" style="gap: 10px; margin-bottom: 10px;">
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="editPgKategori"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Kategori <span class="req">*</span>
+                            </label>
+                            <select id="editPgKategori" name="kategori" required class="form-control"
+                                style="height: 36px; font-size: 0.84rem;">
                                 @foreach ($kategoriList as $kKey => $kVal)
                                     <option value="{{ $kKey }}">{{ $kVal }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="editPgJumlah">Jumlah / Kuantitas (Qty) <span
-                                    class="req">*</span></label>
-                            <input type="number" id="editPgJumlah" name="jumlah" min="1" max="10000000"
-                                value="1" required class="form-control" placeholder="1">
-                            <div class="kp-form-hint">Contoh: 1 (roll/set), 250 (pcs), dsb.</div>
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="editPgTanggal"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Tanggal <span class="req">*</span>
+                            </label>
+                            <input type="date" id="editPgTanggal" name="tanggal" required class="form-control"
+                                style="height: 36px; font-size: 0.84rem;">
                         </div>
                     </div>
 
-                    <div class="kp-form-grid">
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="editPgNominal">Harga Satuan / Nominal per Item (Rp) <span
-                                    class="req">*</span></label>
+                    <!-- 3. Kuantitas (Qty) & Harga Satuan Grid -->
+                    <div class="kp-form-grid" style="gap: 10px; margin-bottom: 8px;">
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="editPgJumlah"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Kuantitas (Qty) <span class="req">*</span>
+                            </label>
+                            <input type="number" id="editPgJumlah" name="jumlah" min="1" max="10000000"
+                                value="1" required class="form-control" style="height: 36px; font-size: 0.84rem;"
+                                placeholder="1">
+                        </div>
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="editPgNominal"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Harga Satuan (Rp) <span class="req">*</span>
+                            </label>
                             <input type="text" id="editPgNominal" name="nominal" required inputmode="numeric"
-                                class="form-control" placeholder="Contoh: 2.500" autocomplete="off"
-                                style="font-weight: 700;">
-                            <div class="kp-form-hint" id="editPgNominalPreview"
-                                style="color: var(--primary); font-weight: 700; margin-top: 5px;">
-                                Total Pengeluaran: Rp 0
+                                class="form-control" style="height: 36px; font-size: 0.84rem; font-weight: 700;"
+                                placeholder="Contoh: 2.500" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- 4. Highlight Preview Total Pengeluaran -->
+                    <div id="editPgNominalPreview"
+                        style="padding: 8px 12px; border-radius: 8px; background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); font-size: 0.82rem; font-weight: 700; color: #ef4444; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                        <span>Total Pengeluaran:</span>
+                        <strong style="font-size: 0.92rem; color: #ef4444;">Rp 0</strong>
+                    </div>
+
+                    <!-- 5. Bukti Nota & Keterangan / Toko Grid -->
+                    <div class="kp-form-grid" style="gap: 10px; margin-bottom: 0;">
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="editPgNota"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Ganti Bukti Nota / Kwitansi
+                            </label>
+                            <input type="file" id="editPgNota" name="bukti_nota"
+                                accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control"
+                                style="font-size: 0.76rem; padding: 5px 8px; height: 36px;">
+                            <div class="kp-form-hint" id="editPgNotaHint"
+                                style="font-size: 0.68rem; margin-top: 2px;">
+                                Kosongkan jika tidak ingin mengubah nota.
                             </div>
                         </div>
-                        <div class="kp-form-group">
-                            <label class="kp-form-label" for="editPgTanggal">Tanggal <span
-                                    class="req">*</span></label>
-                            <input type="date" id="editPgTanggal" name="tanggal" required class="form-control">
+                        <div class="kp-form-group" style="margin-bottom: 0;">
+                            <label class="kp-form-label" for="editPgKeterangan"
+                                style="font-size: 0.78rem; font-weight: 700; margin-bottom: 3px;">
+                                Keterangan / Toko
+                            </label>
+                            <input type="text" id="editPgKeterangan" name="keterangan" maxlength="1000"
+                                class="form-control" style="height: 36px; font-size: 0.84rem;"
+                                placeholder="Nama toko / spesifikasi...">
+                            <div class="kp-form-hint" style="font-size: 0.68rem; margin-top: 2px;">Opsional</div>
                         </div>
-                    </div>
-
-                    <div class="kp-form-group">
-                        <label class="kp-form-label" for="editPgNota">Ganti Bukti Nota / Kwitansi</label>
-                        <input type="file" id="editPgNota" name="bukti_nota"
-                            accept="image/jpeg,image/png,application/pdf,image/webp" class="form-control">
-                        <div class="kp-form-hint" id="editPgNotaHint">JPG, PNG, WebP, PDF. Maks. 5 MB. Kosongkan jika
-                            tidak ingin mengubah bukti nota.</div>
-                    </div>
-
-                    <div class="kp-form-group">
-                        <label class="kp-form-label" for="editPgKeterangan">Keterangan / Toko (Opsional)</label>
-                        <textarea id="editPgKeterangan" name="keterangan" rows="2" maxlength="1000" class="form-control"
-                            placeholder="Nama toko, nomor pesanan, atau spesifikasi barang..."></textarea>
                     </div>
                 </div>
 
-                <div class="kp-modal-footer">
-                    <button type="button" onclick="closeEditPengeluaran()" class="btn btn-outline">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="editPgSubmit">
+                <div class="kp-modal-footer" style="padding: 10px 20px 14px;">
+                    <button type="button" onclick="closeEditPengeluaran()" class="btn btn-outline btn-sm"
+                        style="padding: 6px 14px; font-size: 0.82rem;">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm" id="editPgSubmit"
+                        style="padding: 6px 18px; font-size: 0.82rem; font-weight: 700;">
                         <i class="fas fa-save me-1"></i> Perbarui Pengeluaran
                     </button>
                 </div>
