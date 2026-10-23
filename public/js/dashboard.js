@@ -557,12 +557,6 @@ window.refreshLiveTable = async function (url, options = {}) {
     container.style.transition = "opacity 0.15s ease";
     container.style.opacity = "0.45";
 
-    // Jangan nonaktifkan pointerEvents jika elemen yang sedang fokus berada di dalam container
-    const isFocusInsideContainer = document.activeElement && container.contains(document.activeElement);
-    if (!isFocusInsideContainer) {
-        container.style.pointerEvents = "none";
-    }
-
     // Remember focused input to restore focus only if element is recreated in DOM
     const isInputActive =
         document.activeElement &&
@@ -798,23 +792,21 @@ window.refreshLiveTable = async function (url, options = {}) {
         }
 
         // 4d. Jaga agar kursor dan fokus input pengguna TIDAK terganggu saat mengetik
-        if (focusedElId) {
+        // Hanya pulihkan fokus jika saat ini tidak ada elemen lain yang dipilih pengguna (document.activeElement === document.body)
+        if (focusedElId && (!document.activeElement || document.activeElement === document.body)) {
             const reFocusEl = document.getElementById(focusedElId);
             if (reFocusEl) {
-                // Hanya refocus dan pulihkan jika fokus sempat terlepas dari elemen input
-                if (document.activeElement !== reFocusEl) {
-                    if (activeElVal !== null && reFocusEl.value !== activeElVal) {
-                        reFocusEl.value = activeElVal;
-                    }
-                    reFocusEl.focus();
-                    const curPos =
-                        activeCursorPos !== null
-                            ? activeCursorPos
-                            : (reFocusEl.value ? reFocusEl.value.length : 0);
-                    try {
-                        reFocusEl.setSelectionRange(curPos, curPos);
-                    } catch (e) {}
+                if (activeElVal !== null && reFocusEl.value !== activeElVal) {
+                    reFocusEl.value = activeElVal;
                 }
+                reFocusEl.focus({ preventScroll: true });
+                const curPos =
+                    activeCursorPos !== null
+                        ? activeCursorPos
+                        : (reFocusEl.value ? reFocusEl.value.length : 0);
+                try {
+                    reFocusEl.setSelectionRange(curPos, curPos);
+                } catch (e) {}
             }
         }
 
@@ -1240,7 +1232,8 @@ document.addEventListener("change", function (e) {
         el.hasAttribute("data-manual-filter") ||
         el.closest("[data-manual-filter]") ||
         el.closest("[data-no-ajax]") ||
-        el.closest(".modal, .swal2-container, #actionModal, .modal-backdrop")
+        el.closest(".modal, .swal2-container, #actionModal, .modal-backdrop") ||
+        isDatatableSearchInput(el)
     ) {
         return;
     }
@@ -1282,7 +1275,7 @@ document.addEventListener("change", function (e) {
             el.id.startsWith("perPage") ||
             el.closest(".toolbar-entries, .dash-table-toolbar, .datatable-toolbar, #tableDataContainer, .datatable-card-wrapper")
         )) ||
-        (el.tagName === "INPUT" && (
+        (el.tagName === "INPUT" && !isDatatableSearchInput(el) && (
             el.id.startsWith("filter") ||
             el.id.startsWith("adminFilter") ||
             el.classList.contains("toolbar-filter-date") ||
