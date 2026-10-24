@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    private const SORTABLE = ['nama', 'username', 'peran_id_str', 'no_hp'];
+    private const SORTABLE = ['nama', 'username', 'peran_id_str', 'no_hp', 'email'];
 
     /**
      * Halaman manajemen pengguna (4 Tab: Admin, Guru, Tendik, Peserta Didik)
@@ -127,6 +127,21 @@ class UserController extends Controller
                 ->where('peran_id_str', 'NOT LIKE', '%tendik%');
         });
 
+        // Subquery email resmi peserta didik dari dapodik / identitas
+        $subEmail = DB::table('peserta_didik as pd')
+            ->leftJoin('peserta_didik_identitas as pdi', 'pd.peserta_didik_id', '=', 'pdi.peserta_didik_id')
+            ->where(function ($w) {
+                $w->whereColumn('pd.peserta_didik_id', 'pengguna.peserta_didik_id')
+                    ->orWhere(function ($w2) {
+                        $w2->whereNull('pengguna.peserta_didik_id')
+                            ->whereColumn('pd.nisn', 'pengguna.username');
+                    });
+            })
+            ->selectRaw("COALESCE(NULLIF(pdi.email, ''), NULLIF(pd.email, ''), (CASE WHEN pengguna.username LIKE '%@%' THEN pengguna.username ELSE NULL END))")
+            ->limit(1);
+
+        $pesertaDidikQuery->select('pengguna.*')->selectSub($subEmail, 'email');
+
         if ($q !== '') {
             $applySearch = function ($query) use ($q) {
                 $query->where(function ($sub) use ($q) {
@@ -138,11 +153,27 @@ class UserController extends Controller
             $applySearch($adminQuery);
             $applySearch($guruQuery);
             $applySearch($tendikQuery);
-            $applySearch($pesertaDidikQuery);
+
+            $pesertaDidikQuery->where(function ($sub) use ($q) {
+                $sub->where('pengguna.nama', 'LIKE', "%{$q}%")
+                    ->orWhere('pengguna.username', 'LIKE', "%{$q}%")
+                    ->orWhere('pengguna.no_hp', 'LIKE', "%{$q}%")
+                    ->orWhereIn('pengguna.peserta_didik_id', function ($pdQ) use ($q) {
+                        $pdQ->select('peserta_didik_id')
+                            ->from('peserta_didik')
+                            ->where('email', 'LIKE', "%{$q}%");
+                    })
+                    ->orWhereIn('pengguna.peserta_didik_id', function ($pdiQ) use ($q) {
+                        $pdiQ->select('peserta_didik_id')
+                            ->from('peserta_didik_identitas')
+                            ->where('email', 'LIKE', "%{$q}%");
+                    });
+            });
         }
 
-        $orderFn = function ($query) use ($sort, $sortDir) {
-            $query->orderBy($sort, $sortDir)->orderBy('nama', 'asc');
+        $effectiveSort = ($sort === 'email' && $activeTab !== 'peserta_didik') ? 'nama' : $sort;
+        $orderFn = function ($query) use ($effectiveSort, $sortDir) {
+            $query->orderBy($effectiveSort, $sortDir)->orderBy('nama', 'asc');
         };
 
         // Tab 5: Tugas Tambahan & Penugasan

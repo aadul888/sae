@@ -160,7 +160,7 @@
                 <div class="live-search-wrap" style="height: 38px;">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="liveSearch" name="q"
-                        placeholder="{{ $activeTab === 'tugas_tambahan' ? 'Cari nama PTK / tugas / kelas...' : 'Cari nama / username / no HP...' }}"
+                        placeholder="{{ $activeTab === 'tugas_tambahan' ? 'Cari nama PTK / tugas / kelas...' : ($activeTab === 'peserta_didik' ? 'Cari nama / NISN / email / no HP...' : 'Cari nama / username / no HP...') }}"
                         value="{{ $q }}" autocomplete="off">
                     <button type="button" id="clearSearch" class="clear-search {{ $q ? 'visible' : '' }}"
                         title="Hapus pencarian">
@@ -289,7 +289,17 @@
                 <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
                     <thead>
                         <tr style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border-color);">
-                            @php $cols = [['nama','Nama'],['username','Username'],['peran_id_str','Peran'],['no_hp','Kontak']]; @endphp
+                            @php
+                                $cols = [
+                                    ['nama', 'Nama'],
+                                    ['username', 'Username'],
+                                ];
+                                if ($activeTab === 'peserta_didik') {
+                                    $cols[] = ['email', 'Email'];
+                                }
+                                $cols[] = ['peran_id_str', 'Peran'];
+                                $cols[] = ['no_hp', 'Kontak'];
+                            @endphp
                             @foreach ($cols as [$key, $label])
                                 <th class="sortable-th {{ $sort === $key ? 'sorted' : '' }}"
                                     style="padding: 12px 18px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;"
@@ -338,6 +348,20 @@
                                     data-label="Username">
                                     {{ $item->username }}
                                 </td>
+                                @if ($activeTab === 'peserta_didik')
+                                    <td style="padding: 14px 18px; font-size: 0.82rem; color: var(--text-muted);"
+                                        data-label="Email">
+                                        @if (!empty($item->email))
+                                            <a href="mailto:{{ $item->email }}"
+                                                style="color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-envelope" style="font-size: 0.75rem; opacity: 0.8;"></i>
+                                                <span>{{ $item->email }}</span>
+                                            </a>
+                                        @else
+                                            <span style="color: var(--text-muted); opacity: 0.5;">-</span>
+                                        @endif
+                                    </td>
+                                @endif
                                 <td style="padding: 14px 18px; font-size: 0.82rem;" data-label="Peran">
                                     <span
                                         class="badge {{ $activeTab === 'admin' ? 'badge-primary' : ($activeTab === 'guru' ? 'badge-accent' : ($activeTab === 'tendik' ? 'badge-info' : 'badge-outline')) }}"
@@ -395,7 +419,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5"
+                                <td colspan="{{ $activeTab === 'peserta_didik' ? 6 : 5 }}"
                                     style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.86rem;">
                                     <i class="fas fa-folder-open mb-2" style="font-size: 1.8rem; opacity: 0.5;"></i>
                                     <div>Tidak ada data pengguna ditemukan.</div>

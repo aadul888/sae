@@ -504,7 +504,15 @@ window.escapeHtml = function (str) {
  * Refreshes datatables and pagination via AJAX without reloading the entire page.
  * Keeps input focus, cursor position, and smooth transitions.
  */
-let liveTableAbortController = null;
+window.liveTableAbortController = null;
+window.abortLiveTable = function () {
+    if (window.liveTableAbortController) {
+        try {
+            window.liveTableAbortController.abort();
+        } catch (e) {}
+        window.liveTableAbortController = null;
+    }
+};
 
 window.refreshLiveTable = async function (url, options = {}) {
     if (!url) return;
@@ -541,13 +549,13 @@ window.refreshLiveTable = async function (url, options = {}) {
     container.dataset.liveRefreshing = targetUrl;
 
     // Batalkan request fetch sebelumnya jika masih berjalan (mencegah race condition saat pengguna mengetik)
-    if (liveTableAbortController) {
+    if (window.liveTableAbortController) {
         try {
-            liveTableAbortController.abort();
+            window.liveTableAbortController.abort();
         } catch (e) {}
     }
-    liveTableAbortController = new AbortController();
-    const currentSignal = liveTableAbortController.signal;
+    window.liveTableAbortController = new AbortController();
+    const currentSignal = window.liveTableAbortController.signal;
 
     // 2. Subtle loading visual feedback
     const originalOpacity =
@@ -609,7 +617,8 @@ window.refreshLiveTable = async function (url, options = {}) {
             const isTypingSearch =
                 document.activeElement &&
                 document.activeElement.tagName === "INPUT" &&
-                isDatatableSearchInput(document.activeElement);
+                typeof window.isDatatableSearchInput === "function" &&
+                window.isDatatableSearchInput(document.activeElement);
 
             if (curToolbar && newToolbar && curTableStack && newTableStack && isTypingSearch) {
                 // Pengguna sedang aktif mengetik: Hanya perbarui tabel & paginasi agar input & kursor tidak terganggu

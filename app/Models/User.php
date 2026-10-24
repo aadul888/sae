@@ -72,6 +72,22 @@ class User extends Authenticatable
         return $this->nama;
     }
 
+    public function pesertaDidik()
+    {
+        return $this->belongsTo(PesertaDidik::class, 'peserta_didik_id', 'peserta_didik_id');
+    }
+
+    public function getEmailAttribute(): ?string
+    {
+        if (array_key_exists('email', $this->attributes)) {
+            return $this->attributes['email'];
+        }
+        if (str_contains($this->username ?? '', '@')) {
+            return $this->username;
+        }
+        return null;
+    }
+
     /**
      * Dapatkan URL foto profil (GTK/guru/tendik/admin/peserta didik) dengan cache-busting
      */
