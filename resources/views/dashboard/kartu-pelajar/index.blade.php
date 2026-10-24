@@ -2534,7 +2534,9 @@
         </div>
     </div>
 
-    <!-- MODAL 5: Dialog Pilih Tanggal Cetak untuk Lembar Pengambilan -->
+    {{-- Modal cetak pengambilan dipisahkan agar view utama tetap terpelihara. --}}
+    @include('dashboard.kartu-pelajar.partials.modals')
+    {{--
     <div id="modalCetakPengambilan" class="modal-backdrop"
         style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center; padding: 20px;">
         <div class="card"
@@ -2587,7 +2589,7 @@
                 </div>
             </form>
         </div>
-    </div>
+    </div> --}}
 
     <!-- MODAL 6: Pratinjau & Cetak Lembar Kartu Pelajar Digital (Sama dengan Peserta Didik Aktif) -->
     @include('kartu-pelajar.modal-preview')

@@ -192,72 +192,12 @@
 @endphp
 
 <aside class="dash-sidebar" id="dashSidebar">
-    <!-- Brand -->
-    <div class="dash-sidebar-header">
-        @php
-            $dashLogoDark = asset('img/logo-dark.png') . '?v=' . (@filemtime(public_path('img/logo-dark.png')) ?: '1');
-            $dashLogoLight = asset('img/logo-light.png') . '?v=' . (@filemtime(public_path('img/logo-light.png')) ?: '1');
-        @endphp
-        <a href="{{ route($dashHomeRoute) }}" class="brand"
-            style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
-            <img id="dashLogo" src="{{ $dashLogoDark }}" data-dark="{{ $dashLogoDark }}" data-light="{{ $dashLogoLight }}"
-                alt="SAE Logo" style="height: 36px; max-width: 140px; object-fit: contain;"
-                onerror="this.onerror=null; this.src='/img/logo-dark.png';">
-        </a>
-        <span class="badge badge-primary"
-            style="font-size: 0.68rem; padding: 2px 6px; font-family: monospace;">v{{ $appVersion ?? '1.0.1' }}</span>
-    </div>
+    @include('partials.dash-sidebar-brand')
 
     @php
         $userFoto = is_array($user) ? $user['foto_url'] ?? null : $user->foto_url ?? null;
     @endphp
-    <!-- User Profile Badge -->
-    <div class="dash-sidebar-user">
-        <a href="{{ route('dashboard.profile') }}" title="Lihat Profil Saya"
-            style="text-decoration: none; flex-shrink: 0; display: block;">
-            @if ($userFoto)
-                <img src="{{ $userFoto }}" alt="{{ $userName }}" class="dash-sidebar-avatar-img"
-                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
-                <div class="dash-sidebar-user-avatar" style="display: none;">
-                    @if ($role === 'admin')
-                        <i class="fas fa-user-shield"></i>
-                    @elseif($role === 'guru')
-                        <i class="fas fa-chalkboard-user"></i>
-                    @elseif($role === 'tendik')
-                        <i class="fas fa-id-badge"></i>
-                    @else
-                        <i class="fas fa-user-graduate"></i>
-                    @endif
-                </div>
-            @else
-                <div class="dash-sidebar-user-avatar">
-                    @if ($role === 'admin')
-                        <i class="fas fa-user-shield"></i>
-                    @elseif($role === 'guru')
-                        <i class="fas fa-chalkboard-user"></i>
-                    @elseif($role === 'tendik')
-                        <i class="fas fa-id-badge"></i>
-                    @else
-                        <i class="fas fa-user-graduate"></i>
-                    @endif
-                </div>
-            @endif
-        </a>
-        <div class="dash-user-info">
-            <a href="{{ route('dashboard.profile') }}" class="dash-user-name" title="{{ $userName }}"
-                style="text-decoration: none; color: inherit; display: block;">{{ $userName }}</a>
-            <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 2px;">
-                <span class="dash-user-role role-{{ $role }}">{{ $role }}</span>
-                @foreach ($userDuties as $duty)
-                    <span class="badge badge-accent"
-                        style="font-size: 0.62rem; padding: 1px 5px; border-radius: 4px; text-transform: none; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
-                        title="{{ $duty->nama }}{{ $duty->ekuivalensi_jam ? ' (' . $duty->ekuivalensi_jam . ' Jam)' : '' }}">
-                        {{ $duty->nama }}
-                    </span>
-                @endforeach
-            </div>
-        </div>
-    </div>
+    @include('partials.dash-sidebar-user')
 
     <!-- Navigation List -->
     <div class="dash-sidebar-nav">
@@ -417,8 +357,7 @@
                                     </a>
                                     <a href="{{ route('dashboard.rombel.matpel') }}"
                                         class="dash-nav-nested-link {{ request()->routeIs('dashboard.rombel.matpel') || (request()->routeIs('dashboard.rombel.index') && ($currentType ?? '') === 'matpel') ? 'active' : '' }}">
-                                        <span class="nav-icon nested-icon"><i
-                                                class="fas fa-fw fa-book-open"></i></span>
+                                        <span class="nav-icon nested-icon"><i class="fas fa-fw fa-book-open"></i></span>
                                         <span class="nav-label">Matpel Pilihan</span>
                                     </a>
                                 </div>
@@ -440,8 +379,7 @@
                             <div class="dash-nav-nested-group {{ $isJadwalKbmActive ? 'open active-group' : '' }}">
                                 <button type="button" class="dash-nav-nested-toggle">
                                     <div class="dash-nav-nested-toggle-main">
-                                        <span class="nav-icon sub-icon"><i
-                                                class="fas fa-fw fa-calendar-alt"></i></span>
+                                        <span class="nav-icon sub-icon"><i class="fas fa-fw fa-calendar-alt"></i></span>
                                         <span class="nav-label">Jadwal KBM</span>
                                     </div>
                                     <i class="fas fa-chevron-right nested-arrow-icon"></i>
@@ -2712,22 +2650,6 @@
     @endif
     </div>
 
-    <!-- Sidebar Footer (Quick Logout & Home) -->
-    <div class="dash-sidebar-footer">
-        <button type="button" class="dash-nav-link btn-pwa-install" onclick="installSaePwa()"
-            style="display: none; width: 100%; border: 1px solid rgba(16,185,129,0.25); background: rgba(16,185,129,0.12); color: #10b981; cursor: pointer; text-align: left; margin-bottom: 6px; border-radius: 8px;">
-            <i class="fas fa-download"></i> <span>Instal Aplikasi SAE</span>
-        </button>
-        <a href="{{ route('home') }}" class="dash-nav-link" style="margin-bottom: 6px;">
-            <i class="fas fa-globe"></i> <span>Lihat Web Publik</span>
-        </a>
-        <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit" class="dash-nav-link"
-                style="width: 100%; border: none; background: rgba(239, 68, 68, 0.1); color: #ef4444; cursor: pointer; text-align: left;">
-                <i class="fas fa-right-from-bracket"></i> <span>Keluar Sistem</span>
-            </button>
-        </form>
-    </div>
+    @include('partials.dash-sidebar-footer')
 </aside>
 <div class="dash-backdrop" id="dashBackdrop"></div>

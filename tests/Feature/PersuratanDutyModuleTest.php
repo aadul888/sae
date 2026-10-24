@@ -7,6 +7,7 @@ use App\Models\Persuratan;
 use App\Models\User;
 use App\Models\RolePermission;
 use App\Services\SystemNotificationService;
+use Illuminate\Support\Facades\DB;
 
 class PersuratanDutyModuleTest extends TestCase
 {
@@ -118,6 +119,15 @@ class PersuratanDutyModuleTest extends TestCase
 
     public function test_system_notification_service_detects_pending_surat(): void
     {
+        $dutyId = DB::table('ref_tugas_tambahan')->where('kode', 'STAF_PERSURATAN')->value('id');
+        DB::table('ptk_tugas_tambahan')->insert([
+            'user_id' => 'tendik-notif-01',
+            'tugas_tambahan_id' => $dutyId,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         // Pastikan ada setidaknya 1 surat menunggu_disposisi
         Persuratan::create([
             'nomor_surat'     => 'NOTIF/TEST/001',
@@ -146,5 +156,6 @@ class PersuratanDutyModuleTest extends TestCase
 
         // Clean up
         Persuratan::where('nomor_surat', 'NOTIF/TEST/001')->delete();
+        DB::table('ptk_tugas_tambahan')->where('user_id', 'tendik-notif-01')->delete();
     }
 }

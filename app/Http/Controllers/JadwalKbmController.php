@@ -7,14 +7,23 @@ use App\Models\JadwalPengaturan;
 use App\Models\KalenderPendidikan;
 use App\Models\RolePermission;
 use App\Services\AutoSchedulerService;
+use App\Services\JadwalMutasiService;
+use App\Services\JadwalPengaturanService;
+use App\Services\JadwalPrintService;
 use App\Services\RealtimeService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class JadwalKbmController extends Controller
 {
     private const SORTABLE = ['hari', 'nama_rombel', 'nama_guru', 'nama_mata_pelajaran', 'jam_mulai', 'jam_ke_mulai'];
+
+    public function __construct(
+        protected JadwalPrintService $printService,
+        protected JadwalMutasiService $mutasiService,
+        protected JadwalPengaturanService $pengaturanService
+    ) {}
 
     public function index(Request $request)
     {
@@ -274,10 +283,7 @@ class JadwalKbmController extends Controller
         ));
     }
 
-    /**
-     * API: Toggle Pemberlakuan Jadwal Aktif oleh Admin (Eksklusif: Otomatis vs Manual vs Draft)
-     */
-    public function togglePemberlakuan(Request $request)
+    public function togglePemberlakuan(Request $request): JsonResponse
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -285,81 +291,12 @@ class JadwalKbmController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki wewenang mengubah status pemberlakuan jadwal.'], 403);
         }
 
-        $pengaturan = JadwalPengaturan::getSettings();
+        $res = $this->pengaturanService->togglePemberlakuan($request, $user);
 
-        // Mode yang ditarget: 'otomatis' atau 'manual'
-        $targetMode = $request->input('mode', 'otomatis');
-        if (!in_array($targetMode, ['otomatis', 'manual'], true)) {
-            $targetMode = 'otomatis';
-        }
-
-        // Status yang diinginkan: 'aktif' atau 'draft'
-        $reqStatus = $request->input('status');
-        if (!in_array($reqStatus, ['aktif', 'draft'], true)) {
-            $currentActiveMode = JadwalPengaturan::getModeAktif();
-            $reqStatus = ($currentActiveMode === $targetMode) ? 'draft' : 'aktif';
-        }
-
-        $adminName = is_array($user) ? ($user['nama'] ?? ($user['username'] ?? 'Administrator')) : ($user->nama ?? ($user->username ?? 'Administrator'));
-
-        if ($reqStatus === 'aktif') {
-            // Mengaktifkan mode ini -> mode yang lain OTOMATIS menjadi DRAFT
-            $newMode = $targetMode;
-            $newStatus = 'aktif';
-            $isAktif = true;
-            $modeLabel = ($targetMode === 'otomatis') ? 'Otomatis (Generate)' : 'Manual (Wali Kelas/Koordinator)';
-            $otherLabel = ($targetMode === 'otomatis') ? 'Manual' : 'Otomatis';
-            $message = "Jadwal KBM {$modeLabel} RESMI DIBERLAKUKAN! Jadwal {$otherLabel} otomatis dialihkan ke status Draft. Jadwal aktif kini ditampilkan pada dashboard Guru, Siswa, dan Presensi Mengajar.";
-            $catatan = $request->input('catatan') ?: "Jadwal {$modeLabel} diberlakukan secara resmi oleh {$adminName}.";
-        } else {
-            // Menjadikan DRAFT -> Keduanya menjadi draft (tidak ada yang diberlakukan)
-            $newMode = 'draft';
-            $newStatus = 'draft';
-            $isAktif = false;
-            $message = "Status Jadwal KBM dialihkan ke DRAFT. Seluruh jadwal dinonaktifkan sementara dan guru/siswa akan melihat info jadwal dalam tahap penyusunan.";
-            $catatan = $request->input('catatan') ?: "Status jadwal dialihkan ke Draft oleh {$adminName}.";
-        }
-
-        $pengaturan->update([
-            'mode_pemberlakuan'    => $newMode,
-            'status_jadwal'        => $newStatus,
-            'is_diberlakukan'      => $isAktif,
-            'diberlakukan_pada'    => $isAktif ? now() : null,
-            'diberlakukan_oleh'    => $isAktif ? $adminName : null,
-            'catatan_pemberlakuan' => $catatan,
-        ]);
-
-        if ($isAktif) {
-            try {
-                JadwalPengaturan::syncRoutineActivities($newMode);
-            } catch (\Throwable $e) {
-                // Jangan gagalkan respon jika sync rutin menemui kendala minor
-            }
-        }
-
-        RealtimeService::trigger('jadwal.changed', [
-            'action'            => 'pemberlakuan_updated',
-            'mode_pemberlakuan' => $newMode,
-            'status'            => $newStatus,
-            'is_diberlakukan'   => $isAktif,
-        ]);
-
-        return response()->json([
-            'success'           => true,
-            'message'           => $message,
-            'mode_pemberlakuan' => $newMode,
-            'status'            => $newStatus,
-            'is_diberlakukan'   => $isAktif,
-            'is_otomatis_aktif' => ($isAktif && $newMode === 'otomatis'),
-            'is_manual_aktif'   => ($isAktif && $newMode === 'manual'),
-            'diberlakukan_pada' => $pengaturan->diberlakukan_pada ? $pengaturan->diberlakukan_pada->format('d/m/Y H:i') : null,
-        ]);
+        return response()->json($res);
     }
 
-    /**
-     * API: Simpan Pengaturan Slot Jam KBM & Durasi per JP
-     */
-    public function simpanPengaturan(Request $request)
+    public function simpanPengaturan(Request $request): JsonResponse
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -367,162 +304,12 @@ class JadwalKbmController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin mengubah pengaturan jadwal.'], 403);
         }
 
-        $validated = $request->validate([
-            'jam_mulai_kbm'          => 'required|string',
-            'durasi_per_jp'          => 'required|integer|min:20|max:90',
-            'total_slot_jp'          => 'nullable|integer|min:0|max:16',
-            'max_jp_per_sesi'        => 'nullable|integer|min:2|max:9',
-            'slot_harian'            => 'nullable|array',
-            'slot_harian.*.total_jp' => 'nullable|integer|min:0|max:16',
-            'slot_tingkat_harian'    => 'nullable|array',
-            'jp_tingkat'             => 'nullable|array',
-            'hari_aktif'             => 'nullable|array',
-            'istirahat'              => 'nullable|array',
-            'upacara'                => 'nullable|array',
-            'pembiasaan'             => 'nullable|array',
-        ]);
+        $res = $this->pengaturanService->simpanPengaturan($request);
 
-        $skemaHari = $request->input('skema_hari', '5_hari');
-        if (!in_array($skemaHari, ['5_hari', '6_hari'], true)) {
-            $skemaHari = '5_hari';
-        }
-
-        $jamMulai = strlen($validated['jam_mulai_kbm']) === 5 ? "{$validated['jam_mulai_kbm']}:00" : $validated['jam_mulai_kbm'];
-
-        // Proses konfigurasi slot harian presisi per tingkat (X, XI, XII)
-        $presetTingkatSlots = JadwalPengaturan::getDefaultTingkatDailySlots($skemaHari);
-        $slotTingkatHarian = [];
-        if ($request->has('slot_tingkat_harian') && is_array($request->input('slot_tingkat_harian'))) {
-            foreach (['10', '11', '12'] as $t) {
-                $tInput = $request->input("slot_tingkat_harian.{$t}", []);
-                foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh) {
-                    $rawVal = $tInput[$dh] ?? null;
-                    $slotTingkatHarian[$t][$dh] = ($rawVal === '' || $rawVal === null)
-                        ? ($presetTingkatSlots[$t][$dh] ?? 0)
-                        : max(0, min(16, (int) $rawVal));
-                }
-                if ($skemaHari === '5_hari') {
-                    $slotTingkatHarian[$t]['Sabtu'] = 0;
-                }
-            }
-        } else {
-            $slotTingkatHarian = $presetTingkatSlots;
-        }
-
-        $slotHarian = [];
-        $maxDailySlot = 0;
-        $presetSlots = JadwalPengaturan::getPresetSlotHarian($skemaHari);
-
-        if ($request->has('slot_harian') && is_array($request->input('slot_harian'))) {
-            foreach ($request->input('slot_harian') as $dh => $val) {
-                $rawJp = $val['total_jp'] ?? null;
-                $jpVal = ($rawJp === '' || $rawJp === null) ? ($presetSlots[$dh]['total_jp'] ?? 0) : max(0, min(16, (int) $rawJp));
-                // Pastikan batas hari minimal sama dengan maksimum slot dari ketiga tingkat
-                $maxTingkatJp = max($slotTingkatHarian['10'][$dh] ?? 0, $slotTingkatHarian['11'][$dh] ?? 0, $slotTingkatHarian['12'][$dh] ?? 0);
-                $jpVal = max($jpVal, $maxTingkatJp);
-                $slotHarian[$dh] = ['total_jp' => $jpVal];
-                if ($jpVal > $maxDailySlot) {
-                    $maxDailySlot = $jpVal;
-                }
-            }
-        } else {
-            foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $dh) {
-                $maxTingkatJp = max($slotTingkatHarian['10'][$dh] ?? 0, $slotTingkatHarian['11'][$dh] ?? 0, $slotTingkatHarian['12'][$dh] ?? 0);
-                $slotHarian[$dh] = ['total_jp' => $maxTingkatJp];
-                if ($maxTingkatJp > $maxDailySlot) {
-                    $maxDailySlot = $maxTingkatJp;
-                }
-            }
-        }
-
-        // Tentukan hari aktif otomatis berdasarkan skema_hari dan kuota slot
-        if ($skemaHari === '5_hari') {
-            $slotHarian['Sabtu']['total_jp'] = 0;
-            $hariAktif = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        } else {
-            if (($slotHarian['Sabtu']['total_jp'] ?? 0) <= 0) {
-                $slotHarian['Sabtu']['total_jp'] = 6;
-            }
-            $hariAktif = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        }
-
-        $totalSlotJp = (int) ($validated['total_slot_jp'] ?? ($maxDailySlot > 0 ? $maxDailySlot : 13));
-
-        // Alokasi Target JP per Tingkat SMK (X=50, XI=48, XII=46)
-        $jpTingkat = [
-            '10' => max(20, min(80, (int) ($request->input('jp_tingkat.10', 50)))),
-            '11' => max(20, min(80, (int) ($request->input('jp_tingkat.11', 48)))),
-            '12' => max(20, min(80, (int) ($request->input('jp_tingkat.12', 46)))),
-        ];
-
-        $upacaraConfig = [
-            'aktif'        => !empty($request->input('upacara.aktif')),
-            'hari'         => $request->input('upacara.hari', 'Senin'),
-            'jam_ke'       => (int) $request->input('upacara.jam_ke', 1),
-            'durasi_menit' => (int) $request->input('upacara.durasi_menit', 45),
-            'nama'         => 'Upacara Bendera',
-        ];
-
-        $pembiasaanConfig = [
-            'aktif'        => !empty($request->input('pembiasaan.aktif')),
-            'hari'         => $request->input('pembiasaan.hari', 'Jumat'),
-            'jam_ke'       => (int) $request->input('pembiasaan.jam_ke', 1),
-            'durasi_menit' => (int) $request->input('pembiasaan.durasi_menit', 40),
-            'nama'         => $request->input('pembiasaan.nama') ?: 'Pembiasaan',
-        ];
-
-        $istirahatConfig = [];
-        if ($request->has('istirahat') && is_array($request->input('istirahat'))) {
-            foreach ($request->input('istirahat') as $ist) {
-                $istirahatConfig[] = [
-                    'aktif'        => !empty($ist['aktif']),
-                    'jam_ke'       => max(1, (int) ($ist['jam_ke'] ?? 5)),
-                    'durasi_menit' => max(5, min(90, (int) ($ist['durasi_menit'] ?? 30))),
-                    'nama'         => !empty($ist['nama']) ? $ist['nama'] : 'Istirahat',
-                ];
-            }
-        }
-
-        $pengaturan = JadwalPengaturan::getSettings();
-        $pengaturan->update([
-            'jam_mulai_kbm'       => $jamMulai,
-            'durasi_per_jp'       => $validated['durasi_per_jp'],
-            'total_slot_jp'       => $totalSlotJp,
-            'max_jp_per_sesi'     => $request->filled('max_jp_per_sesi') ? max(2, min(9, (int) $request->input('max_jp_per_sesi'))) : ($pengaturan->max_jp_per_sesi ?? 3),
-            'skema_hari'          => $skemaHari,
-            'slot_harian'         => $slotHarian,
-            'slot_tingkat_harian' => $slotTingkatHarian,
-            'jp_tingkat'          => $jpTingkat,
-            'hari_aktif'          => $hariAktif,
-            'istirahat'           => $istirahatConfig,
-            'upacara'             => $upacaraConfig,
-            'pembiasaan'          => $pembiasaanConfig,
-        ]);
-
-        // Sinkronkan otomatis kegiatan rutin ke jadwal seluruh rombel reguler
-        JadwalPengaturan::syncRoutineActivities();
-
-        // Sinkronkan otomatis ke presensi_pengaturan agar seluruh operasi presensi harian mengikuti skema hari sekolah
-        JadwalPengaturan::syncToPresensiPengaturan();
-
-        RealtimeService::trigger('jadwal.changed', [
-            'action' => 'pengaturan_updated',
-        ]);
-        RealtimeService::trigger('kalender.changed', [
-            'action' => 'skema_updated',
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Pengaturan jam pelajaran & skema ' . ($skemaHari === '6_hari' ? '6 Hari' : '5 Hari') . ' berhasil disimpan!',
-            'data'    => $pengaturan,
-        ]);
+        return response()->json($res);
     }
 
-    /**
-     * Tombol Sakti: Auto-Generate Jadwal KBM untuk Seluruh Hari Tanpa Bentrok (Mendukung Sinkronisasi Form Terpadu)
-     */
-    public function autoGenerate(Request $request, AutoSchedulerService $scheduler)
+    public function autoGenerate(Request $request, AutoSchedulerService $scheduler): JsonResponse
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -530,9 +317,8 @@ class JadwalKbmController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin auto-generate jadwal.'], 403);
         }
 
-        // Jika form terpadu mengirimkan konfigurasi waktu sekaligus, sinkronkan terlebih dahulu
         if ($request->has('jam_mulai_kbm') && $request->has('durasi_per_jp')) {
-            $this->simpanPengaturan($request);
+            $this->pengaturanService->simpanPengaturan($request);
         }
 
         $pengaturan = JadwalPengaturan::getSettings();
@@ -572,148 +358,24 @@ class JadwalKbmController extends Controller
         return response()->json($result, 422);
     }
 
-    /**
-     * API: Mengambil daftar pembelajaran (Mapel & Guru) untuk rombel tertentu (termasuk mapel pilihan yang terafiliasi)
-     */
-    public function getPembelajaranByRombel(Request $request)
+    public function getPembelajaranByRombel(Request $request): JsonResponse
     {
-        $rombelId = $request->get('rombel_id');
-        if (!$rombelId) {
-            return response()->json(['pembelajaran' => []]);
-        }
-
-        $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $rombelId)->first();
-        $targetRombelIds = [$rombelId];
-
-        if ($rombel) {
-            $pilihanRombelQuery = DB::table('rombongan_belajar')
-                ->where('jenis_rombel', '!=', 1);
-
-            if (!empty($rombel->id_ruang)) {
-                $pilihanRombelQuery->where(function ($q) use ($rombel) {
-                    $q->where('id_ruang', $rombel->id_ruang)
-                      ->orWhere('nama', trim($rombel->nama))
-                      ->orWhere('nama', trim($rombel->nama) . ' 1')
-                      ->orWhere('nama', 'LIKE', trim($rombel->nama) . '%');
-                });
-            } else {
-                $cleanName = trim($rombel->nama);
-                $pilihanRombelQuery->where(function ($q) use ($cleanName) {
-                    $q->where('nama', $cleanName)
-                        ->orWhere('nama', $cleanName . ' 1')
-                        ->orWhere('nama', 'LIKE', $cleanName . '%');
-                });
-            }
-
-            $pilihanRombelIds = $pilihanRombelQuery->pluck('rombongan_belajar_id')->toArray();
-            $targetRombelIds = array_unique(array_merge($targetRombelIds, $pilihanRombelIds));
-        }
-
-        $items = DB::table('pembelajaran as p')
-            ->leftJoin('gtk as g', 'p.ptk_id', '=', 'g.ptk_id')
-            ->leftJoin('rombongan_belajar as r', 'p.rombongan_belajar_id', '=', 'r.rombongan_belajar_id')
-            ->whereIn('p.rombongan_belajar_id', $targetRombelIds)
-            ->select(
-                'p.pembelajaran_id',
-                'p.mata_pelajaran_id',
-                'p.rombongan_belajar_id',
-                DB::raw('COALESCE(p.nama_mata_pelajaran, p.mata_pelajaran_id_str, "-") as nama_mata_pelajaran'),
-                'p.jam_mengajar_per_minggu',
-                'p.ptk_id',
-                'g.nama as nama_guru',
-                'r.jenis_rombel'
-            )
-            ->orderBy('r.jenis_rombel', 'asc')
-            ->orderBy('p.nama_mata_pelajaran', 'asc')
-            ->get()
-            ->map(function ($item) use ($rombelId) {
-                $isPilihan = ($item->rombongan_belajar_id !== $rombelId);
-                if ($isPilihan) {
-                    $item->nama_mata_pelajaran .= ' [Pilihan]';
-                }
-                return $item;
-            });
-
-        return response()->json(['pembelajaran' => $items]);
+        return response()->json($this->pengaturanService->getPembelajaranByRombel($request));
     }
 
-    /**
-     * API: Live Check Bentrok Jadwal
-     */
-    public function checkConflictApi(Request $request)
+    public function checkConflictApi(Request $request): JsonResponse
     {
-        $ptkId        = $request->get('ptk_id');
-        $rombelId     = $request->get('rombongan_belajar_id');
-        $hari         = $request->get('hari');
-        $jamMulai     = $request->get('jam_mulai');
-        $jamSelesai   = $request->get('jam_selesai');
-        $excludeId    = $request->get('exclude_id');
-        $ruangan      = $request->get('ruangan');
-        $jamKeMulai   = (int) $request->get('jam_ke_mulai', 1);
-        $jamKeSelesai = (int) $request->get('jam_ke_selesai', 1);
-
-        // Jika jam mulai / selesai belum ditentukan, hitung otomatis dari slot jam_ke pada hari tersebut
-        if ((!$jamMulai || !$jamSelesai) && $hari) {
-            $slots = JadwalPengaturan::getSlots($hari);
-            $startSlot = collect($slots)->firstWhere('jam_ke', $jamKeMulai);
-            $endSlot = collect($slots)->firstWhere('jam_ke', $jamKeSelesai);
-            if ($startSlot && $endSlot) {
-                $jamMulai = $startSlot['jam_mulai'] ?? null;
-                $jamSelesai = $endSlot['jam_selesai'] ?? null;
-            }
-        }
-
-        if (!$hari || !$jamMulai || !$jamSelesai) {
-            return response()->json(['has_conflict' => false, 'message' => 'Lengkapi jam dan hari terlebih dahulu.']);
-        }
-
-        $sumber = $request->get('sumber', 'otomatis');
-        $result = JadwalKbm::checkConflict($ptkId, $rombelId, $hari, $jamMulai, $jamSelesai, $excludeId, $ruangan, $jamKeMulai, $jamKeSelesai, $sumber);
-        return response()->json($result);
+        return response()->json($this->mutasiService->checkConflict($request));
     }
 
-    /**
-     * API: Ambil Preferensi Ketersediaan Guru (Off-Days & Jam Berhalangan)
-     */
-    public function getGuruPreferensi(Request $request)
+    public function getGuruPreferensi(Request $request): JsonResponse
     {
-        $ptkId = $request->get('ptk_id');
-        if (!$ptkId) {
-            return response()->json(['success' => false, 'message' => 'PTK ID diperlukan.'], 422);
-        }
+        $res = $this->pengaturanService->getGuruPreferensi($request);
 
-        $guru = DB::table('gtk')->where('ptk_id', $ptkId)->first();
-        if (!$guru) {
-            return response()->json(['success' => false, 'message' => 'Guru tidak ditemukan.'], 404);
-        }
-
-        $preferensi = \App\Models\JadwalGuruPreferensi::where('ptk_id', $ptkId)->first();
-
-        return response()->json([
-            'success' => true,
-            'guru' => [
-                'ptk_id' => $guru->ptk_id,
-                'nama'   => $guru->nama,
-                'nip'    => $guru->nip,
-            ],
-            'preferensi' => $preferensi ? [
-                'hari_off'        => $preferensi->hari_off ?? [],
-                'jam_unavailable' => $preferensi->jam_unavailable ?? [],
-                'max_jp_per_hari' => $preferensi->max_jp_per_hari,
-                'keterangan'      => $preferensi->keterangan,
-            ] : [
-                'hari_off'        => [],
-                'jam_unavailable' => [],
-                'max_jp_per_hari' => null,
-                'keterangan'      => '',
-            ],
-        ]);
+        return response()->json($res, $res['status_code'] ?? 200);
     }
 
-    /**
-     * API: Simpan Preferensi Ketersediaan Guru
-     */
-    public function simpanGuruPreferensi(Request $request)
+    public function simpanGuruPreferensi(Request $request): JsonResponse
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -721,423 +383,31 @@ class JadwalKbmController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin mengubah preferensi guru.'], 403);
         }
 
-        $validated = $request->validate([
-            'ptk_id'          => 'required|string',
-            'hari_off'        => 'nullable|array',
-            'jam_unavailable' => 'nullable|array',
-            'max_jp_per_hari' => 'nullable|integer|min:1|max:16',
-            'keterangan'      => 'nullable|string|max:255',
-        ]);
-
-        $pref = \App\Models\JadwalGuruPreferensi::updateOrCreate(
-            ['ptk_id' => $validated['ptk_id']],
-            [
-                'hari_off'        => $validated['hari_off'] ?? [],
-                'jam_unavailable' => $validated['jam_unavailable'] ?? [],
-                'max_jp_per_hari' => $validated['max_jp_per_hari'] ?? null,
-                'keterangan'      => $validated['keterangan'] ?? null,
-            ]
-        );
-
-        RealtimeService::trigger('jadwal.changed', [
-            'action' => 'preferensi_updated',
-            'ptk_id' => $validated['ptk_id'],
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Preferensi ketersediaan guru berhasil disimpan!',
-            'data'    => $pref,
-        ]);
+        return response()->json($this->pengaturanService->simpanGuruPreferensi($request));
     }
 
-    /**
-     * Cetak Dokumen: Jadwal Induk Sekolah (Matriks Besar Seluruh Rombel)
-     */
     public function cetakInduk(Request $request)
     {
-        $sekolah = DB::table('sekolah')->first();
-        $pengaturan = JadwalPengaturan::getSettings();
-        $slots = JadwalPengaturan::getSlots();
-        $dailySlotCounts = JadwalPengaturan::getDailySlotCounts();
-        $baseHariList = $request->get('hari') ? [$request->get('hari')] : ($pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
-        $hariList = array_values(array_filter($baseHariList, function ($h) use ($dailySlotCounts) {
-            return ($dailySlotCounts[$h] ?? 0) > 0;
-        }));
-        if (empty($hariList)) {
-            $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        }
+        $data = $this->printService->getCetakIndukData($request);
 
-        $rombels = DB::table('rombongan_belajar')
-            ->where(function ($w) {
-                $w->where('jenis_rombel', 1)
-                    ->orWhere('jenis_rombel_str', 'Kelas')
-                    ->orWhere('jenis_rombel_str', 'LIKE', '%reguler%');
-            })
-            ->select('rombongan_belajar_id', 'nama', 'tingkat_pendidikan_id')
-            ->orderBy('tingkat_pendidikan_id', 'asc')
-            ->orderBy('nama', 'asc')
-            ->get();
-
-        $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
-        $allSchedules = DB::table('jadwal_kbm as j')
-            ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
-            ->where('j.sumber', $sumber)
-            ->where('j.is_active', true)
-            ->select('j.*', 'g.nama as nama_guru')
-            ->get();
-
-        $matrix = []; // [rombelId][hari][slot] = schedule
-        $occupied = []; // [rombelId][hari][slot] = true
-        foreach ($allSchedules as $s) {
-            $rId = $s->rombongan_belajar_id;
-            $h = $s->hari;
-            $startK = (int) $s->jam_ke_mulai;
-            $endK = (int) $s->jam_ke_selesai;
-
-            $matrix[$rId][$h][$startK] = $s;
-            for ($k = $startK + 1; $k <= $endK; $k++) {
-                $occupied[$rId][$h][$k] = true;
-            }
-        }
-
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($w) {
-                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
-            })
-            ->first();
-
-        $wakaKurikulum = $this->resolveWakaKurikulum();
-
-        return view('dashboard.jadwal-kbm-cetak-induk', compact(
-            'sekolah',
-            'kepalaSekolah',
-            'wakaKurikulum',
-            'pengaturan',
-            'slots',
-            'hariList',
-            'rombels',
-            'matrix',
-            'occupied'
-        ));
+        return view('dashboard.jadwal-kbm-cetak-induk', $data);
     }
 
-    /**
-     * Cetak Dokumen: Jadwal Mengajar per Guru
-     */
     public function cetakGuru(Request $request)
     {
-        $sekolah = DB::table('sekolah')->first();
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($w) {
-                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
-            })
-            ->first();
-        $pengaturan = JadwalPengaturan::getSettings();
-        $slots = JadwalPengaturan::getSlots();
-        $dailySlotCounts = JadwalPengaturan::getDailySlotCounts();
-        $baseHariList = $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        $hariList = array_values(array_filter($baseHariList, function ($h) use ($dailySlotCounts) {
-            return ($dailySlotCounts[$h] ?? 0) > 0;
-        }));
-        if (empty($hariList)) {
-            $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        }
-        $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
-        $ptkId = $request->get('ptk_id');
+        $data = $this->printService->getCetakGuruData($request);
 
-        $activePtkIds = DB::table('jadwal_kbm')
-            ->where('sumber', $sumber)
-            ->where('is_active', true)
-            ->whereNotNull('ptk_id')
-            ->distinct()
-            ->pluck('ptk_id');
-
-        $allGuruOptions = DB::table('gtk')
-            ->whereIn('ptk_id', $activePtkIds)
-            ->whereNotNull('nama')
-            ->orderBy('nama', 'asc')
-            ->get();
-
-        $guruQuery = DB::table('gtk')
-            ->whereNotNull('nama')
-            ->orderBy('nama', 'asc');
-
-        if ($ptkId) {
-            $guruQuery->where('ptk_id', $ptkId);
-        } else {
-            $guruQuery->whereIn('ptk_id', $activePtkIds);
-        }
-
-        $guruList = $guruQuery->get();
-
-        $allSchedules = DB::table('jadwal_kbm as j')
-            ->leftJoin('rombongan_belajar as r', 'j.rombongan_belajar_id', '=', 'r.rombongan_belajar_id')
-            ->where('j.sumber', $sumber)
-            ->where('j.is_active', true)
-            ->select('j.*', 'r.nama as nama_rombel')
-            ->get();
-
-        $matrix = []; // [ptkId][hari][slot] = schedule
-        $occupied = [];
-        $totalJpPerGuru = [];
-        $totalSesiPerGuru = [];
-
-        foreach ($allSchedules as $s) {
-            $pId = $s->ptk_id;
-            $h = $s->hari;
-            if (!in_array($h, $hariList, true)) continue;
-
-            $startK = (int) $s->jam_ke_mulai;
-            $endK = (int) $s->jam_ke_selesai;
-            $jp = max(1, $endK - $startK + 1);
-
-            $isRoutine = in_array($s->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT']);
-
-            if (!$isRoutine && $pId) {
-                $totalJpPerGuru[$pId] = ($totalJpPerGuru[$pId] ?? 0) + $jp;
-                $totalSesiPerGuru[$pId] = ($totalSesiPerGuru[$pId] ?? 0) + 1;
-            }
-
-            if ($pId) {
-                if (!empty($matrix[$pId][$h][$startK]) || !empty($occupied[$pId][$h][$startK])) {
-                    continue;
-                }
-                $matrix[$pId][$h][$startK] = $s;
-                for ($k = $startK + 1; $k <= $endK; $k++) {
-                    $occupied[$pId][$h][$k] = true;
-                }
-            }
-        }
-
-        // Ambil dan Petakan Kegiatan Rutin Sekolah (Upacara, Pembiasaan, Istirahat) ke Seluruh Guru
-        $routinesFromDb = DB::table('jadwal_kbm')
-            ->whereIn('mata_pelajaran_id', ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'])
-            ->where('is_active', true)
-            ->select('hari', 'jam_ke_mulai', 'jam_ke_selesai', 'jam_mulai', 'jam_selesai', 'mata_pelajaran_id', 'nama_mata_pelajaran')
-            ->distinct()
-            ->get();
-
-        $routinesMap = [];
-        foreach ($routinesFromDb as $r) {
-            $routinesMap[$r->hari . '_' . $r->jam_ke_mulai] = $r;
-        }
-
-        // Lengkapi dari pengaturan jika belum tersimpan di jadwal_kbm
-        if (!empty($pengaturan->upacara['aktif'])) {
-            $upHari = $pengaturan->upacara['hari'] ?? 'Senin';
-            $upJam = (int) ($pengaturan->upacara['jam_ke'] ?? 1);
-            $key = $upHari . '_' . $upJam;
-            if (!isset($routinesMap[$key])) {
-                $routinesMap[$key] = (object) [
-                    'hari'                => $upHari,
-                    'jam_ke_mulai'        => $upJam,
-                    'jam_ke_selesai'      => $upJam,
-                    'jam_mulai'           => null,
-                    'jam_selesai'         => null,
-                    'mata_pelajaran_id'   => 'UPACARA',
-                    'nama_mata_pelajaran' => $pengaturan->upacara['nama'] ?? 'Upacara Bendera',
-                ];
-            }
-        }
-
-        if (!empty($pengaturan->pembiasaan['aktif'])) {
-            $pemHari = $pengaturan->pembiasaan['hari'] ?? 'Jumat';
-            $pemJam = (int) ($pengaturan->pembiasaan['jam_ke'] ?? 1);
-            $key = $pemHari . '_' . $pemJam;
-            if (!isset($routinesMap[$key])) {
-                $routinesMap[$key] = (object) [
-                    'hari'                => $pemHari,
-                    'jam_ke_mulai'        => $pemJam,
-                    'jam_ke_selesai'      => $pemJam,
-                    'jam_mulai'           => null,
-                    'jam_selesai'         => null,
-                    'mata_pelajaran_id'   => 'PEMBIASAAN',
-                    'nama_mata_pelajaran' => $pengaturan->pembiasaan['nama'] ?? 'Pembiasaan',
-                ];
-            }
-        }
-
-        if (!empty($pengaturan->istirahat) && is_array($pengaturan->istirahat)) {
-            foreach ($pengaturan->istirahat as $ist) {
-                if (!empty($ist['aktif']) && !empty($ist['jam_ke'])) {
-                    $istJam = (int) $ist['jam_ke'];
-                    $istNama = $ist['nama'] ?? 'Istirahat';
-                    foreach ($hariList as $h) {
-                        $maxSlotsHari = count(JadwalPengaturan::getSlots($h));
-                        if ($istJam > $maxSlotsHari) {
-                            continue;
-                        }
-                        $key = $h . '_' . $istJam;
-                        if (!isset($routinesMap[$key])) {
-                            $routinesMap[$key] = (object) [
-                                'hari'                => $h,
-                                'jam_ke_mulai'        => $istJam,
-                                'jam_ke_selesai'      => $istJam,
-                                'jam_mulai'           => null,
-                                'jam_selesai'         => null,
-                                'mata_pelajaran_id'   => 'ISTIRAHAT',
-                                'nama_mata_pelajaran' => $istNama,
-                            ];
-                        }
-                    }
-                }
-            }
-        }
-
-        // Sisipkan ke matriks tiap guru pada slot yang kosong
-        foreach ($guruList as $guru) {
-            $pId = $guru->ptk_id;
-            foreach ($routinesMap as $r) {
-                $h = $r->hari;
-                $startK = (int) $r->jam_ke_mulai;
-                $endK = (int) $r->jam_ke_selesai;
-
-                $isSlotFree = empty($matrix[$pId][$h][$startK]) && empty($occupied[$pId][$h][$startK]);
-
-                if ($isSlotFree) {
-                    $descRombel = 'Jeda Istirahat';
-                    if ($r->mata_pelajaran_id === 'UPACARA') {
-                        $descRombel = 'Dewan Guru & Siswa';
-                    } elseif ($r->mata_pelajaran_id === 'PEMBIASAAN') {
-                        $descRombel = 'Wali Kelas & Guru';
-                    }
-
-                    $matrix[$pId][$h][$startK] = (object) [
-                        'rombongan_belajar_id' => null,
-                        'nama_rombel'          => $descRombel,
-                        'ptk_id'               => $pId,
-                        'mata_pelajaran_id'    => $r->mata_pelajaran_id,
-                        'nama_mata_pelajaran'  => $r->nama_mata_pelajaran,
-                        'hari'                 => $h,
-                        'jam_ke_mulai'         => $startK,
-                        'jam_ke_selesai'       => $endK,
-                        'jam_mulai'            => $r->jam_mulai,
-                        'jam_selesai'          => $r->jam_selesai,
-                        'ruangan'              => $r->mata_pelajaran_id === 'UPACARA' ? 'Lapangan' : null,
-                    ];
-
-                    for ($k = $startK + 1; $k <= $endK; $k++) {
-                        $occupied[$pId][$h][$k] = true;
-                    }
-                }
-            }
-        }
-
-        return view('dashboard.jadwal-kbm-cetak-guru', compact(
-            'sekolah',
-            'kepalaSekolah',
-            'pengaturan',
-            'slots',
-            'hariList',
-            'guruList',
-            'matrix',
-            'occupied',
-            'totalJpPerGuru',
-            'totalSesiPerGuru',
-            'ptkId',
-            'allGuruOptions'
-        ));
+        return view('dashboard.jadwal-kbm-cetak-guru', $data);
     }
 
-    /**
-     * Cetak Dokumen: Jadwal Pelajaran per Rombel / Kelas
-     */
     public function cetakRombel(Request $request)
     {
-        $sekolah = DB::table('sekolah')->first();
-        $kepalaSekolah = DB::table('gtk')
-            ->where(function ($w) {
-                $w->where('jenis_ptk_id_str', 'LIKE', '%Kepala Sekolah%')
-                  ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kepala Sekolah%');
-            })
-            ->first();
-        $pengaturan = JadwalPengaturan::getSettings();
-        $slots = JadwalPengaturan::getSlots();
-        $rombelId = $request->get('rombel_id');
+        $data = $this->printService->getCetakRombelData($request);
 
-        $rombelQuery = DB::table('rombongan_belajar as r')
-            ->leftJoin('gtk as w', 'r.ptk_id', '=', 'w.ptk_id')
-            ->where(function ($w) {
-                $w->where('r.jenis_rombel', 1)
-                    ->orWhere('r.jenis_rombel_str', 'Kelas')
-                    ->orWhere('r.jenis_rombel_str', 'LIKE', '%reguler%');
-            })
-            ->select('r.*', 'w.nama as nama_wali_kelas', 'w.nip as nip_wali_kelas')
-            ->orderBy('r.tingkat_pendidikan_id', 'asc')
-            ->orderBy('r.nama', 'asc');
-
-        $sumber = $request->get('sumber') ?: (JadwalPengaturan::getModeAktif() ?: 'otomatis');
-
-        $activeRombelIds = DB::table('jadwal_kbm')
-            ->where('sumber', $sumber)
-            ->where('is_active', true)
-            ->distinct()
-            ->pluck('rombongan_belajar_id');
-
-        $allRombelOptions = DB::table('rombongan_belajar')
-            ->whereIn('rombongan_belajar_id', $activeRombelIds)
-            ->orderBy('tingkat_pendidikan_id', 'asc')
-            ->orderBy('nama', 'asc')
-            ->get();
-
-        if ($rombelId) {
-            $rombelQuery->where('r.rombongan_belajar_id', $rombelId);
-        } else {
-            $rombelQuery->whereIn('r.rombongan_belajar_id', $activeRombelIds);
-        }
-
-        $rombelList = $rombelQuery->get();
-        $dailySlotCounts = JadwalPengaturan::getDailySlotCounts();
-        $baseHariList = $pengaturan->hari_aktif ?? ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        $hariList = array_values(array_filter($baseHariList, function ($h) use ($dailySlotCounts) {
-            return ($dailySlotCounts[$h] ?? 0) > 0;
-        }));
-        if (empty($hariList)) {
-            $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
-        }
-
-        $allSchedules = DB::table('jadwal_kbm as j')
-            ->leftJoin('gtk as g', 'j.ptk_id', '=', 'g.ptk_id')
-            ->where('j.sumber', $sumber)
-            ->where('j.is_active', true)
-            ->select('j.*', 'g.nama as nama_guru')
-            ->get();
-
-        $matrix = []; // [rombelId][hari][slot] = schedule
-        $occupied = [];
-        foreach ($allSchedules as $s) {
-            $rId = $s->rombongan_belajar_id;
-            $h = $s->hari;
-            $startK = (int) $s->jam_ke_mulai;
-            $endK = (int) $s->jam_ke_selesai;
-
-            $matrix[$rId][$h][$startK] = $s;
-            for ($k = $startK + 1; $k <= $endK; $k++) {
-                $occupied[$rId][$h][$k] = true;
-            }
-        }
-
-        return view('dashboard.jadwal-kbm-cetak-rombel', compact(
-            'sekolah',
-            'kepalaSekolah',
-            'pengaturan',
-            'slots',
-            'hariList',
-            'rombelList',
-            'matrix',
-            'occupied',
-            'rombelId',
-            'allRombelOptions'
-        ));
+        return view('dashboard.jadwal-kbm-cetak-rombel', $data);
     }
 
-    /**
-     * Simpan Jadwal KBM Baru
-     */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -1157,116 +427,17 @@ class JadwalKbmController extends Controller
             'keterangan'           => 'nullable|string|max:255',
         ]);
 
-        // Detail Pembelajaran
-        $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $validated['pembelajaran_id'])->first();
-        if (!$pembelajaran) {
-            return response()->json(['success' => false, 'message' => 'Data pembelajaran tidak valid.'], 422);
-        }
+        $res = $this->mutasiService->store($validated, $request->boolean('overwrite', false));
 
-        $ptkId = $pembelajaran->ptk_id;
-        $mapelId = $pembelajaran->mata_pelajaran_id;
-        $namaMapel = $pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str;
-
-        $overwrite = $request->boolean('overwrite', false);
-        $jamMulaiFormatted = strlen($validated['jam_mulai']) === 5 ? "{$validated['jam_mulai']}:00" : $validated['jam_mulai'];
-        $jamSelesaiFormatted = strlen($validated['jam_selesai']) === 5 ? "{$validated['jam_selesai']}:00" : $validated['jam_selesai'];
-
-        // Validasi Anti-Bentrok Lengkap
-        $conflict = JadwalKbm::checkConflict(
-            $ptkId,
-            $validated['rombongan_belajar_id'],
-            $validated['hari'],
-            $validated['jam_mulai'],
-            $validated['jam_selesai'],
-            null,
-            $validated['ruangan'] ?? null,
-            (int) $validated['jam_ke_mulai'],
-            (int) $validated['jam_ke_selesai'],
-            'otomatis'
-        );
-
-        if ($conflict['has_conflict']) {
-            if ($conflict['type'] === 'rombel') {
-                if ($overwrite) {
-                    JadwalKbm::where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
-                        ->where('hari', $validated['hari'])
-                        ->where('sumber', 'otomatis')
-                        ->where('is_active', true)
-                        ->where(function ($q) use ($jamMulaiFormatted, $jamSelesaiFormatted) {
-                            $q->where('jam_mulai', '<', $jamSelesaiFormatted)
-                              ->where('jam_selesai', '>', $jamMulaiFormatted);
-                        })
-                        ->delete();
-                } else {
-                    return response()->json([
-                        'success'           => false,
-                        'can_overwrite'     => true,
-                        'conflict_type'     => 'rombel',
-                        'conflicting_mapel' => $conflict['conflict_with']->nama_mata_pelajaran ?? 'Pelajaran Lain',
-                        'message'           => $conflict['message'],
-                        'conflict'          => $conflict,
-                    ], 422);
-                }
-            } else {
-                return response()->json([
-                    'success'       => false,
-                    'can_overwrite' => false,
-                    'conflict_type' => $conflict['type'] ?? 'unknown',
-                    'message'       => $conflict['message'],
-                    'conflict'      => $conflict,
-                ], 422);
-            }
-        }
-
-        $rombel = DB::table('rombongan_belajar')->where('rombongan_belajar_id', $validated['rombongan_belajar_id'])->first();
-
-        $jadwal = JadwalKbm::create([
-            'rombongan_belajar_id' => $validated['rombongan_belajar_id'],
-            'pembelajaran_id'      => $validated['pembelajaran_id'],
-            'ptk_id'               => $ptkId,
-            'mata_pelajaran_id'    => $mapelId,
-            'nama_mata_pelajaran'  => $namaMapel,
-            'hari'                 => $validated['hari'],
-            'jam_ke_mulai'         => $validated['jam_ke_mulai'],
-            'jam_ke_selesai'       => $validated['jam_ke_selesai'],
-            'jam_mulai'            => strlen($validated['jam_mulai']) === 5 ? "{$validated['jam_mulai']}:00" : $validated['jam_mulai'],
-            'jam_selesai'          => strlen($validated['jam_selesai']) === 5 ? "{$validated['jam_selesai']}:00" : $validated['jam_selesai'],
-            'ruangan'              => $validated['ruangan'] ?? null,
-            'semester_id'          => $rombel->semester_id ?? null,
-            'sumber'               => 'otomatis',
-            'is_active'            => true,
-            'keterangan'           => $validated['keterangan'] ?? null,
-        ]);
-
-        RealtimeService::trigger('jadwal.changed', [
-            'action' => 'created',
-            'id'     => $jadwal->id,
-            'rombel' => $jadwal->rombongan_belajar_id,
-            'hari'   => $jadwal->hari,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Jadwal KBM berhasil ditambahkan!',
-            'data'    => $jadwal,
-        ]);
+        return response()->json($res, $res['status_code'] ?? 200);
     }
 
-    /**
-     * Perbarui Jadwal KBM
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
         if (!RolePermission::can($user ?: $role, 'menu_jadwal_kbm', 'update')) {
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin mengubah jadwal.'], 403);
-        }
-
-        $jadwal = JadwalKbm::findOrFail($id);
-
-        if (in_array($jadwal->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true) || str_starts_with($jadwal->pembelajaran_id ?? '', 'ROUTINE_')) {
-            return response()->json(['success' => false, 'message' => "Kegiatan rutin '{$jadwal->nama_mata_pelajaran}' tidak dapat diubah secara manual karena ditentukan dari Pengaturan Jam & Bel KBM."], 422);
         }
 
         $validated = $request->validate([
@@ -1281,100 +452,12 @@ class JadwalKbmController extends Controller
             'keterangan'           => 'nullable|string|max:255',
         ]);
 
-        $pembelajaran = DB::table('pembelajaran')->where('pembelajaran_id', $validated['pembelajaran_id'])->first();
-        if (!$pembelajaran) {
-            return response()->json(['success' => false, 'message' => 'Data pembelajaran tidak valid.'], 422);
-        }
+        $res = $this->mutasiService->update($id, $validated, $request->boolean('overwrite', false));
 
-        $ptkId = $pembelajaran->ptk_id;
-        $mapelId = $pembelajaran->mata_pelajaran_id;
-        $namaMapel = $pembelajaran->nama_mata_pelajaran ?: $pembelajaran->mata_pelajaran_id_str;
-
-        $overwrite = $request->boolean('overwrite', false);
-        $jamMulaiFormatted = strlen($validated['jam_mulai']) === 5 ? "{$validated['jam_mulai']}:00" : $validated['jam_mulai'];
-        $jamSelesaiFormatted = strlen($validated['jam_selesai']) === 5 ? "{$validated['jam_selesai']}:00" : $validated['jam_selesai'];
-
-        // Validasi Anti-Bentrok Lengkap
-        $conflict = JadwalKbm::checkConflict(
-            $ptkId,
-            $validated['rombongan_belajar_id'],
-            $validated['hari'],
-            $validated['jam_mulai'],
-            $validated['jam_selesai'],
-            $id,
-            $validated['ruangan'] ?? null,
-            (int) $validated['jam_ke_mulai'],
-            (int) $validated['jam_ke_selesai'],
-            'otomatis'
-        );
-
-        if ($conflict['has_conflict']) {
-            if ($conflict['type'] === 'rombel') {
-                if ($overwrite) {
-                    JadwalKbm::where('rombongan_belajar_id', $validated['rombongan_belajar_id'])
-                        ->where('id', '!=', $id)
-                        ->where('hari', $validated['hari'])
-                        ->where('sumber', 'otomatis')
-                        ->where('is_active', true)
-                        ->where(function ($q) use ($jamMulaiFormatted, $jamSelesaiFormatted) {
-                            $q->where('jam_mulai', '<', $jamSelesaiFormatted)
-                              ->where('jam_selesai', '>', $jamMulaiFormatted);
-                        })
-                        ->delete();
-                } else {
-                    return response()->json([
-                        'success'           => false,
-                        'can_overwrite'     => true,
-                        'conflict_type'     => 'rombel',
-                        'conflicting_mapel' => $conflict['conflict_with']->nama_mata_pelajaran ?? 'Pelajaran Lain',
-                        'message'           => $conflict['message'],
-                        'conflict'          => $conflict,
-                    ], 422);
-                }
-            } else {
-                return response()->json([
-                    'success'       => false,
-                    'can_overwrite' => false,
-                    'conflict_type' => $conflict['type'] ?? 'unknown',
-                    'message'       => $conflict['message'],
-                    'conflict'      => $conflict,
-                ], 422);
-            }
-        }
-
-        $jadwal->update([
-            'rombongan_belajar_id' => $validated['rombongan_belajar_id'],
-            'pembelajaran_id'      => $validated['pembelajaran_id'],
-            'ptk_id'               => $ptkId,
-            'mata_pelajaran_id'    => $mapelId,
-            'nama_mata_pelajaran'  => $namaMapel,
-            'hari'                 => $validated['hari'],
-            'jam_ke_mulai'         => $validated['jam_ke_mulai'],
-            'jam_ke_selesai'       => $validated['jam_ke_selesai'],
-            'jam_mulai'            => strlen($validated['jam_mulai']) === 5 ? "{$validated['jam_mulai']}:00" : $validated['jam_mulai'],
-            'jam_selesai'          => strlen($validated['jam_selesai']) === 5 ? "{$validated['jam_selesai']}:00" : $validated['jam_selesai'],
-            'ruangan'              => $validated['ruangan'] ?? null,
-            'keterangan'           => $validated['keterangan'] ?? null,
-        ]);
-
-        RealtimeService::trigger('jadwal.changed', [
-            'action' => 'updated',
-            'id'     => $jadwal->id,
-            'rombel' => $jadwal->rombongan_belajar_id,
-            'hari'   => $jadwal->hari,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Jadwal KBM berhasil diperbarui!',
-            'data'    => $jadwal,
-        ]);
+        return response()->json($res, $res['status_code'] ?? 200);
     }
 
-    /**
-     * Hapus Jadwal KBM
-     */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         $user = session('user');
         $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
@@ -1382,54 +465,8 @@ class JadwalKbmController extends Controller
             return response()->json(['success' => false, 'message' => 'Anda tidak memiliki izin menghapus jadwal.'], 403);
         }
 
-        $jadwal = JadwalKbm::findOrFail($id);
+        $res = $this->mutasiService->destroy($id);
 
-        if (in_array($jadwal->mata_pelajaran_id, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true) || str_starts_with($jadwal->pembelajaran_id ?? '', 'ROUTINE_')) {
-            return response()->json(['success' => false, 'message' => "Kegiatan rutin '{$jadwal->nama_mata_pelajaran}' tidak dapat dihapus karena ditentukan dari Pengaturan Jam & Bel KBM."], 422);
-        }
-
-        $jadwal->delete();
-
-        RealtimeService::trigger('jadwal.changed', [
-            'action' => 'deleted',
-            'id'     => $id,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Jadwal KBM berhasil dihapus.',
-        ]);
-    }
-
-    /**
-     * Resolusi Data Waka Kurikulum dari Penetapan Tugas Tambahan
-     */
-    private function resolveWakaKurikulum()
-    {
-        $waka = null;
-        if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
-            $waka = DB::table('ptk_tugas_tambahan as ptt')
-                ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
-                ->join('gtk', 'ptt.ptk_id', '=', 'gtk.ptk_id')
-                ->where(function ($w) {
-                    $w->where('rtt.kode', 'WAKA_KURIKULUM')
-                      ->orWhere('rtt.nama', 'LIKE', '%Kurikulum%');
-                })
-                ->where('ptt.is_active', 1)
-                ->select('gtk.nama', 'gtk.nip', 'gtk.nuptk')
-                ->first();
-        }
-
-        if (!$waka && Schema::hasTable('gtk')) {
-            $waka = DB::table('gtk')
-                ->where(function ($w) {
-                    $w->where('jenis_ptk_id_str', 'LIKE', '%Kurikulum%')
-                      ->orWhere('jabatan_ptk_id_str', 'LIKE', '%Kurikulum%');
-                })
-                ->select('nama', 'nip', 'nuptk')
-                ->first();
-        }
-
-        return $waka;
+        return response()->json($res, $res['status_code'] ?? 200);
     }
 }

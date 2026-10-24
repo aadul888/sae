@@ -10,6 +10,16 @@ use Illuminate\Support\Facades\Log;
 
 class AutoSchedulerService
 {
+    public function __construct(
+        protected ?AutoSchedulerPlacementService $placementService = null,
+        protected ?AutoSchedulerSwapResolver $swapResolver = null,
+        protected ?AutoSchedulerLayoutOptimizer $layoutOptimizer = null
+    ) {
+        $this->placementService ??= new AutoSchedulerPlacementService();
+        $this->swapResolver ??= new AutoSchedulerSwapResolver($this->placementService);
+        $this->layoutOptimizer ??= new AutoSchedulerLayoutOptimizer();
+    }
+
     /**
      * Jalankan Engine Auto-Generate Jadwal KBM (Anti-Bentrok & Pemetaan Jam Maksimal)
      */
@@ -804,12 +814,7 @@ class AutoSchedulerService
     }
 }
 
-    /**
-     * Cari seluruh kandidat slot waktu yang valid untuk rombel pada hari tertentu secara STRICT ZERO-GAP
-     *
-     * @return array Array kandidat slot [ ['start' => int, 'end' => int, 'split' => bool] | ['start_pagi' => int, ...] ]
-     */
-    private function findCandidateSlots(
+    public function findCandidateSlots(
         string $rId,
         string $h,
         int $dur,
@@ -819,109 +824,10 @@ class AutoSchedulerService
         bool $allowGaps = false,
         bool $isPkl = false
     ): array {
-        $dayMax = isset($dailySlotCounts[$rId][$h]) 
-            ? $dailySlotCounts[$rId][$h] 
-            : ($dailySlotCounts[$h] ?? 12);
-        $rOcc = $rombelOccupied[$rId][$h] ?? [];
-
-        $morningMax = ($h === 'Jumat' || !$istirahatJamKe) ? $dayMax : ($istirahatJamKe - 1);
-        $candidates = [];
-
-        // 1. Sesi Pagi: Scan semua window valid yang muat $dur (prioritas dari jam awal)
-        for ($startK = 1; $startK <= ($morningMax - $dur + 1); $startK++) {
-            $endK = $startK + $dur - 1;
-            $free = true;
-            for ($k = $startK; $k <= $endK; $k++) {
-                if (!empty($rOcc[$k])) { $free = false; break; }
-            }
-            if ($free) {
-                $candidates[] = [
-                    'start' => $startK,
-                    'end'   => $endK,
-                    'split' => false,
-                ];
-            }
-        }
-
-        // 2. Bridge Across Break (Pagi -> Siang): Hanya jika durasi > 1 dan bukan Jumat
-        if ($h !== 'Jumat' && $istirahatJamKe && $dur > 1) {
-            for ($pagiFit = min($dur - 1, $morningMax); $pagiFit >= 1; $pagiFit--) {
-                $siangFit = $dur - $pagiFit;
-                $sp = $morningMax - $pagiFit + 1;
-                $ep = $morningMax;
-                $ss = $istirahatJamKe + 1;
-                $es = $ss + $siangFit - 1;
-
-                if ($es <= $dayMax && $sp >= 1) {
-                    $free = true;
-                    for ($k = $sp; $k <= $ep; $k++) {
-                        if (!empty($rOcc[$k])) { $free = false; break; }
-                    }
-                    for ($k = $ss; $k <= $es; $k++) {
-                        if (!empty($rOcc[$k])) { $free = false; break; }
-                    }
-                    if ($free) {
-                        $candidates[] = [
-                            'start_pagi'  => $sp,
-                            'end_pagi'    => $ep,
-                            'start_siang' => $ss,
-                            'end_siang'   => $es,
-                            'dur_pagi'    => $pagiFit,
-                            'dur_siang'   => $siangFit,
-                            'split'       => true,
-                        ];
-                    }
-                }
-            }
-        }
-
-        // 3. Sesi Siang: Scan semua window di siang hari
-        if ($h !== 'Jumat' && $istirahatJamKe) {
-            $afternoonStart = $istirahatJamKe + 1;
-            for ($startK = $afternoonStart; $startK <= ($dayMax - $dur + 1); $startK++) {
-                $endK = $startK + $dur - 1;
-                $free = true;
-                for ($k = $startK; $k <= $endK; $k++) {
-                    if (!empty($rOcc[$k])) { $free = false; break; }
-                }
-                if ($free) {
-                    $candidates[] = [
-                        'start' => $startK,
-                        'end'   => $endK,
-                        'split' => false,
-                    ];
-                }
-            }
-        }
-
-        // 4. Fallback Cadangan (Jika allowGaps aktif):
-        if (empty($candidates) && $allowGaps) {
-            for ($startK = 1; $startK <= ($dayMax - $dur + 1); $startK++) {
-                $endK = $startK + $dur - 1;
-                if ($istirahatJamKe && $startK <= $istirahatJamKe && $endK >= $istirahatJamKe) continue;
-
-                $free = true;
-                for ($k = $startK; $k <= $endK; $k++) {
-                    if (!empty($rOcc[$k])) { $free = false; break; }
-                }
-                if ($free) {
-                    $candidates[] = [
-                        'start' => $startK,
-                        'end'   => $endK,
-                        'split' => false,
-                    ];
-                    break;
-                }
-            }
-        }
-
-        return $candidates;
+        return $this->placementService->findCandidateSlots($rId, $h, $dur, $rombelOccupied, $dailySlotCounts, $istirahatJamKe, $allowGaps, $isPkl);
     }
 
-    /**
-     * Eksekusi penempatan kandidat sesi ke matriks occupied dan batch inserts
-     */
-    private function tryPlaceCandidate(
+    public function tryPlaceCandidate(
         array $sess,
         array $cand,
         string $rId,
@@ -934,88 +840,17 @@ class AutoSchedulerService
         array &$guruDayJp,
         array &$batchInserts,
         array $slots,
-        $rombelMap,
+        mixed $rombelMap,
         string $keterangan
     ): bool {
-        $gId   = $sess['ptk_id'];
-        $mId   = $sess['mata_pelajaran_id'];
-        $dur   = $sess['duration'];
-
-        if (!$cand['split']) {
-            $startK = $cand['start'];
-            $endK   = $cand['end'];
-
-            if ($this->isTeacherUnavailable($gPref, $h, $startK, $endK)) {
-                return false;
-            }
-
-            if ($gId) {
-                for ($k = $startK; $k <= $endK; $k++) {
-                    if (!empty($guruOccupied[$gId][$h][$k])) {
-                        return false;
-                    }
-                }
-            }
-
-            for ($k = $startK; $k <= $endK; $k++) {
-                $rombelOccupied[$rId][$h][$k] = true;
-                if ($gId) {
-                    $guruOccupied[$gId][$h][$k] = true;
-                }
-            }
-
-            $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
-            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
-            if ($gId) {
-                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
-            }
-
-            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $startK, $endK, $slots, $rombelMap, $keterangan);
-            return true;
-        } else {
-            $sp = $cand['start_pagi'];
-            $ep = $cand['end_pagi'];
-            $ss = $cand['start_siang'];
-            $es = $cand['end_siang'];
-
-            if ($this->isTeacherUnavailable($gPref, $h, $sp, $ep) || $this->isTeacherUnavailable($gPref, $h, $ss, $es)) {
-                return false;
-            }
-
-            if ($gId) {
-                for ($k = $sp; $k <= $ep; $k++) {
-                    if (!empty($guruOccupied[$gId][$h][$k])) return false;
-                }
-                for ($k = $ss; $k <= $es; $k++) {
-                    if (!empty($guruOccupied[$gId][$h][$k])) return false;
-                }
-            }
-
-            for ($k = $sp; $k <= $ep; $k++) {
-                $rombelOccupied[$rId][$h][$k] = true;
-                if ($gId) $guruOccupied[$gId][$h][$k] = true;
-            }
-            for ($k = $ss; $k <= $es; $k++) {
-                $rombelOccupied[$rId][$h][$k] = true;
-                if ($gId) $guruOccupied[$gId][$h][$k] = true;
-            }
-
-            $rombelDayMapel[$rId][$h][$mId] = ($rombelDayMapel[$rId][$h][$mId] ?? 0) + 1;
-            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + $dur;
-            if ($gId) {
-                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + $dur;
-            }
-
-            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $sp, $ep, $slots, $rombelMap, $keterangan . ' (Pagi)');
-            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $ss, $es, $slots, $rombelMap, $keterangan . ' (Lanjutan Siang)');
-            return true;
-        }
+        return $this->placementService->tryPlaceCandidate(
+            $sess, $cand, $rId, $h, $gPref, $rombelOccupied, $guruOccupied,
+            $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $batchInserts,
+            $slots, $rombelMap, $keterangan
+        );
     }
 
-    /**
-     * Padatkan jadwal rombel ke jam-jam awal (Bubble Compaction) agar jam kosong terkumpul di akhir hari
-     */
-    private function compactRombelSchedules(
+    public function compactRombelSchedules(
         array &$batchInserts,
         array &$rombelOccupied,
         array &$guruOccupied,
@@ -1023,123 +858,10 @@ class AutoSchedulerService
         ?int $istirahatJamKe,
         array $slots
     ): void {
-        usort($batchInserts, function ($a, $b) {
-            if ($a['rombongan_belajar_id'] !== $b['rombongan_belajar_id']) {
-                return strcmp($a['rombongan_belajar_id'], $b['rombongan_belajar_id']);
-            }
-            if ($a['hari'] !== $b['hari']) {
-                return strcmp($a['hari'], $b['hari']);
-            }
-            return $a['jam_ke_mulai'] <=> $b['jam_ke_mulai'];
-        });
-
-        // 1. Multi-Step Flush Left Compaction
-        for ($iter = 0; $iter < 12; $iter++) {
-            $anyMoved = false;
-
-            foreach ($batchInserts as &$item) {
-                if (in_array($item['mata_pelajaran_id'], ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)) {
-                    continue;
-                }
-
-                $rId   = $item['rombongan_belajar_id'];
-                $h     = $item['hari'];
-                $gId   = $item['ptk_id'];
-                $start = (int) $item['jam_ke_mulai'];
-                $end   = (int) $item['jam_ke_selesai'];
-                $dur   = $end - $start + 1;
-
-                // Cross-Break Compaction: Coba lompat dari sesi siang ke sesi pagi jika pagi ada slot kosong yang muat
-                if ($istirahatJamKe && $start > $istirahatJamKe) {
-                    $morningMax = $istirahatJamKe - 1;
-                    for ($mStart = 1; $mStart <= ($morningMax - $dur + 1); $mStart++) {
-                        $mEnd = $mStart + $dur - 1;
-                        $mFree = true;
-                        for ($mk = $mStart; $mk <= $mEnd; $mk++) {
-                            if (!empty($rombelOccupied[$rId][$h][$mk])) {
-                                $mFree = false;
-                                break;
-                            }
-                            if ($gId && !empty($guruOccupied[$gId][$h][$mk])) {
-                                $mFree = false;
-                                break;
-                            }
-                        }
-
-                        if ($mFree) {
-                            for ($k = $start; $k <= $end; $k++) {
-                                unset($rombelOccupied[$rId][$h][$k]);
-                                if ($gId) unset($guruOccupied[$gId][$h][$k]);
-                            }
-
-                            for ($k = $mStart; $k <= $mEnd; $k++) {
-                                $rombelOccupied[$rId][$h][$k] = true;
-                                if ($gId) $guruOccupied[$gId][$h][$k] = true;
-                            }
-
-                            $item['jam_ke_mulai'] = $mStart;
-                            $item['jam_ke_selesai'] = $mEnd;
-                            $item['jam_mulai'] = $slots[$mStart]['mulai'] ? (strlen($slots[$mStart]['mulai']) === 5 ? $slots[$mStart]['mulai'] . ':00' : $slots[$mStart]['mulai']) : $item['jam_mulai'];
-                            $item['jam_selesai'] = $slots[$mEnd]['selesai'] ? (strlen($slots[$mEnd]['selesai']) === 5 ? $slots[$mEnd]['selesai'] . ':00' : $slots[$mEnd]['selesai']) : $item['jam_selesai'];
-
-                            $anyMoved = true;
-                            break;
-                        }
-                    }
-                    if ($anyMoved) continue;
-                }
-
-                // Multi-step shift left dalam segmen yang sama
-                $minAllowed = ($istirahatJamKe && $start > $istirahatJamKe) ? ($istirahatJamKe + 1) : 1;
-                for ($targetStart = $minAllowed; $targetStart < $start; $targetStart++) {
-                    $targetEnd = $targetStart + $dur - 1;
-
-                    if ($istirahatJamKe && $start <= $istirahatJamKe && $targetEnd >= $istirahatJamKe) {
-                        continue;
-                    }
-
-                    $canFit = true;
-                    for ($k = $targetStart; $k <= $targetEnd; $k++) {
-                        if ($k < $start && !empty($rombelOccupied[$rId][$h][$k])) {
-                            $canFit = false;
-                            break;
-                        }
-                        if ($gId && $k < $start && !empty($guruOccupied[$gId][$h][$k])) {
-                            $canFit = false;
-                            break;
-                        }
-                    }
-
-                    if ($canFit) {
-                        for ($k = $start; $k <= $end; $k++) {
-                            unset($rombelOccupied[$rId][$h][$k]);
-                            if ($gId) unset($guruOccupied[$gId][$h][$k]);
-                        }
-                        for ($k = $targetStart; $k <= $targetEnd; $k++) {
-                            $rombelOccupied[$rId][$h][$k] = true;
-                            if ($gId) $guruOccupied[$gId][$h][$k] = true;
-                        }
-
-                        $item['jam_ke_mulai'] = $targetStart;
-                        $item['jam_ke_selesai'] = $targetEnd;
-                        $item['jam_mulai'] = $slots[$targetStart]['mulai'] ? (strlen($slots[$targetStart]['mulai']) === 5 ? $slots[$targetStart]['mulai'] . ':00' : $slots[$targetStart]['mulai']) : $item['jam_mulai'];
-                        $item['jam_selesai'] = $slots[$targetEnd]['selesai'] ? (strlen($slots[$targetEnd]['selesai']) === 5 ? $slots[$targetEnd]['selesai'] . ':00' : $slots[$targetEnd]['selesai']) : $item['jam_selesai'];
-
-                        $anyMoved = true;
-                        break;
-                    }
-                }
-            }
-            unset($item);
-
-            if (!$anyMoved) break;
-        }
+        $this->placementService->compactRombelSchedules($batchInserts, $rombelOccupied, $guruOccupied, $dailySlotCounts, $istirahatJamKe, $slots);
     }
 
-    /**
-     * Resolusi sesi unallocated via Augmenting Swap (1-Step Ejection Chain)
-     */
-    private function resolveUnallocatedBySwap(
+    public function resolveUnallocatedBySwap(
         array &$unallocatedSessions,
         array &$batchInserts,
         array &$rombelOccupied,
@@ -1150,351 +872,18 @@ class AutoSchedulerService
         array $rombelDailySlotCounts,
         ?int $istirahatJamKe,
         array $slots,
-        $rombelMap,
+        mixed $rombelMap,
         array $hariList,
         ?object $pengaturan
     ): void {
-        for ($round = 0; $round < 3; $round++) {
-            $unallocatedAfterSwap = [];
-            $anySwapped = false;
-
-            foreach ($unallocatedSessions as $sess) {
-                $rId = $sess['rombongan_belajar_id'];
-                $gId = $sess['ptk_id'];
-                $placed = false;
-
-                foreach ($hariList as $h) {
-                    $dayMax = isset($rombelDailySlotCounts[$rId][$h]) ? $rombelDailySlotCounts[$rId][$h] : ($rombelDailySlotCounts[$h] ?? 12);
-
-                    for ($k = 1; $k <= $dayMax; $k++) {
-                        if ($istirahatJamKe && $k === $istirahatJamKe) continue;
-                        if ($k === 1 && $h === 'Senin' && !empty($pengaturan->upacara['aktif'])) continue;
-                        if ($k === 1 && $h === 'Jumat' && !empty($pengaturan->pembiasaan['aktif'])) continue;
-
-                        // Guru harus bebas pada slot (h, k)
-                        if ($gId && !empty($guruOccupied[$gId][$h][$k])) continue;
-
-                        // Cari item yang menempati slot (rId, h, k) di $batchInserts
-                        $foundItemIdx = null;
-                        foreach ($batchInserts as $idx => $itemCheck) {
-                            if ($itemCheck['rombongan_belajar_id'] === $rId && $itemCheck['hari'] === $h) {
-                                if ($k >= (int)$itemCheck['jam_ke_mulai'] && $k <= (int)$itemCheck['jam_ke_selesai']) {
-                                    $foundItemIdx = $idx;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if ($foundItemIdx === null) continue;
-
-                        $bItem = $batchInserts[$foundItemIdx];
-                        $gB = $bItem['ptk_id'];
-                        $bStart = (int) $bItem['jam_ke_mulai'];
-                        $bEnd = (int) $bItem['jam_ke_selesai'];
-                        $bDur = $bEnd - $bStart + 1;
-                        $bMapelId = $bItem['mata_pelajaran_id'];
-
-                        // Batasi swap hanya untuk durasi wajar (<= 3 JP) dan bukan mapel rutin
-                        if ($bDur > 3 || in_array($bMapelId, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)) continue;
-
-                        // 1. Evikasi sementara bItem dari rombel & guru
-                        for ($x = $bStart; $x <= $bEnd; $x++) {
-                            unset($rombelOccupied[$rId][$h][$x]);
-                            if ($gB) unset($guruOccupied[$gB][$h][$x]);
-                        }
-
-                        // Kunci slot (h, k) agar bItem TIDAK BISA kembali ke slot ini (karena slot ini akan dipakai sess)
-                        $rombelOccupied[$rId][$h][$k] = true;
-                        if ($gId) $guruOccupied[$gId][$h][$k] = true;
-
-                        // 2. Cari slot alternatif untuk bItem
-                        $altPlaced = false;
-                        foreach ($hariList as $altH) {
-                            $altCands = $this->findCandidateSlots($rId, $altH, $bDur, $rombelOccupied, $rombelDailySlotCounts, $istirahatJamKe, false);
-                            foreach ($altCands as $altCand) {
-                                if (!$altCand['split']) {
-                                    $as = $altCand['start'];
-                                    $ae = $altCand['end'];
-                                    // Slot alternatif tidak boleh menimpa posisi bItem itu sendiri
-                                    if ($altH === $h && ($as <= $bEnd && $ae >= $bStart)) continue;
-
-                                    $free = true;
-                                    if ($gB) {
-                                        for ($x = $as; $x <= $ae; $x++) {
-                                            if (!empty($guruOccupied[$gB][$altH][$x])) { $free = false; break; }
-                                        }
-                                    }
-                                    if ($free) {
-                                        for ($x = $as; $x <= $ae; $x++) {
-                                            $rombelOccupied[$rId][$altH][$x] = true;
-                                            if ($gB) $guruOccupied[$gB][$altH][$x] = true;
-                                        }
-
-                                        // Mutasi langsung pada array $batchInserts tanpa referensi
-                                        $batchInserts[$foundItemIdx]['hari'] = $altH;
-                                        $batchInserts[$foundItemIdx]['jam_ke_mulai'] = $as;
-                                        $batchInserts[$foundItemIdx]['jam_ke_selesai'] = $ae;
-                                        $batchInserts[$foundItemIdx]['jam_mulai'] = $slots[$as]['mulai'] ? (strlen($slots[$as]['mulai']) === 5 ? $slots[$as]['mulai'] . ':00' : $slots[$as]['mulai']) : $batchInserts[$foundItemIdx]['jam_mulai'];
-                                        $batchInserts[$foundItemIdx]['jam_selesai'] = $slots[$ae]['selesai'] ? (strlen($slots[$ae]['selesai']) === 5 ? $slots[$ae]['selesai'] . ':00' : $slots[$ae]['selesai']) : $batchInserts[$foundItemIdx]['jam_selesai'];
-
-                                        // Update tracking mapel dan jam harian untuk bItem
-                                        if ($altH !== $h) {
-                                            if (isset($rombelDayMapel[$rId][$h][$bMapelId])) {
-                                                $rombelDayMapel[$rId][$h][$bMapelId] = max(0, $rombelDayMapel[$rId][$h][$bMapelId] - 1);
-                                            }
-                                            $rombelDayMapel[$rId][$altH][$bMapelId] = ($rombelDayMapel[$rId][$altH][$bMapelId] ?? 0) + 1;
-
-                                            if ($gB) {
-                                                $guruDayJp[$gB][$h] = max(0, ($guruDayJp[$gB][$h] ?? 0) - $bDur);
-                                                $guruDayJp[$gB][$altH] = ($guruDayJp[$gB][$altH] ?? 0) + $bDur;
-                                            }
-                                        }
-
-                                        $altPlaced = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if ($altPlaced) break;
-                        }
-
-                        if ($altPlaced) {
-                            // Tempatkan sesi unallocated pada (h, k) yang sudah terkunci
-                            $rombelDayMapel[$rId][$h][$sess['mata_pelajaran_id']] = ($rombelDayMapel[$rId][$h][$sess['mata_pelajaran_id']] ?? 0) + 1;
-                            $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                            if ($gId) $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + 1;
-
-                            $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $k, $k, $slots, $rombelMap, 'Auto-Generated (Swap Resolved)');
-
-                            $placed = true;
-                            $anySwapped = true;
-                            break;
-                        } else {
-                            // Coba Slice Swap jika bDur >= 2 dan k berada di ujung (bStart atau bEnd)
-                            $slicePlaced = false;
-                            if ($bDur >= 2 && ($k === $bStart || $k === $bEnd)) {
-                                foreach ($hariList as $altH) {
-                                    $altDayMax = isset($rombelDailySlotCounts[$rId][$altH]) ? $rombelDailySlotCounts[$rId][$altH] : ($rombelDailySlotCounts[$altH] ?? 12);
-                                    for ($altK = 1; $altK <= $altDayMax; $altK++) {
-                                        if ($istirahatJamKe && $altK === $istirahatJamKe) continue;
-                                        if ($altK === 1 && $altH === 'Senin' && !empty($pengaturan->upacara['aktif'])) continue;
-                                        if ($altK === 1 && $altH === 'Jumat' && !empty($pengaturan->pembiasaan['aktif'])) continue;
-
-                                        // Slot alternatif tidak boleh berada di dalam span bItem itu sendiri
-                                        if ($altH === $h && $altK >= $bStart && $altK <= $bEnd) continue;
-
-                                        // Rombel rId dan guru gB harus bebas pada (altH, altK)
-                                        if (!empty($rombelOccupied[$rId][$altH][$altK])) continue;
-                                        if ($gB && !empty($guruOccupied[$gB][$altH][$altK])) continue;
-
-                                        // Ditemukan slot 1 JP untuk slice bItem!
-                                        // 1. Potong bItem sebanyak 1 JP
-                                        if ($k === $bEnd) {
-                                            $batchInserts[$foundItemIdx]['jam_ke_selesai'] = $bEnd - 1;
-                                            $batchInserts[$foundItemIdx]['jam_selesai'] = $slots[$bEnd - 1]['selesai'] ? (strlen($slots[$bEnd - 1]['selesai']) === 5 ? $slots[$bEnd - 1]['selesai'] . ':00' : $slots[$bEnd - 1]['selesai']) : $batchInserts[$foundItemIdx]['jam_selesai'];
-                                            for ($x = $bStart; $x <= $bEnd - 1; $x++) {
-                                                $rombelOccupied[$rId][$h][$x] = true;
-                                                if ($gB) $guruOccupied[$gB][$h][$x] = true;
-                                            }
-                                        } else { // $k === $bStart
-                                            $batchInserts[$foundItemIdx]['jam_ke_mulai'] = $bStart + 1;
-                                            $batchInserts[$foundItemIdx]['jam_mulai'] = $slots[$bStart + 1]['mulai'] ? (strlen($slots[$bStart + 1]['mulai']) === 5 ? $slots[$bStart + 1]['mulai'] . ':00' : $slots[$bStart + 1]['mulai']) : $batchInserts[$foundItemIdx]['jam_mulai'];
-                                            for ($x = $bStart + 1; $x <= $bEnd; $x++) {
-                                                $rombelOccupied[$rId][$h][$x] = true;
-                                                if ($gB) $guruOccupied[$gB][$h][$x] = true;
-                                            }
-                                        }
-
-                                        // 2. Buat item slice 1 JP untuk bItem pada (altH, altK)
-                                        $sliceItem = $bItem;
-                                        $sliceItem['hari'] = $altH;
-                                        $sliceItem['jam_ke_mulai'] = $altK;
-                                        $sliceItem['jam_ke_selesai'] = $altK;
-                                        $sliceItem['jam_mulai'] = $slots[$altK]['mulai'] ? (strlen($slots[$altK]['mulai']) === 5 ? $slots[$altK]['mulai'] . ':00' : $slots[$altK]['mulai']) : '07:00:00';
-                                        $sliceItem['jam_selesai'] = $slots[$altK]['selesai'] ? (strlen($slots[$altK]['selesai']) === 5 ? $slots[$altK]['selesai'] . ':00' : $slots[$altK]['selesai']) : '07:45:00';
-                                        $sliceItem['keterangan'] = 'Auto-Generated (Swap Slice)';
-                                        $batchInserts[] = $sliceItem;
-
-                                        $rombelOccupied[$rId][$altH][$altK] = true;
-                                        if ($gB) $guruOccupied[$gB][$altH][$altK] = true;
-
-                                        if ($altH !== $h) {
-                                            $rombelDayMapel[$rId][$altH][$bMapelId] = ($rombelDayMapel[$rId][$altH][$bMapelId] ?? 0) + 1;
-                                            if ($gB) {
-                                                $guruDayJp[$gB][$h] = max(0, ($guruDayJp[$gB][$h] ?? 0) - 1);
-                                                $guruDayJp[$gB][$altH] = ($guruDayJp[$gB][$altH] ?? 0) + 1;
-                                            }
-                                        }
-
-                                        // 3. Tempatkan sess pada slot (h, k) yang sudah terkunci
-                                        $rombelDayMapel[$rId][$h][$sess['mata_pelajaran_id']] = ($rombelDayMapel[$rId][$h][$sess['mata_pelajaran_id']] ?? 0) + 1;
-                                        $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                                        if ($gId) $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + 1;
-
-                                        $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $k, $k, $slots, $rombelMap, 'Auto-Generated (Swap Slice Resolved)');
-
-                                        $placed = true;
-                                        $anySwapped = true;
-                                        $slicePlaced = true;
-                                        break;
-                                    }
-                                    if ($slicePlaced) break;
-                                }
-                            }
-
-                            if (!$slicePlaced) {
-                                // Revert kunci slot (h, k) dan kembalikan bItem ke slot semula
-                                unset($rombelOccupied[$rId][$h][$k]);
-                                if ($gId) unset($guruOccupied[$gId][$h][$k]);
-
-                                for ($x = $bStart; $x <= $bEnd; $x++) {
-                                    $rombelOccupied[$rId][$h][$x] = true;
-                                    if ($gB) $guruOccupied[$gB][$h][$x] = true;
-                                }
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                    if ($placed) break;
-                }
-
-                // Strategi B: Inter-Rombel Teacher Shift
-                // Jika sess belum dapat slot, cari slot (h, k) di mana rombel $rId KOSONG,
-                // tetapi guru $gId sibuk mengajar di rombel lain ($otherRId). Pindahkan sesi di $otherRId ke slot alternatif di $otherRId.
-                if (!$placed && $gId) {
-                    foreach ($hariList as $h) {
-                        $dayMax = isset($rombelDailySlotCounts[$rId][$h]) ? $rombelDailySlotCounts[$rId][$h] : ($rombelDailySlotCounts[$h] ?? 12);
-                        for ($k = 1; $k <= $dayMax; $k++) {
-                            if ($istirahatJamKe && $k === $istirahatJamKe) continue;
-                            if ($k === 1 && $h === 'Senin' && !empty($pengaturan->upacara['aktif'])) continue;
-                            if ($k === 1 && $h === 'Jumat' && !empty($pengaturan->pembiasaan['aktif'])) continue;
-
-                            // Rombel $rId HARUS KOSONG pada (h, k)
-                            if (!empty($rombelOccupied[$rId][$h][$k])) continue;
-
-                            // Guru $gId harus sedang mengajar pada (h, k)
-                            if (empty($guruOccupied[$gId][$h][$k])) continue;
-
-                            // Cari item milik guru $gId pada (h, k) di $batchInserts
-                            $otherItemIdx = null;
-                            foreach ($batchInserts as $idx => $itemCheck) {
-                                if ($itemCheck['ptk_id'] === $gId && $itemCheck['hari'] === $h) {
-                                    if ($k >= (int)$itemCheck['jam_ke_mulai'] && $k <= (int)$itemCheck['jam_ke_selesai']) {
-                                        $otherItemIdx = $idx;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if ($otherItemIdx === null) continue;
-
-                            $otherItem = $batchInserts[$otherItemIdx];
-                            $otherRId = $otherItem['rombongan_belajar_id'];
-                            if ($otherRId === $rId) continue;
-
-                            $oStart = (int) $otherItem['jam_ke_mulai'];
-                            $oEnd = (int) $otherItem['jam_ke_selesai'];
-                            $oDur = $oEnd - $oStart + 1;
-                            $oMapelId = $otherItem['mata_pelajaran_id'];
-
-                            if ($oDur > 6 || in_array($oMapelId, ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)) continue;
-
-                            // 1. Evikasi sementara otherItem
-                            for ($x = $oStart; $x <= $oEnd; $x++) {
-                                unset($rombelOccupied[$otherRId][$h][$x]);
-                                unset($guruOccupied[$gId][$h][$x]);
-                            }
-
-                            // Kunci slot (h, k) untuk rombel $rId dan guru $gId
-                            $rombelOccupied[$rId][$h][$k] = true;
-                            $guruOccupied[$gId][$h][$k] = true;
-
-                            // 2. Cari slot alternatif untuk otherItem di otherRId
-                            $altPlaced = false;
-                            foreach ($hariList as $altH) {
-                                $altCands = $this->findCandidateSlots($otherRId, $altH, $oDur, $rombelOccupied, $rombelDailySlotCounts, $istirahatJamKe, false);
-                                foreach ($altCands as $altCand) {
-                                    if (!$altCand['split']) {
-                                        $as = $altCand['start'];
-                                        $ae = $altCand['end'];
-                                        // Slot alternatif tidak boleh menimpa posisi otherItem itu sendiri
-                                        if ($altH === $h && ($as <= $oEnd && $ae >= $oStart)) continue;
-
-                                        $free = true;
-                                        for ($x = $as; $x <= $ae; $x++) {
-                                            if (!empty($guruOccupied[$gId][$altH][$x])) { $free = false; break; }
-                                        }
-                                        if ($free) {
-                                            for ($x = $as; $x <= $ae; $x++) {
-                                                $rombelOccupied[$otherRId][$altH][$x] = true;
-                                                $guruOccupied[$gId][$altH][$x] = true;
-                                            }
-
-                                            $batchInserts[$otherItemIdx]['hari'] = $altH;
-                                            $batchInserts[$otherItemIdx]['jam_ke_mulai'] = $as;
-                                            $batchInserts[$otherItemIdx]['jam_ke_selesai'] = $ae;
-                                            $batchInserts[$otherItemIdx]['jam_mulai'] = $slots[$as]['mulai'] ? (strlen($slots[$as]['mulai']) === 5 ? $slots[$as]['mulai'] . ':00' : $slots[$as]['mulai']) : $batchInserts[$otherItemIdx]['jam_mulai'];
-                                            $batchInserts[$otherItemIdx]['jam_selesai'] = $slots[$ae]['selesai'] ? (strlen($slots[$ae]['selesai']) === 5 ? $slots[$ae]['selesai'] . ':00' : $slots[$ae]['selesai']) : $batchInserts[$otherItemIdx]['jam_selesai'];
-
-                                            if ($altH !== $h) {
-                                                if (isset($rombelDayMapel[$otherRId][$h][$oMapelId])) {
-                                                    $rombelDayMapel[$otherRId][$h][$oMapelId] = max(0, $rombelDayMapel[$otherRId][$h][$oMapelId] - 1);
-                                                }
-                                                $rombelDayMapel[$otherRId][$altH][$oMapelId] = ($rombelDayMapel[$otherRId][$altH][$oMapelId] ?? 0) + 1;
-
-                                                $guruDayJp[$gId][$h] = max(0, ($guruDayJp[$gId][$h] ?? 0) - $oDur);
-                                                $guruDayJp[$gId][$altH] = ($guruDayJp[$gId][$altH] ?? 0) + $oDur;
-                                            }
-
-                                            $altPlaced = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if ($altPlaced) break;
-                            }
-
-                            if ($altPlaced) {
-                                $rombelDayMapel[$rId][$h][$sess['mata_pelajaran_id']] = ($rombelDayMapel[$rId][$h][$sess['mata_pelajaran_id']] ?? 0) + 1;
-                                $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                                $guruDayJp[$gId][$h] = ($guruDayJp[$gId][$h] ?? 0) + 1;
-
-                                $batchInserts[] = $this->buildScheduleItem($sess, $rId, $h, $k, $k, $slots, $rombelMap, 'Auto-Generated (Teacher Shift Resolved)');
-
-                                $placed = true;
-                                $anySwapped = true;
-                                break;
-                            } else {
-                                unset($rombelOccupied[$rId][$h][$k]);
-                                unset($guruOccupied[$gId][$h][$k]);
-
-                                for ($x = $oStart; $x <= $oEnd; $x++) {
-                                    $rombelOccupied[$otherRId][$h][$x] = true;
-                                    $guruOccupied[$gId][$h][$x] = true;
-                                }
-                            }
-                        }
-                        if ($placed) break;
-                    }
-                }
-
-                if (!$placed) {
-                    $unallocatedAfterSwap[] = $sess;
-                }
-            }
-            $unallocatedSessions = $unallocatedAfterSwap;
-
-            if (!$anySwapped || empty($unallocatedSessions)) {
-                break;
-            }
-        }
+        $this->swapResolver->resolveUnallocatedBySwap(
+            $unallocatedSessions, $batchInserts, $rombelOccupied, $guruOccupied,
+            $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $rombelDailySlotCounts,
+            $istirahatJamKe, $slots, $rombelMap, $hariList, $pengaturan
+        );
     }
 
-    /**
-     * Resolusi sesi unallocated via Intra-Rombel Relocation (Menukar sesi internal dalam rombel yang sama)
-     */
-    private function resolveUnallocatedByIntraRombelSwap(
+    public function resolveUnallocatedByIntraRombelSwap(
         array &$unallocatedSessions,
         array &$batchInserts,
         array &$rombelOccupied,
@@ -1505,320 +894,46 @@ class AutoSchedulerService
         array $rombelDailySlotCounts,
         ?int $istirahatJamKe,
         array $slots,
-        $rombelMap,
+        mixed $rombelMap,
         array $hariList,
         ?object $pengaturan
     ): void {
-        for ($round = 0; $round < 5; $round++) {
-            $stillUnallocated = [];
-            $anySwapped = false;
-
-            foreach ($unallocatedSessions as $sess) {
-                $rId = $sess['rombongan_belajar_id'];
-                $gId = $sess['ptk_id'];
-                $placed = false;
-
-                // 1. Cari semua slot kosong di rombel $rId
-                $emptySlots = [];
-                foreach ($hariList as $h) {
-                    $dayMax = isset($rombelDailySlotCounts[$rId][$h]) ? $rombelDailySlotCounts[$rId][$h] : 12;
-                    for ($k = 1; $k <= $dayMax; $k++) {
-                        if ($istirahatJamKe && $k === $istirahatJamKe && $h !== 'Jumat') continue;
-                        if ($k === 1 && $h === 'Senin' && !empty($pengaturan->upacara['aktif'])) continue;
-                        if ($k === 1 && $h === 'Jumat' && !empty($pengaturan->pembiasaan['aktif'])) continue;
-                        if (empty($rombelOccupied[$rId][$h][$k])) {
-                            $emptySlots[] = ['hari' => $h, 'jam_ke' => $k];
-                        }
-                    }
-                }
-
-                // Coba tempatkan langsung jika guru $gId bebas pada salah satu slot kosong
-                foreach ($emptySlots as $es) {
-                    $eh = $es['hari'];
-                    $ek = $es['jam_ke'];
-                    if (!$gId || empty($guruOccupied[$gId][$eh][$ek])) {
-                        $rombelOccupied[$rId][$eh][$ek] = true;
-                        if ($gId) $guruOccupied[$gId][$eh][$ek] = true;
-                        $batchInserts[] = $this->buildScheduleItem($sess, $rId, $eh, $ek, $ek, $slots, $rombelMap, 'Auto-Generated (Direct Empty Fill)');
-                        $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                        if ($gId) $guruDayJp[$gId][$eh] = ($guruDayJp[$gId][$eh] ?? 0) + 1;
-                        $placed = true;
-                        $anySwapped = true;
-                        break;
-                    }
-                }
-
-                if ($placed) continue;
-
-                // 2. Intra-Rombel Swap: Pindahkan item lain di rombel $rId yang gurunya bebas di slot kosong ($eh, $ek)
-                foreach ($emptySlots as $es) {
-                    $eh = $es['hari'];
-                    $ek = $es['jam_ke'];
-
-                    foreach ($batchInserts as $idx => $bItem) {
-                        if ($bItem['rombongan_belajar_id'] !== $rId) continue;
-                        if (in_array($bItem['mata_pelajaran_id'], ['UPACARA', 'PEMBIASAAN', 'ISTIRAHAT'], true)) continue;
-
-                        $bH = $bItem['hari'];
-                        $bStart = (int) $bItem['jam_ke_mulai'];
-                        $bEnd = (int) $bItem['jam_ke_selesai'];
-                        $bDur = $bEnd - $bStart + 1;
-                        $gB = $bItem['ptk_id'];
-
-                        // Cek apakah guru gB bebas di ($eh, $ek)
-                        if ($gB && !empty($guruOccupied[$gB][$eh][$ek])) continue;
-
-                        // Jika bDur === 1
-                        if ($bDur === 1) {
-                            if (!$gId || empty($guruOccupied[$gId][$bH][$bStart])) {
-                                unset($rombelOccupied[$rId][$bH][$bStart]);
-                                if ($gB) unset($guruOccupied[$gB][$bH][$bStart]);
-
-                                $rombelOccupied[$rId][$eh][$ek] = true;
-                                if ($gB) $guruOccupied[$gB][$eh][$ek] = true;
-
-                                $batchInserts[$idx]['hari'] = $eh;
-                                $batchInserts[$idx]['jam_ke_mulai'] = $ek;
-                                $batchInserts[$idx]['jam_ke_selesai'] = $ek;
-                                $batchInserts[$idx]['jam_mulai'] = $slots[$ek]['mulai'] ? (strlen($slots[$ek]['mulai']) === 5 ? $slots[$ek]['mulai'] . ':00' : $slots[$ek]['mulai']) : $batchInserts[$idx]['jam_mulai'];
-                                $batchInserts[$idx]['jam_selesai'] = $slots[$ek]['selesai'] ? (strlen($slots[$ek]['selesai']) === 5 ? $slots[$ek]['selesai'] . ':00' : $slots[$ek]['selesai']) : $batchInserts[$idx]['jam_selesai'];
-
-                                $rombelOccupied[$rId][$bH][$bStart] = true;
-                                if ($gId) $guruOccupied[$gId][$bH][$bStart] = true;
-
-                                $batchInserts[] = $this->buildScheduleItem($sess, $rId, $bH, $bStart, $bStart, $slots, $rombelMap, 'Auto-Generated (Intra-Rombel Swap Resolved)');
-                                $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                                if ($gId) $guruDayJp[$gId][$bH] = ($guruDayJp[$gId][$bH] ?? 0) + 1;
-                                $placed = true;
-                                $anySwapped = true;
-                                break 2;
-                            }
-                        } elseif ($bDur >= 2) {
-                            // Potong 1 JP dari ujung bItem (bStart atau bEnd)
-                            foreach ([$bStart, $bEnd] as $targetK) {
-                                if (!$gId || empty($guruOccupied[$gId][$bH][$targetK])) {
-                                    unset($rombelOccupied[$rId][$bH][$targetK]);
-                                    if ($gB) unset($guruOccupied[$gB][$bH][$targetK]);
-
-                                    if ($targetK === $bStart) {
-                                        $batchInserts[$idx]['jam_ke_mulai'] = $bStart + 1;
-                                        $batchInserts[$idx]['jam_mulai'] = $slots[$bStart + 1]['mulai'] ? (strlen($slots[$bStart + 1]['mulai']) === 5 ? $slots[$bStart + 1]['mulai'] . ':00' : $slots[$bStart + 1]['mulai']) : $batchInserts[$idx]['jam_mulai'];
-                                    } else {
-                                        $batchInserts[$idx]['jam_ke_selesai'] = $bEnd - 1;
-                                        $batchInserts[$idx]['jam_selesai'] = $slots[$bEnd - 1]['selesai'] ? (strlen($slots[$bEnd - 1]['selesai']) === 5 ? $slots[$bEnd - 1]['selesai'] . ':00' : $slots[$bEnd - 1]['selesai']) : $batchInserts[$idx]['jam_selesai'];
-                                    }
-
-                                    $rombelOccupied[$rId][$eh][$ek] = true;
-                                    if ($gB) $guruOccupied[$gB][$eh][$ek] = true;
-
-                                    $sliceItem = $bItem;
-                                    $sliceItem['hari'] = $eh;
-                                    $sliceItem['jam_ke_mulai'] = $ek;
-                                    $sliceItem['jam_ke_selesai'] = $ek;
-                                    $sliceItem['jam_mulai'] = $slots[$ek]['mulai'] ? (strlen($slots[$ek]['mulai']) === 5 ? $slots[$ek]['mulai'] . ':00' : $slots[$ek]['mulai']) : '07:15:00';
-                                    $sliceItem['jam_selesai'] = $slots[$ek]['selesai'] ? (strlen($slots[$ek]['selesai']) === 5 ? $slots[$ek]['selesai'] . ':00' : $slots[$ek]['selesai']) : '08:00:00';
-                                    $sliceItem['keterangan'] = ($bItem['keterangan'] ?? 'Auto-Generated') . ' (Slice Relocated)';
-                                    $batchInserts[] = $sliceItem;
-
-                                    $rombelOccupied[$rId][$bH][$targetK] = true;
-                                    if ($gId) $guruOccupied[$gId][$bH][$targetK] = true;
-
-                                    $batchInserts[] = $this->buildScheduleItem($sess, $rId, $bH, $targetK, $targetK, $slots, $rombelMap, 'Auto-Generated (Slice Swap Resolved)');
-                                    $rombelPureKbmJp[$rId] = ($rombelPureKbmJp[$rId] ?? 0) + 1;
-                                    if ($gId) $guruDayJp[$gId][$bH] = ($guruDayJp[$gId][$bH] ?? 0) + 1;
-                                    $placed = true;
-                                    $anySwapped = true;
-                                    break 3;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!$placed) {
-                    $stillUnallocated[] = $sess;
-                }
-            }
-
-            $unallocatedSessions = $stillUnallocated;
-            if (!$anySwapped || empty($unallocatedSessions)) {
-                break;
-            }
-        }
+        $this->swapResolver->resolveUnallocatedByIntraRombelSwap(
+            $unallocatedSessions, $batchInserts, $rombelOccupied, $guruOccupied,
+            $rombelDayMapel, $rombelPureKbmJp, $guruDayJp, $rombelDailySlotCounts,
+            $istirahatJamKe, $slots, $rombelMap, $hariList, $pengaturan
+        );
     }
 
-    /**
-     * Format struktur baris jadwal KBM untuk batch insert
-     */
-    private function buildScheduleItem(
+    public function buildScheduleItem(
         array $sess,
         string $rId,
         string $h,
         int $startK,
         int $endK,
         array $slots,
-        $rombelMap,
+        mixed $rombelMap,
         string $keterangan
     ): array {
-        $jamMulai = $slots[$startK]['mulai'] ?? '06:30';
-        $jamSelesai = $slots[$endK]['selesai'] ?? '14:45';
-        $semesterId = $rombelMap[$rId]->semester_id ?? null;
-
-        return [
-            'rombongan_belajar_id' => $rId,
-            'pembelajaran_id'      => $sess['pembelajaran_id'],
-            'ptk_id'               => $sess['ptk_id'],
-            'mata_pelajaran_id'    => $sess['mata_pelajaran_id'],
-            'nama_mata_pelajaran'  => $sess['nama_mata_pelajaran'],
-            'hari'                 => $h,
-            'jam_ke_mulai'         => $startK,
-            'jam_ke_selesai'       => $endK,
-            'jam_mulai'            => strlen($jamMulai) === 5 ? "{$jamMulai}:00" : $jamMulai,
-            'jam_selesai'          => strlen($jamSelesai) === 5 ? "{$jamSelesai}:00" : $jamSelesai,
-            'ruangan'              => null,
-            'semester_id'          => $semesterId,
-            'sumber'               => 'otomatis',
-            'is_active'            => true,
-            'keterangan'           => $keterangan,
-            'created_at'           => now(),
-            'updated_at'           => now(),
-        ];
+        return AutoSchedulerSupport::buildScheduleItem($sess, $rId, $h, $startK, $endK, $slots, $rombelMap, $keterangan);
     }
 
-    /**
-     * Periksa ketersediaan jam berhalangan spesifik guru
-     */
-    private function isTeacherUnavailable(?object $gPref, string $h, int $startK, int $endK): bool
+    public function isTeacherUnavailable(?object $gPref, string $h, int $startK, int $endK): bool
     {
-        if (!$gPref || empty($gPref->jam_unavailable)) {
-            return false;
-        }
-
-        foreach ($gPref->jam_unavailable as $un) {
-            if (($un['hari'] ?? '') === $h) {
-                $unS = (int) ($un['jam_ke_mulai'] ?? 1);
-                $unE = (int) ($un['jam_ke_selesai'] ?? $unS);
-                if ($startK <= $unE && $endK >= $unS) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return AutoSchedulerSupport::isTeacherUnavailable($gPref, $h, $startK, $endK);
     }
 
-    /**
-     * Memecah total jam mengajar mingguan (JJM) menjadi sesi blok pertemuan yang teratur dan fleksibel (hingga 9 JP)
-     */
-    private function decomposeJjmIntoBlocks(int $jjm, int $maxBlock = 3, ?int $istirahatJamKe = null): array
+    public function decomposeJjmIntoBlocks(int $jjm, int $maxBlock = 3, ?int $istirahatJamKe = null): array
     {
-        if ($jjm <= 0) return [];
-        $maxBlock = max(2, min(9, $maxBlock));
-
-        // Penanganan dekomposisi seimbang untuk JJM SMK agar proporsional di seluruh hari
-        if ($jjm === 18) {
-            if ($maxBlock >= 6) return [6, 6, 6];
-            return [3, 3, 3, 3, 3, 3];
-        }
-        if ($jjm === 12) {
-            if ($maxBlock >= 6) return [6, 6];
-            if ($maxBlock === 2) return [2, 2, 2, 2, 2, 2];
-            return [3, 3, 3, 3];
-        }
-        if ($jjm === 10) {
-            if ($maxBlock >= 5) return [5, 5];
-            if ($maxBlock === 2) return [2, 2, 2, 2, 2];
-            return [3, 3, 2, 2];
-        }
-        if ($jjm === 9) {
-            if ($maxBlock >= 5) return [5, 4];
-            if ($maxBlock >= 3) return [3, 3, 3];
-            return [3, 2, 2, 2];
-        }
-        if ($jjm === 8) {
-            if ($maxBlock >= 4) return [4, 4];
-            if ($maxBlock === 3) return [3, 3, 2];
-            return [2, 2, 2, 2];
-        }
-        if ($jjm === 7) {
-            if ($maxBlock >= 4) return [4, 3];
-            return [3, 2, 2];
-        }
-        if ($jjm === 6) {
-            if ($maxBlock >= 3) return [3, 3];
-            return [2, 2, 2];
-        }
-        if ($jjm === 5) {
-            return [3, 2];
-        }
-        if ($jjm === 4) {
-            return [2, 2];
-        }
-        if ($jjm <= 3) {
-            return [$jjm];
-        }
-
-        $blocks = [];
-        $remaining = $jjm;
-        while ($remaining > 0) {
-            $take = min($maxBlock, $remaining);
-            if ($take === 1 && count($blocks) > 0) {
-                $blocks[count($blocks) - 1] += 1;
-                break;
-            }
-            if (($remaining - $take) === 1 && $take > 2) {
-                $take -= 1;
-            }
-            $blocks[] = $take;
-            $remaining -= $take;
-        }
-
-        return $blocks;
+        return AutoSchedulerSupport::decomposeJjmIntoBlocks($jjm, $maxBlock, $istirahatJamKe);
     }
-    /**
-     * Gabungkan sesi berdekatan dari rombel, hari, mapel, dan guru yang sama menjadi satu blok solid
-     */
-    private function mergeAdjacentSessions(array &$batchInserts, array $slots): void
+
+    public function mergeAdjacentSessions(array &$batchInserts, array $slots): void
     {
-        usort($batchInserts, function ($a, $b) {
-            if ($a["rombongan_belajar_id"] !== $b["rombongan_belajar_id"]) return strcmp($a["rombongan_belajar_id"], $b["rombongan_belajar_id"]);
-            if ($a["hari"] !== $b["hari"]) return strcmp($a["hari"], $b["hari"]);
-            return (int)$a["jam_ke_mulai"] <=> (int)$b["jam_ke_mulai"];
-        });
-
-        $merged = [];
-        foreach ($batchInserts as $item) {
-            $rId = $item["rombongan_belajar_id"];
-            $h = $item["hari"];
-            $mId = $item["mata_pelajaran_id"];
-            $gId = $item["ptk_id"];
-            $isRoutine = in_array($mId, ["UPACARA", "PEMBIASAAN", "ISTIRAHAT"], true);
-
-            $lastIdx = count($merged) - 1;
-            if (!$isRoutine && $lastIdx >= 0) {
-                $prev = &$merged[$lastIdx];
-                if ($prev["rombongan_belajar_id"] === $rId && $prev["hari"] === $h && $prev["mata_pelajaran_id"] === $mId && $prev["ptk_id"] === $gId) {
-                    $pEnd = (int) $prev["jam_ke_selesai"];
-                    $cStart = (int) $item["jam_ke_mulai"];
-                    $isNext = ($cStart === $pEnd + 1);
-                    if ($isNext) {
-                        $cEnd = (int) $item["jam_ke_selesai"];
-                        $prev["jam_ke_selesai"] = $cEnd;
-                        $prev["jam_selesai"] = $slots[$cEnd]["selesai"] ? (strlen($slots[$cEnd]["selesai"]) === 5 ? $slots[$cEnd]["selesai"] . ":00" : $slots[$cEnd]["selesai"]) : $item["jam_selesai"];
-                        continue;
-                    }
-                }
-            }
-            $merged[] = $item;
-        }
-        $batchInserts = $merged;
+        AutoSchedulerSupport::mergeAdjacentSessions($batchInserts, $slots);
     }
 
-    /**
-     * Susun ulang seluruh sesi menjadi blok utuh (minimal 2 JP, satu mapel maksimal satu blok per hari,
-     * tidak melewati jam istirahat). Hasil hanya dipakai jika benar-benar bebas bentrok guru.
-     */
-    private function blockifyLayout(
+    public function blockifyLayout(
         array &$batchInserts,
         array $slots,
         array $rombelOccupied,
@@ -1827,116 +942,17 @@ class AutoSchedulerService
         array $hariList,
         int $maxJpPerSession,
         ?int $istirahatJamKe,
-        $guruPreferences,
+        mixed $guruPreferences,
         ?int $seed,
         float $budget
     ): bool {
-        $templates = [];
-        $jpOf = [];
-        $ptkOf = [];
-        foreach ($batchInserts as $row) {
-            $rId = $row['rombongan_belajar_id'];
-            for ($k = (int) $row['jam_ke_mulai']; $k <= (int) $row['jam_ke_selesai']; $k++) {
-                unset($rombelOccupied[$rId][$row['hari']][$k]);
-                if ($row['ptk_id']) unset($guruOccupied[$row['ptk_id']][$row['hari']][$k]);
-            }
-            $pid = $row['pembelajaran_id'];
-            $templates[$pid] ??= $row;
-            $ptkOf[$pid] = $row['ptk_id'];
-            $jpOf[$rId][$pid] = ($jpOf[$rId][$pid] ?? 0) + ((int) $row['jam_ke_selesai'] - (int) $row['jam_ke_mulai'] + 1);
-        }
-
-        $segments = [];
-        foreach (array_keys($jpOf) as $rId) {
-            foreach ($hariList as $h) {
-                $dayMax = $rombelDailySlotCounts[$rId][$h] ?? ($rombelDailySlotCounts[$h] ?? 12);
-                $cur = null;
-                for ($k = 1; $k <= $dayMax + 1; $k++) {
-                    $free = $k <= $dayMax && empty($rombelOccupied[$rId][$h][$k]);
-                    if ($free) {
-                        $cur ??= ['day' => $h, 'start' => $k, 'size' => 0];
-                        $cur['size']++;
-                    } elseif ($cur) {
-                        $segments[$rId][] = $cur;
-                        $cur = null;
-                    }
-                }
-            }
-        }
-
-        $blocks = [];
-        $allowOf = [];
-        $capOf = [];
-        foreach ($jpOf as $rId => $pids) {
-            $maxSeg = 1;
-            $dayCount = [];
-            foreach ($segments[$rId] ?? [] as $s) {
-                $maxSeg = max($maxSeg, $s['size']);
-                $dayCount[$s['day']] = true;
-            }
-            $cap = max(2, min($maxJpPerSession, $maxSeg, 6));
-            foreach ($pids as $pid => $jp) {
-                $parts = $this->decomposeJjmIntoBlocks($jp, $cap, $istirahatJamKe);
-                $allowOf[$rId][$pid] = max(1, (int) ceil(count($parts) / max(1, count($dayCount))));
-                $capOf[$rId][$pid] = max($maxJpPerSession, max($parts));
-            }
-        }
-        foreach ($batchInserts as $row) {
-            $rId = $row['rombongan_belajar_id'];
-            $pid = $row['pembelajaran_id'];
-            $blocks[] = [
-                'rId' => $rId, 'pid' => $pid, 'ptk' => $row['ptk_id'],
-                'len' => (int) $row['jam_ke_selesai'] - (int) $row['jam_ke_mulai'] + 1,
-                'day' => $row['hari'], 'start' => (int) $row['jam_ke_mulai'],
-                'allow' => $allowOf[$rId][$pid] ?? 1, 'cap' => $capOf[$rId][$pid] ?? $maxJpPerSession,
-            ];
-        }
-
-        $prefs = [];
-        foreach ($guruPreferences as $ptk => $p) {
-            $un = [];
-            foreach (($p->jam_unavailable ?? []) as $u) {
-                $from = (int) ($u['jam_ke_mulai'] ?? 1);
-                $un[] = [$u['hari'] ?? '', $from, (int) ($u['jam_ke_selesai'] ?? $from)];
-            }
-            $prefs[$ptk] = [
-                'off' => $p->hari_off ?? [],
-                'unavail' => $un,
-                'max' => $p->max_jp_per_hari ?: null,
-            ];
-        }
-
-        $solver = new BlockTimetableSolver();
-        $result = $solver->solve($segments, $blocks, $guruOccupied, $prefs, ($seed ?? 1) + 101, $budget);
-        if (!$result['ok']) return false;
-
-        $fmt = fn($t) => strlen((string) $t) === 5 ? $t . ':00' : $t;
-        $rebuilt = [];
-        foreach ($result['items'] as $it) {
-            $start = $it['start'];
-            $end = $start + $it['len'] - 1;
-            $row = $templates[$it['pid']];
-            $row['rombongan_belajar_id'] = $it['rId'];
-            $row['hari'] = $it['day'];
-            $row['jam_ke_mulai'] = $start;
-            $row['jam_ke_selesai'] = $end;
-            $row['jam_mulai'] = $fmt($slots[$start]['mulai'] ?? $row['jam_mulai']);
-            $row['jam_selesai'] = $fmt($slots[$end]['selesai'] ?? $row['jam_selesai']);
-            $row['keterangan'] = 'Auto-Generated';
-            $rebuilt[] = $row;
-        }
-        $batchInserts = $rebuilt;
-
-        return true;
+        return $this->layoutOptimizer->blockifyLayout(
+            $batchInserts, $slots, $rombelOccupied, $guruOccupied, $rombelDailySlotCounts,
+            $hariList, $maxJpPerSession, $istirahatJamKe, $guruPreferences, $seed, $budget
+        );
     }
 
-    /**
-     * Susun ulang slot per rombel (tukar antar slot, bebas bentrok guru) agar tidak ada sesi 1 JP
-     * dan satu mapel tidak terpecah di hari yang sama. Jam istirahat tidak pernah disentuh.
-     *
-     * @return array{single_jp:int, split:int}
-     */
-    private function optimizeSlotLayout(
+    public function optimizeSlotLayout(
         array &$batchInserts,
         array $slots,
         array $rombelOccupied,
@@ -1944,275 +960,14 @@ class AutoSchedulerService
         array $rombelDailySlotCounts,
         array $hariList,
         ?int $istirahatJamKe,
-        $guruPreferences,
+        mixed $guruPreferences,
         ?int $seed,
         float $seconds = 6.0
     ): array {
-        $cell = [];
-        $templates = [];
-        $teacherOcc = [];
-        $teacherDay = [];
-        $rombelIds = [];
-
-        foreach ($batchInserts as $row) {
-            for ($k = (int) $row['jam_ke_mulai']; $k <= (int) $row['jam_ke_selesai']; $k++) {
-                unset($rombelOccupied[$row['rombongan_belajar_id']][$row['hari']][$k]);
-                if ($row['ptk_id']) unset($guruOccupied[$row['ptk_id']][$row['hari']][$k]);
-            }
-        }
-
-        $validK = [];
-        foreach ($batchInserts as $row) {
-            $rId = $row['rombongan_belajar_id'];
-            $rombelIds[$rId] = true;
-            $templates[$row['pembelajaran_id']] ??= $row;
-        }
-        $rombelIds = array_keys($rombelIds);
-
-        foreach ($rombelIds as $rId) {
-            foreach ($hariList as $h) {
-                $dayMax = $rombelDailySlotCounts[$rId][$h] ?? ($rombelDailySlotCounts[$h] ?? 12);
-                for ($k = 1; $k <= $dayMax; $k++) {
-                    if (empty($rombelOccupied[$rId][$h][$k])) $validK[$rId][$h][] = $k;
-                }
-            }
-        }
-
-        foreach ($batchInserts as $row) {
-            $rId = $row['rombongan_belajar_id'];
-            $h = $row['hari'];
-            $ptk = $row['ptk_id'];
-            for ($k = (int) $row['jam_ke_mulai']; $k <= (int) $row['jam_ke_selesai']; $k++) {
-                if (!in_array($k, $validK[$rId][$h] ?? [], true)) continue;
-                $cell[$rId][$h][$k] = ['pid' => $row['pembelajaran_id'], 'ptk' => $ptk];
-                if ($ptk) {
-                    $teacherOcc[$ptk][$h][$k] = $rId;
-                    $teacherDay[$ptk][$h] = ($teacherDay[$ptk][$h] ?? 0) + 1;
-                }
-            }
-        }
-
-        $breakAt = $istirahatJamKe;
-        $buildRuns = function (string $rId, string $h) use (&$cell, &$validK, $breakAt): array {
-            $runs = [];
-            $cur = null;
-            foreach ($validK[$rId][$h] ?? [] as $k) {
-                $c = $cell[$rId][$h][$k] ?? null;
-                if ($c === null) {
-                    if ($cur) { $runs[] = $cur; $cur = null; }
-                    continue;
-                }
-                if ($cur && $cur['pid'] === $c['pid'] && $k === $cur['end'] + 1) {
-                    $cur['end'] = $k;
-                    $cur['len']++;
-                } else {
-                    if ($cur) $runs[] = $cur;
-                    $cur = ['pid' => $c['pid'], 'start' => $k, 'end' => $k, 'len' => 1, 'bridge' => false];
-                }
-            }
-            if ($cur) $runs[] = $cur;
-
-            $merged = [];
-            foreach ($runs as $run) {
-                $li = count($merged) - 1;
-                if ($breakAt && $li >= 0 && $merged[$li]['pid'] === $run['pid']
-                    && $merged[$li]['end'] === $breakAt - 1 && $run['start'] === $breakAt + 1) {
-                    $merged[$li]['end'] = $run['end'];
-                    $merged[$li]['len'] += $run['len'];
-                    $merged[$li]['bridge'] = true;
-                    continue;
-                }
-                $merged[] = $run;
-            }
-            return $merged;
-        };
-        $dayCost = function (string $rId, string $h) use ($buildRuns): int {
-            $cost = 0;
-            $seen = [];
-            foreach ($buildRuns($rId, $h) as $run) {
-                if ($run['len'] === 1) $cost += 4;
-                if ($run['bridge']) $cost += 1;
-                if (isset($seen[$run['pid']])) $cost += 4;
-                $seen[$run['pid']] = true;
-            }
-            return $cost;
-        };
-
-        $costCache = [];
-        $total = 0;
-        foreach ($rombelIds as $rId) {
-            foreach ($hariList as $h) {
-                $costCache[$rId][$h] = $dayCost($rId, $h);
-                $total += $costCache[$rId][$h];
-            }
-        }
-
-        $canTeach = function (?string $ptk, string $h, int $k) use (&$teacherOcc, &$teacherDay, $guruOccupied, $guruPreferences): bool {
-            if (!$ptk) return true;
-            if (!empty($guruOccupied[$ptk][$h][$k]) || isset($teacherOcc[$ptk][$h][$k])) return false;
-            $pref = $guruPreferences[$ptk] ?? null;
-            if ($pref) {
-                if (!empty($pref->hari_off) && in_array($h, $pref->hari_off, true)) return false;
-                if ($this->isTeacherUnavailable($pref, $h, $k, $k)) return false;
-                if ($pref->max_jp_per_hari && (($teacherDay[$ptk][$h] ?? 0) + 1 > $pref->max_jp_per_hari)) return false;
-            }
-            return true;
-        };
-        $tPlace = function (?string $ptk, string $rId, string $h, int $k) use (&$teacherOcc, &$teacherDay): void {
-            if (!$ptk) return;
-            $teacherOcc[$ptk][$h][$k] = $rId;
-            $teacherDay[$ptk][$h] = ($teacherDay[$ptk][$h] ?? 0) + 1;
-        };
-        $tRemove = function (?string $ptk, string $h, int $k) use (&$teacherOcc, &$teacherDay): void {
-            if (!$ptk) return;
-            unset($teacherOcc[$ptk][$h][$k]);
-            $teacherDay[$ptk][$h] = max(0, ($teacherDay[$ptk][$h] ?? 0) - 1);
-        };
-
-        mt_srand(($seed ?? 1) + 7);
-        $deadline = microtime(true) + $seconds;
-        $temp = 1.5;
-        $badList = [];
-        $iter = 0;
-
-        while ($total > 0) {
-            if ($iter % 400 === 0) {
-                if (microtime(true) > $deadline) break;
-                $temp = max(0.2, $temp * 0.985);
-                $badList = [];
-                foreach ($costCache as $rId => $days) {
-                    foreach ($days as $h => $c) {
-                        if ($c > 0) $badList[] = [$rId, $h];
-                    }
-                }
-            }
-            $iter++;
-
-            if ($badList && mt_rand(1, 100) <= 80) {
-                [$rId, $h] = $badList[array_rand($badList)];
-            } else {
-                $rId = $rombelIds[array_rand($rombelIds)];
-                $h = $hariList[array_rand($hariList)];
-            }
-            $daySlots = $validK[$rId][$h] ?? [];
-            if (!$daySlots) continue;
-
-            $targeted = false;
-            if (mt_rand(1, 100) <= 75) {
-                $bad = [];
-                $seenPid = [];
-                foreach ($buildRuns($rId, $h) as $run) {
-                    if ($run['len'] === 1 || isset($seenPid[$run['pid']])) $bad[] = $run;
-                    $seenPid[$run['pid']] = true;
-                }
-                if ($bad) {
-                    $run = $bad[array_rand($bad)];
-                    $near = [];
-                    foreach ([$run['start'] - 1, $run['end'] + 1] as $nk) {
-                        if (in_array($nk, $daySlots, true)) $near[] = $nk;
-                    }
-                    $pieces = [];
-                    foreach ($hariList as $hh) {
-                        foreach ($validK[$rId][$hh] ?? [] as $kk) {
-                            $c = $cell[$rId][$hh][$kk] ?? null;
-                            if ($c && $c['pid'] === $run['pid'] && !($hh === $h && $kk >= $run['start'] && $kk <= $run['end'])) {
-                                $pieces[] = [$hh, $kk];
-                            }
-                        }
-                    }
-                    if ($near && $pieces) {
-                        $a = $near[array_rand($near)];
-                        [$h2, $b] = $pieces[array_rand($pieces)];
-                        $targeted = true;
-                    }
-                }
-            }
-
-            if (!$targeted) {
-                $a = $daySlots[array_rand($daySlots)];
-                $h2 = (mt_rand(1, 100) <= 60) ? $h : $hariList[array_rand($hariList)];
-                $slots2 = $validK[$rId][$h2] ?? [];
-                if (!$slots2) continue;
-                $b = $slots2[array_rand($slots2)];
-            }
-            if ($h === $h2 && $a === $b) continue;
-
-            $A = $cell[$rId][$h][$a] ?? null;
-            $B = $cell[$rId][$h2][$b] ?? null;
-            if ($A === null && $B === null) continue;
-            if ($A !== null && $B !== null && $A['pid'] === $B['pid']) continue;
-
-            if ($A) $tRemove($A['ptk'], $h, $a);
-            if ($B) $tRemove($B['ptk'], $h2, $b);
-
-            $ok = (!$A || $canTeach($A['ptk'], $h2, $b)) && (!$B || $canTeach($B['ptk'], $h, $a));
-            if (!$ok) {
-                if ($A) $tPlace($A['ptk'], $rId, $h, $a);
-                if ($B) $tPlace($B['ptk'], $rId, $h2, $b);
-                continue;
-            }
-
-            $cell[$rId][$h][$a] = $B;
-            $cell[$rId][$h2][$b] = $A;
-            $new1 = $dayCost($rId, $h);
-            $new2 = ($h2 === $h) ? $new1 : $dayCost($rId, $h2);
-            $old = $costCache[$rId][$h] + (($h2 === $h) ? 0 : $costCache[$rId][$h2]);
-            $new = $new1 + (($h2 === $h) ? 0 : $new2);
-            $delta = $new - $old;
-
-            if ($delta <= 0 || (mt_rand() / mt_getrandmax()) < exp(-$delta / $temp)) {
-                if ($A) $tPlace($A['ptk'], $rId, $h2, $b);
-                if ($B) $tPlace($B['ptk'], $rId, $h, $a);
-                $costCache[$rId][$h] = $new1;
-                $costCache[$rId][$h2] = $new2;
-                $total += $delta;
-            } else {
-                $cell[$rId][$h][$a] = $A;
-                $cell[$rId][$h2][$b] = $B;
-                if ($A) $tPlace($A['ptk'], $rId, $h, $a);
-                if ($B) $tPlace($B['ptk'], $rId, $h2, $b);
-            }
-        }
-
-        $fmt = fn($t) => strlen((string) $t) === 5 ? $t . ':00' : $t;
-        $rebuilt = [];
-        $singleJp = 0;
-        $split = 0;
-        foreach ($rombelIds as $rId) {
-            foreach ($hariList as $h) {
-                $cur = null;
-                $seen = [];
-                $flush = function () use (&$cur, &$rebuilt, &$singleJp, &$split, &$seen, $templates, $slots, $fmt, $rId, $h) {
-                    if (!$cur) return;
-                    $row = $templates[$cur['pid']];
-                    $row['hari'] = $h;
-                    $row['jam_ke_mulai'] = $cur['start'];
-                    $row['jam_ke_selesai'] = $cur['end'];
-                    $row['jam_mulai'] = $fmt($slots[$cur['start']]['mulai'] ?? $row['jam_mulai']);
-                    $row['jam_selesai'] = $fmt($slots[$cur['end']]['selesai'] ?? $row['jam_selesai']);
-                    $row['keterangan'] = 'Auto-Generated';
-                    $rebuilt[] = $row;
-                    if ($cur['start'] === $cur['end']) $singleJp++;
-                    if (isset($seen[$cur['pid']])) $split++;
-                    $seen[$cur['pid']] = true;
-                    $cur = null;
-                };
-                foreach ($validK[$rId][$h] ?? [] as $k) {
-                    $c = $cell[$rId][$h][$k] ?? null;
-                    if ($c === null) { $flush(); continue; }
-                    if ($cur && $cur['pid'] === $c['pid'] && $k === $cur['end'] + 1) {
-                        $cur['end'] = $k;
-                    } else {
-                        $flush();
-                        $cur = ['pid' => $c['pid'], 'start' => $k, 'end' => $k];
-                    }
-                }
-                $flush();
-            }
-        }
-
-        $batchInserts = $rebuilt;
-
-        return ['single_jp' => $singleJp, 'split' => $split];
+        return $this->layoutOptimizer->optimizeSlotLayout(
+            $batchInserts, $slots, $rombelOccupied, $guruOccupied,
+            $rombelDailySlotCounts, $hariList, $istirahatJamKe, $guruPreferences, $seed,
+            $seconds
+        );
     }
 }

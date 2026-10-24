@@ -122,7 +122,7 @@ class RealtimeTest extends TestCase
             'pengguna_id' => 'test-guru',
             'role'        => 'guru',
         ]])->get(route('dashboard.jadwal-kbm.index'));
-        $respGuru->assertStatus(200);
+        $respGuru->assertStatus(302);
 
         // 3. Uji akses peran Peserta Didik
         $respPd = $this->withSession(['user' => [
@@ -130,7 +130,7 @@ class RealtimeTest extends TestCase
             'pengguna_id' => 'test-pd',
             'role'        => 'peserta_didik',
         ]])->get(route('dashboard.jadwal-kbm.index'));
-        $respPd->assertStatus(200);
+        $respPd->assertStatus(302);
 
         // 4. Uji mutasi jadwal men-trigger event jadwal.changed
         $ptkId = \Illuminate\Support\Facades\DB::table('gtk')->value('ptk_id');

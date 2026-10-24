@@ -288,7 +288,8 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::post('/notifikasi-transaksi/{id}/mark-read', [\App\Http\Controllers\PesertaDidikPresensiController::class, 'markTransactionRead'])->name('notifikasi-transaksi.mark-read');
 
     // Administrasi Tendik — Persuratan & Arsip Digital (Modular SAE)
-    Route::get('/persuratan', fn() => redirect()->route('dashboard.persuratan.masuk.index'))->name('persuratan.index');
+    // Keep the aggregate endpoint for existing links and notifications.
+    Route::get('/persuratan', [\App\Http\Controllers\PersuratanController::class, 'index'])->name('persuratan.index');
 
     // 1. Surat Masuk & Disposisi
     Route::get('/persuratan/masuk', [\App\Http\Controllers\SuratMasukController::class, 'index'])->name('persuratan.masuk.index')->middleware('permission:menu_surat_masuk,read');
@@ -296,6 +297,11 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::get('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'show'])->name('persuratan.masuk.show')->middleware('permission:menu_surat_masuk,read');
     Route::put('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'update'])->name('persuratan.masuk.update')->middleware('permission:menu_surat_masuk,update');
     Route::delete('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'destroy'])->name('persuratan.masuk.destroy')->middleware('permission:menu_surat_masuk,delete');
+    // Legacy route names retained for existing integrations and older views.
+    Route::post('/persuratan', [\App\Http\Controllers\PersuratanController::class, 'store'])->name('persuratan.store')->middleware('permission:menu_persuratan,create');
+    Route::get('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'show'])->name('persuratan.show')->middleware('permission:menu_persuratan,read');
+    Route::put('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'update'])->name('persuratan.update')->middleware('permission:menu_persuratan,update');
+    Route::delete('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'destroy'])->name('persuratan.destroy')->middleware('permission:menu_persuratan,delete');
     Route::post('/persuratan/masuk/{id}/disposisi', [\App\Http\Controllers\SuratMasukController::class, 'disposisi'])->name('persuratan.masuk.disposisi')->middleware('permission:menu_surat_masuk,update');
     Route::get('/persuratan/masuk/{id}/disposisi/cetak', [\App\Http\Controllers\SuratMasukController::class, 'cetakDisposisi'])->name('persuratan.masuk.disposisi.cetak')->middleware('permission:menu_surat_masuk,read');
 
