@@ -349,17 +349,21 @@ class AuthController extends Controller
      */
     public function redirectToGoogle()
     {
-        $clientId = config('services.google.client_id');
-        $clientSecret = config('services.google.client_secret');
+        $clientId     = trim((string) config('services.google.client_id'), " \"'\t\n\r");
+        $clientSecret = trim((string) config('services.google.client_secret'), " \"'\t\n\r");
 
         if (empty($clientId) || empty($clientSecret)) {
-            return redirect()->route('login')->with('warning', 'Integrasi Akun Google belum dikonfigurasi. Harap isi GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET pada berkas konfigurasi (.env).');
+            return redirect()->route('login')->with('warning', 'Integrasi Akun Google belum dikonfigurasi. Harap isi GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET pada pengaturan sistem atau berkas .env.');
+        }
+
+        if (!str_contains($clientId, '.apps.googleusercontent.com')) {
+            return redirect()->route('login')->with('error', 'Format GOOGLE_CLIENT_ID tidak valid. Client ID Google harus berupa string resmi berakhiran ".apps.googleusercontent.com" dari Google Cloud Console.');
         }
 
         $state = Str::random(40);
         session(['google_oauth_state' => $state]);
 
-        $redirectUri = config('services.google.redirect_uri') ?: route('auth.google.callback');
+        $redirectUri = trim((string) (config('services.google.redirect_uri') ?: route('auth.google.callback')), " \"'\t\n\r");
 
         $params = [
             'client_id'     => $clientId,
@@ -395,9 +399,9 @@ class AuthController extends Controller
             return redirect()->route('login')->with('error', 'Validasi sesi keamanan (state) login Google gagal. Silakan coba lagi.');
         }
 
-        $clientId = config('services.google.client_id');
-        $clientSecret = config('services.google.client_secret');
-        $redirectUri = config('services.google.redirect_uri') ?: route('auth.google.callback');
+        $clientId     = trim((string) config('services.google.client_id'), " \"'\t\n\r");
+        $clientSecret = trim((string) config('services.google.client_secret'), " \"'\t\n\r");
+        $redirectUri  = trim((string) (config('services.google.redirect_uri') ?: route('auth.google.callback')), " \"'\t\n\r");
 
         try {
             // Tukar authorization code dengan access token

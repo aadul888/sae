@@ -339,9 +339,13 @@ class IdentitasSekolahController extends Controller
             'google_redirect_uri'  => 'nullable|string|max:255',
         ]);
 
-        $clientId     = trim((string) $request->input('google_client_id', ''));
-        $clientSecret = trim((string) $request->input('google_client_secret', ''));
-        $redirectUri  = trim((string) $request->input('google_redirect_uri', ''));
+        $clientId     = trim((string) $request->input('google_client_id', ''), " \"'\t\n\r");
+        $clientSecret = trim((string) $request->input('google_client_secret', ''), " \"'\t\n\r");
+        $redirectUri  = trim((string) $request->input('google_redirect_uri', ''), " \"'\t\n\r");
+
+        if (!empty($clientId) && !str_contains($clientId, '.apps.googleusercontent.com')) {
+            return back()->withInput()->with('error', 'Google Client ID tidak valid. Pastikan menyalin Client ID OAuth 2.0 berakhiran ".apps.googleusercontent.com" dari Google Cloud Console.');
+        }
 
         if (empty($redirectUri)) {
             $redirectUri = route('auth.google.callback');

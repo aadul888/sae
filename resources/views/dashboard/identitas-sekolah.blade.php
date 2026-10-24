@@ -350,8 +350,8 @@
             </div>
             <ol style="margin: 0; padding-left: 20px; line-height: 1.6; color: var(--text-muted);">
                 <li>Buka <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">Google Cloud Console &rarr; Credentials</a>.</li>
-                <li>Pilih / buat <strong>OAuth 2.0 Client ID</strong> dengan tipe <strong>Web application</strong>.</li>
-                <li>Salin dan tempelkan <strong>Authorized redirect URIs</strong> berikut ke Google Console:</li>
+                <li>Pilih / buat <strong>OAuth 2.0 Client ID</strong> dengan Application type wajib: <strong>Web application</strong> (bukan Desktop / Android / Service Account).</li>
+                <li>Pada bagian <strong>Authorized redirect URIs</strong>, tambahkan URI Callback berikut:</li>
             </ol>
             <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <div style="flex: 1; min-width: 260px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-family: monospace; font-size: 0.82rem; color: var(--accent); overflow-wrap: anywhere;">
@@ -362,6 +362,12 @@
                     style="padding: 7px 14px; font-size: 0.82rem;">
                     <i class="fas fa-copy me-1"></i> Salin URI Callback
                 </button>
+            </div>
+            <div style="margin-top: 12px; padding: 10px 12px; background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 6px; font-size: 0.76rem; color: var(--text-color); line-height: 1.5;">
+                <strong style="color: #f59e0b;"><i class="fas fa-triangle-exclamation me-1"></i> Catatan Domain &amp; Solusi Error 401 (invalid_client):</strong><br>
+                &bull; <strong>Pengujian di Server Online:</strong> Pastikan domain online (contoh: <code>https://test-app.smakpal.sch.id/auth/google/callback</code>) sudah didaftarkan pada <em>Authorized redirect URIs</em> Google Console.<br>
+                &bull; <strong>Pengujian di Komputer Lokal:</strong> Google menolak domain lokal seperti <code>.test</code> / <code>.local</code>. Gunakan <code>http://localhost/auth/google/callback</code> (Google secara khusus mengizinkan <code>http://localhost</code>) atau lakukan pengujian langsung di domain server online ber-HTTPS.<br>
+                &bull; <strong>Penyebab Error 401 invalid_client:</strong> Client ID tidak ditemukan Google karena tipe aplikasi bukan <em>Web application</em>, atau salah menyalin nilai (terbawa spasi/kutip), atau Layar Persetujuan OAuth (OAuth consent screen) belum dibuat / belum dipublikasikan.
             </div>
         </div>
 
