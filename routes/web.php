@@ -122,6 +122,8 @@ Route::post('/presensi/scan/process', [\App\Http\Controllers\PresensiController:
 // Auth Routes (Multi-User)
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logout']);
 Route::get('/auth/update-password-wajib', [AuthController::class, 'showForceUpdatePassword'])->name('auth.force-update-password');
@@ -235,6 +237,7 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Pengaturan — Identitas Sekolah (Sumber: Sekolah Dapodik)
     Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index')->middleware('permission:menu_pengaturan,read');
     Route::put('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'update'])->name('identitas-sekolah.update')->middleware('permission:menu_pengaturan,update');
+    Route::post('/identitas-sekolah/google-config', [\App\Http\Controllers\IdentitasSekolahController::class, 'updateGoogleConfig'])->name('identitas-sekolah.google-config')->middleware('permission:menu_pengaturan,update');
     Route::post('/identitas-sekolah/upload-logo', [\App\Http\Controllers\IdentitasSekolahController::class, 'uploadLogo'])->name('identitas-sekolah.upload-logo')->middleware('permission:menu_pengaturan,update');
     Route::delete('/identitas-sekolah/delete-logo', [\App\Http\Controllers\IdentitasSekolahController::class, 'deleteLogo'])->name('identitas-sekolah.delete-logo')->middleware('permission:menu_pengaturan,delete');
     Route::post('/identitas-sekolah/upload-kop', [\App\Http\Controllers\IdentitasSekolahController::class, 'uploadKop'])->name('identitas-sekolah.upload-kop')->middleware('permission:menu_pengaturan,update');
@@ -294,50 +297,55 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // 1. Surat Masuk & Disposisi
     Route::get('/persuratan/masuk', [\App\Http\Controllers\SuratMasukController::class, 'index'])->name('persuratan.masuk.index')->middleware('permission:menu_surat_masuk,read');
     Route::post('/persuratan/masuk', [\App\Http\Controllers\SuratMasukController::class, 'store'])->name('persuratan.masuk.store')->middleware('permission:menu_surat_masuk,create');
-    Route::get('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'show'])->name('persuratan.masuk.show')->middleware('permission:menu_surat_masuk,read');
-    Route::put('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'update'])->name('persuratan.masuk.update')->middleware('permission:menu_surat_masuk,update');
-    Route::delete('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'destroy'])->name('persuratan.masuk.destroy')->middleware('permission:menu_surat_masuk,delete');
-    // Legacy route names retained for existing integrations and older views.
-    Route::post('/persuratan', [\App\Http\Controllers\PersuratanController::class, 'store'])->name('persuratan.store')->middleware('permission:menu_persuratan,create');
-    Route::get('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'show'])->name('persuratan.show')->middleware('permission:menu_persuratan,read');
-    Route::put('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'update'])->name('persuratan.update')->middleware('permission:menu_persuratan,update');
-    Route::delete('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'destroy'])->name('persuratan.destroy')->middleware('permission:menu_persuratan,delete');
-    Route::post('/persuratan/masuk/{id}/disposisi', [\App\Http\Controllers\SuratMasukController::class, 'disposisi'])->name('persuratan.masuk.disposisi')->middleware('permission:menu_surat_masuk,update');
-    Route::get('/persuratan/masuk/{id}/disposisi/cetak', [\App\Http\Controllers\SuratMasukController::class, 'cetakDisposisi'])->name('persuratan.masuk.disposisi.cetak')->middleware('permission:menu_surat_masuk,read');
+    Route::get('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'show'])->name('persuratan.masuk.show')->middleware('permission:menu_surat_masuk,read')->whereNumber('id');
+    Route::put('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'update'])->name('persuratan.masuk.update')->middleware('permission:menu_surat_masuk,update')->whereNumber('id');
+    Route::delete('/persuratan/masuk/{id}', [\App\Http\Controllers\SuratMasukController::class, 'destroy'])->name('persuratan.masuk.destroy')->middleware('permission:menu_surat_masuk,delete')->whereNumber('id');
+    Route::post('/persuratan/masuk/{id}/disposisi', [\App\Http\Controllers\SuratMasukController::class, 'disposisi'])->name('persuratan.masuk.disposisi')->middleware('permission:menu_surat_masuk,update')->whereNumber('id');
+    Route::get('/persuratan/masuk/{id}/disposisi/cetak', [\App\Http\Controllers\SuratMasukController::class, 'cetakDisposisi'])->name('persuratan.masuk.disposisi.cetak')->middleware('permission:menu_surat_masuk,read')->whereNumber('id');
+    Route::get('/persuratan/masuk/agenda/cetak', [\App\Http\Controllers\SuratMasukController::class, 'cetakAgenda'])->name('persuratan.masuk.agenda.cetak')->middleware('permission:menu_surat_masuk,read');
 
     // 2. Surat Keluar & Surat Keterangan Siswa
     Route::get('/persuratan/keluar', [\App\Http\Controllers\SuratKeluarController::class, 'index'])->name('persuratan.keluar.index')->middleware('permission:menu_surat_keluar,read');
     Route::post('/persuratan/keluar', [\App\Http\Controllers\SuratKeluarController::class, 'store'])->name('persuratan.keluar.store')->middleware('permission:menu_surat_keluar,create');
     Route::get('/persuratan/keluar/next-number', [\App\Http\Controllers\SuratKeluarController::class, 'getNextNumber'])->name('persuratan.keluar.next-number')->middleware('permission:menu_surat_keluar,read');
     Route::get('/persuratan/keluar/search-siswa', [\App\Http\Controllers\SuratKeluarController::class, 'searchSiswa'])->name('persuratan.keluar.search-siswa')->middleware('permission:menu_surat_keluar,read');
-    Route::get('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'show'])->name('persuratan.keluar.show')->middleware('permission:menu_surat_keluar,read');
-    Route::put('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'update'])->name('persuratan.keluar.update')->middleware('permission:menu_surat_keluar,update');
-    Route::delete('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'destroy'])->name('persuratan.keluar.destroy')->middleware('permission:menu_surat_keluar,delete');
+    Route::get('/persuratan/keluar/agenda/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakAgenda'])->name('persuratan.keluar.agenda.cetak')->middleware('permission:menu_surat_keluar,read');
+    Route::get('/persuratan/keluar/ekspedisi', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'ekspedisi']))->name('persuratan.keluar.ekspedisi.index');
+    Route::get('/persuratan/keluar/ekspedisi/cetak/{id?}', [\App\Http\Controllers\SuratKeluarController::class, 'cetakEkspedisi'])->name('persuratan.keluar.ekspedisi.cetak')->middleware('permission:menu_surat_keluar,read');
+    Route::get('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'show'])->name('persuratan.keluar.show')->middleware('permission:menu_surat_keluar,read')->whereNumber('id');
+    Route::put('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'update'])->name('persuratan.keluar.update')->middleware('permission:menu_surat_keluar,update')->whereNumber('id');
+    Route::delete('/persuratan/keluar/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'destroy'])->name('persuratan.keluar.destroy')->middleware('permission:menu_surat_keluar,delete')->whereNumber('id');
     Route::get('/persuratan/keluar/keterangan', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'keterangan']));
     Route::post('/persuratan/keluar/keterangan', [\App\Http\Controllers\SuratKeluarController::class, 'suratKeteranganStore'])->name('persuratan.keterangan.store')->middleware('permission:menu_surat_keluar,create');
-    Route::get('/persuratan/keluar/keterangan/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'suratKeteranganCetak'])->name('persuratan.keterangan.cetak')->middleware('permission:menu_surat_keluar,read');
+    Route::get('/persuratan/keluar/keterangan/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'suratKeteranganCetak'])->name('persuratan.keterangan.cetak')->middleware('permission:menu_surat_keluar,read')->whereNumber('id');
     Route::get('/persuratan/keluar/spt', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'spt']));
     Route::post('/persuratan/keluar/spt', [\App\Http\Controllers\SuratKeluarController::class, 'storeSpt'])->name('persuratan.keluar.spt.store')->middleware('permission:menu_surat_keluar,create');
-    Route::delete('/persuratan/keluar/spt/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteSpt'])->name('persuratan.keluar.spt.delete')->middleware('permission:menu_surat_keluar,delete');
-    Route::get('/persuratan/keluar/spt/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakSpt'])->name('persuratan.keluar.spt.cetak')->middleware('permission:menu_surat_keluar,read');
+    Route::delete('/persuratan/keluar/spt/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteSpt'])->name('persuratan.keluar.spt.delete')->middleware('permission:menu_surat_keluar,delete')->whereNumber('id');
+    Route::get('/persuratan/keluar/spt/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakSpt'])->name('persuratan.keluar.spt.cetak')->middleware('permission:menu_surat_keluar,read')->whereNumber('id');
 
     // Tab Template Surat Keluar (Autocrat-Style)
     Route::get('/persuratan/keluar/template', fn() => redirect()->route('dashboard.persuratan.keluar.index', ['tab' => 'template']));
     Route::post('/persuratan/keluar/template', [\App\Http\Controllers\SuratKeluarController::class, 'storeTemplate'])->name('persuratan.keluar.template.store')->middleware('permission:menu_surat_keluar,create');
-    Route::delete('/persuratan/keluar/template/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteTemplate'])->name('persuratan.keluar.template.delete')->middleware('permission:menu_surat_keluar,delete');
-    Route::get('/persuratan/keluar/template/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakTemplate'])->name('persuratan.keluar.template.cetak')->middleware('permission:menu_surat_keluar,read');
+    Route::delete('/persuratan/keluar/template/{id}', [\App\Http\Controllers\SuratKeluarController::class, 'deleteTemplate'])->name('persuratan.keluar.template.delete')->middleware('permission:menu_surat_keluar,delete')->whereNumber('id');
+    Route::get('/persuratan/keluar/template/{id}/cetak', [\App\Http\Controllers\SuratKeluarController::class, 'cetakTemplate'])->name('persuratan.keluar.template.cetak')->middleware('permission:menu_surat_keluar,read')->whereNumber('id');
 
     // 3. Pengaturan Sistem Persuratan & Harddisk (HDD)
     Route::get('/persuratan/pengaturan', [\App\Http\Controllers\PersuratanSettingController::class, 'index'])->name('persuratan.pengaturan.index')->middleware('permission:menu_pengaturan_persuratan,read');
     Route::post('/persuratan/pengaturan', [\App\Http\Controllers\PersuratanSettingController::class, 'updateSettings'])->name('persuratan.pengaturan.update')->middleware('permission:menu_pengaturan_persuratan,update');
     Route::post('/persuratan/pengaturan/test-hdd', [\App\Http\Controllers\PersuratanSettingController::class, 'testHdd'])->name('persuratan.pengaturan.test-hdd')->middleware('permission:menu_pengaturan_persuratan,read');
     Route::post('/persuratan/pengaturan/indeks', [\App\Http\Controllers\PersuratanSettingController::class, 'storeIndeks'])->name('persuratan.pengaturan.indeks.store')->middleware('permission:menu_pengaturan_persuratan,create');
-    Route::put('/persuratan/pengaturan/indeks/{id}', [\App\Http\Controllers\PersuratanSettingController::class, 'updateIndeks'])->name('persuratan.pengaturan.indeks.update')->middleware('permission:menu_pengaturan_persuratan,update');
-    Route::delete('/persuratan/pengaturan/indeks/{id}', [\App\Http\Controllers\PersuratanSettingController::class, 'destroyIndeks'])->name('persuratan.pengaturan.indeks.destroy')->middleware('permission:menu_pengaturan_persuratan,delete');
+    Route::put('/persuratan/pengaturan/indeks/{id}', [\App\Http\Controllers\PersuratanSettingController::class, 'updateIndeks'])->name('persuratan.pengaturan.indeks.update')->middleware('permission:menu_pengaturan_persuratan,update')->whereNumber('id');
+    Route::delete('/persuratan/pengaturan/indeks/{id}', [\App\Http\Controllers\PersuratanSettingController::class, 'destroyIndeks'])->name('persuratan.pengaturan.indeks.destroy')->middleware('permission:menu_pengaturan_persuratan,delete')->whereNumber('id');
 
     // 4. Berkas Dokumen Persuratan (Render/Stream & Unduh dari HDD)
-    Route::get('/persuratan/dokumen/{id}/view', [\App\Http\Controllers\SuratMasukController::class, 'viewDokumen'])->name('persuratan.dokumen.view');
-    Route::get('/persuratan/dokumen/{id}/download', [\App\Http\Controllers\SuratMasukController::class, 'downloadDokumen'])->name('persuratan.dokumen.download');
+    Route::get('/persuratan/dokumen/{id}/view', [\App\Http\Controllers\SuratMasukController::class, 'viewDokumen'])->name('persuratan.dokumen.view')->whereNumber('id');
+    Route::get('/persuratan/dokumen/{id}/download', [\App\Http\Controllers\SuratMasukController::class, 'downloadDokumen'])->name('persuratan.dokumen.download')->whereNumber('id');
+
+    // 5. Legacy / Unified Persuratan Endpoints
+    Route::post('/persuratan', [\App\Http\Controllers\PersuratanController::class, 'store'])->name('persuratan.store')->middleware('permission:menu_persuratan,create');
+    Route::get('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'show'])->name('persuratan.show')->middleware('permission:menu_persuratan,read')->whereNumber('id');
+    Route::put('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'update'])->name('persuratan.update')->middleware('permission:menu_persuratan,update')->whereNumber('id');
+    Route::delete('/persuratan/{id}', [\App\Http\Controllers\PersuratanController::class, 'destroy'])->name('persuratan.destroy')->middleware('permission:menu_persuratan,delete')->whereNumber('id');
 
     // Administrasi Tendik — Kesiswaan Terpadu (5 Kluster: Peserta Didik, Administrasi, Kedisiplinan, Kegiatan Siswa, Prestasi)
     Route::prefix('kesiswaan')->name('kesiswaan.')->group(function () {

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 
 class IdentitasSekolahController extends Controller
@@ -313,6 +315,79 @@ class IdentitasSekolahController extends Controller
                 'status' => 'error',
                 'message' => 'Gagal menghapus kop sekolah: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Simpan konfigurasi kredensial Google Belajar.id ke berkas .env
+     */
+    public function updateGoogleConfig(Request $request)
+    {
+        $user = session('user');
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        if (!\App\Models\RolePermission::canAccess($user ?: $role, 'menu_pengaturan', 'update')) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk mengubah pengaturan sistem.');
+        }
+
+        $request->validate([
+            'google_client_id'     => 'nullable|string|max:255',
+            'google_client_secret' => 'nullable|string|max:255',
+            'google_redirect_uri'  => 'nullable|string|max:255',
+        ]);
+
+        $clientId     = trim((string) $request->input('google_client_id', ''));
+        $clientSecret = trim((string) $request->input('google_client_secret', ''));
+        $redirectUri  = trim((string) $request->input('google_redirect_uri', ''));
+
+        if (empty($redirectUri)) {
+            $redirectUri = route('auth.google.callback');
+        }
+
+        $this->writeEnvFile([
+            'GOOGLE_CLIENT_ID'     => $clientId,
+            'GOOGLE_CLIENT_SECRET' => $clientSecret,
+            'GOOGLE_REDIRECT_URI'  => $redirectUri,
+        ]);
+
+        return back()->with('success', 'Konfigurasi kredensial Google Belajar.id berhasil disimpan ke .env.');
+    }
+
+    /**
+     * Tulis pembaruan konfigurasi ke file .env secara aman
+     */
+    private function writeEnvFile(array $data): void
+    {
+        $envPath = base_path('.env');
+        $examplePath = base_path('.env.example');
+
+        $content = File::exists($envPath) ? File::get($envPath) : (File::exists($examplePath) ? File::get($examplePath) : '');
+
+        foreach ($data as $key => $value) {
+            $escapedValue = addcslashes((string) $value, '"\\$');
+            $lineValue = '"' . $escapedValue . '"';
+
+            if (preg_match("/^{$key}=.*/m", $content)) {
+                $content = preg_replace("/^{$key}=.*/m", "{$key}={$lineValue}", $content);
+            } else {
+                $content .= "\n{$key}={$lineValue}";
+            }
+        }
+
+        File::put($envPath, $content);
+        @chmod($envPath, 0664);
+
+        $cachedConfig = base_path('bootstrap/cache/config.php');
+        if (File::exists($cachedConfig)) {
+            @unlink($cachedConfig);
+        }
+
+        try {
+            Artisan::call('optimize:clear');
+        } catch (\Throwable) {
         }
     }
 }

@@ -158,4 +158,39 @@ class PersuratanDutyModuleTest extends TestCase
         Persuratan::where('nomor_surat', 'NOTIF/TEST/001')->delete();
         DB::table('ptk_tugas_tambahan')->where('user_id', 'tendik-notif-01')->delete();
     }
+
+    public function test_can_access_buku_agenda_and_ekspedisi(): void
+    {
+        $admin = [
+            'id' => 'admin-test-01',
+            'pengguna_id' => 'admin-test-01',
+            'username' => 'admin',
+            'nama' => 'Administrator Sistem',
+            'role' => 'admin',
+        ];
+
+        // 1. Tab Ekspedisi Surat Keluar
+        $resEkspedisiTab = $this->withSession(['user' => $admin])
+            ->get(route('dashboard.persuratan.keluar.index', ['tab' => 'ekspedisi']));
+        $resEkspedisiTab->assertStatus(200);
+        $resEkspedisiTab->assertSee('Buku Ekspedisi', false);
+
+        // 2. Cetak Buku Agenda Surat Masuk
+        $resAgendaMasuk = $this->withSession(['user' => $admin])
+            ->get(route('dashboard.persuratan.masuk.agenda.cetak'));
+        $resAgendaMasuk->assertStatus(200);
+        $resAgendaMasuk->assertSee('BUKU AGENDA SURAT MASUK', false);
+
+        // 3. Cetak Buku Agenda Surat Keluar
+        $resAgendaKeluar = $this->withSession(['user' => $admin])
+            ->get(route('dashboard.persuratan.keluar.agenda.cetak'));
+        $resAgendaKeluar->assertStatus(200);
+        $resAgendaKeluar->assertSee('BUKU AGENDA SURAT KELUAR', false);
+
+        // 4. Cetak Buku Ekspedisi Kolektif
+        $resEkspedisiCetak = $this->withSession(['user' => $admin])
+            ->get(route('dashboard.persuratan.keluar.ekspedisi.cetak'));
+        $resEkspedisiCetak->assertStatus(200);
+        $resEkspedisiCetak->assertSee('BUKU EKSPEDISI', false);
+    }
 }

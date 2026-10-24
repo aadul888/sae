@@ -217,6 +217,20 @@ body {
     transform: translateY(-2px);
 }
 
+.btn-google {
+    background: var(--input-bg);
+    color: var(--text-color) !important;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.btn-google:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-glow);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    color: var(--text-color) !important;
+}
+
 .btn-theme-toggle {
     background: var(--input-bg);
     border: 1px solid var(--border-glass);

@@ -101,6 +101,9 @@
             src="{{ asset('js/dashboard.js') }}?v={{ file_exists(public_path('js/dashboard.js')) ? filemtime(public_path('js/dashboard.js')) : time() }}">
         </script>
         <script
+            src="{{ asset('js/dashboard-live-search.js') }}?v={{ file_exists(public_path('js/dashboard-live-search.js')) ? filemtime(public_path('js/dashboard-live-search.js')) : time() }}">
+        </script>
+        <script
             src="{{ asset('js/sae-realtime.js') }}?v={{ file_exists(public_path('js/sae-realtime.js')) ? filemtime(public_path('js/sae-realtime.js')) : time() }}">
         </script>
         <script

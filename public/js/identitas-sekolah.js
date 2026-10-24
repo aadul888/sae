@@ -698,3 +698,56 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+/* =========================================================
+   4. GOOGLE OAUTH BELAJAR.ID UTILS
+   ========================================================= */
+
+window.copyToClipboard = function (text, btnId) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check me-1" style="color: #10b981;"></i> Tersalin!';
+                setTimeout(() => {
+                    btn.innerHTML = orig;
+                }, 2000);
+            }
+            if (window.SAE && typeof window.SAE.toast === "function") {
+                window.SAE.toast("URI Callback berhasil disalin ke clipboard.", "info");
+            }
+        });
+    } else {
+        const temp = document.createElement("input");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1" style="color: #10b981;"></i> Tersalin!';
+            setTimeout(() => {
+                btn.innerHTML = orig;
+            }, 2000);
+        }
+    }
+};
+
+window.toggleGoogleSecret = function (inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    } else {
+        input.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+    }
+};

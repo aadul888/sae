@@ -156,8 +156,8 @@
 @push('styles')
     <style>
         /* -------------------------------------------------------------
-             * Standarisasi Konsistensi Ukuran Kartu Statistik PIP (Genap & Rapi)
-             * ------------------------------------------------------------- */
+                 * Standarisasi Konsistensi Ukuran Kartu Statistik PIP (Genap & Rapi)
+                 * ------------------------------------------------------------- */
         .dash-stat-grid {
             display: grid !important;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
@@ -220,8 +220,8 @@
         }
 
         /* -------------------------------------------------------------
-             * Tab Riwayat PIP — Desktop & Responsive Modern Table
-             * ------------------------------------------------------------- */
+                 * Tab Riwayat PIP — Desktop & Responsive Modern Table
+                 * ------------------------------------------------------------- */
         .table-pip-riwayat {
             width: 100%;
             border-collapse: collapse;
@@ -449,5 +449,8 @@
     </script>
     <script
         src="{{ asset('js/pip-manage.js') }}?v={{ file_exists(public_path('js/pip-manage.js')) ? filemtime(public_path('js/pip-manage.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/pip-dashboard-charts.js') }}?v={{ file_exists(public_path('js/pip-dashboard-charts.js')) ? filemtime(public_path('js/pip-dashboard-charts.js')) : time() }}">
     </script>
 @endpush

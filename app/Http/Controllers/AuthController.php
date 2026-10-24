@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -326,6 +328,314 @@ class AuthController extends Controller
             return back()->withInput()->with('error', 'Username/Email/NIP/NISN atau password tidak valid.');
         }
 
+        $this->establishUserSession(
+            $user,
+            'Autentikasi akun berhasil via Portal SAE (IP: ' . $request->ip() . ')',
+            $request->ip(),
+            'Login Portal'
+        );
+
+        // Arahkan kembali ke formulir jika ada antrean URL yang dituju
+        if (session()->has('url.intended')) {
+            $intended = session()->pull('url.intended');
+            return redirect()->to($intended)->with('success', 'Selamat datang kembali, ' . ($user->name ?? $user->nama));
+        }
+
+        return redirect()->route('dashboard.' . $user->role)->with('success', 'Selamat datang kembali, ' . ($user->name ?? $user->nama));
+    }
+
+    /**
+     * Redirect pengguna ke halaman persetujuan login Google (OAuth 2.0)
+     */
+    public function redirectToGoogle()
+    {
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+
+        if (empty($clientId) || empty($clientSecret)) {
+            return redirect()->route('login')->with('warning', 'Integrasi Akun Google belum dikonfigurasi. Harap isi GOOGLE_CLIENT_ID dan GOOGLE_CLIENT_SECRET pada berkas konfigurasi (.env).');
+        }
+
+        $state = Str::random(40);
+        session(['google_oauth_state' => $state]);
+
+        $redirectUri = config('services.google.redirect_uri') ?: route('auth.google.callback');
+
+        $params = [
+            'client_id'     => $clientId,
+            'redirect_uri'  => $redirectUri,
+            'response_type' => 'code',
+            'scope'         => 'openid email profile',
+            'access_type'   => 'online',
+            'prompt'        => 'select_account',
+            'state'         => $state,
+        ];
+
+        return redirect()->away('https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params));
+    }
+
+    /**
+     * Tangani callback otorisasi dari Google
+     */
+    public function handleGoogleCallback(Request $request)
+    {
+        if ($request->filled('error')) {
+            return redirect()->route('login')->with('error', 'Login Google dibatalkan atau terjadi kesalahan: ' . $request->input('error'));
+        }
+
+        $code = $request->query('code');
+        $state = $request->query('state');
+        $savedState = session()->pull('google_oauth_state');
+
+        if (empty($code)) {
+            return redirect()->route('login')->with('error', 'Kode otorisasi dari Google tidak ditemukan.');
+        }
+
+        if (empty($state) || empty($savedState) || !hash_equals($savedState, $state)) {
+            return redirect()->route('login')->with('error', 'Validasi sesi keamanan (state) login Google gagal. Silakan coba lagi.');
+        }
+
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+        $redirectUri = config('services.google.redirect_uri') ?: route('auth.google.callback');
+
+        try {
+            // Tukar authorization code dengan access token
+            $tokenResponse = Http::asForm()->timeout(15)->post('https://oauth2.googleapis.com/token', [
+                'code'          => $code,
+                'client_id'     => $clientId,
+                'client_secret' => $clientSecret,
+                'redirect_uri'  => $redirectUri,
+                'grant_type'    => 'authorization_code',
+            ]);
+
+            if (!$tokenResponse->successful()) {
+                $errDesc = $tokenResponse->json('error_description') ?: 'Gagal menukarkan token otorisasi ke Google.';
+                return redirect()->route('login')->with('error', $errDesc);
+            }
+
+            $accessToken = $tokenResponse->json('access_token');
+            if (empty($accessToken)) {
+                return redirect()->route('login')->with('error', 'Access token dari Google tidak valid.');
+            }
+
+            // Ambil data profil pengguna dari Google UserInfo API
+            $userInfoResponse = Http::withToken($accessToken)->timeout(15)->get('https://www.googleapis.com/oauth2/v3/userinfo');
+            if (!$userInfoResponse->successful()) {
+                return redirect()->route('login')->with('error', 'Gagal mengambil informasi profil dari akun Google Anda.');
+            }
+
+            $googleUser = $userInfoResponse->json();
+            $email = strtolower(trim((string) ($googleUser['email'] ?? '')));
+            $emailVerified = (bool) ($googleUser['email_verified'] ?? false);
+
+            if (empty($email) || !$emailVerified) {
+                return redirect()->route('login')->with('error', 'Email Google tidak valid atau belum diverifikasi.');
+            }
+
+            // Validasi batasan domain: smk.belajar.id (termasuk subdomain *.smk.belajar.id atau belajar.id)
+            if (!$this->isAllowedBelajarIdDomain($email)) {
+                return redirect()->route('login')->with('error', "Login Google dibatasi khusus untuk akun belajar.id (@smk.belajar.id, @guru.smk.belajar.id, @admin.smk.belajar.id). Akun '{$email}' tidak diizinkan.");
+            }
+
+            // Cari kecocokan data pengguna di database Dapodik
+            $user = $this->findUserByDapodikEmail($email);
+
+            if (!$user) {
+                return redirect()->route('login')->with('error', "Akun Google '{$email}' belum terdaftar di sistem Dapodik sekolah. Pastikan email belajar.id sudah tersimpan atau tersinkron dari Dapodik.");
+            }
+
+            // Otorisasi role yang diperbolehkan: admin, guru, tendik, dan peserta_didik
+            $allowedRoles = ['admin', 'guru', 'tendik', 'peserta_didik'];
+            if (!in_array($user->role, $allowedRoles, true)) {
+                return redirect()->route('login')->with('error', "Peran '{$user->peran_id_str}' tidak memiliki hak akses masuk portal ini.");
+            }
+
+            // Bangun sesi pengguna dan catat aktivitas sistem
+            $userData = $this->establishUserSession(
+                $user,
+                "Autentikasi akun Google Belajar.id ({$email}) berhasil via OAuth 2.0 (IP: " . $request->ip() . ")",
+                $request->ip(),
+                'Login Google Belajar.id'
+            );
+
+            // Tampilkan foto profil dari Google jika pengguna belum memiliki foto
+            $googlePicture = $googleUser['picture'] ?? null;
+            if (!empty($googlePicture) && empty($userData['foto_url'])) {
+                $userData['foto_url'] = $googlePicture;
+                session(['user' => $userData]);
+            }
+
+            if (session()->has('url.intended')) {
+                $intended = session()->pull('url.intended');
+                return redirect()->to($intended)->with('success', 'Selamat datang kembali, ' . ($user->name ?? $user->nama));
+            }
+
+            return redirect()->route('dashboard.' . $user->role)->with('success', 'Selamat datang, ' . ($user->name ?? $user->nama) . ' (Login via Akun Belajar.id)');
+
+        } catch (\Throwable $e) {
+            return redirect()->route('login')->with('error', 'Terjadi kendala koneksi ke server Google: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Validasi domain akun Google Belajar.id SMK
+     */
+    protected function isAllowedBelajarIdDomain(string $email): bool
+    {
+        $domain = strtolower((string) substr(strrchr($email, '@'), 1));
+        if (empty($domain)) {
+            return false;
+        }
+
+        // Domain resmi SMK: smk.belajar.id, guru.smk.belajar.id, admin.smk.belajar.id, dll.
+        if ($domain === 'smk.belajar.id' || str_ends_with($domain, '.smk.belajar.id') || str_ends_with($domain, 'belajar.id')) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Temukan user berdasarkan email Dapodik di tabel pengguna, peserta_didik, atau gtk
+     */
+    protected function findUserByDapodikEmail(string $email): ?User
+    {
+        $email = strtolower(trim($email));
+
+        // 1. Cek langsung username pada tabel pengguna
+        $user = User::whereRaw('LOWER(username) = ?', [$email])->first();
+        if ($user) {
+            return $user;
+        }
+
+        // 2. Cek email peserta didik pada tabel peserta_didik
+        if (Schema::hasTable('peserta_didik') && Schema::hasColumn('peserta_didik', 'email')) {
+            $pd = DB::table('peserta_didik')
+                ->whereRaw('LOWER(email) = ?', [$email])
+                ->first();
+
+            if ($pd) {
+                $user = User::where('peserta_didik_id', $pd->peserta_didik_id)->first();
+                if ($user) {
+                    return $user;
+                }
+
+                if (!empty($pd->nisn)) {
+                    $user = User::where('username', trim($pd->nisn))->first();
+                    if ($user) {
+                        if (empty($user->peserta_didik_id)) {
+                            $user->peserta_didik_id = $pd->peserta_didik_id;
+                            $user->save();
+                        }
+                        return $user;
+                    }
+                }
+
+                // Otomatis buatkan record pengguna jika peserta didik aktif terdaftar di Dapodik
+                $studentNisn = !empty($pd->nisn) ? trim($pd->nisn) : $email;
+                return User::create([
+                    'pengguna_id'      => 'pd-' . ($pd->peserta_didik_id ?: Str::uuid()->toString()),
+                    'sekolah_id'       => $pd->sekolah_id ?? null,
+                    'username'         => $studentNisn,
+                    'nama'             => $pd->nama,
+                    'peran_id_str'     => 'Peserta Didik',
+                    'password'         => Hash::make($studentNisn),
+                    'peserta_didik_id' => $pd->peserta_didik_id,
+                ]);
+            }
+        }
+
+        // 3. Cek tabel peserta_didik_identitas jika ada email tersimpan
+        if (Schema::hasTable('peserta_didik_identitas') && Schema::hasColumn('peserta_didik_identitas', 'email')) {
+            $identitas = DB::table('peserta_didik_identitas')
+                ->whereRaw('LOWER(email) = ?', [$email])
+                ->first();
+
+            if ($identitas && !empty($identitas->peserta_didik_id)) {
+                $user = User::where('peserta_didik_id', $identitas->peserta_didik_id)->first();
+                if ($user) {
+                    return $user;
+                }
+                if (!empty($identitas->nisn)) {
+                    $user = User::where('username', trim($identitas->nisn))->first();
+                    if ($user) {
+                        if (empty($user->peserta_didik_id)) {
+                            $user->peserta_didik_id = $identitas->peserta_didik_id;
+                            $user->save();
+                        }
+                        return $user;
+                    }
+                }
+            }
+        }
+
+        // 4. Cek email GTK (Guru / Tendik) pada tabel gtk
+        if (Schema::hasTable('gtk') && Schema::hasColumn('gtk', 'email')) {
+            $gtk = DB::table('gtk')
+                ->whereRaw('LOWER(email) = ?', [$email])
+                ->first();
+
+            if ($gtk) {
+                $user = User::where('ptk_id', $gtk->ptk_id)->first();
+                if ($user) {
+                    return $user;
+                }
+
+                if (!empty($gtk->nip) || !empty($gtk->nuptk)) {
+                    $user = User::where(function ($q) use ($gtk) {
+                        if (!empty($gtk->nip)) $q->orWhere('username', trim($gtk->nip));
+                        if (!empty($gtk->nuptk)) $q->orWhere('username', trim($gtk->nuptk));
+                    })->first();
+
+                    if ($user) {
+                        if (empty($user->ptk_id)) {
+                            $user->ptk_id = $gtk->ptk_id;
+                            $user->save();
+                        }
+                        return $user;
+                    }
+                }
+
+                $userByName = User::whereRaw('LOWER(nama) = ?', [strtolower(trim($gtk->nama))])
+                    ->where(function ($q) {
+                        $q->whereNull('peserta_didik_id')
+                          ->orWhere('peserta_didik_id', '');
+                    })
+                    ->first();
+
+                if ($userByName) {
+                    if (empty($userByName->ptk_id)) {
+                        $userByName->ptk_id = $gtk->ptk_id;
+                        $userByName->save();
+                    }
+                    return $userByName;
+                }
+            }
+        }
+
+        // 5. Cek raw_data pada tabel pengguna
+        $usersWithRaw = User::whereNotNull('raw_data')->get();
+        foreach ($usersWithRaw as $u) {
+            if (!empty($u->raw_data)) {
+                $raw = json_decode($u->raw_data, true);
+                if (is_array($raw)) {
+                    $rawEmail = strtolower(trim((string) ($raw['email'] ?? ($raw['surel'] ?? ''))));
+                    if ($rawEmail === $email) {
+                        return $u;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Membangun payload sesi multi-user dan mencatat log aktivitas
+     */
+    private function establishUserSession(User $user, ?string $keterangan = null, ?string $ip = null, string $aktivitas = 'Login Portal'): array
+    {
         $userData = $user->toArray();
         $userData['name'] = $user->name ?? $user->nama;
         $userData['role'] = $user->role;
@@ -335,15 +645,14 @@ class AuthController extends Controller
 
         // Ambil relasi GTK atau Peserta Didik jika ada
         if (!empty($user->ptk_id)) {
-            $gtk = \Illuminate\Support\Facades\DB::table('gtk')->where('ptk_id', $user->ptk_id)->first();
+            $gtk = DB::table('gtk')->where('ptk_id', $user->ptk_id)->first();
             if ($gtk) {
                 $userData['nip'] = $gtk->nip;
 
                 if ($user->role === 'tendik') {
-                    // Cari tugas tambahan aktif tendik
                     $bagianTugas = null;
-                    if (\Illuminate\Support\Facades\Schema::hasTable('ptk_tugas_tambahan') && \Illuminate\Support\Facades\Schema::hasTable('ref_tugas_tambahan')) {
-                        $activeDuties = \Illuminate\Support\Facades\DB::table('ptk_tugas_tambahan as ptt')
+                    if (Schema::hasTable('ptk_tugas_tambahan') && Schema::hasTable('ref_tugas_tambahan')) {
+                        $activeDuties = DB::table('ptk_tugas_tambahan as ptt')
                             ->join('ref_tugas_tambahan as rtt', 'ptt.tugas_tambahan_id', '=', 'rtt.id')
                             ->where('ptt.is_active', true)
                             ->where('rtt.is_active', true)
@@ -361,12 +670,11 @@ class AuthController extends Controller
                     }
                     $userData['mapel'] = $bagianTugas ?: ($gtk->jabatan_ptk_id_str ?: ($gtk->jenis_ptk_id_str ?: 'Tenaga Administrasi Sekolah'));
                 } else {
-                    // Guru atau role lainnya: ambil mata pelajaran dengan jam mengajar terbanyak
                     $mapelUtama = null;
-                    if (\Illuminate\Support\Facades\Schema::hasTable('pembelajaran')) {
-                        $topMapel = \Illuminate\Support\Facades\DB::table('pembelajaran')
+                    if (Schema::hasTable('pembelajaran')) {
+                        $topMapel = DB::table('pembelajaran')
                             ->where('ptk_id', $user->ptk_id)
-                            ->select('nama_mata_pelajaran', \Illuminate\Support\Facades\DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
+                            ->select('nama_mata_pelajaran', DB::raw('SUM(jam_mengajar_per_minggu) as total_jam'))
                             ->groupBy('nama_mata_pelajaran')
                             ->orderByDesc('total_jam')
                             ->first();
@@ -376,12 +684,12 @@ class AuthController extends Controller
                 }
             }
         } elseif (!empty($user->peserta_didik_id)) {
-            $pd = \Illuminate\Support\Facades\DB::table('peserta_didik')->where('peserta_didik_id', $user->peserta_didik_id)->first();
+            $pd = DB::table('peserta_didik')->where('peserta_didik_id', $user->peserta_didik_id)->first();
             if ($pd) {
                 $userData['nisn'] = $pd->nisn;
                 $userData['kelas'] = $pd->nama_rombel;
             }
-            if (\Illuminate\Support\Facades\Schema::hasTable('peserta_didik_meta')) {
+            if (Schema::hasTable('peserta_didik_meta')) {
                 $meta = \App\Models\PesertaDidikMeta::where('peserta_didik_id', $user->peserta_didik_id)->first();
                 if ($meta) {
                     if (!empty($meta->foto_path)) {
@@ -395,29 +703,22 @@ class AuthController extends Controller
 
         session(['user' => $userData]);
 
-        // Auto-record aktivitas login ke log aktivitas sistem (admin_aktivitas saja, bukan tendik_aktivitas)
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('admin_aktivitas')) {
+            if (Schema::hasTable('admin_aktivitas')) {
                 \App\Models\AdminAktivitas::create([
                     'admin_name'     => $userData['name'],
                     'admin_username' => $userData['username'] ?? ($userData['nisn'] ?? null),
                     'modul'          => ($user->role === 'peserta_didik' || !empty($user->peserta_didik_id)) ? 'Siswa' : 'Autentikasi',
-                    'aktivitas'      => 'Login Portal',
-                    'keterangan'     => 'Autentikasi akun berhasil via Portal SAE (IP: ' . $request->ip() . ')',
-                    'ip_address'     => $request->ip(),
+                    'aktivitas'      => $aktivitas,
+                    'keterangan'     => $keterangan ?: ('Autentikasi akun berhasil via Portal SAE (IP: ' . ($ip ?: request()->ip()) . ')'),
+                    'ip_address'     => $ip ?: request()->ip(),
                     'tipe'           => 'info',
                 ]);
             }
         } catch (\Throwable) {
         }
 
-        // Arahkan kembali ke formulir jika ada antrean URL yang dituju
-        if (session()->has('url.intended')) {
-            $intended = session()->pull('url.intended');
-            return redirect()->to($intended)->with('success', 'Selamat datang kembali, ' . $user->name);
-        }
-
-        return redirect()->route('dashboard.' . $user->role)->with('success', 'Selamat datang kembali, ' . $user->name);
+        return $userData;
     }
 
     /**

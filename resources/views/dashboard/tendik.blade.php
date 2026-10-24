@@ -125,4 +125,13 @@
     <script
         src="{{ asset('js/tendik-dashboard.js') }}?v={{ file_exists(public_path('js/tendik-dashboard.js')) ? filemtime(public_path('js/tendik-dashboard.js')) : time() }}">
     </script>
+    <script
+        src="{{ asset('js/tendik-cluster-akademik.js') }}?v={{ file_exists(public_path('js/tendik-cluster-akademik.js')) ? filemtime(public_path('js/tendik-cluster-akademik.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/tendik-cluster-sarana.js') }}?v={{ file_exists(public_path('js/tendik-cluster-sarana.js')) ? filemtime(public_path('js/tendik-cluster-sarana.js')) : time() }}">
+    </script>
+    <script
+        src="{{ asset('js/tendik-cluster-layanan.js') }}?v={{ file_exists(public_path('js/tendik-cluster-layanan.js')) ? filemtime(public_path('js/tendik-cluster-layanan.js')) : time() }}">
+    </script>
 @endpush

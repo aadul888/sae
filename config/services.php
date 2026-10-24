@@ -36,4 +36,10 @@ return [
         'api_key' => env('SAE_CORE_API_KEY', env('SAE_API_KEY', 'SAE_20260422090959_d6be672e5e92c802adeca5d8a4eccf0c')),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect_uri' => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
+    ],
+
 ];

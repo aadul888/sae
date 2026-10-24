@@ -129,8 +129,7 @@
                     @endif
 
                     @if ($canCreate || $isAdmin)
-                        <button type="button" class="btn btn-outline"
-                            onclick="openImportExcelModal()"
+                        <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
                             style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem; border-color: #10b981; color: #10b981;"
                             title="Import Excel Peserta Didik Aktif (Sementara)">
                             <i class="fas fa-file-excel"></i>
@@ -768,11 +767,13 @@
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 99999 !important; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
             <div class="card"
                 style="max-width: 580px; width: 94%; max-height: 90vh; display: flex; flex-direction: column; margin: 0; border-radius: 14px; padding: 22px; background: var(--bg-card); border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
-                
+
                 {{-- Header Modal --}}
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+                        <div
+                            style="width: 42px; height: 42px; border-radius: 10px; background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
                             <i class="fas fa-file-excel"></i>
                         </div>
                         <div>
@@ -791,24 +792,32 @@
                     </button>
                 </div>
 
-                <form id="formImportExcel" action="{{ route('dashboard.peserta-didik-aktif.import-excel') }}" method="POST" enctype="multipart/form-data" onsubmit="handleImportExcelSubmit(event)">
+                <form id="formImportExcel" action="{{ route('dashboard.peserta-didik-aktif.import-excel') }}"
+                    method="POST" enctype="multipart/form-data" onsubmit="handleImportExcelSubmit(event)">
                     @csrf
-                    
+
                     {{-- Alert Box Info Petunjuk --}}
-                    <div style="margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: 0.8rem; line-height: 1.45; color: var(--text-color);">
-                        <div style="font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <div
+                        style="margin-bottom: 16px; padding: 12px 14px; border-radius: 10px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); font-size: 0.8rem; line-height: 1.45; color: var(--text-color);">
+                        <div
+                            style="font-weight: 700; color: var(--primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                             <i class="fas fa-info-circle"></i> Data Utama yang Diperlukan
                         </div>
                         <div>
-                            Cukup isi kolom wajib: <strong>NISN, Nama Lengkap, L/P,</strong> dan <strong>Rombel Kelas</strong> sesuai data yang ditampilkan pada kartu pelajar / halaman validasi. Data lain (NIPD, TTL, NIK) bersifat opsional.
+                            Cukup isi kolom wajib: <strong>NISN, Nama Lengkap, L/P,</strong> dan <strong>Rombel
+                                Kelas</strong> sesuai data yang ditampilkan pada kartu pelajar / halaman validasi. Data lain
+                            (NIPD, TTL, NIK) bersifat opsional.
                         </div>
                     </div>
 
                     {{-- Unduh Template Card --}}
-                    <div style="margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div
+                        style="margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                         <div>
-                            <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">Format Excel Baku SAE</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted);">Gunakan template resmi agar header kolom terbaca otomatis</div>
+                            <div style="font-size: 0.84rem; font-weight: 700; color: var(--text-color);">Format Excel Baku
+                                SAE</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">Gunakan template resmi agar header
+                                kolom terbaca otomatis</div>
                         </div>
                         <a href="{{ route('dashboard.peserta-didik-aktif.download-template') }}" class="btn btn-outline"
                             style="padding: 6px 12px; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 6px; border-color: #10b981; color: #10b981; text-decoration: none; white-space: nowrap;">
@@ -818,7 +827,8 @@
 
                     {{-- Berkas Input --}}
                     <div style="margin-bottom: 16px;">
-                        <label for="inputExcelFile" style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
+                        <label for="inputExcelFile"
+                            style="display: block; font-size: 0.82rem; font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
                             Pilih Berkas Excel / CSV <span style="color: #ef4444;">*</span>
                         </label>
                         <input type="file" id="inputExcelFile" name="file_excel" accept=".xlsx,.xls,.csv,.txt"
@@ -830,16 +840,20 @@
                     </div>
 
                     {{-- Loading / Status State --}}
-                    <div id="importExcelProgress" style="display: none; margin-bottom: 14px; padding: 12px; border-radius: 8px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: 0.82rem; color: #10b981;">
+                    <div id="importExcelProgress"
+                        style="display: none; margin-bottom: 14px; padding: 12px; border-radius: 8px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: 0.82rem; color: #10b981;">
                         <i class="fas fa-spinner fa-spin me-2"></i> Sedang membaca dan memproses data peserta didik...
                     </div>
 
                     {{-- Footer Buttons --}}
-                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-                        <button type="button" onclick="closeImportExcelModal()" class="btn btn-outline" style="padding: 8px 18px; font-size: 0.82rem;">
+                    <div
+                        style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+                        <button type="button" onclick="closeImportExcelModal()" class="btn btn-outline"
+                            style="padding: 8px 18px; font-size: 0.82rem;">
                             Batal
                         </button>
-                        <button type="submit" id="btnSubmitImportExcel" class="btn btn-primary" style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                        <button type="submit" id="btnSubmitImportExcel" class="btn btn-primary"
+                            style="padding: 8px 22px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-cloud-arrow-up"></i>
                             <span id="btnSubmitImportExcelText">Import Sekarang</span>
                         </button>
@@ -860,6 +874,12 @@
 
     @push('scripts')
         <script src="{{ asset('js/peserta-didik-aktif.js') }}?v={{ filemtime(public_path('js/peserta-didik-aktif.js')) }}">
+        </script>
+        <script
+            src="{{ asset('js/peserta-didik-bulk-foto.js') }}?v={{ filemtime(public_path('js/peserta-didik-bulk-foto.js')) }}">
+        </script>
+        <script
+            src="{{ asset('js/peserta-didik-actions.js') }}?v={{ filemtime(public_path('js/peserta-didik-actions.js')) }}">
         </script>
     @endpush
 @endsection

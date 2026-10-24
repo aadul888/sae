@@ -36,6 +36,11 @@
                     title="Pengaturan Persuratan &amp; Harddisk">
                     <i class="fas fa-sliders text-muted"></i>
                 </a>
+                <button type="button" class="btn btn-outline" id="btnOpenCetakAgendaMasuk"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
+                    title="Cetak Buku Agenda Surat Masuk">
+                    <i class="fas fa-print text-primary"></i>
+                </button>
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary" id="btnOpenCreateMasuk"
                         style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.95rem;"
@@ -691,11 +696,126 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal 4: Filter & Cetak Buku Agenda Surat Masuk -->
+        <div class="modal-overlay" id="modalAgendaMasuk"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 99999 !important; align-items: center; justify-content: center;">
+            <div class="modal-container"
+                style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); overflow: hidden;">
+                <div
+                    style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                    <h4
+                        style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-print text-primary"></i> Cetak Buku Agenda Surat Masuk
+                    </h4>
+                    <button type="button" id="btnCloseModalAgendaMasuk"
+                        style="background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <form action="{{ route('dashboard.persuratan.masuk.agenda.cetak') }}" method="GET" target="_blank"
+                    style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                            Rentang Tanggal Surat (Opsional):
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="date" name="tanggal_mulai" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.82rem;">
+                            <input type="date" name="tanggal_selesai" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.82rem;">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Tahun:
+                            </label>
+                            <select name="tahun" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                                @for ($y = date('Y'); $y >= 2024; $y--)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                                Bulan (Opsional):
+                            </label>
+                            <select name="bulan" class="form-control"
+                                style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                                <option value="">Semua Bulan (1 Tahun)</option>
+                                @foreach ([1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April', 5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'] as $mNum => $mName)
+                                    <option value="{{ $mNum }}">{{ $mName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label
+                            style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--text-color); margin-bottom: 4px;">
+                            Status Pemrosesan:
+                        </label>
+                        <select name="status" class="form-control"
+                            style="height: 38px; border-radius: 8px; font-size: 0.84rem;">
+                            <option value="">Semua Status</option>
+                            <option value="selesai">Selesai / Ditindaklanjuti</option>
+                            <option value="diproses">Sedang Diproses</option>
+                            <option value="menunggu_disposisi">Menunggu Disposisi</option>
+                            <option value="diarsipkan">Diarsipkan</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px;">
+                        <button type="button" id="btnCancelModalAgendaMasuk" class="btn btn-outline"
+                            style="padding: 8px 16px; border-radius: 8px; font-size: 0.84rem;">Batal</button>
+                        <button type="submit" class="btn btn-primary"
+                            style="padding: 8px 18px; border-radius: 8px; font-size: 0.84rem; display: inline-flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-print"></i> Buka Lembar Cetak
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 @endsection
 
 @push('scripts')
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modalAgenda = document.getElementById('modalAgendaMasuk');
+            const btnOpenAgenda = document.getElementById('btnOpenCetakAgendaMasuk');
+            const btnCloseAgenda = document.getElementById('btnCloseModalAgendaMasuk');
+            const btnCancelAgenda = document.getElementById('btnCancelModalAgendaMasuk');
+
+            if (btnOpenAgenda && modalAgenda) {
+                btnOpenAgenda.addEventListener('click', () => {
+                    modalAgenda.style.display = 'flex';
+                    document.body.classList.add('modal-open');
+                });
+            }
+
+            function closeAgendaModal() {
+                if (!modalAgenda) return;
+                modalAgenda.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+
+            if (btnCloseAgenda) btnCloseAgenda.addEventListener('click', closeAgendaModal);
+            if (btnCancelAgenda) btnCancelAgenda.addEventListener('click', closeAgendaModal);
+            if (modalAgenda) {
+                modalAgenda.addEventListener('click', (e) => {
+                    if (e.target === modalAgenda) closeAgendaModal();
+                });
+            }
+        });
+
         function copyNomorSurat(btn, text) {
             if (!text || text === '-') return;
             const oldHtml = btn.innerHTML;
