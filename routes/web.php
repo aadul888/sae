@@ -237,7 +237,6 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     // Pengaturan — Identitas Sekolah (Sumber: Sekolah Dapodik)
     Route::get('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'index'])->name('identitas-sekolah.index')->middleware('permission:menu_pengaturan,read');
     Route::put('/identitas-sekolah', [\App\Http\Controllers\IdentitasSekolahController::class, 'update'])->name('identitas-sekolah.update')->middleware('permission:menu_pengaturan,update');
-    Route::post('/identitas-sekolah/google-config', [\App\Http\Controllers\IdentitasSekolahController::class, 'updateGoogleConfig'])->name('identitas-sekolah.google-config')->middleware('permission:menu_pengaturan,update');
     Route::post('/identitas-sekolah/upload-logo', [\App\Http\Controllers\IdentitasSekolahController::class, 'uploadLogo'])->name('identitas-sekolah.upload-logo')->middleware('permission:menu_pengaturan,update');
     Route::delete('/identitas-sekolah/delete-logo', [\App\Http\Controllers\IdentitasSekolahController::class, 'deleteLogo'])->name('identitas-sekolah.delete-logo')->middleware('permission:menu_pengaturan,delete');
     Route::post('/identitas-sekolah/upload-kop', [\App\Http\Controllers\IdentitasSekolahController::class, 'uploadKop'])->name('identitas-sekolah.upload-kop')->middleware('permission:menu_pengaturan,update');
