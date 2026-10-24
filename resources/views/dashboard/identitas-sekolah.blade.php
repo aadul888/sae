@@ -363,12 +363,6 @@
                     <i class="fas fa-copy me-1"></i> Salin URI Callback
                 </button>
             </div>
-            <div style="margin-top: 12px; padding: 10px 12px; background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; border-radius: 6px; font-size: 0.76rem; color: var(--text-color); line-height: 1.5;">
-                <strong style="color: #f59e0b;"><i class="fas fa-triangle-exclamation me-1"></i> Catatan Domain &amp; Solusi Error 401 (invalid_client):</strong><br>
-                &bull; <strong>Pengujian di Server Online:</strong> Pastikan domain online (contoh: <code>https://test-app.smakpal.sch.id/auth/google/callback</code>) sudah didaftarkan pada <em>Authorized redirect URIs</em> Google Console.<br>
-                &bull; <strong>Pengujian di Komputer Lokal:</strong> Google menolak domain lokal seperti <code>.test</code> / <code>.local</code>. Gunakan <code>http://localhost/auth/google/callback</code> (Google secara khusus mengizinkan <code>http://localhost</code>) atau lakukan pengujian langsung di domain server online ber-HTTPS.<br>
-                &bull; <strong>Penyebab Error 401 invalid_client:</strong> Client ID tidak ditemukan Google karena tipe aplikasi bukan <em>Web application</em>, atau salah menyalin nilai (terbawa spasi/kutip), atau Layar Persetujuan OAuth (OAuth consent screen) belum dibuat / belum dipublikasikan.
-            </div>
         </div>
 
         <!-- Form Simpan Kredensial ke .env -->
