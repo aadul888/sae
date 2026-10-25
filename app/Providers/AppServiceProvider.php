@@ -27,14 +27,22 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Carbon::setLocale('id');
         setlocale(LC_TIME, 'id_ID.utf8', 'id_ID', 'id', 'Indonesian');
 
-        $isHttps = (
+        // Paksa HTTPS hanya bila permintaan/proxy BENAR-BENAR https, atau bila
+        // diaktifkan eksplisit lewat FORCE_HTTPS=true. Sebelumnya
+        // `app()->environment('production')` ikut memaksa HTTPS sehingga aset
+        // gagal dimuat saat aplikasi production dijalankan lewat HTTP
+        // (mis. Laragon/Herd lokal atau reverse proxy yang tidak mengirim
+        // X-Forwarded-Proto). Penyebab nyata: forceScheme('https') menulis ulang
+        // URL aset menjadi https:// padahal server hanya melayani http://.
+        $forceHttps = filter_var(env('FORCE_HTTPS', false), FILTER_VALIDATE_BOOLEAN);
+
+        $isHttps = $forceHttps || (
             (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||
             (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ||
             (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on') ||
             request()->isSecure() ||
             request()->header('x-forwarded-proto') === 'https' ||
-            str_starts_with((string) config('app.url'), 'https://') ||
-            app()->environment('production')
+            str_starts_with((string) config('app.url'), 'https://')
         );
 
         if ($isHttps) {
