@@ -87,11 +87,18 @@
         </div>
 
         <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-            <button type="button" id="btnDeleteFoto" onclick="handleDeleteFoto()" class="btn btn-danger"
-                style="display: none; padding: 8px 14px; font-size: 0.8rem;">
-                <i class="fas fa-trash-can me-1"></i> Hapus Pasfoto
-            </button>
+            style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color); gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <button type="button" id="btnDeleteFoto" onclick="handleDeleteFoto()" class="btn btn-danger"
+                    style="display: none; padding: 8px 14px; font-size: 0.8rem;">
+                    <i class="fas fa-trash-can me-1"></i> Hapus Pasfoto
+                </button>
+                <button type="button" id="btnDownloadFoto" onclick="handleDownloadFoto()" class="btn btn-outline"
+                    style="display: none; padding: 8px 14px; font-size: 0.8rem; color: #06b6d4; border-color: rgba(6,182,212,0.4);"
+                    title="Unduh berkas pasfoto peserta didik">
+                    <i class="fas fa-download me-1"></i> Unduh Pasfoto
+                </button>
+            </div>
             <div style="display: flex; gap: 8px; margin-left: auto;">
                 <button type="button" onclick="closeUploadFotoModal()" class="btn btn-outline"
                     style="padding: 8px 16px; font-size: 0.8rem;">Batal</button>

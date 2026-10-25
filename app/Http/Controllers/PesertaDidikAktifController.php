@@ -121,6 +121,25 @@ class PesertaDidikAktifController extends Controller
     }
 
     /**
+     * Unduh berkas fisik pasfoto peserta didik.
+     */
+    public function downloadFoto(Request $request, string|int $id)
+    {
+        $user = session('user');
+        if (!$user) return redirect()->route('login');
+        $canRead = RolePermission::canAccess($user, 'menu_peserta_didik_aktif', 'read')
+            || RolePermission::canAccess($user, 'menu_wali_kelas_aktif', 'read');
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $isWaliOrAdmin = RolePermission::isWaliKelasOrAdmin($user);
+
+        if (!$canRead && $role !== 'admin' && !$isWaliOrAdmin) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki wewenang untuk mengunduh pasfoto peserta didik.');
+        }
+
+        return $this->fotoService->downloadFoto($id, $user);
+    }
+
+    /**
      * Dapatkan daftar anggota rombel untuk modal batch photo.
      */
     public function getRombelMembers(Request $request)

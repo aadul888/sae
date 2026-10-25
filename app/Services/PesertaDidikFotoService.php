@@ -164,6 +164,60 @@ class PesertaDidikFotoService
     }
 
     /**
+     * Unduh berkas fisik pasfoto peserta didik.
+     */
+    public function downloadFoto(string|int $id, mixed $user)
+    {
+        $role = is_array($user) ? ($user['role'] ?? '') : ($user->role ?? '');
+        $isAdmin = ($role === 'admin');
+        $isWaliOrAdmin = RolePermission::isWaliKelasOrAdmin($user);
+
+        $pd = DB::table('peserta_didik')->where('peserta_didik_id', $id)->first();
+        if (!$pd) {
+            abort(404, 'Data peserta didik tidak ditemukan.');
+        }
+
+        if (!$isAdmin && $isWaliOrAdmin) {
+            $waliRombelInfo = RolePermission::getWaliKelasRombelInfo($user);
+            $waliRombelName = $waliRombelInfo?->nama ?: RolePermission::getWaliKelasRombel($user);
+            $waliRombelId = $waliRombelInfo?->rombongan_belajar_id ?? null;
+
+            $isMatch = false;
+            if ($waliRombelId && !empty($pd->rombongan_belajar_id) && $pd->rombongan_belajar_id === $waliRombelId) {
+                $isMatch = true;
+            } elseif ($waliRombelName && !empty($pd->nama_rombel) && strcasecmp(trim($pd->nama_rombel), trim($waliRombelName)) === 0) {
+                $isMatch = true;
+            } elseif (!$waliRombelName && !$waliRombelId) {
+                $isMatch = true;
+            }
+
+            if (!$isMatch) {
+                abort(403, 'Akses ditolak: Anda hanya berwenang mengunduh pasfoto peserta didik di kelas binaan Anda.');
+            }
+        }
+
+        $meta = PesertaDidikMeta::where('peserta_didik_id', $id)->first();
+        if (!$meta || empty($meta->foto_path)) {
+            abort(404, 'Pasfoto peserta didik belum diunggah.');
+        }
+
+        $cleanPath = ltrim($meta->foto_path, '/');
+        $fullPath = storage_path('app/public/' . $cleanPath);
+
+        if (!File::exists($fullPath)) {
+            abort(404, 'Berkas fisik pasfoto tidak ditemukan pada penyimpanan server.');
+        }
+
+        $cleanNama = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $pd->nama);
+        $nisn = $pd->nisn ?: $pd->nipd ?: 'foto';
+        $downloadFilename = "Pasfoto_{$nisn}_{$cleanNama}.png";
+
+        return response()->download($fullPath, $downloadFilename, [
+            'Content-Type' => 'image/png',
+        ]);
+    }
+
+    /**
      * Menerima upload foto masal atau batch multipart.
      */
     public function bulkUploadFoto(Request $request, ImageOptimizerService $optimizer, mixed $user): array

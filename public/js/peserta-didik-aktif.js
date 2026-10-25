@@ -200,6 +200,7 @@ window.openUploadFotoModal = function (id, nama, nisn, fotoUrl, fotoSize) {
     const placeholder = document.getElementById("fotoPreviewPlaceholder");
     const specs = document.getElementById("fotoFileSpecs");
     const btnDelete = document.getElementById("btnDeleteFoto");
+    const btnDownload = document.getElementById("btnDownloadFoto");
     const fileInput = document.getElementById("fotoFileInput");
 
     if (!modal) return;
@@ -221,6 +222,7 @@ window.openUploadFotoModal = function (id, nama, nisn, fotoUrl, fotoSize) {
             specs.innerHTML = `<i class="fas fa-circle-check me-1"></i> Format: PNG • Ukuran: ${fotoSize || "Tersimpan"}`;
         }
         if (btnDelete) btnDelete.style.display = "inline-flex";
+        if (btnDownload) btnDownload.style.display = "inline-flex";
     } else {
         if (previewImg) {
             previewImg.src = "";
@@ -232,6 +234,7 @@ window.openUploadFotoModal = function (id, nama, nisn, fotoUrl, fotoSize) {
             specs.textContent = "";
         }
         if (btnDelete) btnDelete.style.display = "none";
+        if (btnDownload) btnDownload.style.display = "none";
     }
 
     modal.style.display = "flex";
@@ -296,6 +299,9 @@ function handleFilePreview(file) {
             }
             if (placeholder) placeholder.style.display = "none";
 
+            const btnDownload = document.getElementById("btnDownloadFoto");
+            if (btnDownload) btnDownload.style.display = "inline-flex";
+
             if (specsEl) {
                 specsEl.style.display = "block";
                 specsEl.innerHTML = `
@@ -311,6 +317,54 @@ function handleFilePreview(file) {
     };
     reader.readAsDataURL(file);
 }
+
+window.handleDownloadFoto = function () {
+    const pdId =
+        currentSelectedPdId || document.getElementById("fotoUploadPdId")?.value;
+    if (!pdId) {
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast("Peserta didik belum dipilih.", "warning");
+        }
+        return;
+    }
+
+    if (currentFotoUrl) {
+        const downloadUrl =
+            "/dashboard/manajemen-data/peserta-didik-aktif/" +
+            encodeURIComponent(pdId) +
+            "/download-foto";
+
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.setAttribute("download", "");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        if (window.SAE && typeof window.SAE.toast === "function") {
+            window.SAE.toast("Mengunduh pasfoto peserta didik...", "info");
+        }
+        return;
+    }
+
+    const fileInput = document.getElementById("fotoFileInput");
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const url = URL.createObjectURL(file);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = file.name || "pasfoto.png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        return;
+    }
+
+    if (window.SAE && typeof window.SAE.toast === "function") {
+        window.SAE.toast("Belum ada pasfoto yang dapat diunduh.", "warning");
+    }
+};
 
 window.handleSubmitFoto = async function () {
     const fileInput = document.getElementById("fotoFileInput");
