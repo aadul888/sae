@@ -110,10 +110,6 @@ class UpdateService
             @shell_exec('GIT_TERMINAL_PROMPT=0 git config --global --add safe.directory ' . escapeshellarg($basePath) . ' 2>&1');
             $cliHash = trim(@shell_exec('git -C ' . escapeshellarg($basePath) . ' rev-parse HEAD 2>&1') ?: '');
             if (preg_match('/^[a-f0-9]{40}$/i', $cliHash)) {
-                // Jika database menyimpan commit hash valid yang berbeda dari CLI (karena Git CLI terkendala permission)
-                if (!empty($dbHash) && $cliHash !== $dbHash) {
-                    return $dbHash;
-                }
                 return $cliHash;
             }
 
@@ -365,6 +361,18 @@ class UpdateService
             }
             Artisan::call('optimize:clear');
             $logs[] = "[OPTIMIZE] " . trim(Artisan::output());
+
+            // Reset bytecode cache OPcache agar perubahan PHP langsung aktif di RAM server
+            if (function_exists('opcache_reset')) {
+                @opcache_reset();
+                $logs[] = "[OPCACHE] Bytecode memory cache berhasil dibersihkan.";
+            }
+
+            // Trigger reload worker LiteSpeed / OpenLiteSpeed jika berjalan di lingkungan OLS/LSPHP
+            if (file_exists('/tmp/lshttpd/')) {
+                @touch(base_path('.lsphp_restart.txt'));
+                $logs[] = "[LITESPEED] LSPHP reload marker dibuat.";
+            }
         } catch (\Throwable $e) {
             $logs[] = "[OPTIMIZE NOTICE] " . $e->getMessage();
         }

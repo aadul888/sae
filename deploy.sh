@@ -61,4 +61,12 @@ else
     php artisan optimize:clear 2>/dev/null || true
 fi
 
+# 8. Reset OPcache & Reload Web Process (PHP-FPM / LiteSpeed)
+echo "🔄 Reloading PHP-FPM / LiteSpeed & OPcache..."
+if command -v systemctl &>/dev/null; then
+    systemctl reload php8.3-fpm 2>/dev/null || systemctl reload php-fpm 2>/dev/null || true
+    systemctl reload lsws 2>/dev/null || true
+fi
+touch .lsphp_restart.txt 2>/dev/null || true
+
 echo "✅ Deploy & permission setup complete!"
