@@ -842,5 +842,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/presensi-mengajar.js') }}"></script>
+    <script
+        src="{{ asset('js/presensi-mengajar.js') }}?v={{ file_exists(public_path('js/presensi-mengajar.js')) ? filemtime(public_path('js/presensi-mengajar.js')) : time() }}">
+    </script>
 @endpush

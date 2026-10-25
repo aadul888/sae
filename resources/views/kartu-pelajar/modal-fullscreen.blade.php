@@ -165,4 +165,6 @@
     </div>
 </div>
 
-<script src="{{ asset('js/kartu-pelajar-fullscreen.js') }}"></script>
+<script
+    src="{{ asset('js/kartu-pelajar-fullscreen.js') }}?v={{ file_exists(public_path('js/kartu-pelajar-fullscreen.js')) ? filemtime(public_path('js/kartu-pelajar-fullscreen.js')) : time() }}">
+</script>

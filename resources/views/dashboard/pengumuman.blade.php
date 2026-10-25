@@ -445,6 +445,8 @@
     </div>
 
     @push('scripts')
-        <script src="{{ asset('js/pengumuman.js') }}"></script>
+        <script
+            src="{{ asset('js/pengumuman.js') }}?v={{ file_exists(public_path('js/pengumuman.js')) ? filemtime(public_path('js/pengumuman.js')) : time() }}">
+        </script>
     @endpush
 @endsection

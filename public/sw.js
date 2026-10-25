@@ -1,10 +1,10 @@
 /* ==========================================================================
    SAE (Sistem Aplikasi Edukasi) — Progressive Web App Service Worker
-   Version: 1.2.2 — Full Offline / Self-Hosted Assets
+   Version: 1.2.3 — Full Offline / Self-Hosted Assets
    Scope: /
    ========================================================================== */
 
-const CACHE_NAME = "sae-pwa-v1.2.2";
+const CACHE_NAME = "sae-pwa-v1.2.3";
 const OFFLINE_URL = "/offline";
 
 // Aset inti yang di-precache saat instalasi service worker

@@ -535,5 +535,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/agenda-kbm.js') }}"></script>
+    <script
+        src="{{ asset('js/agenda-kbm.js') }}?v={{ file_exists(public_path('js/agenda-kbm.js')) ? filemtime(public_path('js/agenda-kbm.js')) : time() }}">
+    </script>
 @endpush
