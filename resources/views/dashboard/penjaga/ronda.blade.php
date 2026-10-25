@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-moon"></i>
                 </div>
                 <div>
@@ -37,7 +37,7 @@
         <!-- 2. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-shield-halved"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -47,7 +47,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
+                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary-light, #6366f1);">
                     <i class="fas fa-cloud-moon"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -57,7 +57,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -67,7 +67,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -178,40 +178,40 @@
                                 <td style="padding: 12px 18px;">
                                     @if ($item->status_pintu_jendela === 'terkunci_rapi')
                                         <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Terkunci
+                                            style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Terkunci
                                             Rapi</span>
                                     @elseif ($item->status_pintu_jendela === 'ditemukan_terbuka')
                                         <span class="badge"
-                                            style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Ditemukan
+                                            style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">Ditemukan
                                             Terbuka</span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Kunci
+                                            style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3);">Kunci
                                             Rusak</span>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 18px;">
                                     @if ($item->status_lampu === 'menyala_sesuai' || $item->status_lampu === 'normal')
                                         <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Normal /
+                                            style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">Normal /
                                             Sesuai</span>
                                     @elseif ($item->status_lampu === 'mati_sebagian')
                                         <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">Mati
+                                            style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">Mati
                                             Sebagian</span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">Konsleting /
+                                            style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">Konsleting /
                                             Masalah</span>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 18px;">
                                     @if ($item->situasi_keamanan === 'kondusif')
                                         <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Kondusif</span>
+                                            style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Kondusif</span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">{{ ucwords(str_replace('_', ' ', $item->situasi_keamanan)) }}</span>
+                                            style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">{{ ucwords(str_replace('_', ' ', $item->situasi_keamanan)) }}</span>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem);">

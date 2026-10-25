@@ -51,7 +51,7 @@
 
         <div class="dash-stat-card">
             <div class="dash-stat-icon"
-                style="background: {{ count($status['pending_migrations']) > 0 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ count($status['pending_migrations']) > 0 ? '#f59e0b' : '#10b981' }};">
+                style="background: {{ count($status['pending_migrations']) > 0 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ count($status['pending_migrations']) > 0 ? '#f59e0b' : 'var(--success, #10b981)' }};">
                 <i class="fas fa-database"></i>
             </div>
             <div class="dash-stat-info">
@@ -94,7 +94,7 @@
                 style="padding: 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)' }}; border: 1px solid {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)' }};">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
-                        style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)' }}; color: {{ $status['updates_available'] ? '#f59e0b' : '#10b981' }};">
+                        style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: {{ $status['updates_available'] ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)' }}; color: {{ $status['updates_available'] ? '#f59e0b' : 'var(--success, #10b981)' }};">
                         <i class="fas {{ $status['updates_available'] ? 'fa-triangle-exclamation' : 'fa-check' }}"></i>
                     </div>
                     <div>
@@ -146,8 +146,8 @@
             </div>
 
             <div id="updateLogBox"
-                style="flex: 1; min-height: 250px; max-height: 320px; background: #0f172a; color: #38bdf8; font-family: monospace; font-size: var(--text-sm, 0.8125rem); padding: 14px; border-radius: var(--radius-lg, 12px); overflow-y: auto; border: 1px solid rgba(255,255,255,0.08);">
-                <div style="color: #64748b;">// Siap menerima proses update sistem...</div>
+                style="flex: 1; min-height: 250px; max-height: 320px; background: var(--text-main, #0f172a); color: #38bdf8; font-family: monospace; font-size: var(--text-sm, 0.8125rem); padding: 14px; border-radius: var(--radius-lg, 12px); overflow-y: auto; border: 1px solid rgba(255,255,255,0.08);">
+                <div style="color: var(--text-muted, #64748b);">// Siap menerima proses update sistem...</div>
             </div>
         </div>
     </div>

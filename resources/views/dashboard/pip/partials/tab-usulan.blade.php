@@ -122,14 +122,14 @@
 @if (!$isAdmin && !empty($isWaliLocked))
     <!-- Notice Usulan Terkunci untuk Wali Kelas -->
     <div
-        style="margin-bottom: 18px; padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.08); border: 1.5px solid rgba(239,68,68,0.3); color: #ef4444; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
+        style="margin-bottom: 18px; padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.08); border: 1.5px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
                 style="width: 38px; height: 38px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-lock"></i>
             </div>
             <div>
-                <strong style="font-size: var(--text-base, 0.875rem); color: #ef4444;">Pengusulan PIP Sedang Ditutup / Terkunci</strong>
+                <strong style="font-size: var(--text-base, 0.875rem); color: var(--danger, #ef4444);">Pengusulan PIP Sedang Ditutup / Terkunci</strong>
                 <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
                     Pengusulan oleh Wali Kelas saat ini dikunci oleh Administrator atau telah melewati batas waktu
                     pengisian.
@@ -160,11 +160,11 @@
 
     <!-- 2. Belum Diusulkan -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
             <i class="fas fa-hourglass-half"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                 {{ number_format($stats['belum_diajukan'], 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Belum Diusulkan</div>
@@ -173,11 +173,11 @@
 
     <!-- 3. Sudah Diusulkan -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ number_format($stats['sudah_diajukan'], 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Sudah Diusulkan</div>
@@ -186,11 +186,11 @@
 
     <!-- 4. Ditolak -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
             <i class="fas fa-circle-xmark"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                 {{ number_format($stats['ditolak'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Ditolak</div>
@@ -199,11 +199,11 @@
 
     <!-- 5. Diperbarui / Ada Perubahan -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
             <i class="fas fa-clock-rotate-left"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #8b5cf6;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--purple, #8b5cf6);">
                 {{ number_format($stats['total_usulan_diubah'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Ada Perubahan</div>
@@ -322,7 +322,7 @@
                 </div>
 
                 <button type="button" class="btn btn-outline" onclick="pipExportUsulanExcel()"
-                    style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-color: #10b981; color: #10b981;"
+                    style="height: 38px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-color: var(--success, #10b981); color: var(--success, #10b981);"
                     title="Export Seluruh Data Usulan PIP ke Format Excel (.xlsx) Lengkap">
                     <i class="fas fa-file-excel"></i>
                     <span>Export</span>
@@ -341,18 +341,18 @@
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                     <button type="button" class="btn btn-outline btn-sm"
                         onclick="pipBulkVerifikasi('set_sudah_diajukan')" data-no-ajax="true"
-                        style="border-color: #10b981; color: #10b981; font-weight: 600;"
+                        style="border-color: var(--success, #10b981); color: var(--success, #10b981); font-weight: 600;"
                         title="Tandai Sudah Diusulkan">
                         <i class="fas fa-check me-1"></i> Diajukan
                     </button>
                     <button type="button" class="btn btn-outline btn-sm"
                         onclick="pipBulkVerifikasi('set_belum_diajukan')" data-no-ajax="true"
-                        style="border-color: #f59e0b; color: #f59e0b; font-weight: 600;"
+                        style="border-color: var(--warning, #f59e0b); color: var(--warning, #f59e0b); font-weight: 600;"
                         title="Tandai Belum Diusulkan">
                         <i class="fas fa-clock me-1"></i> Belum
                     </button>
                     <button type="button" class="btn btn-outline btn-sm" onclick="pipBulkVerifikasi('set_ditolak')"
-                        data-no-ajax="true" style="border-color: #ef4444; color: #ef4444; font-weight: 600;"
+                        data-no-ajax="true" style="border-color: var(--danger, #ef4444); color: var(--danger, #ef4444); font-weight: 600;"
                         title="Tandai Ditolak">
                         <i class="fas fa-ban me-1"></i> Tolak
                     </button>
@@ -474,7 +474,7 @@
                                         @endif
                                     </div>
                                     @if (!empty($u->diubah_at))
-                                        <div style="font-size: var(--text-2xs, 0.6875rem); color: #f59e0b; margin-top: 2px;">
+                                        <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--warning, #f59e0b); margin-top: 2px;">
                                             <i class="fas fa-pen-to-square me-1"></i> Diperbarui:
                                             {{ \Carbon\Carbon::parse($u->diubah_at)->format('d/m/Y H:i') }}
                                             @if (!empty($u->diubah_oleh))
@@ -577,7 +577,7 @@
                                 <!-- Tombol Riwayat Perubahan jika ada riwayat -->
                                 @if (!empty($u->diubah_at))
                                     <button type="button" class="btn-icon"
-                                        style="color: #f59e0b; width: 30px; height: 30px;"
+                                        style="color: var(--warning, #f59e0b); width: 30px; height: 30px;"
                                         title="Lihat Riwayat Perubahan Usulan"
                                         onclick="pipLihatRiwayatUsulan({{ $u->id }})">
                                         <i class="fas fa-history"></i>
@@ -594,7 +594,7 @@
                                     </button>
                                 @elseif ($isAdmin || empty($isWaliLocked))
                                     <button type="button" class="btn-icon"
-                                        style="color: #ef4444; width: 30px; height: 30px;" title="Hapus Usulan"
+                                        style="color: var(--danger, #ef4444); width: 30px; height: 30px;" title="Hapus Usulan"
                                         onclick="pipHapusUsulan({{ $u->id }}, @js($u->nama_pd), @js($u->status_verifikasi))">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>

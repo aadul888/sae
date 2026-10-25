@@ -6,11 +6,11 @@
         style="padding: 14px 18px; margin-bottom: 20px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(239, 68, 68, 0.18); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(239, 68, 68, 0.18); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas {{ $statusHari['is_weekend'] ?? false ? 'fa-bed' : 'fa-calendar-xmark' }}"></i>
             </div>
             <div>
-                <div style="font-weight: 700; color: #ef4444; font-size: var(--text-base, 0.875rem);">
+                <div style="font-weight: 700; color: var(--danger, #ef4444); font-size: var(--text-base, 0.875rem);">
                     {{ $statusHari['label'] ?? 'Hari Libur Sekolah' }}:
                     {{ $statusHari['nama_agenda'] ?? ($statusHari['agenda']?->nama_kegiatan ?? 'Libur') }}
                 </div>
@@ -26,11 +26,11 @@
         style="padding: 14px 18px; margin-bottom: 20px; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(59, 130, 246, 0.18); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(59, 130, 246, 0.18); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-laptop-house"></i>
             </div>
             <div>
-                <div style="font-weight: 700; color: #3b82f6; font-size: var(--text-base, 0.875rem);">
+                <div style="font-weight: 700; color: var(--primary, #3b82f6); font-size: var(--text-base, 0.875rem);">
                     Mode Pembelajaran Daring: {{ $statusHari['agenda']?->nama_kegiatan ?? 'Kegiatan Khusus' }}
                 </div>
                 <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
@@ -57,11 +57,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
             <i class="fas fa-check-double"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ $summary['hadir'] }}
             </div>
             <div class="dash-stat-label">Hadir Tepat Waktu</div>
@@ -69,11 +69,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                 {{ $summary['terlambat'] }}
             </div>
             <div class="dash-stat-label">Terlambat Masuk</div>
@@ -81,11 +81,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+        <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-envelope-open-text"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #3b82f6;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #3b82f6);">
                 {{ $summary['izin'] }}
             </div>
             <div class="dash-stat-label">Izin Tercatat</div>
@@ -105,11 +105,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
             <i class="fas fa-circle-xmark"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                 {{ $summary['alpha'] }}
             </div>
             <div class="dash-stat-label">Alpha</div>
@@ -117,11 +117,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(100,116,139,0.15); color: #64748b;">
+        <div class="dash-stat-icon" style="background: rgba(100,116,139,0.15); color: var(--text-muted, #64748b);">
             <i class="fas fa-user-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #64748b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--text-muted, #64748b);">
                 {{ $summary['belum'] }}
             </div>
             <div class="dash-stat-label">Belum Presensi</div>
@@ -129,11 +129,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: #06b6d4;">
+        <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-chart-pie"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #06b6d4;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--accent, #06b6d4);">
                 {{ $summary['persen'] }}%
             </div>
             <div class="dash-stat-label">% Kehadiran</div>
@@ -316,7 +316,7 @@
                                     <i class="fas fa-envelope-open-text me-1"></i> Izin
                                 </span>
                             @elseif ($st === 'S')
-                                <span class="badge" style="background: rgba(139,92,246,0.15); color: #8b5cf6; border: 1px solid rgba(139,92,246,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
+                                <span class="badge" style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6); border: 1px solid rgba(139,92,246,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
                                     <i class="fas fa-notes-medical me-1"></i> Sakit
                                 </span>
                             @elseif ($st === 'D')
@@ -384,7 +384,7 @@
                                 @elseif ($canUpdate)
                                     @if (!empty($isLiburHari))
                                         <span class="badge badge-libur-full"
-                                            style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); font-size: var(--text-xs, 0.75rem); padding: 6px 12px;"
+                                            style="background: rgba(239,68,68,0.1); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.25); font-size: var(--text-xs, 0.75rem); padding: 6px 12px;"
                                             title="Presensi dinonaktifkan pada hari libur / non-aktif belajar">
                                             <i class="fas fa-ban me-1"></i> Libur Sekolah
                                         </span>

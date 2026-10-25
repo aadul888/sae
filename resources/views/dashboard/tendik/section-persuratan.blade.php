@@ -13,7 +13,7 @@
 <!-- 1. Card Rekap Statistik Persuratan (Paling Atas) -->
 <div class="dash-stat-grid" style="margin-bottom: 20px; gap: 14px;">
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-inbox"></i>
         </div>
         <div class="dash-stat-info">
@@ -23,7 +23,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-paper-plane"></i>
         </div>
         <div class="dash-stat-info">
@@ -43,7 +43,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-hard-drive"></i>
         </div>
         <div class="dash-stat-info">
@@ -60,14 +60,14 @@
         style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); border: 1px solid rgba(59,130,246,0.25); background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(99,102,241,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
             <div
-                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.15); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-inbox"></i>
             </div>
             <div style="min-width: 0;">
                 <div
                     style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                     No. Surat Masuk Terakhir</div>
-                <div style="font-size: var(--text-md, 1rem); font-weight: 800; color: #2563eb; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                <div style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--primary-hover, #2563eb); font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                     title="{{ $stats['no_surat_masuk_terakhir'] ?? '-' }}">
                     {{ $stats['no_surat_masuk_terakhir'] ?? '-' }}
                 </div>
@@ -90,14 +90,14 @@
         style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); border: 1px solid rgba(16,185,129,0.25); background: linear-gradient(135deg, rgba(16,185,129,0.05) 0%, rgba(59,130,246,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
             <div
-                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-paper-plane"></i>
             </div>
             <div style="min-width: 0;">
                 <div
                     style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                     No. Surat Keluar Terakhir</div>
-                <div style="font-size: var(--text-md, 1rem); font-weight: 800; color: #10b981; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
+                <div style="font-size: var(--text-md, 1rem); font-weight: 800; color: var(--success, #10b981); font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
                     title="{{ $stats['no_surat_keluar_terakhir'] ?? '-' }}">
                     {{ $stats['no_surat_keluar_terakhir'] ?? '-' }}
                 </div>
@@ -120,40 +120,40 @@
 <!-- 3. Akses Cepat Menu Persuratan (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
     <a href="{{ route('dashboard.persuratan.masuk.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #3b82f6;" title="Buku Agenda Surat Masuk">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        style="--quick-color: var(--primary, #3b82f6);" title="Buku Agenda Surat Masuk">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-inbox"></i>
         </div>
         <span class="kepegawaian-quick-label">Surat Masuk</span>
     </a>
 
     <a href="{{ route('dashboard.persuratan.keluar.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #10b981;" title="Buku Agenda Surat Keluar">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        style="--quick-color: var(--success, #10b981);" title="Buku Agenda Surat Keluar">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-paper-plane"></i>
         </div>
         <span class="kepegawaian-quick-label">Surat Keluar</span>
     </a>
 
     <a href="{{ route('dashboard.persuratan.pengaturan.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #f59e0b;" title="Pengaturan &amp; Kearsipan HDD">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        style="--quick-color: var(--warning, #f59e0b);" title="Pengaturan &amp; Kearsipan HDD">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-sliders"></i>
         </div>
         <span class="kepegawaian-quick-label">Pengaturan &amp; Arsip</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'persuratan']) }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-bullseye"></i>
         </div>
         <span class="kepegawaian-quick-label">Target Capaian</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'persuratan']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Input Log Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Input Log Aktivitas Harian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-clipboard-check"></i>
         </div>
         <span class="kepegawaian-quick-label">Aktivitas Harian</span>
@@ -183,7 +183,7 @@
             </p>
         </div>
         <div
-            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
+            style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
             <i class="fas fa-envelope-open-text me-1"></i> Tata Kelola Arsip Digital
         </div>
     </div>

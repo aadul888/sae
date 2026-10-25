@@ -30,7 +30,7 @@
                     <i class="fas fa-arrows-rotate"></i>
                 </button>
                 <button type="button" id="btnResetDefault" class="btn btn-outline"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(239, 68, 68, 0.4); color: #ef4444;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(239, 68, 68, 0.4); color: var(--danger, #ef4444);"
                     title="Reset Default Matrix Izin ({{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }})">
                     <i class="fas fa-rotate-left"></i>
                 </button>
@@ -135,13 +135,13 @@
                                 style="padding: 12px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: right; min-width: 270px;">
                                 <div style="display: inline-flex; align-items: center; gap: 14px;">
                                     <span>Aksi:</span>
-                                    <span style="color: #3b82f6; font-size: var(--text-xs, 0.75rem);" title="Tambah (Create)"><i
+                                    <span style="color: var(--primary, #3b82f6); font-size: var(--text-xs, 0.75rem);" title="Tambah (Create)"><i
                                             class="fas fa-plus-circle me-1"></i>Tambah</span>
-                                    <span style="color: #10b981; font-size: var(--text-xs, 0.75rem);" title="Lihat (Read)"><i
+                                    <span style="color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem);" title="Lihat (Read)"><i
                                             class="fas fa-eye me-1"></i>Lihat</span>
-                                    <span style="color: #f59e0b; font-size: var(--text-xs, 0.75rem);" title="Ubah (Update)"><i
+                                    <span style="color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem);" title="Ubah (Update)"><i
                                             class="fas fa-pen-to-square me-1"></i>Ubah</span>
-                                    <span style="color: #ef4444; font-size: var(--text-xs, 0.75rem);" title="Hapus (Delete)"><i
+                                    <span style="color: var(--danger, #ef4444); font-size: var(--text-xs, 0.75rem);" title="Hapus (Delete)"><i
                                             class="fas fa-trash me-1"></i>Hapus</span>
                                 </div>
                             </th>
@@ -190,7 +190,7 @@
                                         <!-- Tambah (Create) -->
                                         <div style="display: flex; align-items: center; gap: 6px;"
                                             title="Tambah (Create)">
-                                            <i class="fas fa-plus-circle" style="color: #3b82f6; font-size: var(--text-md, 1rem);"></i>
+                                            <i class="fas fa-plus-circle" style="color: var(--primary, #3b82f6); font-size: var(--text-md, 1rem);"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
                                                 <input type="checkbox" class="crud-toggle"
@@ -200,13 +200,13 @@
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
                                                 <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_create'] ? '#3b82f6' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_create'] ? 'var(--primary, #3b82f6)' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
                                             </label>
                                         </div>
 
                                         <!-- Lihat (Read) -->
                                         <div style="display: flex; align-items: center; gap: 6px;" title="Lihat (Read)">
-                                            <i class="fas fa-eye" style="color: #10b981; font-size: var(--text-md, 1rem);"></i>
+                                            <i class="fas fa-eye" style="color: var(--success, #10b981); font-size: var(--text-md, 1rem);"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
                                                 <input type="checkbox" class="crud-toggle"
@@ -216,13 +216,13 @@
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
                                                 <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_read'] ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_read'] ? 'var(--success, #10b981)' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
                                             </label>
                                         </div>
 
                                         <!-- Ubah (Update) -->
                                         <div style="display: flex; align-items: center; gap: 6px;" title="Ubah (Update)">
-                                            <i class="fas fa-pen-to-square" style="color: #f59e0b; font-size: var(--text-md, 1rem);"></i>
+                                            <i class="fas fa-pen-to-square" style="color: var(--warning, #f59e0b); font-size: var(--text-md, 1rem);"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
                                                 <input type="checkbox" class="crud-toggle"
@@ -232,13 +232,13 @@
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
                                                 <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_update'] ? '#f59e0b' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_update'] ? 'var(--warning, #f59e0b)' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
                                             </label>
                                         </div>
 
                                         <!-- Hapus (Delete) -->
                                         <div style="display: flex; align-items: center; gap: 6px;" title="Hapus (Delete)">
-                                            <i class="fas fa-trash" style="color: #ef4444; font-size: var(--text-md, 1rem);"></i>
+                                            <i class="fas fa-trash" style="color: var(--danger, #ef4444); font-size: var(--text-md, 1rem);"></i>
                                             <label class="switch-container"
                                                 style="position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }};">
                                                 <input type="checkbox" class="crud-toggle"
@@ -248,7 +248,7 @@
                                                     {{ $item['is_locked'] ? 'disabled' : '' }}
                                                     style="opacity: 0; width: 0; height: 0;">
                                                 <span class="slider-toggle-crud"
-                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_delete'] ? '#ef4444' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
+                                                    style="position: absolute; cursor: {{ $item['is_locked'] ? 'not-allowed' : 'pointer' }}; inset: 0; background-color: {{ $item['can_delete'] ? 'var(--danger, #ef4444)' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
                                             </label>
                                         </div>
                                     </div>
@@ -258,7 +258,7 @@
                                         <button type="button" class="btn-icon btn-remove-module"
                                             data-key="{{ $item['key'] }}" data-name="{{ $item['label'] }}"
                                             title="Hapus Modul {{ $item['label'] }} dari Peran {{ $roles[$activeRole]['name'] ?? ucfirst($activeRole) }}"
-                                            style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); width: 32px; height: 32px; border-radius: var(--radius-md, 8px); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                                            style="background: rgba(239, 68, 68, 0.1); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.2); width: 32px; height: 32px; border-radius: var(--radius-md, 8px); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
                                             <i class="fas fa-trash-can" style="font-size: var(--text-sm, 0.8125rem);"></i>
                                         </button>
                                     @else
@@ -319,22 +319,22 @@
                         <div class="form-group-compact" style="margin-bottom: 18px;">
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: block;">
-                                Pilih Modul Sistem <span style="color: #ef4444;">*</span>
+                                Pilih Modul Sistem <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <div style="position: relative; margin-bottom: 8px;">
                                 <i class="fas fa-search"
                                     style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); pointer-events: none;"></i>
                                 <input type="text" id="filterModuleOptions" placeholder="Ketik untuk mencari modul..."
-                                    style="width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid rgba(255,255,255,0.15); background-color: #0f172a; color: #f8fafc; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;"
+                                    style="width: 100%; height: 36px; padding: 0 12px 0 34px; border: 1px solid rgba(255,255,255,0.15); background-color: var(--text-main, #0f172a); color: #f8fafc; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;"
                                     autocomplete="off">
                             </div>
                             <select name="permission_key" id="selectAddModule" required
                                 style="width: 100%; height: 42px; padding: 0 12px; border: 1px solid rgba(255,255,255,0.15); background-color: #1e293b !important; color: #f8fafc !important; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
-                                <option value="" style="background-color: #1e293b; color: #94a3b8;">-- Pilih Modul
+                                <option value="" style="background-color: #1e293b; color: var(--text-muted, #94a3b8);">-- Pilih Modul
                                     untuk Ditambahkan --</option>
                                 @forelse ($availableModulesToAdd as $groupName => $groupModules)
                                     <optgroup label="📂 {{ $groupName }}"
-                                        style="color: #94a3b8; background-color: #0f172a; font-size: var(--text-sm, 0.8125rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
+                                        style="color: var(--text-muted, #94a3b8); background-color: var(--text-main, #0f172a); font-size: var(--text-sm, 0.8125rem); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
                                         @foreach ($groupModules as $mVal)
                                             <option value="{{ $mVal['key'] }}"
                                                 style="background-color: #1e293b; color: #f8fafc; padding: 8px 12px;">
@@ -342,13 +342,13 @@
                                         @endforeach
                                     </optgroup>
                                 @empty
-                                    <option disabled style="background-color: #1e293b; color: #94a3b8;">Semua modul sistem
+                                    <option disabled style="background-color: #1e293b; color: var(--text-muted, #94a3b8);">Semua modul sistem
                                         sudah aktif untuk peran ini</option>
                                 @endforelse
                                 <optgroup label="─────────────────────"
-                                    style="color: #334155; background-color: #0f172a;"></optgroup>
+                                    style="color: #334155; background-color: var(--text-main, #0f172a);"></optgroup>
                                 <option value="__NEW_CUSTOM_MODULE__"
-                                    style="background-color: #0f172a; color: #38bdf8; font-weight: 600; padding: 8px 12px;">
+                                    style="background-color: var(--text-main, #0f172a); color: #38bdf8; font-weight: 600; padding: 8px 12px;">
                                     + Daftarkan Modul Baru / Mendatang...</option>
                             </select>
 
@@ -357,7 +357,7 @@
                                 style="display: none; flex-direction: column; gap: 8px; margin-top: 14px; padding: 14px; background: rgba(56, 189, 248, 0.06); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: var(--radius-lg, 12px);">
                                 <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #38bdf8; display: block;">
                                     <i class="fas fa-sparkles me-1"></i> Nama Modul Baru / Mendatang <span
-                                        style="color: #ef4444;">*</span>
+                                        style="color: var(--danger, #ef4444);">*</span>
                                 </label>
                                 <input type="text" id="inputCustomModuleName" name="custom_name"
                                     placeholder="Contoh: Perpustakaan Digital, Bimbingan Konseling"

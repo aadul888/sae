@@ -38,7 +38,7 @@
                 </button>
                 <button type="button" id="btnResetPresensiWali" class="btn btn-outline"
                     data-rombel="{{ $activeRombel->rombongan_belajar_id }}" data-tanggal="{{ $tanggal }}"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: #ef4444; border-color: rgba(239,68,68,0.4);"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.4);"
                     title="Reset Presensi Manual Kelas">
                     <i class="fas fa-rotate-left"></i>
                 </button>
@@ -50,7 +50,7 @@
         <!-- Empty State jika Guru belum ada tugas rombel -->
         <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
             <div
-                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
+                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
             <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">

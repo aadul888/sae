@@ -45,14 +45,14 @@
         <!-- 2. Flash Messages -->
         @if (session('success'))
             <div
-                style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+                style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-check-circle"></i>
                 <div>{{ session('success') }}</div>
             </div>
         @endif
         @if (session('error'))
             <div
-                style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+                style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-circle-exclamation"></i>
                 <div>{{ session('error') }}</div>
             </div>
@@ -99,7 +99,7 @@
                         <span>Format &amp; Penomoran Surat Otomatis</span>
                     </div>
                     <span class="badge-compact"
-                        style="background: rgba(16,185,129,0.1); color: #10b981; font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
+                        style="background: rgba(16,185,129,0.1); color: var(--success, #10b981); font-family: monospace; font-size: var(--text-sm, 0.8125rem);">
                         Format Aktif: {{ $setting->format_nomor_surat_keluar ?? '{nomor}/{kode_indeks}-{sekolah_kode}' }}
                     </span>
                 </div>
@@ -195,7 +195,7 @@
                                     style="font-size: var(--text-sm, 0.8125rem); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                                     <span style="color: var(--text-muted);">Surat Keluar:</span>
                                     <span id="previewKeluarText"
-                                        style="font-family: monospace; font-weight: 700; color: #10b981; font-size: var(--text-md, 1rem);">
+                                        style="font-family: monospace; font-weight: 700; color: var(--success, #10b981); font-size: var(--text-md, 1rem);">
                                         {{ $previewSuratKeluar }}
                                     </span>
                                 </div>
@@ -443,7 +443,7 @@
                 </div>
 
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
+                    <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb);">
                         <i class="fas fa-database"></i>
                     </div>
                     <div class="dash-stat-info">
@@ -453,7 +453,7 @@
                 </div>
 
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                    <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                         <i class="fas fa-file-pdf"></i>
                     </div>
                     <div class="dash-stat-info">
@@ -464,7 +464,7 @@
 
                 <div class="dash-stat-card">
                     <div class="dash-stat-icon"
-                        style="background: {{ $hddStatus['is_ready'] ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)' }}; color: {{ $hddStatus['is_ready'] ? '#10b981' : '#ef4444' }};">
+                        style="background: {{ $hddStatus['is_ready'] ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)' }}; color: {{ $hddStatus['is_ready'] ? 'var(--success, #10b981)' : '#ef4444' }};">
                         <i class="fas {{ $hddStatus['is_ready'] ? 'fa-circle-check' : 'fa-triangle-exclamation' }}"></i>
                     </div>
                     <div class="dash-stat-info">
@@ -533,7 +533,7 @@
                         <div
                             style="width: 100%; height: 8px; background: var(--border-color); border-radius: var(--radius-xs, 4px); overflow: hidden;">
                             <div
-                                style="width: {{ min(100, $hddStatus['percent_used']) }}%; height: 100%; background: {{ $hddStatus['percent_used'] > 90 ? '#ef4444' : ($hddStatus['percent_used'] > 75 ? '#f59e0b' : '#10b981') }}; border-radius: var(--radius-xs, 4px); transition: width 0.4s ease;">
+                                style="width: {{ min(100, $hddStatus['percent_used']) }}%; height: 100%; background: {{ $hddStatus['percent_used'] > 90 ? '#ef4444' : ($hddStatus['percent_used'] > 75 ? '#f59e0b' : 'var(--success, #10b981)') }}; border-radius: var(--radius-xs, 4px); transition: width 0.4s ease;">
                             </div>
                         </div>
                         <div

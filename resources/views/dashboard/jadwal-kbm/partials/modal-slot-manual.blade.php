@@ -34,7 +34,7 @@
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label for="slotPembelajaranId"
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                        Mata Pelajaran &amp; Guru Pengampu <span style="color: #ef4444;">*</span>
+                        Mata Pelajaran &amp; Guru Pengampu <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <select id="slotPembelajaranId" name="pembelajaran_id" required class="form-control"
                         style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
@@ -60,7 +60,7 @@
                     <div class="form-group">
                         <label for="slotHari"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                            Hari <span style="color: #ef4444;">*</span>
+                            Hari <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="slotHari" name="hari" required class="form-control"
                             style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
@@ -86,7 +86,7 @@
                     <div class="form-group">
                         <label for="slotJamKeMulai"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                            Jam Ke-Mulai <span style="color: #ef4444;">*</span>
+                            Jam Ke-Mulai <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="slotJamKeMulai" name="jam_ke_mulai" required class="form-control"
                             style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
@@ -99,7 +99,7 @@
                     <div class="form-group">
                         <label for="slotJamKeSelesai"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                            Jam Ke-Selesai <span style="color: #ef4444;">*</span>
+                            Jam Ke-Selesai <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="slotJamKeSelesai" name="jam_ke_selesai" required class="form-control"
                             style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); font-size: var(--text-base, 0.875rem);">
@@ -126,7 +126,7 @@
                 <div id="boxOverwriteSlot"
                     style="margin-bottom: 16px; padding: 10px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: var(--radius-md, 8px); display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" id="chkOverwriteSlot" name="overwrite" value="1"
-                        style="width: 17px; height: 17px; cursor: pointer; accent-color: #f59e0b;">
+                        style="width: 17px; height: 17px; cursor: pointer; accent-color: var(--warning, #f59e0b);">
                     <label for="chkOverwriteSlot"
                         style="margin: 0; font-size: var(--text-sm, 0.8125rem); color: var(--text-color); cursor: pointer; line-height: 1.4;">
                         <strong>Ganti / Timpa jadwal kelas ini</strong> jika jam yang dipilih telah terisi oleh pelajaran

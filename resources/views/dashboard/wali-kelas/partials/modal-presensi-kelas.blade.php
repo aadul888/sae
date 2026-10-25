@@ -167,21 +167,21 @@
                 <div style="margin-bottom: 16px;">
                     <label
                         style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
-                        Keputusan Wali Kelas: <span style="color: #ef4444;">*</span>
+                        Keputusan Wali Kelas: <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <label
                             style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid rgba(16,185,129,0.3); background: rgba(16,185,129,0.08); cursor: pointer;">
                             <input type="radio" name="verif_status" value="disetujui" checked
-                                style="accent-color: #10b981;">
-                            <span style="font-weight: 700; color: #10b981; font-size: var(--text-base, 0.875rem);"><i
+                                style="accent-color: var(--success, #10b981);">
+                            <span style="font-weight: 700; color: var(--success, #10b981); font-size: var(--text-base, 0.875rem);"><i
                                     class="fas fa-check-circle me-1"></i> Setujui</span>
                         </label>
                         <label
                             style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); cursor: pointer;">
                             <input type="radio" name="verif_status" value="ditolak"
-                                style="accent-color: #ef4444;">
-                            <span style="font-weight: 700; color: #ef4444; font-size: var(--text-base, 0.875rem);"><i
+                                style="accent-color: var(--danger, #ef4444);">
+                            <span style="font-weight: 700; color: var(--danger, #ef4444); font-size: var(--text-base, 0.875rem);"><i
                                     class="fas fa-times-circle me-1"></i> Tolak</span>
                         </label>
                     </div>

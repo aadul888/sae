@@ -69,16 +69,16 @@
                                                 @if (!empty($item->is_koordinator))
                                                     <span class="badge badge-koordinator"
                                                         id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                        style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                                        style="background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
                                                         title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                        <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                        <i class="fas fa-crown" style="color: var(--warning, #f59e0b);"></i> Koordinator
                                                     </span>
                                                 @else
                                                     <span class="badge badge-koordinator"
                                                         id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                        style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
+                                                        style="display: none; background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
                                                         title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                        <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                        <i class="fas fa-crown" style="color: var(--warning, #f59e0b);"></i> Koordinator
                                                     </span>
                                                 @endif
                                             </div>
@@ -152,7 +152,7 @@
                                                 title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
                                                 onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
                                                 <i class="fas fa-camera"
-                                                    style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
+                                                    style="{{ !empty($item->foto_url) ? 'color: var(--success, #10b981);' : '' }}"></i>
                                             </button>
                                         @endif
                                         <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
@@ -163,7 +163,7 @@
                                             <button type="button" class="btn-icon"
                                                 title="Pratinjau / Cetak Kartu Pelajar Digital"
                                                 onclick="openKartuPelajarModal('{{ $item->nisn }}')">
-                                                <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                                <i class="fas fa-address-card" style="color: var(--accent, #0284c7);"></i>
                                             </button>
                                         @endif
                                         @if ($canUpdate)
@@ -176,7 +176,7 @@
                                                 data-status="{{ !empty($item->is_koordinator) ? '1' : '0' }}"
                                                 title="{{ !empty($item->is_koordinator) ? 'Cabut Wewenang Koordinator Kelas' : 'Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)' }}">
                                                 <i class="fas fa-crown"
-                                                    style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b; opacity: 1;' : '' }}"></i>
+                                                    style="{{ !empty($item->is_koordinator) ? 'color: var(--warning, #f59e0b); opacity: 1;' : '' }}"></i>
                                             </button>
                                         @endif
                                     </div>

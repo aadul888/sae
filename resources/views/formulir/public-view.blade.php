@@ -75,7 +75,7 @@
                     <div>
                         <div style="font-weight: 700; color: #1e293b; font-size: var(--text-base, 0.875rem);">Mengisi sebagai Responden
                             Publik</div>
-                        <div style="font-size: var(--text-sm, 0.8125rem); color: #64748b;">Punya akun SAE (Peserta Didik/Guru)? Masuk agar
+                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted, #64748b);">Punya akun SAE (Peserta Didik/Guru)? Masuk agar
                             identitas terisi otomatis.</div>
                     </div>
                 </div>
@@ -269,7 +269,7 @@
                                     <i class="fas fa-cloud-arrow-up"></i>
                                     <div style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: #334155;">Klik untuk
                                         memilih berkas</div>
-                                    <div style="font-size: var(--text-xs, 0.75rem); color: #94a3b8;">Format: JPG, PNG, PDF, DOCX
+                                    <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #94a3b8);">Format: JPG, PNG, PDF, DOCX
                                         (Maksimal 5 MB)</div>
                                     <input type="file" name="{{ $fieldId }}" id="{{ $fieldId }}"
                                         style="display: none;"

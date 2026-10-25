@@ -135,7 +135,7 @@
                     @endif
                 </div>
                 <div
-                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #10b981;">
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--success, #10b981);">
                     <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                 </div>
             </div>
@@ -148,7 +148,7 @@
             </a>
             @if (\App\Models\RolePermission::canAccess('guru', 'menu_presensi_mengajar'))
                 <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="btn btn-primary"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: linear-gradient(135deg, #10b981, #059669); text-decoration: none;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: linear-gradient(135deg, var(--success, #10b981), #059669); text-decoration: none;"
                     title="Catat Presensi Mengajar">
                     <i class="fas fa-calendar-check"></i>
                 </a>
@@ -216,7 +216,7 @@
                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                     @if ($isClosedPip)
                         <div
-                            style="padding: 6px 14px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; font-weight: 800; font-size: var(--text-sm, 0.8125rem);">
+                            style="padding: 6px 14px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); font-weight: 800; font-size: var(--text-sm, 0.8125rem);">
                             <i class="fas fa-lock me-1"></i> PENGUSULAN DITUTUP
                         </div>
                     @else
@@ -257,7 +257,7 @@
                             <div
                                 style="text-align: center; min-width: 48px; padding: 5px 6px; border-radius: var(--radius-md, 8px); background: var(--card-bg, #1e293b); border: 1px solid rgba(16,185,129,0.3);">
                                 <div id="pipWaliCdSeconds"
-                                    style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: #10b981; font-family: monospace; line-height: 1;">
+                                    style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--success, #10b981); font-family: monospace; line-height: 1;">
                                     {{ sprintf('%02d', $cdWali['seconds'] ?? 0) }}
                                 </div>
                                 <div
@@ -279,11 +279,11 @@
     <!-- Stats Counter -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $stats['hari_efektif_bulan_ini'] ?? 0 }} Hari
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ $stats['hari_efektif_bulan_ini'] ?? 0 }} Hari
                 </div>
                 <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
@@ -339,9 +339,9 @@
                 <div>
                     <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                         @if ($isLiburHariIni)
-                            <span style="color: #ef4444;">Perhatian: Hari Ini Libur Sekolah</span>
+                            <span style="color: var(--danger, #ef4444);">Perhatian: Hari Ini Libur Sekolah</span>
                             <span class="badge"
-                                style="background: #ef4444; color: #fff; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; margin-left: 6px;">KBM
+                                style="background: var(--danger, #ef4444); color: #fff; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; margin-left: 6px;">KBM
                                 Off</span>
                         @else
                             <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
@@ -389,8 +389,8 @@
             <div
                 style="text-align: center; padding: 26px 16px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: var(--radius-lg, 12px); margin-bottom: 12px;">
                 <i class="fas fa-clock"
-                    style="font-size: var(--text-3xl, 1.875rem); color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
-                <h4 style="font-size: var(--text-md, 1rem); font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal KBM Masih
+                    style="font-size: var(--text-3xl, 1.875rem); color: var(--warning, #f59e0b); margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                <h4 style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--warning, #f59e0b); margin-bottom: 4px;">Jadwal KBM Masih
                     Berstatus Draft</h4>
                 <p
                     style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); margin: 0; max-width: 520px; display: inline-block;">
@@ -440,12 +440,12 @@
                                 <td style="padding: 14px;">
                                     @if ($j['status'] === 'Berlangsung')
                                         <span
-                                            style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-weight: 600; font-size: var(--text-sm, 0.8125rem);">
+                                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-weight: 600; font-size: var(--text-sm, 0.8125rem);">
                                             <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
                                         </span>
                                     @elseif ($j['status'] === 'Selesai')
                                         <span
-                                            style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                            style="background: rgba(100,116,139,0.15); color: var(--text-muted, #94a3b8); padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                             <i class="fas fa-check"></i> {{ $j['status'] }}
                                         </span>
                                     @else
@@ -489,12 +489,12 @@
                             </span>
                             @if ($j['status'] === 'Berlangsung')
                                 <span
-                                    style="background: rgba(16,185,129,0.15); color: #10b981; padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 600; font-size: var(--text-xs, 0.75rem);">
+                                    style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 600; font-size: var(--text-xs, 0.75rem);">
                                     <i class="fas fa-spinner fa-spin"></i> {{ $j['status'] }}
                                 </span>
                             @elseif ($j['status'] === 'Selesai')
                                 <span
-                                    style="background: rgba(100,116,139,0.15); color: #94a3b8; padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-size: var(--text-xs, 0.75rem);">
+                                    style="background: rgba(100,116,139,0.15); color: var(--text-muted, #94a3b8); padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-size: var(--text-xs, 0.75rem);">
                                     <i class="fas fa-check"></i> {{ $j['status'] }}
                                 </span>
                             @else

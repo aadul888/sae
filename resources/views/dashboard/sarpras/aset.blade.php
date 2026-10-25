@@ -10,7 +10,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-boxes-stacked"></i>
                 </div>
                 <div>
@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                     <i class="fas fa-check-double"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -54,7 +54,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                     <i class="fas fa-hand-holding-box"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -63,7 +63,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-wrench"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -236,16 +236,16 @@
 
                                         @if ($item->status_ketersediaan === 'tersedia')
                                             <span class="badge badge-outline"
-                                                style="font-size: var(--text-xs, 0.75rem); border-color: #10b981; color: #10b981;">Tersedia</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: var(--success, #10b981); color: var(--success, #10b981);">Tersedia</span>
                                         @elseif ($item->status_ketersediaan === 'dipinjam')
                                             <span class="badge badge-outline"
-                                                style="font-size: var(--text-xs, 0.75rem); border-color: #3b82f6; color: #3b82f6;">Dipinjam</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: var(--primary, #3b82f6); color: var(--primary, #3b82f6);">Dipinjam</span>
                                         @elseif ($item->status_ketersediaan === 'perbaikan')
                                             <span class="badge badge-outline"
-                                                style="font-size: var(--text-xs, 0.75rem); border-color: #f59e0b; color: #f59e0b;">Perbaikan</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: var(--warning, #f59e0b); color: var(--warning, #f59e0b);">Perbaikan</span>
                                         @else
                                             <span class="badge badge-outline"
-                                                style="font-size: var(--text-xs, 0.75rem); border-color: #ef4444; color: #ef4444;">Dihapuskan</span>
+                                                style="font-size: var(--text-xs, 0.75rem); border-color: var(--danger, #ef4444); color: var(--danger, #ef4444);">Dihapuskan</span>
                                         @endif
                                     </div>
                                 </td>
@@ -269,7 +269,7 @@
                                         @if ($canDelete)
                                             <button type="button" class="btn-icon btn-delete-aset"
                                                 data-id="{{ $item->id }}" data-nama="{{ $item->nama_barang }}"
-                                                title="Hapus Aset" style="color: #ef4444;">
+                                                title="Hapus Aset" style="color: var(--danger, #ef4444);">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         @endif
@@ -320,14 +320,14 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
-                                Aset <span style="color: #ef4444;">*</span></label>
+                                Aset <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="kode_aset" id="asetKode" class="form-control"
                                 placeholder="AST-2026-001" required>
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
-                                Barang / Aset <span style="color: #ef4444;">*</span></label>
+                                Barang / Aset <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="nama_barang" id="asetNama" class="form-control"
                                 placeholder="Proyektor Epson EB-X500" required>
                         </div>
@@ -337,7 +337,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kategori
-                                <span style="color: #ef4444;">*</span></label>
+                                <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="kategori" id="asetKategori" class="form-control" required>
                                 @foreach ($kategoriList as $kat)
                                     <option value="{{ $kat }}">{{ $kat }}</option>
@@ -357,14 +357,14 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jumlah
-                                <span style="color: #ef4444;">*</span></label>
+                                <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="number" name="jumlah" id="asetJumlah" class="form-control" value="1"
                                 min="1" required>
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Satuan
-                                <span style="color: #ef4444;">*</span></label>
+                                <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="satuan" id="asetSatuan" class="form-control" value="unit"
                                 placeholder="unit/buah/set" required>
                         </div>
@@ -381,7 +381,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Sumber
-                                Dana <span style="color: #ef4444;">*</span></label>
+                                Dana <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="sumber_dana" id="asetSumber" class="form-control" required>
                                 <option value="BOS Reguler">BOS Reguler</option>
                                 <option value="BOS Kinerja">BOS Kinerja</option>
@@ -409,7 +409,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
-                                <span style="color: #ef4444;">*</span></label>
+                                <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="kondisi" id="asetKondisi" class="form-control" required>
                                 <option value="baik">Baik</option>
                                 <option value="rusak_ringan">Rusak Ringan</option>
@@ -419,7 +419,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Status
-                                Ketersediaan <span style="color: #ef4444;">*</span></label>
+                                Ketersediaan <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="status_ketersediaan" id="asetStatus" class="form-control" required>
                                 <option value="tersedia">Tersedia</option>
                                 <option value="dipinjam">Dipinjam</option>

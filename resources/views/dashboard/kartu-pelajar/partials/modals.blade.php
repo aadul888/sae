@@ -29,16 +29,16 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Status Pembayaran <span style="color: #ef4444;">*</span>
+                        Status Pembayaran <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <div style="display: flex; gap: 18px; align-items: center;">
                         <label
-                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #10b981; cursor: pointer;">
+                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer;">
                             <input type="radio" name="status_pembayaran" value="lunas">
                             <i class="fas fa-check-circle"></i> LUNAS
                         </label>
                         <label
-                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #f59e0b; cursor: pointer;">
+                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--warning, #f59e0b); cursor: pointer;">
                             <input type="radio" name="status_pembayaran" value="belum_bayar">
                             <i class="fas fa-clock"></i> BELUM BAYAR
                         </label>
@@ -177,12 +177,12 @@
                     </label>
                     <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
                         <label
-                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #10b981; cursor: pointer;">
+                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer;">
                             <input type="radio" name="bulk_status_pembayaran" value="lunas">
                             <i class="fas fa-check-circle"></i> Lunas
                         </label>
                         <label
-                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #f59e0b; cursor: pointer;">
+                            style="display: flex; align-items: center; gap: 6px; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--warning, #f59e0b); cursor: pointer;">
                             <input type="radio" name="bulk_status_pembayaran" value="belum_bayar">
                             <i class="fas fa-clock"></i> Belum Bayar
                         </label>
@@ -411,7 +411,7 @@
 
             <!-- Banner Garansi Aktif (Jika status sudah cetak) -->
             <div id="garansiActiveNotice"
-                style="display: none; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #059669; padding: 10px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 14px; align-items: center; gap: 8px;">
+                style="display: none; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: var(--success, #059669); padding: 10px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 14px; align-items: center; gap: 8px;">
                 <i class="fas fa-check-circle" style="font-size: var(--text-lg, 1.125rem); flex-shrink: 0;"></i>
                 <div>
                     <strong>Status Kartu: Sudah Dicetak</strong><br>
@@ -421,7 +421,7 @@
 
             <!-- Banner Garansi Belum Aktif (Jika status belum cetak) -->
             <div id="garansiNotActiveNotice"
-                style="display: none; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #d97706; padding: 10px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 14px; align-items: center; gap: 8px;">
+                style="display: none; background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--warning, #d97706); padding: 10px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 14px; align-items: center; gap: 8px;">
                 <i class="fas fa-exclamation-triangle" style="font-size: var(--text-lg, 1.125rem); flex-shrink: 0;"></i>
                 <div>
                     <strong>Garansi Belum Berlaku:</strong> Kartu fisik belum dicetak (Status: Belum Dicetak). Garansi
@@ -436,7 +436,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Pilih Fasilitas Garansi yang Diklaim <span style="color: #ef4444;">*</span>
+                        Pilih Fasilitas Garansi yang Diklaim <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <label
@@ -477,7 +477,7 @@
                 <div style="margin-bottom: 16px;">
                     <label
                         style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; margin-bottom: 4px; color: var(--text-color);">
-                        Alasan / Kendala Klaim <span style="color: #ef4444;">*</span>
+                        Alasan / Kendala Klaim <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <textarea name="alasan" id="garansiAlasan" rows="3" required class="form-control"
                         placeholder="Contoh: Kartu fisik patah / chip RFID rusak tidak terbaca / stiker pudar..."
@@ -570,9 +570,9 @@
 
                     <!-- 4. Highlight Preview Total Pengeluaran -->
                     <div id="pgNominalPreview"
-                        style="padding: 8px 12px; border-radius: var(--radius-md, 8px); background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #ef4444; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                        style="padding: 8px 12px; border-radius: var(--radius-md, 8px); background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
                         <span>Total Pengeluaran:</span>
-                        <strong style="font-size: var(--text-base, 0.875rem); color: #ef4444;">Rp 0</strong>
+                        <strong style="font-size: var(--text-base, 0.875rem); color: var(--danger, #ef4444);">Rp 0</strong>
                     </div>
 
                     <!-- 5. Bukti Nota & Keterangan / Toko Grid -->
@@ -689,9 +689,9 @@
 
                     <!-- 4. Highlight Preview Total Pengeluaran -->
                     <div id="editPgNominalPreview"
-                        style="padding: 8px 12px; border-radius: var(--radius-md, 8px); background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #ef4444; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
+                        style="padding: 8px 12px; border-radius: var(--radius-md, 8px); background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.3); font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
                         <span>Total Pengeluaran:</span>
-                        <strong style="font-size: var(--text-base, 0.875rem); color: #ef4444;">Rp 0</strong>
+                        <strong style="font-size: var(--text-base, 0.875rem); color: var(--danger, #ef4444);">Rp 0</strong>
                     </div>
 
                     <!-- 5. Bukti Nota & Keterangan / Toko Grid -->
@@ -800,7 +800,7 @@
                             <label
                                 style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #166534; cursor: pointer; margin: 0;">
                                 <input type="checkbox" name="hanya_ada_foto" id="rqHanyaAdaFoto" value="1"
-                                    checked style="accent-color: #059669; width: 16px; height: 16px; cursor: pointer;">
+                                    checked style="accent-color: var(--success, #059669); width: 16px; height: 16px; cursor: pointer;">
                                 <span><i class="fas fa-camera text-success me-1"></i> Hanya Siswa yang Sudah Ada Foto
                                     Formal</span>
                             </label>
@@ -887,7 +887,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; margin-bottom: 4px; color: var(--text-color);">
-                        Pilih Tanggal Selesai Dicetak <span style="color: #ef4444;">*</span>
+                        Pilih Tanggal Selesai Dicetak <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="date" name="tanggal_cetak" value="{{ date('Y-m-d') }}" required
                         class="form-control"

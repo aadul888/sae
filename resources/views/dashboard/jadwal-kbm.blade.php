@@ -151,38 +151,38 @@
                 <div class="pemberlakuan-badge-wrap" style="display: inline-flex; align-items: center; gap: 8px;">
                     @if ($isOtomatisAktif)
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-check-circle"></i> Jadwal Otomatis Diberlakukan (Aktif)
                         </span>
                         <button type="button" class="btn btn-outline btn-toggle-pemberlakuan" data-mode="otomatis"
                             data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); border-color: rgba(245,158,11,0.4); color: var(--warning, #f59e0b); cursor: pointer;">
                             <i class="fas fa-pause"></i>
                         </button>
                     @elseif ($isManualAktif)
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Jadwal Manual Aktif)
                         </span>
                         <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif"
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Manual)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play"></i>
                         </button>
                     @else
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Dalam Penyusunan)
                         </span>
                         <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="otomatis" data-status="aktif"
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Otomatis Ini ke Seluruh Guru & Siswa"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play"></i>
                         </button>
                     @endif
@@ -254,7 +254,7 @@
 
                 @if ($canCreate)
                     <button type="button" class="btn" id="btnBukaAutoGenerate"
-                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);"
+                        style="padding: 8px 14px; font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, var(--primary-light, #6366f1) 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.35);"
                         title="Auto-Generate Jadwal Otomatis">
                         <i class="fas fa-wand-magic-sparkles"></i>
                     </button>
@@ -311,7 +311,7 @@
                         {{ $semesterAktif == '1' ? '1 Ganjil' : '2 Genap' }})</span>
                     @if ($isLibur)
                         <span class="badge"
-                            style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px);">
+                            style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px);">
                             <i class="fas fa-ban me-1"></i> Libur Sekolah / KBM Off
                         </span>
                     @elseif (!empty($agendaHariIni))
@@ -321,7 +321,7 @@
                         </span>
                     @else
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px);">
+                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px);">
                             <i class="fas fa-check me-1"></i> Hari Efektif Belajar (HEB)
                         </span>
                     @endif
@@ -351,11 +351,11 @@
     <!-- Summary Stats Grid -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                     {{ number_format($summary['hari_efektif_semester'] ?? 0, 0, ',', '.') }} <span
                         style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Hari</span>
                 </div>
@@ -376,7 +376,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-school"></i>
             </div>
             <div class="dash-stat-info">
@@ -400,7 +400,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
@@ -650,17 +650,17 @@
                                                     style="display: flex; gap: 3px; flex-wrap: wrap; align-items: center;">
                                                     @if ($isUpacara)
                                                         <span class="badge"
-                                                            style="background: rgba(239,68,68,0.12); color: #ef4444; font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
+                                                            style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
                                                             Upacara
                                                         </span>
                                                     @elseif ($isPembiasaan)
                                                         <span class="badge"
-                                                            style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
+                                                            style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
                                                             Pembiasaan
                                                         </span>
                                                     @elseif ($isIstirahat)
                                                         <span class="badge"
-                                                            style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
+                                                            style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: var(--text-2xs, 0.6875rem); padding: 2px 5px; font-weight: 700;">
                                                             Istirahat
                                                         </span>
                                                     @else

@@ -47,14 +47,14 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -74,7 +74,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-chalkboard-user"></i>
             </div>
             <div class="dash-stat-info">
@@ -94,7 +94,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-business-time"></i>
             </div>
             <div class="dash-stat-info">
@@ -107,16 +107,16 @@
     <!-- Alert Notifikasi KGB Jatuh Tempo -->
     @if ($kgbJatuhTempoCount > 0)
         <div
-            style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: var(--radius-md, 8px); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid var(--warning, #f59e0b); padding: 12px 16px; border-radius: var(--radius-md, 8px); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-bell" style="color: #f59e0b; font-size: var(--text-xl, 1.25rem);"></i>
+                <i class="fas fa-bell" style="color: var(--warning, #f59e0b); font-size: var(--text-xl, 1.25rem);"></i>
                 <span style="font-size: var(--text-base, 0.875rem); color: #92400e;">
                     <strong>{{ $kgbJatuhTempoCount }} GTK</strong> jatuh tempo Kenaikan Gaji Berkala (KGB) dalam kurun waktu
                     90 hari ke depan.
                 </span>
             </div>
             <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'kgb']) }}" class="btn btn-outline"
-                style="border-color: #f59e0b; color: #b45309; padding: 4px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;"
+                style="border-color: var(--warning, #f59e0b); color: #b45309; padding: 4px 12px; font-size: var(--text-sm, 0.8125rem); font-weight: 600;"
                 title="Buka KGB Tracker">
                 Buka KGB Tracker <i class="fas fa-arrow-right ms-1"></i>
             </a>
@@ -139,7 +139,7 @@
                 <i class="fas fa-business-time"></i> KGB Tracker
                 @if ($kgbJatuhTempoCount > 0)
                     <span
-                        style="background: #f59e0b; color: white; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; border-radius: var(--radius-lg, 12px); margin-left: 4px;">{{ $kgbJatuhTempoCount }}</span>
+                        style="background: var(--warning, #f59e0b); color: white; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; border-radius: var(--radius-lg, 12px); margin-left: 4px;">{{ $kgbJatuhTempoCount }}</span>
                 @endif
             </a>
             <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'cuti']) }}"
@@ -337,7 +337,7 @@
                                         <button type="button" class="btn-icon btn-upload-gtk-berkas"
                                             data-id="{{ $item->ptk_id }}" data-nama="{{ $item->nama }}"
                                             title="Unggah Berkas">
-                                            <i class="fas fa-upload" style="color: #10b981;"></i>
+                                            <i class="fas fa-upload" style="color: var(--success, #10b981);"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -418,7 +418,7 @@
                                             @foreach ($gtk->berkas as $b)
                                                 <span
                                                     style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
-                                                    <i class="fas fa-file-pdf" style="color: #ef4444;"></i>
+                                                    <i class="fas fa-file-pdf" style="color: var(--danger, #ef4444);"></i>
                                                     <a href="{{ asset('storage/' . $b->file_path) }}" target="_blank"
                                                         style="color: var(--text-color); text-decoration: none; font-weight: 500;">
                                                         {{ $b->judul_dokumen }}
@@ -431,7 +431,7 @@
                                                         @method('DELETE')
                                                         <input type="hidden" name="tab_redirect" value="berkas">
                                                         <button type="submit"
-                                                            style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 2px; font-size: var(--text-base, 0.875rem);"
+                                                            style="background: none; border: none; color: var(--danger, #ef4444); cursor: pointer; padding: 0 2px; font-size: var(--text-base, 0.875rem);"
                                                             title="Hapus berkas">&times;</button>
                                                     </form>
                                                 </span>
@@ -537,10 +537,10 @@
                                     </div>
                                     <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                         @if ($isLewat)
-                                            <span style="color: #ef4444; font-weight: 600;">Lewat {{ abs($diffDays) }}
+                                            <span style="color: var(--danger, #ef4444); font-weight: 600;">Lewat {{ abs($diffDays) }}
                                                 hari</span>
                                         @elseif($isJatuhTempo)
-                                            <span style="color: #d97706; font-weight: 600;">Jatuh tempo dlm
+                                            <span style="color: var(--warning, #d97706); font-weight: 600;">Jatuh tempo dlm
                                                 {{ $diffDays }} hari</span>
                                         @else
                                             <span>{{ $diffDays }} hari lagi</span>
@@ -669,7 +669,7 @@
                                 <td data-label="Aksi" style="padding: 12px 18px; text-align: center;">
                                     <div class="table-actions" style="justify-content: center;">
                                         <a href="{{ route('dashboard.kepegawaian.cuti.cetak', $cuti->id) }}"
-                                            target="_blank" class="btn-icon" style="color: #2563eb;"
+                                            target="_blank" class="btn-icon" style="color: var(--primary-hover, #2563eb);"
                                             title="Cetak Lembar Cuti Resmi">
                                             <i class="fas fa-print"></i>
                                         </a>

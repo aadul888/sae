@@ -48,7 +48,7 @@
         <!-- Empty State jika Guru belum ada tugas rombel -->
         <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
             <div
-                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
+                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
             <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Belum Ada Rombel
@@ -75,11 +75,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-user-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                         {{ number_format($summary['sudah_konfirmasi'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">
@@ -92,11 +92,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-user-clock"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         {{ number_format($summary['belum_konfirmasi'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Belum Konfirmasi</div>
@@ -371,7 +371,7 @@
                                             </span>
                                         @else
                                             <span class="badge badge-outline"
-                                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.35); display: inline-flex; align-items: center; gap: 5px;">
+                                                style="font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; font-weight: 700; background: rgba(245, 158, 11, 0.1); color: var(--warning, #d97706); border-color: rgba(245, 158, 11, 0.35); display: inline-flex; align-items: center; gap: 5px;">
                                                 <i class="fas fa-clock"></i> Belum Konfirmasi
                                             </span>
                                         @endif
@@ -391,7 +391,7 @@
 
                                         @if (!empty($item->catatan_siswa) && $stKonf === 'perlu_perbaikan')
                                             <div class="catatan-siswa-preview"
-                                                style="font-size: var(--text-xs, 0.75rem); color: #d97706; max-width: 210px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-top: 2px;"
+                                                style="font-size: var(--text-xs, 0.75rem); color: var(--warning, #d97706); max-width: 210px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-top: 2px;"
                                                 title="{{ $item->catatan_siswa }}">
                                                 <i class="fas fa-comment-dots me-1"></i> "{{ $item->catatan_siswa }}"
                                             </div>
@@ -588,7 +588,7 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                        style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                         <i class="fas fa-file-pdf"></i>
                     </div>
                     <div>
@@ -608,7 +608,7 @@
             </div>
 
             <div
-                style="flex: 1; min-height: 0; border-radius: var(--radius-lg, 12px); overflow: hidden; background: #0f172a; border: 1px solid var(--border-color); position: relative;">
+                style="flex: 1; min-height: 0; border-radius: var(--radius-lg, 12px); overflow: hidden; background: var(--text-main, #0f172a); border: 1px solid var(--border-color); position: relative;">
                 <iframe id="pdfViewerFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
 
@@ -620,13 +620,13 @@
                         <i class="fas fa-clipboard-check text-primary me-1"></i> Validasi:
                     </span>
                     <label
-                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981; cursor: pointer; margin: 0;">
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer; margin: 0;">
                         <input type="radio" name="pdf_viewer_status" value="valid" id="pdfViewerRadioValid"
                             class="pdf-viewer-radio">
                         <i class="fas fa-circle-check"></i> Valid / Sesuai
                     </label>
                     <label
-                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #ef4444; cursor: pointer; margin: 0;">
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); cursor: pointer; margin: 0;">
                         <input type="radio" name="pdf_viewer_status" value="tidak_valid" id="pdfViewerRadioTidakValid"
                             class="pdf-viewer-radio">
                         <i class="fas fa-circle-xmark"></i> Tidak Valid / Tidak Sesuai

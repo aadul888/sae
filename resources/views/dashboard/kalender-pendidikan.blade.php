@@ -174,11 +174,11 @@
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
         <!-- Card 1: Hari Efektif Belajar (Baru) -->
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                     {{ number_format($hariEfektif) }}
                 </div>
                 <div class="dash-stat-label">Hari Efektif Belajar</div>
@@ -206,11 +206,11 @@
 
         <!-- Card 3: Libur Peserta Didik -->
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-umbrella-beach"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                     {{ number_format($totalLiburPd) }}
                 </div>
                 <div class="dash-stat-label">Libur Peserta Didik</div>
@@ -222,11 +222,11 @@
 
         <!-- Card 4: Agenda Daring (PJJ) -->
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
                 <i class="fas fa-laptop-house"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #3b82f6;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #3b82f6);">
                     {{ number_format($totalDaring ?? 0) }}
                 </div>
                 <div class="dash-stat-label">Agenda Daring (PJJ)</div>
@@ -238,11 +238,11 @@
 
         <!-- Card 5: Libur Guru / Tendik -->
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-id-badge"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                     {{ number_format($totalLiburGtk) }}
                 </div>
                 <div class="dash-stat-label">Libur Guru / Tendik</div>
@@ -488,9 +488,9 @@
                                     <th style="padding: 4px 2px; width: 14.28%;">Kam</th>
                                     <th style="padding: 4px 2px; width: 14.28%;">Jum</th>
                                     <th
-                                        style="padding: 4px 2px; width: 14.28%; color: {{ ($skemaHari ?? '5_hari') === '5_hari' ? '#ef4444' : '#3b82f6' }};">
+                                        style="padding: 4px 2px; width: 14.28%; color: {{ ($skemaHari ?? '5_hari') === '5_hari' ? '#ef4444' : 'var(--primary, #3b82f6)' }};">
                                         Sab</th>
-                                    <th style="padding: 4px 2px; width: 14.28%; color: #ef4444;">Min</th>
+                                    <th style="padding: 4px 2px; width: 14.28%; color: var(--danger, #ef4444);">Min</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -563,7 +563,7 @@
                                                         </span>
                                                         @if ($evCount > 0)
                                                             <span
-                                                                style="display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: {{ $pEv->warna ?? '#3b82f6' }}; margin-top: 2px;"></span>
+                                                                style="display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: {{ $pEv->warna ?? 'var(--primary, #3b82f6)' }}; margin-top: 2px;"></span>
                                                         @endif
                                                     </div>
                                                 </td>
@@ -770,12 +770,12 @@
                                                 Didik:</span>
                                             @if ($item->libur_pd || $item->mode_presensi === 'libur')
                                                 <span class="badge"
-                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
+                                                    style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-ban me-1"></i> Libur
                                                 </span>
                                             @else
                                                 <span class="badge"
-                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
+                                                    style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-check me-1"></i>
                                                     {{ $item->mode_presensi === 'daring' ? 'Daring' : 'Efektif' }}
                                                 </span>
@@ -786,12 +786,12 @@
                                                 style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Guru:</span>
                                             @if ($item->libur_guru || $item->mode_presensi === 'libur')
                                                 <span class="badge"
-                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
+                                                    style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-ban me-1"></i> Libur
                                                 </span>
                                             @else
                                                 <span class="badge"
-                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
+                                                    style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-check me-1"></i> Efektif
                                                 </span>
                                             @endif
@@ -801,12 +801,12 @@
                                                 style="font-weight: 600; color: var(--text-muted); display: inline-block; width: 55px;">Tendik:</span>
                                             @if ($item->libur_tendik || $item->mode_presensi === 'libur')
                                                 <span class="badge"
-                                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
+                                                    style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-ban me-1"></i> Libur
                                                 </span>
                                             @else
                                                 <span class="badge"
-                                                    style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
+                                                    style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); padding: 1px 6px; font-size: var(--text-2xs, 0.6875rem); border-radius: var(--radius-xs, 4px);">
                                                     <i class="fas fa-check me-1"></i> Efektif
                                                 </span>
                                             @endif

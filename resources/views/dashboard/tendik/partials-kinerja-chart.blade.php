@@ -69,8 +69,8 @@
     <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; padding: 10px 14px; border-radius: var(--radius-lg, 12px); background: var(--bg-hover); border: 1px solid var(--border-color); justify-content: space-between; align-items: center;">
         <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: var(--text-sm, 0.8125rem);">
             <span><i class="fas fa-bullseye text-primary me-1"></i> Target: <strong id="{{ $targetId }}" style="color: var(--text-color);">0</strong></span>
-            <span><i class="fas fa-circle-check text-success me-1"></i> Selesai: <strong id="{{ $selesaiId }}" style="color: #10b981;">0</strong></span>
-            <span><i class="fas fa-spinner text-warning me-1"></i> Proses: <strong id="{{ $prosesId }}" style="color: #f59e0b;">0</strong></span>
+            <span><i class="fas fa-circle-check text-success me-1"></i> Selesai: <strong id="{{ $selesaiId }}" style="color: var(--success, #10b981);">0</strong></span>
+            <span><i class="fas fa-spinner text-warning me-1"></i> Proses: <strong id="{{ $prosesId }}" style="color: var(--warning, #f59e0b);">0</strong></span>
             <span><i class="fas fa-percent text-info me-1"></i> Capaian: <strong id="{{ $persenId }}" style="color: var(--accent);">0%</strong></span>
         </div>
         <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
@@ -132,7 +132,7 @@
                         <td data-label="Target" style="text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                             {{ $ind->target_label }}
                         </td>
-                        <td data-label="Capaian" style="text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #10b981;">
+                        <td data-label="Capaian" style="text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981);">
                             {{ $ind->realisasi_label }}
                         </td>
                         <td data-label="Status" style="text-align: center;">

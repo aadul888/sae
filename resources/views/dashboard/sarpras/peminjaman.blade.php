@@ -10,7 +10,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-hand-holding-hand"></i>
                 </div>
                 <div>
@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-hand-holding"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -54,7 +54,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                     <i class="fas fa-box-archive"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -63,7 +63,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-clock-rotate-left"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -190,14 +190,14 @@
                                 <td data-label="Tanggal" style="padding: 14px 18px; font-size: var(--text-base, 0.875rem);">
                                     <div>Pinjam: {{ \Carbon\Carbon::parse($item->tanggal_pinjam)->format('d/m/Y') }}</div>
                                     <div
-                                        style="color: {{ $isLate ? '#ef4444; font-weight: 700;' : 'var(--text-muted)' }};">
+                                        style="color: {{ $isLate ? 'var(--danger, #ef4444); font-weight: 700;' : 'var(--text-muted)' }};">
                                         Batas: {{ \Carbon\Carbon::parse($item->tanggal_kembali_rencana)->format('d/m/Y') }}
                                         @if ($isLate)
                                             <span class="badge badge-danger" style="font-size: var(--text-2xs, 0.6875rem);">Terlambat</span>
                                         @endif
                                     </div>
                                     @if ($item->tanggal_kembali_aktual)
-                                        <div style="font-size: var(--text-sm, 0.8125rem); color: #10b981;">Kembali:
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981);">Kembali:
                                             {{ \Carbon\Carbon::parse($item->tanggal_kembali_aktual)->format('d/m/Y') }}
                                         </div>
                                     @endif
@@ -219,13 +219,13 @@
                                             <button type="button" class="btn-icon btn-kembalikan"
                                                 data-id="{{ $item->id }}" data-nomor="{{ $item->nomor_pinjam }}"
                                                 data-barang="{{ $item->nama_barang }}" title="Catat Pengembalian">
-                                                <i class="fas fa-box-archive" style="color: #10b981;"></i>
+                                                <i class="fas fa-box-archive" style="color: var(--success, #10b981);"></i>
                                             </button>
                                         @endif
                                         @if ($canDelete)
                                             <button type="button" class="btn-icon btn-delete-pinjam"
                                                 data-id="{{ $item->id }}" data-nomor="{{ $item->nomor_pinjam }}"
-                                                title="Hapus Catatan" style="color: #ef4444;">
+                                                title="Hapus Catatan" style="color: var(--danger, #ef4444);">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         @endif
@@ -270,7 +270,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                            Barang / Aset Tersedia <span style="color: #ef4444;">*</span></label>
+                            Barang / Aset Tersedia <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="aset_id" id="pinjamAsetId" class="form-control" required>
                             <option value="">-- Pilih Barang --</option>
                             @foreach ($asetTersedia as $ast)
@@ -284,7 +284,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tipe
-                                Peminjam <span style="color: #ef4444;">*</span></label>
+                                Peminjam <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="peminjam_tipe" id="pinjamTipeSelect" class="form-control" required>
                                 <option value="gtk">Guru / Tendik</option>
                                 <option value="siswa">Peserta Didik</option>
@@ -294,7 +294,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                                / Nama Peminjam <span style="color: #ef4444;">*</span></label>
+                                / Nama Peminjam <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="hidden" name="peminjam_id" id="pinjamIdVal" value="">
 
                             {{-- 1. Pilihan GTK (Guru / Tendik) --}}
@@ -330,14 +330,14 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Pinjam <span style="color: #ef4444;">*</span></label>
+                                Pinjam <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="date" name="tanggal_pinjam" value="{{ date('Y-m-d') }}"
                                 class="form-control" required>
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Rencana
-                                Kembali <span style="color: #ef4444;">*</span></label>
+                                Kembali <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="date" name="tanggal_kembali_rencana"
                                 value="{{ date('Y-m-d', strtotime('+1 day')) }}" class="form-control" required>
                         </div>
@@ -348,7 +348,7 @@
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin: 0; color: var(--text-color);">Keperluan
-                                & Lokasi Ruang Pemakaian <span style="color: #ef4444;">*</span></label>
+                                & Lokasi Ruang Pemakaian <span style="color: var(--danger, #ef4444);">*</span></label>
                             <span style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);"><i
                                     class="fas fa-building me-1"></i>Ruang Sarpras:</span>
                         </div>
@@ -403,7 +403,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
-                            Barang Saat Kembali <span style="color: #ef4444;">*</span></label>
+                            Barang Saat Kembali <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="kondisi_sesudah" class="form-control" required>
                             <option value="baik">Baik (Lengkap &amp; Berfungsi Normal)</option>
                             <option value="rusak_ringan">Rusak Ringan (Perlu Pembersihan / Setting)</option>

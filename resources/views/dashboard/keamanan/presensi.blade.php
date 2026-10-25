@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-id-card-alt"></i>
                 </div>
                 <div>
@@ -34,7 +34,7 @@
         <!-- 2. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -44,7 +44,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-user-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -54,7 +54,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-user-clock"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -64,7 +64,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
+                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary-light, #6366f1);">
                     <i class="fas fa-clipboard-user"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -74,7 +74,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: #06b6d4;">
+                <div class="dash-stat-icon" style="background: rgba(6,182,212,0.12); color: var(--accent, #06b6d4);">
                     <i class="fas fa-house-user"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -194,24 +194,24 @@
                                 <td style="padding: 12px 18px;">
                                     @if ($row->status === 'H')
                                         <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Hadir</span>
+                                            style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Hadir</span>
                                     @elseif ($row->status === 'T')
                                         <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">
+                                            style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3);">
                                             Terlambat {{ $row->menit_terlambat ? "({$row->menit_terlambat}m)" : '' }}
                                         </span>
                                     @elseif ($row->status === 'I')
                                         <span class="badge"
-                                            style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3);">Izin</span>
+                                            style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59, 130, 246, 0.3);">Izin</span>
                                     @elseif ($row->status === 'S')
                                         <span class="badge"
-                                            style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);">Sakit</span>
+                                            style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6); border: 1px solid rgba(139, 92, 246, 0.3);">Sakit</span>
                                     @elseif ($row->status === 'D')
                                         <span class="badge"
                                             style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3);">Dispensasi</span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Alpha</span>
+                                            style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">Alpha</span>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 18px; font-size: var(--text-base, 0.875rem);">

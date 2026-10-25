@@ -16,11 +16,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-hourglass-half"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                 {{ number_format($izinSummary['menunggu'], 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Menunggu Validasi</div>
@@ -28,11 +28,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ number_format($izinSummary['disetujui'], 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Telah Disetujui</div>
@@ -40,11 +40,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
             <i class="fas fa-circle-xmark"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                 {{ number_format($izinSummary['ditolak'], 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Permohonan Ditolak</div>
@@ -186,7 +186,7 @@
                         <td class="cell-pd-jenis" style="padding: 14px 16px;" data-label="Jenis Surat">
                             @if ($iz->jenis === 'sakit')
                                 <span class="badge"
-                                    style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
+                                    style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
                                     <i class="fas fa-notes-medical me-1"></i> Sakit
                                 </span>
                             @elseif ($iz->jenis === 'dispen')
@@ -196,7 +196,7 @@
                                 </span>
                             @else
                                 <span class="badge"
-                                    style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
+                                    style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
                                     <i class="fas fa-file-lines me-1"></i> Izin
                                 </span>
                             @endif
@@ -246,7 +246,7 @@
                             <div class="cell-col-right" style="align-items: center;">
                                 @if ($iz->status === 'disetujui')
                                     <span class="badge"
-                                        style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
+                                        style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         <i class="fas fa-check-circle me-1"></i> Disetujui
                                     </span>
                                     @if ($iz->disetujui_oleh)
@@ -256,17 +256,17 @@
                                     @endif
                                 @elseif ($iz->status === 'ditolak')
                                     <span class="badge"
-                                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
+                                        style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         <i class="fas fa-times-circle me-1"></i> Ditolak
                                     </span>
                                     @if ($iz->catatan_petugas)
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: #ef4444; margin-top: 3px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--danger, #ef4444); margin-top: 3px;">
                                             Catatan: {{ $iz->catatan_petugas }}
                                         </div>
                                     @endif
                                 @else
                                     <span class="badge"
-                                        style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
+                                        style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                         <i class="fas fa-hourglass-half me-1"></i> Menunggu
                                     </span>
                                 @endif

@@ -189,4 +189,62 @@ class DesignConsistencyTest extends TestCase
         $this->assertLessThan($posComponents, $posTokens);
         $this->assertLessThan($posSae, $posComponents);
     }
+
+    /**
+     * Warna aksen wajib memakai token tema agar mode gelap/terang konsisten.
+     *
+     * Sebelumnya warna seperti #10b981 (success) dan #ef4444 (danger) ditulis
+     * hardcoded pada inline style, sehingga tidak menyesuaikan saat pengguna
+     * beralih ke mode terang.
+     */
+    public function test_brand_colors_in_views_use_tokens(): void
+    {
+        // Warna yang punya padanan token resmi di sae.css.
+        $mustBeTokenized = [
+            '#3b82f6' => '--primary',
+            '#2563eb' => '--primary-hover',
+            '#10b981' => '--success',
+            '#059669' => '--success',
+            '#ef4444' => '--danger',
+            '#dc2626' => '--danger',
+            '#f59e0b' => '--warning',
+            '#d97706' => '--warning',
+            '#8b5cf6' => '--purple',
+            '#06b6d4' => '--accent',
+            '#0284c7' => '--accent',
+        ];
+
+        $offenders = [];
+
+        foreach ($this->bladeFiles() as $file) {
+            $content = file_get_contents($file);
+
+            // Periksa hanya isi atribut style="..." (bukan skrip atau teks biasa).
+            if (!preg_match_all('/style="([^"]*)"/i', $content, $m)) {
+                continue;
+            }
+
+            foreach ($m[1] as $styleAttr) {
+                // Abaikan deklarasi yang sudah memakai var() (fallback sah).
+                if (stripos($styleAttr, 'var(--') !== false) {
+                    continue;
+                }
+
+                foreach (array_keys($mustBeTokenized) as $hex) {
+                    if (preg_match('/' . preg_quote($hex, '/') . '\b/i', $styleAttr)) {
+                        $rel = str_replace(resource_path('views') . DIRECTORY_SEPARATOR, '', $file);
+                        $offenders[$rel] = true;
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        $this->assertSame(
+            [],
+            array_keys($offenders),
+            'Warna aksen ditulis hardcoded di inline style; gunakan var(--token, fallback): '
+                . implode(', ', array_slice(array_keys($offenders), 0, 10))
+        );
+    }
 }

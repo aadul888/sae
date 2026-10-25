@@ -19,7 +19,7 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate || $isAdmin)
                 <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
-                    style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); border-color: #10b981; color: #10b981;"
+                    style="display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
                     title="Import Excel Peserta Didik Aktif (Sementara)">
                     <i class="fas fa-file-excel"></i>
                     <span>Import Excel</span>
@@ -74,7 +74,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-chalkboard-user"></i>
             </div>
             <div class="dash-stat-info">
@@ -130,7 +130,7 @@
 
                     @if ($canCreate || $isAdmin)
                         <button type="button" class="btn btn-outline" onclick="openImportExcelModal()"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: #10b981; color: #10b981;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
                             title="Import Excel Peserta Didik Aktif (Sementara)">
                             <i class="fas fa-file-excel"></i>
                         </button>
@@ -146,7 +146,7 @@
 
                         <button type="button" class="btn btn-outline"
                             onclick="openCetakRombelModal('{{ $rombel }}')"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: #0284c7; color: #0284c7;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--accent, #0284c7); color: var(--accent, #0284c7);"
                             title="Cetak Kartu Pelajar Masal">
                             <i class="fas fa-id-card"></i>
                         </button>
@@ -155,7 +155,7 @@
                     @if ($isAdmin || $isWaliOrAdmin || $canRead)
                         <button type="button" class="btn btn-outline"
                             onclick="openCetakDataRombelModal('{{ $rombel }}')"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: #10b981; color: #10b981;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--success, #10b981); color: var(--success, #10b981);"
                             title="Cetak Data Peserta Didik per Kelas">
                             <i class="fas fa-print"></i>
                         </button>
@@ -241,16 +241,16 @@
                                             @if (!empty($item->is_koordinator))
                                                 <span class="badge badge-koordinator"
                                                     id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
+                                                    style="background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"
                                                     title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                    <i class="fas fa-crown" style="color: var(--warning, #f59e0b);"></i> Koordinator
                                                 </span>
                                             @else
                                                 <span class="badge badge-koordinator"
                                                     id="badgeKoordinator_{{ $item->peserta_didik_id }}"
-                                                    style="display: none; background: rgba(99,102,241,0.15); color: #6366f1; border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
+                                                    style="display: none; background: rgba(99,102,241,0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99,102,241,0.3); font-size: var(--text-2xs, 0.6875rem); padding: 2px 7px; border-radius: var(--radius-xs, 4px); font-weight: 700; align-items: center; gap: 4px;"
                                                     title="Peserta didik ini ditunjuk sebagai Koordinator Kelas">
-                                                    <i class="fas fa-crown" style="color: #f59e0b;"></i> Koordinator
+                                                    <i class="fas fa-crown" style="color: var(--warning, #f59e0b);"></i> Koordinator
                                                 </span>
                                             @endif
                                         </div>
@@ -319,7 +319,7 @@
                                                 title="{{ !empty($item->foto_url) ? 'Ganti / Lihat Pasfoto Peserta Didik' : 'Unggah Pasfoto Peserta Didik (PNG)' }}"
                                                 onclick="openUploadFotoModal('{{ $item->peserta_didik_id }}', '{{ addslashes($item->nama) }}', '{{ $item->nisn ?? '' }}', '{{ $item->foto_url ?? '' }}', '{{ $item->foto_size ?? '' }}')">
                                                 <i class="fas fa-camera"
-                                                    style="{{ !empty($item->foto_url) ? 'color: #10b981;' : '' }}"></i>
+                                                    style="{{ !empty($item->foto_url) ? 'color: var(--success, #10b981);' : '' }}"></i>
                                             </button>
                                         @endif
                                         <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"
@@ -330,7 +330,7 @@
                                             <button type="button" class="btn-icon"
                                                 title="Pratinjau / Cetak Kartu Pelajar Digital"
                                                 onclick="openKartuPelajarModal('{{ $item->nisn }}')">
-                                                <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                                <i class="fas fa-address-card" style="color: var(--accent, #0284c7);"></i>
                                             </button>
                                         @endif
 
@@ -343,7 +343,7 @@
                                             data-status="{{ !empty($item->is_koordinator) ? '1' : '0' }}"
                                             title="{{ !empty($item->is_koordinator) ? 'Cabut Wewenang Koordinator Kelas' : 'Tunjuk sebagai Koordinator Kelas (Asisten Wali Kelas)' }}">
                                             <i class="fas fa-crown"
-                                                style="{{ !empty($item->is_koordinator) ? 'color: #f59e0b;' : 'opacity: 0.55;' }}"></i>
+                                                style="{{ !empty($item->is_koordinator) ? 'color: var(--warning, #f59e0b);' : 'opacity: 0.55;' }}"></i>
                                         </button>
 
                                         {{-- Tombol Reset Password ke Default (NISN) --}}
@@ -351,7 +351,7 @@
                                             data-id="{{ $item->peserta_didik_id }}" data-nama="{{ $item->nama }}"
                                             data-nisn="{{ $item->nisn ?: ($item->nipd ?: ($item->nik ?: 'NISN')) }}"
                                             title="Reset Password Akun ke Default (NISN)">
-                                            <i class="fas fa-key" style="color: #f59e0b;"></i>
+                                            <i class="fas fa-key" style="color: var(--warning, #f59e0b);"></i>
                                         </button>
                                     @else
                                         <span style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem);">-</span>
@@ -444,7 +444,7 @@
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">Tinggi / Berat Badan</td>
-                            <td id="bioFisik" style="font-weight: 600; color: #10b981;">-</td>
+                            <td id="bioFisik" style="font-weight: 600; color: var(--success, #10b981);">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">Kebutuhan Khusus</td>
@@ -607,11 +607,11 @@
                             <i class="fas fa-users me-1"></i> <span id="bulkTotalPdCount">0</span> Peserta Didik
                         </span>
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
+                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
                             <i class="fas fa-check-circle me-1"></i> <span id="bulkSudahFotoCount">0</span> Sudah Ada Foto
                         </span>
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
+                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); font-size: var(--text-sm, 0.8125rem); padding: 5px 10px;">
                             <i class="fas fa-clock me-1"></i> <span id="bulkBelumFotoCount">0</span> Belum
                         </span>
                     </div>
@@ -686,7 +686,7 @@
                     <div
                         style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: var(--radius-lg, 12px); overflow: hidden;">
                         <div id="bulkProgressBar"
-                            style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); transition: width 0.25s ease; border-radius: var(--radius-lg, 12px);">
+                            style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary-light, #6366f1), #10b981); transition: width 0.25s ease; border-radius: var(--radius-lg, 12px);">
                         </div>
                     </div>
                     <div id="bulkProgressDetail"
@@ -773,7 +773,7 @@
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <div
-                            style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
+                            style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
                             <i class="fas fa-file-excel"></i>
                         </div>
                         <div>
@@ -820,7 +820,7 @@
                                 kolom terbaca otomatis</div>
                         </div>
                         <a href="{{ route('dashboard.peserta-didik-aktif.download-template') }}" class="btn btn-outline"
-                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 6px; border-color: #10b981; color: #10b981; text-decoration: none; white-space: nowrap;">
+                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 6px; border-color: var(--success, #10b981); color: var(--success, #10b981); text-decoration: none; white-space: nowrap;">
                             <i class="fas fa-download"></i> Unduh Template
                         </a>
                     </div>
@@ -829,7 +829,7 @@
                     <div style="margin-bottom: 16px;">
                         <label for="inputExcelFile"
                             style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                            Pilih Berkas Excel / CSV <span style="color: #ef4444;">*</span>
+                            Pilih Berkas Excel / CSV <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="file" id="inputExcelFile" name="file_excel" accept=".xlsx,.xls,.csv,.txt"
                             style="width: 100%; padding: 8px 12px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: rgba(255,255,255,0.03); color: var(--text-color);"
@@ -841,7 +841,7 @@
 
                     {{-- Loading / Status State --}}
                     <div id="importExcelProgress"
-                        style="display: none; margin-bottom: 14px; padding: 12px; border-radius: var(--radius-md, 8px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: var(--text-sm, 0.8125rem); color: #10b981;">
+                        style="display: none; margin-bottom: 14px; padding: 12px; border-radius: var(--radius-md, 8px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); text-align: center; font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981);">
                         <i class="fas fa-spinner fa-spin me-2"></i> Sedang membaca dan memproses data peserta didik...
                     </div>
 

@@ -12,7 +12,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-inbox"></i>
                 </div>
                 <div>
@@ -54,14 +54,14 @@
         <!-- 2. Flash Messages -->
         @if (session('success'))
             <div
-                style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+                style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-check-circle"></i>
                 <div>{{ session('success') }}</div>
             </div>
         @endif
         @if (session('error'))
             <div
-                style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+                style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-circle-exclamation"></i>
                 <div>{{ session('error') }}</div>
             </div>
@@ -70,7 +70,7 @@
         <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-inbox"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -80,7 +80,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock-rotate-left"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -100,7 +100,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -115,7 +115,7 @@
             style="padding: 16px 20px; margin-bottom: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid rgba(59,130,246,0.25); background: linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(99,102,241,0.03) 100%); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
             <div style="display: flex; align-items: center; gap: 16px; min-width: 260px; flex: 1;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.15); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-inbox"></i>
                 </div>
                 <div style="min-width: 0;">
@@ -129,7 +129,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px; flex-wrap: wrap;">
                         <span id="labelNomorSuratMasuk"
-                            style="font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: #2563eb; background: rgba(59,130,246,0.1); padding: 4px 12px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(59,130,246,0.25); letter-spacing: 0.5px;">
+                            style="font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--primary-hover, #2563eb); background: rgba(59,130,246,0.1); padding: 4px 12px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(59,130,246,0.25); letter-spacing: 0.5px;">
                             {{ $stats['nomor_terakhir'] ?? '-' }}
                         </span>
                     </div>
@@ -276,7 +276,7 @@
                                     @if ($item->latestDisposisi)
                                         <div style="margin-top: 5px;">
                                             <span class="badge-compact"
-                                                style="background: rgba(37,99,235,0.08); color: #2563eb; font-size: var(--text-xs, 0.75rem); border: 1px solid rgba(37,99,235,0.2);">
+                                                style="background: rgba(37,99,235,0.08); color: var(--primary-hover, #2563eb); font-size: var(--text-xs, 0.75rem); border: 1px solid rgba(37,99,235,0.2);">
                                                 <i class="fas fa-share-nodes me-1"></i> Disp:
                                                 <strong>{{ $item->latestDisposisi->disposisi_ke }}</strong>
                                                 @if ($item->latestDisposisi->ptk)
@@ -308,7 +308,7 @@
                                             data-download-url="{{ route('dashboard.persuratan.dokumen.download', $item->id) }}"
                                             data-title="Surat Masuk: {{ $item->nomor_surat }} - {{ $item->perihal }}"
                                             data-mime="{{ str_contains($item->file_path, '.pdf') ? 'application/pdf' : 'image/jpeg' }}">
-                                            <i class="fas fa-file-pdf" style="font-size: var(--text-lg, 1.125rem); color: #ef4444;"></i>
+                                            <i class="fas fa-file-pdf" style="font-size: var(--text-lg, 1.125rem); color: var(--danger, #ef4444);"></i>
                                         </button>
                                     @else
                                         <span style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); font-style: italic;">
@@ -446,7 +446,7 @@
             const oldHtml = btn.innerHTML;
             const updateBtn = () => {
                 btn.innerHTML =
-                    '<i class="fas fa-check text-success"></i> <span style="color:#10b981;">Tersalin!</span>';
+                    '<i class="fas fa-check text-success"></i> <span style="color:var(--success, #10b981);">Tersalin!</span>';
                 setTimeout(() => {
                     btn.innerHTML = oldHtml;
                 }, 2000);

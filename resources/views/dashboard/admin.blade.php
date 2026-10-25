@@ -98,7 +98,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-chalkboard-user"></i>
             </div>
             <div class="dash-stat-info">
@@ -118,7 +118,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-book-bookmark"></i>
             </div>
             <div class="dash-stat-info">
@@ -138,7 +138,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-id-card-clip"></i>
             </div>
             <div class="dash-stat-info">
@@ -163,7 +163,7 @@
             </div>
             <div
                 style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--primary);">
-                <i class="fas fa-circle-dot" style="font-size: var(--text-2xs, 0.6875rem); color: #10b981;"></i> Data Real-Time Sekolah
+                <i class="fas fa-circle-dot" style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981);"></i> Data Real-Time Sekolah
             </div>
         </div>
 
@@ -239,7 +239,7 @@
                             Terbesar</span>
                     </div>
                     <span class="badge"
-                        style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
+                        style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                         {{ $stats['total_kelas'] }} Rombel Aktif
                     </span>
                 </div>
@@ -261,7 +261,7 @@
                             XII</span>
                     </div>
                     <span class="badge"
-                        style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
+                        style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
                         Total {{ number_format($stats['total_peserta_didik']) }} Siswa
                     </span>
                 </div>
@@ -454,7 +454,7 @@
                                         </span>
                                     @elseif ($act->tipe === 'info')
                                         <span class="badge"
-                                            style="background: rgba(2,132,199,0.12); color: #0284c7; font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;">
+                                            style="background: rgba(2,132,199,0.12); color: var(--accent, #0284c7); font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px;">
                                             <i class="fas fa-info-circle me-1"></i>Info
                                         </span>
                                     @elseif ($act->tipe === 'warning')
@@ -585,11 +585,11 @@
                         style="padding: 16px; border-radius: var(--radius-lg, 12px); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.35); margin-top: 4px;">
                         <div style="display: flex; align-items: flex-start; gap: 10px;">
                             <div
-                                style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(245, 158, 11, 0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: var(--text-lg, 1.125rem);">
+                                style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(245, 158, 11, 0.2); color: var(--warning, #f59e0b); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: var(--text-lg, 1.125rem);">
                                 <i class="fas fa-bell"></i>
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: #f59e0b;">
+                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--warning, #f59e0b);">
                                     Pembaruan Sistem Tersedia!
                                 </div>
                                 <div
@@ -616,11 +616,11 @@
                         style="padding: 16px; border-radius: var(--radius-lg, 12px); background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); margin-top: 4px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div
-                                style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(16, 185, 129, 0.18); color: #10b981; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: var(--text-lg, 1.125rem);">
+                                style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(16, 185, 129, 0.18); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: var(--text-lg, 1.125rem);">
                                 <i class="fas fa-circle-check"></i>
                             </div>
                             <div style="flex: 1; min-width: 0;">
-                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: #10b981;">
+                                <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981);">
                                     Sistem Berjalan pada Versi Terbaru
                                 </div>
                                 <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">

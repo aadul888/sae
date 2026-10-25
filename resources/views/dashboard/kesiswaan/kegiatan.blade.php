@@ -9,7 +9,7 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-flag"></i>
             </div>
             <div>
@@ -44,7 +44,7 @@
     <!-- 2. Stat Grid Baku SAE -->
     <div class="dash-stat-grid" style="margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb);">
                 <i class="fas fa-id-badge"></i>
             </div>
             <div class="dash-stat-info">
@@ -62,7 +62,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-futbol"></i>
             </div>
             <div class="dash-stat-info">
@@ -71,7 +71,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -163,7 +163,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
                         <div class="card" style="padding: 24px; text-align: center;">
                             <div
-                                style="width: 80px; height: 80px; border-radius: 50%; background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin: 0 auto 14px;">
+                                style="width: 80px; height: 80px; border-radius: 50%; background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb); display: flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin: 0 auto 14px;">
                                 <i class="fas fa-id-badge"></i>
                             </div>
                             <h3 style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color);">

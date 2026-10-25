@@ -41,7 +41,7 @@
                          onerror="this.style.display='none'; this.parentElement.style.display='none';">
                 </div>
             @else
-                <div style="flex-shrink: 0; width: 68px; height: 68px; border-radius: var(--radius-xl, 16px); background: rgba(16,185,129,0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem);">
+                <div style="flex-shrink: 0; width: 68px; height: 68px; border-radius: var(--radius-xl, 16px); background: rgba(16,185,129,0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem);">
                     <i class="fas fa-people-roof"></i>
                 </div>
             @endif
@@ -54,7 +54,7 @@
                     {{ $parentName }}! 👋
                 </div>
                 <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin: 0 0 6px 0; line-height: 1.25;">
-                    Pemantauan Siswa: <span style="color: #10b981;">{{ $pd->nama ?? 'Peserta Didik' }}</span>
+                    Pemantauan Siswa: <span style="color: var(--success, #10b981);">{{ $pd->nama ?? 'Peserta Didik' }}</span>
                 </h2>
                 <div style="display: flex; align-items: center; gap: 12px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); flex-wrap: wrap; margin-bottom: 8px;">
                     <span title="Nomor Induk Siswa Nasional">
@@ -73,10 +73,10 @@
                     @endif
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #3b82f6;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--primary, #3b82f6);">
                         <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                     </div>
-                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #10b981;">
+                    <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--success, #10b981);">
                         <i class="fas fa-shield-check"></i> Portal Terverifikasi Sekolah
                     </div>
                 </div>
@@ -88,11 +88,11 @@
     <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
         {{-- Card 1: Persentase Kehadiran Bulan Ini --}}
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $statsHarian['persen'] }}%</div>
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ $statsHarian['persen'] }}%</div>
                 <div class="dash-stat-label">Kehadiran Bulan Ini</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     {{ $statsHarian['hadir'] }} Hadir, {{ $statsHarian['izin'] + $statsHarian['sakit'] }} Izin/Sakit, {{ $statsHarian['alpha'] }} Alpha
@@ -102,11 +102,11 @@
 
         {{-- Card 2: Status Kehadiran Hari Ini --}}
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                 <i class="fas fa-fingerprint"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-xl, 1.25rem); color: #3b82f6;">
+                <div class="dash-stat-value" style="font-size: var(--text-xl, 1.25rem); color: var(--primary, #3b82f6);">
                     {{ $statsHarian['jam_masuk_hari_ini'] }}
                 </div>
                 <div class="dash-stat-label">Presensi Masuk Hari Ini</div>
@@ -132,11 +132,11 @@
 
         {{-- Card 4: Izin Keluar & Masuk Sekolah --}}
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-ticket-alt"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #f59e0b;">{{ $totalIzinSiswa }} Dokumen</div>
+                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">{{ $totalIzinSiswa }} Dokumen</div>
                 <div class="dash-stat-label">Izin Keluar / Sakit</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Tiket e-Izin Gerbang &bull; Surat Izin
@@ -147,36 +147,36 @@
 
     <!-- 3. Menu Aksi Cepat Portal Orang Tua (Pindah Halaman / Langsung ke Modulnya) -->
     <div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
-        <a href="{{ route('dashboard.orang-tua.kehadiran') }}" class="kepegawaian-quick-btn" style="--quick-color: #10b981;" title="Buka Riwayat Kehadiran Terpadu Siswa">
-            <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <a href="{{ route('dashboard.orang-tua.kehadiran') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Buka Riwayat Kehadiran Terpadu Siswa">
+            <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <span class="kepegawaian-quick-label">Riwayat Kehadiran</span>
         </a>
 
-        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}" class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Buka Jadwal Pelajaran Siswa">
-            <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <a href="{{ route('dashboard.jadwal-pelajaran.index') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Buka Jadwal Pelajaran Siswa">
+            <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                 <i class="fas fa-clock"></i>
             </div>
             <span class="kepegawaian-quick-label">Jadwal Pelajaran</span>
         </a>
 
-        <a href="{{ route('dashboard.orang-tua.izin') }}" class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Buka Modul e-Izin & Surat Sakit Siswa">
-            <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        <a href="{{ route('dashboard.orang-tua.izin') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Buka Modul e-Izin & Surat Sakit Siswa">
+            <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-ticket-alt"></i>
             </div>
             <span class="kepegawaian-quick-label">e-Izin &amp; Surat Sakit</span>
         </a>
 
-        <a href="{{ route('dashboard.peserta-didik.identitas') }}" class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Formulir Identitas Lengkap Peserta Didik">
-            <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        <a href="{{ route('dashboard.peserta-didik.identitas') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Formulir Identitas Lengkap Peserta Didik">
+            <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
                 <i class="fas fa-id-card-clip"></i>
             </div>
             <span class="kepegawaian-quick-label">Identitas Siswa</span>
         </a>
 
-        <a href="{{ route('dashboard.informasi.index') }}" class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Pengumuman & Informasi Sekolah">
-            <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        <a href="{{ route('dashboard.informasi.index') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Pengumuman & Informasi Sekolah">
+            <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
                 <i class="fas fa-bullhorn"></i>
             </div>
             <span class="kepegawaian-quick-label">Pengumuman</span>
@@ -190,8 +190,8 @@
                 <span class="kepegawaian-quick-label">Kartu Pelajar</span>
             </button>
         @else
-            <button type="button" class="kepegawaian-quick-btn" disabled style="opacity: 0.6; --quick-color: #64748b;" title="NISN belum terdaftar">
-                <div class="kepegawaian-quick-icon" style="background: rgba(100, 116, 139, 0.15); color: #64748b;">
+            <button type="button" class="kepegawaian-quick-btn" disabled style="opacity: 0.6; --quick-color: var(--text-muted, #64748b);" title="NISN belum terdaftar">
+                <div class="kepegawaian-quick-icon" style="background: rgba(100, 116, 139, 0.15); color: var(--text-muted, #64748b);">
                     <i class="fas fa-qrcode"></i>
                 </div>
                 <span class="kepegawaian-quick-label">Kartu Pelajar</span>

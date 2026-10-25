@@ -74,7 +74,7 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <div
-                        style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #10b981;">
+                        style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--success, #10b981);">
                         <i class="fas fa-circle-check"></i> Status Siswa Aktif
                     </div>
                     <div
@@ -194,14 +194,14 @@
                     <div
                         style="background: var(--bg-hover); padding: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color);">
                         <div
-                            style="font-weight: 800; font-size: var(--text-md, 1rem); color: #10b981; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            style="font-weight: 800; font-size: var(--text-md, 1rem); color: var(--success, #10b981); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                             <i class="fas fa-graduation-cap"></i> Data Akademik &amp; Rombel Belajar
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 10px; font-size: var(--text-sm, 0.8125rem);">
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: var(--text-muted);">Rombongan Belajar (Kelas):</span>
-                                <strong style="color: #3b82f6;">{{ $pd->nama_rombel ?: '-' }}</strong>
+                                <strong style="color: var(--primary, #3b82f6);">{{ $pd->nama_rombel ?: '-' }}</strong>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: var(--text-muted);">Tingkat Pendidikan:</span>
@@ -224,7 +224,7 @@
                             </div>
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: var(--text-muted);">Guru Wali Kelas:</span>
-                                <strong style="color: #10b981;">{{ $waliKelas['nama'] ?? 'Guru Wali Kelas' }}</strong>
+                                <strong style="color: var(--success, #10b981);">{{ $waliKelas['nama'] ?? 'Guru Wali Kelas' }}</strong>
                             </div>
                         </div>
                     </div>
@@ -233,7 +233,7 @@
                     <div
                         style="background: var(--bg-hover); padding: 20px; border-radius: var(--radius-xl, 16px); border: 1px solid var(--border-color);">
                         <div
-                            style="font-weight: 800; font-size: var(--text-md, 1rem); color: #f59e0b; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                            style="font-weight: 800; font-size: var(--text-md, 1rem); color: var(--warning, #f59e0b); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
                             <i class="fas fa-people-roof"></i> Data Orang Tua / Wali Murid
                         </div>
 

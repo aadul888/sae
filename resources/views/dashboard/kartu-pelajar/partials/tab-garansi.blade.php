@@ -14,11 +14,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-sticky-note"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         {{ number_format($stats['total_klaim_stiker'], 0, ',', '.') }} kali
                     </div>
                     <div class="dash-stat-label">Total Klaim Cetak Stiker Saja</div>
@@ -31,7 +31,7 @@
             <div
                 style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
                 <div
-                    style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(245,158,11,0.12); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
+                    style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <div>
@@ -53,7 +53,7 @@
                     <div>
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Kuota Ganti Kartu Penuh (Fisik PVC/RFID + Stiker) <span style="color: #ef4444;">*</span>
+                            Kuota Ganti Kartu Penuh (Fisik PVC/RFID + Stiker) <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <input type="number" name="kuota_ganti_kartu_full"
@@ -70,7 +70,7 @@
                     <div>
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Kuota Cetak Ulang Stiker Kartu Saja <span style="color: #ef4444;">*</span>
+                            Kuota Cetak Ulang Stiker Kartu Saja <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <input type="number" name="kuota_ganti_stiker"

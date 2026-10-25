@@ -36,7 +36,7 @@
                 <button type="button" class="btn btn-outline btn-tab2-action" id="btnResetPresensiKelas"
                     data-rombel="{{ $selectedRombelId }}" data-rombel-nama="{{ $selectedRombel->nama }}"
                     data-pembelajaran="{{ $selectedPembelajaranId }}"
-                    style="width: 38px; height: 38px; padding: 0; display: {{ ($activeTab ?? 'monitoring') === 'detail' ? 'inline-flex' : 'none' }}; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: #ef4444; border-color: rgba(239,68,68,0.4);"
+                    style="width: 38px; height: 38px; padding: 0; display: {{ ($activeTab ?? 'monitoring') === 'detail' ? 'inline-flex' : 'none' }}; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.4);"
                     title="Reset / Kosongkan Presensi Mapel Kelas">
                     <i class="fas fa-rotate-left"></i>
                 </button>
@@ -51,7 +51,7 @@
             data-tab="monitoring">
             <i class="fas fa-chart-pie me-1"></i> Monitoring Presensi Seluruh Kelas
             <span class="badge"
-                style="background: rgba(16,185,129,0.15); color: #10b981; font-weight: 700; margin-left: 6px; font-size: var(--text-xs, 0.75rem);">
+                style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); font-weight: 700; margin-left: 6px; font-size: var(--text-xs, 0.75rem);">
                 {{ $monitoringStats['sudah_presensi'] ?? 0 }}/{{ $monitoringStats['total_rombel'] ?? 0 }} Selesai
             </span>
         </button>
@@ -111,51 +111,51 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                         {{ $monitoringStats['sudah_presensi'] ?? 0 }}</div>
                     <div class="dash-stat-label">Sudah Presensi</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-times-circle"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                         {{ $monitoringStats['belum_presensi'] ?? 0 }}</div>
                     <div class="dash-stat-label">Belum Presensi</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
                     <i class="fas fa-qrcode"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #3b82f6;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #3b82f6);">
                         {{ $monitoringStats['total_otomatis'] ?? 0 }}</div>
                     <div class="dash-stat-label">Otomatis (RFID/QR)</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-pen-to-square"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         {{ $monitoringStats['total_manual'] ?? 0 }}</div>
                     <div class="dash-stat-label">Manual (Wali/Guru)</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: #06b6d4;">
+                <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent, #06b6d4);">
                     <i class="fas fa-user-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #06b6d4;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--accent, #06b6d4);">
                         {{ number_format($monitoringStats['total_hadir_sekolah'] ?? 0) }}</div>
                     <div class="dash-stat-label">Siswa Hadir Total</div>
                 </div>
@@ -325,7 +325,7 @@
                             <td style="padding: 12px 16px; text-align: center;">
                                 @if ($m->metode === 'otomatis')
                                     <span class="badge"
-                                        style="background: rgba(59,130,246,0.15); color: #3b82f6; font-size: var(--text-xs, 0.75rem); padding: 4px 8px;"
+                                        style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); font-size: var(--text-xs, 0.75rem); padding: 4px 8px;"
                                         title="{{ $m->total_otomatis }} siswa tap RFID/QR">
                                         <i class="fas fa-qrcode me-1"></i> Otomatis (RFID)
                                     </span>
@@ -337,13 +337,13 @@
                                     @endif
                                 @elseif ($m->metode === 'manual')
                                     <span class="badge"
-                                        style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: var(--text-xs, 0.75rem); padding: 4px 8px;"
+                                        style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem); padding: 4px 8px;"
                                         title="Dicatat manual">
                                         <i class="fas fa-pen-to-square me-1"></i> {{ $m->metode_label }}
                                     </span>
                                 @elseif ($m->metode === 'kombinasi')
                                     <span class="badge"
-                                        style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: var(--text-xs, 0.75rem); padding: 4px 8px;"
+                                        style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6); font-size: var(--text-xs, 0.75rem); padding: 4px 8px;"
                                         title="Otomatis ({{ $m->total_otomatis }}) & Manual ({{ $m->total_manual }})">
                                         <i class="fas fa-layer-group me-1"></i> Otomatis &amp; Manual
                                     </span>
@@ -388,11 +388,11 @@
                                     <div
                                         style="flex: 1; max-width: 55px; height: 6px; background: rgba(148,163,184,0.2); border-radius: var(--radius-xs, 4px); overflow: hidden;">
                                         <div
-                                            style="width: {{ min(100, $m->persen) }}%; height: 100%; background: {{ $m->persen >= 85 ? '#10b981' : ($m->persen >= 60 ? '#f59e0b' : '#ef4444') }}; border-radius: var(--radius-xs, 4px);">
+                                            style="width: {{ min(100, $m->persen) }}%; height: 100%; background: {{ $m->persen >= 85 ? 'var(--success, #10b981)' : ($m->persen >= 60 ? '#f59e0b' : '#ef4444') }}; border-radius: var(--radius-xs, 4px);">
                                         </div>
                                     </div>
                                     <span
-                                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: {{ $m->persen >= 85 ? '#10b981' : ($m->persen >= 60 ? '#f59e0b' : '#ef4444') }}; min-width: 38px; text-align: right;">{{ $m->persen }}%</span>
+                                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: {{ $m->persen >= 85 ? 'var(--success, #10b981)' : ($m->persen >= 60 ? '#f59e0b' : '#ef4444') }}; min-width: 38px; text-align: right;">{{ $m->persen }}%</span>
                                 </div>
                             </td>
                             <td style="padding: 12px 18px; text-align: right;">
@@ -456,32 +456,32 @@
                     </div>
                 </div>
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                    <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                         <i class="fas fa-check-double"></i>
                     </div>
                     <div class="dash-stat-info">
-                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">{{ $rekap['hadir'] }}
+                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">{{ $rekap['hadir'] }}
                         </div>
                         <div class="dash-stat-label">Hadir Mapel</div>
                     </div>
                 </div>
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                    <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="dash-stat-info">
-                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                             {{ $rekap['terlambat'] }}
                         </div>
                         <div class="dash-stat-label">Terlambat</div>
                     </div>
                 </div>
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+                    <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
                         <i class="fas fa-envelope-open-text"></i>
                     </div>
                     <div class="dash-stat-info">
-                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #3b82f6;">{{ $rekap['izin'] }}
+                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #3b82f6);">{{ $rekap['izin'] }}
                         </div>
                         <div class="dash-stat-label">Izin Mapel</div>
                     </div>
@@ -497,31 +497,31 @@
                     </div>
                 </div>
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                    <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                         <i class="fas fa-circle-xmark"></i>
                     </div>
                     <div class="dash-stat-info">
-                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">{{ $rekap['alpha'] }}
+                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">{{ $rekap['alpha'] }}
                         </div>
                         <div class="dash-stat-label">Alpha Mapel</div>
                     </div>
                 </div>
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(100,116,139,0.15); color: #64748b;">
+                    <div class="dash-stat-icon" style="background: rgba(100,116,139,0.15); color: var(--text-muted, #64748b);">
                         <i class="fas fa-user-clock"></i>
                     </div>
                     <div class="dash-stat-info">
-                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #64748b;">{{ $rekap['belum'] }}
+                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--text-muted, #64748b);">{{ $rekap['belum'] }}
                         </div>
                         <div class="dash-stat-label">Belum Dicatat</div>
                     </div>
                 </div>
                 <div class="dash-stat-card">
-                    <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: #06b6d4;">
+                    <div class="dash-stat-icon" style="background: rgba(6,182,212,0.15); color: var(--accent, #06b6d4);">
                         <i class="fas fa-chart-pie"></i>
                     </div>
                     <div class="dash-stat-info">
-                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #06b6d4;">{{ $rekap['persen'] }}%
+                        <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--accent, #06b6d4);">{{ $rekap['persen'] }}%
                         </div>
                         <div class="dash-stat-label">% Kehadiran</div>
                     </div>
@@ -732,7 +732,7 @@
                                                     class="fas fa-envelope me-1"></i> Izin</span>
                                         @elseif ($s->gerbang_status === 'S')
                                             <span class="badge"
-                                                style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: var(--text-xs, 0.75rem);"><i
+                                                style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6); font-size: var(--text-xs, 0.75rem);"><i
                                                     class="fas fa-stethoscope me-1"></i> Sakit</span>
                                         @elseif ($s->gerbang_status === 'A')
                                             <span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem);"><i
@@ -744,7 +744,7 @@
                                         @endif
 
                                         @if ($s->gerbang_status_pulang === 'pulang_cepat')
-                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: #f59e0b; margin-top: 2px;"
+                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--warning, #f59e0b); margin-top: 2px;"
                                                 title="Pulang Cepat / Tidak Tap Pulang">
                                                 <i class="fas fa-person-walking-arrow-right"></i> Pulang Cepat
                                             </div>

@@ -106,7 +106,7 @@
                             <i class="fas fa-file-pdf"></i> Format Wajib: Dokumen PDF Tunggal
                         </div>
                         <div
-                            style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #10b981;">
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--success, #10b981);">
                             <i class="fas fa-shield-halved"></i> Validasi Resmi Tim Kesiswaan
                         </div>
                     </div>
@@ -145,7 +145,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -156,7 +156,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                     <i class="fas fa-circle-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -167,7 +167,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock-rotate-left"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -346,7 +346,7 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                        style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                         <i class="fas fa-file-pdf"></i>
                     </div>
                     <div>
@@ -366,7 +366,7 @@
             </div>
 
             <div
-                style="flex: 1; min-height: 0; border-radius: var(--radius-lg, 12px); overflow: hidden; background: #0f172a; border: 1px solid var(--border-color); position: relative;">
+                style="flex: 1; min-height: 0; border-radius: var(--radius-lg, 12px); overflow: hidden; background: var(--text-main, #0f172a); border: 1px solid var(--border-color); position: relative;">
                 <iframe id="pdfViewerFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
 

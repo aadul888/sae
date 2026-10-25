@@ -59,7 +59,7 @@
     <!-- 2. Stat Grid Ringkasan Tanggapan (Baku SAE) -->
     <div class="form-stat-grid" style="margin-bottom: 24px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">
+            <div class="dash-stat-icon" style="background: rgba(2, 132, 199, 0.12); color: var(--accent, #0284c7);">
                 <i class="fas fa-inbox"></i>
             </div>
             <div class="dash-stat-info">
@@ -69,7 +69,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.12); color: #6366f1;">
+            <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-light, #6366f1);">
                 <i class="fas fa-user-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -79,7 +79,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-users"></i>
             </div>
             <div class="dash-stat-info">

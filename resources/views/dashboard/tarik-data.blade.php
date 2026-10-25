@@ -45,7 +45,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-chalkboard-user"></i>
             </div>
             <div class="dash-stat-info">
@@ -65,7 +65,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-users-rectangle"></i>
             </div>
             <div class="dash-stat-info">
@@ -85,18 +85,18 @@
                 </h3>
                 @if ($syncAllowed)
                     <span class="badge"
-                        style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);"><i
+                        style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3);"><i
                             class="fas fa-unlock me-1"></i> Siap Sinkron</span>
                 @else
                     <span class="badge"
-                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);"><i
+                        style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3);"><i
                             class="fas fa-lock me-1"></i> Terkunci (Wajib Arsip)</span>
                 @endif
             </div>
 
             @if (!$syncAllowed)
                 <div
-                    style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-lg, 12px); padding: 12px 16px; margin-bottom: 1.25rem; font-size: var(--text-base, 0.875rem); color: #ef4444; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-lg, 12px); padding: 12px 16px; margin-bottom: 1.25rem; font-size: var(--text-base, 0.875rem); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: space-between; gap: 12px;">
                     <div>
                         <strong><i class="fas fa-triangle-exclamation me-1"></i> Proteksi Data Aktif:</strong>
                         Sinkronisasi ditolak sampai Anda mencadangkan data aktif semester ini.
@@ -182,7 +182,7 @@
                         style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
                         <div>
                             <div style="font-weight: 700; color: var(--text-color); margin-bottom: 2px;">
-                                <i class="fas fa-shield-halved" style="color: #10b981;"></i> Installer resmi dari server
+                                <i class="fas fa-shield-halved" style="color: var(--success, #10b981);"></i> Installer resmi dari server
                                 SAE
                             </div>
                             <div>
@@ -200,7 +200,7 @@
                 </div>
             @else
                 <div
-                    style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius-lg, 12px); padding: 12px 14px; margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem); color: #f59e0b;">
+                    style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.25); border-radius: var(--radius-lg, 12px); padding: 12px 14px; margin-bottom: 16px; font-size: var(--text-sm, 0.8125rem); color: var(--warning, #f59e0b);">
                     <i class="fas fa-triangle-exclamation me-1"></i> File installer SAE-Feeder belum tersedia di server.
                 </div>
             @endif
@@ -249,7 +249,7 @@
                                 <li>Pada <b>APLIKASI SAE TARGET</b>: Masukkan <b>URL Target SAE</b> dan <b>API Key</b> di
                                     samping ini, lalu klik <b>Simpan</b>.</li>
                             </ul>
-                            <span style="font-size: var(--text-sm, 0.8125rem); color: #10b981; margin-top: 4px; display: inline-block;">
+                            <span style="font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981); margin-top: 4px; display: inline-block;">
                                 <i class="fas fa-check-circle me-1"></i>Pastikan kedua status indikator di atas bertuliskan
                                 <b>Terhubung</b>.
                             </span>

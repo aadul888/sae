@@ -3,40 +3,40 @@
 <!-- 1. Akses Cepat Menu Kepala TAS (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.tendik-aktif.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Direktori Staf Tendik">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Direktori Staf Tendik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-users"></i>
         </div>
         <span class="kepegawaian-quick-label">Data Tendik</span>
     </a>
 
     <a href="{{ route('dashboard.guru-aktif.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #10b981;" title="Direktori Guru Pendidik">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Direktori Guru Pendidik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-chalkboard-user"></i>
         </div>
         <span class="kepegawaian-quick-label">Data Guru</span>
     </a>
 
     <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Data Pokok Siswa">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Data Pokok Siswa">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-user-graduate"></i>
         </div>
         <span class="kepegawaian-quick-label">Buku Induk</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.target.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-bullseye"></i>
         </div>
         <span class="kepegawaian-quick-label">Target Capaian</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.aktivitas.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Monitoring Aktivitas Tendik">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Monitoring Aktivitas Tendik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-clipboard-check"></i>
         </div>
         <span class="kepegawaian-quick-label">Aktivitas Harian</span>
@@ -54,7 +54,7 @@
 <!-- 2. Quick Stats Grid Kepala TAS (Responsive) -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-users-gear"></i>
         </div>
         <div class="dash-stat-info">
@@ -64,7 +64,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-award"></i>
         </div>
         <div class="dash-stat-info">
@@ -74,7 +74,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-inbox"></i>
         </div>
         <div class="dash-stat-info">
@@ -105,7 +105,7 @@
                 Visualisasi pembagian penugasan staf per bidang, evaluasi pencapaian target kerja, dan rasio personel sekolah.
             </p>
         </div>
-        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
+        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
             <i class="fas fa-crown me-1"></i> Koordinator TAS
         </div>
     </div>

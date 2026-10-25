@@ -46,7 +46,7 @@
         </button>
 
         <button type="button" id="btnUnduhSemuaJpg" onclick="unduhSemuaKartuRombelZip()" class="btn-action"
-            style="background: #059669 !important; color: #ffffff !important;">
+            style="background: var(--success, #059669) !important; color: #ffffff !important;">
             <i class="fas fa-file-zipper"></i> Unduh Semua JPG (.zip)
         </button>
     </div>
@@ -84,9 +84,9 @@
     @else
         <div class="no-print"
             style="text-align: center; padding: 48px; background: #fff; border-radius: var(--radius-lg, 12px); width: 100%; max-width: 600px; margin: 80px auto; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-            <i class="fas fa-users-slash" style="font-size: 40px; color: #94a3b8; margin-bottom: 12px;"></i>
+            <i class="fas fa-users-slash" style="font-size: 40px; color: var(--text-muted, #94a3b8); margin-bottom: 12px;"></i>
             <h3 style="font-size: var(--text-lg, 1.125rem); color: #1e293b;">Tidak Ada Peserta Didik Ditemukan</h3>
-            <p style="font-size: var(--text-base, 0.875rem); color: #64748b;">
+            <p style="font-size: var(--text-base, 0.875rem); color: var(--text-muted, #64748b);">
                 @if (!empty($filter_status_request) && !empty($filter_hanya_ada_foto))
                     Tidak ada peserta didik di rombel {{ $rombel->nama }} dengan antrean request
                     "{{ $filter_status_request }}" yang sudah memiliki foto formal.

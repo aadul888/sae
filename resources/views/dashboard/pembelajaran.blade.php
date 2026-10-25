@@ -36,7 +36,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-school"></i>
             </div>
             <div class="dash-stat-info">
@@ -60,7 +60,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
@@ -197,7 +197,7 @@
                                         <span>{{ $item->nama_rombel ?: '-' }}</span>
                                         @if (!empty($item->is_pilihan))
                                             <span class="badge"
-                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; font-weight: 700;"
+                                                style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); font-size: var(--text-2xs, 0.6875rem); padding: 2px 6px; font-weight: 700;"
                                                 title="Matapelajaran Pilihan (Tergabung via Ruang)">Pilihan</span>
                                         @endif
                                     </div>
@@ -253,7 +253,7 @@
                             </td>
                             <td style="padding: 14px 18px; text-align: center;" data-label="Jam">
                                 <span class="badge"
-                                    style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: var(--text-sm, 0.8125rem); padding: 3px 10px; font-weight: 700;">
+                                    style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: var(--text-sm, 0.8125rem); padding: 3px 10px; font-weight: 700;">
                                     {{ $item->jam_mengajar_per_minggu ?: 0 }} JP
                                 </span>
                             </td>

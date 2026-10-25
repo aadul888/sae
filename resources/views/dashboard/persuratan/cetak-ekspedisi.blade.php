@@ -171,7 +171,7 @@
         @if ($isSingle && $surat)
             {{-- TAMPILAN 1: LEMBAR TANDA TERIMA / EKSPEDISI PER-SURAT (A4 PORTRAIT) --}}
             <div class="doc-header" style="text-align: center; margin: 12px 0 16px 0;">
-                <div style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">
+                <div style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-main, #0f172a); letter-spacing: 0.5px;">
                     LEMBAR EKSPEDISI / TANDA TERIMA PENGIRIMAN SURAT DINAS
                 </div>
                 <div style="font-size: var(--text-base, 0.875rem); color: #475569; margin-top: 3px;">
@@ -185,7 +185,7 @@
                     <tr>
                         <td style="width: 180px; font-weight: 700; color: #475569;">Nomor Surat Keluar</td>
                         <td style="width: 15px;">:</td>
-                        <td style="font-family: monospace; font-weight: 800; color: #0f172a;">{{ $surat->nomor_surat }}
+                        <td style="font-family: monospace; font-weight: 800; color: var(--text-main, #0f172a);">{{ $surat->nomor_surat }}
                         </td>
                     </tr>
                     <tr>
@@ -201,7 +201,7 @@
                     <tr>
                         <td style="font-weight: 700; color: #475569;">Tujuan / Alamat Penerima</td>
                         <td>:</td>
-                        <td style="font-weight: 700; color: #0f172a;">{{ $surat->tujuan_penerima }}</td>
+                        <td style="font-weight: 700; color: var(--text-main, #0f172a);">{{ $surat->tujuan_penerima }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: 700; color: #475569; vertical-align: top;">Perihal / Isi Surat</td>
@@ -209,7 +209,7 @@
                         <td style="font-weight: 700; color: #1e3a8a;">
                             {{ $surat->perihal }}
                             @if ($surat->keterangan)
-                                <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 400; color: #64748b; margin-top: 3px;">
+                                <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 400; color: var(--text-muted, #64748b); margin-top: 3px;">
                                     {{ $surat->keterangan }}</div>
                             @endif
                         </td>
@@ -280,7 +280,7 @@
         @else
             {{-- TAMPILAN 2: BUKU EKSPEDISI KOLEKTIF (A4 LANDSCAPE) --}}
             <div class="doc-header" style="text-align: center; margin: 10px 0 14px 0;">
-                <div style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">
+                <div style="font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-main, #0f172a); letter-spacing: 0.5px;">
                     BUKU EKSPEDISI PENGIRIMAN SURAT KELUAR DINAS
                 </div>
                 <div style="font-size: var(--text-base, 0.875rem); color: #475569; margin-top: 3px; font-weight: 600;">
@@ -310,7 +310,7 @@
                             <td style="font-family: monospace; font-weight: 600; font-size: var(--text-sm, 0.8125rem);">
                                 {{ $item->nomor_surat }}
                             </td>
-                            <td style="font-weight: 700; color: #0f172a;">
+                            <td style="font-weight: 700; color: var(--text-main, #0f172a);">
                                 {{ $item->tujuan_penerima ?: '—' }}
                             </td>
                             <td>
@@ -324,14 +324,14 @@
                                 Tgl: ......./......./.......<br>
                                 Kurir: .......................
                             </td>
-                            <td style="height: 48px; vertical-align: bottom; font-size: var(--text-xs, 0.75rem); color: #64748b;">
-                                <div style="border-bottom: 1px dotted #94a3b8; margin-bottom: 3px; height: 30px;"></div>
+                            <td style="height: 48px; vertical-align: bottom; font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b);">
+                                <div style="border-bottom: 1px dotted var(--text-muted, #94a3b8); margin-bottom: 3px; height: 30px;"></div>
                                 Tgl: ................. Nama: .................
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 24px; color: #64748b;">
+                            <td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted, #64748b);">
                                 Tidak ada data surat keluar pada daftar ekspedisi ini.
                             </td>
                         </tr>

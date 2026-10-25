@@ -26,11 +26,11 @@
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-arrow-down-long"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                         Rp {{ number_format($keuangan['total_pemasukan'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Total Uang Masuk (Siswa Lunas)</div>
@@ -41,11 +41,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                     <i class="fas fa-arrow-up-long"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                         Rp {{ number_format($keuangan['total_pengeluaran'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Total Pengeluaran Bahan/Alat</div>
@@ -71,11 +71,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock-rotate-left"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         Rp {{ number_format($keuangan['estimasi_piutang'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Estimasi Piutang Belum Bayar</div>
@@ -273,7 +273,7 @@
                                             </span>
                                         </td>
                                         <td
-                                            style="padding: 12px 14px; text-align: right; font-weight: 700; color: #10b981; font-size: var(--text-base, 0.875rem); white-space: nowrap;">
+                                            style="padding: 12px 14px; text-align: right; font-weight: 700; color: var(--success, #10b981); font-size: var(--text-base, 0.875rem); white-space: nowrap;">
                                             Rp {{ number_format($rp->nominal, 0, ',', '.') }}
                                         </td>
                                         <td style="padding: 12px 14px; text-align: center;">
@@ -286,7 +286,7 @@
                                             <div
                                                 style="display: flex; gap: 4px; justify-content: center; align-items: center;">
                                                 @if (!empty($rp->nisn))
-                                                    <button type="button" class="btn-icon" style="color: #0284c7;"
+                                                    <button type="button" class="btn-icon" style="color: var(--accent, #0284c7);"
                                                         title="Pratinjau / Cetak Kartu Digital"
                                                         onclick="openKartuPelajarModal('{{ $rp->nisn }}')">
                                                         <i class="fas fa-address-card"></i>
@@ -471,7 +471,7 @@
                                             {{ number_format($p->harga_satuan ?: ($p->jumlah > 1 ? round($p->nominal / $p->jumlah) : $p->nominal), 0, ',', '.') }}
                                         </td>
                                         <td data-label="Total"
-                                            style="padding: 12px 14px; text-align: right; font-weight: 700; color: #ef4444; font-size: var(--text-base, 0.875rem); white-space: nowrap;">
+                                            style="padding: 12px 14px; text-align: right; font-weight: 700; color: var(--danger, #ef4444); font-size: var(--text-base, 0.875rem); white-space: nowrap;">
                                             Rp {{ number_format($p->nominal, 0, ',', '.') }}
                                         </td>
                                         <td data-label="Keterangan"
@@ -483,7 +483,7 @@
                                                 style="display: flex; gap: 4px; justify-content: center; align-items: center;">
                                                 @if ($p->bukti_nota_path)
                                                     <a href="{{ asset('storage/' . ltrim($p->bukti_nota_path, '/')) }}"
-                                                        target="_blank" class="btn-icon" style="color: #3b82f6;"
+                                                        target="_blank" class="btn-icon" style="color: var(--primary, #3b82f6);"
                                                         title="Lihat Bukti Nota">
                                                         <i class="fas fa-file-invoice"></i>
                                                     </a>
@@ -498,7 +498,7 @@
                                                     method="POST" class="delete-pengeluaran-form" style="margin: 0;">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn-icon" style="color: #ef4444;"
+                                                    <button type="submit" class="btn-icon" style="color: var(--danger, #ef4444);"
                                                         title="Hapus Pengeluaran">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </button>

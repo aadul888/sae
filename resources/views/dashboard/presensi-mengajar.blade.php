@@ -9,7 +9,7 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div>
@@ -39,14 +39,14 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -55,11 +55,11 @@
     <!-- 3. Stat Grid Baku SAE (Minimalis & Compact) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ number_format($stats['hari_efektif'] ?? 0) }} <span
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ number_format($stats['hari_efektif'] ?? 0) }} <span
                         style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Hari</span></div>
                 <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
@@ -74,7 +74,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -83,7 +83,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-notes-medical"></i>
             </div>
             <div class="dash-stat-info">
@@ -127,9 +127,9 @@
                 <div>
                     <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                         @if ($isHariLibur)
-                            <span style="color: #ef4444;">Perhatian: Hari Ini Libur Sekolah</span>
+                            <span style="color: var(--danger, #ef4444);">Perhatian: Hari Ini Libur Sekolah</span>
                             <span class="badge"
-                                style="background: #ef4444; color: #fff; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; margin-left: 6px;">KBM
+                                style="background: var(--danger, #ef4444); color: #fff; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; margin-left: 6px;">KBM
                                 Off</span>
                         @else
                             <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
@@ -276,8 +276,8 @@
                 <div
                     style="text-align: center; padding: 22px 14px; background: rgba(239,68,68,0.05); border: 1px dashed rgba(239,68,68,0.25); border-radius: var(--radius-lg, 12px); color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                     <i class="fas fa-umbrella-beach"
-                        style="font-size: var(--text-3xl, 1.875rem); color: #ef4444; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
-                    <strong style="color: #ef4444; font-size: var(--text-base, 0.875rem); display: block; margin-bottom: 2px;">Hari Ini Libur
+                        style="font-size: var(--text-3xl, 1.875rem); color: var(--danger, #ef4444); margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                    <strong style="color: var(--danger, #ef4444); font-size: var(--text-base, 0.875rem); display: block; margin-bottom: 2px;">Hari Ini Libur
                         Sekolah — KBM Reguler Ditiadakan</strong>
                     <span>Sesuai Kalender Pendidikan, tidak ada jadwal mengajar aktif untuk hari ini.</span>
                 </div>
@@ -285,8 +285,8 @@
                 <div
                     style="text-align: center; padding: 22px 14px; background: rgba(245,158,11,0.06); border: 1px dashed rgba(245,158,11,0.3); border-radius: var(--radius-lg, 12px); color: var(--text-muted); font-size: var(--text-base, 0.875rem);">
                     <i class="fas fa-clock"
-                        style="font-size: var(--text-3xl, 1.875rem); color: #f59e0b; margin-bottom: 8px; display: block; opacity: 0.85;"></i>
-                    <strong style="color: #f59e0b; font-size: var(--text-base, 0.875rem); display: block; margin-bottom: 2px;">Jadwal KBM
+                        style="font-size: var(--text-3xl, 1.875rem); color: var(--warning, #f59e0b); margin-bottom: 8px; display: block; opacity: 0.85;"></i>
+                    <strong style="color: var(--warning, #f59e0b); font-size: var(--text-base, 0.875rem); display: block; margin-bottom: 2px;">Jadwal KBM
                         Masih
                         Berstatus Draft</strong>
                     <span>Jadwal KBM semester ini sedang dalam proses penyusunan/finalisasi oleh Tim Kurikulum dan belum
@@ -372,7 +372,7 @@
                                     </span>
                                 @else
                                     <span
-                                        style="font-size: var(--text-xs, 0.75rem); color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                                        style="font-size: var(--text-xs, 0.75rem); color: var(--warning, #f59e0b); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;">
                                         <i class="fas fa-clock"></i> Belum
                                     </span>
                                     @if ($canCreate)
@@ -391,7 +391,7 @@
                                             data-durasi-jp="{{ $j->durasi_jp }}" data-hari="{{ $j->hari }}"
                                             data-ptk-id="{{ $j->ptk_id }}" data-guru-nama="{{ $guruNama ?? '' }}"
                                             title="Presensi Sekarang"
-                                            style="font-size: var(--text-sm, 0.8125rem); padding: 5px 10px; border-radius: var(--radius-md, 8px); background: linear-gradient(135deg, #10b981, #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
+                                            style="font-size: var(--text-sm, 0.8125rem); padding: 5px 10px; border-radius: var(--radius-md, 8px); background: linear-gradient(135deg, var(--success, #10b981), #059669); font-weight: 600; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; border: none; box-shadow: 0 2px 5px rgba(16,185,129,0.3); cursor: pointer;">
                                             <i class="fas fa-calendar-check"></i>
                                         </button>
                                     @endif
@@ -596,7 +596,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-user-tie text-primary"></i> Guru Mata Pelajaran <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select id="selectPtkId"
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
@@ -619,7 +619,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-chalkboard text-primary"></i> Kelas <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select id="inputRombonganBelajarId" name="rombongan_belajar_id" required
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
@@ -634,7 +634,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-book text-primary"></i> Mata Pelajaran <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="text" id="inputNamaMataPelajaran" name="nama_mata_pelajaran" required
                                 placeholder="Mata Pelajaran..."
@@ -647,7 +647,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-calendar-day text-primary"></i> Tanggal <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="date" id="inputTanggal" name="tanggal" value="{{ $tanggalHariIni }}"
                                 required
@@ -660,7 +660,7 @@
                                     <i class="fas fa-play text-primary"></i> Jam Mulai
                                 </span>
                                 <span id="badgeAutoJamMulai"
-                                    style="font-size: var(--text-2xs, 0.6875rem); color: #10b981; font-weight: 600;">
+                                    style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981); font-weight: 600;">
                                     <i class="fas fa-lock me-1"></i> Otomatis
                                 </span>
                             </label>
@@ -701,12 +701,12 @@
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
                             <i class="fas fa-signal text-primary"></i> Status Kehadiran Guru <span
-                                style="color: #ef4444;">*</span>
+                                style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <div class="status-pill-group">
                             <label class="status-pill-item active" data-status="H">
                                 <input type="radio" name="status" value="H" checked>
-                                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                <i class="fas fa-check-circle" style="color: var(--success, #10b981);"></i>
                                 <span>Hadir</span>
                             </label>
                             <label class="status-pill-item" data-status="I">
@@ -716,17 +716,17 @@
                             </label>
                             <label class="status-pill-item" data-status="S">
                                 <input type="radio" name="status" value="S">
-                                <i class="fas fa-notes-medical" style="color: #f59e0b;"></i>
+                                <i class="fas fa-notes-medical" style="color: var(--warning, #f59e0b);"></i>
                                 <span>Sakit</span>
                             </label>
                             <label class="status-pill-item" data-status="T">
                                 <input type="radio" name="status" value="T">
-                                <i class="fas fa-briefcase" style="color: #64748b;"></i>
+                                <i class="fas fa-briefcase" style="color: var(--text-muted, #64748b);"></i>
                                 <span>Tugas</span>
                             </label>
                             <label class="status-pill-item" data-status="D">
                                 <input type="radio" name="status" value="D">
-                                <i class="fas fa-user-clock" style="color: #ef4444;"></i>
+                                <i class="fas fa-user-clock" style="color: var(--danger, #ef4444);"></i>
                                 <span>Inval</span>
                             </label>
                         </div>
@@ -736,9 +736,9 @@
                     <div id="wrapGuruPengganti"
                         style="display: none; margin-bottom: 12px; padding: 10px 12px; background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: var(--radius-md, 8px);">
                         <label
-                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                            style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--danger, #ef4444); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-user-clock"></i> Nama Guru Pengganti (Inval) <span
-                                style="color: #ef4444;">*</span>
+                                style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="text" id="inputNamaGuruPengganti" name="nama_guru_pengganti"
                             placeholder="Ketik nama guru pengganti..."
@@ -754,7 +754,7 @@
                                     <i class="far fa-clock text-primary"></i> Jam Masuk
                                 </span>
                                 <span id="badgeAutoJamMasuk"
-                                    style="font-size: var(--text-2xs, 0.6875rem); color: #10b981; font-weight: 600;">
+                                    style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981); font-weight: 600;">
                                     <i class="fas fa-check-double me-1"></i> Sesuai Jadwal
                                 </span>
                             </label>
@@ -768,7 +768,7 @@
                                     <i class="far fa-clock text-primary"></i> Jam Selesai
                                 </span>
                                 <span id="badgeAutoJamKeluar"
-                                    style="font-size: var(--text-2xs, 0.6875rem); color: #10b981; font-weight: 600;">
+                                    style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981); font-weight: 600;">
                                     <i class="fas fa-check-double me-1"></i> Sesuai Jadwal
                                 </span>
                             </label>
@@ -797,7 +797,7 @@
                         Batal
                     </button>
                     <button type="submit" id="btnSavePresensi" class="btn btn-primary"
-                        style="padding: 7px 18px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 600; background: linear-gradient(135deg, #10b981, #059669);">
+                        style="padding: 7px 18px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 600; background: linear-gradient(135deg, var(--success, #10b981), #059669);">
                         <i class="fas fa-check me-1"></i> Simpan
                     </button>
                 </div>

@@ -26,14 +26,14 @@
 
             @if (session('success'))
                 <div
-                    style="background: rgba(16,185,129,0.12); border: 1px solid #10b981; color: #10b981; padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    style="background: rgba(16,185,129,0.12); border: 1px solid var(--success, #10b981); color: var(--success, #10b981); padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-circle-check"></i> <span>{{ session('success') }}</span>
                 </div>
             @endif
 
             @if (session('warning'))
                 <div
-                    style="background: rgba(245,158,11,0.12); border: 1px solid #f59e0b; color: #d97706; padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    style="background: rgba(245,158,11,0.12); border: 1px solid var(--warning, #f59e0b); color: var(--warning, #d97706); padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-triangle-exclamation"></i> <span>{{ session('warning') }}</span>
                 </div>
             @endif
@@ -47,7 +47,7 @@
 
             @if ($errors->any())
                 <div
-                    style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    style="background: rgba(239,68,68,0.1); border: 1px solid var(--danger, #ef4444); color: var(--danger, #ef4444); padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-triangle-exclamation"></i> <span>{{ $errors->first() }}</span>
                 </div>
             @endif
@@ -176,7 +176,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 13px; font-weight: 700; font-size: var(--text-md, 1rem); justify-content: center; background: #10b981; border-color: #10b981; box-shadow: 0 4px 16px rgba(16,185,129,0.35);">
+                    style="width: 100%; padding: 13px; font-weight: 700; font-size: var(--text-md, 1rem); justify-content: center; background: var(--success, #10b981); border-color: var(--success, #10b981); box-shadow: 0 4px 16px rgba(16,185,129,0.35);">
                     <i class="fas fa-door-open"></i> Masuk Portal Orang Tua
                 </button>
             </form>

@@ -38,7 +38,7 @@
                 <h3
                     style="margin: 0; font-size: var(--text-xl, 1.25rem); font-weight: 800; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
                     <span
-                        style="background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        style="background: linear-gradient(135deg, var(--primary-light, #6366f1), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                         <i class="fas fa-wand-magic-sparkles"></i> Atur Waktu &amp; Generate Jadwal KBM
                     </span>
                 </h3>
@@ -68,7 +68,7 @@
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 8px; color: var(--text-color);">
                                 <i class="fas fa-calendar-check text-primary me-1"></i> Skema Hari Sekolah <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <div class="skema-options-grid"
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -111,7 +111,7 @@
                             <div class="form-group">
                                 <label for="setJamMulai"
                                     style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                                    Jam Mulai KBM (JP 1) <span style="color: #ef4444;">*</span>
+                                    Jam Mulai KBM (JP 1) <span style="color: var(--danger, #ef4444);">*</span>
                                 </label>
                                 <input type="time" id="setJamMulai" name="jam_mulai_kbm"
                                     value="{{ substr($pengaturan->jam_mulai_kbm ?? '07:15:00', 0, 5) }}"
@@ -123,7 +123,7 @@
                             <div class="form-group">
                                 <label for="setDurasiJp"
                                     style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                                    Durasi per JP (Menit) <span style="color: #ef4444;">*</span>
+                                    Durasi per JP (Menit) <span style="color: var(--danger, #ef4444);">*</span>
                                 </label>
                                 <input type="number" id="setDurasiJp" name="durasi_per_jp" min="20"
                                     max="90" value="{{ $pengaturan->durasi_per_jp ?? 45 }}" class="form-control"
@@ -189,7 +189,7 @@
                                         <span><i class="fas fa-mug-hot text-warning me-1"></i> Istirahat KBM</span>
                                     </label>
                                     <span class="badge"
-                                        style="background: rgba(245,158,11,0.12); color: #f59e0b; font-size: var(--text-2xs, 0.6875rem); font-weight: 700;">Kunci
+                                        style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); font-size: var(--text-2xs, 0.6875rem); font-weight: 700;">Kunci
                                         Slot</span>
                                 </div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -324,13 +324,13 @@
                                             <th class="th-col-tingkat" data-col-tingkat="10"
                                                 style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); transition: opacity 0.2s;">
                                                 <span class="badge badge-tingkat-header" data-tingkat="10"
-                                                    style="background: #3b82f6; color: #fff; padding: 2px 7px; border-radius: var(--radius-xs, 4px);">Kelas
+                                                    style="background: var(--primary, #3b82f6); color: #fff; padding: 2px 7px; border-radius: var(--radius-xs, 4px);">Kelas
                                                     X</span>
                                             </th>
                                             <th class="th-col-tingkat" data-col-tingkat="11"
                                                 style="padding: 8px 6px; font-weight: 700; color: var(--text-color); font-size: var(--text-sm, 0.8125rem); transition: opacity 0.2s;">
                                                 <span class="badge badge-tingkat-header" data-tingkat="11"
-                                                    style="background: #8b5cf6; color: #fff; padding: 2px 7px; border-radius: var(--radius-xs, 4px);">Kelas
+                                                    style="background: var(--purple, #8b5cf6); color: #fff; padding: 2px 7px; border-radius: var(--radius-xs, 4px);">Kelas
                                                     XI</span>
                                             </th>
                                             <th class="th-col-tingkat" data-col-tingkat="12"
@@ -443,7 +443,7 @@
                                             <td class="td-col-tingkat" data-col-tingkat="10"
                                                 style="padding: 7px 6px; transition: opacity 0.2s;">
                                                 <span id="totalKbmX"
-                                                    style="color: #3b82f6; font-size: var(--text-base, 0.875rem); font-weight: 800;">50
+                                                    style="color: var(--primary, #3b82f6); font-size: var(--text-base, 0.875rem); font-weight: 800;">50
                                                     JP</span>
                                                 <input type="hidden" name="jp_tingkat[10]" id="inputJpTingkat10"
                                                     value="{{ $jpTingkatSettings['10'] ?? 50 }}">
@@ -451,7 +451,7 @@
                                             <td class="td-col-tingkat" data-col-tingkat="11"
                                                 style="padding: 7px 6px; transition: opacity 0.2s;">
                                                 <span id="totalKbmXI"
-                                                    style="color: #8b5cf6; font-size: var(--text-base, 0.875rem); font-weight: 800;">48
+                                                    style="color: var(--purple, #8b5cf6); font-size: var(--text-base, 0.875rem); font-weight: 800;">48
                                                     JP</span>
                                                 <input type="hidden" name="jp_tingkat[11]" id="inputJpTingkat11"
                                                     value="{{ $jpTingkatSettings['11'] ?? 48 }}">
@@ -515,13 +515,13 @@
                                             style="display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-xs, 0.75rem); background: var(--bg-hover); padding: 2px 7px; border-radius: var(--radius-sm, 6px); cursor: pointer; border: 1px solid var(--border-color);">
                                             <input type="checkbox" name="tingkat_aktif[]" value="10" checked
                                                 class="chk-tingkat-scope" data-tingkat="10">
-                                            <span style="font-weight: 700; color: #3b82f6;">Kelas X</span>
+                                            <span style="font-weight: 700; color: var(--primary, #3b82f6);">Kelas X</span>
                                         </label>
                                         <label class="tingkat-pill-label"
                                             style="display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-xs, 0.75rem); background: var(--bg-hover); padding: 2px 7px; border-radius: var(--radius-sm, 6px); cursor: pointer; border: 1px solid var(--border-color);">
                                             <input type="checkbox" name="tingkat_aktif[]" value="11" checked
                                                 class="chk-tingkat-scope" data-tingkat="11">
-                                            <span style="font-weight: 700; color: #8b5cf6;">Kelas XI</span>
+                                            <span style="font-weight: 700; color: var(--purple, #8b5cf6);">Kelas XI</span>
                                         </label>
                                         <label class="tingkat-pill-label"
                                             style="display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-xs, 0.75rem); background: var(--bg-hover); padding: 2px 7px; border-radius: var(--radius-sm, 6px); cursor: pointer; border: 1px solid var(--border-color);">
@@ -529,7 +529,7 @@
                                                 class="chk-tingkat-scope" data-tingkat="12">
                                             <span style="font-weight: 700; color: #ec4899;">Kelas XII</span>
                                             <span class="badge-pkl-status"
-                                                style="display: none; background: rgba(239,68,68,0.15); color: #ef4444; font-size: var(--text-2xs, 0.6875rem); padding: 1px 4px; border-radius: var(--radius-xs, 4px); font-weight: 700;">PKL</span>
+                                                style="display: none; background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); font-size: var(--text-2xs, 0.6875rem); padding: 1px 4px; border-radius: var(--radius-xs, 4px); font-weight: 700;">PKL</span>
                                         </label>
                                     </div>
                                 </div>
@@ -605,7 +605,7 @@
                             <i class="fas fa-save me-1"></i> Simpan Pengaturan Saja
                         </button>
                         <button type="submit" id="btnSimpanDanGenerate" class="btn"
-                            style="padding: 9px 22px; font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 14px rgba(99,102,241,0.35);">
+                            style="padding: 9px 22px; font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, var(--primary-light, #6366f1) 0%, #8b5cf6 50%, #ec4899 100%); color: #fff; font-weight: 700; border: none; box-shadow: 0 4px 14px rgba(99,102,241,0.35);">
                             <i class="fas fa-wand-magic-sparkles me-1"></i> Simpan &amp; Mulai Generate Otomatis
                         </button>
                     </div>

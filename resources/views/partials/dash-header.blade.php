@@ -69,7 +69,7 @@
                 <i class="fas fa-bell"></i>
                 @if ($totalNotifCount > 0)
                     <span class="dash-notif-badge" id="bellNotifDot"
-                        style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid var(--nav-bg); box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);"></span>
+                        style="position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: var(--danger, #ef4444); border-radius: 50%; border: 2px solid var(--nav-bg); box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);"></span>
                 @endif
             </button>
 

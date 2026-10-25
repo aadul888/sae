@@ -38,7 +38,7 @@
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                             <div
-                                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: #10b981; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); box-shadow: 0 4px 12px rgba(16,185,129,0.45);">
+                                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: var(--success, #10b981); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); box-shadow: 0 4px 12px rgba(16,185,129,0.45);">
                                 <i class="fas fa-qrcode"></i>
                             </div>
                             <span class="badge" style="font-size: var(--text-xs, 0.75rem); font-weight: 700; background: rgba(16,185,129,0.22); color: #34d399; border: 1px solid rgba(16,185,129,0.45); padding: 3px 8px;">Presensi Live</span>
@@ -50,7 +50,7 @@
                             Pemindaian kehadiran kartu RFID dan visual webcam live untuk peserta didik dan GTK.
                         </div>
                     </div>
-                    <div style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: #10b981;">
+                    <div style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm, 0.8125rem); font-weight: 800; color: var(--success, #10b981);">
                         <span>Buka Terminal Presensi</span>
                         <i class="fas fa-arrow-right"></i>
                     </div>

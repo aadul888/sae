@@ -201,12 +201,12 @@
                         Batas Akhir: <strong>{{ $info['deadline_formatted'] }}</strong>
                     </span>
                     @if ($isClosed)
-                        <span style="color: #ef4444; font-weight: 700;">
+                        <span style="color: var(--danger, #ef4444); font-weight: 700;">
                             <i class="fas fa-circle-exclamation me-1"></i>
                             Wali Kelas tidak dapat mengubah / menambah usulan
                         </span>
                     @else
-                        <span style="color: #10b981; font-weight: 600;">
+                        <span style="color: var(--success, #10b981); font-weight: 600;">
                             <i class="fas fa-circle-check me-1"></i>
                             Wali Kelas dapat mengusulkan siswa sesuai kuota rombel
                         </span>
@@ -226,7 +226,7 @@
         <div class="pip-countdown-right">
             @if ($isClosed)
                 <div
-                    style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.3); color: #ef4444; font-weight: 800; font-size: var(--text-base, 0.875rem);">
+                    style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.12); border: 1.5px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); font-weight: 800; font-size: var(--text-base, 0.875rem);">
                     <i class="fas fa-lock" style="font-size: var(--text-xl, 1.25rem);"></i>
                     <span>PENGUSULAN DITUTUP</span>
                 </div>
@@ -254,7 +254,7 @@
                     </div>
                     <span class="pip-cd-sep">:</span>
                     <div class="pip-cd-box" style="border-color: rgba(16,185,129,0.35);">
-                        <div id="pipCdSeconds" class="pip-cd-num" style="color: #10b981;">
+                        <div id="pipCdSeconds" class="pip-cd-num" style="color: var(--success, #10b981);">
                             {{ sprintf('%02d', $cd['seconds'] ?? 0) }}
                         </div>
                         <div class="pip-cd-lbl">Detik</div>

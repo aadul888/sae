@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-book"></i>
                 </div>
                 <div>
@@ -54,7 +54,7 @@
         <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-book-bookmark"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -64,7 +64,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
+                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary-light, #6366f1);">
                     <i class="fas fa-layer-group"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -74,7 +74,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -84,7 +84,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-book-reader"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -228,7 +228,7 @@
                                 </td>
                                 <td style="padding: 14px 18px; text-align: center;" data-label="Stok Tersedia">
                                     <span
-                                        style="font-weight: 700; color: {{ $item->eksemplar_tersedia > 0 ? '#10b981' : '#ef4444' }}; font-size: var(--text-md, 1rem);">
+                                        style="font-weight: 700; color: {{ $item->eksemplar_tersedia > 0 ? 'var(--success, #10b981)' : '#ef4444' }}; font-size: var(--text-md, 1rem);">
                                         {{ $item->eksemplar_tersedia }}
                                     </span>
                                     <span style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">/
@@ -255,7 +255,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn-icon btn-delete-buku"
-                                                    data-judul="{{ $item->judul }}" title="Hapus Buku" style="color: #ef4444;">
+                                                    data-judul="{{ $item->judul }}" title="Hapus Buku" style="color: var(--danger, #ef4444);">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </form>

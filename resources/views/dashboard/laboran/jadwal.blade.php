@@ -10,7 +10,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div>
@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                     <i class="fas fa-calendar-day"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -54,7 +54,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-spinner fa-spin"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -63,7 +63,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -199,7 +199,7 @@
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-weight: 500;">
                                         {{ $item->topik_praktik }}</div>
                                     @if ($item->laporan_kerusakan)
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: #ef4444; margin-top: 3px;"><i
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--danger, #ef4444); margin-top: 3px;"><i
                                                 class="fas fa-circle-exclamation me-1"></i> Catatan:
                                             {{ $item->laporan_kerusakan }}</div>
                                     @endif
@@ -238,7 +238,7 @@
                                         @if ($canDelete)
                                             <button type="button" class="btn-icon btn-delete-jadwal"
                                                 data-id="{{ $item->id }}" data-mapel="{{ $item->mata_pelajaran }}"
-                                                title="Hapus Jadwal" style="color: #ef4444;">
+                                                title="Hapus Jadwal" style="color: var(--danger, #ef4444);">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         @endif
@@ -286,7 +286,7 @@
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                 <label style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-color); margin: 0;">
-                                    Ruang Lab / Bengkel <span style="color: #ef4444;">*</span>
+                                    Ruang Lab / Bengkel <span style="color: var(--danger, #ef4444);">*</span>
                                 </label>
                                 <a href="{{ route('dashboard.sarpras.ruang.index') }}" target="_blank"
                                     style="font-size: var(--text-xs, 0.75rem); color: var(--primary); text-decoration: none;"
@@ -317,7 +317,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Praktik <span style="color: #ef4444;">*</span></label>
+                                Praktik <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" class="form-control"
                                 required>
                         </div>
@@ -327,7 +327,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Guru
-                                Pengampu <span style="color: #ef4444;">*</span></label>
+                                Pengampu <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="ptk_id" class="form-control" required>
                                 <option value="">-- Pilih Guru --</option>
                                 @foreach ($allGtk as $g)
@@ -352,14 +352,14 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Mata
-                                Pelajaran <span style="color: #ef4444;">*</span></label>
+                                Pelajaran <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="mata_pelajaran" class="form-control"
                                 placeholder="Contoh: Pemrograman Web / Kimia Dasar" required>
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Topik
-                                / Materi Praktik <span style="color: #ef4444;">*</span></label>
+                                / Materi Praktik <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="topik_praktik" class="form-control"
                                 placeholder="Contoh: Reaksi Redoks / Desain Database" required>
                         </div>
@@ -369,13 +369,13 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
-                                Mulai <span style="color: #ef4444;">*</span></label>
+                                Mulai <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="time" name="jam_mulai" class="form-control" value="08:00" required>
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jam
-                                Selesai <span style="color: #ef4444;">*</span></label>
+                                Selesai <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="time" name="jam_selesai" class="form-control" value="09:30" required>
                         </div>
                     </div>
@@ -417,7 +417,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                            Status <span style="color: #ef4444;">*</span></label>
+                            Status <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="status" id="selectStatusLab" class="form-control" required>
                             <option value="dijadwalkan">Dijadwalkan</option>
                             <option value="berlangsung">Sedang Berlangsung</option>

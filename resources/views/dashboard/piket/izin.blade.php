@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-ticket-alt"></i>
                 </div>
                 <div>
@@ -36,7 +36,7 @@
         <!-- 2. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-ticket-alt"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -46,7 +46,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-person-walking"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -56,7 +56,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                     <i class="fas fa-house-user"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -66,7 +66,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -76,7 +76,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-route"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -205,11 +205,11 @@
                                     <div>
                                         @if ($item->jenis_izin === 'keluar_sebentar')
                                             <span class="badge"
-                                                style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3);">Keluar
+                                                style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59, 130, 246, 0.3);">Keluar
                                                 Sebentar</span>
                                         @elseif ($item->jenis_izin === 'pulang_cepat')
                                             <span class="badge"
-                                                style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Pulang
+                                                style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">Pulang
                                                 Cepat</span>
                                         @else
                                             <span class="badge"
@@ -228,7 +228,7 @@
                                             {{ substr($item->jam_rencana_kembali, 0, 5) }}</div>
                                     @endif
                                     @if ($item->jam_kembali_aktual)
-                                        <div style="color: #10b981; font-weight: 600;">Kembali:
+                                        <div style="color: var(--success, #10b981); font-weight: 600;">Kembali:
                                             {{ substr($item->jam_kembali_aktual, 0, 5) }}</div>
                                     @endif
                                 </td>
@@ -239,19 +239,19 @@
                                 <td style="padding: 12px 18px;">
                                     @if ($item->status === 'menunggu_satpam')
                                         <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Menunggu
+                                            style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3);">Menunggu
                                             Gerbang</span>
                                     @elseif ($item->status === 'di_luar')
                                         <span class="badge"
-                                            style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3);">Di
+                                            style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59, 130, 246, 0.3);">Di
                                             Luar</span>
                                     @elseif ($item->status === 'kembali')
                                         <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Sudah
+                                            style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Sudah
                                             Kembali</span>
                                     @elseif ($item->status === 'pulang_selesai')
                                         <span class="badge"
-                                            style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3);">Pulang
+                                            style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99, 102, 241, 0.3);">Pulang
                                             Selesai</span>
                                     @else
                                         <span class="badge"
@@ -262,7 +262,7 @@
                                     <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                         <a href="{{ route('dashboard.piket.izin.cetak', $item->id) }}" target="_blank"
                                             class="btn-icon" title="Cetak Slip Izin">
-                                            <i class="fas fa-print" style="color: #2563eb;"></i>
+                                            <i class="fas fa-print" style="color: var(--primary-hover, #2563eb);"></i>
                                         </a>
                                         @if ($canUpdate)
                                             <button type="button" class="btn-icon" title="Edit"

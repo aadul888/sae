@@ -86,7 +86,7 @@
                     </div>
                     <div
                         style="background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.25); padding: 10px 6px; border-radius: var(--radius-lg, 12px);">
-                        <div style="font-weight: 800; font-size: var(--text-xl, 1.25rem); color: #8b5cf6;">{{ $stats['sakit'] }}</div>
+                        <div style="font-weight: 800; font-size: var(--text-xl, 1.25rem); color: var(--purple, #8b5cf6);">{{ $stats['sakit'] }}</div>
                         <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Sakit</div>
                     </div>
                     <div
@@ -188,7 +188,7 @@
                                 @elseif ($l->status === 'I')
                                     <span class="badge badge-primary"><i class="fas fa-file-signature me-1"></i> Izin</span>
                                 @elseif ($l->status === 'S')
-                                    <span class="badge" style="background: rgba(139,92,246,0.15); color: #8b5cf6;"><i
+                                    <span class="badge" style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6);"><i
                                             class="fas fa-notes-medical me-1"></i> Sakit</span>
                                 @elseif ($l->status === 'D')
                                     <span class="badge badge-accent"><i class="fas fa-award me-1"></i> Dispen</span>

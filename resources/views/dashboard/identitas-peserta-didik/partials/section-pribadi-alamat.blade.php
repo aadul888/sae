@@ -183,7 +183,7 @@
                 <div class="card identitas-form-section" data-section="pribadi_alamat"
                     style="margin-bottom: 24px; padding: 22px 24px; border-radius: var(--radius-xl, 16px);">
                     <div
-                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: #0284c7; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: var(--accent, #0284c7); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-location-dot"></i> Bagian 1: Data Pribadi &amp; Domisili
                         </div>
@@ -199,7 +199,7 @@
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: flex; align-items: center; justify-content: space-between;">
                                 <span>Provinsi <span class="text-danger">*</span></span>
                                 <span id="badgeProvLoading" class="badge"
-                                    style="display: none; font-size: var(--text-2xs, 0.6875rem); background: rgba(59,130,246,0.15); color: #3b82f6;">Memuat...</span>
+                                    style="display: none; font-size: var(--text-2xs, 0.6875rem); background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">Memuat...</span>
                             </label>
                             <select name="provinsi" id="selectProvinsi" class="form-select"
                                 data-initial="{{ old('provinsi', $identitas->provinsi) }}" required

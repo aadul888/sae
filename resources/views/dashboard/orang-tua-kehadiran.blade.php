@@ -24,7 +24,7 @@
                 <h2
                     style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin: 0 0 6px 0; line-height: 1.25;">
                     <i class="fas fa-calendar-check text-success me-1"></i> Riwayat Kehadiran: <span
-                        style="color: #10b981;">{{ $pd->nama ?? 'Peserta Didik' }}</span>
+                        style="color: var(--success, #10b981);">{{ $pd->nama ?? 'Peserta Didik' }}</span>
                 </h2>
                 <div
                     style="display: flex; align-items: center; gap: 12px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); flex-wrap: wrap;">
@@ -57,11 +57,11 @@
     <!-- 2. Quick Stats Grid Kehadiran -->
     <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-percent"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $statsHarian['persen'] }}%</div>
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ $statsHarian['persen'] }}%</div>
                 <div class="dash-stat-label">Kehadiran Bulan Ini</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     HEB Berjalan: {{ $statsHarian['hari_efektif'] }} Hari
@@ -70,11 +70,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                 <i class="fas fa-fingerprint"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #3b82f6;">{{ $statsHarian['hadir'] }} Hari</div>
+                <div class="dash-stat-value" style="color: var(--primary, #3b82f6);">{{ $statsHarian['hadir'] }} Hari</div>
                 <div class="dash-stat-label">Hadir Tepat Waktu</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Terlambat: {{ $statsHarian['terlambat'] }} Hari
@@ -83,11 +83,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-notes-medical"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #f59e0b;">{{ $statsHarian['izin'] + $statsHarian['sakit'] }}
+                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">{{ $statsHarian['izin'] + $statsHarian['sakit'] }}
                     Hari</div>
                 <div class="dash-stat-label">Izin &amp; Sakit Resmi</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
@@ -97,11 +97,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: {{ $statsHarian['alpha'] > 0 ? '#ef4444' : '#10b981' }};">
+                <div class="dash-stat-value" style="color: {{ $statsHarian['alpha'] > 0 ? '#ef4444' : 'var(--success, #10b981)' }};">
                     {{ $statsHarian['alpha'] }} Hari
                 </div>
                 <div class="dash-stat-label">Alpha / Tanpa Ket.</div>

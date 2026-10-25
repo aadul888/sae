@@ -128,7 +128,7 @@
                     <div
                         style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 14px;">
                         <div
-                            style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(16, 185, 129, 0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                            style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                             <i class="fas fa-location-dot"></i>
                         </div>
                         <div>
@@ -197,7 +197,7 @@
                             <label style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color);">
                                 Radius Kehadiran (Meter):
                             </label>
-                            <span id="labelRadiusDisplay" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981;">
+                            <span id="labelRadiusDisplay" style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981);">
                                 {{ $effectiveRadius }} Meter
                             </span>
                         </div>
@@ -390,7 +390,7 @@
                             style="font-family: monospace; font-size: var(--text-base, 0.875rem); color: #38bdf8; background: rgba(56, 189, 248, 0.08); padding: 6px 12px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(56, 189, 248, 0.2); margin-bottom: 8px; word-break: break-all;">
                             {{ url('/scan') }}
                         </div>
-                        <div style="font-size: var(--text-xs, 0.75rem); color: #10b981; display: flex; align-items: center; gap: 6px;">
+                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); display: flex; align-items: center; gap: 6px;">
                             <i class="fas fa-check-circle"></i> Input manual dikunci otomatis (Hanya RFID USB &amp; Kamera
                             Barcode/QR).
                         </div>

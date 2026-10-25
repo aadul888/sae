@@ -33,7 +33,7 @@
             @if ($canCreate)
                 <button type="button" class="btn btn-primary btn-open-modal-tambah" id="btnOpenModalTambah"
                     title="Catat Aktivitas Harian Baru"
-                    style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 600; background: #10b981; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); color: #fff; cursor: pointer;">
+                    style="height: 38px; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 600; background: var(--success, #10b981); border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.3); color: #fff; cursor: pointer;">
                     <i class="fas fa-plus"></i>
                     <span>Catat Aktivitas</span>
                 </button>
@@ -70,21 +70,21 @@
     <!-- Flash Messages Standar SAE -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
     @endif
     @if (isset($errors) && $errors->any())
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem);">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem);">
             <div style="font-weight: 700; margin-bottom: 4px;"><i class="fas fa-triangle-exclamation me-1"></i> Periksa
                 kembali isian formulir:</div>
             <ul style="margin: 0; padding-left: 18px;">
@@ -99,7 +99,7 @@
     <div class="dash-stat-grid"
         style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                 <i class="fas fa-tasks"></i>
             </div>
             <div class="dash-stat-info">
@@ -109,31 +109,31 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-check-double"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $totalSelesai }} Selesai</div>
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ $totalSelesai }} Selesai</div>
                 <div class="dash-stat-label">Tuntas Dikerjakan</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-spinner"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #f59e0b;">{{ $totalProses }} Proses</div>
+                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">{{ $totalProses }} Proses</div>
                 <div class="dash-stat-label">Sedang Dikerjakan</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-clock-rotate-left"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #ef4444;">{{ $totalTertunda }} Tertunda</div>
+                <div class="dash-stat-value" style="color: var(--danger, #ef4444);">{{ $totalTertunda }} Tertunda</div>
                 <div class="dash-stat-label">Ada Kendala / Pending</div>
             </div>
         </div>
@@ -366,7 +366,7 @@
                                             data-output="{{ $item->output_hasil }}" data-status="{{ $item->status }}"
                                             data-ptk="{{ $item->ptk_id }}" data-indikator="{{ $item->indikator_id }}"
                                             title="Edit Aktivitas"
-                                            style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: var(--radius-sm, 6px); cursor: pointer; color: #3b82f6;">
+                                            style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: var(--radius-sm, 6px); cursor: pointer; color: var(--primary, #3b82f6);">
                                             <i class="fas fa-pen-to-square"></i>
                                         </button>
                                     @endif
@@ -377,7 +377,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon" title="Hapus Aktivitas"
-                                                style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: var(--radius-sm, 6px); cursor: pointer; color: #ef4444;">
+                                                style="border: 1px solid var(--border-color); background: transparent; padding: 6px; border-radius: var(--radius-sm, 6px); cursor: pointer; color: var(--danger, #ef4444);">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         </form>
@@ -400,7 +400,7 @@
                                 @if ($canCreate)
                                     <div style="margin-top: 14px;">
                                         <button type="button" class="btn btn-primary btn-sm btn-open-modal-empty"
-                                            style="background: #10b981; border: none; padding: 8px 18px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); font-weight: 600;">
+                                            style="background: var(--success, #10b981); border: none; padding: 8px 18px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); font-weight: 600;">
                                             <i class="fas fa-plus me-1"></i> Catat Aktivitas Harian
                                         </button>
                                     </div>
@@ -495,7 +495,7 @@
                         <div>
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                                Tanggal <span style="color: #ef4444;">*</span>
+                                Tanggal <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="date" name="tanggal" id="inputTanggal" value="{{ date('Y-m-d') }}" required
                                 class="form-control" style="font-size: var(--text-sm, 0.8125rem); height: 38px; border-radius: var(--radius-md, 8px);">
@@ -503,7 +503,7 @@
                         <div>
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                                Bidang Tugas <span style="color: #ef4444;">*</span>
+                                Bidang Tugas <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select name="bidang" id="inputBidang" required class="form-control"
                                 style="font-size: var(--text-sm, 0.8125rem); height: 38px; border-radius: var(--radius-md, 8px);">
@@ -539,7 +539,7 @@
                         <div>
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                                Jam Mulai <span style="color: #ef4444;">*</span>
+                                Jam Mulai <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="time" name="jam_mulai" id="inputJamMulai" value="{{ date('H:i') }}"
                                 required class="form-control"
@@ -558,7 +558,7 @@
                     <div class="pm-field" style="margin-bottom: 10px;">
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                            Judul Pekerjaan / Agenda <span style="color: #ef4444;">*</span>
+                            Judul Pekerjaan / Agenda <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="text" name="judul_aktivitas" id="inputJudul"
                             placeholder="Contoh: Pengarsipan Berkas Ijazah, Maintenance Jaringan Lab..." required
@@ -568,7 +568,7 @@
                     <div class="pm-field" style="margin-bottom: 10px;">
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                            Uraian Pekerjaan / Kegiatan <span style="color: #ef4444;">*</span>
+                            Uraian Pekerjaan / Kegiatan <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <textarea name="uraian_pekerjaan" id="inputUraian" rows="3"
                             placeholder="Jelaskan secara ringkas aktivitas dan langkah pekerjaan yang dilaksanakan..." required
@@ -588,7 +588,7 @@
                         <div>
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                                Status Pelaksanaan <span style="color: #ef4444;">*</span>
+                                Status Pelaksanaan <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select name="status" id="inputStatus" required class="form-control"
                                 style="font-size: var(--text-sm, 0.8125rem); height: 38px; border-radius: var(--radius-md, 8px);">
@@ -616,7 +616,7 @@
                         Batal
                     </button>
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 7px 20px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 600; background: linear-gradient(135deg, #10b981, #059669); border: none;">
+                        style="padding: 7px 20px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 600; background: linear-gradient(135deg, var(--success, #10b981), #059669); border: none;">
                         <i class="fas fa-save me-1"></i> Simpan Aktivitas
                     </button>
                 </div>
@@ -643,7 +643,7 @@
             <div style="margin-bottom: 12px;">
                 <label
                     style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">
-                    Judul Tupoksi / Agenda <span style="color: #ef4444;">*</span>
+                    Judul Tupoksi / Agenda <span style="color: var(--danger, #ef4444);">*</span>
                 </label>
                 <input type="text" id="manualTupoksiJudul" class="form-control"
                     placeholder="Contoh: Pemeliharaan Server &amp; Jaringan"
@@ -652,7 +652,7 @@
             <div style="margin-bottom: 12px;">
                 <label
                     style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: block; margin-bottom: 4px; color: var(--text-color);">
-                    Uraian Pekerjaan / Tugas <span style="color: #ef4444;">*</span>
+                    Uraian Pekerjaan / Tugas <span style="color: var(--danger, #ef4444);">*</span>
                 </label>
                 <textarea id="manualTupoksiUraian" class="form-control" rows="3"
                     placeholder="Langkah atau deskripsi rincian tugas yang dilaksanakan..."
@@ -672,7 +672,7 @@
                     style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">Batal</button>
                 <button type="button" class="btn btn-primary" id="btnSimpanTupoksiManual"
                     onclick="simpanTupoksiManual()"
-                    style="padding: 6px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); background: #10b981; border: none; font-weight: 600;">
+                    style="padding: 6px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); background: var(--success, #10b981); border: none; font-weight: 600;">
                     <i class="fas fa-check me-1"></i> Simpan &amp; Terapkan
                 </button>
             </div>

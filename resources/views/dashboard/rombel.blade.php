@@ -249,10 +249,10 @@
                                 data-label="Ruang">
                                 {{ $item->ruang ?: '-' }}
                             </td>
-                            <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: var(--text-base, 0.875rem); color: #10b981;"
+                            <td style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--success, #10b981);"
                                 data-label="Peserta Didik">
                                 <span class="badge"
-                                    style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-sm, 0.8125rem); padding: 3px 10px;">
+                                    style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-sm, 0.8125rem); padding: 3px 10px;">
                                     <i class="fas fa-user-graduate me-1"></i>
                                     {{ number_format($item->total_peserta_didik, 0, ',', '.') }}
                                 </span>

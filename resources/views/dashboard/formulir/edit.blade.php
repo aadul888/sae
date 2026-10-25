@@ -159,7 +159,7 @@
                         <i class="fas fa-list-check text-primary"></i> Susunan Pertanyaan Formulir
                     </h3>
                     <span id="qCountBadge"
-                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; background: #e0f2fe; color: #0284c7; padding: 3px 10px; border-radius: var(--radius-2xl, 20px);">
+                        style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; background: #e0f2fe; color: var(--accent, #0284c7); padding: 3px 10px; border-radius: var(--radius-2xl, 20px);">
                         0 Pertanyaan
                     </span>
                 </div>
@@ -167,7 +167,7 @@
                 <!-- Toolbar Tambah Field Cepat -->
                 <div class="preset-button-bar">
                     <span
-                        style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #64748b; width: 100%; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                        style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted, #64748b); width: 100%; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                         <i class="fas fa-plus-circle text-primary"></i> Tambah Elemen Pertanyaan:
                     </span>
                     <button type="button" class="btn-preset-field" onclick="addField('text', 'Teks Singkat')">
@@ -201,7 +201,7 @@
                     </button>
                     <span style="width: 100%; height: 1px; background: var(--border-color); margin: 4px 0;"></span>
 
-                    <span style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #f59e0b; width: 100%; margin-bottom: 2px;">
+                    <span style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--warning, #f59e0b); width: 100%; margin-bottom: 2px;">
                         <i class="fas fa-id-badge text-warning me-1"></i> Data Otomatis SAE (Terkunci Sesuai Akun):
                     </span>
                     <button type="button" class="btn-preset-field sae-field"

@@ -39,7 +39,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-id-badge"></i>
             </div>
             <div class="dash-stat-info">
@@ -51,7 +51,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-user-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -362,7 +362,7 @@
                                 class="fas fa-book-bookmark text-primary me-1"></i> Penugasan Mengajar
                             (Pembelajaran)</span>
                         <span id="gtkJmlJam" class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
+                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
                             JP</span>
                     </div>
                     <div style="overflow-x: auto;">

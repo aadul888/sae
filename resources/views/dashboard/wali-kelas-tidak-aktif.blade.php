@@ -44,7 +44,7 @@
     @if (!$hasRombel)
         <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
             <div
-                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
+                style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
             <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">Belum Ada Rombel
@@ -59,7 +59,7 @@
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-user-slash"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -71,7 +71,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -83,7 +83,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-arrow-right-from-bracket"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -218,7 +218,7 @@
                                             </div>
                                         @else
                                             <div class="pd-foto-thumb empty"
-                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: var(--danger, #ef4444); font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
                                                 <i class="fas fa-user-slash" style="opacity: 0.7;"></i>
                                             </div>
                                         @endif
@@ -229,12 +229,12 @@
                                                     style="font-weight: 700; color: var(--text-color);">{{ $item->nama }}</span>
                                                 @if ($item->status_keluar === 'Alumni')
                                                     <span class="badge"
-                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(16,185,129,0.12); color: #10b981; padding: 2px 6px; white-space: nowrap;">
+                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(16,185,129,0.12); color: var(--success, #10b981); padding: 2px 6px; white-space: nowrap;">
                                                         <i class="fas fa-graduation-cap me-1"></i>Alumni
                                                     </span>
                                                 @else
                                                     <span class="badge"
-                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(245,158,11,0.12); color: #f59e0b; padding: 2px 6px; white-space: nowrap;">
+                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); padding: 2px 6px; white-space: nowrap;">
                                                         <i
                                                             class="fas fa-right-from-bracket me-1"></i>{{ $item->status_keluar ?: 'Keluar' }}
                                                     </span>
@@ -349,7 +349,7 @@
                                         @if (!empty($item->foto_url))
                                             <button type="button" class="btn-icon" title="Lihat Pasfoto"
                                                 onclick="openPhotoPreviewModal('{{ $item->foto_url }}', '{{ addslashes($item->nama) }}')">
-                                                <i class="fas fa-image" style="color: #10b981;"></i>
+                                                <i class="fas fa-image" style="color: var(--success, #10b981);"></i>
                                             </button>
                                         @endif
                                         <button type="button" class="btn-icon btn-detail-tidak-aktif"
@@ -361,7 +361,7 @@
                                             <button type="button" class="btn-icon"
                                                 title="Pratinjau / Cetak Kartu Pelajar Digital"
                                                 onclick="openKartuPelajarModal('{{ $item->nisn }}')">
-                                                <i class="fas fa-address-card" style="color: #0284c7;"></i>
+                                                <i class="fas fa-address-card" style="color: var(--accent, #0284c7);"></i>
                                             </button>
                                         @endif
                                     </div>

@@ -49,7 +49,7 @@
             <div class="kp-student-name" title="{{ $card['nama'] }}">{{ $card['nama'] }}</div>
 
             <div class="kp-nisn-pill" title="Status: {{ $card['status'] ?? 'AKTIF' }}">
-                <i class="fas fa-circle-check" style="color: #10b981; font-size: 5.5pt;"></i>
+                <i class="fas fa-circle-check" style="color: var(--success, #10b981); font-size: 5.5pt;"></i>
                 <span class="kp-nisn-value">{{ $card['nisn'] }}</span>
             </div>
         </div>

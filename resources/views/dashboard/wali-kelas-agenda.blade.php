@@ -82,7 +82,7 @@
             <!-- Empty State jika belum terikat rombel -->
             <div class="card" style="padding: 40px 20px; text-align: center; margin-top: 20px;">
                 <div
-                    style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
+                    style="width: 70px; height: 70px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-3xl, 1.875rem); margin-bottom: 16px;">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <h3 style="font-size: var(--text-xl, 1.25rem); font-weight: 700; color: var(--text-color); margin-bottom: 8px;">
@@ -120,7 +120,7 @@
                         <span class="badge badge-primary"><i class="fas fa-shield me-1"></i> Administrator</span>
                     @elseif ($isPiket)
                         <span class="badge badge-outline"
-                            style="border-color: #0284c7; color: #0284c7; font-weight: 700;"><i
+                            style="border-color: var(--accent, #0284c7); color: var(--accent, #0284c7); font-weight: 700;"><i
                                 class="fas fa-user-shield me-1"></i> Petugas Piket KBM</span>
                     @elseif ($isKoordinator)
                         <span class="badge badge-warning text-dark"><i class="fas fa-crown me-1"></i> Koordinator

@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-shield-virus"></i>
                 </div>
                 <div>
@@ -44,7 +44,7 @@
         <!-- 2. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-walking"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -54,7 +54,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -64,7 +64,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -74,7 +74,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-fire-flame-curved"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -184,14 +184,14 @@
                                     <td style="padding: 12px 18px;">
                                         @if ($item->kondisi_lingkungan === 'aman_terkendali')
                                             <span class="badge"
-                                                style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Aman
+                                                style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Aman
                                                 & Terkendali</span>
                                         @elseif ($item->kondisi_lingkungan === 'mencurigakan')
                                             <span class="badge"
-                                                style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Mencurigakan</span>
+                                                style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">Mencurigakan</span>
                                         @else
                                             <span class="badge"
-                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">{{ ucwords(str_replace('_', ' ', $item->kondisi_lingkungan)) }}</span>
+                                                style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3);">{{ ucwords(str_replace('_', ' ', $item->kondisi_lingkungan)) }}</span>
                                         @endif
                                     </td>
                                     <td
@@ -342,13 +342,13 @@
                                     <td style="padding: 12px 18px;">
                                         @if ($ins->tingkat_urgensi === 'darurat')
                                             <span class="badge"
-                                                style="background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4);">Darurat</span>
+                                                style="background: rgba(239, 68, 68, 0.2); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.4);">Darurat</span>
                                         @elseif ($ins->tingkat_urgensi === 'tinggi')
                                             <span class="badge"
                                                 style="background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.4);">Tinggi</span>
                                         @elseif ($ins->tingkat_urgensi === 'sedang')
                                             <span class="badge"
-                                                style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4);">Sedang</span>
+                                                style="background: rgba(245, 158, 11, 0.2); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.4);">Sedang</span>
                                         @else
                                             <span class="badge"
                                                 style="background: rgba(107, 114, 128, 0.2); color: #6b7280;">Rendah</span>
@@ -365,10 +365,10 @@
                                     <td style="padding: 12px 18px;">
                                         @if ($ins->status_penyelesaian === 'selesai')
                                             <span class="badge"
-                                                style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Selesai</span>
+                                                style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Selesai</span>
                                         @else
                                             <span class="badge"
-                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Dalam
+                                                style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3);">Dalam
                                                 Penanganan</span>
                                         @endif
                                     </td>
@@ -401,7 +401,7 @@
                                     <td colspan="6"
                                         style="text-align: center; padding: 36px; color: var(--text-muted);">
                                         <i class="fas fa-check-circle"
-                                            style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 8px; color: #10b981; opacity: 0.6;"></i>
+                                            style="font-size: var(--text-3xl, 1.875rem); margin-bottom: 8px; color: var(--success, #10b981); opacity: 0.6;"></i>
                                         <p style="margin: 0;">Tidak ada laporan insiden.</p>
                                     </td>
                                 </tr>

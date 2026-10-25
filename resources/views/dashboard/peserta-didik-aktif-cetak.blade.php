@@ -106,7 +106,7 @@
                         <td class="col-center col-mono">{{ $s->nipd ?: '—' }}</td>
                         <td style="font-weight: 600;">{{ $s->nama }}</td>
                         <td class="col-center"
-                            style="font-weight: 700; color: {{ $s->jenis_kelamin === 'L' ? '#0284c7' : '#db2777' }};">
+                            style="font-weight: 700; color: {{ $s->jenis_kelamin === 'L' ? 'var(--accent, #0284c7)' : '#db2777' }};">
                             {{ $s->jenis_kelamin ?: '—' }}
                         </td>
                         <td>{{ $ttl ?: '—' }}</td>
@@ -114,11 +114,11 @@
                         <td>{{ $ortu }}</td>
                         <td style="font-size: var(--text-xs, 0.75rem);">{{ $s->alamat_jalan ?: '—' }}</td>
                         <td class="col-center col-mono">{{ $s->no_hp ?: '—' }}</td>
-                        <td class="col-center" style="color: #059669; font-weight: 700;">Aktif</td>
+                        <td class="col-center" style="color: var(--success, #059669); font-weight: 700;">Aktif</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="col-center" style="padding: 24px; color: #64748b;">
+                        <td colspan="11" class="col-center" style="padding: 24px; color: var(--text-muted, #64748b);">
                             Tidak ada data peserta didik di rombongan belajar ini.
                         </td>
                     </tr>

@@ -35,11 +35,11 @@
 
     <!-- Card 2: Sudah Diusulkan -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ number_format($sudahDiajukan) }}
             </div>
             <div class="dash-stat-label">Sudah Diusulkan</div>
@@ -48,11 +48,11 @@
 
     <!-- Card 3: Belum Diusulkan -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                 {{ number_format($belumDiajukan) }}
             </div>
             <div class="dash-stat-label">Belum Diusulkan</div>
@@ -84,11 +84,11 @@
 
     <!-- Card 5: Sisa Kuota Terbuka -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+        <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
             <i class="fas fa-sliders"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #8b5cf6;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--purple, #8b5cf6);">
                 @if ($isAdmin)
                     {{ number_format($sisaKuota) }}
                 @else
@@ -128,7 +128,7 @@
         </div>
         <div
             style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--primary);">
-            <i class="fas fa-circle-dot" style="font-size: var(--text-2xs, 0.6875rem); color: #10b981;"></i> Tahun {{ $activeTahun }}
+            <i class="fas fa-circle-dot" style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981);"></i> Tahun {{ $activeTahun }}
             Real-Time
         </div>
     </div>
@@ -165,24 +165,24 @@
                 style="display: flex; justify-content: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; font-size: var(--text-xs, 0.75rem);">
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     <span
-                        style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                        style="width: 10px; height: 10px; border-radius: 50%; background: var(--success, #10b981); display: inline-block;"></span>
                     Sudah Diusulkan ({{ $sudahDiajukan }})
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     <span
-                        style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>
+                        style="width: 10px; height: 10px; border-radius: 50%; background: var(--warning, #f59e0b); display: inline-block;"></span>
                     Belum Diusulkan ({{ $belumDiajukan }})
                 </span>
                 @if ($ditolak > 0)
                     <span style="display: inline-flex; align-items: center; gap: 5px;">
                         <span
-                            style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; display: inline-block;"></span>
+                            style="width: 10px; height: 10px; border-radius: 50%; background: var(--danger, #ef4444); display: inline-block;"></span>
                         Ditolak ({{ $ditolak }})
                     </span>
                 @endif
                 <span style="display: inline-flex; align-items: center; gap: 5px;">
                     <span
-                        style="width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; display: inline-block;"></span>
+                        style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted, #94a3b8); display: inline-block;"></span>
                     Sisa Kuota ({{ $isAdmin ? $sisaKuota : $sisaKuotaKelas }})
                 </span>
             </div>
@@ -269,9 +269,9 @@
                         <div
                             style="padding: 14px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
                             <div
-                                style="font-size: var(--text-sm, 0.8125rem); color: #10b981; font-weight: 700; text-transform: uppercase;">
+                                style="font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981); font-weight: 700; text-transform: uppercase;">
                                 Sudah Pernah Terima PIP</div>
-                            <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: #10b981; margin: 4px 0;">
+                            <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--success, #10b981); margin: 4px 0;">
                                 {{ $d['wali_sudah_pip'] ?? 0 }}
                             </div>
                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Tercatat di riwayat SiPintar
@@ -280,9 +280,9 @@
                         <div
                             style="padding: 14px; border-radius: var(--radius-lg, 12px); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);">
                             <div
-                                style="font-size: var(--text-sm, 0.8125rem); color: #f59e0b; font-weight: 700; text-transform: uppercase;">
+                                style="font-size: var(--text-sm, 0.8125rem); color: var(--warning, #f59e0b); font-weight: 700; text-transform: uppercase;">
                                 Belum Pernah Terima PIP</div>
-                            <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: #f59e0b; margin: 4px 0;">
+                            <div style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--warning, #f59e0b); margin: 4px 0;">
                                 {{ $d['wali_belum_pip'] ?? 0 }}
                             </div>
                             <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">Peluang prioritas usulan baru
@@ -314,7 +314,7 @@
                         <div
                             style="width: 100%; height: 12px; background: rgba(0,0,0,0.06); border-radius: var(--radius-sm, 6px); overflow: hidden;">
                             <div
-                                style="width: {{ $kuotaKelas > 0 ? min(100, round(($terpakaiKelas / $kuotaKelas) * 100)) : 0 }}%; height: 100%; background: linear-gradient(90deg, #6366f1, #10b981); border-radius: var(--radius-sm, 6px);">
+                                style="width: {{ $kuotaKelas > 0 ? min(100, round(($terpakaiKelas / $kuotaKelas) * 100)) : 0 }}%; height: 100%; background: linear-gradient(90deg, var(--primary-light, #6366f1), #10b981); border-radius: var(--radius-sm, 6px);">
                             </div>
                         </div>
                     </div>
@@ -496,11 +496,11 @@
                                 <div
                                     style="width: 100%; height: 7px; background: rgba(0,0,0,0.06); border-radius: var(--radius-xs, 4px); overflow: hidden;">
                                     <div
-                                        style="width: {{ $r->pct }}%; height: 100%; background: {{ $r->pct >= 100 ? '#10b981' : ($r->pct > 0 ? '#6366f1' : '#cbd5e1') }}; border-radius: var(--radius-xs, 4px);">
+                                        style="width: {{ $r->pct }}%; height: 100%; background: {{ $r->pct >= 100 ? '#10b981' : ($r->pct > 0 ? 'var(--primary-light, #6366f1)' : '#cbd5e1') }}; border-radius: var(--radius-xs, 4px);">
                                     </div>
                                 </div>
                             </td>
-                            <td style="padding: 10px 14px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: {{ $r->sisa > 0 ? '#10b981' : '#94a3b8' }};"
+                            <td style="padding: 10px 14px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: {{ $r->sisa > 0 ? 'var(--success, #10b981)' : '#94a3b8' }};"
                                 data-label="Sisa">
                                 {{ $r->sisa }}
                             </td>

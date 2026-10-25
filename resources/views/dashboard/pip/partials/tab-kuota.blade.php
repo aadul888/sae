@@ -30,11 +30,11 @@
 
     <!-- Card 2: Total Kuota Teralokasi -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
+        <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb);">
             <i class="fas fa-layer-group"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #2563eb;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary-hover, #2563eb);">
                 {{ number_format($kuotaStats['total_teralokasi'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Kuota Teralokasi</div>
@@ -43,7 +43,7 @@
 
     <!-- Card 3: Status Kelebihan / Kurang Kuota (Highlight Visual) -->
     <div class="dash-stat-card"
-        style="{{ $isKelebihan ? 'outline: 2px solid #ef4444;' : ($isKurang ? 'outline: 2px solid #f59e0b;' : '') }}">
+        style="{{ $isKelebihan ? 'outline: 2px solid var(--danger, #ef4444);' : ($isKurang ? 'outline: 2px solid var(--warning, #f59e0b);' : '') }}">
         <div class="dash-stat-icon" style="background: {{ $selisihBg }}; color: {{ $selisihColor }};">
             <i class="fas {{ $selisihIcon }}"></i>
         </div>
@@ -65,11 +65,11 @@
 
     <!-- Card 4: Total Usulan Terpakai -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
             <i class="fas fa-user-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ number_format($kuotaStats['total_terpakai'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Usulan Masuk</div>
@@ -78,11 +78,11 @@
 
     <!-- Card 5: Kelas Kuota Terpenuhi -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+        <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
             <i class="fas fa-circle-exclamation"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                 {{ number_format($kuotaStats['rombel_penuh'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Kelas Penuh</div>
@@ -91,11 +91,11 @@
 
     <!-- Card 6: Kelas Masih Ada Kuota -->
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
             <i class="fas fa-door-open"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                 {{ number_format($kuotaStats['rombel_tersedia'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Kelas Ada Sisa</div>

@@ -16,11 +16,11 @@
             Integrasi Dapodik</p>
         <div style="display: flex; gap: 12px; justify-content: center;">
             <a href="{{ route('home') }}" class="btn btn-primary"
-                style="padding: 10px 20px; border-radius: var(--radius-md, 8px); background: #6366f1; color: #fff; text-decoration: none; font-weight: 600;">Beranda</a>
+                style="padding: 10px 20px; border-radius: var(--radius-md, 8px); background: var(--primary-light, #6366f1); color: #fff; text-decoration: none; font-weight: 600;">Beranda</a>
             <a href="{{ route('login') }}" class="btn btn-outline"
                 style="padding: 10px 20px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(255,255,255,0.2); color: #fff; text-decoration: none; font-weight: 600;">Masuk</a>
         </div>
-        <p style="font-size: var(--text-sm, 0.8125rem); color: #64748b; margin-top: 32px;">Laravel
+        <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted, #64748b); margin-top: 32px;">Laravel
             v{{ Illuminate\Foundation\Application::VERSION }} (PHP v{{ PHP_VERSION }})</p>
     </div>
 </body>

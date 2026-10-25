@@ -227,7 +227,7 @@
                 <div class="card identitas-form-section" data-section="orang_tua"
                     style="margin-bottom: 24px; padding: 22px 24px; border-radius: var(--radius-xl, 16px);">
                     <div
-                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: #d97706; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: var(--warning, #d97706); margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-handshake-angle"></i> Bagian 4: Data Wali
                         </div>

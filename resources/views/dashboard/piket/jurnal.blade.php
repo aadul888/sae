@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-clipboard-list"></i>
                 </div>
                 <div>
@@ -36,7 +36,7 @@
         <!-- 2. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-book-bookmark"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -46,7 +46,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: #6366f1;">
+                <div class="dash-stat-icon" style="background: rgba(99,102,241,0.12); color: var(--primary-light, #6366f1);">
                     <i class="fas fa-calendar-alt"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -56,7 +56,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -161,13 +161,13 @@
                                 </td>
                                 <td style="padding: 12px 18px; text-align: center;">
                                     <span class="badge"
-                                        style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: var(--text-base, 0.875rem);">
+                                        style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->jumlah_siswa_terlambat }} Siswa
                                     </span>
                                 </td>
                                 <td style="padding: 12px 18px; text-align: center;">
                                     <span class="badge"
-                                        style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; font-size: var(--text-base, 0.875rem);">
+                                        style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6); font-size: var(--text-base, 0.875rem);">
                                         {{ $item->jumlah_siswa_izin }} Siswa
                                     </span>
                                 </td>
@@ -180,10 +180,10 @@
                                 <td style="padding: 12px 18px;">
                                     @if ($item->status === 'selesai')
                                         <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Selesai</span>
+                                            style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Selesai</span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Berjalan</span>
+                                            style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3);">Berjalan</span>
                                     @endif
                                 </td>
                                 <td style="padding: 12px 18px; text-align: center;">

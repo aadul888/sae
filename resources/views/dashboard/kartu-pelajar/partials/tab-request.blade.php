@@ -11,7 +11,7 @@
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                 <button type="button" class="btn btn-outline" onclick="openModalScanRfidSelesai()"
-                    style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: #059669; color: #059669; background: var(--card-bg);"
+                    style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: var(--success, #059669); color: var(--success, #059669); background: var(--card-bg);"
                     title="Pilih Siswa &amp; Tap Kartu RFID Fisik untuk Verifikasi Selesai &amp; Registrasi Presensi">
                     <i class="fas fa-satellite-dish"></i> Tap RFID Selesai Cetak
                 </button>
@@ -130,28 +130,28 @@
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                         <button type="button" class="btn btn-outline btn-sm" onclick="executeCetakSelectedRequests()"
-                            style="border-color: #0284c7; color: #0284c7; background: #ffffff; font-weight: 700; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);"
+                            style="border-color: var(--accent, #0284c7); color: var(--accent, #0284c7); background: #ffffff; font-weight: 700; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);"
                             title="Buka Lembar Cetak Masal Khusus Antrean Terpilih">
                             <i class="fas fa-print me-1"></i> Cetak Antrean Terpilih
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="executeBulkRequestAction('set_diproses')"
-                            style="border-color: #2563eb; color: #2563eb; font-weight: 600; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
+                            style="border-color: var(--primary-hover, #2563eb); color: var(--primary-hover, #2563eb); font-weight: 600; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
                             <i class="fas fa-gears me-1"></i> Set Diproses
                         </button>
                         <button type="button" class="btn btn-primary btn-sm"
                             onclick="executeBulkRequestAction('set_selesai')"
-                            style="background: #10b981; border-color: #10b981; font-weight: 700; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
+                            style="background: var(--success, #10b981); border-color: var(--success, #10b981); font-weight: 700; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
                             <i class="fas fa-circle-check me-1"></i> Set Selesai (Cetak)
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="executeBulkRequestAction('set_ditolak')"
-                            style="border-color: #ef4444; color: #ef4444; font-weight: 600; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
+                            style="border-color: var(--danger, #ef4444); color: var(--danger, #ef4444); font-weight: 600; padding: 5px 12px; font-size: var(--text-sm, 0.8125rem);">
                             <i class="fas fa-ban me-1"></i> Tolak
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="executeBulkRequestAction('delete')"
-                            style="border-color: #94a3b8; color: #475569; font-weight: 600; padding: 5px 10px; font-size: var(--text-sm, 0.8125rem);"
+                            style="border-color: var(--text-muted, #94a3b8); color: #475569; font-weight: 600; padding: 5px 10px; font-size: var(--text-sm, 0.8125rem);"
                             title="Hapus antrean terpilih">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -290,7 +290,7 @@
                                     <div class="table-actions"
                                         style="display: flex; gap: 4px; justify-content: center; align-items: center;">
                                         {{-- Tombol Tap RFID untuk Selesaikan & Registrasi --}}
-                                        <button type="button" class="btn-icon" style="color: #059669;"
+                                        <button type="button" class="btn-icon" style="color: var(--success, #059669);"
                                             title="Pilih Siswa &amp; Tap Kartu RFID Selesai Cetak"
                                             onclick="openModalScanRfidSelesai('{{ $rq->nisn }}', '{{ addslashes($rq->nama) }}', '{{ $rq->id }}', '{{ $rq->peserta_didik_id }}')">
                                             <i class="fas fa-satellite-dish"></i>
@@ -298,7 +298,7 @@
 
                                         {{-- Tombol Pratinjau / Cetak Kartu Digital --}}
                                         @if (!empty($rq->nisn))
-                                            <button type="button" class="btn-icon" style="color: #0284c7;"
+                                            <button type="button" class="btn-icon" style="color: var(--accent, #0284c7);"
                                                 title="Pratinjau / Cetak Kartu Pelajar Digital"
                                                 onclick="openKartuPelajarModal('{{ $rq->nisn }}')">
                                                 <i class="fas fa-address-card"></i>
@@ -324,7 +324,7 @@
                                             method="POST" class="delete-request-form form-destroy-request"
                                             style="margin: 0; display: inline-flex;">
                                             @csrf
-                                            <button type="submit" class="btn-icon" style="color: #ef4444;"
+                                            <button type="submit" class="btn-icon" style="color: var(--danger, #ef4444);"
                                                 title="Hapus Request"><i class="fas fa-trash-alt"></i></button>
                                         </form>
                                     </div>

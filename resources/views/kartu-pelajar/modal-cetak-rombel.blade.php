@@ -8,7 +8,7 @@
 
         <!-- Header -->
         <div
-            style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            style="background: linear-gradient(135deg, var(--accent, #0284c7) 0%, #0369a1 100%); color: #ffffff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div
                     style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); background: rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center; font-size: var(--text-md, 1rem);">
@@ -27,7 +27,7 @@
 
         <!-- Body -->
         <div style="padding: 20px; background: #ffffff;">
-            <p style="font-size: var(--text-sm, 0.8125rem); color: #64748b; margin-bottom: 14px; line-height: 1.5;">
+            <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted, #64748b); margin-bottom: 14px; line-height: 1.5;">
                 Pilih Rombongan Belajar (Kelas) yang kartu pelajarnya ingin dicetak masal. Sistem akan menata kartu
                 dalam format siap cetak Portrait CR-80 pada kertas A4.
             </p>
@@ -38,7 +38,7 @@
                     Pilih Rombongan Belajar (Kelas):
                 </label>
                 <select id="selectCetakRombel" class="form-control"
-                    style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid #cbd5e1; font-size: var(--text-base, 0.875rem); font-weight: 600; color: #0f172a;">
+                    style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid #cbd5e1; font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-main, #0f172a);">
                     <option value="">-- Pilih Kelas / Rombel --</option>
                     @if (isset($filterRombel))
                         @foreach ($filterRombel as $r)
@@ -59,13 +59,13 @@
                     <label
                         style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem); color: #334155; cursor: pointer;">
                         <input type="radio" name="cakupan_cetak_rombel" value="semua" checked
-                            style="accent-color: #0284c7; width: 16px; height: 16px;">
+                            style="accent-color: var(--accent, #0284c7); width: 16px; height: 16px;">
                         <span>Semua Siswa di Rombel Terpilih</span>
                     </label>
                     <label
                         style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem); color: #b45309; font-weight: 600; cursor: pointer;">
                         <input type="radio" name="cakupan_cetak_rombel" value="menunggu"
-                            style="accent-color: #f59e0b; width: 16px; height: 16px;">
+                            style="accent-color: var(--warning, #f59e0b); width: 16px; height: 16px;">
                         <span><i class="fas fa-hourglass-half text-warning me-1"></i> Hanya Siswa Status "Menunggu" di
                             Request Cetak</span>
                     </label>
@@ -78,10 +78,10 @@
                 <label
                     style="display: flex; align-items: center; gap: 8px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #1e293b; cursor: pointer; margin: 0;">
                     <input type="checkbox" id="checkHanyaAdaFoto" checked
-                        style="accent-color: #059669; width: 16px; height: 16px; cursor: pointer;">
+                        style="accent-color: var(--success, #059669); width: 16px; height: 16px; cursor: pointer;">
                     <span><i class="fas fa-camera text-success me-1"></i> Hanya Siswa yang Sudah Ada Foto</span>
                 </label>
-                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-left: 24px; margin-top: 2px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b); margin-left: 24px; margin-top: 2px;">
                     Siswa yang belum mengunggah foto formal akan otomatis dilewati agar kartu tidak tercetak
                     kosong/avatar.
                 </div>
@@ -103,7 +103,7 @@
                 Batal
             </button>
             <button type="button" class="btn btn-primary" onclick="proceedCetakRombel()"
-                style="font-size: var(--text-sm, 0.8125rem); padding: 7px 18px; background: #0284c7; border-color: #0284c7; display: inline-flex; align-items: center; gap: 6px;">
+                style="font-size: var(--text-sm, 0.8125rem); padding: 7px 18px; background: var(--accent, #0284c7); border-color: var(--accent, #0284c7); display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fas fa-arrow-up-right-from-square"></i> Buka Halaman Cetak &amp; Unduh ZIP
             </button>
         </div>

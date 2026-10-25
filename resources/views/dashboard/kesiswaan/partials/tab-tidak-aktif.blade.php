@@ -48,7 +48,7 @@
                                             </div>
                                         @else
                                             <div class="pd-foto-thumb empty"
-                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
+                                                style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.08); border: 1.5px dashed rgba(239,68,68,0.4); display: flex; align-items: center; justify-content: center; color: var(--danger, #ef4444); font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
                                                 <i class="fas fa-user-slash" style="opacity: 0.7;"></i>
                                             </div>
                                         @endif
@@ -60,12 +60,12 @@
                                                     style="font-weight: 700; color: var(--text-color); cursor: pointer;">{{ $item->nama }}</span>
                                                 @if ($item->status_keluar === 'Alumni')
                                                     <span class="badge"
-                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(16,185,129,0.12); color: #10b981; padding: 2px 6px; white-space: nowrap;">
+                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(16,185,129,0.12); color: var(--success, #10b981); padding: 2px 6px; white-space: nowrap;">
                                                         <i class="fas fa-graduation-cap me-1"></i>Alumni
                                                     </span>
                                                 @else
                                                     <span class="badge"
-                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(245,158,11,0.12); color: #f59e0b; padding: 2px 6px; white-space: nowrap;">
+                                                        style="font-size: var(--text-2xs, 0.6875rem); background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); padding: 2px 6px; white-space: nowrap;">
                                                         <i
                                                             class="fas fa-right-from-bracket me-1"></i>{{ $item->status_keluar ?: 'Tidak Aktif' }}
                                                     </span>
@@ -167,7 +167,7 @@
                                         @if (!empty($item->foto_url))
                                             <button type="button" class="btn-icon" title="Lihat Pasfoto"
                                                 onclick="openPhotoPreviewModal('{{ $item->foto_url }}', '{{ addslashes($item->nama) }}')">
-                                                <i class="fas fa-image" style="color: #10b981;"></i>
+                                                <i class="fas fa-image" style="color: var(--success, #10b981);"></i>
                                             </button>
                                         @endif
                                         <button type="button" class="btn-icon" title="Lihat Biodata Lengkap"

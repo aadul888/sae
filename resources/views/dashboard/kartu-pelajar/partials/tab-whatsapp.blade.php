@@ -93,7 +93,7 @@
                         <div id="waLivePreviewContent" style="white-space: pre-wrap; word-break: break-word;">
                             <!-- Live content rendered by JS -->
                         </div>
-                        <div style="text-align: right; font-size: var(--text-2xs, 0.6875rem); color: #64748b; margin-top: 6px;">
+                        <div style="text-align: right; font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted, #64748b); margin-top: 6px;">
                             {{ date('H:i') }} <i class="fas fa-check-double text-primary"></i>
                         </div>
                     </div>

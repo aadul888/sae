@@ -69,7 +69,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-chalkboard-user"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -80,17 +80,17 @@
         @elseif ($activeTab === 'tidak_aktif')
             {{-- Rekap 4 Card untuk Tab Siswa Tidak Aktif --}}
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-user-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                         {{ number_format($stats['total_tidak_aktif'] ?? 0) }}</div>
                     <div class="dash-stat-label">Total Tidak Aktif</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-right-from-bracket"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -100,7 +100,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-ban"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -110,7 +110,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(148,163,184,0.15); color: #94a3b8;">
+                <div class="dash-stat-icon" style="background: rgba(148,163,184,0.15); color: var(--text-muted, #94a3b8);">
                     <i class="fas fa-arrow-right-from-bracket"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -122,27 +122,27 @@
         @elseif ($activeTab === 'berkas')
             {{-- Rekap 4 Card untuk Tab Validasi Berkas --}}
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         {{ number_format($stats['berkas_menunggu'] ?? 0) }}</div>
                     <div class="dash-stat-label">Menunggu Validasi</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-circle-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                         {{ number_format($stats['berkas_ditolak'] ?? 0) }}</div>
                     <div class="dash-stat-label">Ada Berkas Ditolak</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(148,163,184,0.15); color: #94a3b8;">
+                <div class="dash-stat-icon" style="background: rgba(148,163,184,0.15); color: var(--text-muted, #94a3b8);">
                     <i class="fas fa-folder-minus"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -152,11 +152,11 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                         {{ number_format($stats['berkas_lengkap'] ?? 0) }}</div>
                     <div class="dash-stat-label">Lengkap &amp; Valid</div>
                 </div>
@@ -164,41 +164,41 @@
         @elseif ($activeTab === 'usulan')
             {{-- Rekap 4 Card untuk Tab Usulan Perubahan Data --}}
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock-rotate-left"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         {{ number_format($stats['usulan_menunggu'] ?? 0) }}</div>
                     <div class="dash-stat-label">Menunggu Review</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                         {{ number_format($stats['usulan_disetujui'] ?? 0) }}</div>
                     <div class="dash-stat-label">Disetujui (Siap Dapodik)</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
                     <i class="fas fa-cloud-arrow-up"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #3b82f6;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--primary, #3b82f6);">
                         {{ number_format($stats['usulan_dapodik'] ?? 0) }}</div>
                     <div class="dash-stat-label">Selesai di Dapodik</div>
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-circle-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #ef4444;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--danger, #ef4444);">
                         {{ number_format($stats['usulan_ditolak'] ?? 0) }}</div>
                     <div class="dash-stat-label">Ditolak Kesiswaan</div>
                 </div>
@@ -206,7 +206,7 @@
         @elseif ($activeTab === 'alumni')
             {{-- Rekap 4 Card untuk Tab Alumni --}}
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #2563eb;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary-hover, #2563eb);">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -236,7 +236,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-layer-group"></i>
                 </div>
                 <div class="dash-stat-info">

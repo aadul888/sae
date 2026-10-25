@@ -42,16 +42,16 @@
 
         <div style="position: relative; display: inline-block;" id="dropdownUnduhJpgWrap">
             <button type="button" id="btnUnduhJpg" onclick="toggleUnduhJpgDropdown(event)" class="btn-action"
-                style="background: #059669 !important; color: #ffffff !important;">
+                style="background: var(--success, #059669) !important; color: #ffffff !important;">
                 <i class="fas fa-file-image"></i> Unduh JPG <i class="fas fa-chevron-down"
                     style="font-size: var(--text-xs, 0.75rem); margin-left: 3px;"></i>
             </button>
             <div id="menuUnduhJpg"
-                style="display: none; position: absolute; top: calc(100% + 8px); right: 0; background: #0f172a; border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-lg, 12px); box-shadow: 0 10px 25px rgba(0,0,0,0.4); min-width: 200px; padding: 6px 0; z-index: 1000;"
+                style="display: none; position: absolute; top: calc(100% + 8px); right: 0; background: var(--text-main, #0f172a); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--radius-lg, 12px); box-shadow: 0 10px 25px rgba(0,0,0,0.4); min-width: 200px; padding: 6px 0; z-index: 1000;"
                 onclick="event.stopPropagation()">
                 <button type="button" onclick="unduhHalamanSingleJpg('both')"
                     style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #f8fafc; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-images" style="color: #10b981; width: 16px;"></i> Depan &amp; Belakang (2 JPG)
+                    <i class="fas fa-images" style="color: var(--success, #10b981); width: 16px;"></i> Depan &amp; Belakang (2 JPG)
                 </button>
                 <button type="button" onclick="unduhHalamanSingleJpg('front')"
                     style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #f8fafc; cursor: pointer; display: flex; align-items: center; gap: 8px;">
@@ -59,7 +59,7 @@
                 </button>
                 <button type="button" onclick="unduhHalamanSingleJpg('back')"
                     style="width: 100%; text-align: left; padding: 8px 14px; background: transparent; border: none; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #f8fafc; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-image" style="color: #94a3b8; width: 16px;"></i> Sisi Belakang Saja (.jpg)
+                    <i class="fas fa-image" style="color: var(--text-muted, #94a3b8); width: 16px;"></i> Sisi Belakang Saja (.jpg)
                 </button>
             </div>
         </div>

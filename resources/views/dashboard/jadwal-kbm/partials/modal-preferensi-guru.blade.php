@@ -20,7 +20,7 @@
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label for="prefPtkId"
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Pilih Guru (PTK) <span style="color: #ef4444;">*</span>
+                        Pilih Guru (PTK) <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <select id="prefPtkId" name="ptk_id" class="form-control"
                         style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); background: var(--bg-card); color: var(--text-color);"

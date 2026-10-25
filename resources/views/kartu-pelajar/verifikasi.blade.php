@@ -84,7 +84,7 @@
                         @if (!empty($card['foto_url']))
                             <img src="{{ $card['foto_url'] }}" alt="Foto {{ $card['nama'] }}" class="main-photo">
                         @else
-                            <div style="position: relative; z-index: 2; text-align: center; color: #94a3b8;">
+                            <div style="position: relative; z-index: 2; text-align: center; color: var(--text-muted, #94a3b8);">
                                 <i class="fas fa-user-graduate" style="font-size: 42px; opacity: 0.65;"></i>
                                 <div
                                     style="font-size: var(--text-2xs, 0.6875rem); font-weight: 700; margin-top: 6px; letter-spacing: 0.5px;">

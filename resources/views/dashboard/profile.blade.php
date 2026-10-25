@@ -65,7 +65,7 @@
                         </span>
                     @endif
                     <span class="profile-meta-chip profile-chip-status" title="Status Akun Pengguna"
-                        style="color: #10b981; border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08);">
+                        style="color: var(--success, #10b981); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08);">
                         <i class="fas fa-circle-check"></i> <span>Akun Aktif</span>
                     </span>
                 </div>
@@ -256,7 +256,7 @@
                         </h2>
                         @if ($user->password_updated_at)
                             <span
-                                style="font-size: var(--text-xs, 0.75rem); color: #10b981; display: inline-flex; align-items: center; gap: 4px;">
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); display: inline-flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-clock"></i> Diperbarui:
                                 {{ \Carbon\Carbon::parse($user->password_updated_at)->diffForHumans() }}
                             </span>
@@ -290,7 +290,7 @@
                                     </button>
                                 </div>
                                 @error('current_password')
-                                    <div style="color: #ef4444; font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
+                                    <div style="color: var(--danger, #ef4444); font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
                                         <i class="fas fa-circle-exclamation me-1"></i> {{ $message }}
                                     </div>
                                 @enderror
@@ -313,7 +313,7 @@
                                     </button>
                                 </div>
                                 @error('password')
-                                    <div style="color: #ef4444; font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
+                                    <div style="color: var(--danger, #ef4444); font-size: var(--text-sm, 0.8125rem); margin-top: 5px;">
                                         <i class="fas fa-circle-exclamation me-1"></i> {{ $message }}
                                     </div>
                                 @enderror
@@ -461,7 +461,7 @@
                                 </div>
                             </div>
                             <div id="modalFotoFileSpecs"
-                                style="display: none; font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 8px; font-weight: 600;">
+                                style="display: none; font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 8px; font-weight: 600;">
                                 -
                             </div>
                         </div>

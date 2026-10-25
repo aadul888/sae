@@ -3,40 +3,40 @@
 <!-- 1. Akses Cepat Menu Kesiswaan (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.peserta-didik-aktif.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Buku Induk & Data Pokok Siswa">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Buku Induk & Data Pokok Siswa">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-user-graduate"></i>
         </div>
         <span class="kepegawaian-quick-label">Buku Induk</span>
     </a>
 
     <a href="{{ route('dashboard.rombel.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Rombongan Belajar">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Rombongan Belajar">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-door-open"></i>
         </div>
         <span class="kepegawaian-quick-label">Rombel</span>
     </a>
 
     <a href="{{ route('dashboard.peserta-didik-tidak-aktif.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #ef4444;" title="Mutasi, Keluar & Alumni">
-        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--danger, #ef4444);" title="Mutasi, Keluar & Alumni">
+        <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
             <i class="fas fa-user-xmark"></i>
         </div>
         <span class="kepegawaian-quick-label">Mutasi &amp; Alumni</span>
     </a>
 
     <a href="{{ route('dashboard.kompetensi-keahlian.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Kompetensi Keahlian / Jurusan">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Kompetensi Keahlian / Jurusan">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-layer-group"></i>
         </div>
         <span class="kepegawaian-quick-label">Jurusan</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'kesiswaan']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-bullseye"></i>
         </div>
         <span class="kepegawaian-quick-label">Target Capaian</span>
@@ -54,7 +54,7 @@
 <!-- 2. Quick Stats Grid Kesiswaan -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-user-graduate"></i>
         </div>
         <div class="dash-stat-info">
@@ -64,7 +64,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-id-card"></i>
         </div>
         <div class="dash-stat-info">
@@ -74,7 +74,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-door-open"></i>
         </div>
         <div class="dash-stat-info">
@@ -105,7 +105,7 @@
                 Visualisasi rasio gender, sebaran rombel per tingkat, serta distribusi jurusan kompetensi keahlian.
             </p>
         </div>
-        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #3b82f6; background: rgba(59,130,246,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(59,130,246,0.25);">
+        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--primary, #3b82f6); background: rgba(59,130,246,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(59,130,246,0.25);">
             <i class="fas fa-user-graduate me-1"></i> {{ number_format($stats['total_siswa'] ?? 1126, 0, ',', '.') }} Siswa
         </div>
     </div>
@@ -122,7 +122,7 @@
             </div>
             <div style="display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: var(--text-sm, 0.8125rem); border-top: 1px solid var(--border-color); padding-top: 8px;">
                 <span style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--primary, #3b82f6);"></span>
                     <span>Laki-laki: <strong>{{ $kesiswaanCharts['gender']['L'] ?? 0 }}</strong></span>
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 6px;">

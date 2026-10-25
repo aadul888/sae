@@ -23,7 +23,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/fontawesome/css/all.min.css') }}">
 </head>
 
-<body style="background: #f1f5f9; min-height: 100vh; padding: 20px 0;">
+<body style="background: var(--text-main, #f1f5f9); min-height: 100vh; padding: 20px 0;">
 
     <!-- Action Toolbar (Hanya Muncul di Layar, Tersembunyi saat Dicetak) -->
     <div class="no-print-bar">
@@ -179,7 +179,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center" style="padding: 16px; color: #64748b;">
+                                <td colspan="8" class="text-center" style="padding: 16px; color: var(--text-muted, #64748b);">
                                     Belum ada rekam presensi untuk peserta didik pada bulan ini.
                                 </td>
                             </tr>
@@ -257,7 +257,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="text-center" style="padding: 16px; color: #64748b;">
+                                <td colspan="9" class="text-center" style="padding: 16px; color: var(--text-muted, #64748b);">
                                     Tidak ada data peserta didik pada rombel ini.
                                 </td>
                             </tr>
@@ -357,7 +357,7 @@
                     <span style="color: #6d28d9; font-weight: bold; margin-right: 8px;">S = Sakit</span>
                     <span style="color: #b91c1c; font-weight: bold; margin-right: 8px;">A = Alpha / Tanpa
                         Keterangan</span>
-                    <span style="color: #94a3b8; font-weight: bold;">. = Libur / Belum Ada Data</span>
+                    <span style="color: var(--text-muted, #94a3b8); font-weight: bold;">. = Libur / Belum Ada Data</span>
                 </div>
 
                 <!-- ================================================================= -->

@@ -25,7 +25,7 @@
                 <div style="margin-bottom: 20px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Biaya Standar Pembuatan Kartu Pelajar (Rp) <span style="color: #ef4444;">*</span>
+                        Biaya Standar Pembuatan Kartu Pelajar (Rp) <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="number" name="biaya_standar"
                         value="{{ old('biaya_standar', $settings->biaya_standar) }}" min="0" step="500"
@@ -106,7 +106,7 @@
                             @if ($settings->qris_image_path)
                                 <div style="margin-top: 10px;">
                                     <label
-                                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); color: #ef4444; cursor: pointer;">
+                                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); color: var(--danger, #ef4444); cursor: pointer;">
                                         <input type="checkbox" name="hapus_qris" value="1">
                                         <span><i class="fas fa-trash-alt me-1"></i> Hapus gambar QRIS yang terunggah saat
                                             ini</span>

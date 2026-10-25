@@ -19,14 +19,14 @@
                         <div id="methodField"></div>
 
                         <div class="form-group-compact" style="margin-bottom: 14px;">
-                            <label>Nama Agenda / Kegiatan <span style="color: #ef4444;">*</span></label>
+                            <label>Nama Agenda / Kegiatan <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="nama_kegiatan" id="inputNamaKegiatan" required
                                 placeholder="Contoh: Pembelajaran Jarak Jauh (PJJ) / Ujian Asesmen / Libur Nasional"
                                 maxlength="200">
                         </div>
 
                         <div class="form-group-compact" style="margin-bottom: 14px;">
-                            <label>Kondisi / Mode Presensi <span style="color: #ef4444;">*</span></label>
+                            <label>Kondisi / Mode Presensi <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="mode_presensi" id="inputModePresensi" required
                                 style="width: 100%; padding: 10px 12px; font-size: var(--text-base, 0.875rem);">
                                 <option value="luring" selected>Luring (Presensi Efektif Sekolah — Scanner Terminal Aktif)
@@ -43,7 +43,7 @@
                         <div class="modal-form-grid"
                             style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                             <div class="form-group-compact">
-                                <label>Kategori Agenda <span style="color: #ef4444;">*</span></label>
+                                <label>Kategori Agenda <span style="color: var(--danger, #ef4444);">*</span></label>
                                 <select name="tipe" id="inputTipe" required>
                                     <option value="hari_efektif" selected>Hari Efektif Belajar</option>
                                     <option value="pembelajaran_daring">Pembelajaran Daring (PJJ)</option>
@@ -65,12 +65,12 @@
                         <div class="modal-form-grid"
                             style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                             <div class="form-group-compact">
-                                <label>Tanggal Mulai <span style="color: #ef4444;">*</span></label>
+                                <label>Tanggal Mulai <span style="color: var(--danger, #ef4444);">*</span></label>
                                 <input type="date" name="tanggal_mulai" id="inputTanggalMulai" required>
                             </div>
 
                             <div class="form-group-compact">
-                                <label>Tanggal Selesai <span style="color: #ef4444;">*</span></label>
+                                <label>Tanggal Selesai <span style="color: var(--danger, #ef4444);">*</span></label>
                                 <input type="date" name="tanggal_selesai" id="inputTanggalSelesai" required>
                             </div>
                         </div>

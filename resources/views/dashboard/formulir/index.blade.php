@@ -48,7 +48,7 @@
     @if ($canManage)
         <div class="form-stat-grid">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">
+                <div class="dash-stat-icon" style="background: rgba(2, 132, 199, 0.12); color: var(--accent, #0284c7);">
                     <i class="fas fa-file-lines"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -58,7 +58,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--success, #10b981);">
                     <i class="fas fa-toggle-on"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -78,7 +78,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-globe"></i>
                 </div>
                 <div class="dash-stat-info">

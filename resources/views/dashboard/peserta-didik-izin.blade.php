@@ -47,7 +47,7 @@
             <i class="fas fa-qrcode"></i> Tiket e-Izin Keluar-Masuk Gerbang
             @if (isset($statKeluarAktif) && $statKeluarAktif > 0)
                 <span class="badge"
-                    style="background: #ef4444; color: #fff; margin-left: 4px; font-size: var(--text-xs, 0.75rem);">{{ $statKeluarAktif }}</span>
+                    style="background: var(--danger, #ef4444); color: #fff; margin-left: 4px; font-size: var(--text-xs, 0.75rem);">{{ $statKeluarAktif }}</span>
             @endif
         </a>
     </div>
@@ -68,7 +68,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-hourglass-half"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -80,7 +80,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -92,7 +92,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-circle-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -225,7 +225,7 @@
                                     data-label="Jenis">
                                     @if ($item->jenis === 'sakit')
                                         <span class="badge"
-                                            style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
+                                            style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
                                             <i class="fas fa-notes-medical me-1"></i> Sakit
                                         </span>
                                     @elseif ($item->jenis === 'dispen')
@@ -235,7 +235,7 @@
                                         </span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
+                                            style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 10px; border-radius: var(--radius-sm, 6px);">
                                             <i class="fas fa-file-lines me-1"></i> Izin
                                         </span>
                                     @endif
@@ -282,7 +282,7 @@
                                     data-label="Status Validasi">
                                     @if ($item->status === 'disetujui')
                                         <span class="badge"
-                                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
+                                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                             <i class="fas fa-check-circle me-1"></i> Disetujui
                                         </span>
                                         @if ($item->disetujui_oleh)
@@ -292,17 +292,17 @@
                                         @endif
                                     @elseif ($item->status === 'ditolak')
                                         <span class="badge"
-                                            style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
+                                            style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                             <i class="fas fa-times-circle me-1"></i> Ditolak
                                         </span>
                                         @if ($item->catatan_petugas)
-                                            <div style="font-size: var(--text-xs, 0.75rem); color: #ef4444; margin-top: 3px;">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--danger, #ef4444); margin-top: 3px;">
                                                 Catatan: {{ $item->catatan_petugas }}
                                             </div>
                                         @endif
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
+                                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px; border-radius: var(--radius-sm, 6px);">
                                             <i class="fas fa-hourglass-half me-1"></i> Menunggu
                                         </span>
                                         <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 3px;">
@@ -330,7 +330,7 @@
                                             <button type="button" class="btn-icon btn-cancel-izin"
                                                 data-id="{{ $item->id }}" data-jenis="{{ $item->jenis_label }}"
                                                 title="Batalkan Pengajuan Ini"
-                                                style="color: #ef4444; border-color: rgba(239,68,68,0.25);">
+                                                style="color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.25);">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         @else
@@ -411,11 +411,11 @@
                                 <td style="padding: 12px 18px;">
                                     @if ($item->jenis_izin === 'keluar_sebentar')
                                         <span class="badge"
-                                            style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3);">Keluar
+                                            style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59, 130, 246, 0.3);">Keluar
                                             Sebentar</span>
                                     @elseif ($item->jenis_izin === 'pulang_cepat')
                                         <span class="badge"
-                                            style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">Pulang
+                                            style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239, 68, 68, 0.3);">Pulang
                                             Cepat</span>
                                     @else
                                         <span class="badge"
@@ -433,7 +433,7 @@
                                             {{ substr($item->jam_rencana_kembali, 0, 5) }}</div>
                                     @endif
                                     @if ($item->jam_kembali_aktual)
-                                        <div style="color: #10b981; font-weight: 600;">Aktual:
+                                        <div style="color: var(--success, #10b981); font-weight: 600;">Aktual:
                                             {{ substr($item->jam_kembali_aktual, 0, 5) }}</div>
                                     @endif
                                 </td>
@@ -443,19 +443,19 @@
                                 <td style="padding: 12px 18px;">
                                     @if ($item->status === 'menunggu_satpam')
                                         <span class="badge"
-                                            style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3);">Menunggu
+                                            style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3);">Menunggu
                                             Gerbang</span>
                                     @elseif ($item->status === 'di_luar')
                                         <span class="badge"
-                                            style="background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3);">Di
+                                            style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59, 130, 246, 0.3);">Di
                                             Luar</span>
                                     @elseif ($item->status === 'kembali')
                                         <span class="badge"
-                                            style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">Sudah
+                                            style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); border: 1px solid rgba(16, 185, 129, 0.3);">Sudah
                                             Kembali</span>
                                     @elseif ($item->status === 'pulang_selesai')
                                         <span class="badge"
-                                            style="background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3);">Pulang
+                                            style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1); border: 1px solid rgba(99, 102, 241, 0.3);">Pulang
                                             Selesai</span>
                                     @else
                                         <span class="badge"
@@ -574,7 +574,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                        Jenis Permohonan: <span style="color: #ef4444;">*</span>
+                        Jenis Permohonan: <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <select name="jenis" id="modalSelectJenis" required class="form-control"
                         style="width: 100%; font-size: var(--text-base, 0.875rem); padding: 9px 12px;">
@@ -588,7 +588,7 @@
                     <div>
                         <label
                             style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                            Mulai Tanggal: <span style="color: #ef4444;">*</span>
+                            Mulai Tanggal: <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="date" name="tanggal_mulai" id="modalTglMulai"
                             value="{{ now()->toDateString() }}" required class="form-control"
@@ -597,7 +597,7 @@
                     <div>
                         <label
                             style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                            Sampai Tanggal: <span style="color: #ef4444;">*</span>
+                            Sampai Tanggal: <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="date" name="tanggal_selesai" id="modalTglSelesai"
                             value="{{ now()->toDateString() }}" required class="form-control"
@@ -608,7 +608,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 6px;">
-                        Alasan / Keterangan Lengkap: <span style="color: #ef4444;">*</span>
+                        Alasan / Keterangan Lengkap: <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <textarea name="alasan" id="modalAlasan" rows="3" required
                         placeholder="Tuliskan keterangan detail alasan izin atau kondisi sakit Anda..." class="form-control"

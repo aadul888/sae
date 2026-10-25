@@ -9,7 +9,7 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-folder-closed"></i>
             </div>
             <div>
@@ -49,7 +49,7 @@
     <!-- 2. Stat Grid Baku SAE -->
     <div class="dash-stat-grid" style="margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb);">
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
@@ -58,7 +58,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-book-bookmark"></i>
             </div>
             <div class="dash-stat-info">
@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                 <i class="fas fa-person-walking-dashed-line-arrow-right"></i>
             </div>
             <div class="dash-stat-info">
@@ -76,7 +76,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-graduation-cap"></i>
             </div>
             <div class="dash-stat-info">
@@ -510,7 +510,7 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center; color: #ef4444;">
+                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.15); display: flex; align-items: center; justify-content: center; color: var(--danger, #ef4444);">
                         <i class="fas fa-person-walking-dashed-line-arrow-right"></i>
                     </div>
                     <div>
@@ -595,7 +595,7 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(245,158,11,0.15); display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                        style="width: 36px; height: 36px; border-radius: var(--radius-md, 8px); background: rgba(245,158,11,0.15); display: flex; align-items: center; justify-content: center; color: var(--warning, #f59e0b);">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
                     <div>

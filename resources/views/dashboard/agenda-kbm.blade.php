@@ -42,14 +42,14 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 10px 14px; border-radius: var(--radius-lg, 12px); margin-bottom: 16px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -58,11 +58,11 @@
     <!-- 3. Stat Grid Baku SAE (Minimalis & Compact) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-days"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ number_format($stats['hari_efektif'] ?? 0) }} <span
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ number_format($stats['hari_efektif'] ?? 0) }} <span
                         style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Hari</span></div>
                 <div class="dash-stat-label">HEB Bulan Ini (Jalan: {{ $stats['hari_efektif_berjalan'] ?? 0 }})</div>
             </div>
@@ -77,7 +77,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-check-double"></i>
             </div>
             <div class="dash-stat-info">
@@ -86,7 +86,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-hourglass-half"></i>
             </div>
             <div class="dash-stat-info">
@@ -95,7 +95,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                 <i class="fas fa-clock-rotate-left"></i>
             </div>
             <div class="dash-stat-info">
@@ -129,9 +129,9 @@
                 <div>
                     <div style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                         @if ($isHariLiburAgenda)
-                            <span style="color: #ef4444;">Informasi Kalender: Hari Ini Libur Sekolah</span>
+                            <span style="color: var(--danger, #ef4444);">Informasi Kalender: Hari Ini Libur Sekolah</span>
                             <span class="badge"
-                                style="background: #ef4444; color: #fff; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; margin-left: 6px;">KBM
+                                style="background: var(--danger, #ef4444); color: #fff; font-size: var(--text-xs, 0.75rem); padding: 2px 7px; margin-left: 6px;">KBM
                                 Off</span>
                         @else
                             <span style="color: var(--primary);">Agenda Khusus Kalender Pendidikan</span>
@@ -335,7 +335,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-chalkboard text-primary"></i> Kelas <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select id="inputRombonganBelajarId" name="rombongan_belajar_id" required
                                 style="width: 100%; height: 38px; padding: 0 10px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
@@ -350,7 +350,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-book text-primary"></i> Mata Pelajaran <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="text" id="inputNamaMataPelajaran" name="nama_mata_pelajaran" required
                                 placeholder="Mata Pelajaran..."
@@ -363,7 +363,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-calendar-day text-primary"></i> Tanggal <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="date" id="inputTanggal" name="tanggal" value="{{ date('Y-m-d') }}" required
                                 style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
@@ -372,7 +372,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-hashtag text-primary"></i> Pertemuan Ke <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="number" id="inputPertemuanKe" name="pertemuan_ke" min="1"
                                 max="100" value="1" required
@@ -382,7 +382,7 @@
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                 <i class="fas fa-signal text-primary"></i> Status KBM <span
-                                    style="color: #ef4444;">*</span>
+                                    style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select id="inputStatusKbm" name="status_kbm" required
                                 style="width: 100%; height: 38px; padding: 0 8px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); box-sizing: border-box;">
@@ -402,7 +402,7 @@
                                     <i class="fas fa-play text-primary"></i> Jam Mulai (Ke-)
                                 </span>
                                 <span id="badgeAutoJamMulai"
-                                    style="font-size: var(--text-2xs, 0.6875rem); color: #10b981; font-weight: 600; display: none;">
+                                    style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981); font-weight: 600; display: none;">
                                     <i class="fas fa-lock me-1"></i> Otomatis
                                 </span>
                             </label>
@@ -443,7 +443,7 @@
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-heading text-primary"></i> Materi Pokok / Tujuan Pembelajaran <span
-                                style="color: #ef4444;">*</span>
+                                style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="text" id="inputMateriPokok" name="materi_pokok" required
                             placeholder="Contoh: Algoritma Pengurutan (Sorting)..."
@@ -455,7 +455,7 @@
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                             <i class="fas fa-list-check text-primary"></i> Uraian Aktivitas KBM <span
-                                style="color: #ef4444;">*</span>
+                                style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <textarea id="inputUraianKegiatan" name="uraian_kegiatan" rows="3" required
                             placeholder="Uraian kegiatan KBM, apersepsi, eksplorasi materi, refleksi..."

@@ -107,11 +107,11 @@
             </div>
             <div class="stat-pill">
                 <div class="p-label">Terlambat (T)</div>
-                <div class="p-val" style="color: #d97706;">{{ number_format($sumT) }}</div>
+                <div class="p-val" style="color: var(--warning, #d97706);">{{ number_format($sumT) }}</div>
             </div>
             <div class="stat-pill">
                 <div class="p-label">Izin (I)</div>
-                <div class="p-val" style="color: #0284c7;">{{ number_format($sumI) }}</div>
+                <div class="p-val" style="color: var(--accent, #0284c7);">{{ number_format($sumI) }}</div>
             </div>
             <div class="stat-pill">
                 <div class="p-label">Sakit (S)</div>
@@ -123,11 +123,11 @@
             </div>
             <div class="stat-pill">
                 <div class="p-label">Alpha (A)</div>
-                <div class="p-val" style="color: #dc2626;">{{ number_format($sumA) }}</div>
+                <div class="p-val" style="color: var(--danger, #dc2626);">{{ number_format($sumA) }}</div>
             </div>
             <div class="stat-pill">
                 <div class="p-label">Total Hadir (H+T)</div>
-                <div class="p-val" style="color: #2563eb;">{{ number_format($sumH + $sumT) }}</div>
+                <div class="p-val" style="color: var(--primary-hover, #2563eb);">{{ number_format($sumH + $sumT) }}</div>
             </div>
         </div>
 
@@ -179,7 +179,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="{{ $rombel ? 13 : 14 }}" class="center" style="padding: 20px; color: #64748b;">
+                        <td colspan="{{ $rombel ? 13 : 14 }}" class="center" style="padding: 20px; color: var(--text-muted, #64748b);">
                             Tidak ada data peserta didik pada rombel / filter ini.
                         </td>
                     </tr>

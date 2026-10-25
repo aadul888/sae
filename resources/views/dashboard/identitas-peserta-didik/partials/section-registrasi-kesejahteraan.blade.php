@@ -110,7 +110,7 @@
                 <div class="card identitas-form-section" data-section="registrasi_kesejahteraan"
                     style="margin-bottom: 24px; padding: 22px 24px; border-radius: var(--radius-xl, 16px);">
                     <div
-                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: #2563eb; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        style="font-weight: 800; font-size: var(--text-lg, 1.125rem); color: var(--primary-hover, #2563eb); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <i class="fas fa-hand-holding-heart"></i> Bagian 7: Kesejahteraan (KKS / KIP / KIS /
                             KIS / PIP)

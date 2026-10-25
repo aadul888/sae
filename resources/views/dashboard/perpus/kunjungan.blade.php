@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-user-check"></i>
                 </div>
                 <div>
@@ -52,7 +52,7 @@
         <!-- 3. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-calendar-day"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -62,7 +62,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -72,7 +72,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                <div class="dash-stat-icon" style="background: rgba(139,92,246,0.12); color: var(--purple, #8b5cf6);">
                     <i class="fas fa-user-graduate"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -82,7 +82,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-chalkboard-teacher"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -233,7 +233,7 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon btn-delete-kunjungan"
                                                 data-nama="{{ $row->nama }}" title="Hapus Log"
-                                                style="color: #ef4444;">
+                                                style="color: var(--danger, #ef4444);">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>

@@ -106,38 +106,38 @@
                 <div class="pemberlakuan-badge-wrap" style="display: inline-flex; align-items: center; gap: 8px;">
                     @if ($isManualAktif)
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-check-circle"></i> Jadwal Manual Diberlakukan (Aktif)
                         </span>
                         <button type="button" class="btn btn-outline btn-toggle-pemberlakuan" data-mode="manual"
                             data-status="draft" data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Alihkan ke Status Draft (Sembunyikan dari Guru/Siswa)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); border-color: rgba(245,158,11,0.4); color: #f59e0b; cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); border-color: rgba(245,158,11,0.4); color: var(--warning, #f59e0b); cursor: pointer;">
                             <i class="fas fa-pause"></i>
                         </button>
                     @elseif ($isOtomatisAktif)
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Jadwal Otomatis Aktif)
                         </span>
                         <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="manual" data-status="aktif"
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa (Menonaktifkan Jadwal Otomatis)"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play"></i>
                         </button>
                     @else
                         <span class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-size: var(--text-sm, 0.8125rem); padding: 6px 12px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-clock"></i> Status Draft (Dalam Penyusunan)
                         </span>
                         <button type="button" class="btn btn-toggle-pemberlakuan" data-mode="manual" data-status="aktif"
                             data-url="{{ route('dashboard.jadwal-kbm.toggle-pemberlakuan') }}"
                             onclick="if(window.handleTogglePemberlakuan){window.handleTogglePemberlakuan(this);}"
                             title="Berlakukan Jadwal Manual Ini ke Seluruh Guru & Siswa"
-                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #10b981; color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
+                            style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--success, #10b981); color: #fff; font-weight: 700; border: none; box-shadow: 0 2px 8px rgba(16,185,129,0.3); cursor: pointer;">
                             <i class="fas fa-play"></i>
                         </button>
                     @endif
@@ -186,7 +186,7 @@
                         <button type="button" class="btn btn-outline" id="btnResetRombel"
                             data-rombel-id="{{ $activeRombel->rombongan_belajar_id }}"
                             data-rombel-name="{{ $activeRombel->nama }}"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(239,68,68,0.4); color: #ef4444;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(239,68,68,0.4); color: var(--danger, #ef4444);"
                             title="Kosongkan Seluruh Jadwal Kelas Ini">
                             <i class="fas fa-rotate-left"></i>
                         </button>
@@ -254,14 +254,14 @@
                         {{ $semesterAktif ?? '1' }} {{ ($semesterAktif ?? '1') == '1' ? 'Ganjil' : 'Genap' }})</span>
                     @if ($isLibur)
                         <span class="badge"
-                            style="background: rgba(239,68,68,0.15); color: #ef4444; font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-md, 8px);">Libur</span>
+                            style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-md, 8px);">Libur</span>
                     @elseif (!empty($agendaHariIni))
                         <span class="badge"
                             style="background: rgba(99,102,241,0.15); color: var(--primary); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-md, 8px);">Agenda
                             Khusus</span>
                     @else
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.15); color: #10b981; font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-md, 8px);">Hari
+                            style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem); padding: 2px 8px; border-radius: var(--radius-md, 8px);">Hari
                             Efektif KBM</span>
                     @endif
                 </div>
@@ -269,7 +269,7 @@
                     Hari Ini ({{ \Carbon\Carbon::parse($tanggalHariIni ?? now())->translatedFormat('l, d F Y') }}):
                     @if ($isLibur)
                         <strong
-                            style="color: #ef4444;">{{ $statusHariIni['keterangan'] ?? 'Hari Libur / Tidak Ada KBM' }}</strong>
+                            style="color: var(--danger, #ef4444);">{{ $statusHariIni['keterangan'] ?? 'Hari Libur / Tidak Ada KBM' }}</strong>
                     @elseif (!empty($agendaHariIni))
                         <strong
                             style="color: var(--primary);">{{ $agendaHariIni->nama_agenda ?: ($agendaHariIni->nama_kegiatan ?: $agendaHariIni->kegiatan ?? 'Agenda Khusus') }}</strong>
@@ -291,7 +291,7 @@
         <div class="card"
             style="padding: 24px; text-align: center; margin-bottom: 24px; border: 1.5px dashed rgba(239,68,68,0.4); background: rgba(239,68,68,0.04);">
             <div
-                style="width: 52px; height: 52px; border-radius: 50%; background: rgba(239,68,68,0.12); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin-bottom: 12px;">
+                style="width: 52px; height: 52px; border-radius: 50%; background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin-bottom: 12px;">
                 <i class="fas fa-circle-exclamation"></i>
             </div>
             <h4 style="margin-bottom: 6px; font-weight: 700; color: var(--text-color);">Akses Belum Dikonfigurasi</h4>
@@ -316,11 +316,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                         {{ $summary['total_terjadwal'] }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">JP</span>
                     </div>
                     <div class="dash-stat-label">Sudah Terjadwal</div>
@@ -329,12 +329,12 @@
 
             <div class="dash-stat-card">
                 <div class="dash-stat-icon"
-                    style="background: {{ $summary['sisa_jp'] > 0 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ $summary['sisa_jp'] > 0 ? '#f59e0b' : '#10b981' }};">
+                    style="background: {{ $summary['sisa_jp'] > 0 ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)' }}; color: {{ $summary['sisa_jp'] > 0 ? '#f59e0b' : 'var(--success, #10b981)' }};">
                     <i class="fas {{ $summary['sisa_jp'] > 0 ? 'fa-hourglass-half' : 'fa-circle-check' }}"></i>
                 </div>
                 <div class="dash-stat-info">
                     <div class="dash-stat-value"
-                        style="font-size: var(--text-2xl, 1.5rem); color: {{ $summary['sisa_jp'] > 0 ? '#f59e0b' : '#10b981' }};">
+                        style="font-size: var(--text-2xl, 1.5rem); color: {{ $summary['sisa_jp'] > 0 ? '#f59e0b' : 'var(--success, #10b981)' }};">
                         {{ $summary['sisa_jp'] }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">JP</span>
                     </div>
                     <div class="dash-stat-label">Sisa Belum Terjadwal</div>
@@ -370,7 +370,7 @@
             <div
                 style="width: 100%; height: 9px; background: var(--bg-hover); border-radius: var(--radius-md, 8px); overflow: hidden; border: 1px solid var(--border-color);">
                 <div
-                    style="width: {{ $summary['persen_selesai'] }}%; height: 100%; background: {{ $summary['persen_selesai'] >= 100 ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #6366f1, #8b5cf6)' }}; transition: width 0.4s ease;">
+                    style="width: {{ $summary['persen_selesai'] }}%; height: 100%; background: {{ $summary['persen_selesai'] >= 100 ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, var(--primary-light, #6366f1), #8b5cf6)' }}; transition: width 0.4s ease;">
                 </div>
             </div>
         </div>
@@ -493,17 +493,17 @@
                         </span>
                         <span style="display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted);">
                             <span
-                                style="width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(239,68,68,0.15); border: 1px solid #ef4444;"></span>
+                                style="width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(239,68,68,0.15); border: 1px solid var(--danger, #ef4444);"></span>
                             Upacara
                         </span>
                         <span style="display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted);">
                             <span
-                                style="width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(16,185,129,0.15); border: 1px solid #10b981;"></span>
+                                style="width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(16,185,129,0.15); border: 1px solid var(--success, #10b981);"></span>
                             Pembiasaan
                         </span>
                         <span style="display: inline-flex; align-items: center; gap: 4px; color: var(--text-muted);">
                             <span
-                                style="width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(245,158,11,0.15); border: 1px solid #f59e0b;"></span>
+                                style="width: 10px; height: 10px; border-radius: var(--radius-xs, 4px); background: rgba(245,158,11,0.15); border: 1px solid var(--warning, #f59e0b);"></span>
                             Istirahat
                         </span>
                     </div>
@@ -667,7 +667,7 @@
                                                             data-nama-mapel="{{ $schedule->nama_mata_pelajaran }}"
                                                             data-hari="{{ $schedule->hari }}"
                                                             data-jam="Jam ke-{{ $schedule->jam_ke_mulai }} s/d {{ $schedule->jam_ke_selesai }}"
-                                                            style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px); color: #ef4444; border-color: rgba(239,68,68,0.3);">
+                                                            style="padding: 6px 14px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-sm, 6px); color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.3);">
                                                             <i class="fas fa-trash me-1"></i> Hapus
                                                         </button>
                                                     @endif
@@ -894,7 +894,7 @@
 
                                                             @if ($schedule->ruangan)
                                                                 <div
-                                                                    style="font-size: var(--text-xs, 0.75rem); color: #10b981; display: flex; align-items: center; gap: 4px;">
+                                                                    style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); display: flex; align-items: center; gap: 4px;">
                                                                     <i class="fas fa-location-dot"
                                                                         style="font-size: var(--text-2xs, 0.6875rem);"></i>
                                                                     <span>{{ $schedule->ruangan }}</span>
@@ -903,7 +903,7 @@
 
                                                             @if ($routine && !$isRoutine)
                                                                 <div
-                                                                    style="margin-top: 2px; font-size: var(--text-2xs, 0.6875rem); color: #ef4444; background: rgba(239,68,68,0.1); border-radius: var(--radius-xs, 4px); padding: 1px 4px; display: inline-flex; align-items: center; gap: 3px;">
+                                                                    style="margin-top: 2px; font-size: var(--text-2xs, 0.6875rem); color: var(--danger, #ef4444); background: rgba(239,68,68,0.1); border-radius: var(--radius-xs, 4px); padding: 1px 4px; display: inline-flex; align-items: center; gap: 3px;">
                                                                     <i class="fas fa-triangle-exclamation"></i>
                                                                     <span>Bentrok {{ $routine->nama }}</span>
                                                                 </div>

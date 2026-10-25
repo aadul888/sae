@@ -126,11 +126,11 @@
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                 <label
-                                    style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #d97706; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                    style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--warning, #d97706); margin: 0; display: flex; align-items: center; gap: 6px;">
                                     <i class="fas fa-boxes-stacked"></i> Kaitkan Barang Sarpras / BAST (Opsional):
                                 </label>
                                 <button type="button" id="btnQuickBastKeluar" class="btn btn-outline"
-                                    style="padding: 2px 8px; font-size: var(--text-xs, 0.75rem); border-color: rgba(245,158,11,0.4); color: #d97706;">
+                                    style="padding: 2px 8px; font-size: var(--text-xs, 0.75rem); border-color: rgba(245,158,11,0.4); color: var(--warning, #d97706);">
                                     <i class="fas fa-magic me-1"></i> Format BAST Otomatis
                                 </button>
                             </div>
@@ -349,7 +349,7 @@
                         <div id="sectionPanggilanOrtu"
                             style="display: none; background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.25); border-radius: var(--radius-lg, 12px); padding: 12px 14px; flex-direction: column; gap: 10px;">
                             <div
-                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #ef4444; display: flex; align-items: center; gap: 6px;">
+                                style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); display: flex; align-items: center; gap: 6px;">
                                 <i class="fas fa-calendar-check"></i> Rincian Jadwal &amp; Agenda Pertemuan dengan
                                 Orang
                                 Tua:
@@ -483,7 +483,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
-                            Kegiatan / Tugas Dinas <span style="color: #ef4444;">*</span></label>
+                            Kegiatan / Tugas Dinas <span style="color: var(--danger, #ef4444);">*</span></label>
                         <input type="text" name="nama_kegiatan" class="form-control"
                             placeholder="Contoh: Mengikuti Bimtek Implementasi Kurikulum Merdeka" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
@@ -492,7 +492,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Lokasi
-                            / Tempat Tujuan <span style="color: #ef4444;">*</span></label>
+                            / Tempat Tujuan <span style="color: var(--danger, #ef4444);">*</span></label>
                         <input type="text" name="lokasi_tujuan" class="form-control"
                             placeholder="Contoh: Hotel Grand Sahid / BBGP Provinsi" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
@@ -502,14 +502,14 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Berangkat <span style="color: #ef4444;">*</span></label>
+                                Berangkat <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="date" name="tanggal_berangkat" class="form-control" required
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                                Kembali <span style="color: #ef4444;">*</span></label>
+                                Kembali <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="date" name="tanggal_kembali" class="form-control" required
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                         </div>
@@ -518,7 +518,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Beban
-                            Anggaran <span style="color: #ef4444;">*</span></label>
+                            Anggaran <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="beban_anggaran" class="form-control" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                             <option value="BOS Reguler">BOS Reguler</option>
@@ -532,7 +532,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                            GTK Yang Ditugaskan <span style="color: #ef4444;">*</span></label>
+                            GTK Yang Ditugaskan <span style="color: var(--danger, #ef4444);">*</span></label>
                         <input type="search" id="searchGtkSpt" class="form-control"
                             placeholder="Cari nama, NIP, NUPTK, atau NIK..." autocomplete="off"
                             data-people-search="{{ route('dashboard.people.search') }}" data-people-kind="gtk"
@@ -584,7 +584,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Pilihan Template Naskah <span style="color: #ef4444;">*</span>
+                                Pilihan Template Naskah <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select name="template_type" id="selectTemplateType" class="form-control" required
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
@@ -600,7 +600,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Kode Indeks Klasifikasi <span style="color: #ef4444;">*</span>
+                                Kode Indeks Klasifikasi <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <select name="kode_indeks" id="inputTmplKodeIndeks" class="form-control" required
                                 style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
@@ -627,7 +627,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Tanggal Surat <span style="color: #ef4444;">*</span>
+                                Tanggal Surat <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="date" name="tanggal_surat" class="form-control"
                                 value="{{ date('Y-m-d') }}" required
@@ -639,7 +639,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Hal / Perihal Surat <span style="color: #ef4444;">*</span>
+                                Hal / Perihal Surat <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="text" name="perihal" id="inputTmplPerihal" class="form-control" required
                                 value="{{ $templatePresets['undangan']['perihal'] ?? '' }}"
@@ -661,7 +661,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">
-                                Kepada Yth. (Tujuan Penerima) <span style="color: #ef4444;">*</span>
+                                Kepada Yth. (Tujuan Penerima) <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="text" name="tujuan_penerima" class="form-control" required
                                 placeholder="Contoh: Bapak / Ibu Orang Tua / Wali Murid Kelas X"
@@ -768,7 +768,7 @@
                         <button type="button" id="btnCancelModalTemplate" class="btn btn-outline"
                             style="padding: 8px 16px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">Batal</button>
                         <button type="submit" class="btn btn-primary"
-                            style="padding: 8px 20px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none;">
+                            style="padding: 8px 20px; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); background: linear-gradient(135deg, #4f46e5 0%, var(--purple, #7c3aed) 100%); border: none;">
                             <i class="fas fa-wand-magic-sparkles me-1"></i> Terbitkan &amp; Cetak Surat
                         </button>
                     </div>

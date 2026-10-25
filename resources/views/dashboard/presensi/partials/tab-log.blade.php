@@ -168,7 +168,7 @@
                                         <div style="font-size: var(--text-xs, 0.75rem); margin-top: 2px;">
                                             @if ($log->status_ketepatan_pulang === 'pulang_cepat')
                                                 <span class="badge"
-                                                    style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
+                                                    style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3); font-size: var(--text-2xs, 0.6875rem); padding: 1px 6px;">
                                                     <i class="fas fa-person-walking-arrow-right me-1"></i> Pulang Cepat
                                                 </span>
                                             @else
@@ -179,7 +179,7 @@
                                     @elseif ($log->status_ketepatan_pulang === 'pulang_cepat')
                                         <div>
                                             <span class="badge"
-                                                style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
+                                                style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245, 158, 11, 0.3); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">
                                                 <i class="fas fa-person-walking-arrow-right me-1"></i> Pulang Cepat
                                             </span>
                                             <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted); margin-top: 2px;">
@@ -205,7 +205,7 @@
                                                 class="fas fa-file-signature me-1"></i> Izin</span>
                                     @elseif ($log->status === 'S')
                                         <span class="badge"
-                                            style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
+                                            style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6); font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i
                                                 class="fas fa-notes-medical me-1"></i> Sakit</span>
                                     @elseif ($log->status === 'D')
                                         <span class="badge badge-accent" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;"><i

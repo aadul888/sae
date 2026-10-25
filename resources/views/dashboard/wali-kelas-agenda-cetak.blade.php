@@ -101,7 +101,7 @@
                         <td>
                             <div>{{ $item->uraian_kegiatan }}</div>
                             @if ($item->penugasan)
-                                <div style="font-size: var(--text-xs, 0.75rem); color: #059669; margin-top: 3px;">
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--success, #059669); margin-top: 3px;">
                                     <strong>Tugas:</strong> {{ $item->penugasan }}
                                 </div>
                             @endif

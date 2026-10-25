@@ -30,7 +30,7 @@
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label for="modalRombelId"
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Rombongan Belajar (Kelas) <span style="color: #ef4444;">*</span>
+                        Rombongan Belajar (Kelas) <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <select id="modalRombelId" name="rombongan_belajar_id" class="form-control"
                         style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); background: var(--bg-card); color: var(--text-color);"
@@ -45,7 +45,7 @@
                 <div class="form-group" style="margin-bottom: 16px;">
                     <label for="modalPembelajaranId"
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                        Mata Pelajaran &amp; Guru Pengampu <span style="color: #ef4444;">*</span>
+                        Mata Pelajaran &amp; Guru Pengampu <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <select id="modalPembelajaranId" name="pembelajaran_id" class="form-control"
                         style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); background: var(--bg-card); color: var(--text-color);"
@@ -62,7 +62,7 @@
                     <div class="form-group">
                         <label for="modalHari"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Hari <span style="color: #ef4444;">*</span>
+                            Hari <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="modalHari" name="hari" class="form-control"
                             style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); background: var(--bg-card); color: var(--text-color);"
@@ -88,7 +88,7 @@
                     <div class="form-group">
                         <label for="modalJamKeMulai"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Jam Pelajaran Mulai (JP Ke-) <span style="color: #ef4444;">*</span>
+                            Jam Pelajaran Mulai (JP Ke-) <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="number" id="modalJamKeMulai" name="jam_ke_mulai" min="1" max="20"
                             value="1" class="form-control"
@@ -99,7 +99,7 @@
                     <div class="form-group">
                         <label for="modalJamKeSelesai"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Jam Pelajaran Selesai (JP Ke-) <span style="color: #ef4444;">*</span>
+                            Jam Pelajaran Selesai (JP Ke-) <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="number" id="modalJamKeSelesai" name="jam_ke_selesai" min="1"
                             max="20" value="2" class="form-control"
@@ -129,7 +129,7 @@
                     <div class="form-group">
                         <label for="modalJamMulai"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Jam Waktu Mulai <span style="color: #ef4444;">*</span>
+                            Jam Waktu Mulai <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="time" id="modalJamMulai" name="jam_mulai" value="07:15" class="form-control"
                             style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm, 6px); background: var(--bg-card); color: var(--text-color);"
@@ -139,7 +139,7 @@
                     <div class="form-group">
                         <label for="modalJamSelesai"
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 700; margin-bottom: 6px; color: var(--text-color);">
-                            Jam Waktu Selesai <span style="color: #ef4444;">*</span>
+                            Jam Waktu Selesai <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="time" id="modalJamSelesai" name="jam_selesai" value="08:45"
                             class="form-control"

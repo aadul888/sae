@@ -8,7 +8,7 @@
 
         <!-- Header -->
         <div
-            style="background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #ffffff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            style="background: linear-gradient(135deg, #059669 0%, var(--success, #10b981) 100%); color: #ffffff; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1);">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div
                     style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: var(--text-md, 1rem);">
@@ -27,7 +27,7 @@
 
         <!-- Body -->
         <div style="padding: 20px; background: #ffffff;">
-            <p style="font-size: var(--text-sm, 0.8125rem); color: #64748b; margin-bottom: 14px; line-height: 1.5;">
+            <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted, #64748b); margin-bottom: 14px; line-height: 1.5;">
                 Pilih Rombongan Belajar (Kelas) yang ingin dicetak datanya. Sistem akan menyusun tabel data peserta
                 didik lengkap (NISN, NIPD, TTL, Agama, Orang Tua, Alamat &amp; Kontak) dalam format dokumen resmi.
             </p>
@@ -35,10 +35,10 @@
             <div style="margin-bottom: 14px;">
                 <label for="selectCetakDataRombel"
                     style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #1e293b; margin-bottom: 6px;">
-                    Pilih Rombongan Belajar (Kelas): <span style="color: #ef4444;">*</span>
+                    Pilih Rombongan Belajar (Kelas): <span style="color: var(--danger, #ef4444);">*</span>
                 </label>
                 <select id="selectCetakDataRombel" class="form-control"
-                    style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid #cbd5e1; font-size: var(--text-base, 0.875rem); font-weight: 600; color: #0f172a; background: #fff;">
+                    style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid #cbd5e1; font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-main, #0f172a); background: #fff;">
                     <option value="">-- Pilih Kelas / Rombel --</option>
                     @if (isset($filterRombel))
                         @foreach ($filterRombel as $r)
@@ -57,7 +57,7 @@
                     Tata Letak Dokumen (Orientasi Kertas A4):
                 </label>
                 <select id="selectOrientasiCetakData" class="form-control"
-                    style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid #cbd5e1; font-size: var(--text-base, 0.875rem); font-weight: 600; color: #0f172a; background: #fff;">
+                    style="width: 100%; padding: 9px 12px; border-radius: var(--radius-md, 8px); border: 1px solid #cbd5e1; font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-main, #0f172a); background: #fff;">
                     <option value="landscape" selected>Landscape (Melebar - Sangat Direkomendasikan)</option>
                     <option value="portrait">Portrait (Memanjang)</option>
                 </select>
@@ -66,7 +66,7 @@
             <div
                 style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: var(--radius-md, 8px); padding: 10px 14px; font-size: var(--text-sm, 0.8125rem); color: #065f46; line-height: 1.45; display: flex; gap: 8px; align-items: flex-start;">
                 <i class="fas fa-info-circle"
-                    style="font-size: var(--text-base, 0.875rem); margin-top: 1px; flex-shrink: 0; color: #059669;"></i>
+                    style="font-size: var(--text-base, 0.875rem); margin-top: 1px; flex-shrink: 0; color: var(--success, #059669);"></i>
                 <span>Format dokumen dilengkapi Kop Surat Resmi Sekolah, ringkasan jumlah siswa L/P, data biodata
                     lengkap, dan lembar pengesahan resmi Kepala Sekolah serta Wali Kelas.</span>
             </div>
@@ -80,7 +80,7 @@
                 Batal
             </button>
             <button type="button" class="btn btn-primary" onclick="proceedCetakDataRombel()"
-                style="font-size: var(--text-sm, 0.8125rem); padding: 7px 18px; background: #059669; border-color: #059669; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                style="font-size: var(--text-sm, 0.8125rem); padding: 7px 18px; background: var(--success, #059669); border-color: var(--success, #059669); display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
                 <i class="fas fa-print"></i> Buka Dokumen Cetak
             </button>
         </div>

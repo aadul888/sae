@@ -104,7 +104,7 @@
                         @endif
                         @if ($item->penugasan)
                             <div
-                                style="font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
                                 <i class="fas fa-tasks"></i>
                                 <span>{{ \Illuminate\Support\Str::limit($item->penugasan, 45) }}</span>
                             </div>
@@ -128,7 +128,7 @@
                             @if ($canUpdate)
                                 <button type="button" class="btn-icon btn-edit-agenda" data-id="{{ $item->id }}"
                                     title="Edit Agenda"
-                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: #f59e0b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--warning, #f59e0b); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-pen-to-square"></i>
                                 </button>
                             @endif
@@ -136,7 +136,7 @@
                                 <button type="button" class="btn-icon btn-delete-agenda" data-id="{{ $item->id }}"
                                     data-name="Pertemuan #{{ $item->pertemuan_ke }} - {{ $item->materi_pokok }}"
                                     title="Hapus Agenda"
-                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); color: #ef4444; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-trash-can"></i>
                                 </button>
                             @endif

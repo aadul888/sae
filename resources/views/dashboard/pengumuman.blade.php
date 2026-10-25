@@ -43,7 +43,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -63,7 +63,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-bell"></i>
             </div>
             <div class="dash-stat-info">
@@ -256,7 +256,7 @@
                                             data-id="{{ $item->id }}" {{ $item->is_active ? 'checked' : '' }}
                                             style="opacity: 0; width: 0; height: 0;">
                                         <span class="slider-toggle-crud"
-                                            style="position: absolute; inset: 0; background-color: {{ $item->is_active ? '#10b981' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
+                                            style="position: absolute; inset: 0; background-color: {{ $item->is_active ? 'var(--success, #10b981)' : '#64748b' }}; transition: .3s; border-radius: var(--radius-2xl, 20px);"></span>
                                     </label>
                                 @else
                                     <span class="badge {{ $item->is_active ? 'badge-success' : 'badge-outline' }}">
@@ -338,7 +338,7 @@
                 <div id="methodField"></div>
 
                 <div class="form-group-compact" style="margin-bottom: 14px;">
-                    <label>Judul Pengumuman <span style="color: #ef4444;">*</span></label>
+                    <label>Judul Pengumuman <span style="color: var(--danger, #ef4444);">*</span></label>
                     <input type="text" name="judul" id="inputJudul" required
                         placeholder="Contoh: Jadwal Ujian Akhir Semester" maxlength="255">
                 </div>
@@ -352,7 +352,7 @@
                 <div class="modal-form-grid"
                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
                     <div class="form-group-compact">
-                        <label>Target Tampilan <span style="color: #ef4444;">*</span></label>
+                        <label>Target Tampilan <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="target" id="inputTarget" required>
                             <option value="semua">📢 Keduanya (Publik &amp; Lonceng)</option>
                             <option value="publik">🌐 Teks Berjalan Publik</option>
@@ -373,7 +373,7 @@
                 </div>
 
                 <div class="form-group-compact" style="margin-bottom: 14px;">
-                    <label>Isi Pesan Pengumuman <span style="color: #ef4444;">*</span></label>
+                    <label>Isi Pesan Pengumuman <span style="color: var(--danger, #ef4444);">*</span></label>
                     <textarea name="isi" id="inputIsi" required rows="4"
                         placeholder="Tuliskan isi pengumuman secara jelas dan ringkas..."
                         style="width: 100%; padding: 10px 12px; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); resize: vertical; box-sizing: border-box; line-height: 1.5;"></textarea>

@@ -8,12 +8,12 @@
     <div class="dash-banner" style="margin-bottom: 24px; padding: 22px 26px; border-radius: var(--radius-xl, 16px); background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(59, 130, 246, 0.08) 100%); border: 1px solid rgba(139, 92, 246, 0.3);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
             <div style="display: flex; align-items: flex-start; gap: 16px; flex: 1; min-width: 280px;">
-                <div style="width: 52px; height: 52px; border-radius: var(--radius-xl, 16px); background: rgba(139, 92, 246, 0.2); color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.2);">
+                <div style="width: 52px; height: 52px; border-radius: var(--radius-xl, 16px); background: rgba(139, 92, 246, 0.2); color: var(--purple, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.2);">
                     <i class="fas fa-clipboard-user"></i>
                 </div>
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
-                        <span class="badge badge-primary" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 700; background: #8b5cf6; border-color: #8b5cf6;">
+                        <span class="badge badge-primary" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; font-weight: 700; background: var(--purple, #8b5cf6); border-color: var(--purple, #8b5cf6);">
                             GURU PIKET AKTIF
                         </span>
                         <span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px;">
@@ -33,7 +33,7 @@
                 <a href="{{ route('dashboard.guru') }}" class="btn btn-outline" style="padding: 8px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">
                     <i class="fas fa-arrow-left me-1"></i> Dashboard Pokok
                 </a>
-                <a href="{{ route('dashboard.piket.izin.index') }}" class="btn btn-primary" style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px); background: #8b5cf6; border-color: #8b5cf6;">
+                <a href="{{ route('dashboard.piket.izin.index') }}" class="btn btn-primary" style="padding: 8px 18px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; border-radius: var(--radius-md, 8px); background: var(--purple, #8b5cf6); border-color: var(--purple, #8b5cf6);">
                     <i class="fas fa-ticket-alt me-1"></i> Buat Surat Izin Siswa
                 </a>
             </div>
@@ -43,7 +43,7 @@
     <!-- Quick Shortcuts Modul Guru Piket -->
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; margin-bottom: 26px;">
         <a href="{{ route('dashboard.piket.izin.index') }}" class="card" style="padding: 16px 20px; border-radius: var(--radius-lg, 12px); margin: 0; text-decoration: none; color: inherit; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 14px; transition: all 0.2s ease;">
-            <div style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(139, 92, 246, 0.15); color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
+            <div style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
                 <i class="fas fa-ticket-alt"></i>
             </div>
             <div>
@@ -53,7 +53,7 @@
         </a>
 
         <a href="{{ route('dashboard.piket.jurnal.index') }}" class="card" style="padding: 16px 20px; border-radius: var(--radius-lg, 12px); margin: 0; text-decoration: none; color: inherit; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 14px; transition: all 0.2s ease;">
-            <div style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(59, 130, 246, 0.15); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
+            <div style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
                 <i class="fas fa-clipboard-list"></i>
             </div>
             <div>
@@ -63,7 +63,7 @@
         </a>
 
         <a href="{{ route('dashboard.presensi-mengajar.index') }}" class="card" style="padding: 16px 20px; border-radius: var(--radius-lg, 12px); margin: 0; text-decoration: none; color: inherit; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 14px; transition: all 0.2s ease;">
-            <div style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16, 185, 129, 0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
+            <div style="width: 42px; height: 42px; border-radius: var(--radius-lg, 12px); background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div>

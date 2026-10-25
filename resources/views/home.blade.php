@@ -76,7 +76,7 @@
                                 style="position: absolute; right: 12px; pointer-events: none; display: none;"></span>
                         </div>
                         <div id="nisnErrorMsg"
-                            style="display: none; font-size: var(--text-sm, 0.8125rem); color: #ef4444; margin-top: 6px; align-items: center; gap: 5px;">
+                            style="display: none; font-size: var(--text-sm, 0.8125rem); color: var(--danger, #ef4444); margin-top: 6px; align-items: center; gap: 5px;">
                             <i class="fas fa-circle-exclamation"></i> <span>NISN harus berupa angka dan pas 10 digit.</span>
                         </div>
                     </div>

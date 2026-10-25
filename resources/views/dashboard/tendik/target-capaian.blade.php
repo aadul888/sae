@@ -33,7 +33,7 @@
         <div class="dash-banner-actions" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             @if ($canCreate)
                 <button type="button" class="btn btn-primary" id="btnOpenModalTarget"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: #6366f1; border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.3); color: #fff; cursor: pointer;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: var(--primary-light, #6366f1); border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.3); color: #fff; cursor: pointer;"
                     title="Tambah Sasaran &amp; Target Kinerja">
                     <i class="fas fa-plus"></i>
                 </button>
@@ -71,21 +71,21 @@
     <!-- Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
     @endif
     @if (isset($errors) && $errors->any())
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem);">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem);">
             <div style="font-weight: 700; margin-bottom: 4px;">Periksa kembali input formulir:</div>
             <ul style="margin: 0; padding-left: 18px;">
                 @foreach ($errors->all() as $err)
@@ -110,11 +110,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $persenCapaian }}%</div>
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ $persenCapaian }}%</div>
                 <div class="dash-stat-label">Realisasi Capaian ({{ $realisasiSelesai }} Selesai, {{ $realisasiProses }}
                     Proses)</div>
             </div>
@@ -245,7 +245,7 @@
                             style="width: 12px; height: 12px; background: rgba(99, 102, 241, 0.5); border-radius: var(--radius-xs, 4px);"></span>
                         Target</span>
                     <span style="display: inline-flex; align-items: center; gap: 4px;"><span
-                            style="width: 12px; height: 12px; background: #10b981; border-radius: var(--radius-xs, 4px);"></span>
+                            style="width: 12px; height: 12px; background: var(--success, #10b981); border-radius: var(--radius-xs, 4px);"></span>
                         Capaian</span>
                 </div>
             </div>
@@ -275,15 +275,15 @@
             <div
                 style="display: flex; justify-content: space-around; font-size: var(--text-sm, 0.8125rem); margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;">
                 <div style="text-align: center;">
-                    <div style="color: #10b981; font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiSelesai }}</div>
+                    <div style="color: var(--success, #10b981); font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiSelesai }}</div>
                     <div style="color: var(--text-muted);">Selesai</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="color: #f59e0b; font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiProses }}</div>
+                    <div style="color: var(--warning, #f59e0b); font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiProses }}</div>
                     <div style="color: var(--text-muted);">Proses</div>
                 </div>
                 <div style="text-align: center;">
-                    <div style="color: #ef4444; font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiTertunda }}</div>
+                    <div style="color: var(--danger, #ef4444); font-weight: 700; font-size: var(--text-md, 1rem);">{{ $realisasiTertunda }}</div>
                     <div style="color: var(--text-muted);">Tertunda</div>
                 </div>
             </div>
@@ -355,7 +355,7 @@
 
                 @if ($canCreate)
                     <button type="button" class="btn btn-primary btn-sm btn-tambah-target-modal"
-                        style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); background: #6366f1; border: none; color: #fff; cursor: pointer;"
+                        style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); background: var(--primary-light, #6366f1); border: none; color: #fff; cursor: pointer;"
                         title="Tambah Target Kinerja">
                         <i class="fas fa-plus"></i>
                     </button>
@@ -423,7 +423,7 @@
                                 {{ $ind->target_label }}
                             </td>
                             <td data-label="Realisasi"
-                                style="padding: 14px 16px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #10b981;">
+                                style="padding: 14px 16px; text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981);">
                                 {{ $ind->realisasi_label }} ({{ $ind->capaian_persen }}%)
                             </td>
                             <td data-label="Status" style="padding: 14px 16px; text-align: center;">
@@ -449,7 +449,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-icon" title="Hapus Sasaran &amp; Target"
-                                            style="color: #ef4444;">
+                                            style="color: var(--danger, #ef4444);">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     </form>
@@ -664,11 +664,11 @@
                                         {{ $row->target }} Tugas
                                     </td>
                                     <td data-label="Selesai"
-                                        style="padding: 10px 14px; text-align: center; font-weight: 700; color: #10b981; font-size: var(--text-base, 0.875rem);">
+                                        style="padding: 10px 14px; text-align: center; font-weight: 700; color: var(--success, #10b981); font-size: var(--text-base, 0.875rem);">
                                         {{ $row->selesai }}
                                     </td>
                                     <td data-label="Proses"
-                                        style="padding: 10px 14px; text-align: center; color: #f59e0b; font-size: var(--text-base, 0.875rem);">
+                                        style="padding: 10px 14px; text-align: center; color: var(--warning, #f59e0b); font-size: var(--text-base, 0.875rem);">
                                         {{ $row->proses }}
                                     </td>
                                     <td data-label="Capaian" style="padding: 10px 14px; text-align: center;">
@@ -677,7 +677,7 @@
                                             <div
                                                 style="flex: 1; max-width: 60px; height: 6px; background: var(--bg-hover); border-radius: var(--radius-xs, 4px); overflow: hidden;">
                                                 <div
-                                                    style="width: {{ min(100, $row->persen) }}%; height: 100%; background: {{ $row->persen >= 100 ? '#10b981' : ($row->persen >= 75 ? '#3b82f6' : ($row->persen >= 50 ? '#f59e0b' : '#ef4444')) }}; border-radius: var(--radius-xs, 4px);">
+                                                    style="width: {{ min(100, $row->persen) }}%; height: 100%; background: {{ $row->persen >= 100 ? '#10b981' : ($row->persen >= 75 ? 'var(--primary, #3b82f6)' : ($row->persen >= 50 ? '#f59e0b' : '#ef4444')) }}; border-radius: var(--radius-xs, 4px);">
                                                 </div>
                                             </div>
                                             <span
@@ -733,7 +733,7 @@
                     <div style="margin-bottom: 12px;">
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                            Bidang Tugas / Administrasi <span style="color: #ef4444;">*</span>
+                            Bidang Tugas / Administrasi <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select name="bidang" id="inputTargetBidang" required class="form-control"
                             style="font-size: var(--text-base, 0.875rem); height: 38px; border-radius: var(--radius-md, 8px);">
@@ -748,7 +748,7 @@
                     <div style="margin-bottom: 12px;">
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                            Sasaran Program / Kegiatan <span style="color: #ef4444;">*</span>
+                            Sasaran Program / Kegiatan <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="text" name="sasaran" id="inputTargetSasaran"
                             placeholder="Contoh: Tersusunnya data kepegawaian" required class="form-control"
@@ -758,7 +758,7 @@
                     <div style="margin-bottom: 12px;">
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                            Indikator Kinerja <span style="color: #ef4444;">*</span>
+                            Indikator Kinerja <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <textarea name="indikator_kinerja" id="inputTargetIndikator" rows="3"
                             placeholder="Contoh: Jumlah dokumen tenaga pendidik dan kependidikan" required class="form-control"
@@ -769,7 +769,7 @@
                         <div>
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                                Target Kuantitas <span style="color: #ef4444;">*</span>
+                                Target Kuantitas <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="number" name="target_kuantitas" id="inputTargetKuantitas" value="1"
                                 min="1" required class="form-control"
@@ -778,7 +778,7 @@
                         <div>
                             <label
                                 style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--text-color); margin-bottom: 4px; display: block;">
-                                Satuan Ukur <span style="color: #ef4444;">*</span>
+                                Satuan Ukur <span style="color: var(--danger, #ef4444);">*</span>
                             </label>
                             <input type="text" name="satuan" id="inputTargetSatuan" value="dokumen"
                                 placeholder="dokumen / laporan / kegiatan" required class="form-control"
@@ -792,7 +792,7 @@
                     <button type="button" id="btnCancelModalTarget" class="btn btn-outline"
                         style="padding: 7px 16px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px);">Batal</button>
                     <button type="submit" class="btn btn-primary"
-                        style="padding: 7px 20px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 700; background: #6366f1; border: none; color: #fff;">
+                        style="padding: 7px 20px; font-size: var(--text-sm, 0.8125rem); border-radius: var(--radius-md, 8px); font-weight: 700; background: var(--primary-light, #6366f1); border: none; color: #fff;">
                         <i class="fas fa-save me-1"></i> Simpan Target
                     </button>
                 </div>

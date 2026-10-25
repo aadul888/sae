@@ -92,7 +92,7 @@
                                                 <span class="guru-name">Dewan Guru &amp; Siswa</span>
                                                 @if ($item->ruangan)
                                                     <span
-                                                        style="font-size: var(--text-2xs, 0.6875rem); color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
+                                                        style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #059669); font-weight: 600;">[{{ $item->ruangan }}]</span>
                                                 @endif
                                             @elseif ($isPembiasaan)
                                                 <span class="routine-title"><i
@@ -108,7 +108,7 @@
                                                 <span class="guru-name">{{ $item->nama_guru ?? 'Guru' }}</span>
                                                 @if ($item->ruangan)
                                                     <span
-                                                        style="font-size: var(--text-2xs, 0.6875rem); color: #059669; font-weight: 600;">[{{ $item->ruangan }}]</span>
+                                                        style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #059669); font-weight: 600;">[{{ $item->ruangan }}]</span>
                                                 @endif
                                             @endif
                                         </td>

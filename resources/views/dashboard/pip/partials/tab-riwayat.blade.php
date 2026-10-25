@@ -14,11 +14,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ number_format($riwayatStats['total_penerima_unik'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Penerima PIP</div>
@@ -26,11 +26,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
             <i class="fas fa-user-xmark"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                 {{ number_format($riwayatStats['total_belum'] ?? 0, 0, ',', '.') }}
             </div>
             <div class="dash-stat-label">Belum Terima PIP</div>
@@ -384,7 +384,7 @@
                                     </button>
                                 @endif
                             @elseif ($isAdmin)
-                                <button type="button" class="btn-icon" style="color: #ef4444;"
+                                <button type="button" class="btn-icon" style="color: var(--danger, #ef4444);"
                                     title="Hapus Riwayat"
                                     onclick="pipHapusRiwayat({{ $r->id }}, @js($r->nama_pd))">
                                     <i class="fas fa-trash-alt"></i>

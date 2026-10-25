@@ -116,7 +116,7 @@
                 <td data-label="Beban" style="padding: 12px 12px; text-align: center;">
                     <div class="cell-col-right" style="align-items: center;">
                         <span class="badge"
-                            style="background: rgba(16,185,129,0.1); color: #10b981; font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">
+                            style="background: rgba(16,185,129,0.1); color: var(--success, #10b981); font-weight: 700; font-size: var(--text-sm, 0.8125rem); padding: 4px 8px;">
                             <i class="fas fa-bolt me-1"></i>{{ $item->total_jp }} JP
                         </span>
                     </div>
@@ -138,7 +138,7 @@
                         @if (($item->siswa_total ?? 0) > 0)
                             <div style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem);">
                                 <span title="{{ $item->siswa_hadir }} dari {{ $item->siswa_total }} Hadir"
-                                    style="color: #10b981; font-weight: 700;">
+                                    style="color: var(--success, #10b981); font-weight: 700;">
                                     <i class="fas fa-user-check me-1"></i>{{ $item->siswa_hadir }}
                                 </span>
                                 <span style="color: var(--text-muted); font-size: var(--text-xs, 0.75rem);">/
@@ -146,7 +146,7 @@
                             </div>
                         @elseif (!is_null($item->jumlah_siswa_hadir))
                             <div style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem);">
-                                <span style="color: #10b981; font-weight: 700;">
+                                <span style="color: var(--success, #10b981); font-weight: 700;">
                                     <i class="fas fa-user-check me-1"></i>{{ $item->jumlah_siswa_hadir }}
                                 </span>
                             </div>
@@ -167,7 +167,7 @@
                             @if ($canUpdate)
                                 <button type="button" class="btn-icon btn-edit-row" data-id="{{ $item->id }}"
                                     title="Edit Presensi"
-                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: #f59e0b; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--warning, #f59e0b); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-pen-to-square"></i>
                                 </button>
                             @endif
@@ -175,7 +175,7 @@
                                 <button type="button" class="btn-icon btn-delete-row" data-id="{{ $item->id }}"
                                     data-name="{{ $item->nama_mata_pelajaran }} ({{ $item->nama_rombel }})"
                                     title="Hapus Presensi"
-                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); color: #ef4444; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                    style="width: 32px; height: 32px; border-radius: var(--radius-md, 8px); border: 1px solid rgba(239,68,68,0.25); background: rgba(239,68,68,0.06); color: var(--danger, #ef4444); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-trash-can"></i>
                                 </button>
                             @endif

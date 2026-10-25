@@ -19,7 +19,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                        GTK Pegawai <span style="color: #ef4444;">*</span></label>
+                        GTK Pegawai <span style="color: var(--danger, #ef4444);">*</span></label>
                     <select name="ptk_id" id="upload_ptk_id" class="form-control" required
                         style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                         <option value="">-- Pilih Pegawai --</option>
@@ -33,7 +33,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jenis
-                        Dokumen <span style="color: #ef4444;">*</span></label>
+                        Dokumen <span style="color: var(--danger, #ef4444);">*</span></label>
                     <select name="jenis_dokumen" class="form-control" required
                         style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                         @foreach ($jenisBerkasOptions as $k => $lbl)
@@ -45,7 +45,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Judul
-                        Dokumen / Nama Berkas <span style="color: #ef4444;">*</span></label>
+                        Dokumen / Nama Berkas <span style="color: var(--danger, #ef4444);">*</span></label>
                     <input type="text" name="judul_dokumen" class="form-control"
                         placeholder="Contoh: SK Kenaikan Pangkat Gol. IV/a" required
                         style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
@@ -54,7 +54,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                        File Berkas (PDF, JPG, PNG, Maks 5MB) <span style="color: #ef4444;">*</span></label>
+                        File Berkas (PDF, JPG, PNG, Maks 5MB) <span style="color: var(--danger, #ef4444);">*</span></label>
                     <input type="file" name="file_berkas" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required
                         style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                 </div>
@@ -98,7 +98,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                        GTK <span style="color: #ef4444;">*</span></label>
+                        GTK <span style="color: var(--danger, #ef4444);">*</span></label>
                     <select name="ptk_id" id="kgb_ptk_id" class="form-control" required
                         style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                         <option value="">-- Pilih GTK --</option>
@@ -132,14 +132,14 @@
                     <div>
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">TMT
-                            KGB Terakhir <span style="color: #ef4444;">*</span></label>
+                            KGB Terakhir <span style="color: var(--danger, #ef4444);">*</span></label>
                         <input type="date" name="tmt_lama" id="kgb_tmt_lama" class="form-control" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                     </div>
                     <div>
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">TMT
-                            Target (+2 Thn) <span style="color: #ef4444;">*</span></label>
+                            Target (+2 Thn) <span style="color: var(--danger, #ef4444);">*</span></label>
                         <input type="date" name="tmt_baru_target" id="kgb_tmt_baru_target" class="form-control"
                             required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
@@ -158,7 +158,7 @@
                     <div>
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Status
-                            Usulan <span style="color: #ef4444;">*</span></label>
+                            Usulan <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="status_usulan" id="kgb_status_usulan" class="form-control" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                             <option value="belum_waktunya">Belum Waktunya</option>
@@ -209,7 +209,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Pilih
-                        Pegawai GTK <span style="color: #ef4444;">*</span></label>
+                        Pegawai GTK <span style="color: var(--danger, #ef4444);">*</span></label>
                     <select name="ptk_id" id="cuti_ptk_id" class="form-control" required
                         style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                         <option value="">-- Pilih GTK --</option>
@@ -223,7 +223,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jenis
-                        Permohonan <span style="color: #ef4444;">*</span></label>
+                        Permohonan <span style="color: var(--danger, #ef4444);">*</span></label>
                     <select name="jenis" id="cuti_jenis" class="form-control" required
                         style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                         <option value="Cuti Tahunan">Cuti Tahunan</option>
@@ -239,14 +239,14 @@
                     <div>
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                            Mulai <span style="color: #ef4444;">*</span></label>
+                            Mulai <span style="color: var(--danger, #ef4444);">*</span></label>
                         <input type="date" name="tanggal_mulai" id="cuti_tgl_mulai" class="form-control" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                     </div>
                     <div>
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Tanggal
-                            Selesai <span style="color: #ef4444;">*</span></label>
+                            Selesai <span style="color: var(--danger, #ef4444);">*</span></label>
                         <input type="date" name="tanggal_selesai" id="cuti_tgl_selesai" class="form-control" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);">
                     </div>
@@ -255,7 +255,7 @@
                 <div class="form-group" style="margin-bottom: 14px;">
                     <label
                         style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Keperluan
-                        / Alasan <span style="color: #ef4444;">*</span></label>
+                        / Alasan <span style="color: var(--danger, #ef4444);">*</span></label>
                     <textarea name="keperluan" id="cuti_keperluan" class="form-control" rows="2"
                         placeholder="Jelaskan alasan permohonan cuti atau izin..." required
                         style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem);"></textarea>
@@ -366,7 +366,7 @@
                         <span style="font-weight: 700; color: var(--text-color); font-size: var(--text-base, 0.875rem);"><i
                                 class="fas fa-book-bookmark text-primary me-1"></i> Beban Jam Mengajar (KBM)</span>
                         <span id="pegawaiJmlJam" class="badge"
-                            style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
+                            style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem); padding: 2px 7px;">0
                             JP</span>
                     </div>
                     <div style="overflow-x: auto;">

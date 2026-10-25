@@ -54,11 +54,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-user-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">
                     {{ $presensiHariIni['H'] ?? 0 }}
                     <span
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted);">({{ $presensiHariIni['persen'] ?? 0 }}%)</span>
@@ -68,21 +68,21 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #f59e0b;">{{ $presensiHariIni['T'] ?? 0 }}</div>
+                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">{{ $presensiHariIni['T'] ?? 0 }}</div>
                 <div class="dash-stat-label">Terlambat Masuk</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+            <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
                 <i class="fas fa-envelope-open-text"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #8b5cf6;">
+                <div class="dash-stat-value" style="color: var(--purple, #8b5cf6);">
                     {{ ($presensiHariIni['S'] ?? 0) + ($presensiHariIni['I'] ?? 0) }}</div>
                 <div class="dash-stat-label">Sakit / Izin (S:{{ $presensiHariIni['S'] ?? 0 }},
                     I:{{ $presensiHariIni['I'] ?? 0 }})</div>
@@ -90,11 +90,11 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-user-xmark"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #ef4444;">{{ $presensiHariIni['A'] ?? 0 }}</div>
+                <div class="dash-stat-value" style="color: var(--danger, #ef4444);">{{ $presensiHariIni['A'] ?? 0 }}</div>
                 <div class="dash-stat-label">Tanpa Keterangan (Alpha)</div>
             </div>
         </div>
@@ -115,40 +115,40 @@
     <!-- 3. Akses Cepat Menu Wali Kelas (Gaya Dashboard Tendik: Responsive 6-item Grid) -->
     <div class="kepegawaian-quick-grid">
         <a href="{{ route('dashboard.wali-kelas.peserta-didik-aktif.index') }}" class="kepegawaian-quick-btn"
-            style="--quick-color: #10b981;" title="Data Induk Siswa Aktif">
-            <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            style="--quick-color: var(--success, #10b981);" title="Data Induk Siswa Aktif">
+            <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-user-check"></i>
             </div>
             <span class="kepegawaian-quick-label">Siswa Aktif</span>
         </a>
 
         <a href="{{ route('dashboard.wali-kelas.presensi.index') }}" class="kepegawaian-quick-btn"
-            style="--quick-color: #6366f1;" title="Presensi &amp; Rekap Kehadiran">
-            <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+            style="--quick-color: var(--primary-light, #6366f1);" title="Presensi &amp; Rekap Kehadiran">
+            <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
                 <i class="fas fa-clipboard-user"></i>
             </div>
             <span class="kepegawaian-quick-label">Presensi Kelas</span>
         </a>
 
         <a href="{{ route('dashboard.wali-kelas.peserta-didik-tidak-aktif.index') }}" class="kepegawaian-quick-btn"
-            style="--quick-color: #ef4444;" title="Arsip Siswa Mutasi / Keluar">
-            <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+            style="--quick-color: var(--danger, #ef4444);" title="Arsip Siswa Mutasi / Keluar">
+            <div class="kepegawaian-quick-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-user-slash"></i>
             </div>
             <span class="kepegawaian-quick-label">Siswa Mutasi</span>
         </a>
 
         <a href="{{ route('dashboard.peserta-didik.izin.index') }}" class="kepegawaian-quick-btn"
-            style="--quick-color: #f59e0b;" title="Verifikasi e-Izin &amp; Surat Sakit">
-            <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            style="--quick-color: var(--warning, #f59e0b);" title="Verifikasi e-Izin &amp; Surat Sakit">
+            <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-envelope-open-text"></i>
             </div>
             <span class="kepegawaian-quick-label">e-Izin Siswa</span>
         </a>
 
         <a href="{{ route('dashboard.wali-kelas.peserta-didik-aktif.index') }}" class="kepegawaian-quick-btn"
-            style="--quick-color: #06b6d4;" title="Cetak Kartu Pelajar Digital">
-            <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+            style="--quick-color: var(--accent, #06b6d4);" title="Cetak Kartu Pelajar Digital">
+            <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
                 <i class="fas fa-id-card"></i>
             </div>
             <span class="kepegawaian-quick-label">Kartu Pelajar</span>
@@ -178,8 +178,8 @@
                 </p>
             </div>
             <div
-                style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #10b981;">
-                <i class="fas fa-circle-dot" style="font-size: var(--text-2xs, 0.6875rem); color: #10b981;"></i> Monitoring Real-Time
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--success, #10b981);">
+                <i class="fas fa-circle-dot" style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981);"></i> Monitoring Real-Time
                 {{ $rombel->nama ?? '' }}
             </div>
         </div>
@@ -521,9 +521,9 @@
                                 'T'
                                     => '<span class="badge badge-warning" style="font-size: var(--text-xs, 0.75rem);"><i class="fas fa-clock me-1"></i> Terlambat</span>',
                                 'S'
-                                    => '<span class="badge" style="background: rgba(139,92,246,0.15); color: #8b5cf6; font-size: var(--text-xs, 0.75rem);"><i class="fas fa-notes-medical me-1"></i> Sakit</span>',
+                                    => '<span class="badge" style="background: rgba(139,92,246,0.15); color: var(--purple, #8b5cf6); font-size: var(--text-xs, 0.75rem);"><i class="fas fa-notes-medical me-1"></i> Sakit</span>',
                                 'I'
-                                    => '<span class="badge" style="background: rgba(59,130,246,0.15); color: #3b82f6; font-size: var(--text-xs, 0.75rem);"><i class="fas fa-file-signature me-1"></i> Izin</span>',
+                                    => '<span class="badge" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); font-size: var(--text-xs, 0.75rem);"><i class="fas fa-file-signature me-1"></i> Izin</span>',
                                 'A'
                                     => '<span class="badge badge-danger" style="font-size: var(--text-xs, 0.75rem);"><i class="fas fa-circle-xmark me-1"></i> Alpha</span>',
                                 default => '<span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);">' .
@@ -536,7 +536,7 @@
                                 'kiosk'
                                     => '<span class="badge" style="background: rgba(6,182,212,0.12); color: var(--accent); font-size: var(--text-xs, 0.75rem);"><i class="fas fa-tablet-screen-button me-1"></i> Kiosk</span>',
                                 'face'
-                                    => '<span class="badge" style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-xs, 0.75rem);"><i class="fas fa-face-smile me-1"></i> Face</span>',
+                                    => '<span class="badge" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem);"><i class="fas fa-face-smile me-1"></i> Face</span>',
                                 'manual'
                                     => '<span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);"><i class="fas fa-chalkboard-user me-1"></i> Manual</span>',
                                 default => '<span class="badge badge-outline" style="font-size: var(--text-xs, 0.75rem);">' .
@@ -604,10 +604,10 @@
                                     </div>
                                     <div>
                                         @if ($lp->status === 'T')
-                                            <span style="color: #f59e0b; font-size: var(--text-xs, 0.75rem); font-weight: 700;"><i
+                                            <span style="color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem); font-weight: 700;"><i
                                                     class="fas fa-clock me-1"></i>+{{ $lp->menit_terlambat }} mnt</span>
                                         @elseif ($lp->status === 'H')
-                                            <span style="color: #10b981; font-size: var(--text-xs, 0.75rem);"><i
+                                            <span style="color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem);"><i
                                                     class="fas fa-check me-1"></i>Tepat</span>
                                         @endif
                                     </div>

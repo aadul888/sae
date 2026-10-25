@@ -74,19 +74,19 @@
         <div class="meta-grid-box">
             <div>
                 <div class="meta-col-title">Tanggal Cetak Selesai</div>
-                <div class="meta-col-val" style="color: #2563eb;">
+                <div class="meta-col-val" style="color: var(--primary-hover, #2563eb);">
                     {{ \Carbon\Carbon::parse($tanggalCetak)->translatedFormat('d F Y') }}
                 </div>
             </div>
             <div>
                 <div class="meta-col-title">Rombongan Belajar / Kelas</div>
-                <div class="meta-col-val" style="color: #0f172a;">
+                <div class="meta-col-val" style="color: var(--text-main, #0f172a);">
                     {{ $rombel ?: 'Semua Rombel Terpilih' }}
                 </div>
             </div>
             <div>
                 <div class="meta-col-title">Total Kartu Siap Diambil</div>
-                <div class="meta-col-val" style="color: #10b981;">
+                <div class="meta-col-val" style="color: var(--success, #10b981);">
                     {{ number_format($students->count(), 0, ',', '.') }} Kartu Fisik
                 </div>
             </div>
@@ -111,7 +111,7 @@
                         <td style="text-align: center; font-weight: 700;">{{ $idx + 1 }}</td>
                         <td style="font-family: monospace; font-size: var(--text-xs, 0.75rem); line-height: 1.25; white-space: nowrap;">
                             {{ $s->nisn ?: '-' }}<br>
-                            <span style="color: #64748b;">{{ $s->nipd ?: '-' }}</span>
+                            <span style="color: var(--text-muted, #64748b);">{{ $s->nipd ?: '-' }}</span>
                         </td>
                         <td>
                             <strong style="font-size: var(--text-sm, 0.8125rem);">{{ $s->nama }}</strong>
@@ -124,9 +124,9 @@
                         </td>
                         <td style="text-align: center; white-space: nowrap;">
                             @if ($s->status_pembayaran === 'lunas')
-                                <span style="color: #059669; font-weight: 700; font-size: var(--text-xs, 0.75rem);">LUNAS</span>
+                                <span style="color: var(--success, #059669); font-weight: 700; font-size: var(--text-xs, 0.75rem);">LUNAS</span>
                             @else
-                                <span style="color: #d97706; font-weight: 700; font-size: var(--text-xs, 0.75rem);">BELUM</span>
+                                <span style="color: var(--warning, #d97706); font-weight: 700; font-size: var(--text-xs, 0.75rem);">BELUM</span>
                             @endif
                         </td>
                         <td>
@@ -142,13 +142,13 @@
                                 </div>
                             @endif
                         </td>
-                        <td style="text-align: center; font-size: var(--text-xs, 0.75rem); color: #64748b;">
+                        <td style="text-align: center; font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b);">
                             {{ $s->catatan ?: '-' }}
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; color: #94a3b8; padding: 20px;">
+                        <td colspan="8" style="text-align: center; color: var(--text-muted, #94a3b8); padding: 20px;">
                             Tidak ada data kartu yang dicetak pada tanggal
                             <strong>{{ \Carbon\Carbon::parse($tanggalCetak)->translatedFormat('d F Y') }}</strong>{{ $rombel ? ' untuk rombel ' . $rombel : '' }}.
                         </td>
@@ -166,7 +166,7 @@
                     <div class="sig-space"></div>
                     @if (!empty($waliGtk))
                         <div
-                            style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 180px;">
+                            style="font-weight: 800; border-bottom: 1px solid var(--text-main, #0f172a); display: inline-block; min-width: 180px;">
                             {{ $waliGtk->nama }}
                         </div>
                         <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">
@@ -174,7 +174,7 @@
                         </div>
                     @else
                         <div
-                            style="font-weight: 800; border-bottom: 1px dotted #0f172a; display: inline-block; min-width: 180px;">
+                            style="font-weight: 800; border-bottom: 1px dotted var(--text-main, #0f172a); display: inline-block; min-width: 180px;">
                             &nbsp;
                         </div>
                         <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">NIP. -</div>
@@ -186,7 +186,7 @@
                     <div style="font-weight: 700;">Petugas Cetak / Pengelola Kartu Pelajar</div>
                     <div class="sig-space"></div>
                     <div
-                        style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 180px;">
+                        style="font-weight: 800; border-bottom: 1px solid var(--text-main, #0f172a); display: inline-block; min-width: 180px;">
                         {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}
                     </div>
                     <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>
@@ -199,7 +199,7 @@
                     <div style="font-weight: 700;">Petugas Cetak / Pengelola Kartu Pelajar</div>
                     <div class="sig-space"></div>
                     <div
-                        style="font-weight: 800; border-bottom: 1px solid #0f172a; display: inline-block; min-width: 200px;">
+                        style="font-weight: 800; border-bottom: 1px solid var(--text-main, #0f172a); display: inline-block; min-width: 200px;">
                         {{ session('user')['nama'] ?? 'ADMINISTRATOR SAE' }}
                     </div>
                     <div style="font-size: var(--text-sm, 0.8125rem); color: #475569; margin-top: 2px;">Petugas Pengelola Kartu RFID</div>

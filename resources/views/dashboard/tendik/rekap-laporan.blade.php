@@ -31,7 +31,7 @@
                                 <strong>{{ $profile['nip'] }}</strong></span>
                         @endif
                         <span><i class="fas fa-briefcase text-info me-1"></i> <span class="badge"
-                                style="background: rgba(59,130,246,0.15); color: #3b82f6; font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $bidangLabels[$currentBidang] ?? ($profile['tugas_tambahan'] ?? $profile['jabatan']) }}</span></span>
+                                style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $bidangLabels[$currentBidang] ?? ($profile['tugas_tambahan'] ?? $profile['jabatan']) }}</span></span>
                     </div>
                 </div>
             </div>
@@ -225,7 +225,7 @@
 
                 <div style="margin-left: auto;">
                     <span class="badge"
-                        style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.25); padding: 8px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        style="background: rgba(59, 130, 246, 0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59, 130, 246, 0.25); padding: 8px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                         <i class="fas fa-calendar-check"></i> {{ $range['label'] }}
                     </span>
                 </div>
@@ -236,7 +236,7 @@
         <div class="dash-stat-grid"
             style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 24px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                     <i class="fas fa-tasks"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -246,7 +246,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -256,7 +256,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-spinner"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -276,7 +276,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6;">
+                <div class="dash-stat-icon" style="background: rgba(139, 92, 246, 0.15); color: var(--purple, #8b5cf6);">
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -335,10 +335,10 @@
                                         style="padding: 12px 16px; text-align: center; font-weight: 700;">
                                         {{ $rb['total'] }}</td>
                                     <td data-label="Selesai"
-                                        style="padding: 12px 16px; text-align: center; color: #10b981; font-weight: 700;">
+                                        style="padding: 12px 16px; text-align: center; color: var(--success, #10b981); font-weight: 700;">
                                         {{ $rb['selesai'] }}</td>
                                     <td data-label="Proses"
-                                        style="padding: 12px 16px; text-align: center; color: #f59e0b; font-weight: 700;">
+                                        style="padding: 12px 16px; text-align: center; color: var(--warning, #f59e0b); font-weight: 700;">
                                         {{ $rb['proses'] }}</td>
                                     <td data-label="Durasi Kerja"
                                         style="padding: 12px 16px; text-align: right; font-weight: 700; font-family: monospace;">
@@ -366,7 +366,7 @@
                 </div>
                 <a href="{{ route('dashboard.tendik.laporan.cetak', request()->all()) }}" target="_blank"
                     class="btn btn-primary"
-                    style="font-size: var(--text-sm, 0.8125rem); padding: 7px 14px; border-radius: var(--radius-md, 8px); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: #2563eb; color: #fff;">
+                    style="font-size: var(--text-sm, 0.8125rem); padding: 7px 14px; border-radius: var(--radius-md, 8px); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; background: var(--primary-hover, #2563eb); color: #fff;">
                     <i class="fas fa-print"></i> Cetak Laporan Periode Ini
                 </a>
             </div>

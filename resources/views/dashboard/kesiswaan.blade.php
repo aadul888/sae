@@ -9,7 +9,7 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-address-card"></i>
             </div>
             <div>
@@ -36,7 +36,7 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
@@ -45,7 +45,7 @@
     <!-- 3. Stat Grid Baku SAE -->
     <div class="dash-stat-grid" style="margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb);">
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
@@ -54,7 +54,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-book-bookmark"></i>
             </div>
             <div class="dash-stat-info">
@@ -63,7 +63,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                 <i class="fas fa-person-walking-dashed-line-arrow-right"></i>
             </div>
             <div class="dash-stat-info">
@@ -72,7 +72,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-file-circle-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -204,13 +204,13 @@
                                 <td data-label="Status" style="padding: 12px 14px; text-align: center;">
                                     @if ($item->status_klaper === 'lulus')
                                         <span class="badge"
-                                            style="background: rgba(16,185,129,0.12); color: #10b981; padding: 4px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Lulus</span>
+                                            style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); padding: 4px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Lulus</span>
                                     @elseif ($item->status_klaper === 'mutasi_keluar' || $item->status_klaper === 'do')
                                         <span class="badge"
-                                            style="background: rgba(239,68,68,0.12); color: #ef4444; padding: 4px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Keluar/Mutasi</span>
+                                            style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); padding: 4px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Keluar/Mutasi</span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(59,130,246,0.12); color: #2563eb; padding: 4px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Aktif</span>
+                                            style="background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb); padding: 4px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Aktif</span>
                                     @endif
                                 </td>
                                 <td data-label="Aksi" style="padding: 12px 14px; text-align: center;">
@@ -315,15 +315,15 @@
                                 <td data-label="Jenis & Tanggal" style="padding: 12px 14px;">
                                     @if ($mt->jenis_mutasi === 'masuk')
                                         <span class="badge"
-                                            style="background: rgba(16,185,129,0.12); color: #10b981; padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Mutasi
+                                            style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Mutasi
                                             Masuk</span>
                                     @elseif ($mt->jenis_mutasi === 'keluar')
                                         <span class="badge"
-                                            style="background: rgba(239,68,68,0.12); color: #ef4444; padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Mutasi
+                                            style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Mutasi
                                             Keluar</span>
                                     @else
                                         <span class="badge"
-                                            style="background: rgba(245,158,11,0.12); color: #f59e0b; padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Drop
+                                            style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); padding: 3px 8px; border-radius: var(--radius-sm, 6px); font-weight: 700; font-size: var(--text-xs, 0.75rem);">Drop
                                             Out / Berhenti</span>
                                     @endif
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 4px;">
@@ -499,7 +499,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                        Pilih Peserta Didik <span style="color: #ef4444;">*</span>
+                        Pilih Peserta Didik <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <select id="mutasiPesertaDidikId" required
                         style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -516,7 +516,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Jenis Mutasi <span style="color: #ef4444;">*</span>
+                            Jenis Mutasi <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="mutasiJenis" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -529,7 +529,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Tanggal Mutasi <span style="color: #ef4444;">*</span>
+                            Tanggal Mutasi <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="date" id="mutasiTanggal" required value="{{ date('Y-m-d') }}"
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -548,7 +548,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                        Alasan Kepindahan / Mutasi <span style="color: #ef4444;">*</span>
+                        Alasan Kepindahan / Mutasi <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="text" id="mutasiAlasan" required
                         placeholder="Contoh: Mengikuti domisili orang tua..."

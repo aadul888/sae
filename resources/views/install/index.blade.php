@@ -28,9 +28,9 @@
             {{-- Kartu Deteksi Jika Database & .env Sudah Terisi Sebelumnya --}}
             @if (!empty($status['has_tables']) && $status['has_tables'])
                 <div
-                    style="background: rgba(16,185,129,0.12); border: 1px solid #10b981; border-radius: var(--radius-xl, 16px); padding: 16px; margin-bottom: 22px;">
+                    style="background: rgba(16,185,129,0.12); border: 1px solid var(--success, #10b981); border-radius: var(--radius-xl, 16px); padding: 16px; margin-bottom: 22px;">
                     <div
-                        style="font-weight: 700; color: #10b981; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: var(--text-base, 0.875rem);">
+                        style="font-weight: 700; color: var(--success, #10b981); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; font-size: var(--text-base, 0.875rem);">
                         <i class="fas fa-circle-check"></i> Database Terisi &amp; Terdeteksi!
                     </div>
                     <p style="font-size: var(--text-sm, 0.8125rem); color: var(--text-color); margin-bottom: 12px; line-height: 1.5;">
@@ -39,7 +39,7 @@
                         langsung menyelesaikan langkah instalasi dan menuju halaman login.
                     </p>
                     <a href="{{ route('install.finish') }}" class="btn btn-primary"
-                        style="width: 100%; padding: 11px; font-weight: 700; font-size: var(--text-base, 0.875rem); justify-content: center; text-decoration: none; display: flex; align-items: center; gap: 8px; background: #10b981; border-color: #10b981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+                        style="width: 100%; padding: 11px; font-weight: 700; font-size: var(--text-base, 0.875rem); justify-content: center; text-decoration: none; display: flex; align-items: center; gap: 8px; background: var(--success, #10b981); border-color: var(--success, #10b981); box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
                         <i class="fas fa-arrow-right-to-bracket"></i> Selesaikan &amp; Buka Halaman Login
                     </a>
                 </div>
@@ -48,7 +48,7 @@
             {{-- Peringatan Jika Koneksi Database dari .env Gagal --}}
             @if (!empty($status['error']))
                 <div
-                    style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; padding: 12px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; line-height: 1.5;">
+                    style="background: rgba(239,68,68,0.1); border: 1px solid var(--danger, #ef4444); color: var(--danger, #ef4444); padding: 12px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; line-height: 1.5;">
                     <div style="font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
                         <i class="fas fa-triangle-exclamation"></i> Peringatan Koneksi Database
                     </div>
@@ -58,14 +58,14 @@
 
             @if (session('error'))
                 <div
-                    style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px;">
+                    style="background: rgba(239,68,68,0.1); border: 1px solid var(--danger, #ef4444); color: var(--danger, #ef4444); padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px;">
                     <i class="fas fa-triangle-exclamation"></i> {{ session('error') }}
                 </div>
             @endif
 
             @if (session('success'))
                 <div
-                    style="background: rgba(16,185,129,0.12); border: 1px solid #10b981; color: #10b981; padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                    style="background: rgba(16,185,129,0.12); border: 1px solid var(--success, #10b981); color: var(--success, #10b981); padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-circle-check"></i> {{ session('success') }}
                 </div>
             @endif

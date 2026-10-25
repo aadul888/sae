@@ -27,7 +27,7 @@
                     onerror="this.onerror=null; this.src='{{ $dashLogoIcon }}';">
             </a>
             @if (!empty($sekolah->nama))
-                <div style="font-size: var(--text-sm, 0.8125rem); color: #64748b; margin-top: 6px; font-weight: 600;">
+                <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted, #64748b); margin-top: 6px; font-weight: 600;">
                     {{ $sekolah->nama }}
                 </div>
             @endif

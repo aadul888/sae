@@ -91,7 +91,7 @@
                     <td><strong>{{ $stats['izin'] }}</strong> hari</td>
                     <td><strong>{{ $stats['sakit'] }}</strong> hari</td>
                     <td><strong>{{ $stats['dispen'] }}</strong> hari</td>
-                    <td><strong style="color: #ef4444;">{{ $stats['alpha'] }}</strong> hari</td>
+                    <td><strong style="color: var(--danger, #ef4444);">{{ $stats['alpha'] }}</strong> hari</td>
                     <td><strong>{{ $stats['hari_efektif_berjalan'] ?? $stats['total'] }}</strong> hari</td>
                     <td><strong style="font-size: var(--text-base, 0.875rem); color: #16a34a;">{{ $stats['persen'] }}%</strong></td>
                 </tr>
@@ -126,19 +126,19 @@
                         </td>
                         <td class="text-center">
                             @if ($l->status === 'H')
-                                <span style="font-weight: 700; color: #059669;">Hadir</span>
+                                <span style="font-weight: 700; color: var(--success, #059669);">Hadir</span>
                             @elseif ($l->status === 'T')
-                                <span style="font-weight: 700; color: #d97706;">Terlambat
+                                <span style="font-weight: 700; color: var(--warning, #d97706);">Terlambat
                                     (+{{ $l->menit_terlambat }}m)
                                 </span>
                             @elseif ($l->status === 'I')
-                                <span style="font-weight: 700; color: #2563eb;">Izin</span>
+                                <span style="font-weight: 700; color: var(--primary-hover, #2563eb);">Izin</span>
                             @elseif ($l->status === 'S')
-                                <span style="font-weight: 700; color: #7c3aed;">Sakit</span>
+                                <span style="font-weight: 700; color: var(--purple, #7c3aed);">Sakit</span>
                             @elseif ($l->status === 'D')
                                 <span style="font-weight: 700; color: #0891b2;">Dispen</span>
                             @else
-                                <span style="font-weight: 700; color: #dc2626;">Alpha</span>
+                                <span style="font-weight: 700; color: var(--danger, #dc2626);">Alpha</span>
                             @endif
                         </td>
                         <td>{{ $l->keterangan ?: '-' }}</td>

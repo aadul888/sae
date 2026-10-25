@@ -3,40 +3,40 @@
 <!-- 1. Akses Cepat Menu Kepegawaian (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'pegawai']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Direktori Data Pegawai GTK">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Direktori Data Pegawai GTK">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-users"></i>
         </div>
         <span class="kepegawaian-quick-label">Pegawai</span>
     </a>
 
     <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'berkas']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Pengarsipan Berkas Pegawai">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Pengarsipan Berkas Pegawai">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-folder-open"></i>
         </div>
         <span class="kepegawaian-quick-label">Berkas</span>
     </a>
 
     <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'kgb']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Kenaikan Gaji Berkala Tracker">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Kenaikan Gaji Berkala Tracker">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-business-time"></i>
         </div>
         <span class="kepegawaian-quick-label">KGB Tracker</span>
     </a>
 
     <a href="{{ route('dashboard.kepegawaian.index', ['tab' => 'cuti']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #10b981;" title="Pengajuan &amp; Riwayat Cuti/Izin">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Pengajuan &amp; Riwayat Cuti/Izin">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-plane-departure"></i>
         </div>
         <span class="kepegawaian-quick-label">Cuti &amp; Izin</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.target.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-bullseye"></i>
         </div>
         <span class="kepegawaian-quick-label">Target Capaian</span>
@@ -54,7 +54,7 @@
 <!-- 2. Quick Stats Grid Kepegawaian (Responsive) -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-chalkboard-user"></i>
         </div>
         <div class="dash-stat-info">
@@ -64,7 +64,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        <div class="dash-stat-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-users-gear"></i>
         </div>
         <div class="dash-stat-info">
@@ -74,7 +74,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-award"></i>
         </div>
         <div class="dash-stat-info">
@@ -84,7 +84,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
@@ -122,7 +122,7 @@
             </div>
             <div style="display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: var(--text-sm, 0.8125rem); border-top: 1px solid var(--border-color); padding-top: 8px;">
                 <span style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--primary, #3b82f6);"></span>
                     <span>Laki-laki: <strong>{{ $kepegawaianCharts['jenisKelamin']['L'] ?? 0 }}</strong></span>
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 6px;">
@@ -229,8 +229,8 @@
     <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; padding: 10px 14px; border-radius: var(--radius-lg, 12px); background: var(--bg-hover); border: 1px solid var(--border-color); justify-content: space-between; align-items: center;">
         <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: var(--text-sm, 0.8125rem);">
             <span><i class="fas fa-bullseye text-primary me-1"></i> Target: <strong id="valPeriodeTarget" style="color: var(--text-color);">0</strong></span>
-            <span><i class="fas fa-circle-check text-success me-1"></i> Selesai: <strong id="valPeriodeSelesai" style="color: #10b981;">0</strong></span>
-            <span><i class="fas fa-spinner text-warning me-1"></i> Proses: <strong id="valPeriodeProses" style="color: #f59e0b;">0</strong></span>
+            <span><i class="fas fa-circle-check text-success me-1"></i> Selesai: <strong id="valPeriodeSelesai" style="color: var(--success, #10b981);">0</strong></span>
+            <span><i class="fas fa-spinner text-warning me-1"></i> Proses: <strong id="valPeriodeProses" style="color: var(--warning, #f59e0b);">0</strong></span>
             <span><i class="fas fa-percent text-info me-1"></i> Capaian: <strong id="valPeriodePersen" style="color: var(--accent);">0%</strong></span>
         </div>
         <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">
@@ -292,7 +292,7 @@
                         <td data-label="Target" style="text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--text-color);">
                             {{ $ind->target_label }}
                         </td>
-                        <td data-label="Capaian" style="text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: #10b981;">
+                        <td data-label="Capaian" style="text-align: center; font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--success, #10b981);">
                             {{ $ind->realisasi_label }}
                         </td>
                         <td data-label="Status" style="text-align: center;">

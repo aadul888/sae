@@ -10,7 +10,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-door-open"></i>
                 </div>
                 <div>
@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -54,7 +54,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -63,7 +63,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-circle-xmark"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -212,7 +212,7 @@
                                         @if ($canDelete)
                                             <button type="button" class="btn-icon btn-delete-ruang"
                                                 data-id="{{ $item->id }}" data-nama="{{ $item->nama_ruang }}"
-                                                title="Hapus Ruang" style="color: #ef4444;">
+                                                title="Hapus Ruang" style="color: var(--danger, #ef4444);">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         @endif
@@ -262,14 +262,14 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
-                                Ruang <span style="color: #ef4444;">*</span></label>
+                                Ruang <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="kode_ruang" id="ruangKode" class="form-control"
                                 placeholder="R-01" required>
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
-                                Ruang <span style="color: #ef4444;">*</span></label>
+                                Ruang <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="nama_ruang" id="ruangNama" class="form-control"
                                 placeholder="Ruang Kelas X TKJ 1" required>
                         </div>
@@ -304,7 +304,7 @@
                     <div class="form-group" style="margin-bottom: 14px;">
                         <label
                             style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
-                            Ruang <span style="color: #ef4444;">*</span></label>
+                            Ruang <span style="color: var(--danger, #ef4444);">*</span></label>
                         <select name="kondisi" id="ruangKondisi" class="form-control" required>
                             <option value="baik">Baik</option>
                             <option value="rusak_ringan">Rusak Ringan</option>

@@ -39,7 +39,7 @@
             </div>
 
             <div
-                style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; font-size: var(--text-sm, 0.8125rem); color: #94a3b8;">
+                style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted, #94a3b8);">
                 <i class="fas fa-satellite-dish text-primary"></i>
                 <span>Siap memindai kartu RFID fisik</span>
             </div>

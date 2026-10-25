@@ -9,7 +9,7 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(245,158,11,0.12); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-trophy"></i>
             </div>
             <div>
@@ -41,7 +41,7 @@
     <!-- 2. Stat Grid Baku SAE -->
     <div class="dash-stat-grid" style="margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb);">
                 <i class="fas fa-award"></i>
             </div>
             <div class="dash-stat-info">
@@ -50,7 +50,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-medal"></i>
             </div>
             <div class="dash-stat-info">
@@ -59,7 +59,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                 <i class="fas fa-earth-asia"></i>
             </div>
             <div class="dash-stat-info">
@@ -68,7 +68,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-trophy"></i>
             </div>
             <div class="dash-stat-info">
@@ -321,7 +321,7 @@
                                     <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);">NISN:
                                         {{ $ts->nisn ?: '-' }}</div>
                                 </td>
-                                <td style="padding: 10px 14px; text-align: right; font-weight: 800; color: #f59e0b;">
+                                <td style="padding: 10px 14px; text-align: right; font-weight: 800; color: var(--warning, #f59e0b);">
                                     {{ $ts->total_prestasi }} Medali / Juara</td>
                             </tr>
                         @empty

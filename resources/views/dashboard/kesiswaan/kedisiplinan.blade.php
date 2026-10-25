@@ -9,7 +9,7 @@
         style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div
-                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                style="width: 44px; height: 44px; border-radius: var(--radius-lg, 12px); background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                 <i class="fas fa-shield-halved"></i>
             </div>
             <div>
@@ -30,7 +30,7 @@
                     <i class="fas fa-book-bookmark text-primary"></i>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnOpenPoinModal" title="Catat Pelanggaran Poin Siswa"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: #ef4444; border-color: #ef4444;">
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); background: var(--danger, #ef4444); border-color: var(--danger, #ef4444);">
                     <i class="fas fa-triangle-exclamation"></i>
                 </button>
                 <button type="button" class="btn btn-outline" id="btnOpenPembinaanModal"
@@ -50,7 +50,7 @@
     <!-- 2. Stat Grid Baku SAE -->
     <div class="dash-stat-grid" style="margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary-hover, #2563eb);">
                 <i class="fas fa-list-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -59,7 +59,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
             <div class="dash-stat-info">
@@ -68,7 +68,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-user-doctor"></i>
             </div>
             <div class="dash-stat-info">
@@ -77,7 +77,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-envelope-open-text"></i>
             </div>
             <div class="dash-stat-info">
@@ -225,7 +225,7 @@
                                 <td style="padding: 12px 16px; font-weight: 700; color: var(--text-color);">
                                     {{ $item->nama_aturan }}</td>
                                 <td
-                                    style="padding: 12px 16px; text-align: center; font-weight: 800; color: #ef4444; font-size: var(--text-lg, 1.125rem);">
+                                    style="padding: 12px 16px; text-align: center; font-weight: 800; color: var(--danger, #ef4444); font-size: var(--text-lg, 1.125rem);">
                                     +{{ $item->bobot_poin }}
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-base, 0.875rem); color: var(--text-muted);">
@@ -287,7 +287,7 @@
                                             {{ $item->keterangan }}</div>
                                     @endif
                                 </td>
-                                <td style="padding: 12px 16px; text-align: center; font-weight: 800; color: #ef4444;">
+                                <td style="padding: 12px 16px; text-align: center; font-weight: 800; color: var(--danger, #ef4444);">
                                     +{{ $item->poin }}
                                 </td>
                                 <td style="padding: 12px 16px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
@@ -671,7 +671,7 @@
                     <button type="button" class="btn btn-outline close-modal" data-target="#modalPoin"
                         style="border-radius: var(--radius-md, 8px);">Batal</button>
                     <button type="submit" class="btn btn-primary"
-                        style="border-radius: var(--radius-md, 8px); background: #ef4444; border-color: #ef4444;"><i
+                        style="border-radius: var(--radius-md, 8px); background: var(--danger, #ef4444); border-color: var(--danger, #ef4444);"><i
                             class="fas fa-save"></i> Catat Poin</button>
                 </div>
             </form>

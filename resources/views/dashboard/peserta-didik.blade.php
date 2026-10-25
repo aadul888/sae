@@ -106,7 +106,7 @@
                     </span>
                 </div>
                 <div
-                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #06b6d4;">
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--accent, #06b6d4);">
                     <i class="fas fa-calendar-alt"></i> TA. {{ \App\Support\SemesterHelper::getActiveSemesterLabel() }}
                 </div>
             </div>
@@ -114,7 +114,7 @@
         @if ($currentNisn)
             <div class="dash-banner-actions">
                 <button type="button" class="btn btn-outline" onclick="openKartuPelajarModal('{{ $currentNisn }}')"
-                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: #06b6d4; color: #06b6d4;"
+                    style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: var(--accent, #06b6d4); color: var(--accent, #06b6d4);"
                     title="Lihat / Cetak Kartu Pelajar Digital">
                     <i class="fas fa-id-card"></i>
                 </button>
@@ -135,7 +135,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-user-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -155,7 +155,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-shield-halved"></i>
             </div>
             <div class="dash-stat-info">
@@ -195,13 +195,13 @@
                                     <td style="padding: 10px; font-weight: 600; color: var(--text-color);">
                                         {{ $p['tanggal'] }}
                                     </td>
-                                    <td style="padding: 10px; color: #10b981; font-family: monospace; font-weight: 600;">
+                                    <td style="padding: 10px; color: var(--success, #10b981); font-family: monospace; font-weight: 600;">
                                         {{ $p['jam_masuk'] }}</td>
                                     <td style="padding: 10px; color: var(--text-muted); font-family: monospace;">
                                         {{ $p['jam_pulang'] }}</td>
                                     <td style="padding: 10px;">
                                         <span
-                                            style="background: {{ $p['badge_bg'] ?? 'rgba(16,185,129,0.15)' }}; color: {{ $p['badge_color'] ?? '#10b981' }}; padding: 2px 8px; border-radius: var(--radius-sm, 6px); font-size: var(--text-xs, 0.75rem); font-weight: 700; display: inline-block;">
+                                            style="background: {{ $p['badge_bg'] ?? 'rgba(16,185,129,0.15)' }}; color: {{ $p['badge_color'] ?? 'var(--success, #10b981)' }}; padding: 2px 8px; border-radius: var(--radius-sm, 6px); font-size: var(--text-xs, 0.75rem); font-weight: 700; display: inline-block;">
                                             {{ $p['status'] }}
                                         </span>
                                     </td>
@@ -236,8 +236,8 @@
                     <div
                         style="text-align: center; padding: 24px 14px; background: rgba(245,158,11,0.06); border: 1.5px dashed rgba(245,158,11,0.3); border-radius: var(--radius-lg, 12px);">
                         <i class="fas fa-clock"
-                            style="font-size: var(--text-3xl, 1.875rem); color: #f59e0b; margin-bottom: 6px; display: block; opacity: 0.85;"></i>
-                        <h4 style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: #f59e0b; margin-bottom: 4px;">Jadwal
+                            style="font-size: var(--text-3xl, 1.875rem); color: var(--warning, #f59e0b); margin-bottom: 6px; display: block; opacity: 0.85;"></i>
+                        <h4 style="font-size: var(--text-base, 0.875rem); font-weight: 700; color: var(--warning, #f59e0b); margin-bottom: 4px;">Jadwal
                             Pelajaran Masih Draft</h4>
                         <p style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); margin: 0;">
                             Jadwal KBM semester ini sedang disiapkan oleh pihak sekolah dan akan segera aktif.

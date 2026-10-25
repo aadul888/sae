@@ -49,7 +49,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-user-graduate"></i>
             </div>
             <div class="dash-stat-info">
@@ -199,10 +199,10 @@
                                 </span>
                             </td>
                             <td class="cell-peserta-didik cell-siswa"
-                                style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: var(--text-base, 0.875rem); color: #10b981;"
+                                style="padding: 14px 18px; text-align: center; font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--success, #10b981);"
                                 data-label="Peserta Didik">
                                 <span class="badge"
-                                    style="background: rgba(16,185,129,0.12); color: #10b981; font-size: var(--text-sm, 0.8125rem); padding: 3px 10px;">
+                                    style="background: rgba(16,185,129,0.12); color: var(--success, #10b981); font-size: var(--text-sm, 0.8125rem); padding: 3px 10px;">
                                     <i class="fas fa-user-graduate me-1"></i>
                                     {{ number_format($item->total_peserta_didik, 0, ',', '.') }}
                                 </span>
@@ -245,7 +245,7 @@
                                             title="{{ !empty($item->logo_url) ? 'Ganti / Lihat Logo Jurusan' : 'Unggah Logo Jurusan' }}"
                                             onclick="openUploadLogoModal('{{ $item->kode }}', '{{ addslashes($item->nama) }}', '{{ $item->logo_url ?? '' }}', '{{ $item->logo_size ?? '' }}')">
                                             <i class="fas fa-image"
-                                                style="{{ !empty($item->logo_url) ? 'color: #10b981;' : '' }}"></i>
+                                                style="{{ !empty($item->logo_url) ? 'color: var(--success, #10b981);' : '' }}"></i>
                                         </button>
                                     @endif
                                     <button type="button" class="btn-icon" title="Lihat Daftar Rombel & Peserta Didik"
@@ -397,7 +397,7 @@
                         </div>
                     </div>
                     <div id="logoFileSpecs"
-                        style="display: none; font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 8px; font-weight: 600;">
+                        style="display: none; font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 8px; font-weight: 600;">
                         -
                     </div>
                 </div>
@@ -428,7 +428,7 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);">
                 @if ($canDelete)
                     <button type="button" id="btnDeleteLogo" class="btn"
-                        style="display: none; background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-size: var(--text-sm, 0.8125rem); padding: 8px 14px;"
+                        style="display: none; background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-size: var(--text-sm, 0.8125rem); padding: 8px 14px;"
                         onclick="handleDeleteLogo()">
                         <i class="fas fa-trash-can me-1"></i> Hapus Logo
                     </button>

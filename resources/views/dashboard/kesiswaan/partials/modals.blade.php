@@ -64,7 +64,7 @@
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">Tinggi / Berat Badan</td>
-                            <td id="bioFisik" style="font-weight: 600; color: #10b981;">-</td>
+                            <td id="bioFisik" style="font-weight: 600; color: var(--success, #10b981);">-</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border-color);">
                             <td style="padding: 6px 0; color: var(--text-muted);">Kebutuhan Khusus</td>
@@ -355,7 +355,7 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div
-                        style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                        style="width: 38px; height: 38px; border-radius: var(--radius-md, 8px); background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                         <i class="fas fa-file-pdf"></i>
                     </div>
                     <div>
@@ -375,7 +375,7 @@
             </div>
 
             <div
-                style="flex: 1; min-height: 0; border-radius: var(--radius-lg, 12px); overflow: hidden; background: #0f172a; border: 1px solid var(--border-color); position: relative;">
+                style="flex: 1; min-height: 0; border-radius: var(--radius-lg, 12px); overflow: hidden; background: var(--text-main, #0f172a); border: 1px solid var(--border-color); position: relative;">
                 <iframe id="pdfViewerFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
 
@@ -388,13 +388,13 @@
                         <i class="fas fa-clipboard-check text-primary me-1"></i> Validasi:
                     </span>
                     <label
-                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981; cursor: pointer; margin: 0;">
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); cursor: pointer; margin: 0;">
                         <input type="radio" name="pdf_viewer_status" value="valid" id="pdfViewerRadioValid"
                             class="pdf-viewer-radio">
                         <i class="fas fa-circle-check"></i> Valid / Sesuai
                     </label>
                     <label
-                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #ef4444; cursor: pointer; margin: 0;">
+                        style="display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--danger, #ef4444); cursor: pointer; margin: 0;">
                         <input type="radio" name="pdf_viewer_status" value="tidak_valid"
                             id="pdfViewerRadioTidakValid" class="pdf-viewer-radio">
                         <i class="fas fa-circle-xmark"></i> Tidak Valid / Tidak Sesuai

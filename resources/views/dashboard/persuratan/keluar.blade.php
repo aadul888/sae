@@ -19,7 +19,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.12); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-paper-plane"></i>
                 </div>
                 <div>
@@ -58,21 +58,21 @@
                 @if ($canCreate)
                     @if (($tab ?? '') === 'template')
                         <button type="button" class="btn btn-primary" id="btnOpenModalTemplate"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); background: linear-gradient(135deg, #4f46e5 0%, var(--purple, #7c3aed) 100%); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);"
                             title="Buat Surat Keluar dari Template Autocrat">
                             <i class="fas fa-wand-magic-sparkles"></i>
                         </button>
                     @elseif (($tab ?? '') === 'ekspedisi')
                         <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak', array_filter(['q' => $q ?? '', 'status' => $status ?? '', 'kode_indeks' => $kodeIndeks ?? ''])) }}"
                             target="_blank" class="btn btn-outline"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: #10b981; border-color: rgba(16,185,129,0.35);"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); color: var(--success, #10b981); border-color: rgba(16,185,129,0.35);"
                             title="Cetak Buku Ekspedisi Kolektif Sesuai Filter">
                             <i class="fas fa-print"></i>
                         </a>
                     @else
                         {{-- Tab Surat Keluar (mengkoordinir semua jenis surat keluar) --}}
                         <button type="button" class="btn btn-outline" id="btnOpenModalSpt"
-                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(37,99,235,0.4); color: #2563eb;"
+                            style="width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md, 8px); font-size: var(--text-md, 1rem); border-color: rgba(37,99,235,0.4); color: var(--primary-hover, #2563eb);"
                             title="Terbitkan Surat Perintah Tugas (SPT)">
                             <i class="fas fa-file-contract text-info"></i>
                         </button>
@@ -94,14 +94,14 @@
         <!-- 2. Flash Messages -->
         @if (session('success'))
             <div
-                style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+                style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-check-circle"></i>
                 <div>{{ session('success') }}</div>
             </div>
         @endif
         @if (session('error'))
             <div
-                style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+                style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-circle-exclamation"></i>
                 <div>{{ session('error') }}</div>
             </div>
@@ -110,7 +110,7 @@
         <!-- 3. Stat Grid Baku SAE (4 Card Simetris) -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-paper-plane"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -130,7 +130,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
+                <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb);">
                     <i class="fas fa-file-contract"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -140,7 +140,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(124,58,237,0.12); color: #7c3aed;">
+                <div class="dash-stat-icon" style="background: rgba(124,58,237,0.12); color: var(--purple, #7c3aed);">
                     <i class="fas fa-wand-magic-sparkles"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -229,7 +229,7 @@
                                 SKET: {{ $stats['nomor_terakhir_keterangan'] ?? '-' }}
                             </span>
                             <span class="badge"
-                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(37,99,235,0.1); color: #2563eb; border: 1px solid rgba(37,99,235,0.25);">
+                                style="font-size: var(--text-2xs, 0.6875rem); padding: 2px 8px; border-radius: var(--radius-lg, 12px); background: rgba(37,99,235,0.1); color: var(--primary-hover, #2563eb); border: 1px solid rgba(37,99,235,0.25);">
                                 SPT: {{ $stats['nomor_terakhir_spt'] ?? '-' }}
                             </span>
                         @endif
@@ -316,7 +316,7 @@
                         @if (($tab ?? '') === 'ekspedisi')
                             <a href="{{ route('dashboard.persuratan.keluar.ekspedisi.cetak', array_filter(['q' => $q ?? '', 'status' => $status ?? '', 'kode_indeks' => $kodeIndeks ?? ''])) }}"
                                 target="_blank" class="btn btn-outline"
-                                style="padding: 7px 12px; font-size: var(--text-base, 0.875rem); display: inline-flex; align-items: center; gap: 6px; color: #10b981; border-color: rgba(16,185,129,0.35);"
+                                style="padding: 7px 12px; font-size: var(--text-base, 0.875rem); display: inline-flex; align-items: center; gap: 6px; color: var(--success, #10b981); border-color: rgba(16,185,129,0.35);"
                                 title="Cetak Buku Ekspedisi Kolektif Sesuai Filter">
                                 <i class="fas fa-print"></i> Cetak Rekap Ekspedisi
                             </a>
@@ -384,7 +384,7 @@
                                             {{ $tmpl->perihal }}</div>
                                         <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                                             <span class="badge-compact"
-                                                style="background: rgba(16,185,129,0.1); color: #10b981; text-transform: uppercase;">
+                                                style="background: rgba(16,185,129,0.1); color: var(--success, #10b981); text-transform: uppercase;">
                                                 <i class="fas fa-wand-magic-sparkles me-1"></i>
                                                 {{ ucfirst($tmpl->template_type) }}
                                             </span>
@@ -415,7 +415,7 @@
                                         <div class="table-actions"
                                             style="display: flex; gap: 4px; justify-content: center;">
                                             <a href="{{ route('dashboard.persuratan.keluar.template.cetak', $tmpl->id) }}"
-                                                target="_blank" class="btn-icon" style="color: #2563eb;"
+                                                target="_blank" class="btn-icon" style="color: var(--primary-hover, #2563eb);"
                                                 title="Cetak Lembar Resmi A4 (Print / PDF)">
                                                 <i class="fas fa-print"></i>
                                             </a>
@@ -544,27 +544,27 @@
                                         <div
                                             style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
                                             <span class="badge-compact"
-                                                style="background: rgba(16,185,129,0.1); color: #10b981;">Idx:
+                                                style="background: rgba(16,185,129,0.1); color: var(--success, #10b981);">Idx:
                                                 {{ $item->kode_indeks ?: '-' }}</span>
                                             @if ($isKet)
                                                 <span class="badge-compact" style="{{ $badgeKetStyle }}"><i
                                                         class="fas fa-graduation-cap me-1"></i>{{ $labelKet }}</span>
                                             @elseif ($isSpt)
                                                 <span class="badge-compact"
-                                                    style="background: rgba(37,99,235,0.12); color: #2563eb; border: 1px solid rgba(37,99,235,0.25);"><i
+                                                    style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb); border: 1px solid rgba(37,99,235,0.25);"><i
                                                         class="fas fa-file-contract me-1"></i>SPT Dinas</span>
                                             @elseif ($isTmpl)
                                                 <span class="badge-compact"
-                                                    style="background: rgba(124,58,237,0.12); color: #7c3aed; border: 1px solid rgba(124,58,237,0.25);"><i
+                                                    style="background: rgba(124,58,237,0.12); color: var(--purple, #7c3aed); border: 1px solid rgba(124,58,237,0.25);"><i
                                                         class="fas fa-wand-magic-sparkles me-1"></i>Autocrat</span>
                                             @else
                                                 <span class="badge-compact"
-                                                    style="background: rgba(16,185,129,0.1); color: #10b981;">Surat
+                                                    style="background: rgba(16,185,129,0.1); color: var(--success, #10b981);">Surat
                                                     Dinas</span>
                                             @endif
                                             @if ($item->sarprasAset)
                                                 <span class="badge-compact"
-                                                    style="background: rgba(245,158,11,0.12); color: #d97706; border: 1px solid rgba(245,158,11,0.25);">
+                                                    style="background: rgba(245,158,11,0.12); color: var(--warning, #d97706); border: 1px solid rgba(245,158,11,0.25);">
                                                     <i class="fas fa-boxes-stacked me-1"></i> Aset:
                                                     {{ $item->sarprasAset->kode_aset }}
                                                 </span>
@@ -582,7 +582,7 @@
                                             <strong>{{ $item->tujuan_penerima ?: '-' }}</strong>
                                         </div>
                                         @if ($item->sarprasAset)
-                                            <div style="font-size: var(--text-xs, 0.75rem); color: #d97706; margin-top: 3px;">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--warning, #d97706); margin-top: 3px;">
                                                 <i class="fas fa-box me-1"></i> Barang:
                                                 <strong>{{ $item->sarprasAset->nama_barang }}</strong>
                                                 ({{ $item->sarprasAset->merk_tipe ?: 'Merk -' }} &bull; Kondisi:
@@ -596,7 +596,7 @@
                                                 {{ $suratKet->siswa->nisn ?: '-' }})
                                             </div>
                                         @elseif ($isSpt && $sptItem)
-                                            <div style="font-size: var(--text-xs, 0.75rem); color: #2563eb; margin-top: 3px;">
+                                            <div style="font-size: var(--text-xs, 0.75rem); color: var(--primary-hover, #2563eb); margin-top: 3px;">
                                                 <i class="fas fa-calendar-day me-1"></i> Waktu:
                                                 {{ \Carbon\Carbon::parse($sptItem->tanggal_berangkat)->translatedFormat('d M Y') }}
                                                 s/d
@@ -625,7 +625,7 @@
                                                 data-download-url="{{ route('dashboard.persuratan.dokumen.download', $item->id) }}"
                                                 data-title="Surat Keluar: {{ $item->nomor_surat }} - {{ $item->perihal }}"
                                                 data-mime="{{ str_contains($item->file_path, '.pdf') ? 'application/pdf' : 'image/jpeg' }}">
-                                                <i class="fas fa-file-pdf" style="font-size: var(--text-lg, 1.125rem); color: #ef4444;"></i>
+                                                <i class="fas fa-file-pdf" style="font-size: var(--text-lg, 1.125rem); color: var(--danger, #ef4444);"></i>
                                             </button>
                                         @else
                                             <span
@@ -662,7 +662,7 @@
                                             <!-- Jika SPT Dinas: Tombol Cetak SPT Resmi -->
                                             @if ($isSpt && $sptItem)
                                                 <a href="{{ route('dashboard.persuratan.keluar.spt.cetak', $sptItem->id) }}"
-                                                    target="_blank" class="btn-icon" style="color: #2563eb;"
+                                                    target="_blank" class="btn-icon" style="color: var(--primary-hover, #2563eb);"
                                                     title="Cetak Lembar SPT Resmi (A4 Ber-KOP)">
                                                     <i class="fas fa-print"></i>
                                                 </a>
@@ -783,7 +783,7 @@
                 const oldHtml = btn.innerHTML;
                 const updateBtn = () => {
                     btn.innerHTML =
-                        '<i class="fas fa-check text-success"></i> <span style="color:#10b981;">Tersalin!</span>';
+                        '<i class="fas fa-check text-success"></i> <span style="color:var(--success, #10b981);">Tersalin!</span>';
                     setTimeout(() => {
                         btn.innerHTML = oldHtml;
                     }, 2000);

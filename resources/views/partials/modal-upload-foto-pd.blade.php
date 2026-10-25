@@ -61,7 +61,7 @@
                     </div>
                 </div>
                 <div id="fotoFileSpecs"
-                    style="display: none; font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 8px; font-weight: 600;">
+                    style="display: none; font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 8px; font-weight: 600;">
                     -
                 </div>
             </div>
@@ -94,7 +94,7 @@
                     <i class="fas fa-trash-can me-1"></i> Hapus Pasfoto
                 </button>
                 <button type="button" id="btnDownloadFoto" onclick="handleDownloadFoto()" class="btn btn-outline"
-                    style="display: none; padding: 8px 14px; font-size: var(--text-sm, 0.8125rem); color: #06b6d4; border-color: rgba(6,182,212,0.4);"
+                    style="display: none; padding: 8px 14px; font-size: var(--text-sm, 0.8125rem); color: var(--accent, #06b6d4); border-color: rgba(6,182,212,0.4);"
                     title="Unduh berkas pasfoto peserta didik">
                     <i class="fas fa-download me-1"></i> Unduh Pasfoto
                 </button>

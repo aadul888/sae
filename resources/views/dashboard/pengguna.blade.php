@@ -395,7 +395,7 @@
                                                 data-role="{{ $item->peran_id_str ?: ($activeTab === 'peserta_didik' ? 'Peserta Didik' : ($activeTab === 'guru' ? 'Guru' : 'Tendik')) }}">
                                                 @csrf
                                                 <button type="submit" class="btn-icon reset"
-                                                    title="Reset Password Akun ke Default" style="color: #f59e0b;">
+                                                    title="Reset Password Akun ke Default" style="color: var(--warning, #f59e0b);">
                                                     <i class="fas fa-key"></i>
                                                 </button>
                                             </form>

@@ -38,14 +38,14 @@
     <!-- 2. Flash Messages -->
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
     @endif
     @if (session('error'))
         <div
-            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: var(--danger, #ef4444); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-circle-exclamation"></i>
             <div>{{ session('error') }}</div>
         </div>
@@ -63,7 +63,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: #2563eb;">
+            <div class="dash-stat-icon" style="background: rgba(37,99,235,0.12); color: var(--primary-hover, #2563eb);">
                 <i class="fas fa-inbox"></i>
             </div>
             <div class="dash-stat-info">
@@ -81,7 +81,7 @@
             </div>
         </div>
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-clock-rotate-left"></i>
             </div>
             <div class="dash-stat-info">
@@ -232,7 +232,7 @@
                                         <button type="button" class="btn btn-outline btn-sm btn-delete-row"
                                             data-id="{{ $item->id }}" data-nomor="{{ $item->nomor_surat }}"
                                             title="Hapus Surat"
-                                            style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem); color: #ef4444; border-color: rgba(239,68,68,0.3);">
+                                            style="padding: 4px 8px; font-size: var(--text-sm, 0.8125rem); color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.3);">
                                             <i class="fas fa-trash-can"></i>
                                         </button>
                                     @endif
@@ -338,7 +338,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Nomor Surat <span style="color: #ef4444;">*</span>
+                            Nomor Surat <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="text" id="inputNomorSurat" name="nomor_surat" required
                             placeholder="Contoh: 421.3/089/SMK/2026"
@@ -347,7 +347,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Jenis Surat <span style="color: #ef4444;">*</span>
+                            Jenis Surat <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="inputJenisSurat" name="jenis_surat" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -363,7 +363,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                        Perihal / Judul Surat <span style="color: #ef4444;">*</span>
+                        Perihal / Judul Surat <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="text" id="inputPerihal" name="perihal" required
                         placeholder="Contoh: Undangan Rapat Koordinasi..."
@@ -395,7 +395,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Tanggal Surat <span style="color: #ef4444;">*</span>
+                            Tanggal Surat <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="date" id="inputTanggalSurat" name="tanggal_surat" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -411,7 +411,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Status Surat <span style="color: #ef4444;">*</span>
+                            Status Surat <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="inputStatus" name="status" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -511,7 +511,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                        Diteruskan Kepada (Tujuan Disposisi) <span style="color: #ef4444;">*</span>
+                        Diteruskan Kepada (Tujuan Disposisi) <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="text" id="dispTujuan" required
                         placeholder="Contoh: Waka Kurikulum, Kepala TAS, Guru Piket..."
@@ -522,7 +522,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Instruksi Disposisi <span style="color: #ef4444;">*</span>
+                            Instruksi Disposisi <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="dispInstruksi" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -537,7 +537,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Tanggal Disposisi <span style="color: #ef4444;">*</span>
+                            Tanggal Disposisi <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="date" id="dispTanggal" required value="{{ date('Y-m-d') }}"
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -590,7 +590,7 @@
                 <div style="margin-bottom: 14px;">
                     <label
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                        Pilih Peserta Didik <span style="color: #ef4444;">*</span>
+                        Pilih Peserta Didik <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="search" id="ketPesertaDidikLookup" class="form-control"
                         placeholder="Cari nama, NISN, atau NIPD..." autocomplete="off" required
@@ -604,7 +604,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Jenis Surat Keterangan <span style="color: #ef4444;">*</span>
+                            Jenis Surat Keterangan <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <select id="ketJenisSurat" required
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -616,7 +616,7 @@
                     <div>
                         <label
                             style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                            Tanggal Surat <span style="color: #ef4444;">*</span>
+                            Tanggal Surat <span style="color: var(--danger, #ef4444);">*</span>
                         </label>
                         <input type="date" id="ketTanggal" required value="{{ date('Y-m-d') }}"
                             style="width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--border-color); background: var(--bg-hover); color: var(--text-color); border-radius: var(--radius-md, 8px); font-size: var(--text-base, 0.875rem); box-sizing: border-box;">
@@ -626,7 +626,7 @@
                 <div style="margin-bottom: 18px;">
                     <label
                         style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-color); display: block; margin-bottom: 4px;">
-                        Keperluan Penerbitan Surat <span style="color: #ef4444;">*</span>
+                        Keperluan Penerbitan Surat <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="text" id="ketKeperluan" required
                         placeholder="Contoh: Persyaratan Tunjangan Orang Tua / Beasiswa / Lomba..."

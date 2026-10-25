@@ -28,11 +28,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                         {{ number_format($stats['total_lunas'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Pembayaran Lunas (Rp
@@ -42,11 +42,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         {{ number_format($stats['total_belum_bayar'], 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">Belum Membayar</div>
@@ -54,11 +54,11 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <div class="dash-stat-info">
-                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+                    <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                         {{ number_format(($stats['total_klaim_kartu'] ?? 0) + ($stats['total_klaim_stiker'] ?? 0), 0, ',', '.') }}
                     </div>
                     <div class="dash-stat-label">
@@ -151,12 +151,12 @@
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="openModalBulkPembayaran('set_lunas')"
-                            style="border-color: #10b981; color: #10b981; font-weight: 600;">
+                            style="border-color: var(--success, #10b981); color: var(--success, #10b981); font-weight: 600;">
                             <i class="fas fa-check me-1"></i> Tandai Lunas
                         </button>
                         <button type="button" class="btn btn-outline btn-sm"
                             onclick="openModalBulkPembayaran('set_belum_bayar')"
-                            style="border-color: #f59e0b; color: #f59e0b; font-weight: 600;">
+                            style="border-color: var(--warning, #f59e0b); color: var(--warning, #f59e0b); font-weight: 600;">
                             <i class="fas fa-clock me-1"></i> Tandai Belum Bayar
                         </button>
                     </div>
@@ -299,7 +299,7 @@
                                             </div>
                                         @endif
                                         <div
-                                            style="font-size: var(--text-2xs, 0.6875rem); color: #10b981; margin-top: 3px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                                            style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981); margin-top: 3px; font-weight: 600; display: flex; align-items: center; gap: 4px;">
                                             <i class="fas fa-shield-alt text-success"></i>
                                             <span>Garansi: {{ $sisaKartu }} Kartu &bull; {{ $sisaStiker }}
                                                 Stiker</span>
@@ -323,7 +323,7 @@
                                             <i class="fab fa-whatsapp text-success me-1"></i> {{ $phone }}
                                         </div>
                                         @if ($s->wa_terkirim_at)
-                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: #10b981; margin-top: 2px;">
+                                            <div style="font-size: var(--text-2xs, 0.6875rem); color: var(--success, #10b981); margin-top: 2px;">
                                                 <i class="fas fa-check-double me-1"></i> Terkirim
                                                 {{ \Carbon\Carbon::parse($s->wa_terkirim_at)->translatedFormat('d/m/Y H:i') }}
                                             </div>
@@ -346,7 +346,7 @@
                                         </button>
 
                                         {{-- Tombol Toggle Status Cetak --}}
-                                        <button type="button" class="btn-icon" style="color: #0284c7;"
+                                        <button type="button" class="btn-icon" style="color: var(--accent, #0284c7);"
                                             onclick="toggleStatusCetak('{{ $s->peserta_didik_id }}', this)"
                                             title="{{ $isCetak ? 'Tandai Belum Dicetak' : 'Tandai Sudah Dicetak' }}">
                                             <i
@@ -355,7 +355,7 @@
 
                                         {{-- Tombol Klaim Garansi --}}
                                         <button type="button" class="btn-icon"
-                                            style="color: {{ $isCetak ? '#f59e0b' : '#94a3b8' }}; opacity: {{ $isCetak ? '1' : '0.6' }};"
+                                            style="color: {{ $isCetak ? 'var(--warning, #f59e0b)' : '#94a3b8' }}; opacity: {{ $isCetak ? '1' : '0.6' }};"
                                             onclick="openKlaimGaransi('{{ $s->peserta_didik_id }}', '{{ addslashes($s->nama) }}', '{{ $s->nisn }}', '{{ addslashes($s->nama_rombel ?? '-') }}', {{ (int) $s->klaim_ganti_kartu }}, {{ (int) $s->klaim_stiker }}, {{ (int) ($settings->kuota_ganti_kartu_full ?? 1) }}, {{ (int) ($settings->kuota_ganti_stiker ?? 3) }}, {{ $isCetak ? 1 : 0 }})"
                                             title="{{ $isCetak ? 'Klaim Garansi (Sisa: ' . $sisaKartu . ' Kartu, ' . $sisaStiker . ' Stiker)' : 'Garansi Belum Aktif (Kartu Belum Dicetak)' }}">
                                             <i class="fas fa-shield-alt"></i>
@@ -363,7 +363,7 @@
 
                                         {{-- Tombol Pratinjau / Cetak Kartu Tunggal (Sama dengan Peserta Didik Aktif) --}}
                                         @if (!empty($s->nisn))
-                                            <button type="button" class="btn-icon" style="color: #0284c7;"
+                                            <button type="button" class="btn-icon" style="color: var(--accent, #0284c7);"
                                                 title="Pratinjau / Cetak Kartu Pelajar Digital"
                                                 onclick="openKartuPelajarModal('{{ $s->nisn }}')">
                                                 <i class="fas fa-address-card"></i>

@@ -43,15 +43,15 @@
             <!-- Bukti Ringkas Transaksi / Tanggapan -->
             <div class="receipt-card">
                 <div class="receipt-row">
-                    <span style="color: #64748b;">No. Bukti Respon:</span>
+                    <span style="color: var(--text-muted, #64748b);">No. Bukti Respon:</span>
                     <strong>#RES-{{ str_pad($respon->id, 6, '0', STR_PAD_LEFT) }}</strong>
                 </div>
                 <div class="receipt-row">
-                    <span style="color: #64748b;">Nama Responden:</span>
+                    <span style="color: var(--text-muted, #64748b);">Nama Responden:</span>
                     <strong>{{ $respon->nama_responden ?: 'Responden Publik' }}</strong>
                 </div>
                 <div class="receipt-row">
-                    <span style="color: #64748b;">Waktu Simpan:</span>
+                    <span style="color: var(--text-muted, #64748b);">Waktu Simpan:</span>
                     <span>{{ $respon->created_at ? $respon->created_at->translatedFormat('d F Y, H:i') : now()->format('d/m/Y H:i') }}
                         WIB</span>
                 </div>

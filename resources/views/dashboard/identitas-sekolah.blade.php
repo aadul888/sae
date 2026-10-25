@@ -57,7 +57,7 @@
 
     @if (session('success'))
         <div
-            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
+            style="background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: var(--success, #10b981); padding: 12px 16px; border-radius: var(--radius-lg, 12px); margin-bottom: 18px; font-size: var(--text-base, 0.875rem); display: flex; align-items: center; gap: 8px;">
             <i class="fas fa-check-circle"></i>
             <div>{{ session('success') }}</div>
         </div>
@@ -86,7 +86,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                 <i class="fas fa-users-rectangle"></i>
             </div>
             <div class="dash-stat-info">
@@ -96,7 +96,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                 <i class="fas fa-book-open-reader"></i>
             </div>
             <div class="dash-stat-info">
@@ -172,7 +172,7 @@
                 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <h3
                     style="font-size: var(--text-md, 1rem); font-weight: 700; color: var(--text-color); margin: 0; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-location-dot" style="color: #ef4444;"></i> Alamat &amp; Lokasi Wilayah
+                    <i class="fas fa-location-dot" style="color: var(--danger, #ef4444);"></i> Alamat &amp; Lokasi Wilayah
                 </h3>
                 @if (!empty($sekolah->lintang) && !empty($sekolah->bujur))
                     <a href="https://maps.google.com/?q={{ $sekolah->lintang }},{{ $sekolah->bujur }}" target="_blank"
@@ -371,7 +371,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px;">
                 <div>
                     <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
-                        GOOGLE_CLIENT_ID <span style="color: #ef4444;">*</span>
+                        GOOGLE_CLIENT_ID <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <input type="text" name="google_client_id" required
                         value="{{ old('google_client_id', config('services.google.client_id')) }}"
@@ -381,7 +381,7 @@
 
                 <div>
                     <label style="display: block; font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
-                        GOOGLE_CLIENT_SECRET <span style="color: #ef4444;">*</span>
+                        GOOGLE_CLIENT_SECRET <span style="color: var(--danger, #ef4444);">*</span>
                     </label>
                     <div style="position: relative; display: flex; align-items: center;">
                         <input type="password" name="google_client_secret" id="googleClientSecret" required
@@ -477,7 +477,7 @@
 
                     <div id="cardLogoFileSpecs" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); min-height: 18px;">
                         @if ($schoolLogoUrl)
-                            <span style="color: #10b981;"><i class="fas fa-circle-check me-1"></i> PNG Aktif:
+                            <span style="color: var(--success, #10b981);"><i class="fas fa-circle-check me-1"></i> PNG Aktif:
                                 {{ $schoolLogoSize }}</span>
                         @endif
                     </div>
@@ -494,7 +494,7 @@
                 <div style="display: flex; gap: 8px; align-items: center;">
                     @if ($canDelete)
                         <button type="button" id="btnCardDeleteLogo" class="btn btn-outline"
-                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); color: #ef4444; border-color: rgba(239,68,68,0.3); display: {{ $schoolLogoUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
+                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.3); display: {{ $schoolLogoUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
                             onclick="handleDeleteSekolahLogo()">
                             <i class="fas fa-trash-can"></i> Hapus
                         </button>
@@ -568,7 +568,7 @@
 
                     <div id="cardKopFileSpecs" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); min-width: 140px;">
                         @if ($schoolKopUrl)
-                            <span style="color: #10b981;"><i class="fas fa-circle-check me-1"></i> PNG Aktif:
+                            <span style="color: var(--success, #10b981);"><i class="fas fa-circle-check me-1"></i> PNG Aktif:
                                 {{ $schoolKopSize }}</span>
                         @endif
                     </div>
@@ -585,7 +585,7 @@
                 <div style="display: flex; gap: 8px; align-items: center;">
                     @if ($canDelete)
                         <button type="button" id="btnCardDeleteKop" class="btn btn-outline"
-                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); color: #ef4444; border-color: rgba(239,68,68,0.3); display: {{ $schoolKopUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
+                            style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); color: var(--danger, #ef4444); border-color: rgba(239,68,68,0.3); display: {{ $schoolKopUrl ? 'inline-flex' : 'none' }}; align-items: center; gap: 4px;"
                             onclick="handleDeleteSekolahKop()">
                             <i class="fas fa-trash-can"></i> Hapus
                         </button>

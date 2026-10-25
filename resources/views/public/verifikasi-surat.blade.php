@@ -106,7 +106,7 @@
                                 <td class="label-col">Status Keaktifan</td>
                                 <td class="val-col">
                                     <span
-                                        style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); color: #059669; padding: 2px 10px; border-radius: var(--radius-pill, 999px); font-size: var(--text-sm, 0.8125rem); font-weight: 700;">
+                                        style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16,185,129,0.12); color: var(--success, #059669); padding: 2px 10px; border-radius: var(--radius-pill, 999px); font-size: var(--text-sm, 0.8125rem); font-weight: 700;">
                                         <i class="fas fa-circle" style="font-size: var(--text-2xs, 0.6875rem);"></i> Siswa Aktif Terdaftar
                                     </span>
                                 </td>

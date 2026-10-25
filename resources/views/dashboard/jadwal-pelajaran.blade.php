@@ -46,11 +46,11 @@
             style="padding: 14px 18px; margin-bottom: 20px; background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.35); border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <div
-                    style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(245, 158, 11, 0.18); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
+                    style="width: 40px; height: 40px; border-radius: var(--radius-lg, 12px); background: rgba(245, 158, 11, 0.18); color: var(--warning, #f59e0b); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem); flex-shrink: 0;">
                     <i class="fas fa-clock"></i>
                 </div>
                 <div>
-                    <div style="font-weight: 700; color: #f59e0b; font-size: var(--text-base, 0.875rem);">Jadwal KBM Masih Berstatus Draft
+                    <div style="font-weight: 700; color: var(--warning, #f59e0b); font-size: var(--text-base, 0.875rem);">Jadwal KBM Masih Berstatus Draft
                     </div>
                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted);">
                         Jadwal pelajaran semester ini masih dalam tahap penyusunan / finalisasi kurikulum dan belum resmi
@@ -65,11 +65,11 @@
     <!-- 3. Stat Grid Baku SAE (4 Kartu Ringkasan) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.12); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-day"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $stats['total_sesi_hari_ini'] }} <span
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ $stats['total_sesi_hari_ini'] }} <span
                         style="font-size: var(--text-xs, 0.75rem); font-weight: 500;">Sesi</span></div>
                 <div class="dash-stat-label">Jadwal Hari Ini ({{ $hariIni }})</div>
             </div>

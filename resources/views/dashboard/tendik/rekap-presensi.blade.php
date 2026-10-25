@@ -34,7 +34,7 @@
                             style="font-size: var(--text-xs, 0.75rem); padding: 2px 6px;">{{ $pegawai['status_kepegawaian'] }}</span></span>
                 </div>
                 <div
-                    style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #3b82f6;">
+                    style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--primary, #3b82f6);">
                     <i class="fas fa-calendar-check"></i> Periode: {{ $range['label'] }}
                 </div>
             </div>
@@ -214,7 +214,7 @@
 
             <div style="margin-left: auto;">
                 <span class="badge"
-                    style="background: rgba(59,130,246,0.12); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); padding: 8px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.25); padding: 8px 14px; border-radius: var(--radius-md, 8px); font-size: var(--text-sm, 0.8125rem); font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
                     <i class="fas fa-calendar-check"></i> {{ $range['label'] }}
                 </span>
             </div>
@@ -225,17 +225,17 @@
     <div class="dash-stat-grid"
         style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-calendar-check"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #10b981;">{{ $stats['persen'] }}%</div>
+                <div class="dash-stat-value" style="color: var(--success, #10b981);">{{ $stats['persen'] }}%</div>
                 <div class="dash-stat-label">Persentase Kehadiran</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+            <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                 <i class="fas fa-business-time"></i>
             </div>
             <div class="dash-stat-info">
@@ -255,17 +255,17 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #f59e0b;">{{ $stats['terlambat'] }} Hari</div>
+                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">{{ $stats['terlambat'] }} Hari</div>
                 <div class="dash-stat-label">Terlambat Datang</div>
             </div>
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+            <div class="dash-stat-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
                 <i class="fas fa-notes-medical"></i>
             </div>
             <div class="dash-stat-info">

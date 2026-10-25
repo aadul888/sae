@@ -67,7 +67,7 @@
                 <div>
                     <div class="bio-item">
                         <span class="bio-label">Total Beban:</span>
-                        <strong style="color: #2563eb;">{{ $totalJp }} Jam Pelajaran (JP) / Minggu</strong>
+                        <strong style="color: var(--primary-hover, #2563eb);">{{ $totalJp }} Jam Pelajaran (JP) / Minggu</strong>
                     </div>
                     <div class="bio-item">
                         <span class="bio-label">Jumlah Sesi:</span>

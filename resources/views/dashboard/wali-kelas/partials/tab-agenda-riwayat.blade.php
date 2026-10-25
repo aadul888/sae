@@ -211,7 +211,7 @@
                                 @endif
                                 @if (!empty($item->penugasan))
                                     <div
-                                        style="font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                                        style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
                                         <i class="fas fa-tasks"></i>
                                         <span>{{ \Illuminate\Support\Str::limit($item->penugasan, 45) }}</span>
                                     </div>
@@ -240,7 +240,7 @@
                                 @if ($canUpdate)
                                     <button type="button" class="btn-icon btn-edit-agenda"
                                         data-id="{{ $item->id }}" title="Edit Agenda Kelas"
-                                        style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: #f59e0b;">
+                                        style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: var(--warning, #f59e0b);">
                                         <i class="fas fa-pen-to-square"></i>
                                     </button>
                                 @endif
@@ -248,7 +248,7 @@
                                 @if ($canDelete)
                                     <button type="button" class="btn-icon btn-delete-agenda"
                                         data-id="{{ $item->id }}" title="Hapus Agenda Kelas"
-                                        style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: #ef4444;">
+                                        style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: var(--danger, #ef4444);">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 @endif

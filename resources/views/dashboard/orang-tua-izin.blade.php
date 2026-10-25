@@ -20,7 +20,7 @@
                 <h2
                     style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin: 0 0 6px 0; line-height: 1.25;">
                     <i class="fas fa-ticket-alt text-warning me-1"></i> Perizinan &amp; Surat Sakit: <span
-                        style="color: #f59e0b;">{{ $pd->nama ?? 'Peserta Didik' }}</span>
+                        style="color: var(--warning, #f59e0b);">{{ $pd->nama ?? 'Peserta Didik' }}</span>
                 </h2>
                 <div
                     style="display: flex; align-items: center; gap: 12px; font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); flex-wrap: wrap;">
@@ -54,11 +54,11 @@
     <div class="dash-stat-grid"
         style="margin-bottom: 24px; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-ticket-alt"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="color: #f59e0b;">{{ $izinKeluarList->count() }} Tiket</div>
+                <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">{{ $izinKeluarList->count() }} Tiket</div>
                 <div class="dash-stat-label">Tiket e-Izin Gerbang Keluar</div>
                 <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); margin-top: 2px;">
                     Izin meninggalkan sekolah saat KBM
@@ -294,7 +294,7 @@
                                 </td>
                                 <td data-label="Jenis Izin" style="text-align: center;">
                                     <span class="badge"
-                                        style="background: {{ $jenisIzinLabel === 'Sakit' ? 'rgba(139,92,246,0.15)' : 'rgba(59,130,246,0.15)' }}; color: {{ $jenisIzinLabel === 'Sakit' ? '#8b5cf6' : '#3b82f6' }}; font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
+                                        style="background: {{ $jenisIzinLabel === 'Sakit' ? 'rgba(139,92,246,0.15)' : 'rgba(59,130,246,0.15)' }}; color: {{ $jenisIzinLabel === 'Sakit' ? '#8b5cf6' : 'var(--primary, #3b82f6)' }}; font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-sm, 6px);">
                                         {{ $jenisIzinLabel }}
                                     </span>
                                 </td>

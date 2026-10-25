@@ -17,11 +17,11 @@
         </div>
         <div class="dash-banner-actions">
             @if($syncAllowed)
-                <span class="badge" style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); padding: 8px 16px; font-size: var(--text-base, 0.875rem);">
+                <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); padding: 8px 16px; font-size: var(--text-base, 0.875rem);">
                     <i class="fas fa-unlock me-1"></i> Gerbang Feeder: Terbuka
                 </span>
             @else
-                <span class="badge" style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 8px 16px; font-size: var(--text-base, 0.875rem);">
+                <span class="badge" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); padding: 8px 16px; font-size: var(--text-base, 0.875rem);">
                     <i class="fas fa-lock me-1"></i> Gerbang Feeder: Terkunci (Perlu Arsip)
                 </span>
             @endif
@@ -31,11 +31,11 @@
     <!-- Alert Status Proteksi Sinkronisasi -->
     @if($isArchiveRequired)
         <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: var(--radius-lg, 12px); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 14px;">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444); display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
                 <i class="fas fa-shield-halved"></i>
             </div>
             <div>
-                <div style="font-weight: 700; color: #ef4444; font-size: var(--text-md, 1rem); margin-bottom: 4px;">
+                <div style="font-weight: 700; color: var(--danger, #ef4444); font-size: var(--text-md, 1rem); margin-bottom: 4px;">
                     Proteksi Data Aktif Diaktifkan — Sinkronisasi Feeder Ditolak
                 </div>
                 <p style="color: var(--text-color); font-size: var(--text-base, 0.875rem); margin: 0; line-height: 1.5;">
@@ -46,11 +46,11 @@
         </div>
     @else
         <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-lg, 12px); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-lg, 1.125rem); flex-shrink: 0;">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div>
-                <div style="font-weight: 700; color: #10b981; font-size: var(--text-md, 1rem); margin-bottom: 2px;">
+                <div style="font-weight: 700; color: var(--success, #10b981); font-size: var(--text-md, 1rem); margin-bottom: 2px;">
                     Data Telah Terarsip Lengkap &amp; Feeder Siap Sinkron
                 </div>
                 <p style="color: var(--text-muted); font-size: var(--text-base, 0.875rem); margin: 0;">
@@ -133,11 +133,11 @@
 
         <!-- Card Bersihkan Data -->
         <div class="card"
-            style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-top: 3px solid #ef4444;">
+            style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between; border-top: 3px solid var(--danger, #ef4444);">
             <div>
                 <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
                     <div
-                        style="width: 54px; height: 54px; background: rgba(239,68,68,0.12); color: #ef4444; font-size: 24px; border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        style="width: 54px; height: 54px; background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); font-size: 24px; border-radius: var(--radius-lg, 12px); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <i class="fas fa-broom"></i>
                     </div>
                     <div>
@@ -163,7 +163,7 @@
             <form action="{{ route('dashboard.maintenance.clean') }}" method="POST" id="formCleanData">
                 @csrf
                 <button type="submit" class="btn"
-                    style="width: 100%; background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); padding: 12px 24px; font-weight: 700; border-radius: var(--radius-md, 8px); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    style="width: 100%; background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); padding: 12px 24px; font-weight: 700; border-radius: var(--radius-md, 8px); transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <i class="fas fa-trash-can"></i> Bersihkan Residu Sistem
                 </button>
             </form>

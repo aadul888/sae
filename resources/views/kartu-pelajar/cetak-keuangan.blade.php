@@ -68,32 +68,32 @@
 
         <!-- 3 Summary Box Grid -->
         <div class="summary-box-grid">
-            <div class="summary-box" style="border-left: 4px solid #10b981;">
+            <div class="summary-box" style="border-left: 4px solid var(--success, #10b981);">
                 <div class="summary-box-label">Total Uang Masuk (Siswa Lunas)</div>
-                <div class="summary-box-val" style="color: #059669;">
+                <div class="summary-box-val" style="color: var(--success, #059669);">
                     Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
                 </div>
-                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 3px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b); margin-top: 3px;">
                     {{ number_format($pemasukanList->count(), 0, ',', '.') }} transaksi pembayaran siswa
                 </div>
             </div>
 
-            <div class="summary-box" style="border-left: 4px solid #ef4444;">
+            <div class="summary-box" style="border-left: 4px solid var(--danger, #ef4444);">
                 <div class="summary-box-label">Total Pengeluaran (Bahan &amp; Alat)</div>
-                <div class="summary-box-val" style="color: #dc2626;">
+                <div class="summary-box-val" style="color: var(--danger, #dc2626);">
                     Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
                 </div>
-                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 3px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b); margin-top: 3px;">
                     {{ number_format($pengeluaranList->count(), 0, ',', '.') }} nota belanja logistik kartu
                 </div>
             </div>
 
-            <div class="summary-box" style="border-left: 4px solid #3b82f6;">
+            <div class="summary-box" style="border-left: 4px solid var(--primary, #3b82f6);">
                 <div class="summary-box-label">Sisa Saldo Kas Bersih</div>
-                <div class="summary-box-val" style="color: #2563eb;">
+                <div class="summary-box-val" style="color: var(--primary-hover, #2563eb);">
                     Rp {{ number_format($saldoBersih, 0, ',', '.') }}
                 </div>
-                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 3px;">
+                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b); margin-top: 3px;">
                     Status: {{ $saldoBersih >= 0 ? 'Surplus / Kas Tersedia' : 'Defisit' }}
                 </div>
             </div>
@@ -102,7 +102,7 @@
         <!-- Tabel 1: Catatan Pengeluaran Bahan & Alat Cetak -->
         <div class="section-title">
             <span>I. RINCIAN PENGELUARAN PENGADAAN ALAT &amp; BAHAN CETAK</span>
-            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #dc2626;">Subtotal: Rp
+            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--danger, #dc2626);">Subtotal: Rp
                 {{ number_format($totalPengeluaran, 0, ',', '.') }}</span>
         </div>
 
@@ -134,21 +134,21 @@
                                 </span>
                             @endif
                             @if (!empty($p->keterangan))
-                                <div style="font-size: var(--text-xs, 0.75rem); color: #64748b; margin-top: 2px;">{{ $p->keterangan }}
+                                <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted, #64748b); margin-top: 2px;">{{ $p->keterangan }}
                                 </div>
                             @endif
                         </td>
                         <td>
                             {{ $kategoriList[$p->kategori] ?? ucfirst(str_replace('_', ' ', $p->kategori)) }}
                         </td>
-                        <td style="text-align: right; font-weight: 700; color: #dc2626;">
+                        <td style="text-align: right; font-weight: 700; color: var(--danger, #dc2626);">
                             Rp {{ number_format($p->nominal, 0, ',', '.') }}
                         </td>
                         <td style="font-size: var(--text-sm, 0.8125rem);">{{ $p->petugas ?: 'Admin' }}</td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" style="text-align: center; color: #94a3b8; padding: 14px;">
+                        <td colspan="6" style="text-align: center; color: var(--text-muted, #94a3b8); padding: 14px;">
                             Tidak ada catatan pengeluaran pada periode ini.
                         </td>
                     </tr>
@@ -159,7 +159,7 @@
         <!-- Tabel 2: Rincian Penerimaan Pembayaran Siswa -->
         <div class="section-title" style="margin-top: 26px;">
             <span>II. RINGKASAN PENERIMAAN PEMBAYARAN KARTU SISWA (LUNAS)</span>
-            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: #059669;">Subtotal: Rp
+            <span style="font-size: var(--text-sm, 0.8125rem); font-weight: 600; color: var(--success, #059669);">Subtotal: Rp
                 {{ number_format($totalPemasukan, 0, ',', '.') }}</span>
         </div>
 
@@ -185,13 +185,13 @@
                         <td style="font-family: monospace;">{{ $m->nisn ?: '-' }}</td>
                         <td>{{ $m->nama_rombel ?: '-' }}</td>
                         <td>{{ strtoupper($m->metode_pembayaran ?: 'Tunai') }}</td>
-                        <td style="text-align: right; font-weight: 700; color: #059669;">
+                        <td style="text-align: right; font-weight: 700; color: var(--success, #059669);">
                             Rp {{ number_format($m->nominal, 0, ',', '.') }}
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" style="text-align: center; color: #94a3b8; padding: 14px;">
+                        <td colspan="7" style="text-align: center; color: var(--text-muted, #94a3b8); padding: 14px;">
                             Tidak ada data penerimaan pembayaran siswa pada periode ini.
                         </td>
                     </tr>

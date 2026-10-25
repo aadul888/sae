@@ -4,11 +4,11 @@
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     {{-- Card 1: Siswa Aktif --}}
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-user-graduate"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #3b82f6;">
+            <div class="dash-stat-value" style="color: var(--primary, #3b82f6);">
                 {{ number_format($chartsUmum['populasi']['Peserta Didik'] ?? ($stats['total_siswa'] ?? 0), 0, ',', '.') }}
                 Siswa
             </div>
@@ -18,11 +18,11 @@
 
     {{-- Card 2: Guru & Pendidik --}}
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-chalkboard-user"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #10b981;">
+            <div class="dash-stat-value" style="color: var(--success, #10b981);">
                 {{ $chartsUmum['populasi']['Guru Pendidik'] ?? ($stats['total_guru'] ?? 0) }} Guru
             </div>
             <div class="dash-stat-label">Tenaga Pendidik</div>
@@ -44,11 +44,11 @@
 
     {{-- Card 4: Rombongan Belajar --}}
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-door-open"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="color: #f59e0b;">
+            <div class="dash-stat-value" style="color: var(--warning, #f59e0b);">
                 {{ $chartsUmum['populasi']['Rombel Belajar'] ?? ($stats['total_rombel'] ?? 0) }} Rombel
             </div>
             <div class="dash-stat-label">Rombongan Belajar</div>
@@ -93,15 +93,15 @@
             <div
                 style="display: flex; justify-content: center; gap: 12px; margin-top: 10px; font-size: var(--text-xs, 0.75rem); border-top: 1px solid var(--border-color); padding-top: 8px; flex-wrap: wrap;">
                 <span style="display: inline-flex; align-items: center; gap: 4px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary, #3b82f6);"></span>
                     <span>Siswa: <strong>{{ $chartsUmum['populasi']['Peserta Didik'] ?? 0 }}</strong></span>
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 4px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success, #10b981);"></span>
                     <span>Guru: <strong>{{ $chartsUmum['populasi']['Guru Pendidik'] ?? 0 }}</strong></span>
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 4px;">
-                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #6366f1;"></span>
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary-light, #6366f1);"></span>
                     <span>Tendik: <strong>{{ $chartsUmum['populasi']['Tenaga Tendik'] ?? 0 }}</strong></span>
                 </span>
             </div>
@@ -122,7 +122,7 @@
             <div
                 style="display: flex; justify-content: center; gap: 16px; margin-top: 10px; font-size: var(--text-sm, 0.8125rem); border-top: 1px solid var(--border-color); padding-top: 8px;">
                 <span style="display: inline-flex; align-items: center; gap: 6px;">
-                    <span style="width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span>
+                    <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--primary, #3b82f6);"></span>
                     <span>Laki-laki: <strong>{{ $chartsUmum['genderSiswa']['L'] ?? 0 }}</strong></span>
                 </span>
                 <span style="display: inline-flex; align-items: center; gap: 6px;">
@@ -164,17 +164,17 @@
 
 <!-- 3. Quick Links Modul Tendik Universal -->
 <div class="kepegawaian-quick-grid" style="margin-bottom: 24px;">
-    <a href="{{ route('dashboard.tendik.target.index') }}" class="kepegawaian-quick-btn" style="--quick-color: #6366f1;"
+    <a href="{{ route('dashboard.tendik.target.index') }}" class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);"
         title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-bullseye"></i>
         </div>
         <span class="kepegawaian-quick-label">Target &amp; Capaian</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.aktivitas.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #10b981;" title="Input Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        style="--quick-color: var(--success, #10b981);" title="Input Aktivitas Harian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-clipboard-check"></i>
         </div>
         <span class="kepegawaian-quick-label">Aktivitas Harian</span>
@@ -189,16 +189,16 @@
     </a>
 
     <a href="{{ route('dashboard.tendik-aktif.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #3b82f6;" title="Direktori Data Tendik">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        style="--quick-color: var(--primary, #3b82f6);" title="Direktori Data Tendik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-id-badge"></i>
         </div>
         <span class="kepegawaian-quick-label">Data Tendik</span>
     </a>
 
     <a href="{{ route('dashboard.guru-aktif.index') }}" class="kepegawaian-quick-btn"
-        style="--quick-color: #f59e0b;" title="Direktori Data Guru">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        style="--quick-color: var(--warning, #f59e0b);" title="Direktori Data Guru">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-chalkboard-user"></i>
         </div>
         <span class="kepegawaian-quick-label">Data Guru</span>

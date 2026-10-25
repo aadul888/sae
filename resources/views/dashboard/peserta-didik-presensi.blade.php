@@ -34,11 +34,11 @@
     <!-- 2. Stat Grid Baku SAE (Konsisten dengan Modul Peserta Didik Aktif) -->
     <div class="dash-stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 20px;">
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-percent"></i>
             </div>
             <div class="dash-stat-info">
-                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+                <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                     {{ $stats['persen'] }}%
                 </div>
                 <div class="dash-stat-label">Kehadiran ({{ $stats['total_hadir'] }}/{{ $stats['hari_efektif_berjalan'] }}
@@ -47,7 +47,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16,185,129,0.15); color: var(--success, #10b981);">
                 <i class="fas fa-circle-check"></i>
             </div>
             <div class="dash-stat-info">
@@ -59,7 +59,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: #f59e0b;">
+            <div class="dash-stat-icon" style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b);">
                 <i class="fas fa-clock"></i>
             </div>
             <div class="dash-stat-info">
@@ -71,7 +71,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: #3b82f6;">
+            <div class="dash-stat-icon" style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6);">
                 <i class="fas fa-file-lines"></i>
             </div>
             <div class="dash-stat-info">
@@ -83,7 +83,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-circle-xmark"></i>
             </div>
             <div class="dash-stat-info">
@@ -222,7 +222,7 @@
                     Menampilkan data kehadiran: <strong style="color: var(--text-color);">{{ $range['label'] }}</strong>
                 </div>
                 <div>
-                    Tingkat Kehadiran: <strong style="color: #10b981; font-weight: 800;">{{ $stats['persen'] }}%</strong>
+                    Tingkat Kehadiran: <strong style="color: var(--success, #10b981); font-weight: 800;">{{ $stats['persen'] }}%</strong>
                     ({{ $stats['total_hadir'] }} dari {{ $stats['total'] }} hari efektif)
                 </div>
             </div>
@@ -292,26 +292,26 @@
                                 data-label="Status Kehadiran">
                                 @if ($status === 'H')
                                     <span class="badge"
-                                        style="background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                        style="background: rgba(16,185,129,0.15); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-check-circle me-1"></i> Hadir Tepat
                                     </span>
                                 @elseif ($status === 'T')
                                     <span class="badge"
-                                        style="background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                        style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); border: 1px solid rgba(245,158,11,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-clock me-1"></i> Terlambat
                                     </span>
                                     @if ($log->menit_terlambat)
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: #f59e0b; margin-top: 3px;">
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--warning, #f59e0b); margin-top: 3px;">
                                             +{{ $log->menit_terlambat }} menit</div>
                                     @endif
                                 @elseif ($status === 'I')
                                     <span class="badge"
-                                        style="background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                        style="background: rgba(59,130,246,0.15); color: var(--primary, #3b82f6); border: 1px solid rgba(59,130,246,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-envelope-open-text me-1"></i> Izin
                                     </span>
                                 @elseif ($status === 'S')
                                     <span class="badge"
-                                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                        style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-notes-medical me-1"></i> Sakit
                                     </span>
                                 @elseif ($status === 'D')
@@ -321,7 +321,7 @@
                                     </span>
                                 @elseif ($status === 'A')
                                     <span class="badge"
-                                        style="background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
+                                        style="background: rgba(239,68,68,0.15); color: var(--danger, #ef4444); border: 1px solid rgba(239,68,68,0.3); font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm, 6px); font-size: var(--text-sm, 0.8125rem);">
                                         <i class="fas fa-circle-xmark me-1"></i> Alpha
                                     </span>
                                 @else

@@ -49,7 +49,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+            <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                 <i class="fas fa-bell"></i>
             </div>
             <div class="dash-stat-info">
@@ -59,7 +59,7 @@
         </div>
 
         <div class="dash-stat-card">
-            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+            <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                 <i class="fas fa-clock-rotate-left"></i>
             </div>
             <div class="dash-stat-info">
@@ -248,7 +248,7 @@
                         @if ($isUnread)
                             <button type="button" class="btn btn-outline btn-mark-single-read"
                                 data-id="{{ $item->id }}"
-                                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border-color: rgba(16,185,129,0.3); color: #10b981;"
+                                style="padding: 6px 12px; font-size: var(--text-sm, 0.8125rem); border-color: rgba(16,185,129,0.3); color: var(--success, #10b981);"
                                 title="Tandai sudah dibaca">
                                 <i class="fas fa-check me-1"></i> Tandai Dibaca
                             </button>

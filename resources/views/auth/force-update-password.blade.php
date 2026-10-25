@@ -14,7 +14,7 @@
             <!-- Header Title -->
             <div style="text-align: center; margin-bottom: 22px;">
                 <div
-                    style="width: 54px; height: 54px; border-radius: var(--radius-xl, 16px); background: rgba(239,68,68,0.12); color: #ef4444; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin-bottom: 12px; border: 1px solid rgba(239,68,68,0.25); box-shadow: 0 4px 12px rgba(239,68,68,0.15);">
+                    style="width: 54px; height: 54px; border-radius: var(--radius-xl, 16px); background: rgba(239,68,68,0.12); color: var(--danger, #ef4444); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin-bottom: 12px; border: 1px solid rgba(239,68,68,0.25); box-shadow: 0 4px 12px rgba(239,68,68,0.15);">
                     <i class="fas fa-shield-halved"></i>
                 </div>
                 <h2 style="font-size: var(--text-2xl, 1.5rem); font-weight: 800; color: var(--text-color); margin-bottom: 4px;">
@@ -47,7 +47,7 @@
 
             <!-- Alert Notice -->
             <div
-                style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #d97706; padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); line-height: 1.4; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
+                style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--warning, #d97706); padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); line-height: 1.4; margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px;">
                 <i class="fas fa-triangle-exclamation" style="margin-top: 2px; font-size: var(--text-md, 1rem); flex-shrink: 0;"></i>
                 <div>
                     <strong>Perhatian:</strong> Password akun Anda terdeteksi menggunakan password default (NISN). Demi
@@ -58,7 +58,7 @@
 
             @if ($errors->any())
                 <div
-                    style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px;">
+                    style="background: rgba(239,68,68,0.1); border: 1px solid var(--danger, #ef4444); color: var(--danger, #ef4444); padding: 10px 14px; border-radius: var(--radius-lg, 12px); font-size: var(--text-sm, 0.8125rem); margin-bottom: 20px;">
                     <i class="fas fa-circle-exclamation"></i> {{ $errors->first() }}
                 </div>
             @endif

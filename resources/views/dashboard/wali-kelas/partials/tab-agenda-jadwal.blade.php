@@ -77,11 +77,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
             <i class="fas fa-circle-check"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #10b981;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--success, #10b981);">
                 {{ $dailySummary['terisi'] }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 600;">Mapel</span>
             </div>
             <div class="dash-stat-label">Agenda Sudah Diisi</div>
@@ -89,11 +89,11 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
-            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: #f59e0b;">
+            <div class="dash-stat-value" style="font-size: var(--text-2xl, 1.5rem); color: var(--warning, #f59e0b);">
                 {{ $dailySummary['belum'] }} <span style="font-size: var(--text-xs, 0.75rem); font-weight: 600;">Mapel</span>
             </div>
             <div class="dash-stat-label">Belum Diisi Agenda</div>
@@ -239,7 +239,7 @@
                                     @endif
                                     @if (!empty($agenda->penugasan))
                                         <div
-                                            style="font-size: var(--text-xs, 0.75rem); color: #10b981; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
+                                            style="font-size: var(--text-xs, 0.75rem); color: var(--success, #10b981); margin-top: 3px; display: inline-flex; align-items: center; gap: 4px;">
                                             <i class="fas fa-tasks"></i>
                                             <span>{{ \Illuminate\Support\Str::limit($agenda->penugasan, 45) }}</span>
                                         </div>
@@ -286,7 +286,7 @@
                                     @if ($canUpdate)
                                         <button type="button" class="btn-icon btn-edit-agenda"
                                             data-id="{{ $agenda->id }}" title="Edit Agenda Kelas"
-                                            style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: #f59e0b;">
+                                            style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: var(--warning, #f59e0b);">
                                             <i class="fas fa-pen-to-square"></i>
                                         </button>
                                     @endif
@@ -294,7 +294,7 @@
                                     @if ($canDelete)
                                         <button type="button" class="btn-icon btn-delete-agenda"
                                             data-id="{{ $agenda->id }}" title="Hapus Agenda"
-                                            style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: #ef4444;">
+                                            style="width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); color: var(--danger, #ef4444);">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     @endif

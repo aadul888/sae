@@ -104,8 +104,8 @@
         </div>
     @elseif (isset($statusHari) && $statusHari['mode'] === 'daring')
         <div class="card"
-            style="margin-bottom: 20px; border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.1); padding: 14px 20px; text-align: center;">
-            <div style="font-weight: 800; font-size: var(--text-md, 1rem); color: #3b82f6;">
+            style="margin-bottom: 20px; border-left: 4px solid var(--primary, #3b82f6); background: rgba(59, 130, 246, 0.1); padding: 14px 20px; text-align: center;">
+            <div style="font-weight: 800; font-size: var(--text-md, 1rem); color: var(--primary, #3b82f6);">
                 <i class="fas fa-laptop-house me-2"></i> PEMBELAJARAN DARING (PJJ):
                 {{ $agendaLibur ? $agendaLibur->nama_kegiatan : 'Jadwal PJJ / Daring' }}
             </div>
@@ -226,7 +226,7 @@
                     </div>
                     <div
                         style="background: rgba(239,68,68,0.08); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1px dashed rgba(239,68,68,0.3); text-align: center;">
-                        <div style="color: #ef4444; font-weight: 800; font-size: var(--text-md, 1rem); margin-bottom: 3px;">
+                        <div style="color: var(--danger, #ef4444); font-weight: 800; font-size: var(--text-md, 1rem); margin-bottom: 3px;">
                             <i class="fas fa-calendar-xmark me-1"></i> Tidak Beroperasi (Hari Libur)
                         </div>
                         <div style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); line-height: 1.4;">
@@ -246,7 +246,7 @@
                     </div>
                     <div
                         style="background: rgba(245,158,11,0.08); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1px dashed rgba(245,158,11,0.3); text-align: center;">
-                        <div style="color: #f59e0b; font-weight: 800; font-size: var(--text-md, 1rem); margin-bottom: 3px;">
+                        <div style="color: var(--warning, #f59e0b); font-weight: 800; font-size: var(--text-md, 1rem); margin-bottom: 3px;">
                             <i class="fas fa-calendar-minus me-1"></i> Tidak Beroperasi (Hari Non-Aktif)
                         </div>
                         <div style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); line-height: 1.4;">
@@ -257,7 +257,7 @@
                 @elseif (isset($statusHari) && $statusHari['mode'] === 'daring')
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #06b6d4; text-transform: uppercase;">
+                        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--accent, #06b6d4); text-transform: uppercase;">
                             <i class="fas fa-laptop-house text-accent me-1"></i> Jadwal Operasional Hari Ini
                         </div>
                         <span class="badge badge-primary" style="font-size: var(--text-xs, 0.75rem); font-weight: 700;">DARING
@@ -265,7 +265,7 @@
                     </div>
                     <div
                         style="background: rgba(6,182,212,0.08); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1px dashed rgba(6,182,212,0.3); text-align: center;">
-                        <div style="color: #06b6d4; font-weight: 800; font-size: var(--text-base, 0.875rem); margin-bottom: 3px;">
+                        <div style="color: var(--accent, #06b6d4); font-weight: 800; font-size: var(--text-base, 0.875rem); margin-bottom: 3px;">
                             <i class="fas fa-house-laptop me-1"></i> Pembelajaran Daring (PJJ)
                         </div>
                         <div style="color: var(--text-muted); font-size: var(--text-sm, 0.8125rem); line-height: 1.4;">

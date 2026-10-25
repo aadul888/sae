@@ -9,7 +9,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-tools"></i>
                 </div>
                 <div>
@@ -35,7 +35,7 @@
         <!-- 2. Stat Grid Baku SAE -->
         <div class="dash-stat-grid" style="margin-bottom: 20px;">
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <div class="dash-stat-icon" style="background: rgba(245,158,11,0.12); color: var(--warning, #f59e0b);">
                     <i class="fas fa-clock"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -45,7 +45,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6);">
                     <i class="fas fa-screwdriver-wrench"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -55,7 +55,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16,185,129,0.12); color: var(--success, #10b981);">
                     <i class="fas fa-circle-check"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -65,7 +65,7 @@
             </div>
 
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239,68,68,0.12); color: var(--danger, #ef4444);">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -257,12 +257,12 @@
                                 </td>
                                 <td style="padding: 14px 18px;">
                                     <span class="badge"
-                                        style="background-color: #f1f5f9; color: var(--text-heading); font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
+                                        style="background-color: var(--text-main, #f1f5f9); color: var(--text-heading); font-size: var(--text-xs, 0.75rem); padding: 3px 8px; border-radius: var(--radius-xs, 4px); font-weight: 600;">
                                         {{ $kategoriLabel }}
                                     </span>
                                     <div
                                         style="font-weight: 600; color: var(--text-heading); font-size: var(--text-base, 0.875rem); margin-top: 4px;">
-                                        <i class="fas fa-map-marker-alt" style="color: #ef4444; font-size: var(--text-sm, 0.8125rem);"></i>
+                                        <i class="fas fa-map-marker-alt" style="color: var(--danger, #ef4444); font-size: var(--text-sm, 0.8125rem);"></i>
                                         {{ $row->lokasi_unit }}
                                     </div>
                                 </td>
@@ -272,7 +272,7 @@
                                         {{ Str::limit($row->deskripsi_kerusakan, 90) }}
                                     </div>
                                     @if ($row->tindakan_perbaikan)
-                                        <div style="font-size: var(--text-sm, 0.8125rem); color: #10b981; margin-top: 4px;">
+                                        <div style="font-size: var(--text-sm, 0.8125rem); color: var(--success, #10b981); margin-top: 4px;">
                                             <i class="fas fa-check"></i> {{ Str::limit($row->tindakan_perbaikan, 60) }}
                                         </div>
                                     @endif
@@ -298,7 +298,7 @@
                                     <div class="table-actions" style="display: flex; gap: 6px; justify-content: center;">
                                         <button type="button" class="btn-icon btn-update-wo"
                                             data-item="{{ json_encode($row) }}" title="Update Status & Tindakan"
-                                            style="background-color: #3b82f6; color: #fff; width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                            style="background-color: var(--primary, #3b82f6); color: #fff; width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                             <i class="fas fa-edit" style="font-size: var(--text-sm, 0.8125rem);"></i>
                                         </button>
                                         <form action="{{ route('dashboard.teknisi.work-order.destroy', $row->id) }}"
@@ -307,7 +307,7 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn-icon btn-delete-wo"
                                                 data-nomor="{{ $row->nomor_wo }}" title="Hapus WO"
-                                                style="background-color: #fee2e2; color: #ef4444; width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                                                style="background-color: #fee2e2; color: var(--danger, #ef4444); width: 32px; height: 32px; border-radius: var(--radius-sm, 6px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                                                 <i class="fas fa-trash-alt" style="font-size: var(--text-sm, 0.8125rem);"></i>
                                             </button>
                                         </form>
@@ -464,7 +464,7 @@
                 <div
                     style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                     <h3 style="margin: 0; font-size: var(--text-lg, 1.125rem); font-weight: 700; color: var(--text-heading);">
-                        <i class="fas fa-wrench" style="color: #3b82f6; margin-right: 8px;"></i>
+                        <i class="fas fa-wrench" style="color: var(--primary, #3b82f6); margin-right: 8px;"></i>
                         Update Tindakan & Status WO
                     </h3>
                     <button type="button" onclick="closeModalUpdateWO()"
@@ -532,7 +532,7 @@
                         style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                         <button type="button" onclick="closeModalUpdateWO()" class="btn btn-secondary">Batal</button>
                         <button type="submit" class="btn btn-primary"
-                            style="background-color: #3b82f6; border-color: #3b82f6;"><i class="fas fa-save"></i> Simpan
+                            style="background-color: var(--primary, #3b82f6); border-color: var(--primary, #3b82f6);"><i class="fas fa-save"></i> Simpan
                             Update</button>
                     </div>
                 </form>

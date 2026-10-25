@@ -10,7 +10,7 @@
             style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 14px;">
                 <div
-                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
+                    style="width: 48px; height: 48px; border-radius: var(--radius-lg, 12px); background: rgba(59,130,246,0.12); color: var(--primary, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); flex-shrink: 0;">
                     <i class="fas fa-flask"></i>
                 </div>
                 <div>
@@ -45,7 +45,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+                <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
                     <i class="fas fa-microscope"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -54,7 +54,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+                <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
                     <i class="fas fa-vial"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -63,7 +63,7 @@
                 </div>
             </div>
             <div class="dash-stat-card">
-                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                <div class="dash-stat-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--danger, #ef4444);">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
                 <div class="dash-stat-info">
@@ -198,7 +198,7 @@
                                     <div style="font-size: var(--text-sm, 0.8125rem); color: var(--primary); font-family: monospace;">
                                         {{ $item->kode_item }}</div>
                                     @if ($item->tgl_kedaluwarsa)
-                                        <div style="font-size: var(--text-xs, 0.75rem); color: #f59e0b;">Exp:
+                                        <div style="font-size: var(--text-xs, 0.75rem); color: var(--warning, #f59e0b);">Exp:
                                             {{ \Carbon\Carbon::parse($item->tgl_kedaluwarsa)->format('d/m/Y') }}</div>
                                     @endif
                                 </td>
@@ -222,7 +222,7 @@
                                 </td>
                                 <td data-label="Stok" style="padding: 14px 18px; text-align: center;">
                                     <div
-                                        style="font-weight: 700; font-size: var(--text-md, 1rem); color: {{ $isLow ? '#ef4444;' : 'var(--text-color)' }};">
+                                        style="font-weight: 700; font-size: var(--text-md, 1rem); color: {{ $isLow ? 'var(--danger, #ef4444);' : 'var(--text-color)' }};">
                                         {{ (float) $item->stok_tersedia }} / {{ (float) $item->stok_total }}
                                         {{ $item->satuan }}
                                     </div>
@@ -260,7 +260,7 @@
                                         @if ($canDelete)
                                             <button type="button" class="btn-icon btn-delete-lab"
                                                 data-id="{{ $item->id }}" data-nama="{{ $item->nama_item }}"
-                                                title="Hapus Item" style="color: #ef4444;">
+                                                title="Hapus Item" style="color: var(--danger, #ef4444);">
                                                 <i class="fas fa-trash-can"></i>
                                             </button>
                                         @endif
@@ -338,7 +338,7 @@
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                                 <label style="font-size: var(--text-base, 0.875rem); font-weight: 600; color: var(--text-color); margin: 0;">
-                                    Ruang Lab / Bengkel <span style="color: #ef4444;">*</span>
+                                    Ruang Lab / Bengkel <span style="color: var(--danger, #ef4444);">*</span>
                                 </label>
                                 <a href="{{ route('dashboard.sarpras.ruang.index') }}" target="_blank"
                                     style="font-size: var(--text-xs, 0.75rem); color: var(--primary); text-decoration: none;"
@@ -369,7 +369,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Jenis
-                                Item <span style="color: #ef4444;">*</span></label>
+                                Item <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="jenis" id="labJenis" class="form-control" required>
                                 <option value="alat">Alat Praktikum</option>
                                 <option value="bahan_habis_pakai">Bahan Habis Pakai</option>
@@ -381,14 +381,14 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kode
-                                Item <span style="color: #ef4444;">*</span></label>
+                                Item <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="kode_item" id="labKode" class="form-control"
                                 placeholder="LAB-IPA-001" required>
                         </div>
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Nama
-                                Alat / Bahan <span style="color: #ef4444;">*</span></label>
+                                Alat / Bahan <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="nama_item" id="labNama" class="form-control"
                                 placeholder="Mikroskop Binokuler / Asam Klorida" required>
                         </div>
@@ -398,7 +398,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Stok
-                                Total <span style="color: #ef4444;">*</span></label>
+                                Total <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="number" step="0.01" name="stok_total" id="labStokTotal"
                                 class="form-control" value="1" required>
                         </div>
@@ -412,7 +412,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Satuan
-                                <span style="color: #ef4444;">*</span></label>
+                                <span style="color: var(--danger, #ef4444);">*</span></label>
                             <input type="text" name="satuan" id="labSatuan" class="form-control" value="unit"
                                 placeholder="unit/botol/pcs" required>
                         </div>
@@ -422,7 +422,7 @@
                         <div>
                             <label
                                 style="display: block; font-size: var(--text-base, 0.875rem); font-weight: 600; margin-bottom: 6px; color: var(--text-color);">Kondisi
-                                <span style="color: #ef4444;">*</span></label>
+                                <span style="color: var(--danger, #ef4444);">*</span></label>
                             <select name="kondisi" id="labKondisi" class="form-control" required>
                                 <option value="baik">Baik</option>
                                 <option value="rusak_ringan">Rusak Ringan</option>

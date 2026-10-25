@@ -116,7 +116,7 @@
                                                     <i class="fas fa-arrow-right"
                                                         style="font-size: var(--text-2xs, 0.6875rem); color: var(--text-muted);"></i>
                                                     <span
-                                                        style="font-weight: 700; color: #10b981; font-size: var(--text-xs, 0.75rem);">{{ \Illuminate\Support\Str::limit($kItem['nilai_baru'], 16) }}</span>
+                                                        style="font-weight: 700; color: var(--success, #10b981); font-size: var(--text-xs, 0.75rem);">{{ \Illuminate\Support\Str::limit($kItem['nilai_baru'], 16) }}</span>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -182,7 +182,7 @@
                                             <button type="button" class="btn-icon btn-mark-dapodik"
                                                 data-id="{{ $usulanPdId }}" data-nama="{{ $item->siswa?->nama }}"
                                                 title="Tandai Selesai Di-update ke Dapodik"
-                                                style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); cursor: pointer;">
+                                                style="width: 34px; height: 34px; border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; justify-content: center; background: rgba(16,185,129,0.12); color: var(--success, #10b981); border: 1px solid rgba(16,185,129,0.25); cursor: pointer;">
                                                 <i class="fas fa-cloud-arrow-up"></i>
                                             </button>
                                         @endif

@@ -93,7 +93,7 @@
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                         <div
-                            style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: #10b981;">
+                            style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-2xl, 20px); font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--success, #10b981);">
                             <i class="fas fa-circle-check"></i> Peserta Didik Aktif
                         </div>
                         <div
@@ -164,7 +164,7 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
                 <!-- Step 1 -->
                 <div
-                    style="background: var(--bg-hover); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step1Done ? '#10b981' : '#f59e0b' }}; display: flex; flex-direction: column; justify-content: space-between;">
+                    style="background: var(--bg-hover); padding: 12px 14px; border-radius: var(--radius-lg, 12px); border: 1.5px solid {{ $step1Done ? 'var(--success, #10b981)' : '#f59e0b' }}; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <div
                             style="font-size: var(--text-xs, 0.75rem); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
@@ -181,7 +181,7 @@
                                     class="fas fa-check me-1"></i> Ada Perubahan</span>
                         @else
                             <span class="badge badge-outline"
-                                style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; color: #f59e0b;"><i
+                                style="font-size: var(--text-xs, 0.75rem); padding: 3px 8px; color: var(--warning, #f59e0b);"><i
                                     class="fas fa-clock me-1"></i> Belum Konfirmasi</span>
                         @endif
                     </div>
@@ -328,7 +328,7 @@
                             @endif
                         @else
                             <span class="badge"
-                                style="background: rgba(245,158,11,0.15); color: #f59e0b; font-size: var(--text-xs, 0.75rem); padding: 4px 10px; border: 1px solid rgba(245,158,11,0.3);">
+                                style="background: rgba(245,158,11,0.15); color: var(--warning, #f59e0b); font-size: var(--text-xs, 0.75rem); padding: 4px 10px; border: 1px solid rgba(245,158,11,0.3);">
                                 <i class="fas fa-lock me-1"></i> Belum Dikonfirmasi (Formulir Terkunci)
                             </span>
                         @endif
@@ -455,7 +455,7 @@
                     <div style="display: flex; gap: 10px; align-items: center;">
                         @if ($isFormLocked)
                             <button type="button" class="btn btn-outline btn-konfirmasi-dialog"
-                                style="padding: 10px 20px; font-weight: 700; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 8px; color: #f59e0b; border-color: rgba(245,158,11,0.4);">
+                                style="padding: 10px 20px; font-weight: 700; font-size: var(--text-base, 0.875rem); border-radius: var(--radius-md, 8px); display: inline-flex; align-items: center; gap: 8px; color: var(--warning, #f59e0b); border-color: rgba(245,158,11,0.4);">
                                 <i class="fas fa-lock"></i> Formulir Terkunci (Buka / Konfirmasi)
                             </button>
                         @else
@@ -577,10 +577,10 @@
                 <button type="button" class="btn btn-tile-konfirmasi" data-status="sesuai"
                     style="background: rgba(16, 185, 129, 0.08); border: 2px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                     <div
-                        style="width: 46px; height: 46px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: #10b981; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem);">
+                        style="width: 46px; height: 46px; border-radius: 50%; background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem);">
                         <i class="fas fa-circle-check"></i>
                     </div>
-                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: #10b981;">Data Sesuai</div>
+                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: var(--success, #10b981);">Data Sesuai</div>
                     <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); line-height: 1.3;">Data benar &amp; terkunci
                     </div>
                 </button>
@@ -589,10 +589,10 @@
                 <button type="button" class="btn btn-tile-konfirmasi" data-status="perlu_perbaikan"
                     style="background: rgba(245, 158, 11, 0.08); border: 2px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-lg, 12px); padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                     <div
-                        style="width: 46px; height: 46px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem);">
+                        style="width: 46px; height: 46px; border-radius: 50%; background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b); display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem);">
                         <i class="fas fa-pen-to-square"></i>
                     </div>
-                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: #f59e0b;">Perlu Perbaikan</div>
+                    <div style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: var(--warning, #f59e0b);">Perlu Perbaikan</div>
                     <div style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted); line-height: 1.3;">Buka usulan perubahan
                     </div>
                 </button>

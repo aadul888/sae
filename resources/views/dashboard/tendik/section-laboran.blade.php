@@ -3,40 +3,40 @@
 <!-- 1. Akses Cepat Menu Laboran (Responsive Grid Seimbang & Genap) -->
 <div class="kepegawaian-quick-grid">
     <a href="{{ route('dashboard.sarpras.aset.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #3b82f6;" title="Inventaris Peralatan Praktikum">
-        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary, #3b82f6);" title="Inventaris Peralatan Praktikum">
+        <div class="kepegawaian-quick-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-microscope"></i>
         </div>
         <span class="kepegawaian-quick-label">Alat Praktik</span>
     </a>
 
     <a href="{{ route('dashboard.sarpras.peminjaman.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #f59e0b;" title="Peminjaman Alat Praktik">
-        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--warning, #f59e0b);" title="Peminjaman Alat Praktik">
+        <div class="kepegawaian-quick-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-hand-holding"></i>
         </div>
         <span class="kepegawaian-quick-label">Peminjaman</span>
     </a>
 
     <a href="{{ route('dashboard.pembelajaran.index') }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #10b981;" title="Jadwal Mapel Praktik KBM">
-        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--success, #10b981);" title="Jadwal Mapel Praktik KBM">
+        <div class="kepegawaian-quick-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-calendar-day"></i>
         </div>
         <span class="kepegawaian-quick-label">Jadwal Praktik</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.target.index', ['bidang' => 'laboran']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #6366f1;" title="Target &amp; Capaian Kinerja">
-        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--primary-light, #6366f1);" title="Target &amp; Capaian Kinerja">
+        <div class="kepegawaian-quick-icon" style="background: rgba(99, 102, 241, 0.15); color: var(--primary-light, #6366f1);">
             <i class="fas fa-bullseye"></i>
         </div>
         <span class="kepegawaian-quick-label">Target Capaian</span>
     </a>
 
     <a href="{{ route('dashboard.tendik.aktivitas.index', ['bidang' => 'laboran']) }}"
-        class="kepegawaian-quick-btn" style="--quick-color: #06b6d4;" title="Input Log Aktivitas Harian">
-        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;">
+        class="kepegawaian-quick-btn" style="--quick-color: var(--accent, #06b6d4);" title="Input Log Aktivitas Harian">
+        <div class="kepegawaian-quick-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent, #06b6d4);">
             <i class="fas fa-clipboard-check"></i>
         </div>
         <span class="kepegawaian-quick-label">Aktivitas Harian</span>
@@ -54,7 +54,7 @@
 <!-- 2. Quick Stats Grid Laboran (Responsive) -->
 <div class="dash-stat-grid" style="margin-bottom: 24px; gap: 14px;">
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <div class="dash-stat-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--success, #10b981);">
             <i class="fas fa-flask"></i>
         </div>
         <div class="dash-stat-info">
@@ -64,7 +64,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <div class="dash-stat-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--primary, #3b82f6);">
             <i class="fas fa-clock"></i>
         </div>
         <div class="dash-stat-info">
@@ -74,7 +74,7 @@
     </div>
 
     <div class="dash-stat-card">
-        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+        <div class="dash-stat-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--warning, #f59e0b);">
             <i class="fas fa-microscope"></i>
         </div>
         <div class="dash-stat-info">
@@ -105,7 +105,7 @@
                 Visualisasi sebaran unit laboratorium, kondisi kesiapan peralatan, dan klasifikasi inventaris praktikum.
             </p>
         </div>
-        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: #10b981; background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
+        <div style="font-size: var(--text-sm, 0.8125rem); font-weight: 700; color: var(--success, #10b981); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: var(--radius-2xl, 20px); border: 1px solid rgba(16,185,129,0.25);">
             <i class="fas fa-flask me-1"></i> Standar K3 Lab
         </div>
     </div>

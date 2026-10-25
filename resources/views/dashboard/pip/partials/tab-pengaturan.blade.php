@@ -38,12 +38,12 @@
             <div>
                 <span style="color: var(--text-muted);">Status Penguncian:</span><br>
                 @if ($info['is_locked'])
-                    <strong style="color: #ef4444;"><i class="fas fa-lock me-1"></i> Terkunci Manual oleh Admin</strong>
+                    <strong style="color: var(--danger, #ef4444);"><i class="fas fa-lock me-1"></i> Terkunci Manual oleh Admin</strong>
                 @elseif ($info['is_expired'])
-                    <strong style="color: #ef4444;"><i class="fas fa-clock-rotate-left me-1"></i> Batas Waktu Telah
+                    <strong style="color: var(--danger, #ef4444);"><i class="fas fa-clock-rotate-left me-1"></i> Batas Waktu Telah
                         Berakhir</strong>
                 @else
-                    <strong style="color: #10b981;"><i class="fas fa-lock-open me-1"></i> Terbuka (Dapat Diisi Wali
+                    <strong style="color: var(--success, #10b981);"><i class="fas fa-lock-open me-1"></i> Terbuka (Dapat Diisi Wali
                         Kelas)</strong>
                 @endif
             </div>
@@ -53,7 +53,7 @@
             </div>
             <div>
                 <span style="color: var(--text-muted);">Kunci Otomatis (Auto-Lock):</span><br>
-                <strong style="color: {{ $settings->kunci_otomatis ? '#10b981' : '#f59e0b' }};">
+                <strong style="color: {{ $settings->kunci_otomatis ? 'var(--success, #10b981)' : '#f59e0b' }};">
                     {{ $settings->kunci_otomatis ? 'Aktif (Otomatis Kunci Saat Waktu Habis)' : 'Non-Aktif (Manual Saja)' }}
                 </strong>
             </div>
@@ -154,7 +154,7 @@
                     <input type="radio" name="is_locked" value="0" {{ !$settings->is_locked ? 'checked' : '' }}
                         style="margin-top: 3px;">
                     <div>
-                        <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: #10b981;">
+                        <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--success, #10b981);">
                             <i class="fas fa-lock-open me-1"></i> Buka Pengusulan (Terbuka)
                         </div>
                         <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">
@@ -169,7 +169,7 @@
                     <input type="radio" name="is_locked" value="1" {{ $settings->is_locked ? 'checked' : '' }}
                         style="margin-top: 3px;">
                     <div>
-                        <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: #ef4444;">
+                        <div style="font-weight: 700; font-size: var(--text-base, 0.875rem); color: var(--danger, #ef4444);">
                             <i class="fas fa-lock me-1"></i> Kunci Pengusulan Sekarang
                         </div>
                         <div style="font-size: var(--text-sm, 0.8125rem); color: var(--text-muted); margin-top: 2px;">

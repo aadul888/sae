@@ -248,7 +248,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 24px; color: #64748b;">
+                        <td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted, #64748b);">
                             Tidak ada dokumen surat yang tercatat pada rentang periode yang dipilih.
                         </td>
                     </tr>

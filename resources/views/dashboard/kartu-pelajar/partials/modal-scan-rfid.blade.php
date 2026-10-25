@@ -6,7 +6,7 @@
 
         <!-- Header -->
         <div class="kp-modal-header"
-            style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #ffffff; padding: 14px 20px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
+            style="background: linear-gradient(135deg, var(--success, #059669) 0%, #047857 100%); color: #ffffff; padding: 14px 20px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <div
                     style="width: 36px; height: 36px; border-radius: var(--radius-lg, 12px); background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: var(--text-xl, 1.25rem);">
@@ -51,11 +51,11 @@
 
             <!-- STEP 1B: KARTU SISWA TERPILIH (Muncul Saat Siswa Terpilih) -->
             <div id="scanIdentifiedCard"
-                style="display: none; margin-bottom: 14px; padding: 12px 14px; border-radius: var(--radius-lg, 12px); background: rgba(5, 150, 105, 0.08); border: 1.5px solid #059669;">
+                style="display: none; margin-bottom: 14px; padding: 12px 14px; border-radius: var(--radius-lg, 12px); background: rgba(5, 150, 105, 0.08); border: 1.5px solid var(--success, #059669);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <img id="scanStudentPhoto" src="{{ asset('img/logo-dark.png') }}" alt="Foto Siswa"
-                            style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #059669; flex-shrink: 0;"
+                            style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--success, #059669); flex-shrink: 0;"
                             onerror="this.src='/img/logo-dark.png'">
                         <div>
                             <div id="scanStudentNama"
@@ -64,14 +64,14 @@
                                 NISN: <span id="scanStudentNisn">-</span> &bull; <span id="scanStudentRombel">-</span>
                             </div>
                             <div id="scanStudentRfidStatus"
-                                style="font-size: var(--text-xs, 0.75rem); color: #059669; font-weight: 700; margin-top: 2px;">
+                                style="font-size: var(--text-xs, 0.75rem); color: var(--success, #059669); font-weight: 700; margin-top: 2px;">
                                 <i class="fas fa-id-card me-1"></i> RFID Terdaftar: <span
                                     id="scanStudentCurrentRfid">Belum Ada</span>
                             </div>
                         </div>
                     </div>
                     <button type="button" onclick="resetIdentifiedStudent()" class="btn btn-outline btn-sm"
-                        style="padding: 3px 8px; font-size: var(--text-xs, 0.75rem); border-color: #94a3b8; color: var(--text-muted);"
+                        style="padding: 3px 8px; font-size: var(--text-xs, 0.75rem); border-color: var(--text-muted, #94a3b8); color: var(--text-muted);"
                         title="Pilih siswa lain">
                         <i class="fas fa-times me-1"></i> Ganti
                     </button>
@@ -80,9 +80,9 @@
 
             <!-- STEP 2: KOTAK TAP KARTU RFID FISIK -->
             <div id="scanRfidTapBox"
-                style="background: var(--bg-hover); border: 2px dashed #059669; border-radius: var(--radius-xl, 16px); padding: 20px 16px; text-align: center; margin-bottom: 14px;">
+                style="background: var(--bg-hover); border: 2px dashed var(--success, #059669); border-radius: var(--radius-xl, 16px); padding: 20px 16px; text-align: center; margin-bottom: 14px;">
                 <div
-                    style="width: 56px; height: 56px; border-radius: 50%; background: rgba(5,150,105,0.12); color: #059669; display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin-bottom: 8px;">
+                    style="width: 56px; height: 56px; border-radius: 50%; background: rgba(5,150,105,0.12); color: var(--success, #059669); display: inline-flex; align-items: center; justify-content: center; font-size: var(--text-2xl, 1.5rem); margin-bottom: 8px;">
                     <i class="fas fa-satellite-dish"></i>
                 </div>
                 <div style="font-size: var(--text-base, 0.875rem); font-weight: 800; color: var(--text-color); margin-bottom: 2px;">
@@ -100,12 +100,12 @@
                         <div style="position: relative; flex: 1;">
                             <input type="text" id="inputScanCode" class="form-control"
                                 placeholder="Menunggu tap kartu RFID fisik..." autocomplete="off" autofocus
-                                style="width: 100%; height: 40px; padding-left: 38px; font-size: var(--text-base, 0.875rem); font-weight: 800; font-family: monospace; letter-spacing: 0.5px; border-color: #059669;">
+                                style="width: 100%; height: 40px; padding-left: 38px; font-size: var(--text-base, 0.875rem); font-weight: 800; font-family: monospace; letter-spacing: 0.5px; border-color: var(--success, #059669);">
                             <i class="fas fa-microchip"
-                                style="position: absolute; left: 13px; top: 13px; color: #059669; font-size: var(--text-md, 1rem);"></i>
+                                style="position: absolute; left: 13px; top: 13px; color: var(--success, #059669); font-size: var(--text-md, 1rem);"></i>
                         </div>
                         <button type="submit" id="btnProsesScan" class="btn btn-primary"
-                            style="background: #059669; border-color: #059669; height: 40px; padding: 0 18px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 6px;">
+                            style="background: var(--success, #059669); border-color: var(--success, #059669); height: 40px; padding: 0 18px; font-weight: 700; font-size: var(--text-sm, 0.8125rem); display: inline-flex; align-items: center; gap: 6px;">
                             <i class="fas fa-bolt"></i> <span>Kirim</span>
                         </button>
                     </div>
@@ -114,9 +114,9 @@
 
             <!-- Hasil Terakhir Scan / Live Feedback Flash Card -->
             <div id="scanResultBox"
-                style="display: none; padding: 12px 14px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.1); border: 1.5px solid #10b981; margin-bottom: 6px; animation: kpResultFlash 0.35s ease;">
+                style="display: none; padding: 12px 14px; border-radius: var(--radius-lg, 12px); background: rgba(16,185,129,0.1); border: 1.5px solid var(--success, #10b981); margin-bottom: 6px; animation: kpResultFlash 0.35s ease;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                    <div style="font-size: var(--text-xs, 0.75rem); font-weight: 800; color: #10b981; text-transform: uppercase;">
+                    <div style="font-size: var(--text-xs, 0.75rem); font-weight: 800; color: var(--success, #10b981); text-transform: uppercase;">
                         <i class="fas fa-circle-check me-1"></i> Selesai Dicetak &amp; Terdaftar ke Presensi
                     </div>
                     <span id="scanResultTime" style="font-size: var(--text-xs, 0.75rem); color: var(--text-muted);"></span>
